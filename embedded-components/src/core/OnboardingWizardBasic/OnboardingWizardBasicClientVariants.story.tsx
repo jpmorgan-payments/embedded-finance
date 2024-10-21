@@ -102,3 +102,25 @@ export const EMBEDDED_BANKING_LLC: Story = {
     },
   },
 };
+
+export const CANADA_MS_LLC: Story = {
+  name: 'Canada MS LLC',
+  ...Primary,
+  args: {
+    ...Primary.args,
+    clientId: '0030000133',
+    useCase: 'CanadaMS',
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/clients/0030000133', async () => {
+          return HttpResponse.json(efClientCorpEBMock);
+        }),
+        http.post('/clients/0030000133', () => {
+          return HttpResponse.json(efClientCorpEBMock);
+        }),
+      ],
+    },
+  },
+};

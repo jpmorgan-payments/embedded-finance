@@ -1,0 +1,389 @@
+{
+  "naics_codes": [
+    {
+      "code": "111110",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Soybean Farming"
+    },
+    {
+      "code": "111120",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Oilseed (Except Soybean) Farming"
+    },
+    {
+      "code": "111130",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Dry Pea And Bean Farming"
+    },
+    {
+      "code": "111140",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Wheat Farming"
+    },
+    {
+      "code": "111150",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Corn Farming"
+    },
+    {
+      "code": "111160",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Rice Farming"
+    },
+    {
+      "code": "111191",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Oilseed And Grain Combination Farming"
+    },
+    {
+      "code": "111199",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "All Other Grain Farming"
+    },
+    {
+      "code": "111211",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Potato Farming"
+    },
+    {
+      "code": "111219",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Other Vegetable (Except Potato) And Melon Farming"
+    },
+    {
+      "code": "111310",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Orange Groves"
+    },
+    {
+      "code": "111320",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Citrus (Except Orange) Groves"
+    },
+    {
+      "code": "111331",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Apple Orchards"
+    },
+    {
+      "code": "111332",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Grape Vineyards"
+    },
+    {
+      "code": "111333",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Strawberry Farming"
+    },
+    {
+      "code": "111334",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Berry (Except Strawberry) Farming"
+    },
+    {
+      "code": "111335",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Tree Nut Farming"
+    },
+    {
+      "code": "111336",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Fruit And Tree Nut Combination Farming"
+    },
+    {
+      "code": "111339",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Other Noncitrus Fruit Farming"
+    },
+    {
+      "code": "111411",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Mushroom Production"
+    },
+    {
+      "code": "111419",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Other Food Crops Grown Under Cover"
+    },
+    {
+      "code": "111421",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Nursery And Tree Production"
+    },
+    {
+      "code": "111422",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Floriculture Production"
+    },
+    {
+      "code": "111910",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Tobacco Farming"
+    },
+    {
+      "code": "111920",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Cotton Farming"
+    },
+    {
+      "code": "111930",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Sugarcane Farming"
+    },
+    {
+      "code": "111940",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Hay Farming"
+    },
+    {
+      "code": "111991",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Sugar Beet Farming"
+    },
+    {
+      "code": "111992",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Peanut Farming"
+    },
+    {
+      "code": "111998",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "All Other Miscellaneous Crop Farming"
+    },
+    {
+      "code": "112111",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Beef Cattle Ranching And Farming"
+    },
+    {
+      "code": "112112",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Cattle Feedlots"
+    },
+    {
+      "code": "112120",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Dairy Cattle And Milk Production"
+    },
+    {
+      "code": "112130",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Dual-Purpose Cattle Ranching And Farming"
+    },
+    {
+      "code": "112210",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Hog And Pig Farming"
+    },
+    {
+      "code": "112310",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Chicken Egg Production"
+    },
+    {
+      "code": "112320",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Broilers And Other Meat Type Chicken Production"
+    },
+    {
+      "code": "112330",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Turkey Production"
+    },
+    {
+      "code": "112340",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Poultry Hatcheries"
+    },
+    {
+      "code": "112390",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Other Poultry Production"
+    },
+    {
+      "code": "112410",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Sheep Farming"
+    },
+    {
+      "code": "112420",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Goat Farming"
+    },
+    {
+      "code": "112511",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Finfish Farming And Fish Hatcheries"
+    },
+    {
+      "code": "112512",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Shellfish Farming"
+    },
+    {
+      "code": "112519",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Other Aquaculture"
+    },
+    {
+      "code": "112910",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Apiculture"
+    },
+    {
+      "code": "112920",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Horses And Other Equine Production"
+    },
+    {
+      "code": "112930",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Fur-Bearing Animal And Rabbit Production"
+    },
+    {
+      "code": "112990",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "All Other Animal Production"
+    },
+    {
+      "code": "113110",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Timber Tract Operations"
+    },
+    {
+      "code": "113210",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Forest Nurseries And Gathering Of Forest Products"
+    },
+    {
+      "code": "113310",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Logging"
+    },
+    {
+      "code": "114111",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Finfish Fishing"
+    },
+    {
+      "code": "114112",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Shellfish Fishing"
+    },
+    {
+      "code": "114119",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Other Marine Fishing"
+    },
+    {
+      "code": "114210",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Hunting And Trapping"
+    },
+    {
+      "code": "115111",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Cotton Ginning"
+    },
+    {
+      "code": "115112",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Soil Preparation Planting And Cultivating"
+    },
+    {
+      "code": "115113",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Crop Harvesting Primarily By Machine"
+    },
+    {
+      "code": "115114",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Postharvest Crop Activities (Except Cotton Ginning)"
+    },
+    {
+      "code": "115115",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Farm Labor Contractors And Crew Leaders"
+    },
+    {
+      "code": "115116",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Farm Management Services"
+    },
+    {
+      "code": "115210",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Support Activities For Animal Production"
+    },
+    {
+      "code": "115310",
+      "industry_category": "Agriculture, Forestry, Fishing and Hunting",
+      "industry_type": "Support Activities For Forestry"
+    },
+    {
+      "code": "211113",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Oilfield Service"
+    },
+    {
+      "code": "211114",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Engineering Contractors"
+    },
+    {
+      "code": "211115",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Natural Gas Extraction And Liquification"
+    },
+    {
+      "code": "211120",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Crude Petroleum Extraction"
+    },
+    {
+      "code": "211130",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Natural Gas Extraction"
+    },
+    {
+      "code": "211210",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Integrated Oil and Gas"
+    },
+    {
+      "code": "212114",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Surface Coal Mining"
+    },
+    {
+      "code": "212115",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Underground Coal Mining"
+    },
+    {
+      "code": "212210",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Iron Ore Mining"
+    },
+    {
+      "code": "212220",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Gold Ore and Silver Ore Mining"
+    },
+    {
+      "code": "212230",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Copper, Nickel, Lead, and Zinc Mining"
+    },
+    {
+      "code": "212290",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Other Metal Ore Mining"
+    },
+    {
+      "code": "212311",
+      "industry_category": "Mining, Quarrying, and Oil and Gas Extraction",
+      "industry_type": "Dimension Stone Mining And Quarrying"
+    }
+]
+}

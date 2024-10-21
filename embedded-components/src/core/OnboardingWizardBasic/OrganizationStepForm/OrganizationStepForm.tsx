@@ -1,13 +1,16 @@
 /* eslint-disable react/no-unescaped-entities */
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { cn } from '@/lib/utils';
 import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
@@ -19,6 +22,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -42,6 +50,7 @@ import {
   translateApiErrorsToFormErrors,
   useIsFieldVisible,
 } from '../utils/formUtils';
+import naicsCodes from './naics-codes.json';
 import { OrganizationStepFormSchema } from './OrganizationStepForm.schema';
 
 type AddressLinesProps = {
@@ -134,6 +143,9 @@ export const OrganizationStepForm = () => {
   const { clientId, onPostClientResponse, useCase } = useOnboardingContext();
   const isFieldVisible = useIsFieldVisible(useCase);
 
+  const [industryCategories, setIndustryCategories] = useState<string[]>([]);
+  const [industryTypes, setIndustryTypes] = useState<string[]>([]);
+
   const form = useForm<z.infer<typeof OrganizationStepFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(
@@ -168,6 +180,41 @@ export const OrganizationStepForm = () => {
       associatedCountries: [],
     },
   });
+
+  useEffect(() => {
+    try {
+      const categories = Array.from(
+        new Set(
+          naicsCodes.naics_codes?.map((code) => code.industry_category) || []
+        )
+      );
+
+      setIndustryCategories(categories);
+    } catch (error) {
+      setIndustryCategories([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const selectedCategory = form.watch('industryCategory');
+    if (selectedCategory) {
+      try {
+        const types = Array.from(
+          new Set(
+            (naicsCodes.naics_codes || [])
+              .filter((code) => code.industry_category === selectedCategory)
+              .map((code) => code.industry_type)
+          )
+        );
+        setIndustryTypes(types);
+      } catch (error) {
+        console.error('Error setting industry types:', error);
+        setIndustryTypes([]);
+      }
+    } else {
+      setIndustryTypes([]);
+    }
+  }, [form.watch('industryCategory')]);
 
   const {
     fields: addressFields,
@@ -219,7 +266,6 @@ export const OrganizationStepForm = () => {
   useEffect(() => {
     if (getClientStatus === 'success' && clientData) {
       const formValues = convertClientResponseToFormValues(clientData, partyId);
-      console.log('formValues', formValues);
       form.reset(formValues);
     }
   }, [clientData, getClientStatus, form.reset, partyId]);
@@ -231,7 +277,6 @@ export const OrganizationStepForm = () => {
   } = useSmbdoUpdateClient();
 
   const onSubmit = form.handleSubmit((values) => {
-    console.log(values);
     if (clientId) {
       const requestBody = generateRequestBody(values, 0, 'addParties', {
         addParties: [
@@ -341,140 +386,60 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel asterisk>Organization email</FormLabel>
-                <FormControl>
-                  <Input {...field} type="email" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="organizationType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel asterisk>Organization type</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select organization type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="LIMITED_LIABILITY_COMPANY">
-                      Limited Liability Company
-                    </SelectItem>
-                    <SelectItem value="C_CORPORATION">C Corporation</SelectItem>
-                    <SelectItem value="S_CORPORATION">S Corporation</SelectItem>
-                    <SelectItem value="PARTNERSHIP">Partnership</SelectItem>
-                    <SelectItem value="PUBLICLY_TRADED_COMPANY">
-                      Publicly Traded Company
-                    </SelectItem>
-                    <SelectItem value="NON_PROFIT_CORPORATION">
-                      Non-Profit Corporation
-                    </SelectItem>
-                    <SelectItem value="GOVERNMENT_ENTITY">
-                      Government Entity
-                    </SelectItem>
-                    <SelectItem value="SOLE_PROPRIETORSHIP">
-                      Sole Proprietorship
-                    </SelectItem>
-                    <SelectItem value="UNINCORPORATED_ASSOCIATION">
-                      Unincorporated Association
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="eb-flex eb-flex-wrap eb-gap-6 md:eb-flex-nowrap">
-          <FormField
-            control={form.control}
-            name="jurisdiction"
-            render={({ field }) => (
-              <FormItem className="eb-grow md:eb-grow-0">
-                <div className="eb-flex eb-items-center eb-space-x-2">
-                  <FormLabel asterisk>Jurisdiction</FormLabel>
-                  <InfoPopover>Country code in ISO alpha-2 format.</InfoPopover>
-                </div>
-                <FormControl>
-                  <Input {...field} maxLength={2} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="countryOfFormation"
-            render={({ field }) => (
-              <FormItem className="eb-grow md:eb-grow-0">
-                <div className="eb-flex eb-items-center eb-space-x-2">
-                  <FormLabel asterisk>Country of formation</FormLabel>
-                  <InfoPopover>Country code in ISO alpha-2 format.</InfoPopover>
-                </div>
-                <FormControl>
-                  <Input {...field} maxLength={2} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="yearOfFormation"
-            render={({ field }) => (
-              <FormItem className="eb-grow md:eb-grow-0">
-                <div className="eb-flex eb-items-center eb-space-x-2">
-                  <FormLabel asterisk>Year of formation</FormLabel>
-                  <InfoPopover>Year of company formation.</InfoPopover>
-                </div>
-                <FormControl>
-                  <Input {...field} maxLength={4} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <fieldset className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4">
-          <legend className="-eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-            Organization Phone Information
-          </legend>
-
-          <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
+          {isFieldVisible('email') && (
             <FormField
               control={form.control}
-              name="organizationPhone.phoneType"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Type</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <FormLabel asterisk>Organization email</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible('organizationType') && (
+            <FormField
+              control={form.control}
+              name="organizationType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel asterisk>Organization type</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select phone type" />
+                        <SelectValue placeholder="Select organization type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="BUSINESS_PHONE">
-                        Business Phone
+                      <SelectItem value="LIMITED_LIABILITY_COMPANY">
+                        Limited Liability Company
                       </SelectItem>
-                      <SelectItem value="MOBILE_PHONE">Mobile Phone</SelectItem>
-                      <SelectItem value="ALTERNATE_PHONE">
-                        Alternate Phone
+                      <SelectItem value="C_CORPORATION">
+                        C Corporation
+                      </SelectItem>
+                      <SelectItem value="S_CORPORATION">
+                        S Corporation
+                      </SelectItem>
+                      <SelectItem value="PARTNERSHIP">Partnership</SelectItem>
+                      <SelectItem value="PUBLICLY_TRADED_COMPANY">
+                        Publicly Traded Company
+                      </SelectItem>
+                      <SelectItem value="NON_PROFIT_CORPORATION">
+                        Non-Profit Corporation
+                      </SelectItem>
+                      <SelectItem value="GOVERNMENT_ENTITY">
+                        Government Entity
+                      </SelectItem>
+                      <SelectItem value="SOLE_PROPRIETORSHIP">
+                        Sole Proprietorship
+                      </SelectItem>
+                      <SelectItem value="UNINCORPORATED_ASSOCIATION">
+                        Unincorporated Association
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -482,167 +447,386 @@ export const OrganizationStepForm = () => {
                 </FormItem>
               )}
             />
+          )}
+        </div>
 
+        <div className="eb-flex eb-flex-wrap eb-gap-6 md:eb-flex-nowrap">
+          {isFieldVisible('jurisdiction') && (
             <FormField
               control={form.control}
-              name="organizationPhone.phoneNumber"
+              name="jurisdiction"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      {...field}
-                      countries={['US']}
-                      placeholder="Enter phone number"
-                      international={false}
-                      defaultCountry="US"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </fieldset>
-        <fieldset className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4">
-          <legend className="-eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-            Industry Information
-          </legend>
-
-          <div className="eb-grid eb-grid-cols-1 eb-gap-6 sm:eb-grid-cols-2">
-            <FormField
-              control={form.control}
-              name="industryCategory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Industry Category</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="industryType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Industry Type</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="eb-flex">
-            <FormField
-              control={form.control}
-              name="mcc"
-              render={({ field }) => (
-                <FormItem className="eb-grow sm:eb-grow-0">
+                <FormItem className="eb-grow md:eb-grow-0">
                   <div className="eb-flex eb-items-center eb-space-x-2">
-                    <FormLabel>Merchant Category Code (MCC)</FormLabel>
+                    <FormLabel asterisk>Jurisdiction</FormLabel>
                     <InfoPopover>
-                      Leave empty or enter exactly 4 digits for the MCC.
+                      Country code in ISO alpha-2 format.
                     </InfoPopover>
                   </div>
                   <FormControl>
-                    <Input
-                      {...field}
-                      maxLength={4}
-                      placeholder="Enter 4-digit MCC (optional)"
-                    />
+                    <Input {...field} maxLength={2} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          )}
+
+          {isFieldVisible('countryOfFormation') && (
+            <FormField
+              control={form.control}
+              name="countryOfFormation"
+              render={({ field }) => (
+                <FormItem className="eb-grow md:eb-grow-0">
+                  <div className="eb-flex eb-items-center eb-space-x-2">
+                    <FormLabel asterisk>Country of formation</FormLabel>
+                    <InfoPopover>
+                      Country code in ISO alpha-2 format.
+                    </InfoPopover>
+                  </div>
+                  <FormControl>
+                    <Input {...field} maxLength={2} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible('yearOfFormation') && (
+            <FormField
+              control={form.control}
+              name="yearOfFormation"
+              render={({ field }) => (
+                <FormItem className="eb-grow md:eb-grow-0">
+                  <div className="eb-flex eb-items-center eb-space-x-2">
+                    <FormLabel asterisk>Year of formation</FormLabel>
+                    <InfoPopover>Year of company formation.</InfoPopover>
+                  </div>
+                  <FormControl>
+                    <Input {...field} maxLength={4} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+
+        <fieldset className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+            Organization Phone Information
+          </legend>
+
+          <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
+            {isFieldVisible('organizationPhone') && (
+              <FormField
+                control={form.control}
+                name="organizationPhone.phoneType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Type</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select phone type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="BUSINESS_PHONE">
+                          Business Phone
+                        </SelectItem>
+                        <SelectItem value="MOBILE_PHONE">
+                          Mobile Phone
+                        </SelectItem>
+                        <SelectItem value="ALTERNATE_PHONE">
+                          Alternate Phone
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {isFieldVisible('organizationPhone') && (
+              <FormField
+                control={form.control}
+                name="organizationPhone.phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        {...field}
+                        countries={['US']}
+                        placeholder="Enter phone number"
+                        international={false}
+                        defaultCountry="US"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </fieldset>
-        <FormField
-          control={form.control}
-          name="entitiesInOwnership"
-          render={({ field }) => (
-            <FormItem className="eb-space-y-3">
-              <FormLabel asterisk>
-                Are there one or more entities that own part of the business
-                connected to the client?
-              </FormLabel>
-              <FormControl>
-                <RadioGroup
-                  {...field}
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  className="eb-flex eb-flex-col eb-space-y-1"
-                >
-                  <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="yes" />
-                    </FormControl>
-                    <FormLabel className="eb-font-normal">Yes</FormLabel>
-                  </FormItem>
-                  <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="no" />
-                    </FormControl>
-                    <FormLabel className="eb-font-normal">No</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <fieldset className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+            Industry Information
+          </legend>
 
-        <FormField
-          control={form.control}
-          name="tradeOverInternet"
-          render={({ field }) => (
-            <FormItem className="eb-space-y-3">
-              <FormLabel asterisk>
-                Does the business conduct trade over the internet?
-              </FormLabel>
-              <FormControl>
-                <RadioGroup
-                  {...field}
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  className="eb-flex eb-flex-col eb-space-y-1"
-                >
-                  <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="yes" />
-                    </FormControl>
-                    <FormLabel className="eb-font-normal">Yes</FormLabel>
+          <div className="eb-grid eb-grid-cols-2 eb-gap-6">
+            {isFieldVisible('industryCategory') && (
+              <FormField
+                control={form.control}
+                name="industryCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Industry Category</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'eb-w-full eb-justify-between',
+                              !field.value && 'eb-text-muted-foreground'
+                            )}
+                          >
+                            {field.value || 'Select industry category'}
+                            <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="eb-w-full eb-p-0">
+                        <div className="eb-max-h-[200px] eb-overflow-y-auto">
+                          {industryCategories.map((category) => (
+                            <div
+                              key={category}
+                              role="option"
+                              tabIndex={0}
+                              aria-selected={category === field.value}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  form.setValue('industryCategory', category);
+                                  form.setValue('industryType', '');
+                                }
+                              }}
+                              className={cn(
+                                'eb-relative eb-flex eb-cursor-default eb-select-none eb-items-center eb-rounded-sm eb-py-1.5 eb-pl-8 eb-pr-2 eb-text-sm eb-outline-none hover:eb-bg-accent hover:eb-text-accent-foreground',
+                                category === field.value &&
+                                  'eb-bg-accent eb-text-accent-foreground'
+                              )}
+                              onClick={() => {
+                                form.setValue('industryCategory', category);
+                                form.setValue('industryType', '');
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'eb-absolute eb-left-2 eb-h-4 eb-w-4',
+                                  category === field.value
+                                    ? 'eb-opacity-100'
+                                    : 'eb-opacity-0'
+                                )}
+                              />
+                              {category}
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
                   </FormItem>
-                  <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="no" />
-                    </FormControl>
-                    <FormLabel className="eb-font-normal">No</FormLabel>
+                )}
+              />
+            )}
+
+            {isFieldVisible('industryType') && (
+              <FormField
+                control={form.control}
+                name="industryType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Industry Type</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'eb-w-full eb-justify-between',
+                              !field.value && 'eb-text-muted-foreground'
+                            )}
+                            disabled={!form.watch('industryCategory')}
+                          >
+                            {field.value || 'Select industry type'}
+                            <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="eb-w-full eb-p-0">
+                        <div className="eb-max-h-[200px] eb-overflow-y-auto">
+                          {industryTypes.map((type) => (
+                            <div
+                              key={type}
+                              role="option"
+                              tabIndex={0}
+                              aria-selected={type === field.value}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  form.setValue('industryType', type);
+                                }
+                              }}
+                              className={cn(
+                                'eb-relative eb-flex eb-cursor-default eb-select-none eb-items-center eb-rounded-sm eb-py-1.5 eb-pl-8 eb-pr-2 eb-text-sm eb-outline-none hover:eb-bg-accent hover:eb-text-accent-foreground',
+                                type === field.value &&
+                                  'eb-bg-accent eb-text-accent-foreground'
+                              )}
+                              onClick={() =>
+                                form.setValue('industryType', type)
+                              }
+                            >
+                              <Check
+                                className={cn(
+                                  'eb-absolute eb-left-2 eb-h-4 eb-w-4',
+                                  type === field.value
+                                    ? 'eb-opacity-100'
+                                    : 'eb-opacity-0'
+                                )}
+                              />
+                              {type}
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
                   </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                )}
+              />
+            )}
+          </div>
+
+          <div className="eb-flex">
+            {isFieldVisible('mcc') && (
+              <FormField
+                control={form.control}
+                name="mcc"
+                render={({ field }) => (
+                  <FormItem className="eb-grow sm:eb-grow-0">
+                    <div className="eb-flex eb-items-center eb-space-x-2">
+                      <FormLabel>Merchant Category Code (MCC)</FormLabel>
+                      <InfoPopover>
+                        Leave empty or enter exactly 4 digits for the MCC.
+                      </InfoPopover>
+                    </div>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        maxLength={4}
+                        placeholder="Enter 4-digit MCC (optional)"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
+        </fieldset>
+        {isFieldVisible('entitiesInOwnership') && (
+          <FormField
+            control={form.control}
+            name="entitiesInOwnership"
+            render={({ field }) => (
+              <FormItem className="eb-space-y-3">
+                <FormLabel asterisk>
+                  Are there one or more entities that own part of the business
+                  connected to the client?
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    {...field}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className="eb-flex eb-flex-col eb-space-y-1"
+                  >
+                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="yes" />
+                      </FormControl>
+                      <FormLabel className="eb-font-normal">Yes</FormLabel>
+                    </FormItem>
+                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="no" />
+                      </FormControl>
+                      <FormLabel className="eb-font-normal">No</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {isFieldVisible('tradeOverInternet') && (
+          <FormField
+            control={form.control}
+            name="tradeOverInternet"
+            render={({ field }) => (
+              <FormItem className="eb-space-y-3">
+                <FormLabel asterisk>
+                  Does the business conduct trade over the internet?
+                </FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    {...field}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className="eb-flex eb-flex-col eb-space-y-1"
+                  >
+                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="yes" />
+                      </FormControl>
+                      <FormLabel className="eb-font-normal">Yes</FormLabel>
+                    </FormItem>
+                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="no" />
+                      </FormControl>
+                      <FormLabel className="eb-font-normal">No</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Addresses */}
-        <div className="eb-space-y-4">
-          <h3 className="eb-text-lg eb-font-medium">Addresses</h3>
-          <div className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3 xl:eb-grid-cols-4">
+        <Card className="eb-mt-6">
+          <CardHeader>
+            <CardTitle className="eb-text-lg eb-font-medium">
+              Addresses
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="eb-space-y-4">
             {addressFields.map((fieldItem, index) => (
               <fieldset
                 key={fieldItem.id}
                 className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4"
               >
-                <legend className="-eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Address {index + 1}
                 </legend>
                 <FormField
@@ -773,8 +957,8 @@ export const OrganizationStepForm = () => {
             >
               Add Address
             </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Organization IDs */}
         <div className="eb-space-y-4">
@@ -981,36 +1165,40 @@ export const OrganizationStepForm = () => {
 
         {/* Additional Fields */}
         <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-          <FormField
-            control={form.control}
-            name="websiteAvailable"
-            render={({ field }) => (
-              <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="eb-space-y-1 eb-leading-none">
-                  <FormLabel>Website Available</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="website"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Website</FormLabel>
-                <FormControl>
-                  <Input {...field} type="url" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {isFieldVisible('websiteAvailable') && (
+            <FormField
+              control={form.control}
+              name="websiteAvailable"
+              render={({ field }) => (
+                <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="eb-space-y-1 eb-leading-none">
+                    <FormLabel>Website Available</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
+          {isFieldVisible('website') && (
+            <FormField
+              control={form.control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="url" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <ServerErrorAlert error={updateClientError} />
