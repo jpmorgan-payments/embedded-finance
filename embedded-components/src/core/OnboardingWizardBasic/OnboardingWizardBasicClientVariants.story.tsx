@@ -1,5 +1,3 @@
-;
-
 /* eslint-disable import/no-useless-path-segments */
 import { efClientCorpMock } from '@/mocks/efClientCorp.mock';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
@@ -8,24 +6,7 @@ import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData
 import type { Meta, StoryObj } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 
-
-
 import { OnboardingWizardBasicWithProvider } from './OnboardingWizardBasic.story';
-
-
-;
-
-
-
-
-
-
-
-
-
-
-
-
 
 const meta: Meta<typeof OnboardingWizardBasicWithProvider> = {
   title: 'Onboarding Wizard Basic / Client Variants',
