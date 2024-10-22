@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { FC, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -12,6 +12,14 @@ import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Form,
   FormControl,
@@ -143,9 +151,6 @@ export const OrganizationStepForm = () => {
   const { clientId, onPostClientResponse, useCase } = useOnboardingContext();
   const isFieldVisible = useIsFieldVisible(useCase);
 
-  const [industryCategories, setIndustryCategories] = useState<string[]>([]);
-  const [industryTypes, setIndustryTypes] = useState<string[]>([]);
-
   const form = useForm<z.infer<typeof OrganizationStepFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(
@@ -181,40 +186,9 @@ export const OrganizationStepForm = () => {
     },
   });
 
-  useEffect(() => {
-    try {
-      const categories = Array.from(
-        new Set(
-          naicsCodes.naics_codes?.map((code) => code.industry_category) || []
-        )
-      );
-
-      setIndustryCategories(categories);
-    } catch (error) {
-      setIndustryCategories([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    const selectedCategory = form.watch('industryCategory');
-    if (selectedCategory) {
-      try {
-        const types = Array.from(
-          new Set(
-            (naicsCodes.naics_codes || [])
-              .filter((code) => code.industry_category === selectedCategory)
-              .map((code) => code.industry_type)
-          )
-        );
-        setIndustryTypes(types);
-      } catch (error) {
-        console.error('Error setting industry types:', error);
-        setIndustryTypes([]);
-      }
-    } else {
-      setIndustryTypes([]);
-    }
-  }, [form.watch('industryCategory')]);
+  const industryCategories = Array.from(
+    new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
+  ).sort((a, b) => a.localeCompare(b));
 
   const {
     fields: addressFields,
@@ -557,13 +531,13 @@ export const OrganizationStepForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
+                    <FormControl key={useCase}>
                       <PhoneInput
                         {...field}
-                        countries={['US']}
+                        countries={useCase === 'CanadaMS' ? ['CA'] : ['US']}
                         placeholder="Enter phone number"
                         international={false}
-                        defaultCountry="US"
+                        defaultCountry={useCase === 'CanadaMS' ? 'CA' : 'US'}
                       />
                     </FormControl>
                     <FormMessage />
@@ -582,133 +556,97 @@ export const OrganizationStepForm = () => {
             {isFieldVisible('industryCategory') && (
               <FormField
                 control={form.control}
-                name="industryCategory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Industry Category</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'eb-w-full eb-justify-between',
-                              !field.value && 'eb-text-muted-foreground'
-                            )}
-                          >
-                            {field.value || 'Select industry category'}
-                            <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="eb-w-full eb-p-0">
-                        <div className="eb-max-h-[200px] eb-overflow-y-auto">
-                          {industryCategories.map((category) => (
-                            <div
-                              key={category}
-                              role="option"
-                              tabIndex={0}
-                              aria-selected={category === field.value}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  form.setValue('industryCategory', category);
-                                  form.setValue('industryType', '');
-                                }
-                              }}
-                              className={cn(
-                                'eb-relative eb-flex eb-cursor-default eb-select-none eb-items-center eb-rounded-sm eb-py-1.5 eb-pl-8 eb-pr-2 eb-text-sm eb-outline-none hover:eb-bg-accent hover:eb-text-accent-foreground',
-                                category === field.value &&
-                                  'eb-bg-accent eb-text-accent-foreground'
-                              )}
-                              onClick={() => {
-                                form.setValue('industryCategory', category);
-                                form.setValue('industryType', '');
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  'eb-absolute eb-left-2 eb-h-4 eb-w-4',
-                                  category === field.value
-                                    ? 'eb-opacity-100'
-                                    : 'eb-opacity-0'
-                                )}
-                              />
-                              {category}
-                            </div>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {isFieldVisible('industryType') && (
-              <FormField
-                control={form.control}
                 name="industryType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Industry Type</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'eb-w-full eb-justify-between',
-                              !field.value && 'eb-text-muted-foreground'
-                            )}
-                            disabled={!form.watch('industryCategory')}
-                          >
-                            {field.value || 'Select industry type'}
-                            <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="eb-w-full eb-p-0">
-                        <div className="eb-max-h-[200px] eb-overflow-y-auto">
-                          {industryTypes.map((type) => (
-                            <div
-                              key={type}
-                              role="option"
-                              tabIndex={0}
-                              aria-selected={type === field.value}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  form.setValue('industryType', type);
-                                }
-                              }}
+                render={({ field }) => {
+                  const [open, setOpen] = useState(false);
+                  return (
+                    <FormItem className="eb-flex eb-flex-col">
+                      <FormLabel>Industry Type</FormLabel>
+                      <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
                               className={cn(
-                                'eb-relative eb-flex eb-cursor-default eb-select-none eb-items-center eb-rounded-sm eb-py-1.5 eb-pl-8 eb-pr-2 eb-text-sm eb-outline-none hover:eb-bg-accent hover:eb-text-accent-foreground',
-                                type === field.value &&
-                                  'eb-bg-accent eb-text-accent-foreground'
+                                'eb-max-w-[400px] eb-justify-between eb-font-normal',
+                                !field.value && 'eb-text-muted-foreground'
                               )}
-                              onClick={() =>
-                                form.setValue('industryType', type)
-                              }
                             >
-                              <Check
-                                className={cn(
-                                  'eb-absolute eb-left-2 eb-h-4 eb-w-4',
-                                  type === field.value
-                                    ? 'eb-opacity-100'
-                                    : 'eb-opacity-0'
-                                )}
-                              />
-                              {type}
-                            </div>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                              {field.value ? (
+                                <div className="eb-flex eb-w-[calc(100%-1rem)]">
+                                  <span className="eb-overflow-hidden eb-text-ellipsis">
+                                    {field.value}
+                                  </span>
+                                  <span className="eb-pl-2 eb-text-muted-foreground">
+                                    {
+                                      naicsCodes.find(
+                                        (code) =>
+                                          code.description === field.value
+                                      )?.id
+                                    }
+                                  </span>
+                                </div>
+                              ) : (
+                                'Select industry type'
+                              )}
+                              <CaretSortIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="eb-w-[400px] eb-p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search industry type..."
+                              className="eb-h-9"
+                            />
+                            <CommandList>
+                              <CommandEmpty>No results found</CommandEmpty>
+                              {industryCategories.map((category) => (
+                                <CommandGroup heading={category}>
+                                  {naicsCodes
+                                    .filter(
+                                      (code) =>
+                                        code.sectorDescription === category
+                                    )
+                                    .map(
+                                      ({ description: industryType, id }) => (
+                                        <CommandItem
+                                          key={industryType}
+                                          value={industryType}
+                                          className="eb-cursor-pointer"
+                                          onSelect={(value) => {
+                                            field.onChange(value);
+                                            setOpen(false);
+                                          }}
+                                        >
+                                          <span className="eb-flex eb-w-full eb-justify-between">
+                                            {industryType}
+                                            <span className="eb-pl-2 eb-text-muted-foreground">
+                                              {id}
+                                            </span>
+                                          </span>
+                                          <CheckIcon
+                                            className={cn(
+                                              'eb-ml-2 eb-h-4 eb-w-4',
+                                              field.value === industryType
+                                                ? 'eb-opacity-100'
+                                                : 'eb-opacity-0'
+                                            )}
+                                          />
+                                        </CommandItem>
+                                      )
+                                    )}
+                                </CommandGroup>
+                              ))}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             )}
           </div>
@@ -836,6 +774,7 @@ export const OrganizationStepForm = () => {
                     <FormItem>
                       <FormLabel>Address Type</FormLabel>
                       <Select
+                        {...field}
                         onValueChange={field.onChange}
                         value={field.value}
                       >
