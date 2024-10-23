@@ -29,8 +29,7 @@ export const OverviewPage = () => {
           to Embedded Finance, including the data points you need to collect.
         </List.Item>
         <List.Item>
-          <b>Move money</b> - make payments and add recipients, as your clients
-          would in Embedded Finance.
+          <b>Link a Bank Account</b> - add a linked bank account for settlement
         </List.Item>
       </List>
       <Text>
@@ -55,11 +54,11 @@ export const OverviewPage = () => {
         <Text>
           Learn more about Embedded Finance at:{' '}
           <Anchor
-            href="https://www.jpmorgan.com/solutions/treasury-payments/embedded-banking"
+            href="https://www.jpmorgan.com/payments/solutions/embedded-finance"
             target="_blank"
             color="blue"
           >
-            https://www.jpmorgan.com/solutions/treasury-payments/embedded-banking
+            https://www.jpmorgan.com/payments/solutions/embedded-finance
           </Anchor>
         </Text>
         {/* <Text>
