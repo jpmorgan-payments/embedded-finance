@@ -75,7 +75,7 @@ export const Layout = ({
               </Text>
               <Tabs.List grow>
                 <Tabs.Tab value="EP">Embedded Payments</Tabs.Tab>
-                <Tabs.Tab value="EB">Embedded Banking</Tabs.Tab>
+                {/*<Tabs.Tab value="EB">Embedded Banking</Tabs.Tab>*/}
               </Tabs.List>
 
               <Divider my="sm" />
