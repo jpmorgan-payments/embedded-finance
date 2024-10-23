@@ -54,11 +54,11 @@ export const OverviewPage = () => {
         <Text>
           Learn more about Embedded Finance at:{' '}
           <Anchor
-            href="https://www.jpmorgan.com/solutions/treasury-payments/embedded-banking"
+            href="https://www.jpmorgan.com/payments/solutions/embedded-finance"
             target="_blank"
             color="blue"
           >
-            https://www.jpmorgan.com/solutions/treasury-payments/embedded-banking
+            https://www.jpmorgan.com/payments/solutions/embedded-finance
           </Anchor>
         </Text>
         {/* <Text>
