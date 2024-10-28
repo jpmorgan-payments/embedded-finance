@@ -1,131 +1,427 @@
 arazzo: 1.0.0
 info:
   title: Digital Onboarding Workflow
-  version: 0.0.1
-  description: Workflow for digital onboarding process
+  summary: Workflow specification for onboarding clients to Embedded Payments
+  description: |
+    This Arazzo specification defines the workflow for onboarding clients to Embedded Payments, including:
+    - Initial client profile creation with minimal data
+    - Additional party information collection for:
+      * Client organization (role=CLIENT)
+      * Controller (role=CONTROLLER)
+      * Decision makers (role=DECISION_MAKER)
+      * Beneficial owners (role=BENEFICIAL_OWNER)
+    - Attestations and documentation handling
+    - Due diligence questions
+    - Verification submission
+  version: 1.0.0
 
 sourceDescriptions:
-  - name: onboardingAPI
-    url: https://api.example.com/openapi.json
+  - name: smbdoApi
+    url: https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/onboarding#/
     type: openapi
 
 workflows:
-  - workflowId: digitalOnboarding
-    summary: Complete digital onboarding process
-    description: This workflow guides through the steps of client onboarding, from initiation to verification
+  - workflowId: createInitialClientProfile
+    summary: Create initial client profile with minimum required data
+    description: Creates a new client profile with basic organization and controller information
     inputs:
       type: object
       properties:
-        clientInfo:
-          type: object
-          properties:
-            name:
-              type: string
-            email:
-              type: string
+        organizationName:
+          type: string
+        organizationType:
+          type: string
+        countryOfFormation:
+          type: string
+        controllerFirstName:
+          type: string
+        controllerLastName:
+          type: string
+        controllerCountryOfResidence:
+          type: string
     steps:
-      - stepId: initiateOnboarding
-        description: Initiate the onboarding process
-        operationId: initiateOnboarding
-        parameters:
-          - name: clientName
-            in: body
-            value: $inputs.clientInfo.name
-          - name: clientEmail
-            in: body
-            value: $inputs.clientInfo.email
-        successCriteria:
-          - condition: $statusCode == 201
-        outputs:
-          clientId: $response.body.clientId
-
-      - stepId: collectClientInfo
-        description: Collect detailed client information
-        operationId: updateClientInfo
-        parameters:
-          - name: clientId
-            in: path
-            value: $steps.initiateOnboarding.outputs.clientId
-        requestBody:
-          contentType: application/json
-          payload: $inputs.clientInfo
-        successCriteria:
-          - condition: $statusCode == 200
-
-      - stepId: collectPartyInfo
-        description: Collect information about parties (individual and organization)
-        operationId: updatePartyInfo
-        parameters:
-          - name: clientId
-            in: path
-            value: $steps.initiateOnboarding.outputs.clientId
-        requestBody:
-          contentType: application/json
-          payload: $inputs.partyInfo
-        successCriteria:
-          - condition: $statusCode == 200
-
-      - stepId: answerAdditionalQuestions
-        description: Answer additional due diligence questions
-        operationId: submitAdditionalQuestions
-        parameters:
-          - name: clientId
-            in: path
-            value: $steps.initiateOnboarding.outputs.clientId
-        requestBody:
-          contentType: application/json
-          payload: $inputs.additionalQuestions
-        successCriteria:
-          - condition: $statusCode == 200
-
-      - stepId: reviewAndAttest
-        description: Review all provided information and attest
-        operationId: submitAttestation
-        parameters:
-          - name: clientId
-            in: path
-            value: $steps.initiateOnboarding.outputs.clientId
+      - stepId: createClient
+        description: Create initial client profile with minimum data
+        operationId: smbdo-postClients
         requestBody:
           contentType: application/json
           payload:
-            attestation: true
+            parties:
+              - partyType: ORGANIZATION
+                roles: 
+                  - CLIENT
+                organizationDetails:
+                  organizationType: $inputs.organizationType
+                  organizationName: $inputs.organizationName
+                  countryOfFormation: $inputs.countryOfFormation
+              - partyType: INDIVIDUAL
+                roles:
+                  - CONTROLLER
+                individualDetails:
+                  firstName: $inputs.controllerFirstName
+                  lastName: $inputs.controllerLastName
+                  countryOfResidence: $inputs.controllerCountryOfResidence
+            products:
+              - EMBEDDED_PAYMENTS
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+
+  - workflowId: updateClientOrganizationDetails
+    summary: Update client organization details
+    description: Adds detailed information about the client organization
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        partyId:
+          type: string
+        dbaName:
+          type: string
+        organizationDescription:
+          type: string
+        industryCategory:
+          type: string
+        industryType:
+          type: string
+        yearOfFormation:
+          type: string
+        address:
+          type: object
+        phone:
+          type: object
+        website:
+          type: string
+        email:
+          type: string
+        taxId:
+          type: object
+    steps:
+      - stepId: updateOrganization
+        description: Update organization details through addParties
+        operationId: smbdo-updateClient
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addParties:
+              - id: $inputs.partyId
+                partyType: ORGANIZATION
+                email: $inputs.email
+                roles:
+                  - CLIENT
+                organizationDetails:
+                  dbaName: $inputs.dbaName
+                  organizationDescription: $inputs.organizationDescription
+                  industryCategory: $inputs.industryCategory
+                  industryType: $inputs.industryType
+                  yearOfFormation: $inputs.yearOfFormation
+                  addresses:
+                    - $inputs.address
+                  phone: $inputs.phone
+                  website: $inputs.website
+                  organizationIds:
+                    - $inputs.taxId
         successCriteria:
           - condition: $statusCode == 200
 
-      - stepId: initiateVerification
-        description: Initiate KYC verification process
-        operationId: initiateKYC
+  - workflowId: updateControllerDetails
+    summary: Update controller party details
+    description: Adds detailed information about the controller
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        partyId:
+          type: string
+        birthDate:
+          type: string
+        jobTitle:
+          type: string
+        address:
+          type: object
+        phone:
+          type: object
+        email:
+          type: string
+        identificationDetails:
+          type: object
+    steps:
+      - stepId: updateController
+        description: Update controller details through addParties
+        operationId: smbdo-updateClient
         parameters:
-          - name: clientId
+          - name: id
             in: path
-            value: $steps.initiateOnboarding.outputs.clientId
+            value: $inputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addParties:
+              - id: $inputs.partyId
+                partyType: INDIVIDUAL
+                email: $inputs.email
+                roles:
+                  - CONTROLLER
+                individualDetails:
+                  birthDate: $inputs.birthDate
+                  jobTitle: $inputs.jobTitle
+                  addresses:
+                    - $inputs.address
+                  phone: $inputs.phone
+                  individualIds:
+                    - $inputs.identificationDetails
+        successCriteria:
+          - condition: $statusCode == 200
+
+  - workflowId: addBeneficialOwner
+    summary: Add beneficial owner party
+    description: Adds a beneficial owner to the client profile
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthDate:
+          type: string
+        countryOfResidence:
+          type: string
+        address:
+          type: object
+        phone:
+          type: object
+        email:
+          type: string
+        identificationDetails:
+          type: object
+        natureOfOwnership:
+          type: string
+    steps:
+      - stepId: addBeneficialOwner
+        description: Add beneficial owner through addParties
+        operationId: smbdo-updateClient
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addParties:
+              - partyType: INDIVIDUAL
+                email: $inputs.email
+                roles:
+                  - BENEFICIAL_OWNER
+                individualDetails:
+                  firstName: $inputs.firstName
+                  lastName: $inputs.lastName
+                  birthDate: $inputs.birthDate
+                  countryOfResidence: $inputs.countryOfResidence
+                  addresses:
+                    - $inputs.address
+                  phone: $inputs.phone
+                  individualIds:
+                    - $inputs.identificationDetails
+                  natureOfOwnership: $inputs.natureOfOwnership
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          partyId: $response.body.parties[-1].id
+
+  - workflowId: addDecisionMaker
+    summary: Add decision maker party
+    description: Adds a decision maker to the client profile
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthDate:
+          type: string
+        countryOfResidence:
+          type: string
+        jobTitle:
+          type: string
+        address:
+          type: object
+        phone:
+          type: object
+        email:
+          type: string
+    steps:
+      - stepId: addDecisionMaker
+        description: Add decision maker through addParties
+        operationId: smbdo-updateClient
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addParties:
+              - partyType: INDIVIDUAL
+                email: $inputs.email
+                roles:
+                  - DECISION_MAKER
+                individualDetails:
+                  firstName: $inputs.firstName
+                  lastName: $inputs.lastName
+                  birthDate: $inputs.birthDate
+                  countryOfResidence: $inputs.countryOfResidence
+                  jobTitle: $inputs.jobTitle
+                  addresses:
+                    - $inputs.address
+                  phone: $inputs.phone
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          partyId: $response.body.parties[-1].id
+
+  - workflowId: handleDueDiligenceQuestions  
+    summary: Retrieve and answer due diligence questions
+    description: Gets the due diligence questions and submits answers
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        questionIds:
+          type: array
+          items:
+            type: string
+        answers:
+          type: object
+    steps:
+      - stepId: getQuestions
+        description: Retrieve questions that need to be answered
+        operationId: smbdo-listQuestions
+        parameters:
+          - name: questionIds
+            in: query
+            value: $inputs.questionIds
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          questions: $response.body.questions
+          
+      - stepId: submitAnswers
+        description: Submit answers to due diligence questions
+        operationId: smbdo-updateClient
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses: $inputs.answers
+        successCriteria:
+          - condition: $statusCode == 200
+
+  - workflowId: handleAttestations
+    summary: Handle document attestations
+    description: Retrieves attestation documents and submits attestations
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        documentId:
+          type: string
+        attesterName:
+          type: string
+        ipAddress:
+          type: string
+    steps:
+      - stepId: getDocument
+        description: Retrieve attestation document
+        operationId: smbdo-getDocumentDetail
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.documentId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          documentType: $response.body.documentType
+          
+      - stepId: getDocumentContent
+        description: Get the document content
+        operationId: smbdo-downloadDocument
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.documentId
+        successCriteria:
+          - condition: $statusCode == 200
+          
+      - stepId: submitAttestation
+        description: Submit attestation for the document
+        operationId: smbdo-updateClient
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - attesterFullName: $inputs.attesterName
+                attestationTime: $date.now()
+                documentId: $inputs.documentId
+                ipAddress: $inputs.ipAddress
+        successCriteria:
+          - condition: $statusCode == 200
+
+  - workflowId: completeVerification
+    summary: Complete client verification
+    description: Submit client for verification checks after all requirements are met
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+    steps:
+      - stepId: submitVerification
+        description: Submit client for verification
+        operationId: smbdo-postClientVerifications
+        parameters:
+          - name: id
+            in: path
+            value: $inputs.clientId
         successCriteria:
           - condition: $statusCode == 202
         outputs:
-          verificationId: $response.body.verificationId
-
-    outputs:
-      clientId: $steps.initiateOnboarding.outputs.clientId
-      verificationId: $steps.initiateVerification.outputs.verificationId
-
-components:
-  parameters:
-    clientIdParam:
-      name: clientId
-      in: path
-      value: $steps.initiateOnboarding.outputs.clientId
-
-  successActions:
-    continueOnboarding:
-      name: continueToNextStep
-      type: goto
-      stepId: $currentStep + 1
-
-  failureActions:
-    retryStep:
-      name: retryCurrentStep
-      type: retry
-      retryAfter: 5
-      retryLimit: 3
-      criteria:
-        - condition: $statusCode >= 500
+          acceptedTime: $response.body.acceptedAt
+          
+      - stepId: checkStatus
+        description: Check verification status
+        operationId: smbdo-getClient
+        parameters:
+          - name: id
+            in: path 
+            value: $inputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          status: $response.body.status
+          outstandingItems: $response.body.outstanding
