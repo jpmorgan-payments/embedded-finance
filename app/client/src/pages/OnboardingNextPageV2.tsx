@@ -2,7 +2,7 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Group, Text, TextInput } from '@mantine/core';
+import { Badge, Collapse, Group, Select, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -21,7 +21,7 @@ export const OnboardingNextPageV2 = () => {
     clientId: '',
     baseURL: '',
     gatewayID: '',
-    useCase: 'CanadaMS'
+    useCase: 'CanadaMS',
   });
 
   const form = useForm({
@@ -38,15 +38,19 @@ export const OnboardingNextPageV2 = () => {
       clientId: form.values.clientId,
       baseURL: form.values.baseURL,
       gatewayID: form.values.gatewayID,
-      useCase: form.values.useCase
+      useCase: form.values.useCase,
     });
   }, [form.values.clientId, form.values.baseURL, form.values.gatewayID]);
 
   useEffect(() => {
     if (demo && demoClientIds.has(demo)) {
-      form.setFieldValue('clientId', demoClientIds.get(demo) || '');
+      setDemoScenario(demo);
     }
   }, [demo]);
+
+  function setDemoScenario(demoScenarioName: string): void {
+    form.setFieldValue('clientId', demoClientIds.get(demoScenarioName) || '');
+  }
 
   return (
     <PageWrapper
@@ -67,13 +71,33 @@ export const OnboardingNextPageV2 = () => {
           Embedded Finance profile and account is made ready.
         </Text>
       </div>
-      <Group>
-        <TextInput label="Client ID" {...form.getInputProps('clientId')} />
-        <TextInput label="Base URL" {...form.getInputProps('baseURL')} />
-        <TextInput label="gateway" {...form.getInputProps('gatewayID')} />
-        <TextInput label="use case" {...form.getInputProps('useCase')} />
 
-      </Group>
+      <details>
+        <summary>Tech Details</summary>
+        <Group>
+          <TextInput label="Client ID" {...form.getInputProps('clientId')} />
+          <TextInput label="Base URL" {...form.getInputProps('baseURL')} />
+          <TextInput label="gateway" {...form.getInputProps('gatewayID')} />
+          <TextInput label="use case" {...form.getInputProps('useCase')} />
+        </Group>
+      </details>
+
+      <Select
+        label="Demo Scenarios"
+        placeholder="Select a scenario"
+        onChange={setDemoScenario}
+        defaultValue={'scenario1'}
+        data={[
+          { value: 'scenario1', label: 'Scenario 1 - Basic Flow' },
+          { value: 'scenario2', label: 'Scenario 2 - Advanced Flow' },
+        ]}
+        styles={(theme) => ({
+          root: {
+            marginBottom: theme.spacing.md,
+          },
+        })}
+      />
+
       <EBComponentsProvider
         key={props.clientId}
         apiBaseUrl={props.baseURL}
