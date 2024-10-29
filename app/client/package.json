@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@forgerock/javascript-sdk": "^4.2.0",
-    "@jpmorgan-payments/embedded-banking-components": "^0.5.41",
+    "@jpmorgan-payments/embedded-banking-components": "^0.5.53",
     "@mantine/core": "^6.0.4",
     "@mantine/dates": "^6.0.4",
     "@mantine/form": "^6.0.4",
@@ -42,7 +42,7 @@
     "test": "vitest watch",
     "test:no-watch": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "generate-api-models": "rm -rf ./src/generated-api-models && yarn openapi --exportSchemas true --exportServices false --exportCore false --input ./embedded-banking-api-external.yml --output ./src/generated-api-models",
+    "generate-api-models": "rimraf ./src/generated-api-models && yarn openapi --exportSchemas true --exportServices false --exportCore false --input ./embedded-banking-api-external.yml --output ./src/generated-api-models",
     "postinstall": "yarn run generate-api-models"
   },
   "eslintConfig": {
@@ -71,7 +71,9 @@
     "c8": "^7.12.0",
     "cross-env": "^7.0.3",
     "openapi-typescript-codegen": "^0.20.1",
+    "prettier": "^3.3.3",
     "resize-observer-polyfill": "^1.5.1",
+    "rimraf": "^5.0.10",
     "string.prototype.replaceall": "^1.0.6",
     "vite": "^4.5.5",
     "vite-plugin-svgr": "^2.4.0",
