@@ -538,7 +538,7 @@ export const OrganizationStepForm = () => {
                     <FormControl key={useCase}>
                       <PhoneInput
                         {...field}
-                        countries={useCase === 'CanadaMS' ? ['CA'] : ['US']}
+                        countries={['CA', 'US']}
                         placeholder="Enter phone number"
                         international={false}
                         defaultCountry={useCase === 'CanadaMS' ? 'CA' : 'US'}
