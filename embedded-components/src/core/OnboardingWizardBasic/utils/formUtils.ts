@@ -191,3 +191,24 @@ export function filterSchemaByUseCase(
   });
   return z.object(filteredSchema);
 }
+
+export function filterDefaultValuesByUseCase(
+  defaultValues: Partial<OnboardingWizardFormValues>,
+  useCase: OnboardingUseCase
+): Partial<OnboardingWizardFormValues> {
+  const filteredDefaultValues: Partial<OnboardingWizardFormValues> = {};
+  Object.entries(defaultValues).forEach(([key, value]) => {
+    const fieldConfig = partyFieldMap[key as keyof OnboardingWizardFormValues];
+    if (typeof fieldConfig === 'string') {
+      filteredDefaultValues[key as keyof OnboardingWizardFormValues] =
+        value as any;
+    } else if (
+      !fieldConfig?.useCases ||
+      fieldConfig.useCases.includes(useCase)
+    ) {
+      filteredDefaultValues[key as keyof OnboardingWizardFormValues] =
+        value as any;
+    }
+  });
+  return filteredDefaultValues;
+}

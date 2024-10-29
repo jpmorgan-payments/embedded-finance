@@ -31,8 +31,7 @@ It is usign @tanstack/react-query for handling API calls and authentication as w
 
 #### Usage:
 
-```jsx@
-
+```jsx
 import { EBComponentsProvider } from '@jpmorgan-payments/embedded-finance-components';
 
 const EmbeddedFinanceSection = () => {
@@ -60,7 +59,7 @@ const EmbeddedFinanceSection = () => {
 
 ### 1. OnboardingWizard
 
-The `OnboardingWizard` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-banking-solutions/embedded-payments/how-to/onboard-a-client/onboard).
+The `OnboardingWizard` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/onboard).
 
 #### Main Features:
 
@@ -79,7 +78,7 @@ The `OnboardingWizard` component implements the client onboarding process as des
 import {
   EBComponentsProvider,
   OnboardingWizard,
-} from '@jpmorgan-payments/embedded-banking-components';
+} from '@jpmorgan-payments/embedded-finance-components';
 
 const OnboardingSection = () => {
   const [clientId, setClientId] = useManageClientExternalState();
@@ -110,9 +109,9 @@ OnboardingWizard could also accept products and jurisdictions as optional props 
 
 ### 2. LinkedAccountWidget
 
-The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-banking-solutions/embedded-payments/how-to/add-linked-account).
+The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/add-linked-account).
 
-#### Main Features:@jpmorgan-payments/embedded-finance-components
+#### Main Features:
 
 - Add and manage external linked bank accounts for clients
 - Handle complex micro-deposits initiation logic
@@ -123,7 +122,7 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 import {
   EBComponentsProvider,
   LinkedAccountWidget,
-} from '@jpmorgan-payments/embedded-banking-components';
+} from '@jpmorgan-payments/embedded-finance-components';
 
 const LinkedAccountSection = () => {
   return (
@@ -149,43 +148,43 @@ The `EBComponentsProvider` accepts a `theme` prop that allows for extensive cust
 
 Here's a table of available theme design tokens that can be used in the `variables`, `light`, and `dark` properties:
 
-| Token Name                                                      | Description                            |
-| --------------------------------------------------------------- | -------------------------------------- |
-| fontFamily                                                      | Main font family for text              |
-| backgroundColor                                                 | Background color of the main container |
-| foregroundColor                                                 | Main text color                        |
-| primaryColor                                                    | Primary brand color                    |
-| primaryColorHover                                               | Hover state of primary color           |
-| primaryForegroundColor                                          | Text color on primary background       |
-| secondaryColor                                                  | Secondary brand color                  |
-| secondaryForegroundColor                                        | Text color on secondary background     |
-| destructiveColor                                                | Color for destructive actions          |
-| destructiveForegroundColor                                      | Text color on destructive background   |
-| mutedColor                                                      | Color for muted elements               |
-| mutedForegroundColor                                            | Text color on muted background         |
-| accentColor                                                     | Accent color for highlights            |
-| accentForegroundColor                                           | Text color on accent background        |
-| cardColor                                                       | Background color for card elements     |
-| cardForegroundColor                                             | Text color for card elements           |
-| popoverColor                                                    | Background color for popovers          |
-| popoverForegroundColor                                          | Text color for popovers                |
-| borderRadi@jpmorgan-payments/embedded-finance-componentslements |
-| buttonBorderRadius                                              | Border radius specifically for buttons |
-| borderColor                                                     | Color for borders                      |
-| inputColor                                                      | Background color for input fields      |
-| ringColor                                                       | Color for focus rings                  |
-| zIndexOverlay                                                   | z-index for overlay elements           |
+| Token Name                 | Description                            |
+| -------------------------- | -------------------------------------- |
+| fontFamily                 | Main font family for text              |
+| backgroundColor            | Background color of the main container |
+| foregroundColor            | Main text color                        |
+| primaryColor               | Primary brand color                    |
+| primaryColorHover          | Hover state of primary color           |
+| primaryForegroundColor     | Text color on primary background       |
+| secondaryColor             | Secondary brand color                  |
+| secondaryForegroundColor   | Text color on secondary background     |
+| destructiveColor           | Color for destructive actions          |
+| destructiveForegroundColor | Text color on destructive background   |
+| mutedColor                 | Color for muted elements               |
+| mutedForegroundColor       | Text color on muted background         |
+| accentColor                | Accent color for highlights            |
+| accentForegroundColor      | Text color on accent background        |
+| cardColor                  | Background color for card elements     |
+| cardForegroundColor        | Text color for card elements           |
+| popoverColor               | Background color for popovers          |
+| popoverForegroundColor     | Text color for popovers                |
+| borderRadius               | Default border radius for elements     |
+| buttonBorderRadius         | Border radius specifically for buttons |
+| borderColor                | Color for borders                      |
+| inputColor                 | Background color for input fields      |
+| ringColor                  | Color for focus rings                  |
+| zIndexOverlay              | z-index for overlay elements           |
 
 ## Installation
 
 ```bash
-npm install @jpmorgan-payments/embedded-banking-components
+npm install @jpmorgan-payments/embedded-finance-components
 ```
 
 or
 
 ```bash
-yarn add @jpmorgan-payments/embedded-banking-components
+yarn add @jpmorgan-payments/embedded-finance-components
 ```
 
 ## Contributing

@@ -1,19 +1,19 @@
 {
-  "name": "@jpmorgan-payments/embedded-finance-components ",
+  "name": "@jpmorgan-payments/embedded-finance-components",
   "version": "0.5.53",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "EB components",
+  "description": "Embedded Finance Components",
   "files": [
     "dist"
   ],
-  "main": "./dist/umd/eb-components.js",
-  "module": "./dist/esm/eb-components.js",
+  "main": "./dist/umd/ef-components.js",
+  "module": "./dist/esm/ef-components.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/eb-components.js",
-      "require": "./dist/umd/eb-components.js"
+      "import": "./dist/esm/ef-components.js",
+      "require": "./dist/umd/ef-components.js"
     }
   },
   "scripts": {
@@ -157,10 +157,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jpmorgan-payments/embedded-banking.git",
+    "url": "https://github.com/jpmorgan-payments/embedded-finance.git",
     "directory": "embedded-components"
   },
-  "homepage": "https://github.com/jpmorgan-payments/embedded-banking/blob/main/embedded-components/README.md",
+  "homepage": "https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md",
   "msw": {
     "workerDirectory": [
       "public"

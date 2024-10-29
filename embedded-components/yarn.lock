@@ -1568,9 +1568,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jpmorgan-payments/embedded-banking-components@workspace:.":
+"@jpmorgan-payments/embedded-finance-components@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@jpmorgan-payments/embedded-banking-components@workspace:."
+  resolution: "@jpmorgan-payments/embedded-finance-components@workspace:."
   dependencies:
     "@faker-js/faker": "npm:^8.4.1"
     "@hookform/resolvers": "npm:^3.6.0"
