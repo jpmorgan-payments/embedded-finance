@@ -157,10 +157,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jpmorgan-payments/embedded-banking.git",
+    "url": "https://github.com/jpmorgan-payments/embedded-finance.git",
     "directory": "embedded-components"
   },
-  "homepage": "https://github.com/jpmorgan-payments/embedded-banking/blob/main/embedded-components/README.md",
+  "homepage": "https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md",
   "msw": {
     "workerDirectory": [
       "public"
