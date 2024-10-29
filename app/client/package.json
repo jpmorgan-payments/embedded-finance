@@ -73,7 +73,7 @@
     "openapi-typescript-codegen": "^0.20.1",
     "prettier": "^3.3.3",
     "resize-observer-polyfill": "^1.5.1",
-    "rimraf": "^6.0.1",
+    "rimraf": "^5.0.10",
     "string.prototype.replaceall": "^1.0.6",
     "vite": "^4.5.5",
     "vite-plugin-svgr": "^2.4.0",
