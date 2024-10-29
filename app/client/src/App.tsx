@@ -27,6 +27,7 @@ import {
 import { EmbeddedComponentsPage } from 'pages/EmbeddedComponentsPage';
 import { OnboardingNextPage } from 'pages/OnboardingNextPage';
 import { EPLinkedAccountPage } from 'pages/EPLinkedAccountsPage';
+import { OnboardingNextPageV2 } from 'pages/OnboardingNextPageV2';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,7 @@ const App = () => {
                   element={<EmbeddedComponentsPage />}
                 />
                 <Route path="ep/onboarding" element={<OnboardingNextPage />} />
+                <Route path="ep/onboarding-basic" element={<OnboardingNextPageV2 />} />
                 <Route
                   path="ep/linked-accounts"
                   element={<EPLinkedAccountPage />}
