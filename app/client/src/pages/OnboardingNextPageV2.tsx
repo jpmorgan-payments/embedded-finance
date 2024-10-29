@@ -1,7 +1,7 @@
 import {
   EBComponentsProvider,
   OnboardingWizardBasic,
-} from '@jpmorgan-payments/embedded-banking-components';
+} from '@jpmorgan-payments/embedded-finance-components';
 import { Badge, Group, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
@@ -21,6 +21,7 @@ export const OnboardingNextPageV2 = () => {
     clientId: '',
     baseURL: '',
     gatewayID: '',
+    useCase: 'CanadaMS'
   });
 
   const form = useForm({
@@ -28,6 +29,7 @@ export const OnboardingNextPageV2 = () => {
       clientId: '0030000132',
       baseURL: '/ef/do/v1/',
       gatewayID: '',
+      useCase: 'CanadaMS',
     },
   });
 
@@ -36,6 +38,7 @@ export const OnboardingNextPageV2 = () => {
       clientId: form.values.clientId,
       baseURL: form.values.baseURL,
       gatewayID: form.values.gatewayID,
+      useCase: form.values.useCase
     });
   }, [form.values.clientId, form.values.baseURL, form.values.gatewayID]);
 
@@ -48,7 +51,7 @@ export const OnboardingNextPageV2 = () => {
   return (
     <PageWrapper
       title="[Embedded Payments] Onboarding"
-      apiEndpoint="@jpmorgan-payments/embedded-banking-components"
+      apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
       <div>
@@ -68,6 +71,8 @@ export const OnboardingNextPageV2 = () => {
         <TextInput label="Client ID" {...form.getInputProps('clientId')} />
         <TextInput label="Base URL" {...form.getInputProps('baseURL')} />
         <TextInput label="gateway" {...form.getInputProps('gatewayID')} />
+        <TextInput label="use case" {...form.getInputProps('useCase')} />
+
       </Group>
       <EBComponentsProvider
         key={props.clientId}
@@ -80,6 +85,7 @@ export const OnboardingNextPageV2 = () => {
           key={props.clientId + props.baseURL + props.gatewayID}
           title={`Onboarding Wizard`}
           clientId={props.clientId}
+          useCase="CanadaMS"
           onPostClientResponse={(response, error) => {
             console.log('@@clientId POST', response, error);
           }}

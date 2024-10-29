@@ -568,10 +568,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@jpmorgan-payments/embedded-banking-components@^0.5.53":
+"@jpmorgan-payments/embedded-finance-components@^0.5.53":
   version "0.5.53"
-  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-banking-components/-/embedded-banking-components-0.5.53.tgz#9c153796c72b397ff063bcce62f6193efcdd48c8"
-  integrity sha512-uU3TCYHZ6lpmMLE81WKiZZd4FNJ1QFnbm40r7kLyU751tf5d+Zhhayz94lU/jBE/1mGJZxqlzdShk8KUw8qiRA==
+  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.53.tgz#0fd2549c39f8dbd350f67456a895466379f2f9d6"
+  integrity sha512-9bi7OSicogQdGou9uY+CMdy0CFTJbzpLC1992wvw6eGI3LoPa8edxheRmBQcmCELOuxAOAOESE5CbJDPQ3kBGg==
   dependencies:
     "@hookform/resolvers" "^3.6.0"
     "@mantine/form" "^7.5.2"

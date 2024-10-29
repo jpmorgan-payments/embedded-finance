@@ -10,7 +10,7 @@ export const InstallationSection = () => {
       </Text>
       <Box style={{ maxWidth: 600 }}>
         <Prism language={'javascript'}>
-          npm i @jpmorgan-payments/embedded-banking-components
+          npm i @jpmorgan-payments/embedded-finance-components
         </Prism>
       </Box>
     </Panel>
