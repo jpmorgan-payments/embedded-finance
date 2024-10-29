@@ -27,9 +27,9 @@ export default defineConfig(({ mode }) => {
     build: {
       lib: {
         entry: [resolve(__dirname, 'src/index.tsx')],
-        name: 'eb-components',
+        name: 'ef-components',
         formats: ['esm', 'umd'],
-        fileName: (format) => `${format}/eb-components.js`,
+        fileName: (format) => `${format}/ef-components.js`,
       },
       rollupOptions: {
         external: ['react', 'react-dom'],
