@@ -2,54 +2,26 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Collapse, Group, Select, Text, TextInput } from '@mantine/core';
-import { useForm } from '@mantine/form';
+import { Badge, Select, Text } from '@mantine/core';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
-import { useEffect, useState } from 'react';
-
-const demoClientIds = new Map([
-  ['scenario1', '0030000132'],
-  ['scenario2', '0030000133'],
-]);
+import { onboardingScenarios } from 'data/onboardingScenarios';
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 export const OnboardingNextPageV2 = () => {
-  const params = new URLSearchParams(window.location.search);
-  const demo = params.get('demo');
-
-  const [props, setProps] = useState({
-    clientId: '',
-    baseURL: '',
-    gatewayID: '',
-    useCase: 'CanadaMS',
-  });
-
-  const form = useForm({
-    initialValues: {
-      clientId: '0030000132',
-      baseURL: '/ef/do/v1/',
-      gatewayID: '',
-      useCase: 'CanadaMS',
-    },
-  });
+  const [params, setParams] = useSearchParams();
+  const scenarioId = params.get('scenario');
+  const scenario = onboardingScenarios.find((s) => s.id === scenarioId);
 
   useEffect(() => {
-    setProps({
-      clientId: form.values.clientId,
-      baseURL: form.values.baseURL,
-      gatewayID: form.values.gatewayID,
-      useCase: form.values.useCase,
-    });
-  }, [form.values.clientId, form.values.baseURL, form.values.gatewayID]);
-
-  useEffect(() => {
-    if (demo && demoClientIds.has(demo)) {
-      setDemoScenario(demo);
+    if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
+      setParams({ scenario: onboardingScenarios[0].id }, { replace: true });
     }
-  }, [demo]);
+  }, []);
 
-  function setDemoScenario(demoScenarioName: string): void {
-    form.setFieldValue('clientId', demoClientIds.get(demoScenarioName) || '');
+  function handleScenarioIdChange(id: string): void {
+    setParams({ scenario: id });
   }
 
   return (
@@ -72,21 +44,12 @@ export const OnboardingNextPageV2 = () => {
         </Text>
       </div>
 
-      <details>
-        <summary>Tech Details</summary>
-        <Group>
-          <TextInput label="Client ID" {...form.getInputProps('clientId')} />
-          <TextInput label="Base URL" {...form.getInputProps('baseURL')} />
-          <TextInput label="gateway" {...form.getInputProps('gatewayID')} />
-          <TextInput label="use case" {...form.getInputProps('useCase')} />
-        </Group>
-      </details>
-
       <Select
+        name="scenario"
         label="Demo Scenarios"
         placeholder="Select a scenario"
-        onChange={setDemoScenario}
-        defaultValue={'scenario1'}
+        onChange={handleScenarioIdChange}
+        value={scenarioId}
         data={[
           { value: 'scenario1', label: 'Scenario 1 - Basic Flow' },
           { value: 'scenario2', label: 'Scenario 2 - Advanced Flow' },
@@ -99,17 +62,21 @@ export const OnboardingNextPageV2 = () => {
       />
 
       <EBComponentsProvider
-        key={props.clientId}
-        apiBaseUrl={props.baseURL}
+        key={scenario?.clientId}
+        apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
-          api_gateway_client_id: props.gatewayID,
+          api_gateway_client_id: scenario?.gatewayID ?? '',
         }}
       >
         <OnboardingWizardBasic
-          key={props.clientId + props.baseURL + props.gatewayID}
+          key={
+            (scenario?.clientId ?? '') +
+            (scenario?.baseURL ?? '') +
+            (scenario?.gatewayID ?? '')
+          }
           title={`Onboarding Wizard`}
-          clientId={props.clientId}
-          useCase="CanadaMS"
+          clientId={scenario?.clientId}
+          useCase={scenario?.useCase === 'CanadaMS' ? 'CanadaMS' : 'EF'}
           onPostClientResponse={(response, error) => {
             console.log('@@clientId POST', response, error);
           }}
