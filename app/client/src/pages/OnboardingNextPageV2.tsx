@@ -66,6 +66,7 @@ export const OnboardingNextPageV2 = () => {
         apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
           api_gateway_client_id: scenario?.gatewayID ?? '',
+          'Accept': 'application/json',
         }}
       >
         <OnboardingWizardBasic
