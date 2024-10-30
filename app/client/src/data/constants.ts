@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
 // Unique Client Identifier (C2)
 export const CLIENT_ID = import.meta.env.CLIENT_ID || '1234567890';
