@@ -47,9 +47,24 @@ export const handlers = [
   rest.get(`${API_URL}/ef/do/v1/clients/:clientId`, (req, res, ctx) => {
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
-      '0030000133': clientDetailsScenario2
+      '0030000133': clientDetailsScenario2,
     };
     const { clientId } = req.params;
-    return res(ctx.status(200), ctx.json(clientIdToMock[clientId] || clientDetailsScenario1));
+    return res(
+      ctx.status(200),
+      ctx.json(clientIdToMock[clientId] || clientDetailsScenario1),
+    );
+  }),
+
+  rest.post(`${API_URL}/ef/do/v1/clients/:clientId`, (req, res, ctx) => {
+    const clientIdToMock = {
+      '0030000132': clientDetailsScenario1,
+      '0030000133': clientDetailsScenario2,
+    };
+    const { clientId } = req.params;
+    return res(
+      ctx.status(200),
+      ctx.json(clientIdToMock[clientId] || clientDetailsScenario1),
+    );
   }),
 ];

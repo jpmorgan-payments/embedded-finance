@@ -3,7 +3,7 @@ import { Panel, ComponentSamplePanel } from 'components';
 import {
   LinkedAccountWidget,
   EBComponentsProvider,
-} from '@jpmorgan-payments/embedded-banking-components';
+} from '@jpmorgan-payments/embedded-finance-components';
 
 const componentSample = (
   <EBComponentsProvider apiBaseUrl="">
@@ -13,7 +13,7 @@ const componentSample = (
 
 const codeSample = `
 
-import { LinkedAccountWidget } from "@jpmorgan-payments/embedded-banking-components"
+import { LinkedAccountWidget } from "@jpmorgan-payments/embedded-finance-components"
 
 <LinkedAccountWidget/>
 `;
@@ -29,7 +29,10 @@ export const LinkAccountSection = () => {
       }
     >
       <Text mb="md"> This component allows you to link an account</Text>
-      <ComponentSamplePanel component={componentSample} code={`${codeSample}`} />
+      <ComponentSamplePanel
+        component={componentSample}
+        code={`${codeSample}`}
+      />
     </Panel>
   );
 };

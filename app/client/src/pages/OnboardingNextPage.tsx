@@ -1,7 +1,7 @@
 import {
   EBComponentsProvider,
   OnboardingWizard,
-} from '@jpmorgan-payments/embedded-banking-components';
+} from '@jpmorgan-payments/embedded-finance-components';
 import { Badge, Group, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
@@ -34,7 +34,7 @@ export const OnboardingNextPage = () => {
   return (
     <PageWrapper
       title="[Embedded Payments] Onboarding"
-      apiEndpoint="@jpmorgan-payments/embedded-banking-components"
+      apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
       <div>

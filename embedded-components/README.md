@@ -72,6 +72,8 @@ The `OnboardingWizard` component implements the client onboarding process as des
 
 #### Usage:
 
+@jpmorgan-payments/embedded-finance-components
+
 ```jsx
 import {
   EBComponentsProvider,

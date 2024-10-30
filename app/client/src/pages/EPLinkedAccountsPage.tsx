@@ -2,7 +2,7 @@ import {
   EBComponentsProvider,
   LinkedAccountWidget,
   OnboardingWizard,
-} from '@jpmorgan-payments/embedded-banking-components';
+} from '@jpmorgan-payments/embedded-finance-components';
 import { Badge, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
@@ -18,7 +18,7 @@ export const EPLinkedAccountPage = () => {
   return (
     <PageWrapper
       title="[Embedded Payments] Linked Accounts"
-      apiEndpoint="@jpmorgan-payments/embedded-banking-components"
+      apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
       <EBComponentsProvider apiBaseUrl="https://api-mock.payments.jpmorgan.com/tsapi/ef/v1/">
