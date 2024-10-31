@@ -4,17 +4,17 @@ import { z } from 'zod';
 import { PhoneSmbdo } from '@/api/generated/smbdo.schemas';
 
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
-import { InitialFormSchema } from '../InitialForm/InitialForm.schema';
+import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 import { OnboardingUseCase } from './types';
 
 // TODO: add more form schemas here
-export type OnboardingWizardFormValues = z.infer<typeof InitialFormSchema> &
+export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
   z.infer<typeof OrganizationStepFormSchema> &
   z.infer<typeof IndividualStepFormSchema>;
 
 type PartyFieldMap = {
-  [K in keyof OnboardingWizardFormValues]:
+  [K in keyof OnboardingWizardFormValues]?:
     | string
     | {
         path: string;
@@ -44,7 +44,7 @@ export const partyFieldMap: PartyFieldMap = {
   mcc: { path: 'organizationDetails.mcc', useCases: [] },
   addresses: 'organizationDetails.addresses',
   associatedCountries: 'organizationDetails.associatedCountries',
-  jurisdiction: 'jurisdiction',
+  jurisdiction: 'organizationDetails.jurisdiction',
   organizationIds: 'organizationDetails.organizationIds',
   organizationPhone: {
     path: 'organizationDetails.phone',

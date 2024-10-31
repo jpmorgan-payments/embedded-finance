@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const InitialFormSchema = z.object({
+export const NoClientIdFormSchema = z.object({
   organizationName: z.string().min(1, 'Required'),
   organizationType: z.enum([
     'LIMITED_LIABILITY_COMPANY',
@@ -15,4 +15,9 @@ export const InitialFormSchema = z.object({
   ]),
   countryOfFormation: z.string().min(1, 'Required'),
   email: z.string().email(),
+  jurisdiction: z
+    .string()
+    .min(1, 'Required')
+    .length(2, 'Country code must be exactly 2 characters'),
+  product: z.enum(['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES']),
 });

@@ -3,9 +3,11 @@ import { FC, useEffect, useState } from 'react';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
   ApiError,
+  ClientProduct,
   ClientProductList,
   ClientResponse,
   ClientVerificationResponse,
+  CountryCodeIsoAlpha2,
 } from '@/api/generated/smbdo.schemas';
 import {
   Card,
@@ -23,7 +25,8 @@ import { DecisionMakerStepForm } from './DecisionMakerStepForm/DecisionMakerStep
 import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadStepForm';
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
 import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
-import { InitialForm } from './InitialForm/InitialForm';
+import { InitialStepForm } from './InitialStepForm/InitialStepForm';
+import { NoClientIdForm } from './NoClientIdForm/NoClientIdForm';
 import { OnboardingContextProvider } from './OnboardingContextProvider/OnboardingContextProvider';
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
@@ -31,6 +34,7 @@ import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
 import { OnboardingUseCase } from './utils/types';
 
 const stepsInitial = [
+  { label: 'Initial details', children: <InitialStepForm /> },
   { label: 'Organization details', children: <OrganizationStepForm /> },
   { label: 'Individual details', children: <IndividualStepForm /> },
   {
@@ -54,6 +58,7 @@ const stepsInitial = [
 ];
 
 const stepsCanadaMS = [
+  { label: 'Initial details', children: <InitialStepForm /> },
   { label: 'Organization details', children: <OrganizationStepForm /> },
   { label: 'Individual details', children: <IndividualStepForm /> },
   {
@@ -95,6 +100,8 @@ export type OnboardingWizardBasicProps = {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
   useCase?: OnboardingUseCase;
+  availableProducts: Array<ClientProduct>;
+  availableJurisdictions: Array<CountryCodeIsoAlpha2>;
 };
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
@@ -167,7 +174,8 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
                 It looks like you don&apos;t have a client ID yet. Fill out the
                 below to get started!
               </CardDescription>
-              <InitialForm />
+
+              <NoClientIdForm />
             </>
           )}
           {!!props.clientId &&
