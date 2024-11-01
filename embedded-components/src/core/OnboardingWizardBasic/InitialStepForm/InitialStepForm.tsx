@@ -1,17 +1,24 @@
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useSmbdoPostClients } from '@/api/generated/smbdo';
-import { CreateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import {
+  useSmbdoGetClient,
+  useSmbdoPostClients,
+  useSmbdoUpdateClient,
+} from '@/api/generated/smbdo';
+import {
+  CreateClientRequestSmbdo,
+  UpdateClientRequestSmbdo,
+} from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Form,
@@ -37,79 +44,164 @@ import { Separator } from '@/components/ui';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { CLIENT_PRODUCT_MAPPING } from '../utils/clientProductMapping';
+import { COUNTRY_CODE_MAPPING } from '../utils/countryCodeMapping';
 import {
+  convertClientResponseToFormValues,
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
 } from '../utils/formUtils';
+import { ORGANIZATION_TYPE_MAPPING } from '../utils/organizationTypeMapping';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
 
 export const InitialStepForm = () => {
   const { nextStep } = useStepper();
-  const { onPostClientResponse, setClientId, useCase } = useOnboardingContext();
+  const {
+    clientId,
+    onPostClientResponse,
+    setClientId,
+    availableProducts,
+    availableJurisdictions,
+  } = useOnboardingContext();
+
+  const defaultProduct =
+    availableProducts.length === 1 ? availableProducts[0] : undefined;
+  const defaultJurisdiction =
+    availableJurisdictions.length === 1 ? availableJurisdictions[0] : undefined;
 
   // Create a form with empty default values
   const form = useForm<z.infer<typeof InitialStepFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(InitialStepFormSchema),
     defaultValues: {
-      useCase: useCase ?? '',
-      jurisdiction: jurisdiction ?? '',
+      jurisdiction: defaultJurisdiction,
+      product: defaultProduct,
       organizationName: '',
       organizationType: undefined,
       countryOfFormation: '',
     },
   });
 
+  // Fetch client data
+  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
+    clientId ?? ''
+  );
+
+  // Get organization's partyId
+  const partyId = clientData?.parties?.find(
+    (party) => party?.partyType === 'ORGANIZATION'
+  )?.id;
+
+  // If clientId exists, populate form with client data
+  useEffect(() => {
+    if (clientData && getClientStatus === 'success' && partyId) {
+      const formValues = convertClientResponseToFormValues(clientData, partyId);
+      const productFromResponse = clientData.products?.[0];
+      if (productFromResponse) {
+        formValues.product = productFromResponse;
+      }
+      form.reset(formValues);
+    }
+  }, [clientData, getClientStatus, form.reset, partyId]);
+
   const {
     mutate: postClient,
     error: postClientError,
     status: postClientStatus,
-  } = useSmbdoPostClients({
-    mutation: {
-      onSettled: (data, error) => {
-        onPostClientResponse?.(data, error?.response?.data);
-      },
-      onSuccess: (response) => {
-        setClientId?.(response.id);
-        toast.success(
-          `Client created successfully with ID: ${response.id}`,
-          {}
-        );
-        nextStep();
-      },
-      onError: (error) => {
-        if (error.response?.data?.context) {
-          const { context } = error.response.data;
-          const apiFormErrors = translateApiErrorsToFormErrors(
-            context,
-            0,
-            'parties'
-          );
-          setApiFormErrors(form, apiFormErrors);
-        }
-      },
-    },
-  });
+  } = useSmbdoPostClients();
+
+  const {
+    mutate: updateClient,
+    error: updateClientError,
+    status: updateClientStatus,
+  } = useSmbdoUpdateClient();
 
   const onSubmit = form.handleSubmit((values) => {
-    const requestBody = generateRequestBody(values, 0, 'parties', {
-      products: ['EMBEDDED_PAYMENTS'],
-      parties: [
-        {
-          partyType: 'ORGANIZATION',
-          roles: ['CLIENT'],
-        },
-      ],
-    }) as CreateClientRequestSmbdo;
+    // Update client if clientId exists
+    if (clientId) {
+      const requestBody = generateRequestBody(values, 0, 'addParties', {
+        addParties: [
+          {
+            ...(partyId ? { id: partyId } : {}),
+          },
+        ],
+      }) as UpdateClientRequestSmbdo;
 
-    postClient({
-      data: requestBody,
-    });
+      updateClient(
+        {
+          id: clientId,
+          data: requestBody,
+        },
+        {
+          onSettled: (data, error) => {
+            onPostClientResponse?.(data, error?.response?.data);
+          },
+          onSuccess: () => {
+            nextStep();
+            toast.success("Client's organization details updated successfully");
+          },
+          onError: (error) => {
+            if (error.response?.data?.context) {
+              const { context } = error.response.data;
+              const apiFormErrors = translateApiErrorsToFormErrors(
+                context,
+                0,
+                'addParties'
+              );
+              setApiFormErrors(form, apiFormErrors);
+            }
+          },
+        }
+      );
+    }
+
+    // Create client if clientId does not exist
+    else {
+      const requestBody = generateRequestBody(values, 0, 'parties', {
+        products: values.product ? [values.product] : [],
+        parties: [
+          {
+            partyType: 'ORGANIZATION',
+            roles: ['CLIENT'],
+          },
+        ],
+      }) as CreateClientRequestSmbdo;
+
+      postClient(
+        {
+          data: requestBody,
+        },
+        {
+          onSettled: (data, error) => {
+            onPostClientResponse?.(data, error?.response?.data);
+          },
+          onSuccess: (response) => {
+            setClientId?.(response.id);
+            toast.success(
+              `Client created successfully with ID: ${response.id}`,
+              {}
+            );
+            nextStep();
+          },
+          onError: (error) => {
+            if (error.response?.data?.context) {
+              const { context } = error.response.data;
+              const apiFormErrors = translateApiErrorsToFormErrors(
+                context,
+                0,
+                'parties'
+              );
+              setApiFormErrors(form, apiFormErrors);
+            }
+          },
+        }
+      );
+    }
   });
 
-  if (postClientStatus === 'pending') {
-    return <FormLoadingState message="Creating client..." />;
+  if (postClientStatus === 'pending' || updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
   }
 
   return (
@@ -123,25 +215,39 @@ export const InitialStepForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel asterisk>Product</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={useCase !== undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select use case" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="MERCHANT_SERVICES">
-                        Merchant Services
-                      </SelectItem>
-                      <SelectItem value="EMBEDDED_PAYMENTS">
-                        Embedded Payments
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {defaultProduct || clientId ? (
+                    <>
+                      {defaultProduct && defaultProduct !== field.value && (
+                        <FormDescription>
+                          DEV WARNING: The client response has a different
+                          product than the wizard&apos;s configured default of{' '}
+                          <b>{CLIENT_PRODUCT_MAPPING[defaultProduct]}</b>.
+                        </FormDescription>
+                      )}
+
+                      <Text className="eb-font-bold">
+                        {CLIENT_PRODUCT_MAPPING[field.value]}
+                      </Text>
+                    </>
+                  ) : (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select product" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableProducts?.map((product) => (
+                          <SelectItem key={product} value={product}>
+                            {CLIENT_PRODUCT_MAPPING[product]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </FormItem>
               )}
             />
@@ -149,24 +255,33 @@ export const InitialStepForm = () => {
             <FormField
               control={form.control}
               name="jurisdiction"
-              disabled={jurisdiction !== undefined}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel asterisk>Jurisdiction</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select country of jurisdiction" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="CA">Canada (CA)</SelectItem>
-                      <SelectItem value="US">United States (US)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {availableJurisdictions.length === 1 ? (
+                    <Text className="eb-font-bold">
+                      {COUNTRY_CODE_MAPPING[field.value]} ({field.value})
+                    </Text>
+                  ) : (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select country of jurisdiction" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableJurisdictions?.map((jurisdiction) => (
+                          <SelectItem key={jurisdiction} value={jurisdiction}>
+                            {COUNTRY_CODE_MAPPING[jurisdiction]} ({jurisdiction}
+                            )
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </FormItem>
               )}
             />
@@ -187,31 +302,13 @@ export const InitialStepForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="LIMITED_LIABILITY_COMPANY">
-                        Limited Liability Company
-                      </SelectItem>
-                      <SelectItem value="C_CORPORATION">
-                        C Corporation
-                      </SelectItem>
-                      <SelectItem value="S_CORPORATION">
-                        S Corporation
-                      </SelectItem>
-                      <SelectItem value="PARTNERSHIP">Partnership</SelectItem>
-                      <SelectItem value="PUBLICLY_TRADED_COMPANY">
-                        Publicly Traded Company
-                      </SelectItem>
-                      <SelectItem value="NON_PROFIT_CORPORATION">
-                        Non-Profit Corporation
-                      </SelectItem>
-                      <SelectItem value="GOVERNMENT_ENTITY">
-                        Government Entity
-                      </SelectItem>
-                      <SelectItem value="SOLE_PROPRIETORSHIP">
-                        Sole Proprietorship
-                      </SelectItem>
-                      <SelectItem value="UNINCORPORATED_ASSOCIATION">
-                        Unincorporated Association
-                      </SelectItem>
+                      {Object.entries(ORGANIZATION_TYPE_MAPPING).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -270,10 +367,10 @@ export const InitialStepForm = () => {
               )}
             />
 
-            <ServerErrorAlert error={postClientError} />
+            <ServerErrorAlert error={postClientError || updateClientError} />
 
             <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
-              <Button>Submit</Button>
+              <Button>Next</Button>
             </div>
           </div>
           <Card>
