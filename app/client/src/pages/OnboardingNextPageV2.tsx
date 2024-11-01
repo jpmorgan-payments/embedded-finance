@@ -74,8 +74,10 @@ export const OnboardingNextPageV2 = () => {
             (scenario?.baseURL ?? '') +
             (scenario?.gatewayID ?? '')
           }
-          // availableProducts={scenario?.availableProducts}
-          // availableJurisdictions={scenario?.availableJurisdictions}
+          // @ts-ignore
+          availableProducts={scenario?.availableProducts}
+          // @ts-ignore
+          availableJurisdictions={scenario?.availableJurisdictions}
           title={`Onboarding Wizard`}
           clientId={scenario?.clientId}
           useCase={'EF'} // TODO: remove this prop
