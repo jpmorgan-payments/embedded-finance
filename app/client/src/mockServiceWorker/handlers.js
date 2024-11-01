@@ -13,7 +13,11 @@ import {
 } from 'mocks';
 
 import { API_URL } from 'data/constants';
-import { clientDetailsScenario1, clientDetailsScenario2 } from 'mocks/clientDetails.mock';
+import {
+  clientDetailsScenario1,
+  clientDetailsScenario2,
+  clientDetailsScenario3,
+} from 'mocks/clientDetails.mock';
 
 export const handlers = [
   rest.get(`${API_URL}/api/transactions`, (req, res, ctx) => {
@@ -48,6 +52,7 @@ export const handlers = [
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
+      '0030000134': clientDetailsScenario3,
     };
     const { clientId } = req.params;
     return res(
@@ -60,6 +65,7 @@ export const handlers = [
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
+      '0030000134': clientDetailsScenario3,
     };
     const { clientId } = req.params;
     return res(
