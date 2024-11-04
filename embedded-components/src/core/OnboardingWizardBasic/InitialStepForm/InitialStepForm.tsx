@@ -10,6 +10,7 @@ import {
   useSmbdoUpdateClient,
 } from '@/api/generated/smbdo';
 import {
+  ClientResponse,
   CreateClientRequestSmbdo,
   UpdateClientRequestSmbdo,
 } from '@/api/generated/smbdo.schemas';
@@ -204,6 +205,22 @@ export const InitialStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
+  function generateRequiredFieldsList(data: ClientResponse | undefined) {
+    if (!data) return [];
+
+    const requiredFields = [
+      'Organization Name',
+      'Organization Type',
+      'Country of Formation',
+      'Email',
+    ];
+
+    // Add more fields based on the data if necessary
+    // Example: if (data.someCondition) requiredFields.push('Some Other Field');
+
+    return requiredFields;
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
@@ -381,6 +398,15 @@ export const InitialStepForm = () => {
                 Please select your <b>organization type</b> to preview the
                 information you will need to confirm or provide.
               </Text>
+              <Separator className="eb-my-4" />
+              <Text>
+                <b>Information you will have to review during onboarding steps:</b>
+              </Text>
+              <ul>
+                {generateRequiredFieldsList(clientData).map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         </div>
