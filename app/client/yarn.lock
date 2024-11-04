@@ -601,10 +601,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@jpmorgan-payments/embedded-finance-components@0.5.56":
-  version "0.5.56"
-  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.56.tgz#75ac8ecb718c998ef6150ca82d9afc3f4c9ee57e"
-  integrity sha512-pSRjpWsCS/YA1ohFo1gkO1LiAk5a+myYJOsWgtOF1YxQ7xauk9Lavk/fqJTVK7W9Vkx8kNANlb7cOZmSjOyGwA==
+"@jpmorgan-payments/embedded-finance-components@0.5.57":
+  version "0.5.57"
+  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.57.tgz#7ee88cd9fce5a5346da34ebeb5c4a9f26e9aeab0"
+  integrity sha512-5BJ4EUGDKsA3IuIYGKo/0xWQZ+DuGFeCbiPe++9mKbfGNmdcbsLP4yPYh6Gp/CXtCLOPvgCLTnsDbnJB3nUqig==
   dependencies:
     "@hookform/resolvers" "^3.6.0"
     "@mantine/form" "^7.5.2"
