@@ -3,17 +3,13 @@ import { FC, useEffect, useState } from 'react';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
   ApiError,
+  ClientProduct,
   ClientProductList,
   ClientResponse,
   ClientVerificationResponse,
+  CountryCodeIsoAlpha2,
 } from '@/api/generated/smbdo.schemas';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step, Stepper } from '@/components/ui/stepper';
 
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
@@ -23,7 +19,7 @@ import { DecisionMakerStepForm } from './DecisionMakerStepForm/DecisionMakerStep
 import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadStepForm';
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
 import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
-import { InitialForm } from './InitialForm/InitialForm';
+import { InitialStepForm } from './InitialStepForm/InitialStepForm';
 import { OnboardingContextProvider } from './OnboardingContextProvider/OnboardingContextProvider';
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
@@ -31,6 +27,7 @@ import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
 import { OnboardingUseCase } from './utils/types';
 
 const stepsInitial = [
+  { label: 'Initial details', children: <InitialStepForm /> },
   { label: 'Organization details', children: <OrganizationStepForm /> },
   { label: 'Individual details', children: <IndividualStepForm /> },
   {
@@ -38,7 +35,7 @@ const stepsInitial = [
     children: <DecisionMakerStepForm />,
     onlyVisibleFor: {
       organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      product: ['MERCHANT_SERVICES'] as ClientProductList,
+      product: ['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES'] as ClientProductList,
     },
   },
   {
@@ -54,6 +51,7 @@ const stepsInitial = [
 ];
 
 const stepsCanadaMS = [
+  { label: 'Initial details', children: <InitialStepForm /> },
   { label: 'Organization details', children: <OrganizationStepForm /> },
   { label: 'Individual details', children: <IndividualStepForm /> },
   {
@@ -95,6 +93,8 @@ export type OnboardingWizardBasicProps = {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
   useCase?: OnboardingUseCase;
+  availableProducts: Array<ClientProduct>;
+  availableJurisdictions: Array<CountryCodeIsoAlpha2>;
 };
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
@@ -104,8 +104,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   useCase = 'EF',
   ...props
 }) => {
-  const stepsToUse = useCase === 'EF' ? stepsInitial : stepsCanadaMS;
-
   const {
     data: clientData,
     status: clientGetStatus,
@@ -116,6 +114,12 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       enabled: !!props.clientId,
     },
   });
+
+  const productFromResponse = clientData?.products?.[0];
+
+  // TODO: add a function to get steps based on the product, organization type, and jurisdiction
+  const stepsToUse =
+    productFromResponse === 'EMBEDDED_PAYMENTS' ? stepsInitial : stepsCanadaMS;
 
   const [steps, setSteps] = useState<StepProps[]>([]);
 
@@ -161,47 +165,37 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
-          {!props.clientId && (
-            <>
-              <CardDescription>
-                It looks like you don&apos;t have a client ID yet. Fill out the
-                below to get started!
-              </CardDescription>
-              <InitialForm />
-            </>
+          {props.clientId && clientGetStatus === 'pending' ? (
+            <FormLoadingState message="Fetching client data..." />
+          ) : clientGetStatus === 'error' ? (
+            <ServerErrorAlert
+              error={clientGetError}
+              tryAgainAction={refetchClient}
+              customErrorMessage={{
+                default: 'An error occurred while fetching client data.',
+                '404':
+                  'Client not found. Please contact support or try again later.',
+              }}
+            />
+          ) : clientData?.status === 'NEW' || !props.clientId ? (
+            <Stepper
+              initialStep={initialStep}
+              steps={steps}
+              variant={variant}
+              mobileBreakpoint="1279px"
+            >
+              {steps.map((stepProps, index) => {
+                const { children, ...rest } = stepProps;
+                return (
+                  <Step key={index} {...rest}>
+                    <div className="eb-px-1">{children}</div>
+                  </Step>
+                );
+              })}
+            </Stepper>
+          ) : (
+            <ClientOnboardingStateView />
           )}
-          {!!props.clientId &&
-            (clientGetStatus === 'pending' ? (
-              <FormLoadingState message="Fetching client data..." />
-            ) : clientGetStatus === 'error' ? (
-              <ServerErrorAlert
-                error={clientGetError}
-                tryAgainAction={refetchClient}
-                customErrorMessage={{
-                  default: 'An error occurred while fetching client data.',
-                  '404':
-                    'Client not found. Please contact support or try again later.',
-                }}
-              />
-            ) : clientData?.status === 'NEW' ? (
-              <Stepper
-                initialStep={initialStep}
-                steps={steps}
-                variant={variant}
-                mobileBreakpoint="1279px"
-              >
-                {steps.map((stepProps, index) => {
-                  const { children, ...rest } = stepProps;
-                  return (
-                    <Step key={index} {...rest}>
-                      <div className="eb-px-1">{children}</div>
-                    </Step>
-                  );
-                })}
-              </Stepper>
-            ) : (
-              <ClientOnboardingStateView />
-            ))}
         </CardContent>
       </Card>
     </OnboardingContextProvider>

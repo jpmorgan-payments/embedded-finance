@@ -50,10 +50,10 @@ export const OnboardingNextPageV2 = () => {
         placeholder="Select a scenario"
         onChange={handleScenarioIdChange}
         value={scenarioId}
-        data={[
-          { value: 'scenario1', label: 'Scenario 1 - Basic Flow' },
-          { value: 'scenario2', label: 'Scenario 2 - Advanced Flow' },
-        ]}
+        data={onboardingScenarios.map((s) => ({
+          label: s.name,
+          value: s.id,
+        }))}
         styles={(theme) => ({
           root: {
             marginBottom: theme.spacing.md,
@@ -75,9 +75,13 @@ export const OnboardingNextPageV2 = () => {
             (scenario?.baseURL ?? '') +
             (scenario?.gatewayID ?? '')
           }
+          // @ts-ignore
+          availableProducts={scenario?.availableProducts}
+          // @ts-ignore
+          availableJurisdictions={scenario?.availableJurisdictions}
           title={`Onboarding Wizard`}
           clientId={scenario?.clientId}
-          useCase={scenario?.useCase === 'CanadaMS' ? 'CanadaMS' : 'EF'}
+          useCase={'EF'} // TODO: remove this prop
           onPostClientResponse={(response, error) => {
             console.log('@@clientId POST', response, error);
           }}

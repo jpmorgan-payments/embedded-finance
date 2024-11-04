@@ -242,7 +242,7 @@ export const OrganizationStepForm = () => {
 
   // Populate form with client data
   useEffect(() => {
-    if (getClientStatus === 'success' && clientData) {
+    if (getClientStatus === 'success' && clientData && partyId) {
       const formValues = convertClientResponseToFormValues(clientData, partyId);
       form.reset(formValues);
     }

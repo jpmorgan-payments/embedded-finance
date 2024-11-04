@@ -1,4 +1,4 @@
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 import {
   accountBalanceMock,
@@ -13,58 +13,62 @@ import {
 } from 'mocks';
 
 import { API_URL } from 'data/constants';
-import { clientDetailsScenario1, clientDetailsScenario2 } from 'mocks/clientDetails.mock';
+import {
+  clientDetailsScenario1,
+  clientDetailsScenario2,
+  clientDetailsScenario3,
+} from 'mocks/clientDetails.mock';
 
 export const handlers = [
-  rest.get(`${API_URL}/api/transactions`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(transactionsMock));
+  http.get(`${API_URL}/api/transactions`, () => {
+    return HttpResponse.json(transactionsMock);
   }),
-  rest.get(`${API_URL}/api/transactions/:selectedTxnId`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(transactionDetailsMock));
+  http.get(`${API_URL}/api/transactions/:selectedTxnId`, () => {
+    return HttpResponse.json(transactionDetailsMock);
   }),
-  rest.get(`${API_URL}/api/recipients`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(recipientsMock));
+  http.get(`${API_URL}/api/recipients`, () => {
+    return HttpResponse.json(recipientsMock);
   }),
-  rest.get(`${API_URL}/api/accounts`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(accountsMock));
+  http.get(`${API_URL}/api/accounts`, () => {
+    return HttpResponse.json(accountsMock);
   }),
-  rest.get(`${API_URL}/api/accounts/:accountId/balances`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(accountBalanceMock));
+  http.get(`${API_URL}/api/accounts/:accountId/balances`, () => {
+    return HttpResponse.json(accountBalanceMock);
   }),
-  rest.get(`${API_URL}/api/debit-cards`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(debitCardsMock));
+  http.get(`${API_URL}/api/debit-cards`, () => {
+    return HttpResponse.json(debitCardsMock);
   }),
-  rest.get(`${API_URL}/api/cases`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(casesMock));
+  http.get(`${API_URL}/api/cases`, () => {
+    return HttpResponse.json(casesMock);
   }),
-  rest.get(`${API_URL}/api/industry-categories`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(industryCategoriesMock));
+  http.get(`${API_URL}/api/industry-categories`, () => {
+    return HttpResponse.json(industryCategoriesMock);
   }),
-  rest.get(`${API_URL}/api/job-titles`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(jobTitlesMock));
+  http.get(`${API_URL}/api/job-titles`, () => {
+    return HttpResponse.json(jobTitlesMock);
   }),
 
-  rest.get(`${API_URL}/ef/do/v1/clients/:clientId`, (req, res, ctx) => {
+  http.get(`${API_URL}/ef/do/v1/clients/:clientId`, (req) => {
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
+      '0030000134': clientDetailsScenario3,
     };
     const { clientId } = req.params;
-    return res(
-      ctx.status(200),
-      ctx.json(clientIdToMock[clientId] || clientDetailsScenario1),
+    return HttpResponse.json(
+      clientIdToMock[clientId] || clientDetailsScenario1,
     );
   }),
 
-  rest.post(`${API_URL}/ef/do/v1/clients/:clientId`, (req, res, ctx) => {
+  http.post(`${API_URL}/ef/do/v1/clients/:clientId`, (req) => {
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
+      '0030000134': clientDetailsScenario3,
     };
     const { clientId } = req.params;
-    return res(
-      ctx.status(200),
-      ctx.json(clientIdToMock[clientId] || clientDetailsScenario1),
+    return HttpResponse.json(
+      clientIdToMock[clientId] || clientDetailsScenario1,
     );
   }),
 ];

@@ -7,8 +7,10 @@ import { http, HttpResponse } from 'msw';
 
 import {
   ApiError,
+  ClientProduct,
   ClientResponse,
   ClientVerificationResponse,
+  CountryCodeIsoAlpha2,
 } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -19,6 +21,8 @@ export const OnboardingWizardBasicWithProvider = ({
   headers,
   title,
   useCase,
+  availableProducts,
+  availableJurisdictions,
   theme,
   onPostClientResponse,
   onPostClientVerificationsResponse,
@@ -31,6 +35,8 @@ export const OnboardingWizardBasicWithProvider = ({
   headers: Record<string, string>;
   title: string;
   useCase: 'EF' | 'CanadaMS';
+  availableProducts: Array<ClientProduct>;
+  availableJurisdictions: Array<CountryCodeIsoAlpha2>;
   theme: Record<string, unknown>;
   onPostClientResponse: (response?: ClientResponse, error?: ApiError) => void;
   onPostClientVerificationsResponse?: (
@@ -58,6 +64,8 @@ export const OnboardingWizardBasicWithProvider = ({
           clientId={clientId}
           initialStep={initialStep}
           variant={variant}
+          availableProducts={availableProducts}
+          availableJurisdictions={availableJurisdictions}
         />
       </EBComponentsProvider>
     </>
@@ -77,6 +85,8 @@ export const Primary: Story = {
   args: {
     clientId: '',
     apiBaseUrl: '/',
+    availableProducts: ['MERCHANT_SERVICES'],
+    availableJurisdictions: ['CA'],
     useCase: 'EF',
     title: 'Onboarding Wizard Basic',
     onPostClientResponse: (data, error) => {

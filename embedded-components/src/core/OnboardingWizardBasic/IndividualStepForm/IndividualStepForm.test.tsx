@@ -21,7 +21,12 @@ const queryClient = new QueryClient(); // Declare and initialize queryClient
 
 const renderComponent = () =>
   render(
-    <OnboardingContextProvider useCase="CanadaMS" {...mockOnboardingContext}>
+    <OnboardingContextProvider
+      useCase="CanadaMS"
+      {...mockOnboardingContext}
+      availableJurisdictions={['US']}
+      availableProducts={['EMBEDDED_PAYMENTS']}
+    >
       <QueryClientProvider client={queryClient}>
         <IndividualStepForm />
       </QueryClientProvider>
