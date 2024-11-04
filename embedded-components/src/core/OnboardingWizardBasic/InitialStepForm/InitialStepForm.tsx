@@ -207,7 +207,7 @@ export const InitialStepForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
-        <div className="eb-grid eb-grid-cols-2 eb-gap-8">
+        <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
           <div className="eb-space-y-6">
             <FormField
               control={form.control}
@@ -364,7 +364,7 @@ export const InitialStepForm = () => {
               <Button>Next</Button>
             </div>
           </div>
-          <Card>
+          <Card className="hidden md:block">
             <CardHeader>
               <CardDescription>
                 The information we request from you will help us complete
