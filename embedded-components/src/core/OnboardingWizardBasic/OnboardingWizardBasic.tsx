@@ -35,7 +35,7 @@ const stepsInitial = [
     children: <DecisionMakerStepForm />,
     onlyVisibleFor: {
       organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      product: ['MERCHANT_SERVICES'] as ClientProductList,
+      product: ['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES'] as ClientProductList,
     },
   },
   {
@@ -117,6 +117,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 
   const productFromResponse = clientData?.products[0];
 
+  // TODO: add a function to get steps based on the product, organization type, and jurisdiction
   const stepsToUse =
     productFromResponse === 'EMBEDDED_PAYMENTS' ? stepsInitial : stepsCanadaMS;
 
