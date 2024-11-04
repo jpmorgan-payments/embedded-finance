@@ -115,7 +115,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     },
   });
 
-  const productFromResponse = clientData?.products[0];
+  const productFromResponse = clientData?.products?.[0];
 
   // TODO: add a function to get steps based on the product, organization type, and jurisdiction
   const stepsToUse =
