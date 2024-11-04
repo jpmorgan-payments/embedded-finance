@@ -95,6 +95,9 @@ export function generateRequestBody(
   >;
   formValueKeys.forEach((key) => {
     if (!partyFieldMap[key]) {
+      if (key === 'product') {
+        return;
+      }
       throw new Error(`${key} is not mapped in fieldMap`);
     }
     const pathEnd =
