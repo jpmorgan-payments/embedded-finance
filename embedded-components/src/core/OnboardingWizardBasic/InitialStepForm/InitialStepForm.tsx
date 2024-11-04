@@ -230,10 +230,7 @@ export const InitialStepForm = () => {
                       </Text>
                     </>
                   ) : (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select product" />
@@ -263,10 +260,7 @@ export const InitialStepForm = () => {
                       {COUNTRY_CODE_MAPPING[field.value]} ({field.value})
                     </Text>
                   ) : (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select country of jurisdiction" />
@@ -292,10 +286,7 @@ export const InitialStepForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel asterisk>Organization type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select organization type" />
