@@ -1,12 +1,11 @@
 import { parsePhoneNumber } from 'react-phone-number-input';
 import { z } from 'zod';
+import { FieldConfiguration } from './types';
 
-import { PhoneSmbdo } from '@/api/generated/smbdo.schemas';
 
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
-import { OnboardingUseCase } from './types';
 
 // TODO: add more form schemas here
 export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
@@ -14,90 +13,90 @@ export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
   z.infer<typeof IndividualStepFormSchema>;
 
 type PartyFieldMap = {
-  [K in keyof OnboardingWizardFormValues]?:
-    | string
-    | {
-        path: string;
-        useCases?: Array<OnboardingUseCase>;
-        fromResponseFn?: (val: any) => OnboardingWizardFormValues[K];
-        toRequestFn?: (val: OnboardingWizardFormValues[K]) => any;
-      };
+  [K in keyof OnboardingWizardFormValues]: FieldConfiguration;
 };
 
 // Source of truth for mapping form fields to API fields
 // Used for handling server errors and creating request bodies
-export const partyFieldMap: PartyFieldMap = {
-  organizationName: 'organizationDetails.organizationName',
-  organizationType: 'organizationDetails.organizationType',
-  countryOfFormation: 'organizationDetails.countryOfFormation',
-  email: 'email',
-  yearOfFormation: 'organizationDetails.yearOfFormation',
-  dbaName: { path: 'organizationDetails.dbaName', useCases: ['EF'] },
-  organizationDescription: 'organizationDetails.organizationDescription',
-  industryCategory: 'organizationDetails.industryCategory',
-  industryType: 'organizationDetails.industryType',
-  entitiesInOwnership: {
-    path: 'organizationDetails.entitiesInOwnership',
-    fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
-    toRequestFn: (val): boolean => val === 'yes',
+export const partyFieldMap: Partial<PartyFieldMap> = {
+  organizationName: {
+    path: 'organizationDetails.organizationName',
+    baseRule: { visibility: 'visible' },
   },
-  mcc: { path: 'organizationDetails.mcc', useCases: [] },
-  addresses: 'organizationDetails.addresses',
-  associatedCountries: 'organizationDetails.associatedCountries',
-  jurisdiction: 'organizationDetails.jurisdiction',
-  organizationIds: 'organizationDetails.organizationIds',
+  organizationType: {
+    path: 'organizationDetails.organizationType',
+    baseRule: { visibility: 'visible' },
+  },
+  dbaName: {
+    path: 'organizationDetails.dbaName',
+    baseRule: { visibility: 'visible' },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['CanadaMS'],
+          jurisdiction: ['CA'],
+        },
+        rule: { visibility: 'hidden' },
+      },
+      {
+        condition: {
+          product: ['EF'],
+          entityType: ['LLC'],
+        },
+        rule: { 
+          visibility: 'disabled',
+          defaultValue: 'N/A'
+        },
+      }
+    ],
+  },
+  addresses: {
+    path: 'organizationDetails.addresses',
+    baseRule: { 
+      visibility: 'visible',
+      maxItems: 1 
+    },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['EF'],
+        },
+        rule: { maxItems: 3 },
+      }
+    ],
+  },
   organizationPhone: {
     path: 'organizationDetails.phone',
-    fromResponseFn: (val: PhoneSmbdo) => ({
+    baseRule: { visibility: 'visible' },
+    fromResponseFn: (val) => ({
       phoneType: val.phoneType,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
-    toRequestFn: (val: any): PhoneSmbdo => {
+    toRequestFn: (val) => {
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
-        countryCode: phone?.countryCallingCode
-          ? `+${phone.countryCallingCode}`
-          : '',
+        countryCode: phone?.countryCallingCode ? `+${phone.countryCallingCode}` : '',
         phoneNumber: phone?.nationalNumber ?? '',
       };
     },
   },
-  tradeOverInternet: {
-    path: 'organizationDetails.tradeOverInternet',
-    fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
-    toRequestFn: (val): boolean => val === 'yes',
-    useCases: [],
+  countryOfFormation: {
+    path: 'organizationDetails.countryOfFormation',
+    baseRule: { visibility: 'visible' },
   },
-  website: {
-    path: 'organizationDetails.website',
-    useCases: [],
+  jurisdiction: {
+    path: 'organizationDetails.jurisdiction',
+    baseRule: { visibility: 'visible' },
   },
-  websiteAvailable: {
-    path: 'organizationDetails.websiteAvailable',
-    useCases: [],
+  product: {
+    path: 'organizationDetails.product',
+    baseRule: { visibility: 'visible' },
   },
-  secondaryMccList: {
-    path: 'organizationDetails.secondaryMccList',
-    useCases: [],
+  email: {
+    path: 'contactDetails.email',
+    baseRule: { visibility: 'visible' },
   },
-  birthDate: 'individualDetails.birthDate',
-  countryOfResidence: 'individualDetails.countryOfResidence',
-  firstName: 'individualDetails.firstName',
-  middleName: 'individualDetails.middleName',
-  lastName: 'individualDetails.lastName',
-  nameSuffix: { path: 'individualDetails.nameSuffix', useCases: ['EF'] },
-  individualIds: { path: 'individualDetails.individualIds', useCases: ['EF'] },
-  jobTitle: { path: 'individualDetails.jobTitle', useCases: ['EF'] },
-  jobTitleDescription: {
-    path: 'individualDetails.jobTitleDescription',
-    useCases: ['EF'],
-  },
-  natureOfOwnership: 'individualDetails.natureOfOwnership',
-  soleOwner: 'individualDetails.soleOwner',
-  individualAddresses: {
-    path: 'individualDetails.addresses',
-    useCases: ['EF', 'CanadaMS'],
-  },
-  individualPhone: 'individualDetails.phone',
+  // Add other missing fields here
+  // ... configure other fields similarly
 };

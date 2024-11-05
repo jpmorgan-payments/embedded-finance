@@ -52,13 +52,14 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
-  filterDefaultValuesByUseCase,
-  filterSchemaByUseCase,
+  FieldContext,
   generateRequestBody,
+  isFieldDisabled,
+  isFieldVisible,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
-  useIsFieldVisible,
 } from '../utils/formUtils';
+import { Jurisdiction, LegalEntityType, Product } from '../utils/types';
 import naicsCodes from './naics-codes.json';
 import { OrganizationStepFormSchema } from './OrganizationStepForm.schema';
 
@@ -150,7 +151,6 @@ const AddressLines: FC<AddressLinesProps> = ({ control, addressIndex }) => {
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId, onPostClientResponse, useCase } = useOnboardingContext();
-  const isFieldVisible = useIsFieldVisible(useCase);
 
   const form = useForm<z.infer<typeof OrganizationStepFormSchema>>({
     mode: 'onBlur',
@@ -240,6 +240,14 @@ export const OrganizationStepForm = () => {
     (party) => party?.partyType === 'ORGANIZATION'
   )?.id;
 
+  const context: FieldContext = {
+    product: (clientData?.products?.[0] ?? 'UNKNOWN') as Product,
+    jurisdiction: (clientData?.parties?.[0]?.organizationDetails
+      ?.countryOfFormation ?? 'US') as Jurisdiction,
+    entityType: (clientData?.parties?.[0]?.organizationDetails
+      ?.organizationType ?? 'UNKNOWN') as unknown as LegalEntityType,
+  };
+
   // Populate form with client data
   useEffect(() => {
     if (getClientStatus === 'success' && clientData && partyId) {
@@ -256,13 +264,19 @@ export const OrganizationStepForm = () => {
 
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
-      const requestBody = generateRequestBody(values, 0, 'addParties', {
-        addParties: [
-          {
-            ...(partyId ? { id: partyId } : {}),
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
+      const requestBody = generateRequestBody(
+        values,
+        0,
+        'addParties',
+        {
+          addParties: [
+            {
+              ...(partyId ? { id: partyId } : {}),
+            },
+          ],
+        },
+        context
+      ) as UpdateClientRequestSmbdo;
 
       updateClient(
         {
@@ -279,9 +293,9 @@ export const OrganizationStepForm = () => {
           },
           onError: (error) => {
             if (error.response?.data?.context) {
-              const { context } = error.response.data;
+              const { context: errorContext } = error.response.data;
               const apiFormErrors = translateApiErrorsToFormErrors(
-                context,
+                errorContext,
                 0,
                 'addParties'
               );
@@ -304,10 +318,11 @@ export const OrganizationStepForm = () => {
         className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
       >
         <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-          {isFieldVisible('organizationName') && (
+          {isFieldVisible('organizationName', context) && (
             <FormField
               control={form.control}
               name="organizationName"
+              disabled={isFieldDisabled('organizationName', context)}
               render={({ field }) => (
                 <FormItem>
                   <div className="eb-flex eb-items-center eb-space-x-2">
@@ -328,10 +343,11 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('organizationDescription') && (
+          {isFieldVisible('organizationDescription', context) && (
             <FormField
               control={form.control}
               name="organizationDescription"
+              disabled={isFieldDisabled('organizationDescription', context)}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Organization description</FormLabel>
@@ -344,10 +360,11 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('dbaName') && (
+          {isFieldVisible('dbaName', context) && (
             <FormField
               control={form.control}
               name="dbaName"
+              disabled={isFieldDisabled('dbaName', context)}
               render={({ field }) => (
                 <FormItem>
                   <div className="eb-items-center eb-space-x-2">
@@ -364,10 +381,11 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('email') && (
+          {isFieldVisible('email', context) && (
             <FormField
               control={form.control}
               name="email"
+              disabled={isFieldDisabled('email', context)}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel asterisk>Organization email</FormLabel>
@@ -380,10 +398,11 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('organizationType') && (
+          {isFieldVisible('organizationType', context) && (
             <FormField
               control={form.control}
               name="organizationType"
+              disabled={isFieldDisabled('organizationType', context)}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel asterisk>Organization type</FormLabel>
@@ -429,10 +448,11 @@ export const OrganizationStepForm = () => {
         </div>
 
         <div className="eb-flex eb-flex-wrap eb-gap-6 md:eb-flex-nowrap">
-          {isFieldVisible('jurisdiction') && (
+          {isFieldVisible('jurisdiction', context) && (
             <FormField
               control={form.control}
               name="jurisdiction"
+              disabled={isFieldDisabled('jurisdiction', context)}
               render={({ field }) => (
                 <FormItem className="eb-grow md:eb-grow-0">
                   <div className="eb-flex eb-items-center eb-space-x-2">
@@ -450,10 +470,11 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('countryOfFormation') && (
+          {isFieldVisible('countryOfFormation', context) && (
             <FormField
               control={form.control}
               name="countryOfFormation"
+              disabled={isFieldDisabled('countryOfFormation', context)}
               render={({ field }) => (
                 <FormItem className="eb-grow md:eb-grow-0">
                   <div className="eb-flex eb-items-center eb-space-x-2">
@@ -471,10 +492,11 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('yearOfFormation') && (
+          {isFieldVisible('yearOfFormation', context) && (
             <FormField
               control={form.control}
               name="yearOfFormation"
+              disabled={isFieldDisabled('yearOfFormation', context)}
               render={({ field }) => (
                 <FormItem className="eb-grow md:eb-grow-0">
                   <div className="eb-flex eb-items-center eb-space-x-2">
@@ -497,10 +519,11 @@ export const OrganizationStepForm = () => {
           </legend>
 
           <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
-            {isFieldVisible('organizationPhone') && (
+            {isFieldVisible('organizationPhone', context) && (
               <FormField
                 control={form.control}
                 name="organizationPhone.phoneType"
+                disabled={isFieldDisabled('organizationPhone', context)}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Type</FormLabel>
@@ -528,10 +551,11 @@ export const OrganizationStepForm = () => {
               />
             )}
 
-            {isFieldVisible('organizationPhone') && (
+            {isFieldVisible('organizationPhone', context) && (
               <FormField
                 control={form.control}
                 name="organizationPhone.phoneNumber"
+                disabled={isFieldDisabled('organizationPhone', context)}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
@@ -553,10 +577,11 @@ export const OrganizationStepForm = () => {
         </fieldset>
 
         <div className="eb-grid eb-grid-cols-2 eb-gap-6">
-          {isFieldVisible('industryCategory') && (
+          {isFieldVisible('industryCategory', context) && (
             <FormField
               control={form.control}
               name="industryType"
+              disabled={isFieldDisabled('industryCategory', context)}
               render={({ field }) => {
                 const [open, setOpen] = useState(false);
                 return (
@@ -653,10 +678,11 @@ export const OrganizationStepForm = () => {
         </div>
 
         <div className="eb-flex">
-          {isFieldVisible('mcc') && (
+          {isFieldVisible('mcc', context) && (
             <FormField
               control={form.control}
               name="mcc"
+              disabled={isFieldDisabled('mcc', context)}
               render={({ field }) => (
                 <FormItem className="eb-grow sm:eb-grow-0">
                   <div className="eb-flex eb-items-center eb-space-x-2">
@@ -679,10 +705,11 @@ export const OrganizationStepForm = () => {
           )}
         </div>
 
-        {isFieldVisible('entitiesInOwnership') && (
+        {isFieldVisible('entitiesInOwnership', context) && (
           <FormField
             control={form.control}
             name="entitiesInOwnership"
+            disabled={isFieldDisabled('entitiesInOwnership', context)}
             render={({ field }) => (
               <FormItem className="eb-space-y-3">
                 <FormLabel asterisk>
@@ -716,10 +743,11 @@ export const OrganizationStepForm = () => {
           />
         )}
 
-        {isFieldVisible('tradeOverInternet') && (
+        {isFieldVisible('tradeOverInternet', context) && (
           <FormField
             control={form.control}
             name="tradeOverInternet"
+            disabled={isFieldDisabled('tradeOverInternet', context)}
             render={({ field }) => (
               <FormItem className="eb-space-y-3">
                 <FormLabel asterisk>
@@ -771,6 +799,7 @@ export const OrganizationStepForm = () => {
                 <FormField
                   control={form.control}
                   name={`addresses.${index}.addressType`}
+                  disabled={isFieldDisabled('addresses', context)}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Address Type</FormLabel>
@@ -913,6 +942,7 @@ export const OrganizationStepForm = () => {
                 <FormField
                   control={form.control}
                   name={`organizationIds.${index}.idType`}
+                  disabled={isFieldDisabled('organizationIds', context)}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ID Type</FormLabel>
@@ -1026,6 +1056,7 @@ export const OrganizationStepForm = () => {
               <FormField
                 control={form.control}
                 name={`associatedCountries.${index}.country`}
+                disabled={isFieldDisabled('associatedCountries', context)}
                 render={({ field }) => (
                   <FormItem className="eb-grow">
                     <FormControl>
@@ -1070,6 +1101,7 @@ export const OrganizationStepForm = () => {
               <FormField
                 control={form.control}
                 name={`secondaryMccList.${index}.mcc`}
+                disabled={isFieldDisabled('secondaryMccList', context)}
                 render={({ field }) => (
                   <FormItem className="eb-grow">
                     <FormControl>
@@ -1105,10 +1137,11 @@ export const OrganizationStepForm = () => {
 
         {/* Additional Fields */}
         <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-          {isFieldVisible('websiteAvailable') && (
+          {isFieldVisible('websiteAvailable', context) && (
             <FormField
               control={form.control}
               name="websiteAvailable"
+              disabled={isFieldDisabled('websiteAvailable', context)}
               render={({ field }) => (
                 <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
                   <FormControl>
@@ -1124,10 +1157,11 @@ export const OrganizationStepForm = () => {
               )}
             />
           )}
-          {isFieldVisible('website') && (
+          {isFieldVisible('website', context) && (
             <FormField
               control={form.control}
               name="website"
+              disabled={isFieldDisabled('website', context)}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Website</FormLabel>
