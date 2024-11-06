@@ -400,7 +400,9 @@ export const InitialStepForm = () => {
               </Text>
               <Separator className="eb-my-4" />
               <Text>
-                <b>Information you will have to review during onboarding steps:</b>
+                <b>
+                  Information you will have to review during onboarding steps:
+                </b>
               </Text>
               <ul>
                 {generateRequiredFieldsList(clientData).map((field) => (
