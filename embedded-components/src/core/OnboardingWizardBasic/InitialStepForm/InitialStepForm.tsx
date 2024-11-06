@@ -10,6 +10,7 @@ import {
   useSmbdoUpdateClient,
 } from '@/api/generated/smbdo';
 import {
+  ClientResponse,
   CreateClientRequestSmbdo,
   UpdateClientRequestSmbdo,
 } from '@/api/generated/smbdo.schemas';
@@ -204,10 +205,26 @@ export const InitialStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
+  function generateRequiredFieldsList(data: ClientResponse | undefined) {
+    if (!data) return [];
+
+    const requiredFields = [
+      'Organization Name',
+      'Organization Type',
+      'Country of Formation',
+      'Email',
+    ];
+
+    // Add more fields based on the data if necessary
+    // Example: if (data.someCondition) requiredFields.push('Some Other Field');
+
+    return requiredFields;
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
-        <div className="eb-grid eb-grid-cols-2 eb-gap-8">
+        <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
           <div className="eb-space-y-6">
             <FormField
               control={form.control}
@@ -364,7 +381,7 @@ export const InitialStepForm = () => {
               <Button>Next</Button>
             </div>
           </div>
-          <Card>
+          <Card className="hidden md:block">
             <CardHeader>
               <CardDescription>
                 The information we request from you will help us complete
@@ -381,6 +398,17 @@ export const InitialStepForm = () => {
                 Please select your <b>organization type</b> to preview the
                 information you will need to confirm or provide.
               </Text>
+              <Separator className="eb-my-4" />
+              <Text>
+                <b>
+                  Information you will have to review during onboarding steps:
+                </b>
+              </Text>
+              <ul>
+                {generateRequiredFieldsList(clientData).map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         </div>
