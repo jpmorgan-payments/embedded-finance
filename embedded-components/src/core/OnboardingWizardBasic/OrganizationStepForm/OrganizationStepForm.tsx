@@ -15,7 +15,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -569,13 +568,14 @@ export const OrganizationStepForm = () => {
                             variant="outline"
                             role="combobox"
                             className={cn(
-                              'eb-max-w-[400px] eb-justify-between eb-font-normal',
+                              'eb-justify-between eb-font-normal',
                               !field.value && 'eb-text-muted-foreground'
                             )}
                           >
                             {field.value ? (
                               <div className="eb-flex eb-w-[calc(100%-1rem)]">
                                 <span className="eb-overflow-hidden eb-text-ellipsis">
+                                  [{form.getValues('industryCategory')}]{' '}
                                   {field.value}
                                 </span>
                                 <span className="eb-pl-2 eb-text-muted-foreground">
@@ -593,7 +593,7 @@ export const OrganizationStepForm = () => {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="eb-w-[400px] eb-p-0">
+                      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
                         <Command>
                           <CommandInput
                             placeholder="Search industry type..."
@@ -602,7 +602,7 @@ export const OrganizationStepForm = () => {
                           <CommandList>
                             <CommandEmpty>No results found</CommandEmpty>
                             {industryCategories.map((category) => (
-                              <CommandGroup heading={category}>
+                              <>
                                 {naicsCodes
                                   .filter(
                                     (code) =>
@@ -611,10 +611,10 @@ export const OrganizationStepForm = () => {
                                   .map(({ description: industryType, id }) => (
                                     <CommandItem
                                       key={industryType}
-                                      value={industryType}
+                                      value={`${category} ${industryType}`}
                                       className="eb-cursor-pointer"
-                                      onSelect={(value) => {
-                                        field.onChange(value);
+                                      onSelect={() => {
+                                        field.onChange(industryType);
                                         form.setValue(
                                           'industryCategory',
                                           category
@@ -622,8 +622,8 @@ export const OrganizationStepForm = () => {
                                         setOpen(false);
                                       }}
                                     >
-                                      <span className="eb-flex eb-w-full eb-justify-between">
-                                        {industryType}
+                                      <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                                        [{category}] {industryType}
                                         <span className="eb-pl-2 eb-text-muted-foreground">
                                           {id}
                                         </span>
@@ -638,7 +638,7 @@ export const OrganizationStepForm = () => {
                                       />
                                     </CommandItem>
                                   ))}
-                              </CommandGroup>
+                              </>
                             ))}
                           </CommandList>
                         </Command>
