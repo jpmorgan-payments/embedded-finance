@@ -560,7 +560,13 @@ export const OrganizationStepForm = () => {
                 const [open, setOpen] = useState(false);
                 return (
                   <FormItem className="eb-flex eb-flex-col">
-                    <FormLabel>Industry Type</FormLabel>
+                    <div className="eb-flex eb-items-center eb-space-x-2">
+                      <FormLabel>Industry Type</FormLabel>
+                      <InfoPopover>
+                        Your business industry - search for the relevant
+                        industry type or the NAICS code.
+                      </InfoPopover>
+                    </div>
                     <Popover open={open} onOpenChange={setOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -611,7 +617,7 @@ export const OrganizationStepForm = () => {
                                   .map(({ description: industryType, id }) => (
                                     <CommandItem
                                       key={industryType}
-                                      value={`${category} ${industryType}`}
+                                      value={`${category} ${industryType} ${id}`}
                                       className="eb-cursor-pointer"
                                       onSelect={() => {
                                         field.onChange(industryType);
