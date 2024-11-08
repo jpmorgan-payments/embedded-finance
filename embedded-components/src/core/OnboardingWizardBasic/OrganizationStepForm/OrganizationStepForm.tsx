@@ -428,27 +428,6 @@ export const OrganizationStepForm = () => {
         </div>
 
         <div className="eb-flex eb-flex-wrap eb-gap-6 md:eb-flex-nowrap">
-          {isFieldVisible('jurisdiction') && (
-            <FormField
-              control={form.control}
-              name="jurisdiction"
-              render={({ field }) => (
-                <FormItem className="eb-grow md:eb-grow-0">
-                  <div className="eb-flex eb-items-center eb-space-x-2">
-                    <FormLabel asterisk>Jurisdiction</FormLabel>
-                    <InfoPopover>
-                      Country code in ISO alpha-2 format.
-                    </InfoPopover>
-                  </div>
-                  <FormControl>
-                    <Input {...field} maxLength={2} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
           {isFieldVisible('countryOfFormation') && (
             <FormField
               control={form.control}

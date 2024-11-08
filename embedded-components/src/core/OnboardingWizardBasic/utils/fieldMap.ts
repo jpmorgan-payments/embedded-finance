@@ -1,38 +1,52 @@
 import { parsePhoneNumber } from 'react-phone-number-input';
-import { z } from 'zod';
 
 import { PhoneSmbdo } from '@/api/generated/smbdo.schemas';
 
-import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
-import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
-import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
-import { OnboardingUseCase } from './types';
-
-// TODO: add more form schemas here
-export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
-  z.infer<typeof OrganizationStepFormSchema> &
-  z.infer<typeof IndividualStepFormSchema>;
-
-type PartyFieldMap = {
-  [K in keyof OnboardingWizardFormValues]?:
-    | string
-    | {
-        path: string;
-        useCases?: Array<OnboardingUseCase>;
-        fromResponseFn?: (val: any) => OnboardingWizardFormValues[K];
-        toRequestFn?: (val: OnboardingWizardFormValues[K]) => any;
-      };
-};
+import { PartyFieldMap } from './types';
 
 // Source of truth for mapping form fields to API fields
 // Used for handling server errors and creating request bodies
 export const partyFieldMap: PartyFieldMap = {
-  organizationName: 'organizationDetails.organizationName',
-  organizationType: 'organizationDetails.organizationType',
-  countryOfFormation: 'organizationDetails.countryOfFormation',
-  email: 'email',
-  yearOfFormation: 'organizationDetails.yearOfFormation',
-  dbaName: { path: 'organizationDetails.dbaName', useCases: ['EF'] },
+  organizationName: {
+    path: 'organizationDetails.organizationName',
+    baseRule: { visibility: 'visible', required: true },
+  },
+  organizationType: {
+    path: 'organizationDetails.organizationType',
+    baseRule: { visibility: 'readonly', required: true },
+  },
+  countryOfFormation: {
+    path: 'organizationDetails.countryOfFormation',
+    baseRule: { visibility: 'visible', required: true },
+  },
+  email: {
+    path: 'organizationDetails.email',
+    baseRule: { visibility: 'visible', required: true },
+  },
+  yearOfFormation: {
+    path: 'organizationDetails.yearOfFormation',
+    baseRule: { visibility: 'visible', required: true },
+  },
+  dbaName: {
+    path: 'organizationDetails.dbaName',
+    baseRule: { visibility: 'visible', required: false },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['MERCHANT_SERVICES'],
+          jurisdiction: ['CA'],
+        },
+        rule: { visibility: 'hidden' },
+      },
+      {
+        condition: {
+          product: ['EMBEDDED_PAYMENTS'],
+          entityType: ['LIMITED_LIABILITY_COMPANY'],
+        },
+        rule: { visibility: 'disabled' },
+      },
+    ],
+  },
   organizationDescription: 'organizationDetails.organizationDescription',
   industryCategory: 'organizationDetails.industryCategory',
   industryType: 'organizationDetails.industryType',
