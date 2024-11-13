@@ -9,8 +9,8 @@ import {
   UpdateClientRequestSmbdo,
 } from '@/api/generated/smbdo.schemas';
 
-import { OnboardingWizardFormValues, partyFieldMap } from './fieldMap';
-import { OnboardingUseCase } from './types';
+import { partyFieldMap } from './fieldMap';
+import { OnboardingWizardFormValues } from './types';
 
 type FormError = {
   field?: keyof typeof partyFieldMap;

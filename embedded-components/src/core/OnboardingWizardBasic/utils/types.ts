@@ -17,7 +17,8 @@ type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
 
 type FieldRule = {
   visibility: FieldVisibility;
-  required: boolean;
+  required?: boolean;
+  minItems?: number;
   maxItems?: number;
 };
 
