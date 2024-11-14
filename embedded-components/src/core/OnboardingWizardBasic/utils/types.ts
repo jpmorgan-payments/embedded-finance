@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { ClientProduct, OrganizationType } from '@/api/generated/smbdo.schemas';
+import {
+  ClientProduct,
+  CountryCodeIsoAlpha2,
+  OrganizationType,
+} from '@/api/generated/smbdo.schemas';
 
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
@@ -11,24 +15,28 @@ export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
   z.infer<typeof OrganizationStepFormSchema> &
   z.infer<typeof IndividualStepFormSchema>;
 
-export type Jurisdiction = 'US' | 'CA';
+export type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
 
-type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
-
-type FieldRule = {
+export type FieldRule = {
   visibility: FieldVisibility;
   required?: boolean;
   minItems?: number;
   maxItems?: number;
 };
 
+export type ClientContext = {
+  product?: ClientProduct;
+  jurisdiction?: CountryCodeIsoAlpha2;
+  entityType?: OrganizationType;
+};
+
 type FieldRuleCondition = {
   product?: ClientProduct[];
-  jurisdiction?: Jurisdiction[];
+  jurisdiction?: CountryCodeIsoAlpha2[];
   entityType?: OrganizationType[];
 };
 
-type FieldConfiguration<K extends keyof OnboardingWizardFormValues> = {
+export type FieldConfiguration<K extends keyof OnboardingWizardFormValues> = {
   path: string;
   baseRule: FieldRule;
   conditionalRules?: Array<{

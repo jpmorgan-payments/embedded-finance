@@ -21,6 +21,7 @@ export const efClientCorpEBMock: ClientResponse = {
       status: 'ACTIVE',
       createdAt: '2024-06-21T18:12:21.005Z',
       organizationDetails: {
+        jurisdiction: 'CA',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
         organizationName: 'Central Park Getaways',
         dbaName: 'CP Getaways',
@@ -147,7 +148,7 @@ export const efClientCorpEBMock: ClientResponse = {
   ],
   partyId: '2000000111',
   // MERCHANT_SERVICES',
-  products: ['EMBEDDED_PAYMENTS'],
+  products: ['MERCHANT_SERVICES'],
   outstanding: {
     attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
     documentRequestIds: [],

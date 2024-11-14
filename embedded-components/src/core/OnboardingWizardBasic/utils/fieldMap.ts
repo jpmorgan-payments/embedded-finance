@@ -13,7 +13,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationType: {
     path: 'organizationDetails.organizationType',
-    baseRule: { visibility: 'readonly', required: true },
+    baseRule: { visibility: 'visible', required: true },
   },
   countryOfFormation: {
     path: 'organizationDetails.countryOfFormation',
@@ -126,7 +126,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   websiteAvailable: {
     path: 'organizationDetails.websiteAvailable',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: { visibility: 'visible', required: false },
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
