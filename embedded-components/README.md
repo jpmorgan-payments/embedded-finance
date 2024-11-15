@@ -21,7 +21,7 @@ Embedded UI Components offer a seamless way to integrate sophisticated UI compon
 ### EBComponentsProvider
 
 The `EBComponentsProvider` is a crucial wrapper component that must be placed at the top level of your Embedded UI Components implementation. It handles authentication, applies theming, and provides necessary context to all child Embedded UI Components.
-It is usign @tanstack/react-query for handling API calls and authentication as well as Orval generated types for the API requests and responses.
+It is using @tanstack/react-query for handling API calls and authentication as well as Orval generated types for the API requests and responses.
 
 #### Key Props:
 
