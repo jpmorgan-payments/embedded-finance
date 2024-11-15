@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
 import {
   Select,
   SelectContent,
@@ -37,12 +38,20 @@ import {
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
+  useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
 import { IndividualStepFormSchema } from './IndividualStepForm.schema';
 
 export const IndividualStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId, onPostClientResponse } = useOnboardingContext();
+
+  // Fetch client data
+  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
+    clientId ?? ''
+  );
+
+  const { clientContext } = useFilterFunctionsByClientContext(clientData);
 
   const form = useForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onChange',
@@ -60,7 +69,6 @@ export const IndividualStepForm = () => {
       individualIds: [],
       individualPhone: {
         phoneType: 'MOBILE_PHONE',
-        countryCode: '',
         phoneNumber: '',
       },
       soleOwner: false,
@@ -84,11 +92,6 @@ export const IndividualStepForm = () => {
     control: form.control,
     name: 'individualIds',
   });
-
-  // Fetch client data
-  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
-    clientId ?? ''
-  );
 
   // Get INDIVIDUAL's partyId
   const partyId = clientData?.parties?.find(
@@ -375,25 +378,20 @@ export const IndividualStepForm = () => {
             />
             <FormField
               control={form.control}
-              name="individualPhone.countryCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Country Code</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="e.g. +1" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="individualPhone.phoneNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter phone number" />
+                  <FormControl key={clientContext.jurisdiction}>
+                    <PhoneInput
+                      {...field}
+                      countries={['CA', 'US']}
+                      placeholder="Enter phone number"
+                      international={false}
+                      defaultCountry={
+                        clientContext.jurisdiction === 'CanadaMS' ? 'CA' : 'US'
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

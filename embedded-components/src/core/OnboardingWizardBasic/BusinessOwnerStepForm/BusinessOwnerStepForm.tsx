@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
 import {
   Select,
   SelectContent,
@@ -37,7 +38,10 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { convertClientResponseToFormValues } from '../utils/formUtils';
+import {
+  convertClientResponseToFormValues,
+  useFilterFunctionsByClientContext,
+} from '../utils/formUtils';
 
 type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
 
@@ -55,6 +59,8 @@ export const BusinessOwnerStepForm = () => {
     status: getClientStatus,
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
+
+  const { clientContext } = useFilterFunctionsByClientContext(clientData);
 
   const form = useForm<BusinessOwner>({
     resolver: zodResolver(IndividualStepFormSchema),
@@ -387,25 +393,22 @@ export const BusinessOwnerStepForm = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="individualPhone.countryCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Country Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="e.g. +1" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
                     name="individualPhone.phoneNumber"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter phone number" />
+                        <FormControl key={clientContext.jurisdiction}>
+                          <PhoneInput
+                            {...field}
+                            countries={['CA', 'US']}
+                            placeholder="Enter phone number"
+                            international={false}
+                            defaultCountry={
+                              clientContext.jurisdiction === 'CanadaMS'
+                                ? 'CA'
+                                : 'US'
+                            }
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
