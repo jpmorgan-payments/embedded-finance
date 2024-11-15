@@ -20,7 +20,6 @@ export const OnboardingWizardBasicWithProvider = ({
   apiBaseUrl,
   headers,
   title,
-  useCase,
   availableProducts,
   availableJurisdictions,
   theme,
@@ -34,7 +33,6 @@ export const OnboardingWizardBasicWithProvider = ({
   apiBaseUrl: string;
   headers: Record<string, string>;
   title: string;
-  useCase: 'EF' | 'CanadaMS';
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<CountryCodeIsoAlpha2>;
   theme: Record<string, unknown>;
@@ -57,7 +55,6 @@ export const OnboardingWizardBasicWithProvider = ({
       >
         <OnboardingWizardBasic
           title={title}
-          useCase={useCase}
           onPostClientResponse={onPostClientResponse}
           onPostClientVerificationsResponse={onPostClientVerificationsResponse}
           setClientId={setClientId}
@@ -87,7 +84,6 @@ export const Primary: Story = {
     apiBaseUrl: '/',
     availableProducts: ['MERCHANT_SERVICES'],
     availableJurisdictions: ['CA'],
-    useCase: 'EF',
     title: 'Onboarding Wizard Basic',
     onPostClientResponse: (data, error) => {
       if (data) {
