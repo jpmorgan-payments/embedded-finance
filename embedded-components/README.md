@@ -57,14 +57,14 @@ const EmbeddedFinanceSection = () => {
 
 ## Main Components
 
-### 1. OnboardingWizard
+### 1. OnboardingWizardBasic
 
-The `OnboardingWizard` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/onboard).
+The `OnboardingWizardBasic` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/onboard).
 
 #### Main Features:
 
 - Create a client profile
-- Incremenrally update client's related parties
+- Incrementally update client's related parties
 - Complete due diligence questions
 - Handle client attestations
 - Manage requests for additional documentation
@@ -77,35 +77,41 @@ The `OnboardingWizard` component implements the client onboarding process as des
 ```jsx
 import {
   EBComponentsProvider,
-  OnboardingWizard,
+  OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 const OnboardingSection = () => {
   const [clientId, setClientId] = useManageClientExternalState();
 
-  const handleClientCreation = ({ response, error }) => {
+  const handlePostClientResponse = ({ response, error }) => {
     // Handle client creation response or error
-    setClientId(response.clientId);
+    setClientId(response.id);
   };
 
-  const handleClientKYCInitiation = ({ response, error }) => {
-    // Handle KYC initiation response or error
+  const handlePostClientVerificationsResponse = ({ clientId, error }) => {
+    // Handle post client verifications response or error
   };
 
   return (
     <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-      <OnboardingWizard
+      <OnboardingWizardBasic
         title="Client Onboarding"
         clientId={clientId}
-        onClientCreation={handleClientCreation}
-        onClientKYCInitiation={handleClientKYCInitiation}
+        onPostClientResponse={handlePostClientResponse}
+        onPostClientVerificationResponse={handlePostClientVerificationsResponse}
+        availableProducts={['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES']}
+        availableJurisdictions={['US', 'CA']}
       />
     </EBComponentsProvider>
   );
 };
 ```
 
-OnboardingWizard could also accept products and jurisdictions as optional props to customize the onboarding process. Please refer to the OnboardingWizardProps interface in the codebase for more details.
+OnboardingWizard could also accept products and jurisdictions as optional props to customize the onboarding process.
+
+`availableProducts` determines which products are selectable in the initial step of the onboarding process. If only one product is provided, the component will default to that product and the field will become read-only.
+
+Similarly, `availableJurisdictions` is an array of country codes that are selectable. If only one is provided, it will default to that country.
 
 ### 2. LinkedAccountWidget
 
