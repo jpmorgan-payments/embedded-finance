@@ -91,6 +91,8 @@ export const EMBEDDED_BANKING_LLC: Story = {
   args: {
     ...Primary.args,
     clientId: '0030000133',
+    availableJurisdictions: ['US'],
+    availableProducts: ['EMBEDDED_PAYMENTS'],
   },
   parameters: {
     msw: {
@@ -109,7 +111,8 @@ export const CANADA_MS_LLC: Story = {
   args: {
     ...Primary.args,
     clientId: '0030000133',
-    useCase: 'CanadaMS',
+    availableJurisdictions: ['CA'],
+    availableProducts: ['MERCHANT_SERVICES'],
   },
   parameters: {
     msw: {
