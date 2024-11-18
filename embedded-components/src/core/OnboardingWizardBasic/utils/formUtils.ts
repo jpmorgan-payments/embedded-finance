@@ -1,6 +1,6 @@
 import { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z, ZodObject } from 'zod';
+import { z } from 'zod';
 
 import {
   ApiErrorReasonV2,
@@ -9,8 +9,13 @@ import {
   UpdateClientRequestSmbdo,
 } from '@/api/generated/smbdo.schemas';
 
-import { OnboardingWizardFormValues, partyFieldMap } from './fieldMap';
-import { OnboardingUseCase } from './types';
+import { partyFieldMap } from './fieldMap';
+import {
+  ClientContext,
+  FieldConfiguration,
+  FieldRule,
+  OnboardingWizardFormValues,
+} from './types';
 
 type FormError = {
   field?: keyof typeof partyFieldMap;
@@ -100,22 +105,16 @@ export function generateRequestBody(
       }
       throw new Error(`${key} is not mapped in fieldMap`);
     }
-    const pathEnd =
-      typeof partyFieldMap[key] === 'string'
-        ? partyFieldMap[key]
-        : partyFieldMap[key].path;
-    const path = `${arrayName}.${partyIndex}.${pathEnd}`;
+
+    const path = `${arrayName}.${partyIndex}.${partyFieldMap[key].path}`;
     const value = formValues[key];
 
     if (value !== '' && value !== undefined) {
-      const modifiedValue =
-        typeof partyFieldMap[key] === 'string'
-          ? value
-          : partyFieldMap[key].toRequestFn
-            ? (
-                partyFieldMap[key] as { toRequestFn: (val: any) => any }
-              ).toRequestFn(value)
-            : value;
+      const modifiedValue = partyFieldMap[key].toRequestFn
+        ? (
+            partyFieldMap[key] as { toRequestFn: (val: any) => any }
+          ).toRequestFn(value)
+        : value;
 
       setValueByPath(obj, path, modifiedValue);
     }
@@ -143,72 +142,170 @@ export function convertClientResponseToFormValues(
     const partyIndex =
       response.parties?.findIndex((party) => party?.id === partyId) ?? -1;
 
-    const path = typeof config === 'string' ? config : config.path;
-
-    const pathTemplate = `parties.${partyIndex}.${path}`;
+    const pathTemplate = `parties.${partyIndex}.${config.path}`;
     const value = getValueByPath(response, pathTemplate);
     if (value !== undefined) {
-      const modifiedValue =
-        typeof config === 'string'
-          ? value
-          : config.fromResponseFn
-            ? config.fromResponseFn(value)
-            : value;
+      const modifiedValue = config.fromResponseFn
+        ? config.fromResponseFn(value)
+        : value;
       formValues[fieldName as keyof OnboardingWizardFormValues] = modifiedValue;
-    } else {
-      console.log(fieldName, value);
     }
   });
 
   return formValues;
 }
 
-export const useIsFieldVisible = (useCase: OnboardingUseCase) => {
-  return (fieldName: keyof OnboardingWizardFormValues) => {
-    const fieldConfig = partyFieldMap[fieldName];
+function evaluateFieldRules(
+  fieldConfig: FieldConfiguration<any>,
+  clientContext: ClientContext
+): FieldRule {
+  const { baseRule, conditionalRules } = fieldConfig;
+  let rule = { ...baseRule };
+  conditionalRules?.forEach(({ condition, rule: conditionalRule }) => {
+    const isConditionMet =
+      (!condition.product ||
+        (clientContext.product &&
+          condition.product.includes(clientContext.product))) &&
+      (!condition.jurisdiction ||
+        (clientContext.jurisdiction &&
+          condition.jurisdiction.includes(clientContext.jurisdiction))) &&
+      (!condition.entityType ||
+        (clientContext.entityType &&
+          condition.entityType.includes(clientContext.entityType)));
 
-    if (typeof fieldConfig === 'string') {
-      return true;
+    if (isConditionMet) {
+      rule = { ...rule, ...conditionalRule };
     }
-    return !fieldConfig?.useCases || fieldConfig.useCases.includes(useCase);
+  });
+
+  return rule;
+}
+
+export const useFilterFunctionsByClientContext = (
+  clientData?: ClientResponse
+) => {
+  const organizationParty = clientData?.parties?.find(
+    (party) => party?.partyType === 'ORGANIZATION'
+  );
+  const clientContext: ClientContext = {
+    product: clientData?.products?.[0],
+    jurisdiction: organizationParty?.organizationDetails?.jurisdiction,
+    entityType: organizationParty?.organizationDetails?.organizationType,
+  };
+
+  function filterSchema(
+    schema: z.ZodObject<Record<string, z.ZodType<any>>>,
+    refineFn?: (
+      schema: z.ZodObject<Record<string, z.ZodType<any>>>
+    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>
+  ) {
+    return filterSchemaByClientContext(schema, clientContext, refineFn);
+  }
+
+  function filterDefaultValues(
+    defaultValues: Partial<OnboardingWizardFormValues>
+  ) {
+    return filterDefaultValuesByClientContext(defaultValues, clientContext);
+  }
+
+  function getFieldRule(fieldName: keyof OnboardingWizardFormValues) {
+    return getFieldRuleByClientContext(fieldName, clientContext);
+  }
+
+  // Temporary helper functions; to be replaced with custom field components
+  function isFieldVisible(fieldName: keyof OnboardingWizardFormValues) {
+    return getFieldRule(fieldName).visibility !== 'hidden';
+  }
+  function isFieldDisabled(fieldName: keyof OnboardingWizardFormValues) {
+    return (
+      getFieldRule(fieldName).visibility === 'disabled' ||
+      getFieldRule(fieldName).visibility === 'readonly'
+    );
+  }
+  function isFieldRequired(fieldName: keyof OnboardingWizardFormValues) {
+    return getFieldRule(fieldName).required;
+  }
+
+  return {
+    filterSchema,
+    filterDefaultValues,
+    getFieldRule,
+    isFieldVisible,
+    isFieldDisabled,
+    isFieldRequired,
+    clientContext,
   };
 };
 
-export function filterSchemaByUseCase(
-  schema: ZodObject<Record<string, z.ZodType<any>>>,
-  useCase: OnboardingUseCase
-): ZodObject<Record<string, z.ZodType<any>>> {
+function getFieldRuleByClientContext(
+  fieldName: keyof OnboardingWizardFormValues,
+  clientContext: ClientContext
+): FieldRule {
+  const fieldConfig = partyFieldMap[fieldName];
+  if (!fieldConfig) {
+    throw new Error(`${fieldName} is not mapped in fieldMap`);
+  }
+
+  const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
+
+  return fieldRule;
+}
+
+function filterSchemaByClientContext(
+  schema: z.ZodObject<Record<string, z.ZodType<any>>>,
+  clientContext: ClientContext,
+  refineFn?: (
+    schema: z.ZodObject<Record<string, z.ZodType<any>>>
+  ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>
+):
+  | z.ZodObject<Record<string, z.ZodType<any>>>
+  | z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>> {
   const { shape } = schema;
 
   const filteredSchema: Record<string, z.ZodType<any>> = {};
   Object.entries(shape).forEach(([key, value]) => {
     const fieldConfig = partyFieldMap[key as keyof OnboardingWizardFormValues];
-    if (typeof fieldConfig === 'string') {
-      filteredSchema[key] = value;
-    } else if (
-      !fieldConfig?.useCases ||
-      fieldConfig.useCases.includes(useCase)
-    ) {
-      filteredSchema[key] = value;
+    if (!fieldConfig) {
+      throw new Error(`${key} is not mapped in fieldMap`);
+    }
+    const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
+    // Modify the field schema based on the field rule
+    let fieldSchema = value;
+    if (fieldRule.visibility !== 'hidden') {
+      if (!fieldRule.required) {
+        fieldSchema = value.optional();
+      }
+      if (fieldRule.minItems) {
+        fieldSchema = (value as z.ZodArray<z.ZodType<any>>).min(
+          fieldRule.minItems
+        );
+      }
+      if (fieldRule.maxItems) {
+        fieldSchema = (value as z.ZodArray<z.ZodType<any>>).max(
+          fieldRule.maxItems
+        );
+      }
+      filteredSchema[key] = fieldSchema;
     }
   });
+  if (refineFn) {
+    return refineFn(z.object(filteredSchema));
+  }
   return z.object(filteredSchema);
 }
 
-export function filterDefaultValuesByUseCase(
+function filterDefaultValuesByClientContext(
   defaultValues: Partial<OnboardingWizardFormValues>,
-  useCase: OnboardingUseCase
+  clientContext: ClientContext
 ): Partial<OnboardingWizardFormValues> {
   const filteredDefaultValues: Partial<OnboardingWizardFormValues> = {};
   Object.entries(defaultValues).forEach(([key, value]) => {
     const fieldConfig = partyFieldMap[key as keyof OnboardingWizardFormValues];
-    if (typeof fieldConfig === 'string') {
-      filteredDefaultValues[key as keyof OnboardingWizardFormValues] =
-        value as any;
-    } else if (
-      !fieldConfig?.useCases ||
-      fieldConfig.useCases.includes(useCase)
-    ) {
+    if (!fieldConfig) {
+      throw new Error(`${key} is not mapped in fieldMap`);
+    }
+    const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
+    if (fieldRule.visibility !== 'hidden') {
       filteredDefaultValues[key as keyof OnboardingWizardFormValues] =
         value as any;
     }

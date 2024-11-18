@@ -50,21 +50,7 @@ const secondaryMccSchema = z.object({
 
 export const OrganizationStepFormSchema = z.object({
   organizationName: z.string().min(1, 'Organization name is required'),
-  dbaName: z
-    .string()
-    .max(100, 'DBA name must be 100 characters or less')
-    .optional(),
-  organizationType: z.enum([
-    'LIMITED_LIABILITY_COMPANY',
-    'C_CORPORATION',
-    'S_CORPORATION',
-    'PARTNERSHIP',
-    'PUBLICLY_TRADED_COMPANY',
-    'NON_PROFIT_CORPORATION',
-    'GOVERNMENT_ENTITY',
-    'SOLE_PROPRIETORSHIP',
-    'UNINCORPORATED_ASSOCIATION',
-  ]),
+  dbaName: z.string().max(100, 'DBA name must be 100 characters or less'),
   countryOfFormation: z
     .string()
     .length(2, 'Country code must be exactly 2 characters'),
@@ -78,27 +64,17 @@ export const OrganizationStepFormSchema = z.object({
     .max(5, 'Maximum 5 addresses allowed'),
   associatedCountries: z
     .array(associatedCountrySchema)
-    .max(100, 'Maximum 100 associated countries allowed')
-    .optional()
-    .default([]),
+    .max(100, 'Maximum 100 associated countries allowed'),
   entitiesInOwnership: z.enum(['yes', 'no']),
   industryCategory: z
     .string()
-    .max(100, 'Industry category must be 100 characters or less')
-    .optional(),
+    .max(100, 'Industry category must be 100 characters or less'),
   industryType: z
     .string()
-    .max(100, 'Industry type must be 100 characters or less')
-    .optional(),
-  jurisdiction: z
-    .string()
-    .length(2, 'Jurisdiction code must be exactly 2 characters')
-    .optional()
-    .or(z.literal('')),
+    .max(100, 'Industry type must be 100 characters or less'),
   organizationDescription: z
     .string()
-    .max(500, 'Organization description must be 500 characters or less')
-    .optional(),
+    .max(500, 'Organization description must be 500 characters or less'),
   organizationIds: z
     .array(OrganizationIdSchema)
     .max(6, 'Maximum 6 organization IDs allowed'),
@@ -108,17 +84,26 @@ export const OrganizationStepFormSchema = z.object({
     .string()
     .url('Invalid URL')
     .max(500, 'Website URL must be 500 characters or less')
-    .optional(),
+    .or(z.literal('')),
   websiteAvailable: z.boolean(),
-  mcc: z
-    .string()
-    .refine((value) => value === '' || /^\d{4}$/.test(value), {
-      message: 'MCC must be empty or exactly 4 digits',
-    })
-    .optional(),
+  mcc: z.string().refine((value) => value === '' || /^\d{4}$/.test(value), {
+    message: 'MCC must be empty or exactly 4 digits',
+  }),
   secondaryMccList: z
     .array(secondaryMccSchema)
-    .max(50, 'Maximum 50 secondary MCCs allowed')
-    .optional()
-    .default([]),
+    .max(50, 'Maximum 50 secondary MCCs allowed'),
 });
+
+export const refineOrganizationStepFormSchema = (
+  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+) => {
+  return schema.superRefine((values, context) => {
+    if (values.websiteAvailable && !values.website) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Website URL is required',
+        path: ['website'],
+      });
+    }
+  });
+};

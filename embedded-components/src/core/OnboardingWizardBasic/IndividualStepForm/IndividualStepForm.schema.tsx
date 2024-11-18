@@ -1,10 +1,6 @@
 import { z } from 'zod';
 
-const phoneSchema = z.object({
-  phoneType: z.enum(['BUSINESS_PHONE', 'MOBILE_PHONE', 'ALTERNATE_PHONE']),
-  countryCode: z.string().regex(/^\+\d{1,3}$/, 'Invalid country code'),
-  phoneNumber: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
-});
+import { PhoneSchema } from '../utils/schemas';
 
 const addressSchema = z.object({
   addressType: z.enum([
@@ -68,7 +64,7 @@ export const IndividualStepFormSchema = z.object({
   individualIds: z.array(individualIdSchema).max(16),
   jobTitle: z.string(),
   jobTitleDescription: z.string().max(50).optional(),
-  individualPhone: phoneSchema,
+  individualPhone: PhoneSchema,
   natureOfOwnership: z.enum(['Direct', 'Indirect']).optional(),
   soleOwner: z.boolean().optional(),
 });

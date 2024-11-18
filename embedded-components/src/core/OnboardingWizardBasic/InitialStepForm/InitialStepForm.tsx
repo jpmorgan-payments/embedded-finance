@@ -80,6 +80,7 @@ export const InitialStepForm = () => {
       product: defaultProduct,
       organizationName: '',
       organizationType: undefined,
+      email: '',
       countryOfFormation: '',
     },
   });
@@ -249,7 +250,7 @@ export const InitialStepForm = () => {
                   ) : (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger ref={field.ref}>
                           <SelectValue placeholder="Select product" />
                         </SelectTrigger>
                       </FormControl>
@@ -279,7 +280,7 @@ export const InitialStepForm = () => {
                   ) : (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger ref={field.ref}>
                           <SelectValue placeholder="Select country of jurisdiction" />
                         </SelectTrigger>
                       </FormControl>
@@ -305,7 +306,7 @@ export const InitialStepForm = () => {
                   <FormLabel asterisk>Organization type</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger ref={field.ref}>
                         <SelectValue placeholder="Select organization type" />
                       </SelectTrigger>
                     </FormControl>
@@ -381,7 +382,7 @@ export const InitialStepForm = () => {
               <Button>Next</Button>
             </div>
           </div>
-          <Card className="hidden md:block">
+          <Card className="eb-hidden md:eb-block">
             <CardHeader>
               <CardDescription>
                 The information we request from you will help us complete

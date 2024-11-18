@@ -4,6 +4,9 @@ export const InitialStepFormSchema = z.object({
   organizationName: z.string().min(1, 'Required'),
   organizationType: z.enum([
     'LIMITED_LIABILITY_COMPANY',
+    'LIMITED_LIABILITY_PARTNERSHIP',
+    'GENERAL_PARTNERSHIP',
+    'LIMITED_PARTNERSHIP',
     'C_CORPORATION',
     'S_CORPORATION',
     'PARTNERSHIP',

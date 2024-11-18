@@ -24,7 +24,6 @@ import { OnboardingContextProvider } from './OnboardingContextProvider/Onboardin
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
-import { OnboardingUseCase } from './utils/types';
 
 const stepsInitial = [
   { label: 'Initial details', children: <InitialStepForm /> },
@@ -92,7 +91,6 @@ export type OnboardingWizardBasicProps = {
   ) => void;
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
-  useCase?: OnboardingUseCase;
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<CountryCodeIsoAlpha2>;
 };
@@ -101,7 +99,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   title = 'Client Onboarding',
   initialStep = 0,
   variant = 'circle',
-  useCase = 'EF',
   ...props
 }) => {
   const {
@@ -159,7 +156,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   }, [clientData, stepsToUse]);
 
   return (
-    <OnboardingContextProvider {...props} useCase={useCase}>
+    <OnboardingContextProvider {...props}>
       <Card className="eb-component">
         <CardHeader>
           <CardTitle>{title}</CardTitle>

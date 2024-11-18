@@ -3,7 +3,8 @@ import {
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
 import { Badge, Select, Text } from '@mantine/core';
-import { PageWrapper } from 'components';
+import { Prism } from '@mantine/prism';
+import { ComponentSamplePanel, PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect } from 'react';
@@ -23,6 +24,23 @@ export const OnboardingNextPageV2 = () => {
   function handleScenarioIdChange(id: string): void {
     setParams({ scenario: id });
   }
+
+  const code = `
+<EBComponentsProvider
+  apiBaseUrl="${scenario?.baseURL ?? ''}"
+  headers={{
+    api_gateway_client_id: "${scenario?.gatewayID ?? ''}",
+    Accept: 'application/json',
+  }}
+>
+  <OnboardingWizardBasic
+    title="Onboarding Wizard"
+    clientId="${scenario?.clientId}"
+    availableProducts={[${scenario?.availableProducts.map((product) => `"${product}"`).join(', ')}]}
+    availableJurisdictions={[${scenario?.availableJurisdictions.map((jurisdiction) => `"${jurisdiction}"`).join(',')}]}
+  />
+</EBComponentsProvider>
+`;
 
   return (
     <PageWrapper
@@ -66,7 +84,7 @@ export const OnboardingNextPageV2 = () => {
         apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
           api_gateway_client_id: scenario?.gatewayID ?? '',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         }}
       >
         <OnboardingWizardBasic
@@ -81,7 +99,6 @@ export const OnboardingNextPageV2 = () => {
           availableJurisdictions={scenario?.availableJurisdictions}
           title={`Onboarding Wizard`}
           clientId={scenario?.clientId}
-          useCase={'EF'} // TODO: remove this prop
           onPostClientResponse={(response, error) => {
             console.log('@@clientId POST', response, error);
           }}
@@ -90,6 +107,10 @@ export const OnboardingNextPageV2 = () => {
           }}
         />
       </EBComponentsProvider>
+
+      <Prism colorScheme="dark" language="javascript">
+        {code}
+      </Prism>
     </PageWrapper>
   );
 };
