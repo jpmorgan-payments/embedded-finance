@@ -159,9 +159,9 @@ const { mutate: createClient } = useCreateClient();
 
 ### Code Reference
 
-[InitialForm.tsx (link)](./../src/core/OnboardingWizardBasic/InitialForm/InitialForm.tsx)
+[InitialStepForm.tsx (link)](./../src/core/OnboardingWizardBasic/InitialStepForm/InitialStepForm.tsx)
 
-In the case that a client ID is not provided, we render the above form that will make a `POST /clients` call to create a new client with the minimum required fields.
+In the case that a client ID is not provided, the above form will make a `POST /clients` call to create a new client with the minimum required fields.
 
 ## Step 2: Individual and Business Details
 
