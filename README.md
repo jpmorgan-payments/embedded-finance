@@ -21,7 +21,7 @@ There are three main directories for you to access:
 - `/app` for the showcase UI and server experience.
 - `/postman` for the Postman Collection.
 - `/embedded-finance-sdk` for the Embedded Finance SDK
-- `/emddeded-components` for the Embedded UI Components
+- `/embedded-components` for the Embedded UI Components
 
 ### Application (App)
 
