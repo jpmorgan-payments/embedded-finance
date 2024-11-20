@@ -229,6 +229,20 @@ By default VS Code will not trigger completions when editing "string" content, f
 2. Export it in `./src/index.tsx`
 3. Also add it to `./src/vanilla/componentRegistry.ts`
 
+### Onboarding fieldMap.ts configuration
+
+This configuration file is a mapping utility that connects form fields to API fields. It is designed to handle server errors and create request bodies for API interactions. The configuration is structured as a partyFieldMap object, which defines the mapping rules for various fields related to both organizations and individuals.
+
+#### Key Components
+
+- **Field Mapping**: Each form field is mapped to a corresponding API field using a path. This path indicates where the data should be placed in the API request or where it can be found in the API response.
+
+- **Base Rules**: Each field has a baseRule that defines its default properties, such as visibility and required status. These rules determine whether a field is visible in the form and whether it is mandatory.
+
+- **Conditional Rules**: Some fields have conditionalRules that modify the base rules based on specific conditions, such as the product type or jurisdiction. These rules allow for dynamic adjustments to field properties.
+
+- **Transformation Functions**: Fields that require data transformation between the form and the API use fromResponseFn and toRequestFn functions. These functions handle the conversion of data formats, such as phone numbers.
+
 ## npm scripts
 
 ## Build and dev scripts
