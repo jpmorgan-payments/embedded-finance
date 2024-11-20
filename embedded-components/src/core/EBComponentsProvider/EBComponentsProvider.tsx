@@ -18,6 +18,7 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
   apiBaseUrl,
   headers = {},
   theme = {},
+  reactQueryDefaultOptions = {},
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
 
@@ -68,6 +69,10 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
       queryClient.resetQueries();
     }
   }, [currentInterceptor, queryClient]);
+
+  useEffect(() => {
+    queryClient.setDefaultOptions(reactQueryDefaultOptions);
+  }, [reactQueryDefaultOptions]);
 
   useEffect(() => {
     const root = window.document.documentElement;
