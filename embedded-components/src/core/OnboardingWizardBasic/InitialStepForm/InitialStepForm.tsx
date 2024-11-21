@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -45,15 +46,13 @@ import { Separator } from '@/components/ui';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { CLIENT_PRODUCT_MAPPING } from '../utils/clientProductMapping';
-import { COUNTRY_CODE_MAPPING } from '../utils/countryCodeMapping';
 import {
   convertClientResponseToFormValues,
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
 } from '../utils/formUtils';
-import { ORGANIZATION_TYPE_MAPPING } from '../utils/organizationTypeMapping';
+import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
 
 export const InitialStepForm = () => {
@@ -65,6 +64,7 @@ export const InitialStepForm = () => {
     availableProducts,
     availableJurisdictions,
   } = useOnboardingContext();
+  const { t } = useTranslation(['onboarding', 'common']);
 
   const defaultProduct =
     availableProducts.length === 1 ? availableProducts[0] : undefined;
@@ -203,7 +203,7 @@ export const InitialStepForm = () => {
   });
 
   if (postClientStatus === 'pending' || updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
+    return <FormLoadingState message={t('common:submitting')} />;
   }
 
   function generateRequiredFieldsList(data: ClientResponse | undefined) {
@@ -232,19 +232,19 @@ export const InitialStepForm = () => {
               name="product"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>Product</FormLabel>
+                  <FormLabel asterisk>{t('product')}</FormLabel>
                   {defaultProduct || clientId ? (
                     <>
                       {defaultProduct && defaultProduct !== field.value && (
                         <FormDescription>
                           DEV WARNING: The client response has a different
                           product than the wizard&apos;s configured default of{' '}
-                          <b>{CLIENT_PRODUCT_MAPPING[defaultProduct]}</b>.
+                          <b>{t(`clientProducts.${defaultProduct}`)}</b>.
                         </FormDescription>
                       )}
 
                       <Text className="eb-font-bold">
-                        {CLIENT_PRODUCT_MAPPING[field.value]}
+                        {t(`clientProducts.${field.value}`)}
                       </Text>
                     </>
                   ) : (
@@ -257,7 +257,7 @@ export const InitialStepForm = () => {
                       <SelectContent>
                         {availableProducts?.map((product) => (
                           <SelectItem key={product} value={product}>
-                            {CLIENT_PRODUCT_MAPPING[product]}
+                            {t(`clientProducts.${product}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -272,10 +272,10 @@ export const InitialStepForm = () => {
               name="jurisdiction"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>Jurisdiction</FormLabel>
+                  <FormLabel asterisk>{t('jurisdiction')}</FormLabel>
                   {availableJurisdictions.length === 1 ? (
                     <Text className="eb-font-bold">
-                      {COUNTRY_CODE_MAPPING[field.value]} ({field.value})
+                      {t(`clientJurisdictions.${field.value}`)} ({field.value})
                     </Text>
                   ) : (
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -287,8 +287,8 @@ export const InitialStepForm = () => {
                       <SelectContent>
                         {availableJurisdictions?.map((jurisdiction) => (
                           <SelectItem key={jurisdiction} value={jurisdiction}>
-                            {COUNTRY_CODE_MAPPING[jurisdiction]} ({jurisdiction}
-                            )
+                            {t(`clientJurisdictions.${jurisdiction}`)} (
+                            {jurisdiction})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -303,7 +303,7 @@ export const InitialStepForm = () => {
               name="organizationType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>Organization type</FormLabel>
+                  <FormLabel asterisk>{t('organizationType')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger ref={field.ref}>
@@ -311,13 +311,11 @@ export const InitialStepForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(ORGANIZATION_TYPE_MAPPING).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
+                      {ORGANIZATION_TYPE_LIST.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {t(`organizationTypes.${type}`)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -330,12 +328,9 @@ export const InitialStepForm = () => {
               name="organizationName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>Organization name</FormLabel>
+                  <FormLabel asterisk>{t('organizationName')}</FormLabel>
                   <FormDescription>
-                    The organization&apos;s legal name. It is the official name
-                    of the person or entity that owns a company. Must be the
-                    name used on the legal party&apos;s government forms and
-                    business paperwork.
+                    {t('organizationNameDescription')}
                   </FormDescription>
                   <FormControl>
                     <Input {...field} />
@@ -350,7 +345,7 @@ export const InitialStepForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>Organization email</FormLabel>
+                  <FormLabel asterisk>{t('organizationEmail')}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -364,7 +359,7 @@ export const InitialStepForm = () => {
               name="countryOfFormation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>Country of formation</FormLabel>
+                  <FormLabel asterisk>{t('countryOfFormation')}</FormLabel>
                   <FormDescription>
                     Country code in alpha-2 format
                   </FormDescription>
@@ -379,37 +374,42 @@ export const InitialStepForm = () => {
             <ServerErrorAlert error={postClientError || updateClientError} />
 
             <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
-              <Button>Next</Button>
+              <Button>{t('common:next')}</Button>
             </div>
           </div>
           <Card className="eb-hidden md:eb-block">
             <CardHeader>
-              <CardDescription>
-                The information we request from you will help us complete
-                setting up your account.
-              </CardDescription>
-              <CardDescription>
-                Please review and update any information that needs
-                confirmation; and provide any additional information requested.
-              </CardDescription>
+              <CardDescription>{t('initialStepDescription1')}</CardDescription>
+              <CardDescription>{t('initialStepDescription2')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Separator className="eb-mb-4" />
-              <Text>
-                Please select your <b>organization type</b> to preview the
-                information you will need to confirm or provide.
-              </Text>
-              <Separator className="eb-my-4" />
-              <Text>
-                <b>
-                  Information you will have to review during onboarding steps:
-                </b>
-              </Text>
-              <ul>
-                {generateRequiredFieldsList(clientData).map((field) => (
-                  <li key={field}>{field}</li>
-                ))}
-              </ul>
+              {form.getValues('organizationType') ? (
+                <>
+                  <Text>
+                    <Trans
+                      t={t}
+                      i18nKey="initialStepOrganizationTypeInformation"
+                      values={{
+                        organizationType: t(
+                          `organizationTypes.${form.getValues('organizationType')}`
+                        ),
+                      }}
+                    />
+                  </Text>
+                  <ul>
+                    {generateRequiredFieldsList(clientData).map((field) => (
+                      <li key={field}>
+                        <Text>- {field}</Text>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <Text>
+                  <Trans t={t} i18nKey="initialStepNoOrganizationType" />
+                </Text>
+              )}
             </CardContent>
           </Card>
         </div>

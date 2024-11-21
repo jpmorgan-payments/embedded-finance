@@ -7,6 +7,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
+import '@/i18n/config';
+
 export interface EBComponentsProviderProps extends EBConfig {
   children: ReactNode;
 }

@@ -5,8 +5,9 @@ import {
   ClientProduct,
   ClientResponse,
   ClientVerificationResponse,
-  CountryCodeIsoAlpha2,
 } from '@/api/generated/smbdo.schemas';
+
+import { Jurisdiction } from '../utils/types';
 
 export type OnboardingContextType = {
   clientId?: string;
@@ -17,7 +18,7 @@ export type OnboardingContextType = {
     error?: ApiError
   ) => void;
   availableProducts: Array<ClientProduct>;
-  availableJurisdictions: Array<CountryCodeIsoAlpha2>;
+  availableJurisdictions: Array<Jurisdiction>;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(

@@ -43,7 +43,7 @@ import {
   setApiFormErrors,
   translateApiErrorsToFormErrors,
 } from '../utils/formUtils';
-import { ORGANIZATION_TYPE_MAPPING } from '../utils/organizationTypeMapping';
+import { ORGANIZATION_TYPE_MAPPING } from '../utils/organizationTypeList';
 import { NoClientIdFormSchema } from './NoClientIdForm.schema';
 
 export const NoClientIdForm = () => {
