@@ -28,7 +28,7 @@ import { EmbeddedComponentsPage } from 'pages/EmbeddedComponentsPage';
 import { OnboardingNextPage } from 'pages/OnboardingNextPage';
 import { EPLinkedAccountPage } from 'pages/EPLinkedAccountsPage';
 import { OnboardingNextPageV2 } from 'pages/OnboardingNextPageV2';
-import { ThemeEditor } from 'pages/ThemeEditor';
+import { ThemeEditorPage } from 'pages/ThemeEditorPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,7 +79,7 @@ const App = () => {
                 />
                 <Route path="ep/onboarding" element={<OnboardingNextPage />} />
                 <Route path="ep/onboarding-basic" element={<OnboardingNextPageV2 />} />
-                <Route path="theme-editor" element={<ThemeEditor />} />
+                <Route path="theme-editor" element={<ThemeEditorPage />} />
                 <Route
                   path="ep/linked-accounts"
                   element={<EPLinkedAccountPage />}
