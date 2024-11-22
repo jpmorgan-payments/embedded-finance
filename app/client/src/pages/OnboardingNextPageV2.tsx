@@ -7,13 +7,23 @@ import { Prism } from '@mantine/prism';
 import { ComponentSamplePanel, PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useThemes } from '../hooks/useThemes';
+
+// Define or import the mapToEBTheme function
+const mapToEBTheme = (theme: any) => {
+  // Add your mapping logic here
+  return {variables: theme};
+};
 
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
   const scenarioId = params.get('scenario');
   const scenario = onboardingScenarios.find((s) => s.id === scenarioId);
+  const { themes } = useThemes();
+  const [selectedThemeId, setSelectedThemeId] = useState(themes[0]?.id);
+  const selectedTheme = themes.find(t => t.id === selectedThemeId);
 
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -79,6 +89,14 @@ export const OnboardingNextPageV2 = () => {
         })}
       />
 
+      <Select
+        name="theme"
+        label="Select Theme"
+        value={selectedThemeId}
+        onChange={(value) => setSelectedThemeId(value ?? '')}
+        data={themes.map((t) => ({ value: t.id, label: t.name }))}
+      />
+
       <EBComponentsProvider
         key={scenario?.clientId}
         apiBaseUrl={scenario?.baseURL ?? ''}
@@ -86,6 +104,7 @@ export const OnboardingNextPageV2 = () => {
           api_gateway_client_id: scenario?.gatewayID ?? '',
           Accept: 'application/json',
         }}
+        theme={mapToEBTheme(selectedTheme)}
       >
         <OnboardingWizardBasic
           key={
