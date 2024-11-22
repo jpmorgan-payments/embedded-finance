@@ -7,7 +7,6 @@ import {
   ClientProductList,
   ClientResponse,
   ClientVerificationResponse,
-  CountryCodeIsoAlpha2,
 } from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step, Stepper } from '@/components/ui/stepper';
@@ -24,6 +23,7 @@ import { OnboardingContextProvider } from './OnboardingContextProvider/Onboardin
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
+import { Jurisdiction } from './utils/types';
 
 const stepsInitial = [
   { label: 'Initial details', children: <InitialStepForm /> },
@@ -92,7 +92,7 @@ export type OnboardingWizardBasicProps = {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
   availableProducts: Array<ClientProduct>;
-  availableJurisdictions: Array<CountryCodeIsoAlpha2>;
+  availableJurisdictions: Array<Jurisdiction>;
 };
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({

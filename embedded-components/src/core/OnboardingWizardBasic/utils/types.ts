@@ -15,6 +15,8 @@ export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
   z.infer<typeof OrganizationStepFormSchema> &
   z.infer<typeof IndividualStepFormSchema>;
 
+export type Jurisdiction = 'US' | 'CA';
+
 export type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
 
 export type FieldRule = {

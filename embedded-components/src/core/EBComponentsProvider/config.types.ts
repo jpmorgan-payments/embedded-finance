@@ -1,3 +1,5 @@
+import { DefaultOptions } from '@tanstack/react-query';
+
 export type EBColorScheme = 'dark' | 'light' | 'system';
 
 export type EBThemeVariables = {
@@ -38,4 +40,5 @@ export type EBConfig = {
   apiBaseUrl: string;
   theme?: EBTheme;
   headers?: Record<string, string>;
+  reactQueryDefaultOptions?: DefaultOptions;
 };

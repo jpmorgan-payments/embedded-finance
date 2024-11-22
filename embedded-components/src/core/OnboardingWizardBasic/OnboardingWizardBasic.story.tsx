@@ -10,7 +10,6 @@ import {
   ClientProduct,
   ClientResponse,
   ClientVerificationResponse,
-  CountryCodeIsoAlpha2,
 } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -34,7 +33,7 @@ export const OnboardingWizardBasicWithProvider = ({
   headers: Record<string, string>;
   title: string;
   availableProducts: Array<ClientProduct>;
-  availableJurisdictions: Array<CountryCodeIsoAlpha2>;
+  availableJurisdictions: Array<'US' | 'CA'>;
   theme: Record<string, unknown>;
   onPostClientResponse: (response?: ClientResponse, error?: ApiError) => void;
   onPostClientVerificationsResponse?: (
