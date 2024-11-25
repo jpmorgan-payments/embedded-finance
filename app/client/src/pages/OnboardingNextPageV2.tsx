@@ -29,7 +29,7 @@ export const OnboardingNextPageV2 = () => {
 
   const { themes } = useThemes();
   const themeId = params.get('theme');
-  const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId);
+  const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId ?? '');
 
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
