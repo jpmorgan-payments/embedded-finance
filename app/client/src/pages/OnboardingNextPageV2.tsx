@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
+import { set } from 'remeda';
 
 // Define or import the mapToEBTheme function
 const mapToEBTheme = (theme: any) => {
@@ -27,7 +28,8 @@ export const OnboardingNextPageV2 = () => {
   const scenario = onboardingScenarios.find((s) => s.id === scenarioId);
 
   const { themes } = useThemes();
-  const [selectedThemeId, setSelectedThemeId] = useState<string>();
+  const themeId = params.get('theme');
+  const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId);
 
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -37,6 +39,15 @@ export const OnboardingNextPageV2 = () => {
       );
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedThemeId) {
+      console.log('@@selectedThemeId', selectedThemeId);
+      const newParams = new URLSearchParams(params);
+      newParams.set('theme', selectedThemeId);
+      setParams(newParams);
+    }
+  }, [selectedThemeId]);
 
   function handleScenarioIdChange(id: string): void {
     setParams({ ...params, scenario: id });
