@@ -14,16 +14,21 @@ import { useThemes } from '../hooks/useThemes';
 // Define or import the mapToEBTheme function
 const mapToEBTheme = (theme: any) => {
   // Add your mapping logic here
-  return {variables: theme};
+  return { variables: theme };
 };
 
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
   const scenarioId = params.get('scenario');
   const scenario = onboardingScenarios.find((s) => s.id === scenarioId);
+
   const { themes } = useThemes();
-  const [selectedThemeId, setSelectedThemeId] = useState(themes[0]?.id);
-  const selectedTheme = themes.find(t => t.id === selectedThemeId);
+  const theme = params.get('theme');
+  const selectedTheme = themes?.find((t) => t.id === theme);
+
+  console.log('selectedTheme', selectedTheme);
+
+  const isFullScreen = params.get('fullScreen') === 'true';
 
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -31,8 +36,18 @@ export const OnboardingNextPageV2 = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (themes?.length > 0 && !themes.find((s) => s.id === theme)) {
+      setParams({ theme: themes[0].id }, { replace: true });
+    }
+  }, []);
+
   function handleScenarioIdChange(id: string): void {
     setParams({ scenario: id });
+  }
+
+  function handleThemeChange(id: string): void {
+    setParams({ theme: id });
   }
 
   const code = `
@@ -51,6 +66,42 @@ export const OnboardingNextPageV2 = () => {
   />
 </EBComponentsProvider>
 `;
+
+  const renderOnboardingWizard = () => (
+    <EBComponentsProvider
+      key={scenario?.clientId}
+      apiBaseUrl={scenario?.baseURL ?? ''}
+      headers={{
+        api_gateway_client_id: scenario?.gatewayID ?? '',
+        Accept: 'application/json',
+      }}
+      theme={mapToEBTheme(selectedTheme)}
+    >
+      <OnboardingWizardBasic
+        key={
+          (scenario?.clientId ?? '') +
+          (scenario?.baseURL ?? '') +
+          (scenario?.gatewayID ?? '')
+        }
+        // @ts-ignore
+        availableProducts={scenario?.availableProducts}
+        // @ts-ignore
+        availableJurisdictions={scenario?.availableJurisdictions}
+        title={`Onboarding Wizard`}
+        clientId={scenario?.clientId}
+        onPostClientResponse={(response, error) => {
+          console.log('@@clientId POST', response, error);
+        }}
+        onPostClientVerificationsResponse={(response, error) => {
+          console.log('@@clientId GET', response, error);
+        }}
+      />
+    </EBComponentsProvider>
+  );
+
+  if (isFullScreen) {
+    return renderOnboardingWizard();
+  }
 
   return (
     <PageWrapper
@@ -89,43 +140,17 @@ export const OnboardingNextPageV2 = () => {
         })}
       />
 
-      <Select
-        name="theme"
-        label="Select Theme"
-        value={selectedThemeId}
-        onChange={(value) => setSelectedThemeId(value ?? '')}
-        data={themes.map((t) => ({ value: t.id, label: t.name }))}
-      />
-
-      <EBComponentsProvider
-        key={scenario?.clientId}
-        apiBaseUrl={scenario?.baseURL ?? ''}
-        headers={{
-          api_gateway_client_id: scenario?.gatewayID ?? '',
-          Accept: 'application/json',
-        }}
-        theme={mapToEBTheme(selectedTheme)}
-      >
-        <OnboardingWizardBasic
-          key={
-            (scenario?.clientId ?? '') +
-            (scenario?.baseURL ?? '') +
-            (scenario?.gatewayID ?? '')
-          }
-          // @ts-ignore
-          availableProducts={scenario?.availableProducts}
-          // @ts-ignore
-          availableJurisdictions={scenario?.availableJurisdictions}
-          title={`Onboarding Wizard`}
-          clientId={scenario?.clientId}
-          onPostClientResponse={(response, error) => {
-            console.log('@@clientId POST', response, error);
-          }}
-          onPostClientVerificationsResponse={(response, error) => {
-            console.log('@@clientId GET', response, error);
-          }}
+      {themes?.length > 0 && (
+        <Select
+          name="theme"
+          label="Select Theme"
+          value={selectedTheme?.id}
+          onChange={handleThemeChange}
+          data={themes.map((t) => ({ value: t.id, label: t.name }))}
         />
-      </EBComponentsProvider>
+      )}
+
+      {renderOnboardingWizard()}
 
       <Prism colorScheme="dark" language="javascript">
         {code}

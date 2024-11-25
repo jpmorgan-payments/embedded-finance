@@ -3,18 +3,28 @@ import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
 import { useThemes } from '../hooks/useThemes';
 
+const googleFonts = [
+  { value: 'Roboto', label: 'Roboto' },
+  { value: 'Open Sans', label: 'Open Sans' },
+  { value: 'Lato', label: 'Lato' },
+  { value: 'Montserrat', label: 'Montserrat' },
+  { value: 'Raleway', label: 'Raleway' },
+  { value: 'Poppins', label: 'Poppins' },
+  { value: 'Source Sans Pro', label: 'Source Sans Pro' },
+  { value: 'Ubuntu', label: 'Ubuntu' },
+];
+
 export const ThemeEditorPage = () => {
   const { themes, saveTheme, createTheme } = useThemes();
   const form = useForm({
     initialValues: {
       id: '',
       name: '',
-      popoverColor: '',
-      popoverForegroundColor: '',
       borderRadius: '',
       buttonBorderRadius: '',
       borderColor: '',
       inputColor: '',
+      fontFamily: '',  // Add this line
     },
     validate: {
       name: (value) => (!value ? 'Name is required' : null),
@@ -54,20 +64,6 @@ export const ThemeEditorPage = () => {
               />
             </Grid.Col>
             <Grid.Col span={6}>
-              <ColorInput
-                label="Popover Color"
-                format="rgba"
-                {...form.getInputProps('popoverColor')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <ColorInput
-                label="Popover Foreground Color"
-                format="rgba"
-                {...form.getInputProps('popoverForegroundColor')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
               <NumberInput
                 label="Border Radius"
                 min={0}
@@ -95,6 +91,16 @@ export const ThemeEditorPage = () => {
                 label="Input Color"
                 format="rgba"
                 {...form.getInputProps('inputColor')}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Select
+                label="Font Family"
+                placeholder="Select a font"
+                data={googleFonts}
+                {...form.getInputProps('fontFamily')}
+                searchable
+                clearable
               />
             </Grid.Col>
             <Grid.Col span={12} ta="center">
