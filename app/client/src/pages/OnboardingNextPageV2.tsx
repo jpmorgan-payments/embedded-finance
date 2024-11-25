@@ -10,6 +10,7 @@ import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useThemes } from '../hooks/useThemes';
+import { IconMaximize } from '@tabler/icons-react';
 
 // Define or import the mapToEBTheme function
 const mapToEBTheme = (theme: any) => {
@@ -19,35 +20,30 @@ const mapToEBTheme = (theme: any) => {
 
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
+
+  const fullScreen = params.get('fullScreen') === 'true';
+
   const scenarioId = params.get('scenario');
   const scenario = onboardingScenarios.find((s) => s.id === scenarioId);
 
   const { themes } = useThemes();
-  const theme = params.get('theme');
-  const selectedTheme = themes?.find((t) => t.id === theme);
-
-  console.log('selectedTheme', selectedTheme);
-
-  const isFullScreen = params.get('fullScreen') === 'true';
+  const [selectedThemeId, setSelectedThemeId] = useState<string>();
 
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
-      setParams({ scenario: onboardingScenarios[0].id }, { replace: true });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (themes?.length > 0 && !themes.find((s) => s.id === theme)) {
-      setParams({ theme: themes[0].id }, { replace: true });
+      setParams(
+        { ...params, scenario: onboardingScenarios[0].id },
+        { replace: true },
+      );
     }
   }, []);
 
   function handleScenarioIdChange(id: string): void {
-    setParams({ scenario: id });
+    setParams({ ...params, scenario: id });
   }
 
   function handleThemeChange(id: string): void {
-    setParams({ theme: id });
+    setSelectedThemeId(id);
   }
 
   const code = `
@@ -67,40 +63,61 @@ export const OnboardingNextPageV2 = () => {
 </EBComponentsProvider>
 `;
 
-  const renderOnboardingWizard = () => (
-    <EBComponentsProvider
-      key={scenario?.clientId}
-      apiBaseUrl={scenario?.baseURL ?? ''}
-      headers={{
-        api_gateway_client_id: scenario?.gatewayID ?? '',
-        Accept: 'application/json',
-      }}
-      theme={mapToEBTheme(selectedTheme)}
-    >
-      <OnboardingWizardBasic
-        key={
-          (scenario?.clientId ?? '') +
-          (scenario?.baseURL ?? '') +
-          (scenario?.gatewayID ?? '')
-        }
-        // @ts-ignore
-        availableProducts={scenario?.availableProducts}
-        // @ts-ignore
-        availableJurisdictions={scenario?.availableJurisdictions}
-        title={`Onboarding Wizard`}
-        clientId={scenario?.clientId}
-        onPostClientResponse={(response, error) => {
-          console.log('@@clientId POST', response, error);
+  const Component = (
+    <div style={{ position: 'relative' }}>
+      {!fullScreen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1000,
+            cursor: 'pointer',
+          }}
+          onClick={() => {
+            const newParams = new URLSearchParams(params);
+            newParams.set('fullScreen', 'true');
+            const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+            window.open(newUrl, '_blank');
+          }}
+        >
+          <IconMaximize size={20} />
+        </div>
+      )}
+      <EBComponentsProvider
+        key={scenario?.clientId}
+        apiBaseUrl={scenario?.baseURL ?? ''}
+        headers={{
+          api_gateway_client_id: scenario?.gatewayID ?? '',
+          Accept: 'application/json',
         }}
-        onPostClientVerificationsResponse={(response, error) => {
-          console.log('@@clientId GET', response, error);
-        }}
-      />
-    </EBComponentsProvider>
+        theme={mapToEBTheme(themes?.find((t) => t.id === selectedThemeId))}
+      >
+        <OnboardingWizardBasic
+          key={
+            (scenario?.clientId ?? '') +
+            (scenario?.baseURL ?? '') +
+            (scenario?.gatewayID ?? '')
+          }
+          // @ts-ignore
+          availableProducts={scenario?.availableProducts}
+          // @ts-ignore
+          availableJurisdictions={scenario?.availableJurisdictions}
+          title={`Onboarding Wizard`}
+          clientId={scenario?.clientId}
+          onPostClientResponse={(response, error) => {
+            console.log('@@clientId POST', response, error);
+          }}
+          onPostClientVerificationsResponse={(response, error) => {
+            console.log('@@clientId GET', response, error);
+          }}
+        />
+      </EBComponentsProvider>
+    </div>
   );
 
-  if (isFullScreen) {
-    return renderOnboardingWizard();
+  if (fullScreen) {
+    return Component;
   }
 
   return (
@@ -144,13 +161,14 @@ export const OnboardingNextPageV2 = () => {
         <Select
           name="theme"
           label="Select Theme"
-          value={selectedTheme?.id}
+          placeholder="Select a theme"
+          value={selectedThemeId}
           onChange={handleThemeChange}
           data={themes.map((t) => ({ value: t.id, label: t.name }))}
         />
       )}
 
-      {renderOnboardingWizard()}
+      {Component}
 
       <Prism colorScheme="dark" language="javascript">
         {code}
