@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
+import { Notifications } from '@mantine/notifications';
 
 import { Layout } from 'components';
 import {
@@ -47,6 +48,7 @@ const App = () => {
         withNormalizeCSS
       >
         <ModalsProvider>
+          <Notifications position="top-right" zIndex={2077} />
           <BrowserRouter>
             <Layout
               themeProps={{

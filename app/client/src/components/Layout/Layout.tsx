@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import {
   AppShell,
   Box,
@@ -32,9 +32,15 @@ export const Layout = ({
   themeProps,
 }: React.PropsWithChildren<LayoutProps>) => {
   const theme = useMantineTheme();
-
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [opened, setOpened] = useState(false);
+
+  const isFullScreen = searchParams.get('fullScreen') === 'true';
+
+  if (isFullScreen) {
+    return <>{children}</>;
+  }
 
   // Close navbar on mobile view if route changes
   useEffect(() => {

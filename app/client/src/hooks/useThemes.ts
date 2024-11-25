@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 interface Theme {
   id: string;
   name: string;
-  popoverColor?: string;
-  popoverForegroundColor?: string;
   borderRadius?: string;
   buttonBorderRadius?: string;
   borderColor?: string;
   inputColor?: string;
+  fontFamily?: string;
+  
 }
 
 // TODO: Replace with AWS Amplify DataStore
