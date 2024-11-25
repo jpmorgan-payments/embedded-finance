@@ -1,8 +1,20 @@
-import { Button, TextInput, Select, ColorInput, NumberInput, Grid, Container, Group, Title } from '@mantine/core';
+import {
+  Button,
+  TextInput,
+  Select,
+  ColorInput,
+  NumberInput,
+  Grid,
+  Container,
+  Group,
+  Title,
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
 import { useThemes } from '../hooks/useThemes';
 import { useState } from 'react';
+import { set } from 'remeda';
 
 const googleFonts = [
   { value: 'Roboto', label: 'Roboto' },
@@ -18,6 +30,7 @@ const googleFonts = [
 export const ThemeEditorPage = () => {
   const { themes, saveTheme, createTheme } = useThemes();
   const [mode, setMode] = useState<'new' | 'edit'>('new');
+  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -37,16 +50,28 @@ export const ThemeEditorPage = () => {
   const handleSubmit = (values: any) => {
     if (values.id) {
       saveTheme(values);
+      notifications.show({
+        title: 'Success',
+        message: `Theme "${values.name}" has been updated`,
+        color: 'teal',
+        autoClose: 3000,
+        withCloseButton: true,
+        styles: (theme) => ({
+          title: { fontWeight: 600 },
+          description: { color: theme.colors.gray[6] },
+        }),
+      });
     } else {
       createTheme(values);
+      form.reset();
+      setMode('new');
     }
-    form.reset();
-    setMode('new');
   };
 
   const handleCancel = () => {
     form.reset();
     setMode('new');
+    setSelectedThemeId(null);
   };
 
   return (
@@ -55,25 +80,45 @@ export const ThemeEditorPage = () => {
         {mode === 'new' ? (
           <Group position="apart" mb="xl">
             <Title order={3}>Create New Theme</Title>
-            <Button variant="light" onClick={() => setMode('edit')}>
-              Edit Existing Theme
+            <Button
+              variant="light"
+              onClick={() => {
+                setMode('edit');
+                form.reset();
+                setSelectedThemeId(null);
+              }}
+            >
+              Switch to Edit Existing Theme
             </Button>
           </Group>
         ) : (
           <>
             <Group position="apart" mb="xl">
               <Title order={3}>Edit Existing Theme</Title>
-              <Button variant="light" onClick={() => setMode('new')}>
-                Create New Theme
+              <Button
+                variant="light"
+                onClick={() => {
+                  setMode('new');
+                  form.reset();
+                }}
+              >
+                Switch to Create New Theme
               </Button>
             </Group>
             <Select
               label="Select Theme to Edit"
               placeholder="Choose a theme"
-              data={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
+              value={selectedThemeId}
+              data={themes.map((theme) => ({
+                value: theme.id,
+                label: theme.name,
+              }))}
               onChange={(value) => {
                 const theme = themes.find((t) => t.id === value);
-                if (theme) form.setValues(theme);
+                if (theme) {
+                  form.setValues(theme);
+                  setSelectedThemeId(value);
+                }
               }}
               mb="xl"
               clearable
@@ -84,10 +129,7 @@ export const ThemeEditorPage = () => {
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Grid>
             <Grid.Col span={12}>
-              <TextInput
-                label="Theme Name"
-                {...form.getInputProps('name')}
-              />
+              <TextInput label="Theme Name" {...form.getInputProps('name')} />
             </Grid.Col>
             <Grid.Col span={6}>
               <NumberInput
