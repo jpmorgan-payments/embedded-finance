@@ -18,8 +18,8 @@ export const clientDetailsScenario1 = {
       profileStatus: 'APPROVED',
       status: 'ACTIVE',
       createdAt: '2023-10-31T00:20:09.401Z',
-      jurisdiction: 'CA',
       organizationDetails: {
+        jurisdiction: 'CA',
         organizationType: 'SOLE_PROPRIETORSHIP',
         organizationName: 'Central Park Getaways',
         dbaName: 'CP Getaways',
@@ -27,7 +27,7 @@ export const clientDetailsScenario1 = {
           'Relax, unwind and experience the comforting charm of our apartment while exploring New York',
         industryCategory: 'Accommodation and Food Services',
         industryType: 'All Other Traveler Accommodation',
-        countryOfFormation: 'US',
+        countryOfFormation: 'CA',
         yearOfFormation: '2023',
         entitiesInOwnership: false,
         addresses: [
@@ -139,7 +139,7 @@ export const clientDetailsScenario2 = {
         organizationDescription: 'Relax, unwind and bake',
         industryCategory: 'Bakery',
         industryType: 'All Other Traveler Accommodation',
-        countryOfFormation: 'US',
+        countryOfFormation: 'CA',
         yearOfFormation: '2023',
         entitiesInOwnership: false,
         addresses: [
@@ -251,7 +251,7 @@ export const clientDetailsScenario3 = {
         organizationDescription: 'Relax, unwind and bake',
         industryCategory: 'Bakery',
         industryType: 'All Other Traveler Accommodation',
-        countryOfFormation: 'US',
+        countryOfFormation: 'CA',
         yearOfFormation: '2023',
         entitiesInOwnership: false,
         addresses: [

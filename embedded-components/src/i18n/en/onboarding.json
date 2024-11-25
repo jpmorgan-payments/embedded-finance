@@ -1,0 +1,50 @@
+{
+  "title": "Onboarding Wizard",
+  "initialDetails": "Initial details",
+  "organizationDetails": "Organization details",
+  "individualDetails": "Individual details",
+  "additionalQuestions": "Additional questions",
+  "uploadDocuments": "Upload documents",
+  "reviewAndAttest": "Review and attest",
+  "initialStepDescription1": "The information we request from you will help us complete setting up your account.",
+  "initialStepDescription2": "Please review and update any information that needs confirmation; and provide any additional information requested.",
+  "initialStepNoOrganizationType": "Please select your <strong>organization type</strong> to preview the information you will need to confirm or provide.",
+  "initialStepOrganizationTypeInformation": "As a <strong>{{organizationType}}</strong>, you will need to confirm or provide the following information:",
+  "product": "Product",
+  "jurisdiction": "Jurisdiction",
+  "organizationType": "Organization type",
+  "organizationName": "Organization name",
+  "organizationNameDescription": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
+  "organizationEmail": "Organization email",
+  "countryOfFormation": "Country of formation",
+  "postalCode": "ZIP / Postal code",
+  "city": "City",
+  "state": "State / Province",
+  "country": "Country",
+  "firstName": "First name",
+  "lastName": "Last name",
+  "email": "Email",
+  "phone": "Phone",
+  "clientProducts": {
+    "EMBEDDED_PAYMENTS": "Embedded Payments",
+    "MERCHANT_SERVICES": "Merchant Services"
+  },
+  "clientJurisdictions": {
+    "US": "United States",
+    "CA": "Canada"
+  },
+  "organizationTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Limited Liability Company",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Limited Liability Partnership",
+    "GENERAL_PARTNERSHIP": "General Partnership",
+    "LIMITED_PARTNERSHIP": "Limited Partnership",
+    "C_CORPORATION": "C Corporation",
+    "S_CORPORATION": "S Corporation",
+    "PARTNERSHIP": "Partnership",
+    "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company",
+    "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
+    "GOVERNMENT_ENTITY": "Government Entity",
+    "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
+    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+  }
+}

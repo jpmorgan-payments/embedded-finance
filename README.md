@@ -1,8 +1,10 @@
 [Link to deployed version of this app](https://www.embedded-finance-dev.com)
 
+**Note**: This application uses service workers via MSW (Mock Service Worker). Be aware that service workers can become stale in Chromium based browsers such as Chrome, which may require a page reload to ensure the service worker is active.
+
 # Embedded Finance Showcase App
 
-[Embedded Finance](https://www.jpmorgan.com/payments/solutions/embedded-finance) allows you to add a full range of finance features to your online experience.  This showcase is a collection of code samples highlighting how to connect and use Embedded Finance APIs.
+[Embedded Finance](https://www.jpmorgan.com/payments/solutions/embedded-finance) allows you to add a full range of finance features to your online experience. This showcase is a collection of code samples highlighting how to connect and use Embedded Finance APIs.
 
 ![](https://www.jpmorgan.com/content/dam/jpmorgan/images/payments/embedded-finance-payments/img-eb-infographics-1440px.svg)
 
@@ -19,7 +21,7 @@ There are three main directories for you to access:
 - `/app` for the showcase UI and server experience.
 - `/postman` for the Postman Collection.
 - `/embedded-finance-sdk` for the Embedded Finance SDK
-- `/emddeded-components` for the Embedded UI Components 
+- `/embedded-components` for the Embedded UI Components
 
 ### Application (App)
 

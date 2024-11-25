@@ -20,10 +20,7 @@ export const InitialStepFormSchema = z.object({
     .string()
     .min(1, 'Required')
     .length(2, 'Country code must be exactly 2 characters'),
-  jurisdiction: z
-    .string()
-    .min(1, 'Required')
-    .length(2, 'Country code must be exactly 2 characters'),
+  jurisdiction: z.enum(['US', 'CA']),
   product: z.enum(['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES']),
   email: z.string().email(),
 });
