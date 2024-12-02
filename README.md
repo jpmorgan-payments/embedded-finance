@@ -6,8 +6,6 @@
 
 [Embedded Finance](https://www.jpmorgan.com/payments/solutions/embedded-finance) allows you to add a full range of finance features to your online experience. This showcase is a collection of code samples highlighting how to connect and use Embedded Finance APIs.
 
-![](https://www.jpmorgan.com/content/dam/jpmorgan/images/payments/embedded-finance-payments/img-eb-infographics-1440px.svg)
-
 You can:
 
 - Spin-up a sample application with UI that demonstrates the main use case for each endpoint. For example, making a transaction.
