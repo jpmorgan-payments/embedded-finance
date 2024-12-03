@@ -2,7 +2,16 @@ import { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { FormField } from '@/components/ui';
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+} from '@/components/ui';
+import { InfoPopover } from '@/components/ux/InfoPopover';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
@@ -21,17 +30,13 @@ interface OnboardingFormTextFieldProps
   data?: any;
 }
 
-type SelectTypeProps = {
+interface SelectTypeProps extends OnboardingFormTextFieldProps {
   type: 'select';
   data: any;
-};
-
-type NonSelectTypeProps = Omit<OnboardingFormTextFieldProps, 'data'>;
-
-export type OnboardingFormTextFieldProps = SelectTypeProps | NonSelectTypeProps;
+}
 
 export const OnboardingFormTextField: React.FC<
-  OnboardingFormTextFieldProps
+  OnboardingFormTextFieldProps | SelectTypeProps
 > = ({
   control,
   name,
@@ -51,7 +56,9 @@ export const OnboardingFormTextField: React.FC<
 
   const { t } = useTranslation('onboarding');
 
-  t(`fields.${name}.label` as unknown as TemplateStringsArray);
+  if (name === 'organizationName' || name === 'organizationEmail') {
+    t(`fields.${name}.description`);
+  }
 
   if (!isFieldVisible(name)) {
     return null;
@@ -61,8 +68,43 @@ export const OnboardingFormTextField: React.FC<
     <FormField
       control={control}
       name={name}
+      disabled={isFieldDisabled(name)}
+      render={({ field }) => {
+        switch (type) {
+          case 'select':
+          case 'email':
+          case 'radio-group':
+          case 'checkbox':
+          case 'text':
+          default:
+            return (
+              <FormItem>
+                <div className="eb-flex eb-items-center eb-space-x-2">
+                  <FormLabel asterisk={isFieldRequired(name)}>
+                    {t(
+                      `fields.${name}.label` as unknown as TemplateStringsArray
+                    )}
+                  </FormLabel>
+                  <InfoPopover>
+                    {t(
+                      `fields.${name}.tooltip` as unknown as TemplateStringsArray
+                    )}
+                  </InfoPopover>
+                </div>
+                <FormDescription>
+                  {t(
+                    `fields.${name}.description` as unknown as TemplateStringsArray
+                  )}
+                </FormDescription>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+        }
+      }}
       {...props}
-      render={(field) => null}
     />
   );
 };

@@ -19,6 +19,11 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.countryOfFormation',
     baseRule: { visibility: 'visible', required: true },
   },
+  // These two fields have the same path, but can have different rules and translations
+  organizationEmail: {
+    path: 'email',
+    baseRule: { visibility: 'visible', required: true },
+  },
   email: {
     path: 'email',
     baseRule: { visibility: 'visible', required: true },

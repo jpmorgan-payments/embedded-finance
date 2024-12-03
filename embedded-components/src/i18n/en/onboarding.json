@@ -4,13 +4,13 @@
       "label": "Organization name",
       "placeholder": "Enter organization name",
       "description": "Sample description",
-      "tooltip": ""
+      "tooltip": null
     },
     "organizationEmail": {
       "label": "Organization email",
       "placeholder": "Enter organization email",
       "description": "Sample description",
-      "tooltip": ""
+      "tooltip": null
     }
   },
   "title": "Onboarding Wizard",
