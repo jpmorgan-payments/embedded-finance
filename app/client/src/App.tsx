@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
+import { Notifications } from '@mantine/notifications';
 
 import { Layout } from 'components';
 import {
@@ -28,6 +29,7 @@ import { EmbeddedComponentsPage } from 'pages/EmbeddedComponentsPage';
 import { OnboardingNextPage } from 'pages/OnboardingNextPage';
 import { EPLinkedAccountPage } from 'pages/EPLinkedAccountsPage';
 import { OnboardingNextPageV2 } from 'pages/OnboardingNextPageV2';
+import { ThemeEditorPage } from 'pages/ThemeEditorPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +48,7 @@ const App = () => {
         withNormalizeCSS
       >
         <ModalsProvider>
+          <Notifications position="top-right" zIndex={2077} />
           <BrowserRouter>
             <Layout
               themeProps={{
@@ -78,6 +81,7 @@ const App = () => {
                 />
                 <Route path="ep/onboarding" element={<OnboardingNextPage />} />
                 <Route path="ep/onboarding-basic" element={<OnboardingNextPageV2 />} />
+                <Route path="theme-editor" element={<ThemeEditorPage />} />
                 <Route
                   path="ep/linked-accounts"
                   element={<EPLinkedAccountPage />}
