@@ -9,14 +9,16 @@ import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useThemes } from '../hooks/useThemes';
+import { ThemeConfig, useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
 import { set } from 'remeda';
 
 // Define or import the mapToEBTheme function
-const mapToEBTheme = (theme: any) => {
+const mapToEBTheme = (theme?: ThemeConfig) => {
   // Add your mapping logic here
-  return { variables: theme };
+  return {
+    variables: theme,
+  };
 };
 
 export const OnboardingNextPageV2 = () => {
@@ -103,6 +105,15 @@ export const OnboardingNextPageV2 = () => {
           Accept: 'application/json',
         }}
         theme={mapToEBTheme(themes?.find((t) => t.id === selectedThemeId))}
+        // theme={{
+        //   variables: {
+        //     borderRadius: '50px',
+        //     buttonBorderRadius: '5px',
+        //     borderColor: 'red',
+        //     inputColor: 'blue',
+        //     fontFamily: 'Arial',
+        //   },
+        // }}
       >
         <OnboardingWizardBasic
           key={
