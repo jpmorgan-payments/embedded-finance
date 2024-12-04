@@ -112,15 +112,6 @@ export const OnboardingNextPageV2 = () => {
           Accept: 'application/json',
         }}
         theme={mapToEBTheme(themes?.find((t) => t.id === selectedThemeId))}
-        // theme={{
-        //   variables: {
-        //     borderRadius: '50px',
-        //     buttonBorderRadius: '5px',
-        //     borderColor: 'red',
-        //     inputColor: 'blue',
-        //     fontFamily: 'Arial',
-        //   },
-        // }}
       >
         <OnboardingWizardBasic
           key={
