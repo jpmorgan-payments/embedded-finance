@@ -31,8 +31,6 @@ export const OnboardingNextPageV2 = () => {
 
   const { themes } = useThemes();
 
-  console.log('themes', themes);
-
   const themeId = params.get('theme');
   const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId ?? '');
 
