@@ -41,6 +41,9 @@ export const ThemeEditorPage = () => {
       borderColor: '',
       inputColor: '',
       fontFamily: '',
+      primaryColor: '',
+      secondaryColor: '',
+      spacingUnit: '',
     },
     validate: {
       name: (value) => (!value ? 'Name is required' : null),
@@ -131,6 +134,24 @@ export const ThemeEditorPage = () => {
             <Grid.Col span={12}>
               <TextInput label="Theme Name" {...form.getInputProps('name')} />
             </Grid.Col>
+            <Grid.Col span={12}>
+              <Select
+                label="Font Family"
+                placeholder="Select a font"
+                data={googleFonts}
+                {...form.getInputProps('fontFamily')}
+                searchable
+                clearable
+              />
+            </Grid.Col>
+
+            <Grid.Col span={12}>
+              <TextInput
+                label="Spacing Unit"
+                description="Default: 4px or 0.25rem"
+                {...form.getInputProps('spacingUnit')}
+              />
+            </Grid.Col>
             <Grid.Col span={6}>
               <TextInput
                 label="Border Radius"
@@ -147,6 +168,20 @@ export const ThemeEditorPage = () => {
             </Grid.Col>
             <Grid.Col span={6}>
               <ColorInput
+                label="Primary Color"
+                format="rgba"
+                {...form.getInputProps('primaryColor')}
+              />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <ColorInput
+                label="Secondary Color"
+                format="rgba"
+                {...form.getInputProps('secondaryColor')}
+              />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <ColorInput
                 label="Border Color"
                 format="rgba"
                 {...form.getInputProps('borderColor')}
@@ -157,16 +192,6 @@ export const ThemeEditorPage = () => {
                 label="Input Color"
                 format="rgba"
                 {...form.getInputProps('inputColor')}
-              />
-            </Grid.Col>
-            <Grid.Col span={12}>
-              <Select
-                label="Font Family"
-                placeholder="Select a font"
-                data={googleFonts}
-                {...form.getInputProps('fontFamily')}
-                searchable
-                clearable
               />
             </Grid.Col>
             <Grid.Col span={12} ta="center">
