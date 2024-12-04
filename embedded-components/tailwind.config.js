@@ -88,7 +88,7 @@ module.exports = {
         overlay: 'var(--eb-z-overlay)',
       },
       spacing: {
-        0.25: '0.0625rem',
+        0.25: 'var(--eb-spacing-interval)',
       },
     },
   },
