@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocalStorage } from '@mantine/hooks';
 
 export interface ThemeConfig {
   id: string;
@@ -10,16 +11,13 @@ export interface ThemeConfig {
   fontFamily?: string;
 }
 
-// TODO: Replace with AWS Amplify DataStore
 const STORAGE_KEY = 'embedded-banking-themes';
 
 export const useThemes = () => {
-  const [themes, setThemes] = useState<ThemeConfig[]>([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    setThemes(stored ? JSON.parse(stored) : []);
-  }, []);
+  const [themes, setThemes] = useLocalStorage<ThemeConfig[]>({
+    key: STORAGE_KEY,
+    defaultValue: [],
+  });
 
   // TODO: Replace with Amplify DataStore query
   const listThemes = () => themes;
@@ -27,7 +25,6 @@ export const useThemes = () => {
   // TODO: Replace with Amplify DataStore save
   const saveTheme = (theme: ThemeConfig) => {
     const newThemes = themes.map((t) => (t.id === theme.id ? theme : t));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newThemes));
     setThemes(newThemes);
   };
 
@@ -35,7 +32,6 @@ export const useThemes = () => {
   const createTheme = (theme: Omit<ThemeConfig, 'id'>) => {
     const newTheme = { ...theme, id: Date.now().toString() };
     const newThemes = [...themes, newTheme];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newThemes));
     setThemes(newThemes);
     return newTheme;
   };
