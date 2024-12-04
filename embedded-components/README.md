@@ -176,7 +176,7 @@ Here's an updated table of available theme design tokens that can be used in the
 | popoverForegroundColor     | Text color for popovers                | String | `"hsl(240 10% 3.9%)"`     |
 | borderRadius               | Default border radius for elements     | String | `"0.375rem"`              |
 | buttonBorderRadius         | Border radius specifically for buttons | String | inherits `"borderRadius"` |
-| spacingInterval            | Spacing interval                       | String | `"0.0625rem"`             |
+| spacingUnit                | Unit for the numeric spacing scale     | String | `"0.25rem"`               |
 | borderColor                | Color for borders                      | String | `"hsl(240 5.9% 90%)"`     |
 | inputColor                 | Background color for input fields      | String | `"hsl(240 5.9% 90%)"`     |
 | ringColor                  | Color for focus rings                  | String | `"hsl(240 10% 3.9%)"`     |
