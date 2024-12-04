@@ -103,7 +103,7 @@ export const Layout = ({
           p="md"
           className={RemoveScroll.classNames.zeroRight}
         >
-          <Group sx={{ height: '100%' }} px={20} position="apart">
+          <Group sx={{ height: '100%' }} px={10} position="apart">
             <MediaQuery largerThan="sm" styles={{ display: 'none' }}>
               <Burger
                 opened={opened}
