@@ -393,14 +393,14 @@ export const OrganizationStepForm = () => {
             />
           )}
 
-          {isFieldVisible('email') && (
+          {isFieldVisible('organizationEmail') && (
             <FormField
               control={form.control}
-              name="email"
-              disabled={isFieldDisabled('email')}
+              name="organizationEmail"
+              disabled={isFieldDisabled('organizationEmail')}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk={isFieldRequired('email')}>
+                  <FormLabel asterisk={isFieldRequired('organizationEmail')}>
                     Organization email
                   </FormLabel>
                   <FormControl>

@@ -54,7 +54,7 @@ export const OrganizationStepFormSchema = z.object({
   countryOfFormation: z
     .string()
     .length(2, 'Country code must be exactly 2 characters'),
-  email: z.string().email('Invalid email address'),
+  organizationEmail: z.string().email('Invalid email address'),
   yearOfFormation: z
     .string()
     .regex(/^(19|20)\d{2}$/, 'Invalid year of formation'),

@@ -13,6 +13,9 @@ interface InfoPopoverProps {
 }
 
 export const InfoPopover = ({ children }: InfoPopoverProps) => {
+  if (!children) {
+    return null;
+  }
   return (
     <Popover>
       <PopoverTrigger asChild>

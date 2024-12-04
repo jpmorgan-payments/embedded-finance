@@ -152,34 +152,35 @@ The `EBComponentsProvider` accepts a `theme` prop that allows for extensive cust
 
 ### Theme Design Tokens
 
-Here's a table of available theme design tokens that can be used in the `variables`, `light`, and `dark` properties:
+Here's an updated table of available theme design tokens that can be used in the `variables`, `light`, and `dark` properties:
 
-| Token Name                 | Description                            |
-| -------------------------- | -------------------------------------- |
-| fontFamily                 | Main font family for text              |
-| backgroundColor            | Background color of the main container |
-| foregroundColor            | Main text color                        |
-| primaryColor               | Primary brand color                    |
-| primaryColorHover          | Hover state of primary color           |
-| primaryForegroundColor     | Text color on primary background       |
-| secondaryColor             | Secondary brand color                  |
-| secondaryForegroundColor   | Text color on secondary background     |
-| destructiveColor           | Color for destructive actions          |
-| destructiveForegroundColor | Text color on destructive background   |
-| mutedColor                 | Color for muted elements               |
-| mutedForegroundColor       | Text color on muted background         |
-| accentColor                | Accent color for highlights            |
-| accentForegroundColor      | Text color on accent background        |
-| cardColor                  | Background color for card elements     |
-| cardForegroundColor        | Text color for card elements           |
-| popoverColor               | Background color for popovers          |
-| popoverForegroundColor     | Text color for popovers                |
-| borderRadius               | Default border radius for elements     |
-| buttonBorderRadius         | Border radius specifically for buttons |
-| borderColor                | Color for borders                      |
-| inputColor                 | Background color for input fields      |
-| ringColor                  | Color for focus rings                  |
-| zIndexOverlay              | z-index for overlay elements           |
+| Token Name                 | Description                            | Type   | Default                   |
+| -------------------------- | -------------------------------------- | ------ | ------------------------- |
+| fontFamily                 | Main font family for text              | String |                           |
+| backgroundColor            | Background color of the main container | String | `"hsl(0 0% 100%)"`        |
+| foregroundColor            | Main text color                        | String | `"hsl(240 10% 3.9%)"`     |
+| primaryColor               | Primary brand color                    | String | `"#155C93"`               |
+| primaryColorHover          | Hover state of primary color           | String | `"#2D81BD"`               |
+| primaryForegroundColor     | Text color on primary background       | String | `"hsl(0 0% 98%)"`         |
+| secondaryColor             | Secondary brand color                  | String | `"hsl(240 4.8% 95.9%)"`   |
+| secondaryForegroundColor   | Text color on secondary background     | String | `"hsl(240 5.9% 10%)"`     |
+| destructiveColor           | Color for destructive actions          | String | `"hsl(0 84.2% 60.2%)"`    |
+| destructiveForegroundColor | Text color on destructive background   | String | `"hsl(0 0% 98%)"`         |
+| mutedColor                 | Color for muted elements               | String | `"hsl(240 4.8% 95.9%)"`   |
+| mutedForegroundColor       | Text color on muted background         | String | `"hsl(240 3.8% 46.1%)"`   |
+| accentColor                | Accent color for highlights            | String | `"hsl(240 4.8% 95.9%)"`   |
+| accentForegroundColor      | Text color on accent background        | String | `"hsl(240 5.9% 10%)"`     |
+| cardColor                  | Background color for card elements     | String | `"hsl(0 0% 100%)"`        |
+| cardForegroundColor        | Text color for card elements           | String | `"hsl(240 10% 3.9%)"`     |
+| popoverColor               | Background color for popovers          | String | `"hsl(0 0% 100%)"`        |
+| popoverForegroundColor     | Text color for popovers                | String | `"hsl(240 10% 3.9%)"`     |
+| borderRadius               | Default border radius for elements     | String | `"0.375rem"`              |
+| buttonBorderRadius         | Border radius specifically for buttons | String | inherits `"borderRadius"` |
+| spacingInterval            | Spacing interval                       | String | `"0.0625rem"`             |
+| borderColor                | Color for borders                      | String | `"hsl(240 5.9% 90%)"`     |
+| inputColor                 | Background color for input fields      | String | `"hsl(240 5.9% 90%)"`     |
+| ringColor                  | Color for focus rings                  | String | `"hsl(240 10% 3.9%)"`     |
+| zIndexOverlay              | z-index for overlay elements           | Number | `100`                     |
 
 ## Installation
 

@@ -159,19 +159,17 @@ export const ThemeEditorPage = () => {
               <TextInput label="Theme Name" {...form.getInputProps('name')} />
             </Grid.Col>
             <Grid.Col span={6}>
-              <NumberInput
+              <TextInput
                 label="Border Radius"
-                min={0}
-                max={100}
+                description="e.g. 8px or 0.375rem"
                 {...form.getInputProps('borderRadius')}
               />
             </Grid.Col>
 
             <Grid.Col span={6}>
-              <NumberInput
+              <TextInput
                 label="Button Border Radius"
-                min={0}
-                max={100}
+                description="e.g. 8px or 0.375rem"
                 {...form.getInputProps('buttonBorderRadius')}
               />
             </Grid.Col>
