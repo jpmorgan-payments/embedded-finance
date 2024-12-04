@@ -8,13 +8,16 @@ import {
   Container,
   Group,
   Title,
+  ActionIcon,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
 import { useThemes } from '../hooks/useThemes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { set } from 'remeda';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { IconSun, IconMoon } from '@tabler/icons';
 
 const googleFonts = [
   { value: 'Roboto', label: 'Roboto' },
@@ -27,10 +30,17 @@ const googleFonts = [
   { value: 'Ubuntu', label: 'Ubuntu' },
 ];
 
+export interface ThemeEditorPageProps {
+  colorScheme?: 'light' | 'dark';
+  toggleColorScheme?: () => void;
+}
+
 export const ThemeEditorPage = () => {
   const { themes, saveTheme, createTheme } = useThemes();
   const [mode, setMode] = useState<'new' | 'edit'>('new');
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const form = useForm({
     initialValues: {
@@ -41,11 +51,26 @@ export const ThemeEditorPage = () => {
       borderColor: '',
       inputColor: '',
       fontFamily: '',
+      colorScheme: 'light',
     },
     validate: {
       name: (value) => (!value ? 'Name is required' : null),
     },
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const themeNameFromPath = params.get('theme');
+    if (themeNameFromPath) {
+      const theme = themes.find((t) => t.id === themeNameFromPath);
+
+      if (theme) {
+        setMode('edit');
+        form.setValues(theme);
+        setSelectedThemeId(theme.id);
+      }
+    }
+  }, [location.pathname, themes]);
 
   const handleSubmit = (values: any) => {
     if (values.id) {
@@ -80,16 +105,18 @@ export const ThemeEditorPage = () => {
         {mode === 'new' ? (
           <Group position="apart" mb="xl">
             <Title order={3}>Create New Theme</Title>
-            <Button
-              variant="light"
-              onClick={() => {
-                setMode('edit');
-                form.reset();
-                setSelectedThemeId(null);
-              }}
-            >
-              Switch to Edit Existing Theme
-            </Button>
+            <Group>
+              <Button
+                variant="light"
+                onClick={() => {
+                  setMode('edit');
+                  form.reset();
+                  setSelectedThemeId(null);
+                }}
+              >
+                Switch to Edit Existing Theme
+              </Button>
+            </Group>
           </Group>
         ) : (
           <>
@@ -139,6 +166,7 @@ export const ThemeEditorPage = () => {
                 {...form.getInputProps('borderRadius')}
               />
             </Grid.Col>
+
             <Grid.Col span={6}>
               <NumberInput
                 label="Button Border Radius"
@@ -170,6 +198,33 @@ export const ThemeEditorPage = () => {
                 searchable
                 clearable
               />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Group
+                position="center"
+                style={{ height: '100%', alignItems: 'center' }}
+              >
+                <Button.Group>
+                  <Button
+                    variant={
+                      form.values.colorScheme === 'light' ? 'filled' : 'default'
+                    }
+                    onClick={() => form.setFieldValue('colorScheme', 'light')}
+                    leftIcon={<IconSun size={18} />}
+                  >
+                    Light
+                  </Button>
+                  <Button
+                    variant={
+                      form.values.colorScheme === 'dark' ? 'filled' : 'default'
+                    }
+                    onClick={() => form.setFieldValue('colorScheme', 'dark')}
+                    leftIcon={<IconMoon size={18} />}
+                  >
+                    Dark
+                  </Button>
+                </Button.Group>
+              </Group>
             </Grid.Col>
             <Grid.Col span={12} ta="center">
               <Group position="center" mt="xl">

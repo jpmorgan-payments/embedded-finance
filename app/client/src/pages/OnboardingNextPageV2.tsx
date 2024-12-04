@@ -42,7 +42,6 @@ export const OnboardingNextPageV2 = () => {
 
   useEffect(() => {
     if (selectedThemeId) {
-      console.log('@@selectedThemeId', selectedThemeId);
       const newParams = new URLSearchParams(params);
       newParams.set('theme', selectedThemeId);
       setParams(newParams);
@@ -96,7 +95,12 @@ export const OnboardingNextPageV2 = () => {
         </div>
       )}
       <EBComponentsProvider
-        key={scenario?.clientId}
+        key={
+          scenario?.clientId +
+          JSON.stringify(
+            mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)),
+          )
+        }
         apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
           api_gateway_client_id: scenario?.gatewayID ?? '',
