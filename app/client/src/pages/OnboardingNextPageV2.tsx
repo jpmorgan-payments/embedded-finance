@@ -66,7 +66,7 @@ export const OnboardingNextPageV2 = () => {
     api_gateway_client_id: "${scenario?.gatewayID ?? ''}",
     Accept: 'application/json',
   }}
-  theme="${JSON.stringify(mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)), null, 2)}"
+  theme={${JSON.stringify(mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)), null, 2)}}
 >
   <OnboardingWizardBasic
     title="Onboarding Wizard"
@@ -178,6 +178,7 @@ export const OnboardingNextPageV2 = () => {
 
       {themes?.length > 0 && (
         <Select
+          clearable
           name="theme"
           label="Select Theme"
           placeholder="Select a theme"
