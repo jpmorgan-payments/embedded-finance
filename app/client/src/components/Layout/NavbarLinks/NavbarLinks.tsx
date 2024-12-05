@@ -25,8 +25,8 @@ const ebLinks = [
 ];
 
 const epLinks = [
+  { link: 'overview', label: 'Overview', icon: IconHome },
   { link: 'ep/onboarding', label: 'Onboarding', icon: IconUserPlus },
-  { link: 'ep/onboarding-basic', label: 'Onboarding Basic', icon: IconUserPlus },
   { link: 'ep/linked-accounts', label: 'Linked Accounts', icon: IconUsers },
 ];
 
