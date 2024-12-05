@@ -9,7 +9,7 @@ import {
   Group,
   Title,
   ActionIcon,
-  Text
+  Text,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
@@ -179,6 +179,18 @@ export const ThemeEditorPage = () => {
                 {...form.getInputProps('fontFamily')}
                 searchable
                 clearable
+              />
+            </Grid.Col>
+
+            <Grid.Col span={12}>
+              <Select
+                label="Color Scheme"
+                placeholder="Select color scheme"
+                data={[
+                  { value: 'light', label: 'Light' },
+                  { value: 'dark', label: 'Dark' },
+                ]}
+                {...form.getInputProps('colorScheme')}
               />
             </Grid.Col>
 

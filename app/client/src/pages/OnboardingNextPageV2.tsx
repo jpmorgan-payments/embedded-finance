@@ -13,11 +13,16 @@ import { ThemeConfig, useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
 import { set } from 'remeda';
 
-// Define or import the mapToEBTheme function
 const mapToEBTheme = (theme?: ThemeConfig) => {
-  // Add your mapping logic here
+  if (!theme) return {};
   return {
-    variables: theme,
+    colorScheme: theme?.colorScheme ?? 'light',
+    variables: Object.fromEntries(
+      Object.entries(theme).filter(
+        ([key, value]) =>
+          !!value && key !== 'name' && key !== 'id' && key !== 'colorScheme',
+      ),
+    ),
   };
 };
 
@@ -64,9 +69,8 @@ export const OnboardingNextPageV2 = () => {
   apiBaseUrl="${scenario?.baseURL ?? ''}"
   headers={{
     api_gateway_client_id: "${scenario?.gatewayID ?? ''}",
-    Accept: 'application/json',
   }}
-  theme={${JSON.stringify(mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)), null, 2)}}
+  theme={${JSON.stringify(mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)), null, 2).replaceAll('\n', '\n  ')}}
 >
   <OnboardingWizardBasic
     title="Onboarding Wizard"
