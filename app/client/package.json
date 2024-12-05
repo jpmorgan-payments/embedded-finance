@@ -82,7 +82,9 @@
     "vitest": "^0.28.2"
   },
   "msw": {
-    "workerDirectory": "public"
+    "workerDirectory": [
+      "public"
+    ]
   },
   "resolutions": {
     "graphql": "16.6.0"
