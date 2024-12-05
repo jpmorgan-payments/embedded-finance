@@ -85,7 +85,7 @@ export const OnboardingNextPageV2 = () => {
             position: 'absolute',
             top: 8,
             right: 8,
-            zIndex: 1000,
+            zIndex: 10,
             cursor: 'pointer',
           }}
           onClick={() => {
