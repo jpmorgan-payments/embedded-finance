@@ -53,6 +53,10 @@ export const OnboardingNextPageV2 = () => {
       const newParams = new URLSearchParams(params);
       newParams.set('theme', selectedThemeId);
       setParams(newParams);
+    } else {
+      const newParams = new URLSearchParams(params);
+      newParams.delete('theme');
+      setParams(newParams);
     }
   }, [selectedThemeId]);
 
@@ -60,8 +64,8 @@ export const OnboardingNextPageV2 = () => {
     setParams({ ...params, scenario: id });
   }
 
-  function handleThemeChange(id: string): void {
-    setSelectedThemeId(id);
+  function handleThemeChange(id: string | null): void {
+    setSelectedThemeId(id || '');
   }
 
   const code = `
