@@ -21,7 +21,7 @@ import { NavbarLinksComponentShowcase } from './NavbarLinks/NavbarLinksComponent
 import {
   ThemeSelectMenu,
   ThemeSelectMenuProps,
-} from './ThemeSelectMenu/ThemeSelectMenu';
+} from './ThemeSelectMenu';
 
 interface LayoutProps {
   themeProps: ThemeSelectMenuProps;
