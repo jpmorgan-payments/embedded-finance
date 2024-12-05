@@ -67,9 +67,9 @@ export const InitialStepForm = () => {
   const { t } = useTranslation(['onboarding', 'common']);
 
   const defaultProduct =
-    availableProducts.length === 1 ? availableProducts[0] : undefined;
+    availableProducts?.length === 1 ? availableProducts[0] : undefined;
   const defaultJurisdiction =
-    availableJurisdictions.length === 1 ? availableJurisdictions[0] : undefined;
+    availableJurisdictions?.length === 1 ? availableJurisdictions[0] : undefined;
 
   // Create a form with empty default values
   const form = useForm<z.infer<typeof InitialStepFormSchema>>({
@@ -273,7 +273,7 @@ export const InitialStepForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel asterisk>{t('jurisdiction')}</FormLabel>
-                  {availableJurisdictions.length === 1 ? (
+                  {availableJurisdictions?.length === 1 ? (
                     <Text className="eb-font-bold">
                       {t(`clientJurisdictions.${field.value}`)} ({field.value})
                     </Text>

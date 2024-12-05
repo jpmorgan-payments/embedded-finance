@@ -79,8 +79,14 @@ const App = () => {
                   path="embedded-components"
                   element={<EmbeddedComponentsPage />}
                 />
-                <Route path="ep/onboarding" element={<OnboardingNextPage />} />
-                <Route path="ep/onboarding-basic" element={<OnboardingNextPageV2 />} />
+                <Route
+                  path="ep/onboarding-other"
+                  element={<OnboardingNextPage />}
+                />
+                <Route
+                  path="ep/onboarding"
+                  element={<OnboardingNextPageV2 />}
+                />
                 <Route path="theme-editor" element={<ThemeEditorPage />} />
                 <Route
                   path="ep/linked-accounts"

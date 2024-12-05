@@ -9,6 +9,7 @@ import {
   Group,
   Title,
   ActionIcon,
+  Text,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
@@ -108,6 +109,10 @@ export const ThemeEditorPage = () => {
         {mode === 'new' ? (
           <Group position="apart" mb="xl">
             <Title order={3}>Create New Theme</Title>
+            <Text c="dimmed" mb="md">
+              Note: Themes are temporarily stored in browser's localStorage.
+              Create a theme first, then select it when customizing components.
+            </Text>
             <Group>
               <Button
                 variant="light"
@@ -125,6 +130,11 @@ export const ThemeEditorPage = () => {
           <>
             <Group position="apart" mb="xl">
               <Title order={3}>Edit Existing Theme</Title>
+              <Text c="dimmed" mb="md">
+                Note: Themes are temporarily stored in browser's localStorage.
+                Create a theme first, then select it when customizing
+                components.
+              </Text>
               <Button
                 variant="light"
                 onClick={() => {
@@ -169,6 +179,18 @@ export const ThemeEditorPage = () => {
                 {...form.getInputProps('fontFamily')}
                 searchable
                 clearable
+              />
+            </Grid.Col>
+
+            <Grid.Col span={12}>
+              <Select
+                label="Color Scheme"
+                placeholder="Select color scheme"
+                data={[
+                  { value: 'light', label: 'Light' },
+                  { value: 'dark', label: 'Dark' },
+                ]}
+                {...form.getInputProps('colorScheme')}
               />
             </Grid.Col>
 

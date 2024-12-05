@@ -9,6 +9,10 @@ export interface ThemeConfig {
   borderColor?: string;
   inputColor?: string;
   fontFamily?: string;
+  colorScheme?: 'light' | 'dark';
+  primaryColor?: string;
+  secondaryColor?: string;
+  spacingUnit?: string;
 }
 
 const STORAGE_KEY = 'embedded-banking-themes';

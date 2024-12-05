@@ -51,7 +51,11 @@ export const ThemeSelectMenu = ({
             ))}
           </Menu.Dropdown>
         </Menu>
-        <ActionIcon size={30} variant="default" onClick={() => setDrawerOpened(true)}>
+        <ActionIcon
+          size={30}
+          variant="default"
+          onClick={() => setDrawerOpened(true)}
+        >
           <IconPalette size={16} />
         </ActionIcon>
       </Group>

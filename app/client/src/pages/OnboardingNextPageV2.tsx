@@ -2,7 +2,7 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Select, Text } from '@mantine/core';
+import { Badge, Divider, Select, Text } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { ComponentSamplePanel, PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -13,11 +13,16 @@ import { ThemeConfig, useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
 import { set } from 'remeda';
 
-// Define or import the mapToEBTheme function
 const mapToEBTheme = (theme?: ThemeConfig) => {
-  // Add your mapping logic here
+  if (!theme) return {};
   return {
-    variables: theme,
+    colorScheme: theme?.colorScheme ?? 'light',
+    variables: Object.fromEntries(
+      Object.entries(theme).filter(
+        ([key, value]) =>
+          !!value && key !== 'name' && key !== 'id' && key !== 'colorScheme',
+      ),
+    ),
   };
 };
 
@@ -64,8 +69,8 @@ export const OnboardingNextPageV2 = () => {
   apiBaseUrl="${scenario?.baseURL ?? ''}"
   headers={{
     api_gateway_client_id: "${scenario?.gatewayID ?? ''}",
-    Accept: 'application/json',
   }}
+  theme={${JSON.stringify(mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)), null, 2).replaceAll('\n', '\n  ')}}
 >
   <OnboardingWizardBasic
     title="Onboarding Wizard"
@@ -84,7 +89,7 @@ export const OnboardingNextPageV2 = () => {
             position: 'absolute',
             top: 8,
             right: 8,
-            zIndex: 1000,
+            zIndex: 10,
             cursor: 'pointer',
           }}
           onClick={() => {
@@ -168,15 +173,11 @@ export const OnboardingNextPageV2 = () => {
           label: s.name,
           value: s.id,
         }))}
-        styles={(theme) => ({
-          root: {
-            marginBottom: theme.spacing.md,
-          },
-        })}
       />
 
       {themes?.length > 0 && (
         <Select
+          clearable
           name="theme"
           label="Select Theme"
           placeholder="Select a theme"
@@ -185,6 +186,8 @@ export const OnboardingNextPageV2 = () => {
           data={themes.map((t) => ({ value: t.id, label: t.name }))}
         />
       )}
+
+      <Divider my="sm" />
 
       {Component}
 
