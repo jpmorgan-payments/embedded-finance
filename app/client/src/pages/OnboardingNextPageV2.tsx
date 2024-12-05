@@ -2,7 +2,7 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Select, Text } from '@mantine/core';
+import { Badge, Divider, Select, Text } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { ComponentSamplePanel, PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -169,11 +169,6 @@ export const OnboardingNextPageV2 = () => {
           label: s.name,
           value: s.id,
         }))}
-        styles={(theme) => ({
-          root: {
-            marginBottom: theme.spacing.md,
-          },
-        })}
       />
 
       {themes?.length > 0 && (
@@ -187,6 +182,8 @@ export const OnboardingNextPageV2 = () => {
           data={themes.map((t) => ({ value: t.id, label: t.name }))}
         />
       )}
+
+      <Divider my="sm" />
 
       {Component}
 
