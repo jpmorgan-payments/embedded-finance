@@ -147,11 +147,11 @@ export const OnboardingNextPageV2 = () => {
             clientId={scenario?.clientId}
             onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
-              if (error) setError(error.message);
+              if (error) setError(error.title);
             }}
             onPostClientVerificationsResponse={(response, error) => {
               console.log('@@clientId GET', response, error);
-              if (error) setError(error.message);
+              if (error) setError(error.title);
             }}
           />
         )}
