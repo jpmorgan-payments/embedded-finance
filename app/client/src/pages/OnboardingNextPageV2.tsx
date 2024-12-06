@@ -2,7 +2,7 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Divider, Select, Text } from '@mantine/core';
+import { Badge, Divider, Group, Select, Text } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { ComponentSamplePanel, PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -39,6 +39,23 @@ export const OnboardingNextPageV2 = () => {
   const themeId = params.get('theme');
   const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId ?? '');
 
+  const [selectedLocale, setSelectedLocale] = useState<string>('en-us');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
+      setError('Invalid scenario selected');
+      setParams(
+        { scenario: onboardingScenarios[0].id },
+        { replace: true },
+      );
+    } else {
+      setError(null);
+    }
+  }, [scenarioId]);
+
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
       if (params.size === 0) {
@@ -69,6 +86,10 @@ export const OnboardingNextPageV2 = () => {
 
   function handleThemeChange(id: string | null): void {
     setSelectedThemeId(id || '');
+  }
+
+  function handleLocaleChange(locale: string): void {
+    setSelectedLocale(locale);
   }
 
   const code = `
@@ -110,12 +131,7 @@ export const OnboardingNextPageV2 = () => {
         </div>
       )}
       <EBComponentsProvider
-        key={
-          scenario?.clientId +
-          JSON.stringify(
-            mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)),
-          )
-        }
+        key={`provider-${scenario?.clientId}-${selectedThemeId}`}
         apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
           api_gateway_client_id: scenario?.gatewayID ?? '',
@@ -123,25 +139,29 @@ export const OnboardingNextPageV2 = () => {
         }}
         theme={mapToEBTheme(themes?.find((t) => t.id === selectedThemeId))}
       >
-        <OnboardingWizardBasic
-          key={
-            (scenario?.clientId ?? '') +
-            (scenario?.baseURL ?? '') +
-            (scenario?.gatewayID ?? '')
-          }
-          // @ts-ignore
-          availableProducts={scenario?.availableProducts}
-          // @ts-ignore
-          availableJurisdictions={scenario?.availableJurisdictions}
-          title={`Onboarding Wizard`}
-          clientId={scenario?.clientId}
-          onPostClientResponse={(response, error) => {
-            console.log('@@clientId POST', response, error);
-          }}
-          onPostClientVerificationsResponse={(response, error) => {
-            console.log('@@clientId GET', response, error);
-          }}
-        />
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div>{error}</div>
+        ) : (
+          <OnboardingWizardBasic
+            key={`wizard-${scenario?.clientId}`}
+            // @ts-ignore
+            availableProducts={scenario?.availableProducts ?? [] }
+            // @ts-ignore
+            availableJurisdictions={scenario?.availableJurisdictions ?? []}
+            title="Onboarding Wizard"
+            clientId={scenario?.clientId}
+            onPostClientResponse={(response, error) => {
+              console.log('@@clientId POST', response, error);
+              if (error) setError(error.title);
+            }}
+            onPostClientVerificationsResponse={(response, error) => {
+              console.log('@@clientId GET', response, error);
+              if (error) setError(error.title);
+            }}
+          />
+        )}
       </EBComponentsProvider>
     </div>
   );
@@ -170,29 +190,43 @@ export const OnboardingNextPageV2 = () => {
         </Text>
       </div>
 
-      <Select
-        name="scenario"
-        label="Demo Scenarios"
-        placeholder="Select a scenario"
-        onChange={handleScenarioIdChange}
-        value={scenarioId}
-        data={onboardingScenarios.map((s) => ({
-          label: s.name,
-          value: s.id,
-        }))}
-      />
-
-      {themes?.length > 0 && (
+      <Group>
         <Select
-          clearable
-          name="theme"
-          label="Select Theme"
-          placeholder="Select a theme"
-          value={selectedThemeId}
-          onChange={handleThemeChange}
-          data={themes.map((t) => ({ value: t.id, label: t.name }))}
+          name="scenario"
+          label="Demo Scenarios"
+          placeholder="Select a scenario"
+          onChange={handleScenarioIdChange}
+          value={scenarioId}
+          data={onboardingScenarios.map((s) => ({
+            label: s.name,
+            value: s.id,
+          }))}
         />
-      )}
+
+        <Select
+          name="locale"
+          label="Locale"
+          placeholder="Select a locale"
+          onChange={handleLocaleChange}
+          value={selectedLocale}
+          data={[
+            { label: 'English (US)', value: 'en-us' },
+            { label: 'French (Canada)', value: 'fr-ca' },
+          ]}
+        />
+
+        {themes?.length > 0 && (
+          <Select
+            clearable
+            name="theme"
+            label="Select Theme"
+            placeholder="Select a theme"
+            value={selectedThemeId}
+            onChange={handleThemeChange}
+            data={themes.map((t) => ({ value: t.id, label: t.name }))}
+          />
+        )}
+      </Group>
 
       <Divider my="sm" />
 
