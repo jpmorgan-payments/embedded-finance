@@ -41,27 +41,34 @@ export const OnboardingNextPageV2 = () => {
 
   useEffect(() => {
     if (!onboardingScenarios.find((s) => s.id === scenarioId)) {
-      setParams(
-        { ...params, scenario: onboardingScenarios[0].id },
-        { replace: true },
-      );
+      if (params.size === 0) {
+        setParams({ scenario: onboardingScenarios[0].id }, { replace: true });
+      } else {
+        const newParams = new URLSearchParams(params);
+        newParams.set('scenario', onboardingScenarios[0].id);
+        setParams(newParams, { replace: true });
+      }
     }
-  }, []);
+  }, [params]);
 
   useEffect(() => {
     if (selectedThemeId) {
       const newParams = new URLSearchParams(params);
       newParams.set('theme', selectedThemeId);
       setParams(newParams);
+    } else if (params.has('theme')) {
+      const newParams = new URLSearchParams(params);
+      newParams.delete('theme');
+      setParams(newParams);
     }
-  }, [selectedThemeId]);
+  }, [selectedThemeId, params]);
 
   function handleScenarioIdChange(id: string): void {
     setParams({ ...params, scenario: id });
   }
 
-  function handleThemeChange(id: string): void {
-    setSelectedThemeId(id);
+  function handleThemeChange(id: string | null): void {
+    setSelectedThemeId(id || '');
   }
 
   const code = `
