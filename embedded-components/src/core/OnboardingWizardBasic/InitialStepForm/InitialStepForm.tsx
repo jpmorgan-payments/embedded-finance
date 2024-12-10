@@ -69,7 +69,9 @@ export const InitialStepForm = () => {
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
   const defaultJurisdiction =
-    availableJurisdictions?.length === 1 ? availableJurisdictions[0] : undefined;
+    availableJurisdictions?.length === 1
+      ? availableJurisdictions[0]
+      : undefined;
 
   // Create a form with empty default values
   const form = useForm<z.infer<typeof InitialStepFormSchema>>({
