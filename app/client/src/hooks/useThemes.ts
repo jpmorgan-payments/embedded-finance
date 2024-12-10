@@ -11,6 +11,7 @@ export interface ThemeConfig {
   fontFamily?: string;
   colorScheme?: 'light' | 'dark';
   primaryColor?: string;
+  primaryColorHover?: string;
   secondaryColor?: string;
   spacingUnit?: string;
 }
@@ -24,7 +25,15 @@ export const useThemes = () => {
   });
 
   // TODO: Replace with Amplify DataStore query
-  const listThemes = () => themes;
+  const listThemes = () => [
+    {
+      id: 'PEPPER',
+      name: 'Pepper',
+      primaryColor: 'rgb(27, 127, 158)',
+      primaryColorHover: 'rgb(18, 100, 126)',
+    },
+    ...themes,
+  ];
 
   // TODO: Replace with Amplify DataStore save
   const saveTheme = (theme: ThemeConfig) => {

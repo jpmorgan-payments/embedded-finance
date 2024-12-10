@@ -54,6 +54,7 @@ export const ThemeEditorPage = () => {
       fontFamily: '',
       colorScheme: 'light',
       primaryColor: '',
+      primaryColorHover: '',
       secondaryColor: '',
       spacingUnit: '',
     },
@@ -221,6 +222,13 @@ export const ThemeEditorPage = () => {
                 label="Primary Color"
                 format="rgba"
                 {...form.getInputProps('primaryColor')}
+              />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <ColorInput
+                label="Primary Color (hovered)"
+                format="rgba"
+                {...form.getInputProps('primaryColorHover')}
               />
             </Grid.Col>
             <Grid.Col span={6}>

@@ -34,7 +34,7 @@ export const OnboardingNextPageV2 = () => {
   const scenarioId = params.get('scenario');
   const scenario = onboardingScenarios.find((s) => s.id === scenarioId);
 
-  const { themes } = useThemes();
+  const { listThemes } = useThemes();
 
   const themeId = params.get('theme');
   const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId ?? '');
@@ -47,10 +47,7 @@ export const OnboardingNextPageV2 = () => {
   useEffect(() => {
     if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
       setError('Invalid scenario selected');
-      setParams(
-        { scenario: onboardingScenarios[0].id },
-        { replace: true },
-      );
+      setParams({ scenario: onboardingScenarios[0].id }, { replace: true });
     } else {
       setError(null);
     }
@@ -98,7 +95,7 @@ export const OnboardingNextPageV2 = () => {
   headers={{
     api_gateway_client_id: "${scenario?.gatewayID ?? ''}",
   }}
-  theme={${JSON.stringify(mapToEBTheme(themes?.find((t) => t.id === selectedThemeId)), null, 2).replaceAll('\n', '\n  ')}}
+  theme={${JSON.stringify(mapToEBTheme(listThemes()?.find((t) => t.id === selectedThemeId)), null, 2).replaceAll('\n', '\n  ')}}
 >
   <OnboardingWizardBasic
     title="Onboarding Wizard"
@@ -137,7 +134,9 @@ export const OnboardingNextPageV2 = () => {
           api_gateway_client_id: scenario?.gatewayID ?? '',
           Accept: 'application/json',
         }}
-        theme={mapToEBTheme(themes?.find((t) => t.id === selectedThemeId))}
+        theme={mapToEBTheme(
+          listThemes()?.find((t) => t.id === selectedThemeId),
+        )}
       >
         {isLoading ? (
           <div>Loading...</div>
@@ -147,7 +146,7 @@ export const OnboardingNextPageV2 = () => {
           <OnboardingWizardBasic
             key={`wizard-${scenario?.clientId}`}
             // @ts-ignore
-            availableProducts={scenario?.availableProducts ?? [] }
+            availableProducts={scenario?.availableProducts ?? []}
             // @ts-ignore
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
             title="Onboarding Wizard"
@@ -215,7 +214,7 @@ export const OnboardingNextPageV2 = () => {
           ]}
         />
 
-        {themes?.length > 0 && (
+        {listThemes()?.length > 0 && (
           <Select
             clearable
             name="theme"
@@ -223,7 +222,7 @@ export const OnboardingNextPageV2 = () => {
             placeholder="Select a theme"
             value={selectedThemeId}
             onChange={handleThemeChange}
-            data={themes.map((t) => ({ value: t.id, label: t.name }))}
+            data={listThemes().map((t) => ({ value: t.id, label: t.name }))}
           />
         )}
       </Group>
