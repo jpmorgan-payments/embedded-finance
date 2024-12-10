@@ -1,4 +1,5 @@
 import { FC, useEffect, useState } from 'react';
+import i18next from 'i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
@@ -110,6 +111,10 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     query: {
       enabled: !!props.clientId,
     },
+  });
+
+  i18next.addResourceBundle('en', 'onboarding', {
+    initialStepDescription1: 'hi',
   });
 
   const productFromResponse = clientData?.products?.[0];
