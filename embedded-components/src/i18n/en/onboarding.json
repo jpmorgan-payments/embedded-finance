@@ -3,14 +3,20 @@
     "organizationName": {
       "label": "Organization name",
       "placeholder": "Enter organization name",
-      "description": "Sample description",
-      "tooltip": null
+      "description": "",
+      "tooltip": ""
     },
     "organizationEmail": {
       "label": "Organization email",
       "placeholder": "Enter organization email",
       "description": "Sample description",
-      "tooltip": null
+      "tooltip": ""
+    },
+    "addresses.addressType": {
+      "label": "Address type",
+      "placeholder": "Select address type",
+      "description": "",
+      "tooltip": ""
     }
   },
   "title": "Onboarding Wizard",
@@ -60,5 +66,11 @@
     "GOVERNMENT_ENTITY": "Government Entity",
     "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
     "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+  },
+  "addressTypes": {
+    "LEGAL_ADDRESS": "Legal address",
+    "MAILING_ADDRESS": "Mailing address",
+    "BUSINESS_ADDRESS": "Business address",
+    "RESIDENTIAL_ADDRESS": "Residential address"
   }
 }

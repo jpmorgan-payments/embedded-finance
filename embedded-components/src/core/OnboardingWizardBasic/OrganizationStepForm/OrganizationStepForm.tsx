@@ -3,6 +3,7 @@ import { FC, Fragment, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -48,6 +49,7 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
@@ -150,6 +152,7 @@ const AddressLines: FC<AddressLinesProps> = ({ control, addressIndex }) => {
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId, onPostClientResponse } = useOnboardingContext();
+  const { t } = useTranslation('onboarding');
 
   // Fetch client data
   const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
@@ -324,32 +327,11 @@ export const OrganizationStepForm = () => {
         className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
       >
         <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-          {isFieldVisible('organizationName') && (
-            <FormField
-              control={form.control}
-              name="organizationName"
-              disabled={isFieldDisabled('organizationName')}
-              render={({ field }) => (
-                <FormItem>
-                  <div className="eb-flex eb-items-center eb-space-x-2">
-                    <FormLabel asterisk={isFieldRequired('organizationName')}>
-                      Organization name
-                    </FormLabel>
-                    <InfoPopover>
-                      The organization's legal name. It is the official name of
-                      the person or entity that owns a company. Must be the name
-                      used on the legal party's government forms and business
-                      paperwork.
-                    </InfoPopover>
-                  </div>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="organizationName"
+            type="text"
+          />
 
           {isFieldVisible('organizationDescription') && (
             <FormField
@@ -764,39 +746,29 @@ export const OrganizationStepForm = () => {
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                     Address {index + 1}
                   </legend>
-                  <FormField
+                  <OnboardingFormField
                     control={form.control}
                     name={`addresses.${index}.addressType`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger ref={field.ref}>
-                              <SelectValue placeholder="Select address type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="LEGAL_ADDRESS">
-                              Legal Address
-                            </SelectItem>
-                            <SelectItem value="MAILING_ADDRESS">
-                              Mailing Address
-                            </SelectItem>
-                            <SelectItem value="BUSINESS_ADDRESS">
-                              Business Address
-                            </SelectItem>
-                            <SelectItem value="RESIDENTIAL_ADDRESS">
-                              Residential Address
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    type="select"
+                    required
+                    options={[
+                      {
+                        value: 'LEGAL_ADDRESS',
+                        label: t('addressTypes.LEGAL_ADDRESS'),
+                      },
+                      {
+                        value: 'MAILING_ADDRESS',
+                        label: t('addressTypes.MAILING_ADDRESS'),
+                      },
+                      {
+                        value: 'BUSINESS_ADDRESS',
+                        label: t('addressTypes.BUSINESS_ADDRESS'),
+                      },
+                      {
+                        value: 'RESIDENTIAL_ADDRESS',
+                        label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                      },
+                    ]}
                   />
 
                   <AddressLines control={form.control} addressIndex={index} />
