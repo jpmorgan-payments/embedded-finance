@@ -1,4 +1,6 @@
+import { defaultResources } from '@/i18n/config';
 import { DefaultOptions } from '@tanstack/react-query';
+import { DeepPartial } from 'react-hook-form';
 
 export type EBColorScheme = 'dark' | 'light' | 'system';
 
@@ -42,4 +44,6 @@ export type EBConfig = {
   theme?: EBTheme;
   headers?: Record<string, string>;
   reactQueryDefaultOptions?: DefaultOptions;
+  globalTranslationOverrides?: DeepPartial<typeof defaultResources>;
+  language?: keyof typeof defaultResources;
 };

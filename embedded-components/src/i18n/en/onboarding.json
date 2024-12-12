@@ -19,7 +19,8 @@
       "tooltip": ""
     }
   },
-  "title": "Onboarding Wizard",
+  "title": "Client Onboarding",
+  "fetchingClientData": "Fetching client data...",
   "initialDetails": "Initial details",
   "organizationDetails": "Organization details",
   "individualDetails": "Individual details",
@@ -72,5 +73,9 @@
     "MAILING_ADDRESS": "Mailing address",
     "BUSINESS_ADDRESS": "Business address",
     "RESIDENTIAL_ADDRESS": "Residential address"
+  },
+  "errorMessages": {
+    "default": "An error occurred while fetching client data. Please try again.",
+    "clientNotFound": "Client not found. Please try again or contact support."
   }
 }

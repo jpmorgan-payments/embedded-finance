@@ -1,5 +1,14 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { defaultResources } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
@@ -7,38 +16,21 @@ import { Toaster } from '@/components/ui/sonner';
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
-import '@/i18n/config';
-
-export interface EBComponentsProviderProps extends EBConfig {
-  children: ReactNode;
-}
-
 const queryClient = new QueryClient();
 
-export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
+const EBComponentsContext = createContext<EBConfig | undefined>(undefined);
+
+export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
   headers = {},
   theme = {},
   reactQueryDefaultOptions = {},
+  globalTranslationOverrides = {},
+  language = 'en',
 }) => {
+  const { i18n } = useTranslation();
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
-
-  // Set the responseType to blob for file downloads
-  useEffect(() => {
-    const e = AXIOS_INSTANCE.interceptors.request.use(
-      (config: any) => {
-        if (config.url.includes('/file')) {
-          config.responseType = 'blob';
-        }
-
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-  }, [AXIOS_INSTANCE]);
 
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
@@ -69,15 +61,68 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
     };
   }, [JSON.stringify(headers), apiBaseUrl]);
 
+  // Reset all queries when the interceptor changes
   useEffect(() => {
     if (currentInterceptor) {
       queryClient.resetQueries();
     }
   }, [currentInterceptor, queryClient]);
 
+  // Set the default options for react-query
   useEffect(() => {
     queryClient.setDefaultOptions(reactQueryDefaultOptions);
   }, [JSON.stringify(reactQueryDefaultOptions)]);
+
+  // Set the responseType to blob for file downloads
+  useEffect(() => {
+    AXIOS_INSTANCE.interceptors.request.use(
+      (config: any) => {
+        if (config.url.includes('/file')) {
+          config.responseType = 'blob';
+        }
+
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+  }, [AXIOS_INSTANCE]);
+
+  // Set the language
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language, i18n]);
+
+  // Set the global translation overrides`for common.json only
+  useEffect(() => {
+    // Reset to default
+    Object.entries(defaultResources).forEach(([lng, translations]) => {
+      i18n.addResourceBundle(
+        lng,
+        'common',
+        translations.common,
+        false, // deep
+        true // overwrite
+      );
+    });
+    // Apply overrides
+    Object.entries(globalTranslationOverrides).forEach(
+      ([lng, translations]) => {
+        if (translations.common) {
+          i18n.addResourceBundle(
+            lng,
+            'common',
+            translations.common,
+            true,
+            true
+          );
+        }
+      }
+    );
+    // Re-render with new translations
+    i18n.changeLanguage(i18n.language);
+  }, [JSON.stringify(globalTranslationOverrides), i18n]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -110,9 +155,32 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
       />
 
       <QueryClientProvider client={queryClient}>
-        {children}
+        <EBComponentsContext.Provider
+          value={{
+            apiBaseUrl,
+            theme,
+            headers,
+            reactQueryDefaultOptions,
+            globalTranslationOverrides,
+            language,
+          }}
+        >
+          {children}
+        </EBComponentsContext.Provider>
         <Toaster closeButton expand />
       </QueryClientProvider>
     </>
   );
+};
+
+export const useEBComponentsContext = () => {
+  const context = useContext(EBComponentsContext);
+
+  if (context === undefined) {
+    throw new Error(
+      'useEBComponentsContext must be used within a EBComponentsProvider'
+    );
+  }
+
+  return context;
 };
