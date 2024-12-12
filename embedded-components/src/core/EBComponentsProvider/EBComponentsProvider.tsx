@@ -24,13 +24,9 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
 
+  // Set the responseType to blob for file downloads
   useEffect(() => {
-    AXIOS_INSTANCE.interceptors.request.clear();
-    setCurrentInterceptor(0);
-  }, []);
-
-  useEffect(() => {
-    AXIOS_INSTANCE.interceptors.request.use(
+    const e = AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
         if (config.url.includes('/file')) {
           config.responseType = 'blob';
@@ -44,10 +40,14 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
     );
   }, [AXIOS_INSTANCE]);
 
+  // Set default headers and base URL in the axios interceptor
   useEffect(() => {
+    // Remove the previous interceptor
     if (currentInterceptor) {
       AXIOS_INSTANCE.interceptors.request.eject(currentInterceptor);
     }
+
+    // Add the new interceptor
     const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
         return {
@@ -61,9 +61,12 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
       }
     );
 
+    // Save the interceptor ID to remove it on unmount
     setCurrentInterceptor(ebInterceptor);
 
-    // return AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
+    return () => {
+      AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
+    };
   }, [JSON.stringify(headers), apiBaseUrl]);
 
   useEffect(() => {
@@ -74,8 +77,9 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
 
   useEffect(() => {
     queryClient.setDefaultOptions(reactQueryDefaultOptions);
-  }, [reactQueryDefaultOptions]);
+  }, [JSON.stringify(reactQueryDefaultOptions)]);
 
+  // Add color scheme class to the root element
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('eb-light', 'eb-dark');
@@ -91,7 +95,10 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
     }
   }, [theme.colorScheme]);
 
-  const css = useMemo(() => convertThemeToCssString(theme), [theme]);
+  const css = useMemo(
+    () => convertThemeToCssString(theme),
+    [JSON.stringify(theme)]
+  );
 
   return (
     <>
