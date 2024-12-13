@@ -1,8 +1,6 @@
 import { FC } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
-import { Text } from '@/components/ui/text';
-
 type LoadingStateProps = {
   message?: string;
 };
@@ -14,7 +12,7 @@ export const LoadingState: FC<LoadingStateProps> = ({ message }) => {
         className="eb-mr-2 eb-animate-spin eb-stroke-primary"
         size={32}
       />
-      <Text className="eb-text-lg">{message}</Text>
+      <p className="eb-text-lg">{message}</p>
     </div>
   );
 };

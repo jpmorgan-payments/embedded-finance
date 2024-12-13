@@ -1,5 +1,6 @@
 import {
   isolateForComponents,
+  isolateInsideOfContainer,
   scopedPreflightStyles,
 } from 'tailwindcss-scoped-preflight';
 import defaultTheme from 'tailwindcss/defaultTheme';
@@ -23,7 +24,7 @@ module.exports = {
       },
     },
     fontFamily: {
-      sans: `var(--eb-font-family) ${defaultTheme.fontFamily.sans.join(', ')}`,
+      sans: ['var(--eb-font-family)', ...defaultTheme.fontFamily.sans],
     },
     extend: {
       height: {
@@ -98,10 +99,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('tailwindcss-animate'),
-    scopedPreflightStyles({
-      isolationStrategy: isolateForComponents('.eb-component'),
-    }),
-  ],
+  plugins: [require('tailwindcss-animate')],
 };

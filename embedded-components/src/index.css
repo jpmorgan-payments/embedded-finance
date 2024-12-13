@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * {
+    @apply eb-border-border;
+  }
+  body {
+    @apply eb-bg-background eb-font-sans eb-text-foreground eb-antialiased;
+  }
+}

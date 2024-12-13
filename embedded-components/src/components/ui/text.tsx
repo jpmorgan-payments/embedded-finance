@@ -1,3 +1,6 @@
+// DEPRECATED: This file is deprecated and will be removed in the future.
+// Please use regular HTML elements instead.
+
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
