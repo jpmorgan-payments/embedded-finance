@@ -4,6 +4,8 @@ import { initReactI18next } from 'react-i18next';
 
 import enCommon from './en/common.json';
 import enOnboarding from './en/onboarding.json';
+import frCommon from './fr/common.json';
+import frOnboarding from './fr/onboarding.json';
 
 export const defaultResources = {
   en: {
@@ -11,8 +13,8 @@ export const defaultResources = {
     onboarding: enOnboarding,
   },
   fr: {
-    common: enCommon,
-    onboarding: enOnboarding,
+    common: frCommon,
+    onboarding: frOnboarding,
   },
 };
 
