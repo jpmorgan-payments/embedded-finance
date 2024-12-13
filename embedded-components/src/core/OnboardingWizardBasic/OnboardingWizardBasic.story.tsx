@@ -19,6 +19,45 @@ export type OnboardingWizardBasicWithProviderProps =
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   title: 'Onboarding Wizard Basic / Steps (Canada MS LLC)',
   component: OnboardingWizardBasic,
+  args: {
+    onPostClientResponse: (data, error) => {
+      if (data) {
+        console.log('@@POST client response data', data);
+      } else if (error) {
+        console.log('@@POST client response error', error);
+      }
+    },
+    onPostClientVerificationsResponse: (data, error) => {
+      if (data) {
+        console.log('@@POST verifications response data', data);
+      } else if (error) {
+        console.log('@@POST verifications response error', error);
+      }
+    },
+  },
+  argTypes: {
+    onPostClientResponse: { table: { disable: true } },
+    onPostClientVerificationsResponse: { table: { disable: true } },
+    setClientId: { table: { disable: true } },
+    availableProducts: {
+      control: {
+        type: 'check',
+      },
+      options: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
+    },
+    availableJurisdictions: {
+      control: {
+        type: 'check',
+      },
+      options: ['CA', 'US'],
+    },
+    language: {
+      control: {
+        type: 'radio',
+      },
+      options: ['en', 'fr'],
+    },
+  },
   decorators: [
     (Story, context) => {
       const isDarkMode = useDarkMode();
@@ -28,6 +67,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         theme,
         reactQueryDefaultOptions,
         globalTranslationOverrides,
+        language,
       } = context.args;
       return (
         <EBComponentsProvider
@@ -39,6 +79,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}
           globalTranslationOverrides={globalTranslationOverrides}
+          language={language}
         >
           <Story />
         </EBComponentsProvider>
@@ -49,33 +90,23 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
 
 export default meta;
 
-export const Default: StoryFn<OnboardingWizardBasicWithProviderProps> = (
-  args
-) => <OnboardingWizardBasic {...args} />;
+const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => (
+  <OnboardingWizardBasic {...args} />
+);
+
+export const Default = Template.bind({});
 Default.storyName = '1a. Initial step without clientId';
 Default.args = {
   clientId: '',
   apiBaseUrl: '/',
   availableProducts: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['CA', 'US'],
-  globalTranslationOverrides: {},
-  translationOverrides: {},
   theme: {},
+  language: 'fr',
+  translationOverrides: {},
+  globalTranslationOverrides: {},
+  variant: 'circle-alt',
   alertOnExit: false,
-  onPostClientResponse: (data, error) => {
-    if (data) {
-      console.log('@@POST client response data', data);
-    } else if (error) {
-      console.log('@@POST client response error', error);
-    }
-  },
-  onPostClientVerificationsResponse: (data, error) => {
-    if (data) {
-      console.log('@@POST verifications response data', data);
-    } else if (error) {
-      console.log('@@POST verifications response error', error);
-    }
-  },
 };
 
 export const WithClientId = Default.bind({});
