@@ -89,12 +89,14 @@ export interface OnboardingWizardBasicProps extends OnboardingContextType {
       (typeof defaultResources)['en']['onboarding']
     >
   >;
+  alertOnExit?: boolean;
 }
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   initialStep = 0,
   variant = 'circle',
   translationOverrides = {},
+  alertOnExit = true,
   ...props
 }) => {
   const {
@@ -168,12 +170,14 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       event.returnValue = true;
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    if (alertOnExit) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []);
+  }, [alertOnExit]);
 
   // TODO: Replace with aforementioned function
   useEffect(() => {
