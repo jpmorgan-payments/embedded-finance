@@ -86,6 +86,19 @@ export const InitialStepForm = () => {
     },
   });
 
+  // Set default product and jurisdiction if props change
+  useEffect(() => {
+    if (defaultProduct) {
+      form.setValue('product', defaultProduct);
+    }
+  }, [defaultProduct]);
+
+  useEffect(() => {
+    if (defaultJurisdiction) {
+      form.setValue('jurisdiction', defaultJurisdiction);
+    }
+  }, [defaultJurisdiction]);
+
   // Fetch client data
   const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
     clientId ?? ''
