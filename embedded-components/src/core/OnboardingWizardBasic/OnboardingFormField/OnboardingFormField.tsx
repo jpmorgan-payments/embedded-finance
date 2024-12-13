@@ -159,7 +159,7 @@ export const OnboardingFormField = <
                     </FormControl>
                     <SelectContent>
                       {options?.map((option) => (
-                        <SelectItem value={option.value}>
+                        <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
                       ))}
