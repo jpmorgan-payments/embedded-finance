@@ -66,7 +66,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         headers,
         theme,
         reactQueryDefaultOptions,
-        globalcontentTokenOverrides,
+        globalContentTokenOverrides,
         language,
       } = context.args;
       return (
@@ -78,7 +78,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
             ...theme,
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}
-          globalcontentTokenOverrides={globalcontentTokenOverrides}
+          globalContentTokenOverrides={globalContentTokenOverrides}
           language={language}
         >
           <Story />
@@ -102,9 +102,9 @@ Default.args = {
   availableProducts: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['CA', 'US'],
   theme: {},
-  language: 'fr',
+  language: 'en',
   contentTokenOverrides: {},
-  globalcontentTokenOverrides: {},
+  globalContentTokenOverrides: {},
   variant: 'circle-alt',
   alertOnExit: false,
 };
