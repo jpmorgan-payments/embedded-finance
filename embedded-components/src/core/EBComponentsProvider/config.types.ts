@@ -44,6 +44,6 @@ export type EBConfig = {
   theme?: EBTheme;
   headers?: Record<string, string>;
   reactQueryDefaultOptions?: DefaultOptions;
-  globalTranslationOverrides?: DeepPartial<typeof defaultResources>;
+  globalContentTokenOverrides?: DeepPartial<typeof defaultResources>;
   language?: keyof typeof defaultResources;
 };

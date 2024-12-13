@@ -83,7 +83,7 @@ interface StepProps {
 export interface OnboardingWizardBasicProps extends OnboardingContextType {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
-  translationOverrides?: DeepPartial<
+  contentTokenOverrides?: DeepPartial<
     Record<
       keyof typeof defaultResources,
       (typeof defaultResources)['en']['onboarding']
@@ -95,7 +95,7 @@ export interface OnboardingWizardBasicProps extends OnboardingContextType {
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   initialStep = 0,
   variant = 'circle-alt',
-  translationOverrides = {},
+  contentTokenOverrides = {},
   alertOnExit = true,
   ...props
 }) => {
@@ -109,30 +109,30 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       enabled: !!props.clientId,
     },
   });
-  const { globalTranslationOverrides = {} } = useEBComponentsContext();
+  const { globalContentTokenOverrides = {} } = useEBComponentsContext();
   const { t, i18n } = useTranslation('onboarding');
 
   // Apply translation overrides
   // TODO: extract into separate fn
   useEffect(() => {
     // Reset to default
-    Object.entries(defaultResources).forEach(([lng, translations]) => {
+    Object.entries(defaultResources).forEach(([lng, contentTokens]) => {
       i18n.addResourceBundle(
         lng,
         'onboarding',
-        translations.onboarding,
+        contentTokens.onboarding,
         false, // deep
         true // overwrite
       );
     });
     // Apply global overrides
-    Object.entries(globalTranslationOverrides).forEach(
-      ([lng, translations]) => {
-        if (translations.onboarding) {
+    Object.entries(globalContentTokenOverrides).forEach(
+      ([lng, contentTokens]) => {
+        if (contentTokens.onboarding) {
           i18n.addResourceBundle(
             lng,
             'onboarding',
-            translations.onboarding,
+            contentTokens.onboarding,
             true,
             true
           );
@@ -140,14 +140,14 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       }
     );
     // Apply local overrides
-    Object.entries(translationOverrides).forEach(([lng, translation]) => {
+    Object.entries(contentTokenOverrides).forEach(([lng, translation]) => {
       i18n.addResourceBundle(lng, 'onboarding', translation, true, true);
     });
-    // Re-render with new translations
+    // Re-render with new contentTokens
     i18n.changeLanguage(i18n.language);
   }, [
-    JSON.stringify(globalTranslationOverrides),
-    JSON.stringify(translationOverrides),
+    JSON.stringify(globalContentTokenOverrides),
+    JSON.stringify(contentTokenOverrides),
     i18n,
   ]);
 

@@ -26,7 +26,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   headers = {},
   theme = {},
   reactQueryDefaultOptions = {},
-  globalTranslationOverrides = {},
+  globalContentTokenOverrides = {},
   language = 'en',
 }) => {
   const { i18n } = useTranslation();
@@ -97,32 +97,32 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   // Set the global translation overrides`for common.json only
   useEffect(() => {
     // Reset to default
-    Object.entries(defaultResources).forEach(([lng, translations]) => {
+    Object.entries(defaultResources).forEach(([lng, contentTokens]) => {
       i18n.addResourceBundle(
         lng,
         'common',
-        translations.common,
+        contentTokens.common,
         false, // deep
         true // overwrite
       );
     });
     // Apply overrides
-    Object.entries(globalTranslationOverrides).forEach(
-      ([lng, translations]) => {
-        if (translations.common) {
+    Object.entries(globalContentTokenOverrides).forEach(
+      ([lng, contentTokens]) => {
+        if (contentTokens.common) {
           i18n.addResourceBundle(
             lng,
             'common',
-            translations.common,
+            contentTokens.common,
             true,
             true
           );
         }
       }
     );
-    // Re-render with new translations
+    // Re-render with new contentTokens
     i18n.changeLanguage(i18n.language);
-  }, [JSON.stringify(globalTranslationOverrides), i18n]);
+  }, [JSON.stringify(globalContentTokenOverrides), i18n]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -161,7 +161,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             theme,
             headers,
             reactQueryDefaultOptions,
-            globalTranslationOverrides,
+            globalContentTokenOverrides,
             language,
           }}
         >

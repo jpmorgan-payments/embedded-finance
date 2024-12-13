@@ -66,7 +66,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         headers,
         theme,
         reactQueryDefaultOptions,
-        globalTranslationOverrides,
+        globalcontentTokenOverrides,
         language,
       } = context.args;
       return (
@@ -78,7 +78,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
             ...theme,
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}
-          globalTranslationOverrides={globalTranslationOverrides}
+          globalcontentTokenOverrides={globalcontentTokenOverrides}
           language={language}
         >
           <Story />
@@ -103,8 +103,8 @@ Default.args = {
   availableJurisdictions: ['CA', 'US'],
   theme: {},
   language: 'fr',
-  translationOverrides: {},
-  globalTranslationOverrides: {},
+  contentTokenOverrides: {},
+  globalcontentTokenOverrides: {},
   variant: 'circle-alt',
   alertOnExit: false,
 };
