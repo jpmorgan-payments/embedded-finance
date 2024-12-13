@@ -1,58 +1,40 @@
-/* eslint-disable import/no-useless-path-segments */
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta } from '@storybook/react';
 
-import { OnboardingWizardBasicWithProvider } from './OnboardingWizardBasic.story';
+import OnboardingWizardBasicMeta, {
+  Default,
+  OnboardingWizardBasicWithProviderProps,
+} from './OnboardingWizardBasic.story';
 
-const meta: Meta<typeof OnboardingWizardBasicWithProvider> = {
-  title: 'Onboarding Wizard Basic / Environment',
-  component: OnboardingWizardBasicWithProvider,
+const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
+  ...OnboardingWizardBasicMeta,
+  title: 'Onboarding Wizard Basic / Client Variants',
 };
 export default meta;
 
-type Story = StoryObj<typeof OnboardingWizardBasicWithProvider>;
-
-export const Primary: Story = {
-  name: 'UAT',
-  args: {
-    clientId: '',
-    apiBaseUrl: '/paste-uat-url-here',
-    headers: {
-      api_gateway_client_id: 'EBCLIENT22',
-    },
-    title: 'Sole Proprietorship',
-    theme: {
-      variables: {
-        primaryColor: 'teal',
-        borderRadius: '15px',
-      },
-    },
-    onPostClientResponse: (data, error) => {
-      if (data) {
-        console.log('@@POST client response data', data);
-      } else if (error) {
-        console.log('@@POST client response error', error);
-      }
-    },
-    onPostClientVerificationsResponse: (data, error) => {
-      if (data) {
-        console.log('@@POST verifications response data', data);
-      } else if (error) {
-        console.log('@@POST verifications response error', error);
-      }
-    },
-  },
-  parameters: {},
+export const Mocked = Default.bind({});
+Mocked.storyName = 'No theme with PDP mocked APIs';
+Mocked.args = {
+  ...Default.args,
+  apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/',
+  clientId: '123',
 };
 
-export const Dev: Story = {
-  name: 'DEV',
-  ...Primary,
-  args: {
-    clientId: '',
-    apiBaseUrl: '/paste-uat-url-here',
-    headers: {
-      api_gateway_client_id: 'OBTSTSTCL1',
-    },
+export const UAT = Default.bind({});
+UAT.storyName = 'UAT';
+UAT.args = {
+  ...Default.args,
+  apiBaseUrl: '/paste-uat-url-here',
+  headers: {
+    api_gateway_client_id: 'EBCLIENT22',
   },
-  parameters: {},
+};
+
+export const DEV = Default.bind({});
+DEV.storyName = 'DEV';
+DEV.args = {
+  ...Default.args,
+  apiBaseUrl: '/paste-uat-url-here',
+  headers: {
+    api_gateway_client_id: 'OBTSTSTCL1',
+  },
 };

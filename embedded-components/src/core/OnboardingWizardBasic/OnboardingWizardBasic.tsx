@@ -94,7 +94,7 @@ export interface OnboardingWizardBasicProps extends OnboardingContextType {
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   initialStep = 0,
-  variant = 'circle',
+  variant = 'circle-alt',
   translationOverrides = {},
   alertOnExit = true,
   ...props

@@ -1,227 +1,181 @@
-/* eslint-disable import/no-useless-path-segments */
+/* eslint-disable no-console */
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
+import { useDarkMode } from 'storybook-dark-mode';
 
-import {
-  ApiError,
-  ClientProduct,
-  ClientResponse,
-  ClientVerificationResponse,
-} from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import { EBConfig } from '@/core/EBComponentsProvider/config.types';
+import {
+  OnboardingWizardBasic,
+  OnboardingWizardBasicProps,
+} from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
 
-import { OnboardingWizardBasic } from './OnboardingWizardBasic';
+export type OnboardingWizardBasicWithProviderProps =
+  OnboardingWizardBasicProps & EBConfig;
 
-export const OnboardingWizardBasicWithProvider = ({
-  apiBaseUrl,
-  headers,
-  title,
-  availableProducts,
-  availableJurisdictions,
-  theme,
-  onPostClientResponse,
-  onPostClientVerificationsResponse,
-  setClientId,
-  clientId,
-  initialStep,
-  variant,
-}: {
-  apiBaseUrl: string;
-  headers: Record<string, string>;
-  title: string;
-  availableProducts: Array<ClientProduct>;
-  availableJurisdictions: Array<'US' | 'CA'>;
-  theme: Record<string, unknown>;
-  onPostClientResponse: (response?: ClientResponse, error?: ApiError) => void;
-  onPostClientVerificationsResponse?: (
-    response?: ClientVerificationResponse,
-    error?: ApiError
-  ) => void;
-  setClientId?: (s: string) => void;
-  clientId?: string;
-  initialStep?: number;
-  variant?: 'circle' | 'line';
-}) => {
-  return (
-    <>
-      <EBComponentsProvider
-        apiBaseUrl={apiBaseUrl}
-        headers={headers}
-        theme={theme}
-      >
-        <OnboardingWizardBasic
-          title={title}
-          onPostClientResponse={onPostClientResponse}
-          onPostClientVerificationsResponse={onPostClientVerificationsResponse}
-          setClientId={setClientId}
-          clientId={clientId}
-          initialStep={initialStep}
-          variant={variant}
-          availableProducts={availableProducts}
-          availableJurisdictions={availableJurisdictions}
-        />
-      </EBComponentsProvider>
-    </>
-  );
+const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
+  title: 'Onboarding Wizard Basic / Steps (Canada MS LLC)',
+  component: OnboardingWizardBasic,
+  decorators: [
+    (Story, context) => {
+      const isDarkMode = useDarkMode();
+      const {
+        apiBaseUrl,
+        headers,
+        theme,
+        reactQueryDefaultOptions,
+        globalTranslationOverrides,
+      } = context.args;
+      return (
+        <EBComponentsProvider
+          apiBaseUrl={apiBaseUrl}
+          headers={headers}
+          theme={{
+            colorScheme: isDarkMode ? 'dark' : 'light',
+            ...theme,
+          }}
+          reactQueryDefaultOptions={reactQueryDefaultOptions}
+          globalTranslationOverrides={globalTranslationOverrides}
+        >
+          <Story />
+        </EBComponentsProvider>
+      );
+    },
+  ],
 };
 
-const meta: Meta<typeof OnboardingWizardBasicWithProvider> = {
-  title: 'Onboarding Wizard Basic / Steps',
-  component: OnboardingWizardBasicWithProvider,
-};
 export default meta;
 
-type Story = StoryObj<typeof OnboardingWizardBasicWithProvider>;
-
-export const Primary: Story = {
-  name: 'Intro without Client ID',
-  args: {
-    clientId: '',
-    apiBaseUrl: '/',
-    availableProducts: ['MERCHANT_SERVICES'],
-    availableJurisdictions: ['CA'],
-    title: 'Onboarding Wizard Basic',
-    onPostClientResponse: (data, error) => {
-      if (data) {
-        console.log('@@POST client response data', data);
-      } else if (error) {
-        console.log('@@POST client response error', error);
-      }
-    },
-    onPostClientVerificationsResponse: (data, error) => {
-      if (data) {
-        console.log('@@POST verifications response data', data);
-      } else if (error) {
-        console.log('@@POST verifications response error', error);
-      }
-    },
+export const Default: StoryFn<OnboardingWizardBasicWithProviderProps> = (
+  args
+) => <OnboardingWizardBasic {...args} />;
+Default.storyName = '1a. Initial step without clientId';
+Default.args = {
+  clientId: '',
+  apiBaseUrl: '/',
+  availableProducts: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
+  availableJurisdictions: ['CA', 'US'],
+  globalTranslationOverrides: {},
+  translationOverrides: {},
+  theme: {},
+  alertOnExit: false,
+  onPostClientResponse: (data, error) => {
+    if (data) {
+      console.log('@@POST client response data', data);
+    } else if (error) {
+      console.log('@@POST client response error', error);
+    }
+  },
+  onPostClientVerificationsResponse: (data, error) => {
+    if (data) {
+      console.log('@@POST verifications response data', data);
+    } else if (error) {
+      console.log('@@POST verifications response error', error);
+    }
   },
 };
 
-export const WithClientId: Story = {
-  name: 'Organization step with clientId',
-  ...Primary,
-  args: {
-    ...Primary.args,
-    clientId: '0030000133',
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('/questions', (req) => {
-          const url = new URL(req.request.url);
-          const questionIds = url.searchParams.get('questionIds');
-          return HttpResponse.json({
-            metadata: efClientQuestionsMock.metadata,
-            questions: efClientQuestionsMock?.questions.filter((q) =>
-              questionIds?.includes(q.id)
-            ),
-          });
-        }),
-        http.get('/clients/0030000133', () => {
-          return HttpResponse.json(efClientCorpEBMock);
-        }),
-        http.post('/clients/0030000133', () => {
-          return HttpResponse.json(efClientCorpEBMock);
-        }),
-      ],
-    },
+export const WithClientId = Default.bind({});
+WithClientId.storyName = '1b. Initial step with clientId';
+WithClientId.args = {
+  ...Default.args,
+  clientId: '0030000133',
+};
+WithClientId.parameters = {
+  msw: {
+    handlers: [
+      http.get('/questions', (req) => {
+        const url = new URL(req.request.url);
+        const questionIds = url.searchParams.get('questionIds');
+        return HttpResponse.json({
+          metadata: efClientQuestionsMock.metadata,
+          questions: efClientQuestionsMock?.questions.filter((q) =>
+            questionIds?.includes(q.id)
+          ),
+        });
+      }),
+      http.get('/clients/0030000133', () => {
+        return HttpResponse.json(efClientCorpEBMock);
+      }),
+      http.post('/clients/0030000133', () => {
+        return HttpResponse.json(efClientCorpEBMock);
+      }),
+    ],
   },
 };
 
-export const NoThemeWithPDPAPIs: Story = {
-  name: 'No theme with PDP mocked APIs',
-  ...Primary,
-  args: {
-    ...Primary.args,
-    apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/',
-    clientId: '123',
-  },
+export const OrganizationStep = Default.bind({});
+OrganizationStep.storyName = '2. Organization step';
+OrganizationStep.args = {
+  ...WithClientId.args,
+  initialStep: 1,
 };
+OrganizationStep.parameters = WithClientId.parameters;
 
-export const IndividualStep: Story = {
-  name: 'Individual step',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 1,
-  },
+export const IndividualStep = Default.bind({});
+IndividualStep.storyName = '3. Individual step';
+IndividualStep.args = {
+  ...WithClientId.args,
+  initialStep: 2,
 };
+IndividualStep.parameters = WithClientId.parameters;
 
-export const DecisionMakerStep: Story = {
-  name: 'Decision Maker step',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 2,
-  },
+export const DecisionMakerStep = Default.bind({});
+DecisionMakerStep.storyName = '4. Decision Maker step';
+DecisionMakerStep.args = {
+  ...WithClientId.args,
+  initialStep: 3,
 };
+DecisionMakerStep.parameters = WithClientId.parameters;
 
-export const BusinessOwner: Story = {
-  name: 'Business Owner step',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 3,
-  },
+export const BusinessOwner = Default.bind({});
+BusinessOwner.storyName = '5. Business Owner step';
+BusinessOwner.args = {
+  ...WithClientId.args,
+  initialStep: 4,
 };
+BusinessOwner.parameters = WithClientId.parameters;
 
-export const AdditionalQuestions: Story = {
-  name: 'Additional Questions step',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 4,
-  },
+export const AdditionalQuestions = Default.bind({});
+AdditionalQuestions.storyName = '6. Additional Questions step';
+AdditionalQuestions.args = {
+  ...WithClientId.args,
+  initialStep: 5,
 };
+AdditionalQuestions.parameters = WithClientId.parameters;
 
-export const ReviewAndAttest: Story = {
-  name: 'Review and Attest step',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 5,
-  },
+export const DocumentUpload = Default.bind({});
+DocumentUpload.storyName = '7. Document Upload step';
+DocumentUpload.args = {
+  ...WithClientId.args,
+  initialStep: 6,
 };
+DocumentUpload.parameters = WithClientId.parameters;
 
-export const DocumentUpload: Story = {
-  name: 'Document Upload step',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 5,
-  },
+export const ReviewAndAttest = Default.bind({});
+ReviewAndAttest.storyName = '8. Review and Attest step';
+ReviewAndAttest.args = {
+  ...WithClientId.args,
+  initialStep: 7,
 };
+ReviewAndAttest.parameters = WithClientId.parameters;
 
-export const ReviewAndAttestNoOustanding: Story = {
-  name: 'Review and Attest step with No outstanding',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    initialStep: 6,
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('/clients/0030000130', () => {
-          return HttpResponse.json(efClientSolPropAnsweredQuestions);
-        }),
-        http.post('/clients/0030000130', () => {
-          return HttpResponse.json(efClientSolPropAnsweredQuestions);
-        }),
-      ],
-    },
-  },
-};
-
-export const LineStepper: Story = {
-  name: 'Line Stepper variant',
-  ...WithClientId,
-  args: {
-    ...WithClientId.args,
-    variant: 'line',
+export const ReviewAndAttestNoOutstanding = Default.bind({});
+ReviewAndAttestNoOutstanding.storyName =
+  '8b. Review and Attest step with No outstanding';
+ReviewAndAttestNoOutstanding.args = ReviewAndAttest.args;
+ReviewAndAttestNoOutstanding.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000130', () => {
+        return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+      http.post('/clients/0030000130', () => {
+        return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+    ],
   },
 };
