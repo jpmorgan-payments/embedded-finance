@@ -5,9 +5,15 @@ import App from './App';
 import { worker } from 'mockServiceWorker/browser';
 
 async function prepare() {
-  return worker?.start({
-    onUnhandledRequest: 'bypass',
-  });
+  return  worker.start({
+    onUnhandledRequest: 'warn', // Temporarily set to 'warn' to debug
+    serviceWorker: {
+      url: '/mockServiceWorker.js',
+      options: {
+        scope: '/', // Ensure the scope covers all paths
+      }
+    }
+  })
 }
 
 prepare().then(() => {

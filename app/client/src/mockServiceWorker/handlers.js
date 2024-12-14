@@ -49,6 +49,9 @@ export const handlers = [
   }),
 
   http.get(`${API_URL}/ef/do/v1/clients/:clientId`, (req) => {
+    console.log('MSW intercepted request:', req.url);
+    console.log('Client ID param:', req.params.clientId);
+
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
@@ -69,6 +72,12 @@ export const handlers = [
     const { clientId } = req.params;
     return HttpResponse.json(
       clientIdToMock[clientId] || clientDetailsScenario1,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-MSW-Handled': 'true', // Debug header
+        },
+      },
     );
   }),
 ];
