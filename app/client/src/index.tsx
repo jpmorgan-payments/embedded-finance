@@ -9,9 +9,6 @@ async function prepare() {
     onUnhandledRequest: 'warn', // Temporarily set to 'warn' to debug
     serviceWorker: {
       url: '/mockServiceWorker.js',
-      options: {
-        scope: '/', // Ensure the scope covers all paths
-      }
     }
   })
 }
