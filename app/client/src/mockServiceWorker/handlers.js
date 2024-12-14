@@ -60,6 +60,12 @@ export const handlers = [
     const { clientId } = req.params;
     return HttpResponse.json(
       clientIdToMock[clientId] || clientDetailsScenario1,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-MSW-Handled': 'true', // Debug header
+        },
+      },
     );
   }),
 
