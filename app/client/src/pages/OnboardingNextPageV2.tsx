@@ -5,7 +5,7 @@ import {
 import { Badge, Divider, Group, Select, Text } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { ComponentSamplePanel, PageWrapper } from 'components';
-import { API_URL, GITHUB_REPO } from 'data/constants';
+import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -129,7 +129,7 @@ export const OnboardingNextPageV2 = () => {
       )}
       <EBComponentsProvider
         key={`provider-${scenario?.clientId}-${selectedThemeId}`}
-        apiBaseUrl={scenario?.baseURL ?? API_URL ?? ''}
+        apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
           api_gateway_client_id: scenario?.gatewayID ?? '',
           Accept: 'application/json',
