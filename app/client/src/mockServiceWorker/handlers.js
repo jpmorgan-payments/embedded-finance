@@ -49,8 +49,6 @@ export const handlers = [
   }),
 
   http.get(`/ef/do/v1/clients/:clientId`, (req) => {
-    console.log('MSW intercepted request:', req.url);
-    console.log('Client ID param:', req.params.clientId);
 
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
@@ -63,7 +61,6 @@ export const handlers = [
       {
         headers: {
           'Content-Type': 'application/json',
-          'X-MSW-Handled': 'true', // Debug header
         },
       },
     );
@@ -81,7 +78,6 @@ export const handlers = [
       {
         headers: {
           'Content-Type': 'application/json',
-          'X-MSW-Handled': 'true', // Debug header
         },
       },
     );
