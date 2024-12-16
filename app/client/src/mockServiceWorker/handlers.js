@@ -48,7 +48,7 @@ export const handlers = [
     return HttpResponse.json(jobTitlesMock);
   }),
 
-  http.get(`/ef/do/v1/clients/:clientId`, (req) => {
+  http.get(`${API_URL}/ef/do/v1/clients/:clientId`, (req) => {
 
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
@@ -66,7 +66,7 @@ export const handlers = [
     );
   }),
 
-  http.post(`/ef/do/v1/clients/:clientId`, (req) => {
+  http.post(`${API_URL}/ef/do/v1/clients/:clientId`, (req) => {
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
