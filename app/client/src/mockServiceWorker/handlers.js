@@ -19,7 +19,7 @@ import {
   clientDetailsScenario3,
 } from 'mocks/clientDetails.mock';
 
-export const handlers = [
+export const createHandlers = (apiUrl) => [
   http.get(`${API_URL}/api/transactions`, () => {
     return HttpResponse.json(transactionsMock);
   }),
@@ -49,7 +49,6 @@ export const handlers = [
   }),
 
   http.get(`${API_URL}/ef/do/v1/clients/:clientId`, (req) => {
-
     const clientIdToMock = {
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
