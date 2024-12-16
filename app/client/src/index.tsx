@@ -6,7 +6,7 @@ import { worker } from 'mockServiceWorker/browser';
 
 async function prepare() {
   return  worker.start({
-    onUnhandledRequest: 'bypass', // Temporarily set to 'warn' to debug
+    onUnhandledRequest: 'warn', // Temporarily set to 'warn' to debug
     serviceWorker: {
       url: '/mockServiceWorker.js',
     }
