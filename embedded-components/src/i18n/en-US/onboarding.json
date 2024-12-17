@@ -3,17 +3,24 @@
     "organizationName": {
       "label": "Organization name",
       "placeholder": "Enter organization name",
-      "description": "Sample description",
-      "tooltip": null
+      "description": "",
+      "tooltip": ""
     },
     "organizationEmail": {
       "label": "Organization email",
       "placeholder": "Enter organization email",
       "description": "Sample description",
-      "tooltip": null
+      "tooltip": ""
+    },
+    "addresses.addressType": {
+      "label": "Address type",
+      "placeholder": "Select address type",
+      "description": "",
+      "tooltip": ""
     }
   },
-  "title": "Onboarding Wizard",
+  "title": "Client Onboarding",
+  "fetchingClientData": "Fetching client data...",
   "initialDetails": "Initial details",
   "organizationDetails": "Organization details",
   "individualDetails": "Individual details",
@@ -60,5 +67,15 @@
     "GOVERNMENT_ENTITY": "Government Entity",
     "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
     "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+  },
+  "addressTypes": {
+    "LEGAL_ADDRESS": "Legal address",
+    "MAILING_ADDRESS": "Mailing address",
+    "BUSINESS_ADDRESS": "Business address",
+    "RESIDENTIAL_ADDRESS": "Residential address"
+  },
+  "errorMessages": {
+    "default": "An error occurred while fetching client data. Please try again.",
+    "clientNotFound": "Client not found. Please try again or contact support."
   }
 }

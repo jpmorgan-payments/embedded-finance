@@ -1,63 +1,54 @@
-/* eslint-disable import/no-useless-path-segments */
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta } from '@storybook/react';
 
-import { OnboardingWizardBasicWithProvider } from './OnboardingWizardBasic.story';
+import OnboardingWizardBasicMeta, {
+  Default,
+  OnboardingWizardBasicWithProviderProps,
+} from './OnboardingWizardBasic.story';
 
-const meta: Meta<typeof OnboardingWizardBasicWithProvider> = {
-  title: 'Onboarding Wizard Basic / Theme',
-  component: OnboardingWizardBasicWithProvider,
+const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
+  ...OnboardingWizardBasicMeta,
+  title: 'Onboarding Wizard Basic / Appearance & Theme',
 };
 export default meta;
 
-type Story = StoryObj<typeof OnboardingWizardBasicWithProvider>;
+export const DefaultTheme = Default.bind({});
+DefaultTheme.storyName = 'Default Theme / Appearance';
+DefaultTheme.args = Default.args;
 
-export const Primary: Story = {
-  name: 'Default theme',
-  args: {
-    clientId: '',
-    apiBaseUrl: '/',
-    title: 'Onboarding (Default theme)',
-    onPostClientResponse: (data, error) => {
-      if (data) {
-        console.log('@@POST client response data', data);
-      } else if (error) {
-        console.log('@@POST client response error', error);
-      }
-    },
-    onPostClientVerificationsResponse: (data, error) => {
-      if (data) {
-        console.log('@@POST verifications response data', data);
-      } else if (error) {
-        console.log('@@POST verifications response error', error);
-      }
+export const PepperTheme = Default.bind({});
+PepperTheme.storyName = 'Pepper Theme (Coming Soon)';
+PepperTheme.args = {
+  ...Default.args,
+  theme: {
+    variables: {},
+  },
+};
+
+export const DarkTheme = Default.bind({});
+DarkTheme.storyName = 'Dark theme';
+DarkTheme.args = {
+  ...DefaultTheme.args,
+  theme: {
+    colorScheme: 'dark',
+  },
+};
+
+export const FontFamily = Default.bind({});
+FontFamily.storyName = 'Different font';
+FontFamily.args = {
+  ...Default.args,
+  theme: {
+    variables: {
+      fontFamily: 'Nunito sans',
+      borderRadius: '15px',
+      primaryColor: 'teal',
     },
   },
 };
 
-export const Dark: Story = {
-  name: 'Dark theme',
-  ...Primary,
-  args: {
-    ...Primary.args,
-    title: 'Onboarding (Dark theme)',
-    theme: {
-      colorScheme: 'dark',
-    },
-  },
-};
-
-export const Example1: Story = {
-  name: 'Example with different font',
-  ...Primary,
-  args: {
-    ...Primary.args,
-    title: 'Onboarding (Different font)',
-    theme: {
-      variables: {
-        primaryColor: 'teal',
-        borderRadius: '15px',
-        fontFamily: 'Nunito sans',
-      },
-    },
-  },
+export const LineStepper = Default.bind({});
+LineStepper.storyName = 'Line stepper variant';
+LineStepper.args = {
+  ...Default.args,
+  variant: 'line',
 };

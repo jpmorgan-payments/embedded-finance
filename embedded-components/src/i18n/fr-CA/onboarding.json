@@ -1,0 +1,81 @@
+{
+  "fields": {
+    "organizationName": {
+      "label": "Nom de l'organisation",
+      "placeholder": "Entrez le nom de l'organisation",
+      "description": "",
+      "tooltip": ""
+    },
+    "organizationEmail": {
+      "label": "Email de l'organisation",
+      "placeholder": "Entrez l'email de l'organisation",
+      "description": "Description d'exemple",
+      "tooltip": ""
+    },
+    "addresses.addressType": {
+      "label": "Type d'adresse",
+      "placeholder": "Sélectionnez le type d'adresse",
+      "description": "",
+      "tooltip": ""
+    }
+  },
+  "title": "Intégration du client",
+  "fetchingClientData": "Récupération des données du client...",
+  "initialDetails": "Détails initiaux",
+  "organizationDetails": "Détails de l'organisation",
+  "individualDetails": "Détails individuels",
+  "additionalQuestions": "Questions supplémentaires",
+  "uploadDocuments": "Télécharger des documents",
+  "reviewAndAttest": "Revoir et attester",
+  "initialStepDescription1": "Les informations que nous vous demandons nous aideront à finaliser la configuration de votre compte.",
+  "initialStepDescription2": "Veuillez revoir et mettre à jour toute information nécessitant une confirmation ; et fournir toute information supplémentaire demandée.",
+  "initialStepNoOrganizationType": "Veuillez sélectionner votre <strong>type d'organisation</strong> pour prévisualiser les informations que vous devrez confirmer ou fournir.",
+  "initialStepOrganizationTypeInformation": "En tant que <strong>{{organizationType}}</strong>, vous devrez confirmer ou fournir les informations suivantes :",
+  "product": "Produit",
+  "jurisdiction": "Juridiction",
+  "organizationType": "Type d'organisation",
+  "organizationName": "Nom de l'organisation",
+  "organizationNameDescription": "Le nom légal de l'organisation. C'est le nom officiel de la personne ou de l'entité qui possède une entreprise. Doit être le nom utilisé sur les formulaires gouvernementaux et les documents commerciaux de la partie légale.",
+  "organizationEmail": "Email de l'organisation",
+  "countryOfFormation": "Pays de formation",
+  "postalCode": "Code postal",
+  "city": "Ville",
+  "state": "État / Province",
+  "country": "Pays",
+  "firstName": "Prénom",
+  "lastName": "Nom de famille",
+  "email": "Email",
+  "phone": "Téléphone",
+  "clientProducts": {
+    "EMBEDDED_PAYMENTS": "Paiements intégrés",
+    "MERCHANT_SERVICES": "Services marchands"
+  },
+  "clientJurisdictions": {
+    "US": "États-Unis",
+    "CA": "Canada"
+  },
+  "organizationTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Société à responsabilité limitée",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Partenariat à responsabilité limitée",
+    "GENERAL_PARTNERSHIP": "Partenariat général",
+    "LIMITED_PARTNERSHIP": "Partenariat limité",
+    "C_CORPORATION": "Société C",
+    "S_CORPORATION": "Société S",
+    "PARTNERSHIP": "Partenariat",
+    "PUBLICLY_TRADED_COMPANY": "Société cotée en bourse",
+    "NON_PROFIT_CORPORATION": "Corporation à but non lucratif",
+    "GOVERNMENT_ENTITY": "Entité gouvernementale",
+    "SOLE_PROPRIETORSHIP": "Entreprise individuelle",
+    "UNINCORPORATED_ASSOCIATION": "Association non constituée"
+  },
+  "addressTypes": {
+    "LEGAL_ADDRESS": "Adresse légale",
+    "MAILING_ADDRESS": "Adresse postale",
+    "BUSINESS_ADDRESS": "Adresse professionnelle",
+    "RESIDENTIAL_ADDRESS": "Adresse résidentielle"
+  },
+  "errorMessages": {
+    "default": "Une erreur s'est produite lors de la récupération des données du client. Veuillez réessayer.",
+    "clientNotFound": "Client non trouvé. Veuillez réessayer ou contacter le support."
+  }
+}

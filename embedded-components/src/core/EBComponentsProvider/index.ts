@@ -1,2 +1,2 @@
 export { EBComponentsProvider } from './EBComponentsProvider';
-export type { EBComponentsProviderProps } from './EBComponentsProvider';
+export * from './config.types';

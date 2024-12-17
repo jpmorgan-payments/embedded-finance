@@ -22,7 +22,7 @@ const convertThemeVariablesToCssVariables = (
   variables: EBThemeVariables
 ): CSSVariables => {
   const cssVariablesObject: CSSVariables = {
-    '--eb-font-family': variables.fontFamily ? `${variables.fontFamily}, ` : '',
+    '--eb-font-family': variables.fontFamily,
     '--eb-background': colorToHsl(variables.backgroundColor),
     '--eb-foreground': colorToHsl(variables.foregroundColor),
     '--eb-card': colorToHsl(variables.cardColor),

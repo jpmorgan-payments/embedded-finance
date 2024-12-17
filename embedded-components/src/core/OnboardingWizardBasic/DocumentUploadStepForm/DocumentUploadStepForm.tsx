@@ -18,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
   Separator,
-  Text,
 } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -117,9 +116,9 @@ export const DocumentUploadStepForm = () => {
           onSubmit={nextStep}
           className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
         >
-          <Text>
+          <p className="eb-text-sm">
             No document requests found. Please proceed to the next step.
-          </Text>
+          </p>
           <FormActions />
         </form>
       </Form>
@@ -139,7 +138,7 @@ export const DocumentUploadStepForm = () => {
           return (
             <Fragment key={documentRequest.id}>
               <div>
-                <Text className="eb-font-bold">
+                <p className="eb-text-sm eb-font-bold">
                   Document request for:{' '}
                   <span className="eb-font-normal eb-underline eb-underline-offset-2">
                     {matchedParty?.organizationDetails?.organizationName ??
@@ -153,11 +152,11 @@ export const DocumentUploadStepForm = () => {
                   <span className="eb-text-xs eb-font-normal eb-lowercase eb-text-muted-foreground">
                     ({matchedParty?.roles?.join(', ')})
                   </span>
-                </Text>
+                </p>
                 {documentRequest.description?.split('\n').map((item, key) => (
-                  <Text key={key} className="eb-font-semibold">
+                  <p key={key} className="eb-text-sm eb-font-semibold">
                     {item}
-                  </Text>
+                  </p>
                 ))}
               </div>
               <Separator />

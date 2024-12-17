@@ -2,16 +2,23 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Divider, Group, Select, Text } from '@mantine/core';
+import {
+  Badge,
+  Divider,
+  Grid,
+  Group,
+  Select,
+  SimpleGrid,
+  Text,
+} from '@mantine/core';
 import { Prism } from '@mantine/prism';
-import { ComponentSamplePanel, PageWrapper } from 'components';
+import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
-import { set } from 'remeda';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {
   if (!theme) return {};
@@ -39,7 +46,7 @@ export const OnboardingNextPageV2 = () => {
   const themeId = params.get('theme');
   const [selectedThemeId, setSelectedThemeId] = useState<string>(themeId ?? '');
 
-  const [selectedLocale, setSelectedLocale] = useState<string>('en-us');
+  const [selectedLocale, setSelectedLocale] = useState<'enUS' | 'frCA'>('enUS');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +92,7 @@ export const OnboardingNextPageV2 = () => {
     setSelectedThemeId(id || '');
   }
 
-  function handleLocaleChange(locale: string): void {
+  function handleLocaleChange(locale: 'enUS' | 'frCA'): void {
     setSelectedLocale(locale);
   }
 
@@ -137,6 +144,9 @@ export const OnboardingNextPageV2 = () => {
         theme={mapToEBTheme(
           listThemes()?.find((t) => t.id === selectedThemeId),
         )}
+        contentTokens={{
+          name: selectedLocale,
+        }}
       >
         {isLoading ? (
           <div>Loading...</div>
@@ -189,43 +199,49 @@ export const OnboardingNextPageV2 = () => {
         </Text>
       </div>
 
-      <Group>
-        <Select
-          name="scenario"
-          label="Demo Scenarios"
-          placeholder="Select a scenario"
-          onChange={handleScenarioIdChange}
-          value={scenarioId}
-          data={onboardingScenarios.map((s) => ({
-            label: s.name,
-            value: s.id,
-          }))}
-        />
+      <Grid>
+        <Grid.Col span={6}>
+          <Select
+            name="scenario"
+            label="Demo Scenarios"
+            placeholder="Select a scenario"
+            onChange={handleScenarioIdChange}
+            value={scenarioId}
+            data={onboardingScenarios.map((s) => ({
+              label: s.name,
+              value: s.id,
+            }))}
+          />
+        </Grid.Col>
 
-        <Select
-          name="locale"
-          label="Locale"
-          placeholder="Select a locale"
-          onChange={handleLocaleChange}
-          value={selectedLocale}
-          data={[
-            { label: 'English (US)', value: 'en-us' },
-            { label: 'French (Canada)', value: 'fr-ca' },
-          ]}
-        />
+        <Grid.Col span={3}>
+          <Select
+            name="locale"
+            label="Locale"
+            placeholder="Select a locale"
+            onChange={handleLocaleChange}
+            value={selectedLocale}
+            data={[
+              { label: 'English (US)', value: 'enUS' },
+              { label: 'French (Canada)', value: 'frCA' },
+            ]}
+          />
+        </Grid.Col>
 
         {listThemes()?.length > 0 && (
-          <Select
-            clearable
-            name="theme"
-            label="Select Theme"
-            placeholder="Select a theme"
-            value={selectedThemeId}
-            onChange={handleThemeChange}
-            data={listThemes().map((t) => ({ value: t.id, label: t.name }))}
-          />
+          <Grid.Col span={3}>
+            <Select
+              clearable
+              name="theme"
+              label="Select Theme"
+              placeholder="Select a theme"
+              value={selectedThemeId}
+              onChange={handleThemeChange}
+              data={listThemes().map((t) => ({ value: t.id, label: t.name }))}
+            />
+          </Grid.Col>
         )}
-      </Group>
+      </Grid>
 
       <Divider my="sm" />
 

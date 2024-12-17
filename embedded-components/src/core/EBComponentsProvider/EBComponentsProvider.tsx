@@ -1,5 +1,14 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { defaultResources } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
@@ -7,28 +16,63 @@ import { Toaster } from '@/components/ui/sonner';
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
-import '@/i18n/config';
-
-export interface EBComponentsProviderProps extends EBConfig {
-  children: ReactNode;
-}
-
 const queryClient = new QueryClient();
 
-export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
+const EBComponentsContext = createContext<EBConfig | undefined>(undefined);
+
+export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
   headers = {},
   theme = {},
   reactQueryDefaultOptions = {},
+  contentTokens = {},
 }) => {
+  const { i18n } = useTranslation();
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
 
+  // Set default headers and base URL in the axios interceptor
   useEffect(() => {
-    AXIOS_INSTANCE.interceptors.request.clear();
-    setCurrentInterceptor(0);
-  }, []);
+    // Remove the previous interceptor
+    if (currentInterceptor) {
+      AXIOS_INSTANCE.interceptors.request.eject(currentInterceptor);
+    }
 
+    // Add the new interceptor
+    const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
+      (config: any) => {
+        return {
+          ...config,
+          headers: {
+            ...config.headers,
+            ...headers,
+          },
+          baseURL: apiBaseUrl,
+        };
+      }
+    );
+
+    // Save the interceptor ID to remove it on unmount
+    setCurrentInterceptor(ebInterceptor);
+
+    return () => {
+      AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
+    };
+  }, [JSON.stringify(headers), apiBaseUrl]);
+
+  // Reset all queries when the interceptor changes
+  useEffect(() => {
+    if (currentInterceptor) {
+      queryClient.resetQueries();
+    }
+  }, [currentInterceptor, queryClient]);
+
+  // Set the default options for react-query
+  useEffect(() => {
+    queryClient.setDefaultOptions(reactQueryDefaultOptions);
+  }, [JSON.stringify(reactQueryDefaultOptions)]);
+
+  // Set the responseType to blob for file downloads
   useEffect(() => {
     AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
@@ -44,38 +88,38 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
     );
   }, [AXIOS_INSTANCE]);
 
+  // Set the language
   useEffect(() => {
-    if (currentInterceptor) {
-      AXIOS_INSTANCE.interceptors.request.eject(currentInterceptor);
+    i18n.changeLanguage(contentTokens.name || 'enUS');
+  }, [contentTokens.name, i18n]);
+
+  // Set the global translation overrides`for common.json only
+  useEffect(() => {
+    // Reset to default
+    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
+      i18n.addResourceBundle(
+        lng,
+        'common',
+        defaultContentTokens.common,
+        false, // deep
+        true // overwrite
+      );
+    });
+    // Apply overrides
+    if (contentTokens.tokens?.common) {
+      i18n.addResourceBundle(
+        i18n.language,
+        'common',
+        contentTokens.tokens?.common,
+        true,
+        true
+      );
     }
-    const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
-      (config: any) => {
-        return {
-          ...config,
-          headers: {
-            ...config.headers,
-            ...headers,
-          },
-          baseURL: apiBaseUrl,
-        };
-      }
-    );
+    // Re-render with new contentTokens
+    i18n.changeLanguage(i18n.language);
+  }, [JSON.stringify(contentTokens.tokens), i18n, i18n.language]);
 
-    setCurrentInterceptor(ebInterceptor);
-
-    // return AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
-  }, [JSON.stringify(headers), apiBaseUrl]);
-
-  useEffect(() => {
-    if (currentInterceptor) {
-      queryClient.resetQueries();
-    }
-  }, [currentInterceptor, queryClient]);
-
-  useEffect(() => {
-    queryClient.setDefaultOptions(reactQueryDefaultOptions);
-  }, [reactQueryDefaultOptions]);
-
+  // Add color scheme class to the root element
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('eb-light', 'eb-dark');
@@ -91,7 +135,10 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
     }
   }, [theme.colorScheme]);
 
-  const css = useMemo(() => convertThemeToCssString(theme), [theme]);
+  const css = useMemo(
+    () => convertThemeToCssString(theme),
+    [JSON.stringify(theme)]
+  );
 
   return (
     <>
@@ -103,9 +150,31 @@ export const EBComponentsProvider: React.FC<EBComponentsProviderProps> = ({
       />
 
       <QueryClientProvider client={queryClient}>
-        {children}
+        <EBComponentsContext.Provider
+          value={{
+            apiBaseUrl,
+            theme,
+            headers,
+            reactQueryDefaultOptions,
+            contentTokens,
+          }}
+        >
+          {children}
+        </EBComponentsContext.Provider>
         <Toaster closeButton expand />
       </QueryClientProvider>
     </>
   );
+};
+
+export const useEBComponentsContext = () => {
+  const context = useContext(EBComponentsContext);
+
+  if (context === undefined) {
+    throw new Error(
+      'useEBComponentsContext must be used within a EBComponentsProvider'
+    );
+  }
+
+  return context;
 };

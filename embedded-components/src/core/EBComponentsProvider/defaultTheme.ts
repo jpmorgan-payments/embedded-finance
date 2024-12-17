@@ -3,6 +3,7 @@ import { EBTheme } from './config.types';
 export const defaultTheme: EBTheme = {
   colorScheme: 'system',
   variables: {
+    fontFamily: 'Geist',
     borderRadius: '0.375rem',
     spacingUnit: '0.25rem',
     zIndexOverlay: 100,

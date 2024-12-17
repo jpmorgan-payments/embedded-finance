@@ -11,8 +11,8 @@ import {
   useSmbdoUpdateClient,
 } from '@/api/generated/smbdo';
 import {
-  ClientResponse,
   CreateClientRequestSmbdo,
+  OrganizationType,
   UpdateClientRequestSmbdo,
 } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
-import { Text } from '@/components/ui/text';
 import { Separator } from '@/components/ui';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
@@ -86,6 +85,19 @@ export const InitialStepForm = () => {
       countryOfFormation: '',
     },
   });
+
+  // Set default product and jurisdiction if props change
+  useEffect(() => {
+    if (defaultProduct) {
+      form.setValue('product', defaultProduct);
+    }
+  }, [defaultProduct]);
+
+  useEffect(() => {
+    if (defaultJurisdiction) {
+      form.setValue('jurisdiction', defaultJurisdiction);
+    }
+  }, [defaultJurisdiction]);
 
   // Fetch client data
   const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
@@ -208,8 +220,8 @@ export const InitialStepForm = () => {
     return <FormLoadingState message={t('common:submitting')} />;
   }
 
-  function generateRequiredFieldsList(data: ClientResponse | undefined) {
-    if (!data) return [];
+  function generateRequiredFieldsList(type?: OrganizationType) {
+    if (!type) return [];
 
     const requiredFields = [
       'Organization Name',
@@ -245,9 +257,9 @@ export const InitialStepForm = () => {
                         </FormDescription>
                       )}
 
-                      <Text className="eb-font-bold">
+                      <p className="eb-font-bold">
                         {t(`clientProducts.${field.value}`)}
-                      </Text>
+                      </p>
                     </>
                   ) : (
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -276,9 +288,9 @@ export const InitialStepForm = () => {
                 <FormItem>
                   <FormLabel asterisk>{t('jurisdiction')}</FormLabel>
                   {availableJurisdictions?.length === 1 ? (
-                    <Text className="eb-font-bold">
+                    <p className="eb-font-bold">
                       {t(`clientJurisdictions.${field.value}`)} ({field.value})
-                    </Text>
+                    </p>
                   ) : (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
@@ -388,7 +400,7 @@ export const InitialStepForm = () => {
               <Separator className="eb-mb-4" />
               {form.getValues('organizationType') ? (
                 <>
-                  <Text>
+                  <p className="eb-text-sm">
                     <Trans
                       t={t}
                       i18nKey="initialStepOrganizationTypeInformation"
@@ -398,19 +410,21 @@ export const InitialStepForm = () => {
                         ),
                       }}
                     />
-                  </Text>
+                  </p>
                   <ul>
-                    {generateRequiredFieldsList(clientData).map((field) => (
-                      <li key={field}>
-                        <Text>- {field}</Text>
+                    {generateRequiredFieldsList(
+                      form.getValues('organizationType')
+                    ).map((field) => (
+                      <li key={field} className="eb-text-sm">
+                        - {field}
                       </li>
                     ))}
                   </ul>
                 </>
               ) : (
-                <Text>
+                <p className="eb-text-sm">
                   <Trans t={t} i18nKey="initialStepNoOrganizationType" />
-                </Text>
+                </p>
               )}
             </CardContent>
           </Card>

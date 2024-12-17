@@ -1,17 +1,14 @@
 import { FC, useEffect, useState } from 'react';
-import i18next from 'i18next';
+import { defaultResources } from '@/i18n/config';
+import { DeepPartial } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import {
-  ApiError,
-  ClientProduct,
-  ClientProductList,
-  ClientResponse,
-  ClientVerificationResponse,
-} from '@/api/generated/smbdo.schemas';
+import { ClientProductList } from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step, Stepper } from '@/components/ui/stepper';
 
+import { useEBComponentsContext } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
 import { BusinessOwnerStepForm } from './BusinessOwnerStepForm/BusinessOwnerStepForm';
 import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnboardingStateView';
@@ -20,11 +17,13 @@ import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadS
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
 import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
 import { InitialStepForm } from './InitialStepForm/InitialStepForm';
-import { OnboardingContextProvider } from './OnboardingContextProvider/OnboardingContextProvider';
+import {
+  OnboardingContextProvider,
+  OnboardingContextType,
+} from './OnboardingContextProvider/OnboardingContextProvider';
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
-import { Jurisdiction } from './utils/types';
 
 const stepsInitial = [
   { label: 'Initial details', children: <InitialStepForm /> },
@@ -81,25 +80,20 @@ interface StepProps {
   onlyVisibleFor?: { product?: string[]; organizationType?: string[] };
 }
 
-export type OnboardingWizardBasicProps = {
-  clientId?: string;
-  title?: string;
-  setClientId?: (clientId: string) => void;
-  onPostClientResponse?: (response?: ClientResponse, error?: ApiError) => void;
-  onPostClientVerificationsResponse?: (
-    response?: ClientVerificationResponse,
-    error?: ApiError
-  ) => void;
+export interface OnboardingWizardBasicProps extends OnboardingContextType {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
-  availableProducts: Array<ClientProduct>;
-  availableJurisdictions: Array<Jurisdiction>;
-};
+  onboardingContentTokens?: DeepPartial<
+    (typeof defaultResources)['enUS']['onboarding']
+  >;
+  alertOnExit?: boolean;
+}
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
-  title = 'Client Onboarding',
   initialStep = 0,
-  variant = 'circle',
+  variant = 'circle-alt',
+  onboardingContentTokens = {},
+  alertOnExit = true,
   ...props
 }) => {
   const {
@@ -112,10 +106,49 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       enabled: !!props.clientId,
     },
   });
+  const { contentTokens: { tokens: globalContentTokens = {} } = {} } =
+    useEBComponentsContext();
+  const { t, i18n } = useTranslation('onboarding');
 
-  i18next.addResourceBundle('en', 'onboarding', {
-    initialStepDescription1: 'hi',
-  });
+  // Apply translation overrides
+  // TODO: extract into separate fn
+  useEffect(() => {
+    // Reset to default
+    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
+      i18n.addResourceBundle(
+        lng,
+        'onboarding',
+        defaultContentTokens.onboarding,
+        false, // deep
+        true // overwrite
+      );
+    });
+    // Apply global overrides
+    if (globalContentTokens.onboarding) {
+      i18n.addResourceBundle(
+        i18n.language,
+        'onboarding',
+        globalContentTokens.onboarding,
+        true,
+        true
+      );
+    }
+    // Apply local overrides
+    i18n.addResourceBundle(
+      i18n.language,
+      'onboarding',
+      onboardingContentTokens,
+      true,
+      true
+    );
+    // Re-render with new contentTokens
+    i18n.changeLanguage(i18n.language);
+  }, [
+    JSON.stringify(globalContentTokens),
+    JSON.stringify(onboardingContentTokens),
+    i18n,
+    i18n.language,
+  ]);
 
   const productFromResponse = clientData?.products?.[0];
 
@@ -125,6 +158,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 
   const [steps, setSteps] = useState<StepProps[]>([]);
 
+  // Prevent the user from leaving the page
   useEffect(() => {
     const handleBeforeUnload = (event: {
       preventDefault: () => void;
@@ -135,13 +169,16 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       event.returnValue = true;
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    if (alertOnExit) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []);
+  }, [alertOnExit]);
 
+  // TODO: Replace with aforementioned function
   useEffect(() => {
     setSteps(
       stepsToUse.filter(
@@ -164,19 +201,18 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     <OnboardingContextProvider {...props}>
       <Card className="eb-component">
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
           {props.clientId && clientGetStatus === 'pending' ? (
-            <FormLoadingState message="Fetching client data..." />
+            <FormLoadingState message={t('fetchingClientData')} />
           ) : clientGetStatus === 'error' ? (
             <ServerErrorAlert
               error={clientGetError}
               tryAgainAction={refetchClient}
               customErrorMessage={{
-                default: 'An error occurred while fetching client data.',
-                '404':
-                  'Client not found. Please contact support or try again later.',
+                default: t('errorMessages.default'),
+                '404': t('errorMessages.clientNotFound'),
               }}
             />
           ) : clientData?.status === 'NEW' || !props.clientId ? (
