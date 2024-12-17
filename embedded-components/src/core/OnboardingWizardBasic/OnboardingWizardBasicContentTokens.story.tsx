@@ -7,7 +7,7 @@ import OnboardingWizardBasicMeta, {
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
-  title: 'Onboarding Wizard Basic / Language & Content Tokens',
+  title: 'Onboarding Wizard Basic / Content Tokens',
 };
 export default meta;
 
@@ -19,16 +19,21 @@ export const French = Default.bind({});
 French.storyName = 'French with default content';
 French.args = {
   ...Default.args,
-  language: 'fr',
+  contentTokens: {
+    name: 'frCA',
+  },
 };
 
 export const EnglishWithCustomContent = Default.bind({});
 EnglishWithCustomContent.storyName = 'English with custom content';
 EnglishWithCustomContent.args = {
   ...Default.args,
-  contentTokenOverrides: {
-    en: {
-      title: 'Custom title',
+  contentTokens: {
+    name: 'enUS',
+    tokens: {
+      onboarding: {
+        title: 'Custom title',
+      },
     },
   },
 };

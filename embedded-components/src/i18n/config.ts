@@ -2,27 +2,29 @@ import i18n from 'i18next';
 import _ from 'lodash';
 import { initReactI18next } from 'react-i18next';
 
-import enCommon from './en/common.json';
-import enOnboarding from './en/onboarding.json';
-import frCommon from './fr/common.json';
-import frOnboarding from './fr/onboarding.json';
+import enUS_common from './en-US/common.json';
+import enUS_onboarding from './en-US/onboarding.json';
+import frCA_common from './fr-CA/common.json';
+import frCA_onboarding from './fr-CA/onboarding.json';
 
 export const defaultResources = {
-  en: {
-    common: enCommon,
-    onboarding: enOnboarding,
+  enUS: {
+    locale: 'en-US',
+    common: enUS_common,
+    onboarding: enUS_onboarding,
   },
-  fr: {
-    common: frCommon,
-    onboarding: frOnboarding,
+  frCA: {
+    locale: 'fr-CA',
+    common: frCA_common,
+    onboarding: frCA_onboarding,
   },
 };
 
 export const resources = _.cloneDeep(defaultResources);
 
 i18n.use(initReactI18next).init({
-  lng: 'en',
-  fallbackLng: 'en',
+  lng: 'enUS',
+  fallbackLng: 'enUS',
   ns: ['common', 'onboarding'],
   resources,
 });

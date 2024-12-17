@@ -83,11 +83,8 @@ interface StepProps {
 export interface OnboardingWizardBasicProps extends OnboardingContextType {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
-  contentTokenOverrides?: DeepPartial<
-    Record<
-      keyof typeof defaultResources,
-      (typeof defaultResources)['en']['onboarding']
-    >
+  onboardingContentTokens?: DeepPartial<
+    (typeof defaultResources)['enUS']['onboarding']
   >;
   alertOnExit?: boolean;
 }
@@ -95,7 +92,7 @@ export interface OnboardingWizardBasicProps extends OnboardingContextType {
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   initialStep = 0,
   variant = 'circle-alt',
-  contentTokenOverrides = {},
+  onboardingContentTokens = {},
   alertOnExit = true,
   ...props
 }) => {
@@ -109,46 +106,48 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       enabled: !!props.clientId,
     },
   });
-  const { globalContentTokenOverrides = {} } = useEBComponentsContext();
+  const { contentTokens: { tokens: globalContentTokens = {} } = {} } =
+    useEBComponentsContext();
   const { t, i18n } = useTranslation('onboarding');
 
   // Apply translation overrides
   // TODO: extract into separate fn
   useEffect(() => {
     // Reset to default
-    Object.entries(defaultResources).forEach(([lng, contentTokens]) => {
+    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
       i18n.addResourceBundle(
         lng,
         'onboarding',
-        contentTokens.onboarding,
+        defaultContentTokens.onboarding,
         false, // deep
         true // overwrite
       );
     });
     // Apply global overrides
-    Object.entries(globalContentTokenOverrides).forEach(
-      ([lng, contentTokens]) => {
-        if (contentTokens.onboarding) {
-          i18n.addResourceBundle(
-            lng,
-            'onboarding',
-            contentTokens.onboarding,
-            true,
-            true
-          );
-        }
-      }
-    );
+    if (globalContentTokens.onboarding) {
+      i18n.addResourceBundle(
+        i18n.language,
+        'onboarding',
+        globalContentTokens.onboarding,
+        true,
+        true
+      );
+    }
     // Apply local overrides
-    Object.entries(contentTokenOverrides).forEach(([lng, translation]) => {
-      i18n.addResourceBundle(lng, 'onboarding', translation, true, true);
-    });
+    i18n.addResourceBundle(
+      i18n.language,
+      'onboarding',
+      onboardingContentTokens,
+      true,
+      true
+    );
     // Re-render with new contentTokens
     i18n.changeLanguage(i18n.language);
   }, [
-    JSON.stringify(globalContentTokenOverrides),
-    JSON.stringify(contentTokenOverrides),
+    JSON.stringify(globalContentTokens),
+    JSON.stringify(onboardingContentTokens),
     i18n,
+    i18n.language,
   ]);
 
   const productFromResponse = clientData?.products?.[0];

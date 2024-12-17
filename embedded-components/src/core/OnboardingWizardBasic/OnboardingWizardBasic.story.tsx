@@ -51,12 +51,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       },
       options: ['CA', 'US'],
     },
-    language: {
-      control: {
-        type: 'radio',
-      },
-      options: ['en', 'fr'],
-    },
   },
   decorators: [
     (Story, context) => {
@@ -66,8 +60,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         headers,
         theme,
         reactQueryDefaultOptions,
-        globalContentTokenOverrides,
-        language,
+        contentTokens,
       } = context.args;
       return (
         <EBComponentsProvider
@@ -78,8 +71,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
             ...theme,
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}
-          globalContentTokenOverrides={globalContentTokenOverrides}
-          language={language}
+          contentTokens={contentTokens}
         >
           <Story />
         </EBComponentsProvider>
@@ -102,9 +94,9 @@ Default.args = {
   availableProducts: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['CA', 'US'],
   theme: {},
-  language: 'en',
-  contentTokenOverrides: {},
-  globalContentTokenOverrides: {},
+  contentTokens: {
+    name: 'enUS',
+  },
   variant: 'circle-alt',
   alertOnExit: false,
 };

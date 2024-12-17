@@ -26,8 +26,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   headers = {},
   theme = {},
   reactQueryDefaultOptions = {},
-  globalContentTokenOverrides = {},
-  language = 'en',
+  contentTokens = {},
 }) => {
   const { i18n } = useTranslation();
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
@@ -91,38 +90,34 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
   // Set the language
   useEffect(() => {
-    i18n.changeLanguage(language);
-  }, [language, i18n]);
+    i18n.changeLanguage(contentTokens.name || 'enUS');
+  }, [contentTokens.name, i18n]);
 
   // Set the global translation overrides`for common.json only
   useEffect(() => {
     // Reset to default
-    Object.entries(defaultResources).forEach(([lng, contentTokens]) => {
+    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
       i18n.addResourceBundle(
         lng,
         'common',
-        contentTokens.common,
+        defaultContentTokens.common,
         false, // deep
         true // overwrite
       );
     });
     // Apply overrides
-    Object.entries(globalContentTokenOverrides).forEach(
-      ([lng, contentTokens]) => {
-        if (contentTokens.common) {
-          i18n.addResourceBundle(
-            lng,
-            'common',
-            contentTokens.common,
-            true,
-            true
-          );
-        }
-      }
-    );
+    if (contentTokens.tokens?.common) {
+      i18n.addResourceBundle(
+        i18n.language,
+        'common',
+        contentTokens.tokens?.common,
+        true,
+        true
+      );
+    }
     // Re-render with new contentTokens
     i18n.changeLanguage(i18n.language);
-  }, [JSON.stringify(globalContentTokenOverrides), i18n]);
+  }, [JSON.stringify(contentTokens.tokens), i18n, i18n.language]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -161,8 +156,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             theme,
             headers,
             reactQueryDefaultOptions,
-            globalContentTokenOverrides,
-            language,
+            contentTokens,
           }}
         >
           {children}
