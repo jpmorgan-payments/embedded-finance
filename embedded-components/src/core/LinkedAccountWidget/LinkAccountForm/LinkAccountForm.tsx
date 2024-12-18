@@ -4,7 +4,7 @@ import { CheckCircle2Icon, Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getRecipientLabel } from '@/lib/getAccountLabelFromPartyDetails';
+import { getRecipientLabel } from '@/lib/utils';
 import { useCreateRecipient } from '@/api/generated/ef-v1';
 import { Button } from '@/components/ui/button';
 import {
