@@ -3,12 +3,13 @@ import { defaultResources } from '@/i18n/config';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ClientProductList } from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step, Stepper } from '@/components/ui/stepper';
 
-import { useEBComponentsContext } from '../EBComponentsProvider/EBComponentsProvider';
+import { useContentTokens } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
 import { BusinessOwnerStepForm } from './BusinessOwnerStepForm/BusinessOwnerStepForm';
 import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnboardingStateView';
@@ -106,47 +107,19 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       enabled: !!props.clientId,
     },
   });
-  const { contentTokens: { tokens: globalContentTokens = {} } = {} } =
-    useEBComponentsContext();
+  const { tokens: globalContentTokens = {} } = useContentTokens();
   const { t, i18n } = useTranslation('onboarding');
 
-  // Apply translation overrides
-  // TODO: extract into separate fn
+  // Apply content tokens
   useEffect(() => {
-    // Reset to default
-    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
-      i18n.addResourceBundle(
-        lng,
-        'onboarding',
-        defaultContentTokens.onboarding,
-        false, // deep
-        true // overwrite
-      );
-    });
-    // Apply global overrides
-    if (globalContentTokens.onboarding) {
-      i18n.addResourceBundle(
-        i18n.language,
-        'onboarding',
-        globalContentTokens.onboarding,
-        true,
-        true
-      );
-    }
-    // Apply local overrides
-    i18n.addResourceBundle(
-      i18n.language,
-      'onboarding',
+    loadContentTokens(i18n.language, 'onboarding', [
+      globalContentTokens.onboarding,
       onboardingContentTokens,
-      true,
-      true
-    );
-    // Re-render with new contentTokens
-    i18n.changeLanguage(i18n.language);
+    ]);
   }, [
-    JSON.stringify(globalContentTokens),
+    loadContentTokens,
+    JSON.stringify(globalContentTokens.onboarding),
     JSON.stringify(onboardingContentTokens),
-    i18n,
     i18n.language,
   ]);
 

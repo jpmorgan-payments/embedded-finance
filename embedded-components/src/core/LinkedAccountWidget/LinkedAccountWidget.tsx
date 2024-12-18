@@ -1,6 +1,6 @@
 import { LinkIcon, PencilLineIcon } from 'lucide-react';
 
-import { getRecipientLabel } from '@/lib/getAccountLabelFromPartyDetails';
+import { getRecipientLabel } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ef-v1';
 import { RecipientStatus } from '@/api/generated/ef-v1.schemas';
 import { Button } from '@/components/ui/button';
