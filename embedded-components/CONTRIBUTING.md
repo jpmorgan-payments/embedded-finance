@@ -36,63 +36,64 @@ embedded-components/
 
 ## Getting Started
 
-1. Fork and clone:
+### 1. Fork and clone:
 
 ```bash
 git clone [your-fork-url]
 cd embedded-components
 ```
 
-2. Install dependencies:
+### 2. Install dependencies:
 
 ```bash
 yarn install
 ```
 
-3. Install VSCode plugins (optional)
+### 3. Configure VSCode (optional)
 
-* Recommended plugins:
-  * ESLint
-  * Prettier
-  * Tailwind CSS Intellisense
-* Recommended settings
-  * Use the `files.associations` setting to tell VS Code to always open .css files in Tailwind CSS mode:
-    
-    ```json
-    "files.associations": {
-      "*.css": "tailwindcss"
-    }
-    ```
-    
-  * By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the `editor.quickSuggestions`  setting may improve your experience:
-    
-    ```json
-    "editor.quickSuggestions": {
-      "strings": "on"
-    }
-    ```
-    
-  * Allow Tailwind CSS Intellisense to autocomplete class names in `clsx`, `cva`, and `cx`:
-    
-    ```json
-    "tailwindCSS.experimental.classRegex": [
-      [
-        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-        "'([^']*)'"
-      ],
-      [
-        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-        "\"([^\"]*)\""
-      ],
-      [
-        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-        "`([^`]*)`"
+  - Recommended plugins:
+    - ESLint
+    - Prettier
+    - Tailwind CSS Intellisense
+   
+  - Recommended settings
+    - Use the `files.associations` setting to tell VS Code to always open .css files in Tailwind CSS mode:
+      
+      ```json
+      "files.associations": {
+        "*.css": "tailwindcss"
+      }
+      ```
+
+    - By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the `editor.quickSuggestions`  setting may improve your experience:
+      
+      ```json
+      "editor.quickSuggestions": {
+        "strings": "on"
+      }
+      ```
+
+    - Allow Tailwind CSS Intellisense to autocomplete class names in `clsx`, `cva`, and `cx`:
+      
+      ```json
+      "tailwindCSS.experimental.classRegex": [
+        [
+          "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+          "'([^']*)'"
+        ],
+        [
+          "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+          "\"([^\"]*)\""
+        ],
+        [
+          "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+          "`([^`]*)`"
+        ]
       ]
-    ]
-    ```
-    
+      ```
 
-4. Start development:
+
+### 4. Start development:
 
 ```bash
 yarn storybook    # Component development
