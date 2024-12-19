@@ -1,14 +1,15 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { defaultResources } from '@/i18n/config';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { ClientProductList } from '@/api/generated/smbdo.schemas';
+import { ClientProduct, OrganizationType } from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Step, Stepper } from '@/components/ui/stepper';
+import { Step, StepItem, Stepper, StepProps } from '@/components/ui/stepper';
 
-import { useEBComponentsContext } from '../EBComponentsProvider/EBComponentsProvider';
+import { useContentTokens } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
 import { BusinessOwnerStepForm } from './BusinessOwnerStepForm/BusinessOwnerStepForm';
 import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnboardingStateView';
@@ -24,8 +25,18 @@ import {
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
+import { Jurisdiction } from './utils/types';
 
-const stepsInitial = [
+type OnboardingStep = StepProps &
+  StepItem & {
+    onlyVisibleFor?: {
+      jurisdiction?: Jurisdiction[];
+      product?: ClientProduct[];
+      organizationType?: OrganizationType[];
+    };
+  };
+
+const initialSteps: OnboardingStep[] = [
   { label: 'Initial details', children: <InitialStepForm /> },
   { label: 'Organization details', children: <OrganizationStepForm /> },
   { label: 'Individual details', children: <IndividualStepForm /> },
@@ -34,7 +45,6 @@ const stepsInitial = [
     children: <DecisionMakerStepForm />,
     onlyVisibleFor: {
       organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      product: ['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES'] as ClientProductList,
     },
   },
   {
@@ -42,42 +52,34 @@ const stepsInitial = [
     children: <BusinessOwnerStepForm />,
     onlyVisibleFor: {
       organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      product: ['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES'] as ClientProductList,
     },
   },
   { label: 'Additional Questions', children: <AdditionalQuestionsStepForm /> },
+  {
+    label: 'Upload Documents',
+    children: <DocumentUploadStepForm />,
+    onlyVisibleFor: {
+      product: ['MERCHANT_SERVICES'],
+    },
+  },
   { label: 'Review and Attest', children: <ReviewAndAttestStepForm /> },
 ];
 
-const stepsCanadaMS = [
-  { label: 'Initial details', children: <InitialStepForm /> },
-  { label: 'Organization details', children: <OrganizationStepForm /> },
-  { label: 'Individual details', children: <IndividualStepForm /> },
-  {
-    label: 'Decision Makers',
-    children: <DecisionMakerStepForm />,
-    onlyVisibleFor: {
-      organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      product: ['MERCHANT_SERVICES'] as ClientProductList,
-    },
-  },
-  {
-    label: 'Business Owners',
-    children: <BusinessOwnerStepForm />,
-    onlyVisibleFor: {
-      organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      product: ['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES'] as ClientProductList,
-    },
-  },
-  { label: 'Additional Questions', children: <AdditionalQuestionsStepForm /> },
-  { label: 'Upload Documents', children: <DocumentUploadStepForm /> },
-  { label: 'Review and Attest', children: <ReviewAndAttestStepForm /> },
-];
-
-interface StepProps {
-  label: string;
-  children: React.ReactNode;
-  onlyVisibleFor?: { product?: string[]; organizationType?: string[] };
+export function getOnboardingSteps(
+  product?: ClientProduct,
+  jurisdiction?: Jurisdiction,
+  organizationType?: OrganizationType
+) {
+  if (product && jurisdiction && organizationType) {
+    return initialSteps.filter(
+      (step) =>
+        !step.onlyVisibleFor ||
+        (step.onlyVisibleFor.jurisdiction?.includes(jurisdiction) &&
+          step.onlyVisibleFor.organizationType?.includes(organizationType) &&
+          step.onlyVisibleFor.product?.includes(product))
+    );
+  }
+  return initialSteps.filter((step) => !step.onlyVisibleFor);
 }
 
 export interface OnboardingWizardBasicProps extends OnboardingContextType {
@@ -106,57 +108,38 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       enabled: !!props.clientId,
     },
   });
-  const { contentTokens: { tokens: globalContentTokens = {} } = {} } =
-    useEBComponentsContext();
+  const { tokens: globalContentTokens = {} } = useContentTokens();
   const { t, i18n } = useTranslation('onboarding');
 
-  // Apply translation overrides
-  // TODO: extract into separate fn
+  // Apply content tokens
   useEffect(() => {
-    // Reset to default
-    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
-      i18n.addResourceBundle(
-        lng,
-        'onboarding',
-        defaultContentTokens.onboarding,
-        false, // deep
-        true // overwrite
-      );
-    });
-    // Apply global overrides
-    if (globalContentTokens.onboarding) {
-      i18n.addResourceBundle(
-        i18n.language,
-        'onboarding',
-        globalContentTokens.onboarding,
-        true,
-        true
-      );
-    }
-    // Apply local overrides
-    i18n.addResourceBundle(
-      i18n.language,
-      'onboarding',
+    loadContentTokens(i18n.language, 'onboarding', [
+      globalContentTokens.onboarding,
       onboardingContentTokens,
-      true,
-      true
-    );
-    // Re-render with new contentTokens
-    i18n.changeLanguage(i18n.language);
+    ]);
   }, [
-    JSON.stringify(globalContentTokens),
+    loadContentTokens,
+    JSON.stringify(globalContentTokens.onboarding),
     JSON.stringify(onboardingContentTokens),
-    i18n,
     i18n.language,
   ]);
 
   const productFromResponse = clientData?.products?.[0];
+  const organizationDetailsFromResponse = clientData?.parties?.find(
+    (party) => party?.partyType === 'ORGANIZATION'
+  )?.organizationDetails;
 
-  // TODO: add a function to get steps based on the product, organization type, and jurisdiction
-  const stepsToUse =
-    productFromResponse === 'EMBEDDED_PAYMENTS' ? stepsInitial : stepsCanadaMS;
-
-  const [steps, setSteps] = useState<StepProps[]>([]);
+  const steps = useMemo(() => {
+    return getOnboardingSteps(
+      productFromResponse,
+      organizationDetailsFromResponse?.jurisdiction as Jurisdiction,
+      organizationDetailsFromResponse?.organizationType
+    );
+  }, [
+    productFromResponse,
+    organizationDetailsFromResponse?.jurisdiction,
+    organizationDetailsFromResponse?.organizationType,
+  ]);
 
   // Prevent the user from leaving the page
   useEffect(() => {
@@ -177,25 +160,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [alertOnExit]);
-
-  // TODO: Replace with aforementioned function
-  useEffect(() => {
-    setSteps(
-      stepsToUse.filter(
-        (step) =>
-          !step.onlyVisibleFor ||
-          (step.onlyVisibleFor?.organizationType.some(
-            (orgType) =>
-              clientData?.parties?.find(
-                (party) => party?.partyType === 'ORGANIZATION'
-              )?.organizationDetails?.organizationType === orgType
-          ) &&
-            step.onlyVisibleFor?.product.some((product) =>
-              clientData?.products.includes(product)
-            ))
-      )
-    );
-  }, [clientData, stepsToUse]);
 
   return (
     <OnboardingContextProvider {...props}>

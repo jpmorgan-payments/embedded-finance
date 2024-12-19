@@ -6,10 +6,10 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { defaultResources } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { loadContentTokens } from '@/lib/utils';
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -18,7 +18,9 @@ import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
 const queryClient = new QueryClient();
 
-const EBComponentsContext = createContext<EBConfig | undefined>(undefined);
+const ContentTokensContext = createContext<
+  EBConfig['contentTokens'] | undefined
+>(undefined);
 
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
@@ -93,31 +95,10 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     i18n.changeLanguage(contentTokens.name || 'enUS');
   }, [contentTokens.name, i18n]);
 
-  // Set the global translation overrides`for common.json only
+  // Set the global content tokens`for common.json only
   useEffect(() => {
-    // Reset to default
-    Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
-      i18n.addResourceBundle(
-        lng,
-        'common',
-        defaultContentTokens.common,
-        false, // deep
-        true // overwrite
-      );
-    });
-    // Apply overrides
-    if (contentTokens.tokens?.common) {
-      i18n.addResourceBundle(
-        i18n.language,
-        'common',
-        contentTokens.tokens?.common,
-        true,
-        true
-      );
-    }
-    // Re-render with new contentTokens
-    i18n.changeLanguage(i18n.language);
-  }, [JSON.stringify(contentTokens.tokens), i18n, i18n.language]);
+    loadContentTokens(i18n.language, 'common', [contentTokens.tokens?.common]);
+  }, [loadContentTokens, JSON.stringify(contentTokens.tokens), i18n.language]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -150,29 +131,21 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       />
 
       <QueryClientProvider client={queryClient}>
-        <EBComponentsContext.Provider
-          value={{
-            apiBaseUrl,
-            theme,
-            headers,
-            reactQueryDefaultOptions,
-            contentTokens,
-          }}
-        >
+        <ContentTokensContext.Provider value={contentTokens}>
           {children}
-        </EBComponentsContext.Provider>
+        </ContentTokensContext.Provider>
         <Toaster closeButton expand />
       </QueryClientProvider>
     </>
   );
 };
 
-export const useEBComponentsContext = () => {
-  const context = useContext(EBComponentsContext);
+export const useContentTokens = () => {
+  const context = useContext(ContentTokensContext);
 
   if (context === undefined) {
     throw new Error(
-      'useEBComponentsContext must be used within a EBComponentsProvider'
+      'useContentTokens must be used within a ContentTokensProvider'
     );
   }
 

@@ -4,7 +4,7 @@ import { AlertTriangleIcon, CheckCircle2Icon, Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getRecipientLabel } from '@/lib/getAccountLabelFromPartyDetails';
+import { getRecipientLabel } from '@/lib/utils';
 import {
   useGetRecipient,
   useRecipientsVerification,
