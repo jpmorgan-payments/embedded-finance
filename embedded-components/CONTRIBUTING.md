@@ -49,7 +49,45 @@ cd embedded-components
 yarn install
 ```
 
-3. Start development:
+3. Install VSCode plugins (optional)
+
+* Recommended plugins:
+  * ESLint
+  * Prettier
+  * Tailwind CSS Intellisense
+* Recommended settings
+  * Use the files.associations setting to tell VS Code to always open .css files in Tailwind CSS mode:
+    ```json
+    "files.associations": {
+      "*.css": "tailwindcss"
+    }
+    ```
+  * By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the edtior.quickSuggestions  setting may improve your experience:
+    ```json
+    "editor.quickSuggestions": {
+      "strings": "on"
+    }
+    ```
+  * Allow Tailwind CSS Intellisense to autocomplete class names in `clsx`, `cva`, and `cx`:
+    ```json
+    "tailwindCSS.experimental.classRegex": [
+      [
+        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "'([^']*)'"
+      ],
+      [
+        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "\"([^\"]*)\""
+      ],
+      [
+        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "`([^`]*)`"
+      ]
+    ]
+    ```
+  
+
+5. Start development:
 
 ```bash
 yarn storybook    # Component development
