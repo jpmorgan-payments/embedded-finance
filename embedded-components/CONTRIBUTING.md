@@ -56,18 +56,20 @@ yarn install
   * Prettier
   * Tailwind CSS Intellisense
 * Recommended settings
-  * Use the files.associations setting to tell VS Code to always open .css files in Tailwind CSS mode:
+  * Use the `files.associations` setting to tell VS Code to always open .css files in Tailwind CSS mode:
     ```json
     "files.associations": {
       "*.css": "tailwindcss"
     }
     ```
-  * By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the edtior.quickSuggestions  setting may improve your experience:
+    
+  * By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the `editor.quickSuggestions`  setting may improve your experience:
     ```json
     "editor.quickSuggestions": {
       "strings": "on"
     }
     ```
+    
   * Allow Tailwind CSS Intellisense to autocomplete class names in `clsx`, `cva`, and `cx`:
     ```json
     "tailwindCSS.experimental.classRegex": [
@@ -84,7 +86,8 @@ yarn install
         "`([^`]*)`"
       ]
     ]
-    ``` 
+    ```
+    
 
 4. Start development:
 
