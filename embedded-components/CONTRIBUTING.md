@@ -84,10 +84,9 @@ yarn install
         "`([^`]*)`"
       ]
     ]
-    ```
-  
+    ``` 
 
-5. Start development:
+4. Start development:
 
 ```bash
 yarn storybook    # Component development
