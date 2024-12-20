@@ -95,7 +95,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   initialStep = 0,
   variant = 'circle-alt',
   onboardingContentTokens = {},
-  alertOnExit = true,
+  alertOnExit = false,
   ...props
 }) => {
   const {
