@@ -334,3 +334,62 @@ export const clientDetailsScenario3 = {
   },
   status: 'NEW',
 };
+
+const clientDetailsScenario4 = {
+  attestations: [],
+  createdAt: '2024-12-23T14:45:41.136Z',
+  id: '0030000135',
+  parties: [
+    {
+      id: '2000000111',
+      createdAt: '2024-12-23T14:45:40.816Z',
+      email: 'monica@cpgetaways.com',
+      partyType: 'ORGANIZATION',
+      profileStatus: 'NEW',
+      roles: ['CLIENT'],
+      status: 'ACTIVE',
+      active: true,
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          fields: [
+            {
+              name: 'organizationDescription',
+            },
+            {
+              name: 'addresses',
+            },
+            {
+              name: 'phone',
+            },
+            {
+              name: 'naics',
+            },
+          ],
+        },
+      ],
+      organizationDetails: {
+        countryOfFormation: 'US',
+        organizationName: 'CP Getaways',
+        organizationType: 'SOLE_PROPRIETORSHIP',
+        organizationIds: [],
+        websiteAvailable: false,
+      },
+    },
+  ],
+  partyId: '2000000111',
+  products: ['EMBEDDED_PAYMENTS'],
+  outstanding: {
+    attestationDocumentIds: ['538170f9-0428-45a0-bdd8-fd371b953db9'],
+    documentRequestIds: [],
+    questionIds: ['30026', '30005', '30027'],
+    partyIds: ['2000000111'],
+    partyRoles: ['CONTROLLER'],
+  },
+  questionResponses: [],
+  results: {
+    customerIdentityStatus: 'NOT_STARTED',
+  },
+  status: 'NEW',
+};

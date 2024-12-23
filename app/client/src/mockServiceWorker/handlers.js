@@ -17,6 +17,7 @@ import {
   clientDetailsScenario1,
   clientDetailsScenario2,
   clientDetailsScenario3,
+  clientDetailsScenario4
 } from 'mocks/clientDetails.mock';
 
 export const createHandlers = (apiUrl) => [
@@ -53,6 +54,7 @@ export const createHandlers = (apiUrl) => [
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
       '0030000134': clientDetailsScenario3,
+      '0030000135': clientDetailsScenario4,
     };
     const { clientId } = req.params;
     return HttpResponse.json(
@@ -70,6 +72,7 @@ export const createHandlers = (apiUrl) => [
       '0030000132': clientDetailsScenario1,
       '0030000133': clientDetailsScenario2,
       '0030000134': clientDetailsScenario3,
+      '0030000135': clientDetailsScenario4,
     };
     const { clientId } = req.params;
     return HttpResponse.json(

@@ -1692,6 +1692,7 @@ export type ClientProduct = (typeof ClientProduct)[keyof typeof ClientProduct];
 export const ClientProduct = {
   MERCHANT_SERVICES: 'MERCHANT_SERVICES',
   EMBEDDED_PAYMENTS: 'EMBEDDED_PAYMENTS',
+  DEMO_PRODUCT: 'DEMO_PRODUCT',
 } as const;
 
 /**

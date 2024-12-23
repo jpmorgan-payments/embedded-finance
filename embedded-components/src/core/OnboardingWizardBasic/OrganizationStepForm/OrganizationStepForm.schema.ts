@@ -49,7 +49,13 @@ const secondaryMccSchema = z.object({
 });
 
 export const OrganizationStepFormSchema = z.object({
-  organizationName: z.string().min(1, 'Organization name is required'),
+  organizationName: z
+    .string()
+    .min(1, 'Organization name is required')
+    .regex(
+      /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/,
+      'Invalid string, should contain only letters, numbers, and ()_/&+%@#;,.: -? special characters'
+    ),
   dbaName: z.string().max(100, 'DBA name must be 100 characters or less'),
   countryOfFormation: z
     .string()
