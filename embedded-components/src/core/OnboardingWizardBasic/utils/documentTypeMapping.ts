@@ -99,10 +99,10 @@ export const DOCUMENT_TYPE_MAPPING: Record<
   UTILITY_BILL: { label: 'Utility Bill', description: 'Dated within the past' },
   CERTIFICATE_OF_GOOD_STANDING: {
     label: 'Certificate Of Good Standing',
-    description: ''
+    description: '',
   },
   OWNERSHIP_ATTESTATION: {
     label: 'Ownership Attestation',
-    description: ''
-  }
+    description: '',
+  },
 };

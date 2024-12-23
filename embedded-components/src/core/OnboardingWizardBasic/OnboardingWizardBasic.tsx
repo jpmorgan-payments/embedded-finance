@@ -25,8 +25,8 @@ import {
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
-import { Jurisdiction } from './utils/types';
 import { OutstandingInfoDebug } from './utils/OutstandingInfoDebug';
+import { Jurisdiction } from './utils/types';
 
 type OnboardingStep = StepProps &
   StepItem & {

@@ -1,6 +1,7 @@
 import { efClientCorpMock } from '@/mocks/efClientCorp.mock';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
+import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
 import type { Meta } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
@@ -9,7 +10,6 @@ import OnboardingWizardBasicMeta, {
   Default,
   OnboardingWizardBasicWithProviderProps,
 } from './OnboardingWizardBasic.story';
-import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
