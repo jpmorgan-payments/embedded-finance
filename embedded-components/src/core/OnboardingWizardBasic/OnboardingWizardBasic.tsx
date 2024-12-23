@@ -26,6 +26,7 @@ import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepFor
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
 import { Jurisdiction } from './utils/types';
+import { OutstandingInfoDebug } from './utils/OutstandingInfoDebug';
 
 type OnboardingStep = StepProps &
   StepItem & {
@@ -168,6 +169,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
           <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
+          <OutstandingInfoDebug clientData={clientData} />
           {props.clientId && clientGetStatus === 'pending' ? (
             <FormLoadingState message={t('fetchingClientData')} />
           ) : clientGetStatus === 'error' ? (
