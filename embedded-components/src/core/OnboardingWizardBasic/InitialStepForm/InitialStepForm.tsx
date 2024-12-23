@@ -136,7 +136,7 @@ export const InitialStepForm = () => {
   const onSubmit = form.handleSubmit((values) => {
     // Update client if clientId exists
     if (clientId) {
-      const requestBody = generateRequestBody(clien, 0, 'addParties', {
+      const requestBody = generateRequestBody(values, 0, 'addParties', {
         addParties: [
           {
             ...(partyId ? { id: partyId } : {}),
