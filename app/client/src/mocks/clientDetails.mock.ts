@@ -335,7 +335,7 @@ export const clientDetailsScenario3 = {
   status: 'NEW',
 };
 
-const clientDetailsScenario4 = {
+export const clientDetailsScenario4 = {
   attestations: [],
   createdAt: '2024-12-23T14:45:41.136Z',
   id: '0030000135',
