@@ -47,7 +47,6 @@ const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
 
   questionsData.forEach((question) => {
     const itemType = question?.responseSchema?.items?.type ?? 'string';
-    // @ts-expect-error
     const itemEnum = question?.responseSchema?.items?.enum;
     const itemPattern = question?.responseSchema?.items?.pattern;
     const isOptional = !!question.parentQuestionId;
@@ -65,7 +64,11 @@ const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
           break;
         case 'string':
           if (itemEnum) {
-            valueSchema = z.enum(itemEnum);
+            if (itemEnum.length > 0) {
+              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)]);
+            } else {
+              valueSchema = z.string();
+            }
           } else {
             valueSchema = z.string().min(1, 'Required');
             if (itemPattern) {
@@ -241,7 +244,6 @@ export const AdditionalQuestionsStepForm = () => {
   const renderQuestionInput = (question: QuestionResponse) => {
     const fieldName = `question_${question.id ?? 'undefined'}`;
     const itemType = question?.responseSchema?.items?.type ?? 'string';
-    // @ts-expect-error
     const itemEnum = question?.responseSchema?.items?.enum;
 
     // Check if the question should use a datepicker

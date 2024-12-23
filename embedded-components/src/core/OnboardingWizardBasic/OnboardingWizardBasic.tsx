@@ -169,7 +169,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
           <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
-          <OutstandingInfoDebug clientData={clientData} />
+          {clientData && <OutstandingInfoDebug clientData={clientData} />}
           {props.clientId && clientGetStatus === 'pending' ? (
             <FormLoadingState message={t('fetchingClientData')} />
           ) : clientGetStatus === 'error' ? (

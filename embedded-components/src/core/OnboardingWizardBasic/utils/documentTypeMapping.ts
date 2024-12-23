@@ -97,4 +97,12 @@ export const DOCUMENT_TYPE_MAPPING: Record<
   TRUST_AGREEMENT: { label: 'Trust Agreement', description: '' },
   TRUST_DEED: { label: 'Trust Deed', description: '' },
   UTILITY_BILL: { label: 'Utility Bill', description: 'Dated within the past' },
+  CERTIFICATE_OF_GOOD_STANDING: {
+    label: 'Certificate Of Good Standing',
+    description: ''
+  },
+  OWNERSHIP_ATTESTATION: {
+    label: 'Ownership Attestation',
+    description: ''
+  }
 };

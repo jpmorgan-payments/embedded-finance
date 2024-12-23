@@ -80,7 +80,7 @@ export const partyFieldMap: PartyFieldMap = {
     conditionalRules: [
       {
         condition: {
-          product: ['DEMO_PRODUCT'],
+          product: ['MERCHANT_SERVICES'],
         },
         rule: { maxItems: 3 },
       },
@@ -105,7 +105,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.phone',
     baseRule: { visibility: 'visible', required: true },
     fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType,
+      phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
     toRequestFn: (val: any): PhoneSmbdo => {
@@ -233,7 +233,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.phone',
     baseRule: { visibility: 'visible', required: true },
     fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType,
+      phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
     toRequestFn: (val: any): PhoneSmbdo => {
