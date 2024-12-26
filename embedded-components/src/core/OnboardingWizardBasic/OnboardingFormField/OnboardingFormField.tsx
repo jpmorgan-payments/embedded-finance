@@ -41,6 +41,7 @@ interface BaseProps<
   tooltip?: string;
   required?: boolean;
   visibility?: 'visible' | 'hidden' | 'disabled';
+  inputProps?: React.ComponentProps<typeof Input>;
 }
 
 interface SelectOrRadioGroupProps<
@@ -80,6 +81,7 @@ export const OnboardingFormField = <
   required,
   visibility,
   options,
+  inputProps,
   ...props
 }: OnboardingFormFieldProps<TFieldValues, TName>) => {
   const { clientId } = useOnboardingContext();
@@ -182,6 +184,8 @@ export const OnboardingFormField = <
                     <FormControl>
                       <Input
                         {...field}
+                        {...inputProps}
+                        type={type}
                         value={field.value}
                         placeholder={
                           placeholder ??
