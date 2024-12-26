@@ -147,50 +147,58 @@ export const OnboardingFormField = <
               )}
           </FormDescription>
 
-          {(() => {
-            switch (type) {
-              case 'select':
-                return (
-                  <Select onValueChange={field.onChange} value={field.value}>
+          {fieldVisibility === 'readonly' ? (
+            <p className="eb-font-bold">
+              {(options
+                ? options.find(({ value }) => value === field.value)?.label
+                : field.value) ?? 'N/A'}
+            </p>
+          ) : (
+            (() => {
+              switch (type) {
+                case 'select':
+                  return (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger ref={field.ref}>
+                          <SelectValue placeholder="Select address type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {options?.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                case 'email':
+                case 'radio-group':
+                case 'checkbox':
+                case 'text':
+                default:
+                  return (
                     <FormControl>
-                      <SelectTrigger ref={field.ref}>
-                        <SelectValue placeholder="Select address type" />
-                      </SelectTrigger>
+                      <Input
+                        {...field}
+                        value={field.value}
+                        placeholder={
+                          placeholder ??
+                          t(
+                            [
+                              `fields.${tName}.placeholder`,
+                              '',
+                            ] as unknown as TemplateStringsArray,
+                            { index: lastIndex }
+                          )
+                        }
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {options?.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                );
-              case 'email':
-              case 'radio-group':
-              case 'checkbox':
-              case 'text':
-              default:
-                return (
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value}
-                      placeholder={
-                        placeholder ??
-                        t(
-                          [
-                            `fields.${tName}.placeholder`,
-                            '',
-                          ] as unknown as TemplateStringsArray,
-                          { index: lastIndex }
-                        )
-                      }
-                    />
-                  </FormControl>
-                );
-            }
-          })()}
+                  );
+              }
+            })()
+          )}
 
           <FormMessage />
         </FormItem>
