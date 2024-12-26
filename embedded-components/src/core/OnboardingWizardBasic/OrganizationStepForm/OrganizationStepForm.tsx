@@ -249,114 +249,39 @@ export const OrganizationStepForm = () => {
             type="text"
           />
 
-          {isFieldVisible('organizationDescription') && (
-            <FormField
-              control={form.control}
-              name="organizationDescription"
-              disabled={isFieldDisabled('organizationDescription')}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel
-                    asterisk={isFieldRequired('organizationDescription')}
-                  >
-                    Organization description
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="organizationDescription"
+            type="text"
+          />
 
-          {isFieldVisible('dbaName') && (
-            <FormField
-              control={form.control}
-              name="dbaName"
-              disabled={isFieldDisabled('dbaName')}
-              render={({ field }) => (
-                <FormItem>
-                  <div className="eb-items-center eb-space-x-2">
-                    <FormLabel asterisk={isFieldRequired('dbaName')}>
-                      DBA (Doing Business As) name (optional)
-                    </FormLabel>
-                  </div>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="dbaName"
+            type="text"
+          />
 
-          {isFieldVisible('organizationEmail') && (
-            <FormField
-              control={form.control}
-              name="organizationEmail"
-              disabled={isFieldDisabled('organizationEmail')}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk={isFieldRequired('organizationEmail')}>
-                    Organization email
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} type="email" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="organizationEmail"
+            type="email"
+          />
         </div>
 
         <div className="eb-flex eb-flex-wrap eb-gap-6 md:eb-flex-nowrap">
-          {isFieldVisible('countryOfFormation') && (
-            <FormField
-              control={form.control}
-              name="countryOfFormation"
-              disabled={isFieldDisabled('countryOfFormation')}
-              render={({ field }) => (
-                <FormItem className="eb-grow md:eb-grow-0">
-                  <div className="eb-flex eb-items-center eb-space-x-2">
-                    <FormLabel asterisk={isFieldRequired('countryOfFormation')}>
-                      Country of formation
-                    </FormLabel>
-                    <InfoPopover>
-                      Country code in ISO alpha-2 format.
-                    </InfoPopover>
-                  </div>
-                  <FormControl>
-                    <Input {...field} maxLength={2} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="countryOfFormation"
+            type="text"
+            inputProps={{ maxLength: 2 }}
+          />
 
-          {isFieldVisible('yearOfFormation') && (
-            <FormField
-              control={form.control}
-              name="yearOfFormation"
-              disabled={isFieldDisabled('yearOfFormation')}
-              render={({ field }) => (
-                <FormItem className="eb-grow md:eb-grow-0">
-                  <div className="eb-flex eb-items-center eb-space-x-2">
-                    <FormLabel asterisk={isFieldRequired('yearOfFormation')}>
-                      Year of formation
-                    </FormLabel>
-                    <InfoPopover>Year of company formation.</InfoPopover>
-                  </div>
-                  <FormControl>
-                    <Input {...field} maxLength={4} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="yearOfFormation"
+            type="text"
+            inputProps={{ maxLength: 4 }}
+          />
         </div>
 
         <fieldset className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4">

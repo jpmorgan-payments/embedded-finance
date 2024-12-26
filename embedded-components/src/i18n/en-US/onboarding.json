@@ -6,11 +6,35 @@
       "description": "",
       "tooltip": ""
     },
+    "organizationDescription": {
+      "label": "Organization description",
+      "placeholder": "Enter organization description",
+      "description": "",
+      "tooltip": ""
+    },
+    "dbaName": {
+      "label": "DBA (Doing Business As) name (optional)",
+      "placeholder": "Enter DBA name",
+      "description": "",
+      "tooltip": ""
+    },
     "organizationEmail": {
       "label": "Organization email",
       "placeholder": "Enter organization email",
-      "description": "Sample description",
+      "description": "",
       "tooltip": ""
+    },
+    "countryOfFormation": {
+      "label": "Country of formation",
+      "placeholder": "Select country of formation",
+      "description": "",
+      "tooltip": "Country code in ISO alpha-2 format"
+    },
+    "yearOfFormation": {
+      "label": "Year of formation",
+      "placeholder": "Enter year of formation",
+      "description": "",
+      "tooltip": "Year of company formation"
     },
     "addresses.addressType": {
       "label": "Address type",
