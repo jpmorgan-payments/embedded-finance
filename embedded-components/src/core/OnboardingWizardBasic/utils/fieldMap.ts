@@ -72,15 +72,15 @@ export const partyFieldMap: PartyFieldMap = {
   },
   mcc: {
     path: 'organizationDetails.mcc',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: { visibility: 'hidden', required: false },
   },
   addresses: {
     path: 'organizationDetails.addresses',
-    baseRule: { visibility: 'visible', minItems: 1, maxItems: 1 },
+    baseRule: { visibility: 'visible', minItems: 1, maxItems: 2 },
     conditionalRules: [
       {
         condition: {
-          product: ['EMBEDDED_PAYMENTS'],
+          product: ['MERCHANT_SERVICES'],
         },
         rule: { maxItems: 3 },
       },
@@ -89,7 +89,7 @@ export const partyFieldMap: PartyFieldMap = {
   associatedCountries: {
     path: 'organizationDetails.associatedCountries',
     baseRule: {
-      visibility: 'visible',
+      visibility: 'hidden',
       maxItems: 100,
     },
   },
@@ -99,13 +99,13 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationIds: {
     path: 'organizationDetails.organizationIds',
-    baseRule: { visibility: 'visible', maxItems: 6 },
+    baseRule: { visibility: 'visible', maxItems: 1 },
   },
   organizationPhone: {
     path: 'organizationDetails.phone',
     baseRule: { visibility: 'visible', required: true },
     fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType,
+      phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
     toRequestFn: (val: any): PhoneSmbdo => {
@@ -135,7 +135,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
-    baseRule: { visibility: 'visible', maxItems: 50 },
+    baseRule: { visibility: 'hidden', maxItems: 50 },
   },
   birthDate: {
     path: 'individualDetails.birthDate',
@@ -172,7 +172,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   individualIds: {
     path: 'individualDetails.individualIds',
-    baseRule: { visibility: 'visible', maxItems: 6 },
+    baseRule: { visibility: 'visible', maxItems: 1 },
     conditionalRules: [
       {
         condition: {
@@ -233,7 +233,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.phone',
     baseRule: { visibility: 'visible', required: true },
     fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType,
+      phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
     toRequestFn: (val: any): PhoneSmbdo => {

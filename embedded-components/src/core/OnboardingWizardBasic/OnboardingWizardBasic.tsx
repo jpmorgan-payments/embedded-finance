@@ -25,6 +25,7 @@ import {
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
+import { OutstandingInfoDebug } from './utils/OutstandingInfoDebug';
 import { Jurisdiction } from './utils/types';
 
 type OnboardingStep = StepProps &
@@ -95,7 +96,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   initialStep = 0,
   variant = 'circle-alt',
   onboardingContentTokens = {},
-  alertOnExit = true,
+  alertOnExit = false,
   ...props
 }) => {
   const {
@@ -168,6 +169,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
           <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
+          {clientData && <OutstandingInfoDebug clientData={clientData} />}
           {props.clientId && clientGetStatus === 'pending' ? (
             <FormLoadingState message={t('fetchingClientData')} />
           ) : clientGetStatus === 'error' ? (

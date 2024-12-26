@@ -27,7 +27,16 @@ export const onboardingScenarios = [
     gatewayID: '',
   },
   {
-    id: 'scenario4',
+    id: 'scenario3',
+    name: 'Embedded Payments - Sole Proprietor - existing client',
+    clientId: '0030000135',
+    availableJurisdictions: ['US'],
+    availableProducts: ['EMBEDDED_PAYMENTS'],
+    baseURL: '/ef/do/v1/',
+    gatewayID: '',
+  },
+  {
+    id: 'scenario5',
     name: 'Embedded Payments - US - LLC - new client',
     clientId: undefined,
     availableJurisdictions: ['US'],

@@ -7,12 +7,12 @@ import OnboardingWizardBasicMeta, {
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
-  title: 'Onboarding Wizard Basic / Client Variants',
+  title: 'Onboarding Wizard Basic / Environment',
 };
 export default meta;
 
 export const Mocked = Default.bind({});
-Mocked.storyName = 'No theme with PDP mocked APIs';
+Mocked.storyName = 'PDP mocked APIs';
 Mocked.args = {
   ...Default.args,
   apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/',
@@ -33,7 +33,7 @@ export const DEV = Default.bind({});
 DEV.storyName = 'DEV';
 DEV.args = {
   ...Default.args,
-  apiBaseUrl: '/paste-uat-url-here',
+  apiBaseUrl: '/paste-dev-url-here',
   headers: {
     api_gateway_client_id: 'OBTSTSTCL1',
   },
