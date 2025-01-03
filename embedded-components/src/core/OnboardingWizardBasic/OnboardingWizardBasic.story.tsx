@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
+import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -11,7 +12,6 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
-import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -92,10 +92,10 @@ Default.args = {
   clientId: '',
   apiBaseUrl: '/',
   headers: {
-    'api_gateway_client_id': 'test',
+    api_gateway_client_id: 'test',
   },
-  availableProducts: [ 'EMBEDDED_PAYMENTS'],
-  availableJurisdictions: [ 'US'],
+  availableProducts: ['EMBEDDED_PAYMENTS'],
+  availableJurisdictions: ['US'],
   theme: {},
   contentTokens: {
     name: 'enUS',
@@ -175,4 +175,3 @@ ReviewAndAttest.parameters = {
     ],
   },
 };
-
