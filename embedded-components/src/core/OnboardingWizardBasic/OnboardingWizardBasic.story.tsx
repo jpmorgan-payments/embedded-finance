@@ -91,6 +91,9 @@ Default.storyName = '1a. Initial step without clientId';
 Default.args = {
   clientId: '',
   apiBaseUrl: '/',
+  headers: {
+    'api_gateway_client_id': 'test',
+  },
   availableProducts: [ 'EMBEDDED_PAYMENTS'],
   availableJurisdictions: [ 'US'],
   theme: {},
