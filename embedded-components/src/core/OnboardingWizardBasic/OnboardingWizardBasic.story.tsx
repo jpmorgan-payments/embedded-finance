@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
+import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -17,7 +17,7 @@ export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
-  title: 'Onboarding Wizard Basic / Steps (Canada MS LLC)',
+  title: 'Onboarding Wizard Basic/ Steps (EP, US, new Sol Prop)',
   component: OnboardingWizardBasic,
   args: {
     onPostClientResponse: (data, error) => {
@@ -49,7 +49,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       control: {
         type: 'check',
       },
-      options: ['CA', 'US'],
+      options: ['US', 'CA'],
     },
   },
   decorators: [
@@ -91,8 +91,11 @@ Default.storyName = '1a. Initial step without clientId';
 Default.args = {
   clientId: '',
   apiBaseUrl: '/',
-  availableProducts: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
-  availableJurisdictions: ['CA', 'US'],
+  headers: {
+    api_gateway_client_id: 'test',
+  },
+  availableProducts: ['EMBEDDED_PAYMENTS'],
+  availableJurisdictions: ['US'],
   theme: {},
   contentTokens: {
     name: 'enUS',
@@ -121,10 +124,10 @@ WithClientId.parameters = {
         });
       }),
       http.get('/clients/0030000133', () => {
-        return HttpResponse.json(efClientCorpEBMock);
+        return HttpResponse.json(efClientSolPropNew);
       }),
       http.post('/clients/0030000133', () => {
-        return HttpResponse.json(efClientCorpEBMock);
+        return HttpResponse.json(efClientSolPropNew);
       }),
     ],
   },
@@ -146,57 +149,27 @@ IndividualStep.args = {
 };
 IndividualStep.parameters = WithClientId.parameters;
 
-export const DecisionMakerStep = Default.bind({});
-DecisionMakerStep.storyName = '4. Decision Maker step';
-DecisionMakerStep.args = {
+export const AdditionalQuestions = Default.bind({});
+AdditionalQuestions.storyName = '4. Additional Questions step';
+AdditionalQuestions.args = {
   ...WithClientId.args,
   initialStep: 3,
 };
-DecisionMakerStep.parameters = WithClientId.parameters;
+AdditionalQuestions.parameters = WithClientId.parameters;
 
-export const BusinessOwner = Default.bind({});
-BusinessOwner.storyName = '5. Business Owner step';
-BusinessOwner.args = {
+export const ReviewAndAttest = Default.bind({});
+ReviewAndAttest.storyName = '5. Review and Attest step';
+ReviewAndAttest.args = {
   ...WithClientId.args,
   initialStep: 4,
 };
-BusinessOwner.parameters = WithClientId.parameters;
-
-export const AdditionalQuestions = Default.bind({});
-AdditionalQuestions.storyName = '6. Additional Questions step';
-AdditionalQuestions.args = {
-  ...WithClientId.args,
-  initialStep: 5,
-};
-AdditionalQuestions.parameters = WithClientId.parameters;
-
-export const DocumentUpload = Default.bind({});
-DocumentUpload.storyName = '7. Document Upload step';
-DocumentUpload.args = {
-  ...WithClientId.args,
-  initialStep: 6,
-};
-DocumentUpload.parameters = WithClientId.parameters;
-
-export const ReviewAndAttest = Default.bind({});
-ReviewAndAttest.storyName = '8. Review and Attest step';
-ReviewAndAttest.args = {
-  ...WithClientId.args,
-  initialStep: 7,
-};
-ReviewAndAttest.parameters = WithClientId.parameters;
-
-export const ReviewAndAttestNoOutstanding = Default.bind({});
-ReviewAndAttestNoOutstanding.storyName =
-  '8b. Review and Attest step with No outstanding';
-ReviewAndAttestNoOutstanding.args = ReviewAndAttest.args;
-ReviewAndAttestNoOutstanding.parameters = {
+ReviewAndAttest.parameters = {
   msw: {
     handlers: [
-      http.get('/clients/0030000130', () => {
+      http.get('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
       }),
-      http.post('/clients/0030000130', () => {
+      http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
       }),
     ],
