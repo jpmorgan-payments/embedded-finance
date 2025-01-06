@@ -326,14 +326,14 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="soleOwner"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <div className="space-y-1 leading-none">
+                <div className="eb-space-y-1 eb-leading-none">
                   <FormLabel>Sole Owner</FormLabel>
                   <FormDescription>
                     Check if this individual is the sole owner of the business.
