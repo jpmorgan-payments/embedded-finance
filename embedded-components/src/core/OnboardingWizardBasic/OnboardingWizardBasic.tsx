@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from 'react';
+import { FC, useCallback, useEffect, useMemo } from 'react';
 import { defaultResources } from '@/i18n/config';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -90,6 +90,8 @@ export interface OnboardingWizardBasicProps extends OnboardingContextType {
     (typeof defaultResources)['enUS']['onboarding']
   >;
   alertOnExit?: boolean;
+  userEventsToTrack?: string[];
+  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
 }
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
@@ -97,6 +99,8 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   variant = 'circle-alt',
   onboardingContentTokens = {},
   alertOnExit = false,
+  userEventsToTrack = [],
+  userEventsHandler,
   ...props
 }) => {
   const {
@@ -161,6 +165,30 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [alertOnExit]);
+
+  const eventAnnotationHandler = useCallback((e: Event) => {
+    const target = e.target as HTMLTextAreaElement;
+    if (Object.keys(target.dataset).includes('userEventTracking')) {
+      userEventsHandler?.({
+        actionName: `${e.type} on ${target.dataset?.userEventTracking}`,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userEventsToTrack?.length > 0 && userEventsHandler) {
+      const wrapper = document.getElementById('eb-component');
+      userEventsToTrack.forEach((evt) =>
+        wrapper?.addEventListener(evt, eventAnnotationHandler)
+      );
+
+      return () => {
+        userEventsToTrack.forEach((evt) =>
+          wrapper?.removeEventListener(evt, eventAnnotationHandler)
+        );
+      };
+    }
+  }, []);
 
   return (
     <OnboardingContextProvider {...props}>
