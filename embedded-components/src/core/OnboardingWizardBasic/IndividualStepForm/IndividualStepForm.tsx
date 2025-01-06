@@ -66,7 +66,7 @@ export const IndividualStepForm = () => {
           country: '',
         },
       ],
-      individualIds: [],
+      individualIds: [{}],
       individualPhone: {
         phoneType: 'MOBILE_PHONE',
         phoneNumber: '',
@@ -459,6 +459,22 @@ export const IndividualStepForm = () => {
                           <Input
                             {...field}
                             placeholder="Enter address line 1"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`individualAddresses.${index}.addressLines.1`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address Line 2</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter address line 2"
                           />
                         </FormControl>
                         <FormMessage />

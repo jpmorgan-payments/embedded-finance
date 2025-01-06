@@ -46,7 +46,6 @@ import { useStepper } from '@/components/ui/stepper';
 import { RadioGroup, RadioGroupItem } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
-import { AddressLines } from '../AddressLines/AddressLines';
 import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
@@ -106,7 +105,13 @@ export const OrganizationStepForm = () => {
           country: '',
         },
       ],
-      organizationIds: [],
+      organizationIds: [
+        {
+          value: '',
+          idType: 'BUSINESS_REGISTRATION_ID',
+          issuer: '',
+        },
+      ],
       organizationPhone: {
         phoneType: 'BUSINESS_PHONE',
         phoneNumber: '',
@@ -266,9 +271,6 @@ export const OrganizationStepForm = () => {
             name="organizationEmail"
             type="email"
           />
-        </div>
-
-        <div className="eb-flex eb-flex-wrap eb-gap-6 md:eb-flex-nowrap">
           <OnboardingFormField
             control={form.control}
             name="countryOfFormation"
@@ -572,21 +574,15 @@ export const OrganizationStepForm = () => {
 
         {/* Addresses */}
         {isFieldVisible('addresses') && (
-          <Card className="eb-mt-6">
-            <CardHeader>
-              <CardTitle className="eb-text-lg eb-font-medium">
-                Addresses
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="eb-space-y-4">
-              {addressFields.map((fieldItem, index) => (
-                <fieldset
-                  key={fieldItem.id}
-                  className="eb-grid eb-gap-6 eb-rounded-lg eb-border eb-p-4"
-                >
-                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Address {index + 1}
-                  </legend>
+          <div className="eb-space-y-4">
+            <h3 className="eb-text-lg eb-font-medium">Addresses</h3>
+            {addressFields.map((fieldName, index) => (
+              <div
+                key={fieldName.id}
+                className="eb-space-y-4 eb-rounded-md eb-border eb-p-4"
+              >
+                <h4 className="eb-font-medium">Address {index + 1}</h4>
+                <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                   <OnboardingFormField
                     control={form.control}
                     name={`addresses.${index}.addressType`}
@@ -612,109 +608,139 @@ export const OrganizationStepForm = () => {
                     ]}
                   />
 
-                  <AddressLines control={form.control} addressIndex={index} />
+                  <FormField
+                    control={form.control}
+                    name={`addresses.${index}.addressLines.0`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address Line 1</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter address line 1"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`addresses.${index}.addressLines.1`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address Line 2</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter address line 2"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="eb-grid eb-grid-cols-1 eb-gap-6 sm:eb-grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name={`addresses.${index}.city`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter city" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`addresses.${index}.state`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>State</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter state" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`addresses.${index}.postalCode`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postal Code</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter postal code" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`addresses.${index}.country`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              maxLength={2}
-                              placeholder="e.g., US"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={() => removeAddress(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                    disabled={
-                      addressFields.length <=
-                      (getFieldRule('addresses').minItems ?? 1)
-                    }
-                  >
-                    Remove Address
-                  </Button>
-                </fieldset>
-              ))}
-              <Button
-                type="button"
-                disabled={
-                  addressFields.length >=
-                  (getFieldRule('addresses').maxItems ?? 5)
-                }
-                onClick={() =>
-                  appendAddress(
-                    {
-                      addressType: 'BUSINESS_ADDRESS',
-                      addressLines: [''],
-                      city: '',
-                      postalCode: '',
-                      country: '',
-                    },
-                    {
-                      shouldFocus: false,
-                    }
-                  )
-                }
-                variant="outline"
-                size="sm"
-                className="eb-mt-2"
-              >
-                Add Address
-              </Button>
-            </CardContent>
-          </Card>
+                  <FormField
+                    control={form.control}
+                    name={`addresses.${index}.city`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter city" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`addresses.${index}.state`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter state" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`addresses.${index}.postalCode`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Postal Code</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter postal code" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`addresses.${index}.country`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            maxLength={2}
+                            placeholder="e.g., US"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={() => removeAddress(index)}
+                  variant="outline"
+                  size="sm"
+                  className="eb-mt-2"
+                  disabled={
+                    addressFields.length <=
+                    (getFieldRule('addresses').minItems ?? 1)
+                  }
+                >
+                  Remove Address
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              disabled={
+                addressFields.length >=
+                (getFieldRule('addresses').maxItems ?? 5)
+              }
+              onClick={() =>
+                appendAddress(
+                  {
+                    addressType: 'BUSINESS_ADDRESS',
+                    addressLines: [''],
+                    city: '',
+                    postalCode: '',
+                    country: '',
+                  },
+                  {
+                    shouldFocus: false,
+                  }
+                )
+              }
+              variant="outline"
+              size="sm"
+              className="eb-mt-2"
+            >
+              Add Address
+            </Button>
+          </div>
         )}
 
         {/* Organization IDs */}
