@@ -188,6 +188,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
         );
       };
     }
+    return undefined;
   }, []);
 
   return (
