@@ -246,7 +246,7 @@ export const OrganizationStepForm = () => {
         onSubmit={onSubmit}
         className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
       >
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3 eb-border eb-rounded-lg eb-p-4">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             General
           </legend>
@@ -288,7 +288,7 @@ export const OrganizationStepForm = () => {
           />
         </fieldset>
 
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3 eb-rounded-lg eb-border eb-p-4">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Organization Phone Information
           </legend>

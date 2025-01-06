@@ -152,15 +152,8 @@ export const IndividualStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  const {
-    filterDefaultValues,
-    filterSchema,
-    getFieldRule,
-    isFieldDisabled,
-    isFieldRequired,
-    isFieldVisible,
-    clientContext,
-  } = useFilterFunctionsByClientContext(clientData);
+  const { isFieldDisabled, isFieldRequired, clientContext } =
+    useFilterFunctionsByClientContext(clientData);
 
   return (
     <Form {...form}>
