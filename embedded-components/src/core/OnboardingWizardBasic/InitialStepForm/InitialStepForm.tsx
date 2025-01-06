@@ -22,28 +22,13 @@ import {
   CardDescription,
   CardHeader,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
 import { Separator } from '@/components/ui';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
@@ -81,7 +66,7 @@ export const InitialStepForm = () => {
       product: defaultProduct,
       organizationName: '',
       organizationType: undefined,
-      email: '',
+      organizationEmail: '',
       countryOfFormation: '',
     },
   });
@@ -241,148 +226,61 @@ export const InitialStepForm = () => {
       <form onSubmit={onSubmit}>
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
           <div className="eb-space-y-6">
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="product"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('product')}</FormLabel>
-                  {defaultProduct || clientId ? (
-                    <>
-                      {defaultProduct && defaultProduct !== field.value && (
-                        <FormDescription>
-                          DEV WARNING: The client response has a different
-                          product than the wizard&apos;s configured default of{' '}
-                          <b>{t(`clientProducts.${defaultProduct}`)}</b>.
-                        </FormDescription>
-                      )}
-
-                      <p className="eb-font-bold">
-                        {t(`clientProducts.${field.value}`)}
-                      </p>
-                    </>
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger ref={field.ref}>
-                          <SelectValue placeholder="Select product" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableProducts?.map((product) => (
-                          <SelectItem key={product} value={product}>
-                            {t(`clientProducts.${product}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormItem>
-              )}
+              type="select"
+              options={availableProducts.map((product) => ({
+                value: product,
+                label: t(`clientProducts.${product}`),
+              }))}
+              visibility={defaultProduct || clientId ? 'readonly' : 'visible'}
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="jurisdiction"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('jurisdiction')}</FormLabel>
-                  {availableJurisdictions?.length === 1 ? (
-                    <p className="eb-font-bold">
-                      {t(`clientJurisdictions.${field.value}`)} ({field.value})
-                    </p>
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger ref={field.ref}>
-                          <SelectValue placeholder="Select country of jurisdiction" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableJurisdictions?.map((jurisdiction) => (
-                          <SelectItem key={jurisdiction} value={jurisdiction}>
-                            {t(`clientJurisdictions.${jurisdiction}`)} (
-                            {jurisdiction})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormItem>
-              )}
+              visibility={
+                availableJurisdictions?.length === 1 ? 'readonly' : 'visible'
+              }
+              type="select"
+              options={availableJurisdictions.map((jurisdiction) => ({
+                value: jurisdiction,
+                label: `${t(`clientJurisdictions.${jurisdiction}`)} (${
+                  jurisdiction
+                })`,
+              }))}
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="organizationType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('organizationType')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger ref={field.ref}>
-                        <SelectValue placeholder="Select organization type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ORGANIZATION_TYPE_LIST.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {t(`organizationTypes.${type}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="select"
+              options={ORGANIZATION_TYPE_LIST.map((type) => ({
+                value: type,
+                label: t(`organizationTypes.${type}`),
+              }))}
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="organizationName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('organizationName')}</FormLabel>
-                  <FormDescription>
-                    {t('organizationNameDescription')}
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="text"
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('organizationEmail')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="organizationEmail"
+              type="email"
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="countryOfFormation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('countryOfFormation')}</FormLabel>
-                  <FormDescription>
-                    Country code in alpha-2 format
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="text"
+              inputProps={{
+                maxLength: 2,
+              }}
             />
 
             <ServerErrorAlert error={postClientError || updateClientError} />
@@ -405,9 +303,7 @@ export const InitialStepForm = () => {
                       t={t}
                       i18nKey="initialStepOrganizationTypeInformation"
                       values={{
-                        organizationType: t(
-                          `organizationTypes.${form.getValues('organizationType')}`
-                        ),
+                        organizationType: form.watch('organizationType'),
                       }}
                     />
                   </p>

@@ -24,10 +24,10 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'email',
     baseRule: { visibility: 'visible', required: true },
   },
-  email: {
-    path: 'email',
-    baseRule: { visibility: 'visible', required: true },
-  },
+  // email: {
+  //   path: 'email',
+  //   baseRule: { visibility: 'visible', required: true },
+  // },
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
     baseRule: { visibility: 'visible', required: true },
