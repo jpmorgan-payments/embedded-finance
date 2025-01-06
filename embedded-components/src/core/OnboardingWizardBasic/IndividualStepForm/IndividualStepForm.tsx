@@ -51,8 +51,6 @@ export const IndividualStepForm = () => {
     clientId ?? ''
   );
 
-  const { clientContext } = useFilterFunctionsByClientContext(clientData);
-
   const form = useForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onChange',
     resolver: zodResolver(IndividualStepFormSchema),
@@ -66,7 +64,7 @@ export const IndividualStepForm = () => {
           country: '',
         },
       ],
-      individualIds: [],
+      individualIds: [{}],
       individualPhone: {
         phoneType: 'MOBILE_PHONE',
         phoneNumber: '',
@@ -154,10 +152,16 @@ export const IndividualStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
+  const { isFieldDisabled, isFieldRequired, clientContext } =
+    useFilterFunctionsByClientContext(clientData);
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-space-y-6">
-        <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+            General
+          </legend>
           <FormField
             control={form.control}
             name="firstName"
@@ -322,14 +326,14 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="soleOwner"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <div className="space-y-1 leading-none">
+                <div className="eb-space-y-1 eb-leading-none">
                   <FormLabel>Sole Owner</FormLabel>
                   <FormDescription>
                     Check if this individual is the sole owner of the business.
@@ -338,27 +342,27 @@ export const IndividualStepForm = () => {
               </FormItem>
             )}
           />
-        </div>
+        </fieldset>
+
         {/* Phone Information */}
-        <Card className="eb-mt-6">
-          <CardHeader>
-            <CardTitle className="eb-text-lg eb-font-medium">
-              Phone Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-3">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+            Individual Phone Information
+          </legend>
+
+          <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
             <FormField
               control={form.control}
               name="individualPhone.phoneType"
+              disabled={isFieldDisabled('individualPhone')}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <FormLabel asterisk={isFieldRequired('individualPhone')}>
+                    Phone Type
+                  </FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger ref={field.ref}>
                         <SelectValue placeholder="Select phone type" />
                       </SelectTrigger>
                     </FormControl>
@@ -376,12 +380,16 @@ export const IndividualStepForm = () => {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="individualPhone.phoneNumber"
+              disabled={isFieldDisabled('individualPhone')}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel asterisk={isFieldRequired('individualPhone')}>
+                    Phone Number
+                  </FormLabel>
                   <FormControl key={clientContext.jurisdiction}>
                     <PhoneInput
                       {...field}
@@ -397,8 +405,8 @@ export const IndividualStepForm = () => {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </fieldset>
 
         {/* Addresses */}
         <Card className="eb-mt-6">
@@ -459,6 +467,22 @@ export const IndividualStepForm = () => {
                           <Input
                             {...field}
                             placeholder="Enter address line 1"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`individualAddresses.${index}.addressLines.1`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address Line 2</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter address line 2"
                           />
                         </FormControl>
                         <FormMessage />

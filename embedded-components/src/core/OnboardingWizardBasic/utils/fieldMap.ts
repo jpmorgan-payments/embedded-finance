@@ -76,7 +76,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   addresses: {
     path: 'organizationDetails.addresses',
-    baseRule: { visibility: 'visible', minItems: 1, maxItems: 2 },
+    baseRule: { visibility: 'visible', minItems: 1, maxItems: 1 },
     conditionalRules: [
       {
         condition: {
@@ -99,7 +99,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationIds: {
     path: 'organizationDetails.organizationIds',
-    baseRule: { visibility: 'visible', maxItems: 1 },
+    baseRule: { visibility: 'visible', maxItems: 1, minItems: 1 },
   },
   organizationPhone: {
     path: 'organizationDetails.phone',
@@ -172,7 +172,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   individualIds: {
     path: 'individualDetails.individualIds',
-    baseRule: { visibility: 'visible', maxItems: 1 },
+    baseRule: { visibility: 'visible', maxItems: 1, minItems: 1 },
     conditionalRules: [
       {
         condition: {
