@@ -22,6 +22,7 @@ export type OnboardingContextType = {
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
   usePartyResource?: boolean;
+  blockPostVerification?: boolean;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(

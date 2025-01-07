@@ -32,14 +32,17 @@ const isOutstandingEmpty = (
     return false;
   }
 
-  return Object.keys(outstanding).every(
-    (key) => Array.isArray(outstanding[key]) && outstanding[key].length === 0
-  );
+  return Object.keys(outstanding).every((key) => {
+    if (key === 'attestationDocumentIds') {
+      return true;
+    }
+    return Array.isArray(outstanding[key]) && outstanding[key].length === 0;
+  });
 };
 
 export const ReviewAndAttestStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
-  const { clientId, onPostClientResponse } = useOnboardingContext();
+  const { clientId, onPostClientResponse, blockPostVerification } = useOnboardingContext();
 
   const [termsAgreed, setTermsAgreed] = useState({
     useOfAccount: false,
@@ -88,7 +91,7 @@ export const ReviewAndAttestStepForm = () => {
     questionIds: clientData?.questionResponses
       ?.map((r) => r.questionId)
       .join(','),
-  });
+  }, {query: {enabled: !!clientData?.outstanding?.questionIds?.length }});
 
   const allTermsAgreed = Object.values(termsAgreed).every(Boolean);
   const allDocumentsOpened = Object.values(termsDocumentsOpened).every(Boolean);
@@ -127,7 +130,10 @@ export const ReviewAndAttestStepForm = () => {
         data: requestBody,
       });
 
-      await initiateKYC({ id: clientId, data: requestBody });
+      if (blockPostVerification) {
+
+        await initiateKYC({ id: clientId, data: requestBody });
+      }
     }
   };
 
@@ -178,6 +184,13 @@ export const ReviewAndAttestStepForm = () => {
         {!isOutstandingEmpty(clientData?.outstanding) && clientData && (
           <OutstandingKYCRequirements clientData={clientData} />
         )}
+
+        {isOutstandingEmpty(clientData?.outstanding) && clientData && (
+          <div className="eb-mb-4 eb-bg-green-100 eb-p-4 eb-text-green-800">
+            All outstanding KYC requirements have been addressed.
+          </div>
+        )}
+
         <div className="eb-w-xl eb-px-4">
           {clientData?.parties?.map((party) =>
             party?.partyType === 'ORGANIZATION'
@@ -272,13 +285,14 @@ export const ReviewAndAttestStepForm = () => {
                 htmlFor="termsAndConditions"
                 className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
               >
-                I have read and agree to the
+                I have read and agree to the below and the certifications
+                directly above conditions checkbox.
                 <Button
                   onClick={handleDocumentOpen('paymentTerms')}
                   className="eb-text-blue-600 eb-underline"
                   variant="link"
                 >
-                  <span className="eb-flex eb-h-4 eb-w-4 eb-items-center eb-justify-center">
+                  <span className="">
                     {termsDocumentsOpened.paymentTerms ? (
                       <IconCheck className="eb-h-4 eb-w-4" />
                     ) : (
@@ -292,7 +306,7 @@ export const ReviewAndAttestStepForm = () => {
                   className="eb-text-blue-600 eb-underline"
                   variant="link"
                 >
-                  <span className="eb-flex eb-h-4 eb-w-4 eb-items-center eb-justify-center">
+                  <span className="">
                     {termsDocumentsOpened.eSignDisclosure ? (
                       <IconCheck className="eb-h-4 eb-w-4" />
                     ) : (
@@ -301,11 +315,12 @@ export const ReviewAndAttestStepForm = () => {
                   </span>
                   the E-Sign Disclosure and Consent
                 </Button>
-                and the certifications directly above.
-                <p className="eb-text-sm eb-text-muted-foreground">
-                  Please open the documents links to enable the terms and
-                  conditions checkbox.
-                </p>
+                {!canSubmit && (
+                  <p className="eb-text-sm eb-font-semibold eb-text-red-600">
+                    Please open the documents links to enable the terms and
+                    conditions checkbox.
+                  </p>
+                )}
               </Label>
             </div>
           </div>

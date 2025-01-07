@@ -163,6 +163,7 @@ export const ReviewAndAttest = Default.bind({});
 ReviewAndAttest.storyName = '5. Review and Attest step';
 ReviewAndAttest.args = {
   ...WithClientId.args,
+  blockPostVerification: true,
   initialStep: 4,
 };
 ReviewAndAttest.parameters = {
