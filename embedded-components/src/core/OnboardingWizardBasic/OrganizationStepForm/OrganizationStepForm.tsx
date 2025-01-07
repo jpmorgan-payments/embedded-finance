@@ -838,10 +838,16 @@ export const OrganizationStepForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="EIN">EIN</SelectItem>
-                          <SelectItem value="BUSINESS_REGISTRATION_ID">
+                            <SelectItem value="EIN">EIN</SelectItem>
+                            <SelectItem value="BUSINESS_REGISTRATION_ID">
                             Business Registration ID
-                          </SelectItem>
+                            </SelectItem>
+                            <SelectItem value="BUSINESS_NUMBER">
+                            Business Number
+                            </SelectItem>
+                            <SelectItem value="BUSINESS_REGISTRATION_NUMBER">
+                            Business Registration Number
+                            </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
