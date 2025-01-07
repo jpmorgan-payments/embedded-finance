@@ -164,10 +164,10 @@ export const OrganizationStepForm = () => {
     name: 'secondaryMccList',
   });
 
-  // Get organization's partyId
-  const partyId = clientData?.parties?.find(
+  // Get organization's party
+  const existingOrgParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
-  )?.id;
+  );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
@@ -176,14 +176,14 @@ export const OrganizationStepForm = () => {
     if (
       getClientStatus === 'success' &&
       clientData &&
-      partyId &&
+      existingOrgParty?.id &&
       !isFormPopulated
     ) {
-      const formValues = convertClientResponseToFormValues(clientData, partyId);
+      const formValues = convertClientResponseToFormValues(clientData, existingOrgParty?.id);
       form.reset(formValues);
       setIsFormPopulated(true);
     }
-  }, [clientData, getClientStatus, form.reset, partyId, isFormPopulated]);
+  }, [clientData, getClientStatus, form.reset, existingOrgParty?.id, isFormPopulated]);
 
   const {
     mutate: updateClient,
@@ -202,7 +202,12 @@ export const OrganizationStepForm = () => {
       const requestBody = generateRequestBody(modifiedValues, 0, 'addParties', {
         addParties: [
           {
-            ...(partyId ? { id: partyId } : {}),
+            ...(existingOrgParty?.id
+              ? {
+                  id: existingOrgParty?.id,
+                  partyType: existingOrgParty?.partyType,
+                }
+              : {}),
           },
         ],
       }) as UpdateClientRequestSmbdo;

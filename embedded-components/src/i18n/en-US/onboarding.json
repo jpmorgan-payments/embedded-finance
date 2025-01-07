@@ -34,7 +34,7 @@
       "label": "Year of formation",
       "placeholder": "Enter year of formation",
       "description": "",
-      "tooltip": "Year of company formation"
+      "tooltip": "Year of company formation (e.g. 2000)"
     },
     "addresses.addressType": {
       "label": "Address type",
