@@ -53,7 +53,9 @@ export const OrganizationIdSchema = z.object({
         // Check if the date is less than 10 years in the future
         const date = new Date(val);
         const now = new Date();
-        const tenYearsFromNow = new Date(now.setFullYear(now.getFullYear() + 10));
+        const tenYearsFromNow = new Date(
+          now.setFullYear(now.getFullYear() + 10)
+        );
         return date < tenYearsFromNow;
       },
       {
