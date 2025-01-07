@@ -5,8 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
-import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import { useSmbdoGetClient, useSmbdoUpdateClient, useUpdateParty as useSmbdoUpdateParty } from '@/api/generated/smbdo';
+import {
+  UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
+} from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -36,6 +39,7 @@ import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField'
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
+  generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
@@ -45,13 +49,26 @@ import { IndividualStepFormSchema } from './IndividualStepForm.schema';
 
 export const IndividualStepForm = () => {
   const { nextStep } = useStepper();
-  const { clientId, onPostClientResponse } = useOnboardingContext();
+  const {
+    clientId,
+    onPostClientResponse,
+    usePartyResource,
+    onPostPartyResponse,
+  } = useOnboardingContext();
   const { t } = useTranslation('onboarding');
 
   // Fetch client data
   const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
     clientId ?? ''
   );
+
+  const {
+    getFieldRule,
+    isFieldDisabled,
+    isFieldRequired,
+    isFieldVisible,
+    clientContext,
+  } = useFilterFunctionsByClientContext(clientData);
 
   const form = useForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onChange',
@@ -93,14 +110,6 @@ export const IndividualStepForm = () => {
     name: 'individualIds',
   });
 
-  const {
-    getFieldRule,
-    isFieldDisabled,
-    isFieldRequired,
-    isFieldVisible,
-    clientContext,
-  } = useFilterFunctionsByClientContext(clientData);
-
   // Get INDIVIDUAL's partyId
   const existingIndividualParty = clientData?.parties?.find(
     (party) => party?.partyType === 'INDIVIDUAL'
@@ -117,38 +126,21 @@ export const IndividualStepForm = () => {
     }
   }, [clientData, getClientStatus, form, existingIndividualParty?.id]);
 
-  console.log('form errors', form.formState.errors);
-
   const {
     mutate: updateClient,
     error: updateClientError,
     status: updateClientStatus,
-  } = useSmbdoUpdateClient({
-    mutation: {
-      onSettled: (data, error) => {
-        onPostClientResponse?.(data, error?.response?.data);
-      },
-      onSuccess: () => {
-        nextStep();
-        toast.success("Client's organization details updated successfully");
-      },
-      onError: (error) => {
-        if (error.response?.data?.context) {
-          const { context } = error.response.data;
-          const apiFormErrors = translateApiErrorsToFormErrors(
-            context,
-            0,
-            'addParties'
-          );
-          setApiFormErrors(form, apiFormErrors);
-        }
-      },
-    },
-  });
+  } = useSmbdoUpdateClient();
+
+  const {
+    mutate: updateParty,
+    error: updatePartyError,
+    status: updatePartyStatus,
+  } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
-      const requestBody = generateRequestBody(values, 0, 'addParties', {
+      const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
         addParties: [
           {
             ...(existingIndividualParty?.id
@@ -165,14 +157,85 @@ export const IndividualStepForm = () => {
         ],
       }) as UpdateClientRequestSmbdo;
 
-      updateClient({
-        id: clientId,
-        data: requestBody,
-      });
+      const partyRequestBody = generatePartyRequestBody(values, {
+        ...(existingIndividualParty?.id
+          ? {
+              partyType: existingIndividualParty?.partyType,
+              roles: existingIndividualParty?.roles,
+            }
+          : {
+              partyType: 'INDIVIDUAL',
+              roles: ['CONTROLLER'],
+            }),
+      }) as UpdatePartyRequest;
+
+      if (usePartyResource && existingIndividualParty?.id) {
+        updateParty(
+          {
+            partyId: existingIndividualParty?.id,
+            data: partyRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        updateClient(
+          {
+            id: clientId,
+            data: clientRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
     }
   });
 
   if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
 
@@ -697,7 +760,9 @@ export const IndividualStepForm = () => {
           Add Individual ID
         </Button>
 
-        <ServerErrorAlert error={updateClientError} />
+        <ServerErrorAlert
+          error={usePartyResource ? updatePartyError : updateClientError}
+        />
         <FormActions />
       </form>
     </Form>

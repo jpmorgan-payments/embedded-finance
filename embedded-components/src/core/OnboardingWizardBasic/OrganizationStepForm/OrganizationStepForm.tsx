@@ -8,10 +8,9 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
-import { useSmbdoUpdateParty } from '@/api/generated/embedded-banking';
-import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
-import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
-import { UpdatePartyRequest } from '@/api/generated/embedded-banking.schemas';
+import { useSmbdoGetClient, useSmbdoUpdateClient, useUpdateParty as useSmbdoUpdateParty } from '@/api/generated/smbdo';
+import { UpdateClientRequestSmbdo, UpdatePartyRequest } from '@/api/generated/smbdo.schemas';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -257,7 +256,7 @@ export const OrganizationStepForm = () => {
       if (usePartyResource && existingOrgParty?.id) {
         updateParty(
           {
-            id: existingOrgParty?.id,
+            partyId: existingOrgParty?.id,
             data: partyRequestBody,
           },
           {
