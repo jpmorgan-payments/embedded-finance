@@ -7,6 +7,7 @@ import {
   ClientResponse,
   CreateClientRequestSmbdo,
   UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 
 import { partyFieldMap } from './fieldMap';
@@ -107,6 +108,38 @@ export function generateRequestBody(
     }
 
     const path = `${arrayName}.${partyIndex}.${partyFieldMap[key].path}`;
+    const value = formValues[key];
+
+    if (value !== '' && value !== undefined) {
+      const modifiedValue = partyFieldMap[key].toRequestFn
+        ? (
+            partyFieldMap[key] as { toRequestFn: (val: any) => any }
+          ).toRequestFn(value)
+        : value;
+
+      setValueByPath(obj, path, modifiedValue);
+    }
+  });
+
+  return obj;
+}
+
+export function generatePartyRequestBody(
+  formValues: Partial<OnboardingWizardFormValues>,
+  obj:  Partial<UpdatePartyRequest>
+) {
+  const formValueKeys = Object.keys(formValues) as Array<
+    keyof OnboardingWizardFormValues
+  >;
+  formValueKeys.forEach((key) => {
+    if (!partyFieldMap[key]) {
+      if (key === 'product') {
+        return;
+      }
+      throw new Error(`${key} is not mapped in fieldMap`);
+    }
+
+    const path = `${partyFieldMap[key].path}`;
     const value = formValues[key];
 
     if (value !== '' && value !== undefined) {

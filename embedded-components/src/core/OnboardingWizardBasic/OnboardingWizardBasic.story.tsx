@@ -51,6 +51,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       },
       options: ['US', 'CA'],
     },
+    usePartyResource: {control: 'boolean'},
   },
   decorators: [
     (Story, context) => {
@@ -137,6 +138,7 @@ export const OrganizationStep = Default.bind({});
 OrganizationStep.storyName = '2. Organization step';
 OrganizationStep.args = {
   ...WithClientId.args,
+  usePartyResource: true, // Use party resource for organization step
   initialStep: 1,
 };
 OrganizationStep.parameters = WithClientId.parameters;

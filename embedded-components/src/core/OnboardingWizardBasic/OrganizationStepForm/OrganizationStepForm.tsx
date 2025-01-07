@@ -8,8 +8,10 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
+import { useSmbdoUpdateParty } from '@/api/generated/embedded-banking';
 import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import { UpdatePartyRequest } from '@/api/generated/embedded-banking.schemas';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -52,6 +54,7 @@ import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField'
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
+  generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
@@ -65,7 +68,8 @@ import {
 
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
-  const { clientId, onPostClientResponse } = useOnboardingContext();
+  const { clientId, onPostClientResponse, onPostPartyResponse, usePartyResource } =
+    useOnboardingContext();
   const { t } = useTranslation('onboarding');
 
   // Fetch client data
@@ -201,6 +205,12 @@ export const OrganizationStepForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClient();
 
+  const {
+    mutate: updateParty,
+    error: updatePartyError,
+    status: updatePartyStatus,
+  } = useSmbdoUpdateParty();
+
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
       // Remove website field if website is not available
@@ -209,53 +219,108 @@ export const OrganizationStepForm = () => {
         website: values.websiteAvailable ? values.website : '',
       };
 
-      const requestBody = generateRequestBody(modifiedValues, 0, 'addParties', {
-        addParties: [
-          {
-            ...(existingOrgParty?.id
-              ? {
-                  id: existingOrgParty?.id,
-                  partyType: existingOrgParty?.partyType,
-                  roles: existingOrgParty?.roles,
-                }
-              : {
-                  partyType: 'ORGANIZATION',
-                  roles: ['CLIENT'],
-                }),
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
-
-      updateClient(
+      const clientRequestBody = generateRequestBody(
+        modifiedValues,
+        0,
+        'addParties',
         {
-          id: clientId,
-          data: requestBody,
-        },
-        {
-          onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
-          },
-          onSuccess: () => {
-            nextStep();
-            toast.success("Client's organization details updated successfully");
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = translateApiErrorsToFormErrors(
-                context,
-                0,
-                'addParties'
-              );
-              setApiFormErrors(form, apiFormErrors);
-            }
-          },
+          addParties: [
+            {
+              ...(existingOrgParty?.id
+                ? {
+                    id: existingOrgParty?.id,
+                    partyType: existingOrgParty?.partyType,
+                    roles: existingOrgParty?.roles,
+                  }
+                : {
+                    partyType: 'ORGANIZATION',
+                    roles: ['CLIENT'],
+                  }),
+            },
+          ],
         }
-      );
+      ) as UpdateClientRequestSmbdo;
+
+      const partyRequestBody = generatePartyRequestBody(modifiedValues, {
+        ...(existingOrgParty?.id
+          ? {
+              id: existingOrgParty?.id,
+              partyType: existingOrgParty?.partyType,
+              roles: existingOrgParty?.roles,
+            }
+          : {
+              partyType: 'ORGANIZATION',
+              roles: ['CLIENT'],
+            }),
+      }) as UpdatePartyRequest;
+
+      if (usePartyResource && existingOrgParty?.id) {
+        updateParty(
+          {
+            id: existingOrgParty?.id,
+            data: partyRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        updateClient(
+          {
+            id: clientId,
+            data: clientRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
     }
   });
 
   if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
 
@@ -1041,7 +1106,7 @@ export const OrganizationStepForm = () => {
             />
           )}
         </fieldset>
-        <ServerErrorAlert error={updateClientError} />
+        <ServerErrorAlert error={usePartyResource ? updatePartyError : updateClientError} />
         <FormActions />
       </form>
     </Form>
