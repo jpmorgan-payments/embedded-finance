@@ -206,6 +206,7 @@ export const OrganizationStepForm = () => {
               ? {
                   id: existingOrgParty?.id,
                   partyType: existingOrgParty?.partyType,
+                  roles: existingOrgParty?.roles,
                 }
               : {}),
           },
@@ -573,7 +574,7 @@ export const OrganizationStepForm = () => {
           )}
         </fieldset>
 
-        {/* Addresses */}
+        {/* ADDRESSES */}
         {isFieldVisible('addresses') && (
           <>
             {addressFields.map((fieldName, index) => (

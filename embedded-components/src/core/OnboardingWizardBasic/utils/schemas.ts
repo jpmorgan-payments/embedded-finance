@@ -31,11 +31,24 @@ export const AddressSchema = z.object({
     'RESIDENTIAL_ADDRESS',
   ]),
   addressLines: z.array(AddressLineSchema).min(1).max(5),
-  city: z.string().max(34, 'City name must be 34 characters or less'),
+
+  city: z
+    .string()
+    .min(1, 'City name is required')
+    .max(34, 'City name must be 34 characters or less'),
+
   state: z
     .string()
-    .max(30, 'State name must be 30 characters or less')
+    .min(2, 'State name is required')
+    .regex(
+      /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/,
+      'Invalid US state'
+    )
     .optional(),
-  postalCode: z.string().max(10, 'Postal code must be 10 characters or less'),
+
+  postalCode: z
+    .string()
+    .min(1, 'Postal code is required')
+    .max(10, 'Postal code must be 10 characters or less'),
   country: z.string().length(2, 'Country code must be exactly 2 characters'),
 });
