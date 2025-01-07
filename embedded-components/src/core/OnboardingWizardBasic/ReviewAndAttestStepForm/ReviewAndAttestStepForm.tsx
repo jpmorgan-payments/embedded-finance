@@ -42,7 +42,8 @@ const isOutstandingEmpty = (
 
 export const ReviewAndAttestStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
-  const { clientId, onPostClientResponse, blockPostVerification } = useOnboardingContext();
+  const { clientId, onPostClientResponse, blockPostVerification } =
+    useOnboardingContext();
 
   const [termsAgreed, setTermsAgreed] = useState({
     useOfAccount: false,
@@ -87,11 +88,14 @@ export const ReviewAndAttestStepForm = () => {
       },
     });
 
-  const { data: questionsDetails } = useSmbdoListQuestions({
-    questionIds: clientData?.questionResponses
-      ?.map((r) => r.questionId)
-      .join(','),
-  }, {query: {enabled: !!clientData?.outstanding?.questionIds?.length }});
+  const { data: questionsDetails } = useSmbdoListQuestions(
+    {
+      questionIds: clientData?.questionResponses
+        ?.map((r) => r.questionId)
+        .join(','),
+    },
+    { query: { enabled: !!clientData?.outstanding?.questionIds?.length } }
+  );
 
   const allTermsAgreed = Object.values(termsAgreed).every(Boolean);
   const allDocumentsOpened = Object.values(termsDocumentsOpened).every(Boolean);
@@ -130,8 +134,7 @@ export const ReviewAndAttestStepForm = () => {
         data: requestBody,
       });
 
-      if (blockPostVerification) {
-
+      if (!blockPostVerification) {
         await initiateKYC({ id: clientId, data: requestBody });
       }
     }
@@ -315,7 +318,7 @@ export const ReviewAndAttestStepForm = () => {
                   </span>
                   the E-Sign Disclosure and Consent
                 </Button>
-                {!canSubmit && (
+                {!allDocumentsOpened && (
                   <p className="eb-text-sm eb-font-semibold eb-text-red-600">
                     Please open the documents links to enable the terms and
                     conditions checkbox.
