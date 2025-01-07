@@ -101,7 +101,7 @@ export const OrganizationStepForm = () => {
           city: '',
           postalCode: '',
           country: '',
-          addressLines: ['']
+          addressLines: [''],
         },
       ],
       organizationIds: [
@@ -179,12 +179,21 @@ export const OrganizationStepForm = () => {
       existingOrgParty?.id &&
       !isFormPopulated
     ) {
-      const formValues = convertClientResponseToFormValues(clientData, existingOrgParty?.id);
-    
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        existingOrgParty?.id
+      );
+
       form.reset(formValues);
       setIsFormPopulated(true);
     }
-  }, [clientData, getClientStatus, form.reset, existingOrgParty?.id, isFormPopulated]);
+  }, [
+    clientData,
+    getClientStatus,
+    form.reset,
+    existingOrgParty?.id,
+    isFormPopulated,
+  ]);
 
   const {
     mutate: updateClient,
@@ -209,7 +218,10 @@ export const OrganizationStepForm = () => {
                   partyType: existingOrgParty?.partyType,
                   roles: existingOrgParty?.roles,
                 }
-              : {}),
+              : {
+                  partyType: 'ORGANIZATION',
+                  roles: ['CLIENT'],
+                }),
           },
         ],
       }) as UpdateClientRequestSmbdo;
@@ -581,7 +593,7 @@ export const OrganizationStepForm = () => {
             {addressFields.map((fieldName, index) => (
               <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Organization Adress {index + 1}
+                  Organization Address {index + 1}
                 </legend>
                 <OnboardingFormField
                   control={form.control}
@@ -744,7 +756,7 @@ export const OrganizationStepForm = () => {
             {organizationIdFields.map((fieldItem, index) => (
               <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Organization Identity {index + 1}
+                  Organization ID {index + 1}
                 </legend>
                 <FormField
                   control={form.control}
@@ -840,7 +852,7 @@ export const OrganizationStepForm = () => {
                     size="sm"
                     className="eb-mt-2"
                   >
-                    Remove Organization Identity
+                    Remove Organization ID
                   </Button>
                 </div>
               </fieldset>
@@ -859,7 +871,7 @@ export const OrganizationStepForm = () => {
           variant="outline"
           size="sm"
         >
-          Add Organization Identity
+          Add Organization ID
         </Button>
 
         <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">

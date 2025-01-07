@@ -37,6 +37,29 @@ export const OrganizationIdSchema = z.object({
         message: 'Invalid date',
       }
     )
+    .refine(
+      (val) => {
+        // Check if the date is in the future
+        const date = new Date(val);
+        const now = new Date();
+        return date > now;
+      },
+      {
+        message: 'Expiry date must be in the future',
+      }
+    )
+    .refine(
+      (val) => {
+        // Check if the date is less than 10 years in the future
+        const date = new Date(val);
+        const now = new Date();
+        const tenYearsFromNow = new Date(now.setFullYear(now.getFullYear() + 10));
+        return date < tenYearsFromNow;
+      },
+      {
+        message: 'Expiry date must be less than 10 years in the future',
+      }
+    )
     .optional(),
 });
 

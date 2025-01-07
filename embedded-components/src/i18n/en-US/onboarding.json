@@ -41,6 +41,12 @@
       "placeholder": "Select address type",
       "description": "",
       "tooltip": ""
+    },
+    "individualAddress.addressType": {
+      "label": "Address type",
+      "placeholder": "Select address type",
+      "description": "",
+      "tooltip": ""
     }
   },
   "title": "Client Onboarding",
