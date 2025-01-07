@@ -98,10 +98,10 @@ export const OrganizationStepForm = () => {
       addresses: [
         {
           addressType: 'BUSINESS_ADDRESS',
-          addressLines: [],
           city: '',
           postalCode: '',
           country: '',
+          addressLines: ['']
         },
       ],
       organizationIds: [
@@ -612,7 +612,7 @@ export const OrganizationStepForm = () => {
                   name={`addresses.${index}.addressLines.0`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address Line 1</FormLabel>
+                      <FormLabel asterisk>Address Line 1</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Enter address line 1" />
                       </FormControl>
@@ -639,7 +639,7 @@ export const OrganizationStepForm = () => {
                   name={`addresses.${index}.city`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel asterisk>City</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Enter city" />
                       </FormControl>
@@ -652,7 +652,7 @@ export const OrganizationStepForm = () => {
                   name={`addresses.${index}.state`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>State</FormLabel>
+                      <FormLabel asterisk>State</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Enter state" />
                       </FormControl>
@@ -665,7 +665,7 @@ export const OrganizationStepForm = () => {
                   name={`addresses.${index}.postalCode`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Postal Code</FormLabel>
+                      <FormLabel asterisk>Postal Code</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Enter postal code" />
                       </FormControl>
@@ -678,7 +678,7 @@ export const OrganizationStepForm = () => {
                   name={`addresses.${index}.country`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country</FormLabel>
+                      <FormLabel asterisk>Country</FormLabel>
                       <FormControl>
                         <Input
                           {...field}

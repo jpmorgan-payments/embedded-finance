@@ -17,11 +17,15 @@ export const PhoneSchema = z.object({
   phoneType: PhoneTypeSchema,
   phoneNumber: PhoneNumberSchema,
 });
-
 const AddressLineSchema = z
   .string()
   .min(1, 'Address line is required')
   .max(60, 'Address line must be 60 characters or less');
+
+const OptionalAddressLineSchema = z
+  .string()
+  .max(60, 'Address line must be 60 characters or less')
+  .optional();
 
 export const AddressSchema = z.object({
   addressType: z.enum([
@@ -30,7 +34,10 @@ export const AddressSchema = z.object({
     'BUSINESS_ADDRESS',
     'RESIDENTIAL_ADDRESS',
   ]),
-  addressLines: z.array(AddressLineSchema).min(1).max(5),
+  
+  addressLines: z
+    .tuple([AddressLineSchema])
+    .rest(OptionalAddressLineSchema),
 
   city: z
     .string()
@@ -51,4 +58,9 @@ export const AddressSchema = z.object({
     .min(1, 'Postal code is required')
     .max(10, 'Postal code must be 10 characters or less'),
   country: z.string().length(2, 'Country code must be exactly 2 characters'),
+}).transform((data) => {
+  return {
+    ...data,
+    addressLines: data.addressLines.filter(line => line && line.trim() !== ''),
+  };
 });

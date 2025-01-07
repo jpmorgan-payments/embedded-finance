@@ -83,6 +83,7 @@ export const OrganizationStepFormSchema = z.object({
     .max(500, 'Organization description must be 500 characters or less'),
   organizationIds: z
     .array(OrganizationIdSchema)
+    .min(1, 'At least one organization ID is required')
     .max(6, 'Maximum 6 organization IDs allowed'),
   organizationPhone: PhoneSchema,
   tradeOverInternet: z.enum(['yes', 'no']),
