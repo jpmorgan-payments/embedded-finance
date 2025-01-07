@@ -155,7 +155,8 @@ export function convertClientResponseToFormValues(
 
   Object.entries(partyFieldMap).forEach(([fieldName, config]) => {
     const partyIndex =
-    cleanedResponse.parties?.findIndex((party) => party?.id === partyId) ?? -1;
+      cleanedResponse.parties?.findIndex((party) => party?.id === partyId) ??
+      -1;
 
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
     const value = getValueByPath(cleanedResponse, pathTemplate);
