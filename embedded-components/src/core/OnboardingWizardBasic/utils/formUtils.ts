@@ -138,12 +138,27 @@ export function convertClientResponseToFormValues(
 ): Partial<OnboardingWizardFormValues> {
   const formValues: Partial<OnboardingWizardFormValues> = {};
 
+  const cleanedResponse = { ...response };
+  cleanedResponse.parties = cleanedResponse.parties?.map((party) => {
+    const cleanedParty = { ...party };
+    if (cleanedParty?.organizationDetails?.organizationIds?.length === 0) {
+      delete cleanedParty.organizationDetails.organizationIds;
+    }
+    return cleanedParty;
+  });
+
+  cleanedResponse.parties?.forEach((party) => {
+    if (party?.organizationDetails?.organizationIds?.length === 0) {
+      delete party.organizationDetails.organizationIds;
+    }
+  });
+
   Object.entries(partyFieldMap).forEach(([fieldName, config]) => {
     const partyIndex =
-      response.parties?.findIndex((party) => party?.id === partyId) ?? -1;
+    cleanedResponse.parties?.findIndex((party) => party?.id === partyId) ?? -1;
 
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
-    const value = getValueByPath(response, pathTemplate);
+    const value = getValueByPath(cleanedResponse, pathTemplate);
     if (value !== undefined) {
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)

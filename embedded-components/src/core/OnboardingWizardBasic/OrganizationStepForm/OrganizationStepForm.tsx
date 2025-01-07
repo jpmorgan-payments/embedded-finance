@@ -180,6 +180,7 @@ export const OrganizationStepForm = () => {
       !isFormPopulated
     ) {
       const formValues = convertClientResponseToFormValues(clientData, existingOrgParty?.id);
+    
       form.reset(formValues);
       setIsFormPopulated(true);
     }
