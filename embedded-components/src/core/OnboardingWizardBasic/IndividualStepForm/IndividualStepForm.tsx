@@ -293,20 +293,6 @@ export const IndividualStepForm = () => {
 
           <FormField
             control={form.control}
-            name="nameSuffix"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name Suffix</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g., Jr., Sr., III" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="birthDate"
             render={({ field }) => (
               <FormItem>
@@ -410,7 +396,7 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="soleOwner"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-md p-4">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
