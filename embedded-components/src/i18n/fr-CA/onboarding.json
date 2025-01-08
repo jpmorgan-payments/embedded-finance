@@ -1,16 +1,61 @@
 {
   "fields": {
+    "product": {
+      "label": "Produit",
+      "placeholder": "Sélectionnez un produit",
+      "description": "",
+      "tooltip": ""
+    },
+    "jurisdiction": {
+      "label": "Juridiction",
+      "placeholder": "Sélectionnez le pays de juridiction",
+      "description": "",
+      "tooltip": ""
+    },
     "organizationName": {
       "label": "Nom de l'organisation",
       "placeholder": "Entrez le nom de l'organisation",
       "description": "",
       "tooltip": ""
     },
-    "organizationEmail": {
-      "label": "Email de l'organisation",
-      "placeholder": "Entrez l'email de l'organisation",
-      "description": "Description d'exemple",
+    "organizationDescription": {
+      "label": "Description de l'organisation",
+      "placeholder": "Entrez la description de l'organisation",
+      "description": "",
+      "tooltip": "Le nom légal de l'organisation. C'est le nom officiel de la personne ou de l'entité qui possède une entreprise. Doit être le nom utilisé sur les formulaires gouvernementaux et les documents commerciaux de la partie légale."
+    },
+    "dbaName": {
+      "label": "Nom commercial (facultatif)",
+      "placeholder": "Entrez le nom commercial",
+      "description": "",
       "tooltip": ""
+    },
+    "organizationType": {
+      "label": "Type d'organisation",
+      "placeholder": "Sélectionnez le type d'organisation",
+      "description": "",
+      "tooltip": ""
+    },
+    "organizationEmail": {
+      "label": "Courriel de l'organisation",
+      "placeholder": "Entrez le courriel de l'organisation",
+      "description": "",
+      "tooltip": ""
+    },
+    "countryOfFormation": {
+      "label": "Pays de constitution",
+      "placeholder": "Entrez le pays de constitution",
+      "description": "",
+      "tooltip": "Code du pays au format ISO alpha-2",
+      "validation": {
+        "exactlyTwoChars": "Le code du pays doit comporter exactement 2 caractères"
+      }
+    },
+    "yearOfFormation": {
+      "label": "Année de constitution",
+      "placeholder": "Entrez l'année de constitution",
+      "description": "",
+      "tooltip": "Année de constitution de l'entreprise"
     },
     "addresses.addressType": {
       "label": "Type d'adresse",
@@ -20,35 +65,32 @@
     }
   },
   "title": "Intégration du client",
-  "fetchingClientData": "Récupération des données du client...",
-  "initialDetails": "Détails initiaux",
-  "organizationDetails": "Détails de l'organisation",
-  "individualDetails": "Détails individuels",
-  "additionalQuestions": "Questions supplémentaires",
-  "uploadDocuments": "Télécharger des documents",
-  "reviewAndAttest": "Revoir et attester",
+  "stepLabels": {
+    "initialDetails": "Détails initiaux",
+    "organizationDetails": "Détails de l'organisation",
+    "individualDetails": "Détails individuels",
+    "decisionMakers": "Décideurs",
+    "businessOwners": "Propriétaires d'entreprise",
+    "additionalQuestions": "Questions supplémentaires",
+    "uploadDocuments": "Télécharger des documents",
+    "reviewAndAttest": "Réviser et attester"
+  },
+  "fetchingClientData": "Récupération des données client...",
   "initialStepDescription1": "Les informations que nous vous demandons nous aideront à finaliser la configuration de votre compte.",
-  "initialStepDescription2": "Veuillez revoir et mettre à jour toute information nécessitant une confirmation ; et fournir toute information supplémentaire demandée.",
+  "initialStepDescription2": "Veuillez réviser et mettre à jour toute information nécessitant une confirmation; et fournir toute information supplémentaire demandée.",
   "initialStepNoOrganizationType": "Veuillez sélectionner votre <strong>type d'organisation</strong> pour prévisualiser les informations que vous devrez confirmer ou fournir.",
-  "initialStepOrganizationTypeInformation": "En tant que <strong>{{organizationType}}</strong>, vous devrez confirmer ou fournir les informations suivantes :",
-  "product": "Produit",
-  "jurisdiction": "Juridiction",
-  "organizationType": "Type d'organisation",
-  "organizationName": "Nom de l'organisation",
-  "organizationNameDescription": "Le nom légal de l'organisation. C'est le nom officiel de la personne ou de l'entité qui possède une entreprise. Doit être le nom utilisé sur les formulaires gouvernementaux et les documents commerciaux de la partie légale.",
-  "organizationEmail": "Email de l'organisation",
-  "countryOfFormation": "Pays de formation",
+  "initialStepOrganizationTypeInformation": "En tant que <strong>$t(organizationTypes.{{organizationType}})</strong>, vous devrez confirmer ou fournir les informations suivantes :",
   "postalCode": "Code postal",
   "city": "Ville",
   "state": "État / Province",
   "country": "Pays",
   "firstName": "Prénom",
   "lastName": "Nom de famille",
-  "email": "Email",
+  "email": "Courriel",
   "phone": "Téléphone",
   "clientProducts": {
     "EMBEDDED_PAYMENTS": "Paiements intégrés",
-    "MERCHANT_SERVICES": "Services marchands"
+    "MERCHANT_SERVICES": "Services aux marchands"
   },
   "clientJurisdictions": {
     "US": "États-Unis",
@@ -59,23 +101,23 @@
     "LIMITED_LIABILITY_PARTNERSHIP": "Partenariat à responsabilité limitée",
     "GENERAL_PARTNERSHIP": "Partenariat général",
     "LIMITED_PARTNERSHIP": "Partenariat limité",
-    "C_CORPORATION": "Société C",
-    "S_CORPORATION": "Société S",
+    "C_CORPORATION": "Corporation C",
+    "S_CORPORATION": "Corporation S",
     "PARTNERSHIP": "Partenariat",
     "PUBLICLY_TRADED_COMPANY": "Société cotée en bourse",
     "NON_PROFIT_CORPORATION": "Corporation à but non lucratif",
     "GOVERNMENT_ENTITY": "Entité gouvernementale",
     "SOLE_PROPRIETORSHIP": "Entreprise individuelle",
-    "UNINCORPORATED_ASSOCIATION": "Association non constituée"
+    "UNINCORPORATED_ASSOCIATION": "Association non constituée en société"
   },
   "addressTypes": {
     "LEGAL_ADDRESS": "Adresse légale",
     "MAILING_ADDRESS": "Adresse postale",
-    "BUSINESS_ADDRESS": "Adresse professionnelle",
+    "BUSINESS_ADDRESS": "Adresse commerciale",
     "RESIDENTIAL_ADDRESS": "Adresse résidentielle"
   },
   "errorMessages": {
-    "default": "Une erreur s'est produite lors de la récupération des données du client. Veuillez réessayer.",
+    "default": "Une erreur s'est produite lors de la récupération des données client. Veuillez réessayer.",
     "clientNotFound": "Client non trouvé. Veuillez réessayer ou contacter le support."
   }
 }
