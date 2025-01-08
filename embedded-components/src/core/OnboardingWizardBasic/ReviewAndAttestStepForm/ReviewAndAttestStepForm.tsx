@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { IconCheck } from '@tabler/icons-react';
+import { QueryClient } from '@tanstack/react-query';
 import { get } from 'lodash';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   useSmbdoGetClient,
@@ -18,9 +20,14 @@ import { Button, Checkbox, Label, Stack, Title } from '@/components/ui';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { useIPAddress } from '../utils/getIPAddress';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';
-import { QueryClient } from '@tanstack/react-query';
+
+const generateSessionId = () => {
+  const sessionId = uuidv4();
+  return sessionId.replace(/[^a-zA-Z0-9_-]/g, '');
+};
 
 interface ClientResponseOutstanding {
   [key: string]: any[];
@@ -45,7 +52,7 @@ export const ReviewAndAttestStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
   const { clientId, onPostClientResponse, blockPostVerification } =
     useOnboardingContext();
-    const queryClient = new QueryClient();
+  const queryClient = new QueryClient();
 
   const [termsAgreed, setTermsAgreed] = useState({
     useOfAccount: false,
@@ -59,6 +66,8 @@ export const ReviewAndAttestStepForm = () => {
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
+
+  const { data: IPAddress } = useIPAddress();
 
   // Update client attestation
   const { mutateAsync: updateClient, error: updateClientError } =
@@ -79,16 +88,7 @@ export const ReviewAndAttestStepForm = () => {
 
   // Initiate KYC
   const { mutateAsync: initiateKYC, error: clientVerificationsError } =
-    useSmbdoPostClientVerifications({
-      mutation: {
-        onSuccess: () => {
-          toast.success('KYC initiated successfully');
-        },
-        onError: () => {
-          toast.error('Failed to initiate KYC');
-        },
-      },
-    });
+    useSmbdoPostClientVerifications();
 
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: clientData?.questionResponses
@@ -122,7 +122,7 @@ export const ReviewAndAttestStepForm = () => {
             attesterFullName: clientData?.parties?.find(
               (party) => party?.partyType === 'INDIVIDUAL'
             )?.individualDetails?.firstName,
-            ipAddress: '1.1.1.1', // TODO: Get real IP address
+            ipAddress: IPAddress,
             documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
           },
         ],
@@ -130,8 +130,8 @@ export const ReviewAndAttestStepForm = () => {
 
       const verificationRequestBody = {
         consumerDevice: {
-          ipAddress: '1.1.1.1', // TODO: Get real IP address
-          sessionId: 'unique-session-id-123456', // TODO: Generate or retrieve the actual session ID
+          ipAddress: IPAddress,
+          sessionId: generateSessionId(), // Generate session ID matching the pattern
         },
       };
 
@@ -143,16 +143,18 @@ export const ReviewAndAttestStepForm = () => {
       }
 
       if (!blockPostVerification) {
-        await initiateKYC({ id: clientId, data: verificationRequestBody }, {
-          onSuccess: () => {
-            toast.success('KYC initiated successfully');
-            queryClient.invalidateQueries()
-          
-          },
-          onError: () => {
-            toast.error('Failed to initiate KYC');
-          },
-        });
+        await initiateKYC(
+          { id: clientId, data: verificationRequestBody },
+          {
+            onSuccess: () => {
+              toast.success('KYC initiated successfully');
+              queryClient.invalidateQueries();
+            },
+            onError: () => {
+              toast.error('Failed to initiate KYC');
+            },
+          }
+        );
       }
     }
   };
