@@ -7,6 +7,7 @@ import {
   ClientResponse,
   CreateClientRequestSmbdo,
   UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 
 import { partyFieldMap } from './fieldMap';
@@ -123,6 +124,38 @@ export function generateRequestBody(
   return obj;
 }
 
+export function generatePartyRequestBody(
+  formValues: Partial<OnboardingWizardFormValues>,
+  obj: Partial<UpdatePartyRequest>
+) {
+  const formValueKeys = Object.keys(formValues) as Array<
+    keyof OnboardingWizardFormValues
+  >;
+  formValueKeys.forEach((key) => {
+    if (!partyFieldMap[key]) {
+      if (key === 'product') {
+        return;
+      }
+      throw new Error(`${key} is not mapped in fieldMap`);
+    }
+
+    const path = `${partyFieldMap[key].path}`;
+    const value = formValues[key];
+
+    if (value !== '' && value !== undefined) {
+      const modifiedValue = partyFieldMap[key].toRequestFn
+        ? (
+            partyFieldMap[key] as { toRequestFn: (val: any) => any }
+          ).toRequestFn(value)
+        : value;
+
+      setValueByPath(obj, path, modifiedValue);
+    }
+  });
+
+  return obj;
+}
+
 export function getValueByPath(obj: any, pathTemplate: string): any {
   const keys = pathTemplate.replace(/\[(\w+)\]/g, '.$1').split('.');
   return keys.reduce(
@@ -138,12 +171,28 @@ export function convertClientResponseToFormValues(
 ): Partial<OnboardingWizardFormValues> {
   const formValues: Partial<OnboardingWizardFormValues> = {};
 
+  const cleanedResponse = { ...response };
+  cleanedResponse.parties = cleanedResponse.parties?.map((party) => {
+    const cleanedParty = { ...party };
+    if (cleanedParty?.organizationDetails?.organizationIds?.length === 0) {
+      delete cleanedParty.organizationDetails.organizationIds;
+    }
+    return cleanedParty;
+  });
+
+  cleanedResponse.parties?.forEach((party) => {
+    if (party?.organizationDetails?.organizationIds?.length === 0) {
+      delete party.organizationDetails.organizationIds;
+    }
+  });
+
   Object.entries(partyFieldMap).forEach(([fieldName, config]) => {
     const partyIndex =
-      response.parties?.findIndex((party) => party?.id === partyId) ?? -1;
+      cleanedResponse.parties?.findIndex((party) => party?.id === partyId) ??
+      -1;
 
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
-    const value = getValueByPath(response, pathTemplate);
+    const value = getValueByPath(cleanedResponse, pathTemplate);
     if (value !== undefined) {
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)

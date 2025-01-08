@@ -2,43 +2,87 @@ import { z } from 'zod';
 
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
-export const OrganizationIdSchema = z.object({
-  description: z
-    .string()
-    .max(100, 'Description must be 100 characters or less')
-    .optional(),
-  idType: z.enum(['EIN', 'BUSINESS_REGISTRATION_ID']),
-  value: z
-    .string()
-    .min(1, 'ID value is required')
-    .max(100, 'ID value must be 100 characters or less'),
-  issuer: z
-    .string()
-    .min(1, 'Issuer is required')
-    .max(500, 'Issuer must be 500 characters or less'),
-  expiryDate: z
-    .string()
-    .refine(
-      (val) => {
-        // Check if the string is in 'YYYY-MM-DD' format
-        return /^\d{4}-\d{2}-\d{2}$/.test(val);
-      },
-      {
-        message: "Expiry date must be in 'YYYY-MM-DD' format",
+export const OrganizationIdSchema = z
+  .object({
+    description: z
+      .string()
+      .max(100, 'Description must be 100 characters or less')
+      .optional(),
+    idType: z.enum([
+      'EIN',
+      'BUSINESS_REGISTRATION_ID',
+      'BUSINESS_NUMBER',
+      'BUSINESS_REGISTRATION_NUMBER',
+    ]),
+    value: z
+      .string()
+      .min(1, 'ID value is required')
+      .max(100, 'ID value must be 100 characters or less'),
+    issuer: z
+      .string()
+      .min(1, 'Issuer is required')
+      .max(500, 'Issuer must be 500 characters or less'),
+    expiryDate: z
+      .string()
+      .refine(
+        (val) => {
+          // Check if the string is in 'YYYY-MM-DD' format
+          return /^\d{4}-\d{2}-\d{2}$/.test(val);
+        },
+        {
+          message: "Expiry date must be in 'YYYY-MM-DD' format",
+        }
+      )
+      .refine(
+        (val) => {
+          // Check if the date is valid
+          const date = new Date(val);
+          return !Number.isNaN(date.getTime());
+        },
+        {
+          message: 'Invalid date',
+        }
+      )
+      .refine(
+        (val) => {
+          // Check if the date is in the future
+          const date = new Date(val);
+          const now = new Date();
+          return date > now;
+        },
+        {
+          message: 'Expiry date must be in the future',
+        }
+      )
+      .refine(
+        (val) => {
+          // Check if the date is less than 10 years in the future
+          const date = new Date(val);
+          const now = new Date();
+          const tenYearsFromNow = new Date(
+            now.setFullYear(now.getFullYear() + 10)
+          );
+          return date < tenYearsFromNow;
+        },
+        {
+          message: 'Expiry date must be less than 10 years in the future',
+        }
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.idType === 'EIN') {
+        return /^\d{9}$/.test(data.value);
       }
-    )
-    .refine(
-      (val) => {
-        // Check if the date is valid
-        const date = new Date(val);
-        return !Number.isNaN(date.getTime());
-      },
-      {
-        message: 'Invalid date',
-      }
-    )
-    .optional(),
-});
+      // Add more conditions for other idTypes if needed
+      return true;
+    },
+    {
+      message: 'EIN must be exactly 9 digits',
+      path: ['value'], // Specify the path to the field that the error message should be associated with
+    }
+  );
 
 const associatedCountrySchema = z.object({
   country: z.string().length(2, 'Country code must be exactly 2 characters'),
@@ -83,6 +127,7 @@ export const OrganizationStepFormSchema = z.object({
     .max(500, 'Organization description must be 500 characters or less'),
   organizationIds: z
     .array(OrganizationIdSchema)
+    .min(1, 'At least one organization ID is required')
     .max(6, 'Maximum 6 organization IDs allowed'),
   organizationPhone: PhoneSchema,
   tradeOverInternet: z.enum(['yes', 'no']),

@@ -1,4 +1,4 @@
-import { ClientResponse } from '../api/generated/embedded-banking.schemas';
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 export const efClientCorpAnsweredQuestions: ClientResponse = {
   id: '0030000130',
@@ -30,7 +30,6 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
         industryType: 'Jewelry Retailers',
         countryOfFormation: 'US',
         yearOfFormation: '2023',
-        significantOwnership: true,
         entitiesInOwnership: false,
         addresses: [
           {

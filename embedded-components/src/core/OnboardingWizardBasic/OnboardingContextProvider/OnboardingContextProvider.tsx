@@ -5,6 +5,7 @@ import {
   ClientProduct,
   ClientResponse,
   ClientVerificationResponse,
+  PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 
 import { Jurisdiction } from '../utils/types';
@@ -13,12 +14,15 @@ export type OnboardingContextType = {
   clientId?: string;
   setClientId?: (clientId: string) => void;
   onPostClientResponse?: (response?: ClientResponse, error?: ApiError) => void;
+  onPostPartyResponse?: (response?: PartyResponse, error?: ApiError) => void;
   onPostClientVerificationsResponse?: (
     response?: ClientVerificationResponse,
     error?: ApiError
   ) => void;
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
+  usePartyResource?: boolean;
+  blockPostVerification?: boolean;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(

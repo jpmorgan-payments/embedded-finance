@@ -51,6 +51,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       },
       options: ['US', 'CA'],
     },
+    usePartyResource: { control: 'boolean' },
   },
   decorators: [
     (Story, context) => {
@@ -129,6 +130,11 @@ WithClientId.parameters = {
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropNew);
       }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(
+          efClientSolPropNew?.parties?.filter((p) => p.id === '2000000111')[0]
+        );
+      }),
     ],
   },
 };
@@ -137,6 +143,7 @@ export const OrganizationStep = Default.bind({});
 OrganizationStep.storyName = '2. Organization step';
 OrganizationStep.args = {
   ...WithClientId.args,
+  usePartyResource: true, // Use party resource for organization step
   initialStep: 1,
 };
 OrganizationStep.parameters = WithClientId.parameters;
@@ -161,6 +168,7 @@ export const ReviewAndAttest = Default.bind({});
 ReviewAndAttest.storyName = '5. Review and Attest step';
 ReviewAndAttest.args = {
   ...WithClientId.args,
+  blockPostVerification: true,
   initialStep: 4,
 };
 ReviewAndAttest.parameters = {
