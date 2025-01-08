@@ -62,13 +62,17 @@
     }
   },
   "title": "Client Onboarding",
+  "stepLabels": {
+    "initialDetails": "Initial details",
+    "organizationDetails": "Organization details",
+    "individualDetails": "Individual details",
+    "decisionMakers": "Decision makers",
+    "businessOwners": "Business owners",
+    "additionalQuestions": "Additional questions",
+    "uploadDocuments": "Upload documents",
+    "reviewAndAttest": "Review and attest"
+  },
   "fetchingClientData": "Fetching client data...",
-  "initialDetails": "Initial details",
-  "organizationDetails": "Organization details",
-  "individualDetails": "Individual details",
-  "additionalQuestions": "Additional questions",
-  "uploadDocuments": "Upload documents",
-  "reviewAndAttest": "Review and attest",
   "initialStepDescription1": "The information we request from you will help us complete setting up your account.",
   "initialStepDescription2": "Please review and update any information that needs confirmation; and provide any additional information requested.",
   "initialStepNoOrganizationType": "Please select your <strong>organization type</strong> to preview the information you will need to confirm or provide.",

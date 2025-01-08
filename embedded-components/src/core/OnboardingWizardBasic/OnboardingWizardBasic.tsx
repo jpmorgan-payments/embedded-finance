@@ -85,35 +85,44 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   )?.organizationDetails;
 
   const initialSteps: OnboardingStep[] = [
-    { label: t(''), children: <InitialStepForm /> },
-    { label: 'Organization details', children: <OrganizationStepForm /> },
-    { label: 'Individual details', children: <IndividualStepForm /> },
+    { label: t('stepLabels.initialDetails'), children: <InitialStepForm /> },
     {
-      label: 'Decision Makers',
+      label: t('stepLabels.organizationDetails'),
+      children: <OrganizationStepForm />,
+    },
+    {
+      label: t('stepLabels.individualDetails'),
+      children: <IndividualStepForm />,
+    },
+    {
+      label: t('stepLabels.decisionMakers'),
       children: <DecisionMakerStepForm />,
       onlyVisibleFor: {
         organizationType: ['LIMITED_LIABILITY_COMPANY'],
       },
     },
     {
-      label: 'Business Owners',
+      label: t('stepLabels.businessOwners'),
       children: <BusinessOwnerStepForm />,
       onlyVisibleFor: {
         organizationType: ['LIMITED_LIABILITY_COMPANY'],
       },
     },
     {
-      label: 'Additional Questions',
+      label: t('stepLabels.additionalQuestions'),
       children: <AdditionalQuestionsStepForm />,
     },
     {
-      label: 'Upload Documents',
+      label: t('stepLabels.uploadDocuments'),
       children: <DocumentUploadStepForm />,
       onlyVisibleFor: {
         product: ['MERCHANT_SERVICES'],
       },
     },
-    { label: 'Review and Attest', children: <ReviewAndAttestStepForm /> },
+    {
+      label: t('stepLabels.reviewAndAttest'),
+      children: <ReviewAndAttestStepForm />,
+    },
   ];
 
   function getOnboardingSteps(
