@@ -212,7 +212,7 @@ export const useFilterFunctionsByClientContext = (
     return getFieldRuleByClientContext(fieldName, clientContext);
   }
 
-  // Temporary helper functions; to be replaced with custom field components
+  // Use for fields that don't use OnboardingFormField
   function isFieldVisible(fieldName: keyof OnboardingWizardFormValues) {
     return getFieldRule(fieldName).visibility !== 'hidden';
   }

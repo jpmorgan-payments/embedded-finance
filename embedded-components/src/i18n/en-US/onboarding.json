@@ -1,5 +1,17 @@
 {
   "fields": {
+    "product": {
+      "label": "Product",
+      "placeholder": "Select product",
+      "description": "",
+      "tooltip": ""
+    },
+    "jurisdiction": {
+      "label": "Jurisdiction",
+      "placeholder": "Select country of jurisdiction",
+      "description": "",
+      "tooltip": ""
+    },
     "organizationName": {
       "label": "Organization name",
       "placeholder": "Enter organization name",
@@ -10,11 +22,17 @@
       "label": "Organization description",
       "placeholder": "Enter organization description",
       "description": "",
-      "tooltip": ""
+      "tooltip": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork."
     },
     "dbaName": {
       "label": "DBA (Doing Business As) name (optional)",
       "placeholder": "Enter DBA name",
+      "description": "",
+      "tooltip": ""
+    },
+    "organizationType": {
+      "label": "Organization type",
+      "placeholder": "Select organization type",
       "description": "",
       "tooltip": ""
     },
@@ -26,9 +44,12 @@
     },
     "countryOfFormation": {
       "label": "Country of formation",
-      "placeholder": "Select country of formation",
+      "placeholder": "Enter country of formation",
       "description": "",
-      "tooltip": "Country code in ISO alpha-2 format"
+      "tooltip": "Country code in ISO alpha-2 format",
+      "validation": {
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
     },
     "yearOfFormation": {
       "label": "Year of formation",
@@ -44,24 +65,21 @@
     }
   },
   "title": "Client Onboarding",
+  "stepLabels": {
+    "initialDetails": "Initial details",
+    "organizationDetails": "Organization details",
+    "individualDetails": "Individual details",
+    "decisionMakers": "Decision makers",
+    "businessOwners": "Business owners",
+    "additionalQuestions": "Additional questions",
+    "uploadDocuments": "Upload documents",
+    "reviewAndAttest": "Review and attest"
+  },
   "fetchingClientData": "Fetching client data...",
-  "initialDetails": "Initial details",
-  "organizationDetails": "Organization details",
-  "individualDetails": "Individual details",
-  "additionalQuestions": "Additional questions",
-  "uploadDocuments": "Upload documents",
-  "reviewAndAttest": "Review and attest",
   "initialStepDescription1": "The information we request from you will help us complete setting up your account.",
   "initialStepDescription2": "Please review and update any information that needs confirmation; and provide any additional information requested.",
   "initialStepNoOrganizationType": "Please select your <strong>organization type</strong> to preview the information you will need to confirm or provide.",
-  "initialStepOrganizationTypeInformation": "As a <strong>{{organizationType}}</strong>, you will need to confirm or provide the following information:",
-  "product": "Product",
-  "jurisdiction": "Jurisdiction",
-  "organizationType": "Organization type",
-  "organizationName": "Organization name",
-  "organizationNameDescription": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
-  "organizationEmail": "Organization email",
-  "countryOfFormation": "Country of formation",
+  "initialStepOrganizationTypeInformation": "As a <strong>$t(organizationTypes.{{organizationType}})</strong>, you will need to confirm or provide the following information:",
   "postalCode": "ZIP / Postal code",
   "city": "City",
   "state": "State / Province",
