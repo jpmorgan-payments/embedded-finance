@@ -407,7 +407,7 @@ export const IndividualStepForm = () => {
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <div className="space-y-1 leading-none">
+                <div className="eb-space-y-1 eb-leading-none">
                   <FormLabel>Sole Owner</FormLabel>
                   <FormDescription>
                     Check if this individual is the sole owner of the business.

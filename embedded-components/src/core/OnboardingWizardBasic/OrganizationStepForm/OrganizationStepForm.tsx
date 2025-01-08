@@ -105,7 +105,7 @@ export const OrganizationStepForm = () => {
       organizationName: '',
       dbaName: '',
       organizationDescription: '',
-      email: '',
+      organizationEmail: '',
       countryOfFormation: '',
       yearOfFormation: '',
       addresses: [

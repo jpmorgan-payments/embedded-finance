@@ -20,7 +20,7 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
-import { OnboardingWizardFormValues } from '../utils/types';
+import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
 
 type FieldType =
   | 'text'
@@ -40,7 +40,7 @@ interface BaseProps<
   description?: string;
   tooltip?: string;
   required?: boolean;
-  visibility?: 'visible' | 'hidden' | 'disabled';
+  visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
 }
 
@@ -90,9 +90,10 @@ export const OnboardingFormField = <
 
   const { t } = useTranslation('onboarding');
 
-  const fieldRule = getFieldRule(
-    name.split('.')[0] as keyof OnboardingWizardFormValues
-  );
+  const fieldRule: FieldRule =
+    name === 'product'
+      ? { visibility: 'visible', required: true }
+      : getFieldRule(name.split('.')[0] as keyof OnboardingWizardFormValues);
 
   const fieldVisibility = visibility ?? fieldRule.visibility;
 
@@ -108,6 +109,12 @@ export const OnboardingFormField = <
   const lastIndex = nameParts
     .reverse()
     .find((part) => !Number.isNaN(Number(part)));
+
+  const fieldPlaceholder =
+    placeholder ??
+    t([`fields.${tName}.placeholder`, ''] as unknown as TemplateStringsArray, {
+      index: lastIndex,
+    });
 
   return (
     <FormField
@@ -163,7 +170,7 @@ export const OnboardingFormField = <
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger ref={field.ref}>
-                          <SelectValue placeholder="Select address type" />
+                          <SelectValue placeholder={fieldPlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -187,16 +194,7 @@ export const OnboardingFormField = <
                         {...inputProps}
                         type={type}
                         value={field.value}
-                        placeholder={
-                          placeholder ??
-                          t(
-                            [
-                              `fields.${tName}.placeholder`,
-                              '',
-                            ] as unknown as TemplateStringsArray,
-                            { index: lastIndex }
-                          )
-                        }
+                        placeholder={fieldPlaceholder}
                       />
                     </FormControl>
                   );

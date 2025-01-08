@@ -37,52 +37,6 @@ type OnboardingStep = StepProps &
     };
   };
 
-const initialSteps: OnboardingStep[] = [
-  { label: 'Initial details', children: <InitialStepForm /> },
-  { label: 'Organization details', children: <OrganizationStepForm /> },
-  { label: 'Individual details', children: <IndividualStepForm /> },
-  {
-    label: 'Decision Makers',
-    children: <DecisionMakerStepForm />,
-    onlyVisibleFor: {
-      organizationType: ['LIMITED_LIABILITY_COMPANY'],
-    },
-  },
-  {
-    label: 'Business Owners',
-    children: <BusinessOwnerStepForm />,
-    onlyVisibleFor: {
-      organizationType: ['LIMITED_LIABILITY_COMPANY'],
-    },
-  },
-  { label: 'Additional Questions', children: <AdditionalQuestionsStepForm /> },
-  {
-    label: 'Upload Documents',
-    children: <DocumentUploadStepForm />,
-    onlyVisibleFor: {
-      product: ['MERCHANT_SERVICES'],
-    },
-  },
-  { label: 'Review and Attest', children: <ReviewAndAttestStepForm /> },
-];
-
-export function getOnboardingSteps(
-  product?: ClientProduct,
-  jurisdiction?: Jurisdiction,
-  organizationType?: OrganizationType
-) {
-  if (product && jurisdiction && organizationType) {
-    return initialSteps.filter(
-      (step) =>
-        !step.onlyVisibleFor ||
-        (step.onlyVisibleFor.jurisdiction?.includes(jurisdiction) &&
-          step.onlyVisibleFor.organizationType?.includes(organizationType) &&
-          step.onlyVisibleFor.product?.includes(product))
-    );
-  }
-  return initialSteps.filter((step) => !step.onlyVisibleFor);
-}
-
 export interface OnboardingWizardBasicProps extends OnboardingContextType {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
@@ -134,6 +88,64 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   const organizationDetailsFromResponse = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   )?.organizationDetails;
+
+  const initialSteps: OnboardingStep[] = [
+    { label: t('stepLabels.initialDetails'), children: <InitialStepForm /> },
+    {
+      label: t('stepLabels.organizationDetails'),
+      children: <OrganizationStepForm />,
+    },
+    {
+      label: t('stepLabels.individualDetails'),
+      children: <IndividualStepForm />,
+    },
+    {
+      label: t('stepLabels.decisionMakers'),
+      children: <DecisionMakerStepForm />,
+      onlyVisibleFor: {
+        organizationType: ['LIMITED_LIABILITY_COMPANY'],
+      },
+    },
+    {
+      label: t('stepLabels.businessOwners'),
+      children: <BusinessOwnerStepForm />,
+      onlyVisibleFor: {
+        organizationType: ['LIMITED_LIABILITY_COMPANY'],
+      },
+    },
+    {
+      label: t('stepLabels.additionalQuestions'),
+      children: <AdditionalQuestionsStepForm />,
+    },
+    {
+      label: t('stepLabels.uploadDocuments'),
+      children: <DocumentUploadStepForm />,
+      onlyVisibleFor: {
+        product: ['MERCHANT_SERVICES'],
+      },
+    },
+    {
+      label: t('stepLabels.reviewAndAttest'),
+      children: <ReviewAndAttestStepForm />,
+    },
+  ];
+
+  function getOnboardingSteps(
+    product?: ClientProduct,
+    jurisdiction?: Jurisdiction,
+    organizationType?: OrganizationType
+  ) {
+    if (product && jurisdiction && organizationType) {
+      return initialSteps.filter(
+        (step) =>
+          !step.onlyVisibleFor ||
+          (step.onlyVisibleFor.jurisdiction?.includes(jurisdiction) &&
+            step.onlyVisibleFor.organizationType?.includes(organizationType) &&
+            step.onlyVisibleFor.product?.includes(product))
+      );
+    }
+    return initialSteps.filter((step) => !step.onlyVisibleFor);
+  }
 
   const steps = useMemo(() => {
     return getOnboardingSteps(
