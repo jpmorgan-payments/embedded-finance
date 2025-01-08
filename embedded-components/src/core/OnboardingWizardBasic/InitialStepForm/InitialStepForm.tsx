@@ -9,11 +9,13 @@ import {
   useSmbdoGetClient,
   useSmbdoPostClients,
   useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   CreateClientRequestSmbdo,
   OrganizationType,
   UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +49,7 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
+  generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
@@ -62,6 +65,8 @@ export const InitialStepForm = () => {
     setClientId,
     availableProducts,
     availableJurisdictions,
+    usePartyResource,
+    onPostPartyResponse,
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
@@ -104,22 +109,25 @@ export const InitialStepForm = () => {
     clientId ?? ''
   );
 
-  // Get organization's partyId
-  const partyId = clientData?.parties?.find(
+  // Get organization's party
+  const existingOrgParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
-  )?.id;
+  );
 
   // If clientId exists, populate form with client data
   useEffect(() => {
-    if (clientData && getClientStatus === 'success' && partyId) {
-      const formValues = convertClientResponseToFormValues(clientData, partyId);
+    if (clientData && getClientStatus === 'success' && existingOrgParty?.id) {
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        existingOrgParty?.id
+      );
       const productFromResponse = clientData.products?.[0];
       if (productFromResponse) {
         formValues.product = productFromResponse;
       }
       form.reset(formValues);
     }
-  }, [clientData, getClientStatus, form.reset, partyId]);
+  }, [clientData, getClientStatus, form.reset, existingOrgParty?.id]);
 
   const {
     mutate: postClient,
@@ -133,43 +141,104 @@ export const InitialStepForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClient();
 
+  const {
+    mutate: updateParty,
+    error: updatePartyError,
+    status: updatePartyStatus,
+  } = useSmbdoUpdateParty();
+
   const onSubmit = form.handleSubmit((values) => {
     // Update client if clientId exists
     if (clientId) {
-      const requestBody = generateRequestBody(values, 0, 'addParties', {
+      const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
         addParties: [
           {
-            ...(partyId ? { id: partyId } : {}),
+            ...(existingOrgParty?.id
+              ? {
+                  id: existingOrgParty?.id,
+                  partyType: existingOrgParty?.partyType,
+                  roles: existingOrgParty?.roles,
+                }
+              : {
+                  partyType: 'ORGANIZATION',
+                  roles: ['CLIENT'],
+                }),
           },
         ],
       }) as UpdateClientRequestSmbdo;
 
-      updateClient(
-        {
-          id: clientId,
-          data: requestBody,
-        },
-        {
-          onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
-          },
-          onSuccess: () => {
-            nextStep();
-            toast.success("Client's organization details updated successfully");
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = translateApiErrorsToFormErrors(
-                context,
-                0,
-                'addParties'
-              );
-              setApiFormErrors(form, apiFormErrors);
+      const partyRequestBody = generatePartyRequestBody(values, {
+        ...(existingOrgParty?.id
+          ? {
+              id: existingOrgParty?.id,
+              partyType: existingOrgParty?.partyType,
+              roles: existingOrgParty?.roles,
             }
+          : {
+              partyType: 'ORGANIZATION',
+              roles: ['CLIENT'],
+            }),
+      }) as UpdatePartyRequest;
+
+      if (usePartyResource && existingOrgParty?.id) {
+        updateParty(
+          {
+            partyId: existingOrgParty?.id,
+            data: partyRequestBody,
           },
-        }
-      );
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        updateClient(
+          {
+            id: clientId,
+            data: clientRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
     }
 
     // Create client if clientId does not exist
@@ -216,8 +285,16 @@ export const InitialStepForm = () => {
     }
   });
 
-  if (postClientStatus === 'pending' || updateClientStatus === 'pending') {
-    return <FormLoadingState message={t('common:submitting')} />;
+  if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (postClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
   }
 
   function generateRequiredFieldsList(type?: OrganizationType) {
@@ -385,7 +462,13 @@ export const InitialStepForm = () => {
               )}
             />
 
-            <ServerErrorAlert error={postClientError || updateClientError} />
+            <ServerErrorAlert
+              error={
+                usePartyResource
+                  ? updatePartyError
+                  : updateClientError || postClientError
+              }
+            />
 
             <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
               <Button>{t('common:next')}</Button>

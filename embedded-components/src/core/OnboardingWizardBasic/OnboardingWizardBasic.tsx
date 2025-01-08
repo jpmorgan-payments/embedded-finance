@@ -189,6 +189,9 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
         );
       };
     }
+    return () => {
+      // Cleanup logic here (if needed)
+    };
   }, []);
 
   return (

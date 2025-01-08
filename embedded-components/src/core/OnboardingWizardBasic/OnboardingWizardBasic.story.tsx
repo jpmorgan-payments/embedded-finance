@@ -130,6 +130,9 @@ WithClientId.parameters = {
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropNew);
       }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(efClientSolPropNew?.parties?.filter((p) => p.id === '2000000111')[0]);
+      }),
     ],
   },
 };
