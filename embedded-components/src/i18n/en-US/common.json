@@ -3,5 +3,8 @@
   "previous": "Previous",
   "submit": "Submit",
   "loading": "Loading...",
-  "submitting": "Submitting..."
+  "submitting": "Submitting...",
+  "validation": {
+    "required": "This field is required"
+  }
 }

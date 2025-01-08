@@ -1644,7 +1644,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^4.6.2"
     eslint-plugin-tailwindcss: "npm:^3.17.4"
     geist: "npm:^1.3.1"
-    i18next: "npm:^23.16.5"
+    i18next: "npm:^24.2.1"
     identity-obj-proxy: "npm:^3.0.0"
     jsdom: "npm:^24.1.1"
     json-diff-ts: "npm:^4.0.1"
@@ -1691,6 +1691,7 @@ __metadata:
     vitest: "npm:^2.1.8"
     yup: "npm:^1.4.0"
     zod: "npm:^3.23.8"
+    zod-i18n-map: "npm:^2.27.0"
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -8148,12 +8149,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:^23.16.5":
-  version: 23.16.5
-  resolution: "i18next@npm:23.16.5"
+"i18next@npm:^24.2.1":
+  version: 24.2.1
+  resolution: "i18next@npm:24.2.1"
   dependencies:
     "@babel/runtime": "npm:^7.23.2"
-  checksum: 10c0/4f926c09dc1087041084dbbfb8307bf2fdba1981069dece1c563577ca8a38a23ebfadf4d1c50c4091b640a8c8bf81d9cd008bd3e587bd452a6b9c728d5065346
+  peerDependencies:
+    typescript: ^5
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10c0/f4193ec0c84b292f12fb734bb93f0dae09bdb5deed2f6b888694b4309b15d1703b2b61088b9a50772deeab4b53868ec204a0e932e44b3474358910995b88627b
   languageName: node
   linkType: hard
 
@@ -13252,6 +13258,16 @@ __metadata:
     toposort: "npm:^2.0.2"
     type-fest: "npm:^2.19.0"
   checksum: 10c0/fe142141365eed0f78fb2e18bdd2f10bf101385dae12a5f9de14884448067bdca16a54b547fc0bffec04a098dd70b4519ff366422f3da006fd11a0717a7863ac
+  languageName: node
+  linkType: hard
+
+"zod-i18n-map@npm:^2.27.0":
+  version: 2.27.0
+  resolution: "zod-i18n-map@npm:2.27.0"
+  peerDependencies:
+    i18next: ">=21.3.0"
+    zod: ">=3.17.0"
+  checksum: 10c0/ecaa2df6489a3349d12cc5401c844b3b5a1f2aab0ee696f29fec54c9708cf31a8584a17769edb360d2f8f47ee7683c38c932774d6bd9522e6ba4f147a23bae02
   languageName: node
   linkType: hard
 

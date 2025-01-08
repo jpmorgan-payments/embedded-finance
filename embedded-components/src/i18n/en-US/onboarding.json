@@ -46,7 +46,10 @@
       "label": "Country of formation",
       "placeholder": "Enter country of formation",
       "description": "",
-      "tooltip": "Country code in ISO alpha-2 format"
+      "tooltip": "Country code in ISO alpha-2 format",
+      "validation": {
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
     },
     "yearOfFormation": {
       "label": "Year of formation",
