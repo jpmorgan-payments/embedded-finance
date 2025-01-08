@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
+import { efClientSolPropAdditionalDocuments } from '@/mocks/efClientSolPropAdditionalDocuments.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
+import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -12,8 +14,6 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
-import { efClientSolPropAdditionalDocuments } from '@/mocks/efClientSolPropAdditionalDocuments.mock';
-import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -187,7 +187,8 @@ ReviewAndAttest.parameters = {
 };
 
 export const AdditionalDocumentsRequested = Default.bind({});
-AdditionalDocumentsRequested.storyName = '6. Additional Documents requested step';
+AdditionalDocumentsRequested.storyName =
+  '6. Additional Documents requested step';
 AdditionalDocumentsRequested.args = {
   ...WithClientId.args,
   blockPostVerification: true,
