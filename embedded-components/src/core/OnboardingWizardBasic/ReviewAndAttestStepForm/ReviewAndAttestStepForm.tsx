@@ -20,6 +20,7 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';
+import { QueryClient } from '@tanstack/react-query';
 
 interface ClientResponseOutstanding {
   [key: string]: any[];
@@ -44,6 +45,7 @@ export const ReviewAndAttestStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
   const { clientId, onPostClientResponse, blockPostVerification } =
     useOnboardingContext();
+    const queryClient = new QueryClient();
 
   const [termsAgreed, setTermsAgreed] = useState({
     useOfAccount: false,
@@ -88,13 +90,11 @@ export const ReviewAndAttestStepForm = () => {
       },
     });
 
-  const { data: questionsDetails } = useSmbdoListQuestions(
-    {
-      questionIds: clientData?.questionResponses
-        ?.map((r) => r.questionId)
-        .join(','),
-    },
-  );
+  const { data: questionsDetails } = useSmbdoListQuestions({
+    questionIds: clientData?.questionResponses
+      ?.map((r) => r.questionId)
+      .join(','),
+  });
 
   const allTermsAgreed = Object.values(termsAgreed).every(Boolean);
   const allDocumentsOpened = Object.values(termsDocumentsOpened).every(Boolean);
@@ -116,21 +116,43 @@ export const ReviewAndAttestStepForm = () => {
   const onCompleteKYCHandler = async () => {
     if (clientId) {
       const requestBody = {
-        attestationTime: new Date().toISOString(),
-        attesterFullName: clientData?.parties?.find(
-          (party) => party?.partyType === 'INDIVIDUAL'
-        )?.individualDetails?.firstName,
-        ipAddress: '1.1.1.1', // TODO: Get real IP address
-        documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
+        addAttestations: [
+          {
+            attestationTime: new Date().toISOString(),
+            attesterFullName: clientData?.parties?.find(
+              (party) => party?.partyType === 'INDIVIDUAL'
+            )?.individualDetails?.firstName,
+            ipAddress: '1.1.1.1', // TODO: Get real IP address
+            documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
+          },
+        ],
       } as UpdateClientRequestSmbdo;
 
-      await updateClient({
-        id: clientId,
-        data: requestBody,
-      });
+      const verificationRequestBody = {
+        consumerDevice: {
+          ipAddress: '1.1.1.1', // TODO: Get real IP address
+          sessionId: 'unique-session-id-123456', // TODO: Generate or retrieve the actual session ID
+        },
+      };
+
+      if (clientData?.outstanding?.attestationDocumentIds?.length) {
+        await updateClient({
+          id: clientId,
+          data: requestBody,
+        });
+      }
 
       if (!blockPostVerification) {
-        await initiateKYC({ id: clientId, data: requestBody });
+        await initiateKYC({ id: clientId, data: verificationRequestBody }, {
+          onSuccess: () => {
+            toast.success('KYC initiated successfully');
+            queryClient.invalidateQueries()
+          
+          },
+          onError: () => {
+            toast.error('Failed to initiate KYC');
+          },
+        });
       }
     }
   };
