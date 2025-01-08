@@ -55,6 +55,7 @@ import {
   translateApiErrorsToFormErrors,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
+import { COUNTRIES_OF_FORMATION } from '../utils/countriesOfFormationList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
 
 export const InitialStepForm = () => {
@@ -454,9 +455,20 @@ export const InitialStepForm = () => {
                   <FormDescription>
                     Country code in alpha-2 format
                   </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger ref={field.ref}>
+                        <SelectValue placeholder="Select country of formation" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {COUNTRIES_OF_FORMATION.map((country) => (
+                        <SelectItem key={country} value={country} defaultValue="US">
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

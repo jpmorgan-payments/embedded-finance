@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { IconCheck } from '@tabler/icons-react';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueries } from '@tanstack/react-query';
 import { get } from 'lodash';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+  smbdoDownloadDocument,
+  smbdoGetDocumentDetail,
   useSmbdoGetClient,
   useSmbdoListQuestions,
   useSmbdoPostClientVerifications,
@@ -59,10 +61,13 @@ export const ReviewAndAttestStepForm = () => {
     dataAccuracy: false,
     termsAndConditions: false,
   });
-  const [termsDocumentsOpened, setTermsDocumentsOpened] = useState({
-    paymentTerms: false,
-    eSignDisclosure: false,
-  });
+
+  const [termsDocumentsOpened, setTermsDocumentsOpened] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [loadingDocuments, setLoadingDocuments] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -71,24 +76,20 @@ export const ReviewAndAttestStepForm = () => {
 
   // Update client attestation
   const { mutateAsync: updateClient, error: updateClientError } =
-    useSmbdoUpdateClient({
-      mutation: {
-        onSettled: (data, error) => {
-          onPostClientResponse?.(data, error?.response?.data);
-        },
-        onSuccess: () => {
-          toast.success('Attestation details updated successfully');
-          nextStep();
-        },
-        onError: () => {
-          toast.error('Failed to update attestation details');
-        },
-      },
-    });
+    useSmbdoUpdateClient();
 
   // Initiate KYC
   const { mutateAsync: initiateKYC, error: clientVerificationsError } =
     useSmbdoPostClientVerifications();
+
+  const documentIds = clientData?.outstanding?.attestationDocumentIds || [];
+
+  const documentQueries = useQueries({
+    queries: documentIds.map((id) => ({
+      queryKey: ['documentDetail', id],
+      queryFn: () => smbdoGetDocumentDetail(id), // Ensure this returns a promise
+    })),
+  });
 
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: clientData?.questionResponses
@@ -105,13 +106,30 @@ export const ReviewAndAttestStepForm = () => {
       setTermsAgreed((prev) => ({ ...prev, [term]: checked }));
     };
 
-  const handleDocumentOpen =
-    (document: keyof typeof termsDocumentsOpened) => () => {
-      setTermsDocumentsOpened((prev) => ({ ...prev, [document]: true }));
-      // Here you would typically open the document or navigate to it
-      toast.info(`${document} document opened`);
-      window.open('https://www.jpmorgan.com', '_blank')?.focus();
-    };
+  const handleDocumentOpen = (documentId: string) => async () => {
+    try {
+      setLoadingDocuments((prev) => ({ ...prev, [documentId]: true }));
+
+      // Fetch the document
+      const response = await smbdoDownloadDocument(documentId, {
+        responseType: 'blob',
+      });
+
+      // Create a URL for the blob and open it
+      const blob = new Blob([response as BlobPart], {
+        type: 'application/pdf',
+      });
+      const url = URL.createObjectURL(blob);
+
+      window.open(url, '_blank')?.focus();
+      setTermsDocumentsOpened((prev) => ({ ...prev, [documentId]: true }));
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast.error('Failed to download document');
+    } finally {
+      setLoadingDocuments((prev) => ({ ...prev, [documentId]: false }));
+    }
+  };
 
   const onCompleteKYCHandler = async () => {
     if (clientId) {
@@ -136,10 +154,24 @@ export const ReviewAndAttestStepForm = () => {
       };
 
       if (clientData?.outstanding?.attestationDocumentIds?.length) {
-        await updateClient({
-          id: clientId,
-          data: requestBody,
-        });
+        await updateClient(
+          {
+            id: clientId,
+            data: requestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              toast.success('Attestation details updated successfully');
+              nextStep();
+            },
+            onError: () => {
+              toast.error('Failed to update attestation details');
+            },
+          }
+        );
       }
 
       if (!blockPostVerification) {
@@ -298,46 +330,37 @@ export const ReviewAndAttestStepForm = () => {
                 id="termsAndConditions"
                 checked={termsAgreed.termsAndConditions}
                 onCheckedChange={handleTermsChange('termsAndConditions')}
-                disabled={
-                  !termsDocumentsOpened.paymentTerms ||
-                  !termsDocumentsOpened.eSignDisclosure
-                }
                 className="eb-mr-4"
               />
               <Label
                 htmlFor="termsAndConditions"
                 className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
               >
-                I have read and agree to the below and the certifications
-                directly above conditions checkbox.
-                <Button
-                  onClick={handleDocumentOpen('paymentTerms')}
-                  className="eb-text-blue-600 eb-underline"
-                  variant="link"
-                >
-                  <span className="">
-                    {termsDocumentsOpened.paymentTerms ? (
-                      <IconCheck className="eb-h-4 eb-w-4" />
-                    ) : (
-                      <span className="eb-h-4" />
-                    )}
-                  </span>
-                  J.P. Morgan Embedded Payment Terms & Conditions
-                </Button>
-                <Button
-                  onClick={handleDocumentOpen('eSignDisclosure')}
-                  className="eb-text-blue-600 eb-underline"
-                  variant="link"
-                >
-                  <span className="">
-                    {termsDocumentsOpened.eSignDisclosure ? (
-                      <IconCheck className="eb-h-4 eb-w-4" />
-                    ) : (
-                      <span className="eb-h-4" />
-                    )}
-                  </span>
-                  the E-Sign Disclosure and Consent
-                </Button>
+                I have read and agree to the below attestation documents:
+                {documentQueries.map((query, index) => (
+                  <div key={index}>
+                    <Button
+                      onClick={handleDocumentOpen(query.data?.id ?? '')}
+                      className="eb-text-blue-600 eb-underline"
+                      variant="link"
+                      disabled={
+                        query.data?.id ? loadingDocuments[query.data.id] : false
+                      } // Disable button while loading
+                    >
+                      <span className="">
+                        {query.data?.id &&
+                        termsDocumentsOpened[query.data.id] ? (
+                          <IconCheck className="eb-h-4 eb-w-4" />
+                        ) : (
+                          <span className="eb-h-4" />
+                        )}
+                      </span>
+                      {query.data?.id && loadingDocuments[query.data.id]
+                        ? 'Downloading...'
+                        : query.data?.documentType}
+                    </Button>
+                  </div>
+                ))}
                 {!allDocumentsOpened && (
                   <p className="eb-text-sm eb-font-semibold eb-text-red-600">
                     Please open the documents links to enable the terms and
