@@ -42,7 +42,7 @@
       "description": "",
       "tooltip": ""
     },
-    "individualAddress.addressType": {
+    "individualAddresses.addressType": {
       "label": "Address type",
       "placeholder": "Select address type",
       "description": "",
