@@ -33,8 +33,10 @@ const MissingPartyFields = ({ partyId }: { partyId: string }) => {
 
 const OutstandingKYCRequirements = ({
   clientData,
+  isAttestationInfoIncluded,
 }: {
   clientData: ClientResponse;
+  isAttestationInfoIncluded?: boolean;
 }) => {
   const outstanding = clientData?.outstanding;
 
@@ -49,16 +51,17 @@ const OutstandingKYCRequirements = ({
       <AlertDescription>
         <p>Please complete the following before initiating KYC:</p>
 
-        {!!outstanding?.attestationDocumentIds?.length && (
-          <div className="eb-mt-2">
-            <h4 className="eb-font-semibold">Missing Attestations</h4>
-            <ul className="eb-list-inside eb-list-disc">
-              {outstanding.attestationDocumentIds.map((id) => (
-                <li key={id}>Attestation Document ID: {id}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {!!outstanding?.attestationDocumentIds?.length &&
+          !!isAttestationInfoIncluded && (
+            <div className="eb-mt-2">
+              <h4 className="eb-font-semibold">Missing Attestations</h4>
+              <ul className="eb-list-inside eb-list-disc">
+                {outstanding.attestationDocumentIds.map((id) => (
+                  <li key={id}>Attestation Document ID: {id}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
         {!!outstanding?.documentRequestIds?.length && (
           <div className="eb-mt-2">
@@ -90,7 +93,6 @@ const OutstandingKYCRequirements = ({
 
         {!!outstanding?.partyIds?.length && (
           <div className="eb-mt-2">
-            <h4 className="eb-font-semibold">Incomplete Party Information</h4>
             {outstanding.partyIds.map((partyId) => (
               <MissingPartyFields partyId={partyId} />
             ))}

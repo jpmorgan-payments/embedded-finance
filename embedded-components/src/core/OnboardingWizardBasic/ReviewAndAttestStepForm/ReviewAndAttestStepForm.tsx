@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { IconCheck } from '@tabler/icons-react';
+import { QueryClient } from '@tanstack/react-query';
 import { get } from 'lodash';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   useSmbdoGetClient,
@@ -18,8 +20,14 @@ import { Button, Checkbox, Label, Stack, Title } from '@/components/ui';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { useIPAddress } from '../utils/getIPAddress';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';
+
+const generateSessionId = () => {
+  const sessionId = uuidv4();
+  return sessionId.replace(/[^a-zA-Z0-9_-]/g, '');
+};
 
 interface ClientResponseOutstanding {
   [key: string]: any[];
@@ -32,14 +40,19 @@ const isOutstandingEmpty = (
     return false;
   }
 
-  return Object.keys(outstanding).every(
-    (key) => Array.isArray(outstanding[key]) && outstanding[key].length === 0
-  );
+  return Object.keys(outstanding).every((key) => {
+    if (key === 'attestationDocumentIds') {
+      return true;
+    }
+    return Array.isArray(outstanding[key]) && outstanding[key].length === 0;
+  });
 };
 
 export const ReviewAndAttestStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
-  const { clientId, onPostClientResponse } = useOnboardingContext();
+  const { clientId, onPostClientResponse, blockPostVerification } =
+    useOnboardingContext();
+  const queryClient = new QueryClient();
 
   const [termsAgreed, setTermsAgreed] = useState({
     useOfAccount: false,
@@ -53,6 +66,8 @@ export const ReviewAndAttestStepForm = () => {
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
+
+  const { data: IPAddress } = useIPAddress();
 
   // Update client attestation
   const { mutateAsync: updateClient, error: updateClientError } =
@@ -73,16 +88,7 @@ export const ReviewAndAttestStepForm = () => {
 
   // Initiate KYC
   const { mutateAsync: initiateKYC, error: clientVerificationsError } =
-    useSmbdoPostClientVerifications({
-      mutation: {
-        onSuccess: () => {
-          toast.success('KYC initiated successfully');
-        },
-        onError: () => {
-          toast.error('Failed to initiate KYC');
-        },
-      },
-    });
+    useSmbdoPostClientVerifications();
 
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: clientData?.questionResponses
@@ -110,24 +116,46 @@ export const ReviewAndAttestStepForm = () => {
   const onCompleteKYCHandler = async () => {
     if (clientId) {
       const requestBody = {
-        addAttestations: {
-          ...clientData?.attestations?.concat({
+        addAttestations: [
+          {
             attestationTime: new Date().toISOString(),
             attesterFullName: clientData?.parties?.find(
               (party) => party?.partyType === 'INDIVIDUAL'
             )?.individualDetails?.firstName,
-            ipAddress: '', // TODO: get IP address
-            documentId: '', // TODO: get document id
-          }),
-        },
+            ipAddress: IPAddress,
+            documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
+          },
+        ],
       } as UpdateClientRequestSmbdo;
 
-      await updateClient({
-        id: clientId,
-        data: requestBody,
-      });
+      const verificationRequestBody = {
+        consumerDevice: {
+          ipAddress: IPAddress,
+          sessionId: generateSessionId(), // Generate session ID matching the pattern
+        },
+      };
 
-      await initiateKYC({ id: clientId, data: requestBody });
+      if (clientData?.outstanding?.attestationDocumentIds?.length) {
+        await updateClient({
+          id: clientId,
+          data: requestBody,
+        });
+      }
+
+      if (!blockPostVerification) {
+        await initiateKYC(
+          { id: clientId, data: verificationRequestBody },
+          {
+            onSuccess: () => {
+              toast.success('KYC initiated successfully');
+              queryClient.invalidateQueries();
+            },
+            onError: () => {
+              toast.error('Failed to initiate KYC');
+            },
+          }
+        );
+      }
     }
   };
 
@@ -178,6 +206,13 @@ export const ReviewAndAttestStepForm = () => {
         {!isOutstandingEmpty(clientData?.outstanding) && clientData && (
           <OutstandingKYCRequirements clientData={clientData} />
         )}
+
+        {isOutstandingEmpty(clientData?.outstanding) && clientData && (
+          <div className="eb-mb-4 eb-bg-green-100 eb-p-4 eb-text-green-800">
+            All outstanding KYC requirements have been addressed.
+          </div>
+        )}
+
         <div className="eb-w-xl eb-px-4">
           {clientData?.parties?.map((party) =>
             party?.partyType === 'ORGANIZATION'
@@ -187,30 +222,31 @@ export const ReviewAndAttestStepForm = () => {
         </div>
 
         {!!clientData?.questionResponses?.length && (
-          <>
+          <div className="eb-w-xl eb-px-4">
             <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
               Question Responses
             </h2>
             {clientData?.questionResponses?.map((questionResponse) => (
-              <div
-                key={questionResponse.questionId}
-                className="eb-mb-4 eb-border-b eb-border-dotted eb-border-gray-300 eb-p-4"
-              >
-                <dl className="eb-ml-2 eb-space-y-2">
-                  <dt className="eb-w-1/3 sm:eb-mb-0">
-                    {
-                      questionsDetails?.questions?.find(
-                        (q) => q.id === questionResponse.questionId
-                      )?.description
-                    }
-                  </dt>
-                  <dd className="sm:eb-w-2/3sm:eb-pl-4">
-                    <b>Response:</b> {questionResponse?.values?.join(', ')}
-                  </dd>
-                </dl>
-              </div>
+              <>
+                {!!questionResponse?.values?.length && (
+                  <div key={questionResponse.questionId} className="eb-p-4">
+                    <dl className="eb-ml-2">
+                      <dt className="">
+                        {
+                          questionsDetails?.questions?.find(
+                            (q) => q.id === questionResponse.questionId
+                          )?.description
+                        }
+                      </dt>
+                      <dd className="">
+                        <b>Response:</b> {questionResponse?.values?.join(', ')}
+                      </dd>
+                    </dl>
+                  </div>
+                )}
+              </>
             ))}
-          </>
+          </div>
         )}
 
         <div className="eb-mt-8 eb-border-t eb-pt-4">
@@ -272,13 +308,14 @@ export const ReviewAndAttestStepForm = () => {
                 htmlFor="termsAndConditions"
                 className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
               >
-                I have read and agree to the
+                I have read and agree to the below and the certifications
+                directly above conditions checkbox.
                 <Button
                   onClick={handleDocumentOpen('paymentTerms')}
                   className="eb-text-blue-600 eb-underline"
                   variant="link"
                 >
-                  <span className="eb-flex eb-h-4 eb-w-4 eb-items-center eb-justify-center">
+                  <span className="">
                     {termsDocumentsOpened.paymentTerms ? (
                       <IconCheck className="eb-h-4 eb-w-4" />
                     ) : (
@@ -292,7 +329,7 @@ export const ReviewAndAttestStepForm = () => {
                   className="eb-text-blue-600 eb-underline"
                   variant="link"
                 >
-                  <span className="eb-flex eb-h-4 eb-w-4 eb-items-center eb-justify-center">
+                  <span className="">
                     {termsDocumentsOpened.eSignDisclosure ? (
                       <IconCheck className="eb-h-4 eb-w-4" />
                     ) : (
@@ -301,11 +338,12 @@ export const ReviewAndAttestStepForm = () => {
                   </span>
                   the E-Sign Disclosure and Consent
                 </Button>
-                and the certifications directly above.
-                <p className="eb-text-sm eb-text-muted-foreground">
-                  Please open the documents links to enable the terms and
-                  conditions checkbox.
-                </p>
+                {!allDocumentsOpened && (
+                  <p className="eb-text-sm eb-font-semibold eb-text-red-600">
+                    Please open the documents links to enable the terms and
+                    conditions checkbox.
+                  </p>
+                )}
               </Label>
             </div>
           </div>

@@ -101,6 +101,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   alertOnExit = false,
   userEventsToTrack = [],
   userEventsHandler,
+  usePartyResource = true,
   ...props
 }) => {
   const {
@@ -188,11 +189,13 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
         );
       };
     }
-    return undefined;
+    return () => {
+      // Cleanup logic here (if needed)
+    };
   }, []);
 
   return (
-    <OnboardingContextProvider {...props}>
+    <OnboardingContextProvider {...{ ...props, usePartyResource }}>
       <Card className="eb-component">
         <CardHeader>
           <CardTitle>{t('title')}</CardTitle>

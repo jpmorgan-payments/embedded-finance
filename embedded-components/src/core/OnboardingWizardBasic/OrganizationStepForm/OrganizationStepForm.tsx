@@ -8,8 +8,15 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
-import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
-import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import {
+  useSmbdoGetClient,
+  useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
+} from '@/api/generated/smbdo';
+import {
+  UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
+} from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -52,6 +59,7 @@ import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField'
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
+  generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
@@ -65,7 +73,12 @@ import {
 
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
-  const { clientId, onPostClientResponse } = useOnboardingContext();
+  const {
+    clientId,
+    onPostClientResponse,
+    onPostPartyResponse,
+    usePartyResource,
+  } = useOnboardingContext();
   const { t } = useTranslation('onboarding');
 
   // Fetch client data
@@ -98,10 +111,10 @@ export const OrganizationStepForm = () => {
       addresses: [
         {
           addressType: 'BUSINESS_ADDRESS',
-          addressLines: [],
           city: '',
           postalCode: '',
           country: '',
+          addressLines: [''],
         },
       ],
       organizationIds: [
@@ -164,10 +177,10 @@ export const OrganizationStepForm = () => {
     name: 'secondaryMccList',
   });
 
-  // Get organization's partyId
-  const partyId = clientData?.parties?.find(
+  // Get organization's party
+  const existingOrgParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
-  )?.id;
+  );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
@@ -176,20 +189,36 @@ export const OrganizationStepForm = () => {
     if (
       getClientStatus === 'success' &&
       clientData &&
-      partyId &&
+      existingOrgParty?.id &&
       !isFormPopulated
     ) {
-      const formValues = convertClientResponseToFormValues(clientData, partyId);
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        existingOrgParty?.id
+      );
+
       form.reset(formValues);
       setIsFormPopulated(true);
     }
-  }, [clientData, getClientStatus, form.reset, partyId, isFormPopulated]);
+  }, [
+    clientData,
+    getClientStatus,
+    form.reset,
+    existingOrgParty?.id,
+    isFormPopulated,
+  ]);
 
   const {
     mutate: updateClient,
     error: updateClientError,
     status: updateClientStatus,
   } = useSmbdoUpdateClient();
+
+  const {
+    mutate: updateParty,
+    error: updatePartyError,
+    status: updatePartyStatus,
+  } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
@@ -199,44 +228,108 @@ export const OrganizationStepForm = () => {
         website: values.websiteAvailable ? values.website : '',
       };
 
-      const requestBody = generateRequestBody(modifiedValues, 0, 'addParties', {
-        addParties: [
-          {
-            ...(partyId ? { id: partyId } : {}),
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
-
-      updateClient(
+      const clientRequestBody = generateRequestBody(
+        modifiedValues,
+        0,
+        'addParties',
         {
-          id: clientId,
-          data: requestBody,
-        },
-        {
-          onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
-          },
-          onSuccess: () => {
-            nextStep();
-            toast.success("Client's organization details updated successfully");
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = translateApiErrorsToFormErrors(
-                context,
-                0,
-                'addParties'
-              );
-              setApiFormErrors(form, apiFormErrors);
-            }
-          },
+          addParties: [
+            {
+              ...(existingOrgParty?.id
+                ? {
+                    id: existingOrgParty?.id,
+                    partyType: existingOrgParty?.partyType,
+                    roles: existingOrgParty?.roles,
+                  }
+                : {
+                    partyType: 'ORGANIZATION',
+                    roles: ['CLIENT'],
+                  }),
+            },
+          ],
         }
-      );
+      ) as UpdateClientRequestSmbdo;
+
+      const partyRequestBody = generatePartyRequestBody(modifiedValues, {
+        ...(existingOrgParty?.id
+          ? {
+              id: existingOrgParty?.id,
+              partyType: existingOrgParty?.partyType,
+              roles: existingOrgParty?.roles,
+            }
+          : {
+              partyType: 'ORGANIZATION',
+              roles: ['CLIENT'],
+            }),
+      }) as UpdatePartyRequest;
+
+      if (usePartyResource && existingOrgParty?.id) {
+        updateParty(
+          {
+            partyId: existingOrgParty?.id,
+            data: partyRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        updateClient(
+          {
+            id: clientId,
+            data: clientRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
     }
   });
 
   if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
 
@@ -292,74 +385,71 @@ export const OrganizationStepForm = () => {
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Organization Phone Information
           </legend>
-
-          <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
-            {isFieldVisible('organizationPhone') && (
-              <FormField
-                control={form.control}
-                name="organizationPhone.phoneType"
-                disabled={isFieldDisabled('organizationPhone')}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel asterisk={isFieldRequired('organizationPhone')}>
-                      Phone Type
-                    </FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger ref={field.ref}>
-                          <SelectValue placeholder="Select phone type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="BUSINESS_PHONE">
-                          Business Phone
-                        </SelectItem>
-                        <SelectItem value="MOBILE_PHONE">
-                          Mobile Phone
-                        </SelectItem>
-                        <SelectItem value="ALTERNATE_PHONE">
-                          Alternate Phone
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {isFieldVisible('organizationPhone') && (
-              <FormField
-                control={form.control}
-                name="organizationPhone.phoneNumber"
-                disabled={isFieldDisabled('organizationPhone')}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel asterisk={isFieldRequired('organizationPhone')}>
-                      Phone Number
-                    </FormLabel>
-                    <FormControl key={clientContext.jurisdiction}>
-                      <PhoneInput
-                        {...field}
-                        countries={['CA', 'US']}
-                        placeholder="Enter phone number"
-                        international={false}
-                        defaultCountry={
-                          clientContext.jurisdiction === 'CanadaMS'
-                            ? 'CA'
-                            : 'US'
-                        }
-                      />
+          {isFieldVisible('organizationPhone') && (
+            <FormField
+              control={form.control}
+              name="organizationPhone.phoneType"
+              disabled={isFieldDisabled('organizationPhone')}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel asterisk={isFieldRequired('organizationPhone')}>
+                    Phone Type
+                  </FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger ref={field.ref}>
+                        <SelectValue placeholder="Select phone type" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
+                    <SelectContent>
+                      <SelectItem value="BUSINESS_PHONE">
+                        Business Phone
+                      </SelectItem>
+                      <SelectItem value="MOBILE_PHONE">Mobile Phone</SelectItem>
+                      <SelectItem value="ALTERNATE_PHONE">
+                        Alternate Phone
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible('organizationPhone') && (
+            <FormField
+              control={form.control}
+              name="organizationPhone.phoneNumber"
+              disabled={isFieldDisabled('organizationPhone')}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel asterisk={isFieldRequired('organizationPhone')}>
+                    Phone Number
+                  </FormLabel>
+                  <FormControl key={clientContext.jurisdiction}>
+                    <PhoneInput
+                      {...field}
+                      countries={['CA', 'US']}
+                      placeholder="Enter phone number"
+                      international={false}
+                      defaultCountry={
+                        clientContext.jurisdiction === 'CanadaMS' ? 'CA' : 'US'
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </fieldset>
 
-        <div className="eb-grid eb-grid-cols-2 eb-gap-6">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+            Industry Info
+          </legend>
+
           {isFieldVisible('industryType') && (
             <FormField
               control={form.control}
@@ -467,9 +557,7 @@ export const OrganizationStepForm = () => {
               }}
             />
           )}
-        </div>
 
-        <div className="eb-flex">
           {isFieldVisible('mcc') && (
             <FormField
               control={form.control}
@@ -497,496 +585,495 @@ export const OrganizationStepForm = () => {
               )}
             />
           )}
-        </div>
+          {isFieldVisible('entitiesInOwnership') && (
+            <FormField
+              control={form.control}
+              name="entitiesInOwnership"
+              disabled={isFieldDisabled('entitiesInOwnership')}
+              render={({ field }) => (
+                <FormItem className="eb-space-y-3">
+                  <FormLabel asterisk={isFieldRequired('entitiesInOwnership')}>
+                    Are there one or more entities that own part of the business
+                    connected to the client?
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      {...field}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="eb-flex eb-flex-col eb-space-y-1"
+                    >
+                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="yes" />
+                        </FormControl>
+                        <FormLabel className="eb-font-normal">Yes</FormLabel>
+                      </FormItem>
+                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="no" />
+                        </FormControl>
+                        <FormLabel className="eb-font-normal">No</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-        {isFieldVisible('entitiesInOwnership') && (
-          <FormField
-            control={form.control}
-            name="entitiesInOwnership"
-            disabled={isFieldDisabled('entitiesInOwnership')}
-            render={({ field }) => (
-              <FormItem className="eb-space-y-3">
-                <FormLabel asterisk={isFieldRequired('entitiesInOwnership')}>
-                  Are there one or more entities that own part of the business
-                  connected to the client?
-                </FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    {...field}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="eb-flex eb-flex-col eb-space-y-1"
-                  >
-                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="yes" />
-                      </FormControl>
-                      <FormLabel className="eb-font-normal">Yes</FormLabel>
-                    </FormItem>
-                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="no" />
-                      </FormControl>
-                      <FormLabel className="eb-font-normal">No</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+          {isFieldVisible('tradeOverInternet') && (
+            <FormField
+              control={form.control}
+              name="tradeOverInternet"
+              disabled={isFieldDisabled('tradeOverInternet')}
+              render={({ field }) => (
+                <FormItem className="eb-space-y-3">
+                  <FormLabel asterisk={isFieldRequired('tradeOverInternet')}>
+                    Does the business conduct trade over the internet?
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      {...field}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="eb-flex eb-flex-col eb-space-y-1"
+                    >
+                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="yes" />
+                        </FormControl>
+                        <FormLabel className="eb-font-normal">Yes</FormLabel>
+                      </FormItem>
+                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="no" />
+                        </FormControl>
+                        <FormLabel className="eb-font-normal">No</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </fieldset>
 
-        {isFieldVisible('tradeOverInternet') && (
-          <FormField
-            control={form.control}
-            name="tradeOverInternet"
-            disabled={isFieldDisabled('tradeOverInternet')}
-            render={({ field }) => (
-              <FormItem className="eb-space-y-3">
-                <FormLabel asterisk={isFieldRequired('tradeOverInternet')}>
-                  Does the business conduct trade over the internet?
-                </FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    {...field}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="eb-flex eb-flex-col eb-space-y-1"
-                  >
-                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="yes" />
-                      </FormControl>
-                      <FormLabel className="eb-font-normal">Yes</FormLabel>
-                    </FormItem>
-                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="no" />
-                      </FormControl>
-                      <FormLabel className="eb-font-normal">No</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        {/* Addresses */}
+        {/* ADDRESSES */}
         {isFieldVisible('addresses') && (
-          <div className="eb-space-y-4">
-            <h3 className="eb-text-lg eb-font-medium">Addresses</h3>
+          <>
             {addressFields.map((fieldName, index) => (
-              <div
-                key={fieldName.id}
-                className="eb-space-y-4 eb-rounded-md eb-border eb-p-4"
-              >
-                <h4 className="eb-font-medium">Address {index + 1}</h4>
-                <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`addresses.${index}.addressType`}
-                    type="select"
-                    required
-                    options={[
-                      {
-                        value: 'LEGAL_ADDRESS',
-                        label: t('addressTypes.LEGAL_ADDRESS'),
-                      },
-                      {
-                        value: 'MAILING_ADDRESS',
-                        label: t('addressTypes.MAILING_ADDRESS'),
-                      },
-                      {
-                        value: 'BUSINESS_ADDRESS',
-                        label: t('addressTypes.BUSINESS_ADDRESS'),
-                      },
-                      {
-                        value: 'RESIDENTIAL_ADDRESS',
-                        label: t('addressTypes.RESIDENTIAL_ADDRESS'),
-                      },
-                    ]}
-                  />
+              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                  Organization Address {index + 1}
+                </legend>
+                <OnboardingFormField
+                  control={form.control}
+                  name={`addresses.${index}.addressType`}
+                  type="select"
+                  required
+                  options={[
+                    {
+                      value: 'LEGAL_ADDRESS',
+                      label: t('addressTypes.LEGAL_ADDRESS'),
+                    },
+                    {
+                      value: 'MAILING_ADDRESS',
+                      label: t('addressTypes.MAILING_ADDRESS'),
+                    },
+                    {
+                      value: 'BUSINESS_ADDRESS',
+                      label: t('addressTypes.BUSINESS_ADDRESS'),
+                    },
+                    {
+                      value: 'RESIDENTIAL_ADDRESS',
+                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                    },
+                  ]}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name={`addresses.${index}.addressLines.0`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address Line 1</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter address line 1"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`addresses.${index}.addressLines.1`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address Line 2</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter address line 2"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`addresses.${index}.city`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter city" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`addresses.${index}.state`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>State</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter state" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`addresses.${index}.postalCode`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Postal Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter postal code" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`addresses.${index}.country`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Country</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={2}
-                            placeholder="e.g., US"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button
-                  type="button"
-                  onClick={() => removeAddress(index)}
-                  variant="outline"
-                  size="sm"
-                  className="eb-mt-2"
-                  disabled={
-                    addressFields.length <=
-                    (getFieldRule('addresses').minItems ?? 1)
-                  }
-                >
-                  Remove Address
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              disabled={
-                addressFields.length >=
-                (getFieldRule('addresses').maxItems ?? 5)
-              }
-              onClick={() =>
-                appendAddress(
-                  {
-                    addressType: 'BUSINESS_ADDRESS',
-                    addressLines: [''],
-                    city: '',
-                    postalCode: '',
-                    country: '',
-                  },
-                  {
-                    shouldFocus: false,
-                  }
-                )
-              }
-              variant="outline"
-              size="sm"
-              className="eb-mt-2"
-            >
-              Add Address
-            </Button>
-          </div>
-        )}
-
-        {/* Organization IDs */}
-        {isFieldVisible('organizationIds') && (
-          <div className="eb-space-y-4">
-            <h3 className="eb-text-lg eb-font-medium">Organization IDs</h3>
-            {organizationIdFields.map((fieldItem, index) => (
-              <div
-                key={fieldItem.id}
-                className="eb-space-y-4 eb-rounded-md eb-border eb-p-4"
-              >
-                <h4 className="eb-font-medium">Organization ID {index + 1}</h4>
-                <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                  <FormField
-                    control={form.control}
-                    name={`organizationIds.${index}.idType`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ID Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger ref={field.ref}>
-                              <SelectValue placeholder="Select ID type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="EIN">EIN</SelectItem>
-                            <SelectItem value="BUSINESS_REGISTRATION_ID">
-                              Business Registration ID
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`organizationIds.${index}.value`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ID Value</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter ID value" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`organizationIds.${index}.issuer`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Issuer</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter issuer" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`organizationIds.${index}.expiryDate`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Expiry Date</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="date" className="eb-w-full" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`organizationIds.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter description (optional)"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  disabled={
-                    organizationIdFields.length <=
-                    (getFieldRule('organizationIds').minItems ?? 0)
-                  }
-                  onClick={() => removeOrganizationId(index)}
-                  variant="outline"
-                  size="sm"
-                  className="eb-mt-2"
-                >
-                  Remove Organization ID
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              disabled={
-                organizationIdFields.length >=
-                (getFieldRule('organizationIds').maxItems ?? 6)
-              }
-              onClick={() =>
-                appendOrganizationId({ idType: 'EIN', value: '', issuer: '' })
-              }
-              variant="outline"
-              size="sm"
-            >
-              Add Organization ID
-            </Button>
-          </div>
-        )}
-
-        {/* Associated Countries */}
-        {isFieldVisible('associatedCountries') && (
-          <div className="eb-space-y-4">
-            <h3 className="eb-text-lg eb-font-medium">Associated Countries</h3>
-            {associatedCountriesFields.map((fieldItem, index) => (
-              <div
-                key={fieldItem.id}
-                className="eb-flex eb-items-center eb-space-x-2"
-              >
                 <FormField
                   control={form.control}
-                  name={`associatedCountries.${index}.country`}
+                  name={`addresses.${index}.addressLines.0`}
                   render={({ field }) => (
-                    <FormItem className="eb-grow">
+                    <FormItem>
+                      <FormLabel asterisk>Address Line 1</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter address line 1" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`addresses.${index}.addressLines.1`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address Line 2</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter address line 2" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`addresses.${index}.city`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel asterisk>City</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter city" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`addresses.${index}.state`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel asterisk>State</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter state" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`addresses.${index}.postalCode`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel asterisk>Postal Code</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter postal code" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`addresses.${index}.country`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel asterisk>Country</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           maxLength={2}
-                          placeholder="Country code (e.g., US)"
+                          placeholder="e.g., US"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="button"
-                  disabled={
-                    associatedCountriesFields.length <=
-                    (getFieldRule('associatedCountries').minItems ?? 0)
-                  }
-                  onClick={() => removeAssociatedCountry(index)}
-                  variant="outline"
-                  size="sm"
-                >
-                  Remove
-                </Button>
-              </div>
+
+                <div className="eb-col-span-full">
+                  <Button
+                    type="button"
+                    onClick={() => removeAddress(index)}
+                    variant="outline"
+                    size="sm"
+                    className="eb-mt-2"
+                    disabled={
+                      addressFields.length <=
+                      (getFieldRule('addresses').minItems ?? 1)
+                    }
+                  >
+                    Remove Address
+                  </Button>
+                </div>
+              </fieldset>
             ))}
-            <Button
-              type="button"
-              disabled={
-                associatedCountriesFields.length >=
-                (getFieldRule('associatedCountries').maxItems ?? 100)
-              }
-              onClick={() => appendAssociatedCountry({ country: '' })}
-              variant="outline"
-              size="sm"
-            >
-              Add Associated Country
-            </Button>
-          </div>
+          </>
         )}
 
-        {/* Secondary MCC */}
-        {isFieldVisible('secondaryMccList') && (
-          <div className="eb-space-y-4">
-            <h3 className="eb-text-lg eb-font-medium">Secondary MCC</h3>
-            {secondaryMccFields.map((fieldItem, index) => (
-              <div
-                key={fieldItem.id}
-                className="eb-flex eb-items-center eb-space-x-2"
-              >
+        <Button
+          type="button"
+          disabled={
+            addressFields.length >= (getFieldRule('addresses').maxItems ?? 5)
+          }
+          onClick={() =>
+            appendAddress(
+              {
+                addressType: 'BUSINESS_ADDRESS',
+                addressLines: [''],
+                city: '',
+                postalCode: '',
+                country: '',
+              },
+              {
+                shouldFocus: false,
+              }
+            )
+          }
+          variant="outline"
+          size="sm"
+          className="eb-mt-2"
+        >
+          Add Address
+        </Button>
+
+        {/* Organization IDs */}
+        {isFieldVisible('organizationIds') && (
+          <>
+            {organizationIdFields.map((fieldItem, index) => (
+              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                  Organization ID {index + 1}
+                </legend>
                 <FormField
                   control={form.control}
-                  name={`secondaryMccList.${index}.mcc`}
+                  name={`organizationIds.${index}.idType`}
                   render={({ field }) => (
-                    <FormItem className="eb-grow">
+                    <FormItem>
+                      <FormLabel>ID Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger ref={field.ref}>
+                            <SelectValue placeholder="Select ID type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="EIN">EIN</SelectItem>
+                          <SelectItem value="BUSINESS_REGISTRATION_ID">
+                            Business Registration ID
+                          </SelectItem>
+                          <SelectItem value="BUSINESS_NUMBER">
+                            Business Number
+                          </SelectItem>
+                          <SelectItem value="BUSINESS_REGISTRATION_NUMBER">
+                            Business Registration Number
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`organizationIds.${index}.value`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ID Value</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter ID value" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`organizationIds.${index}.issuer`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Issuer</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter issuer" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`organizationIds.${index}.expiryDate`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expiry Date</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="date" className="eb-w-full" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`organizationIds.${index}.description`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          maxLength={4}
-                          placeholder="Secondary MCC"
+                          placeholder="Enter description (optional)"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="button"
-                  disabled={
-                    secondaryMccFields.length <=
-                    (getFieldRule('secondaryMccList').minItems ?? 0)
-                  }
-                  onClick={() => removeSecondaryMcc(index)}
-                  variant="outline"
-                  size="sm"
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              disabled={
-                secondaryMccFields.length >=
-                (getFieldRule('secondaryMccList').maxItems ?? 50)
-              }
-              onClick={() => appendSecondaryMcc({ mcc: '' })}
-              variant="outline"
-              size="sm"
-            >
-              Add Secondary MCC
-            </Button>
-          </div>
-        )}
 
-        {/* Additional Fields */}
-        <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <div className="eb-col-span-full">
+                  <Button
+                    type="button"
+                    disabled={
+                      organizationIdFields.length <=
+                      (getFieldRule('organizationIds').minItems ?? 0)
+                    }
+                    onClick={() => removeOrganizationId(index)}
+                    variant="outline"
+                    size="sm"
+                    className="eb-mt-2"
+                  >
+                    Remove Organization ID
+                  </Button>
+                </div>
+              </fieldset>
+            ))}
+          </>
+        )}
+        <Button
+          type="button"
+          disabled={
+            organizationIdFields.length >=
+            (getFieldRule('organizationIds').maxItems ?? 6)
+          }
+          onClick={() =>
+            appendOrganizationId({ idType: 'EIN', value: '', issuer: '' })
+          }
+          variant="outline"
+          size="sm"
+        >
+          Add Organization ID
+        </Button>
+
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+            Additional Fields
+          </legend>
+          {/* Associated Countries */}
+          {isFieldVisible('associatedCountries') && (
+            <div className="eb-space-y-4">
+              <h3 className="eb-text-lg eb-font-medium">
+                Associated Countries
+              </h3>
+              {associatedCountriesFields.map((fieldItem, index) => (
+                <div
+                  key={fieldItem.id}
+                  className="eb-flex eb-items-center eb-space-x-2"
+                >
+                  <FormField
+                    control={form.control}
+                    name={`associatedCountries.${index}.country`}
+                    render={({ field }) => (
+                      <FormItem className="eb-grow">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            maxLength={2}
+                            placeholder="Country code (e.g., US)"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    disabled={
+                      associatedCountriesFields.length <=
+                      (getFieldRule('associatedCountries').minItems ?? 0)
+                    }
+                    onClick={() => removeAssociatedCountry(index)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                disabled={
+                  associatedCountriesFields.length >=
+                  (getFieldRule('associatedCountries').maxItems ?? 100)
+                }
+                onClick={() => appendAssociatedCountry({ country: '' })}
+                variant="outline"
+                size="sm"
+              >
+                Add Associated Country
+              </Button>
+            </div>
+          )}
+
+          {/* Secondary MCC */}
+          {isFieldVisible('secondaryMccList') && (
+            <div className="eb-space-y-4">
+              <h3 className="eb-text-lg eb-font-medium">Secondary MCC</h3>
+              {secondaryMccFields.map((fieldItem, index) => (
+                <div
+                  key={fieldItem.id}
+                  className="eb-flex eb-items-center eb-space-x-2"
+                >
+                  <FormField
+                    control={form.control}
+                    name={`secondaryMccList.${index}.mcc`}
+                    render={({ field }) => (
+                      <FormItem className="eb-grow">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            maxLength={4}
+                            placeholder="Secondary MCC"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    disabled={
+                      secondaryMccFields.length <=
+                      (getFieldRule('secondaryMccList').minItems ?? 0)
+                    }
+                    onClick={() => removeSecondaryMcc(index)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                disabled={
+                  secondaryMccFields.length >=
+                  (getFieldRule('secondaryMccList').maxItems ?? 50)
+                }
+                onClick={() => appendSecondaryMcc({ mcc: '' })}
+                variant="outline"
+                size="sm"
+              >
+                Add Secondary MCC
+              </Button>
+            </div>
+          )}
           {isFieldVisible('websiteAvailable') && (
             <FormField
               control={form.control}
               name="websiteAvailable"
               disabled={isFieldDisabled('websiteAvailable')}
               render={({ field }) => (
-                <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
+                <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-p-4">
                   <FormControl>
                     <Checkbox
                       disabled={field.disabled}
@@ -999,11 +1086,9 @@ export const OrganizationStepForm = () => {
                       }}
                     />
                   </FormControl>
-                  <div className="eb-space-y-1 eb-leading-none">
-                    <FormLabel asterisk={isFieldRequired('websiteAvailable')}>
-                      Website Available
-                    </FormLabel>
-                  </div>
+                  <FormLabel asterisk={isFieldRequired('websiteAvailable')}>
+                    Website Available
+                  </FormLabel>
                 </FormItem>
               )}
             />
@@ -1035,9 +1120,10 @@ export const OrganizationStepForm = () => {
               )}
             />
           )}
-        </div>
-
-        <ServerErrorAlert error={updateClientError} />
+        </fieldset>
+        <ServerErrorAlert
+          error={usePartyResource ? updatePartyError : updateClientError}
+        />
         <FormActions />
       </form>
     </Form>
