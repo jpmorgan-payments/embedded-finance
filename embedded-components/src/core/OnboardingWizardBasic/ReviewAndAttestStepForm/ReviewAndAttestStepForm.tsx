@@ -94,7 +94,6 @@ export const ReviewAndAttestStepForm = () => {
         ?.map((r) => r.questionId)
         .join(','),
     },
-    { query: { enabled: !!clientData?.outstanding?.questionIds?.length } }
   );
 
   const allTermsAgreed = Object.values(termsAgreed).every(Boolean);
@@ -117,16 +116,12 @@ export const ReviewAndAttestStepForm = () => {
   const onCompleteKYCHandler = async () => {
     if (clientId) {
       const requestBody = {
-        addAttestations: {
-          ...clientData?.attestations?.concat({
-            attestationTime: new Date().toISOString(),
-            attesterFullName: clientData?.parties?.find(
-              (party) => party?.partyType === 'INDIVIDUAL'
-            )?.individualDetails?.firstName,
-            ipAddress: '', // TODO: get IP address
-            documentId: '', // TODO: get document id
-          }),
-        },
+        attestationTime: new Date().toISOString(),
+        attesterFullName: clientData?.parties?.find(
+          (party) => party?.partyType === 'INDIVIDUAL'
+        )?.individualDetails?.firstName,
+        ipAddress: '1.1.1.1', // TODO: Get real IP address
+        documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
       } as UpdateClientRequestSmbdo;
 
       await updateClient({
@@ -203,30 +198,31 @@ export const ReviewAndAttestStepForm = () => {
         </div>
 
         {!!clientData?.questionResponses?.length && (
-          <>
+          <div className="eb-w-xl eb-px-4">
             <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
               Question Responses
             </h2>
             {clientData?.questionResponses?.map((questionResponse) => (
-              <div
-                key={questionResponse.questionId}
-                className="eb-mb-4 eb-border-b eb-border-dotted eb-border-gray-300 eb-p-4"
-              >
-                <dl className="eb-ml-2 eb-space-y-2">
-                  <dt className="eb-w-1/3 sm:eb-mb-0">
-                    {
-                      questionsDetails?.questions?.find(
-                        (q) => q.id === questionResponse.questionId
-                      )?.description
-                    }
-                  </dt>
-                  <dd className="sm:eb-w-2/3sm:eb-pl-4">
-                    <b>Response:</b> {questionResponse?.values?.join(', ')}
-                  </dd>
-                </dl>
-              </div>
+              <>
+                {!!questionResponse?.values?.length && (
+                  <div key={questionResponse.questionId} className="eb-p-4">
+                    <dl className="eb-ml-2">
+                      <dt className="">
+                        {
+                          questionsDetails?.questions?.find(
+                            (q) => q.id === questionResponse.questionId
+                          )?.description
+                        }
+                      </dt>
+                      <dd className="">
+                        <b>Response:</b> {questionResponse?.values?.join(', ')}
+                      </dd>
+                    </dl>
+                  </div>
+                )}
+              </>
             ))}
-          </>
+          </div>
         )}
 
         <div className="eb-mt-8 eb-border-t eb-pt-4">
