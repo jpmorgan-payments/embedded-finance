@@ -12,6 +12,8 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
+import { efClientSolPropAdditionalDocuments } from '@/mocks/efClientSolPropAdditionalDocuments.mock';
+import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -179,6 +181,25 @@ ReviewAndAttest.parameters = {
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+    ],
+  },
+};
+
+export const AdditionalDocumentsRequested = Default.bind({});
+AdditionalDocumentsRequested.storyName = '6. Additional Documents requested step';
+AdditionalDocumentsRequested.args = {
+  ...WithClientId.args,
+  blockPostVerification: true,
+};
+AdditionalDocumentsRequested.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000133', () => {
+        return HttpResponse.json(efClientSolPropAdditionalDocuments);
+      }),
+      http.get('/document-requests/68430', () => {
+        return HttpResponse.json(efDocumentRequestDetails);
       }),
     ],
   },

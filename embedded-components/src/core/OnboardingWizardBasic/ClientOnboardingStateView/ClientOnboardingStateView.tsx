@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
@@ -134,6 +135,7 @@ export const ClientOnboardingStateView = () => {
             )}
           </div>
         </div>
+        <DocumentUploadStepForm />
       </CardContent>
     </Card>
   );
