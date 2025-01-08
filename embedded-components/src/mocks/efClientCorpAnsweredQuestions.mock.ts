@@ -1,4 +1,4 @@
-import { ClientResponse } from "@/api/generated/smbdo.schemas";
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 export const efClientCorpAnsweredQuestions: ClientResponse = {
   id: '0030000130',

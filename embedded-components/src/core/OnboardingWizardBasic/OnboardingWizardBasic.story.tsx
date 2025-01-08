@@ -51,7 +51,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       },
       options: ['US', 'CA'],
     },
-    usePartyResource: {control: 'boolean'},
+    usePartyResource: { control: 'boolean' },
   },
   decorators: [
     (Story, context) => {
@@ -131,7 +131,9 @@ WithClientId.parameters = {
         return HttpResponse.json(efClientSolPropNew);
       }),
       http.post('/parties/2000000111', () => {
-        return HttpResponse.json(efClientSolPropNew?.parties?.filter((p) => p.id === '2000000111')[0]);
+        return HttpResponse.json(
+          efClientSolPropNew?.parties?.filter((p) => p.id === '2000000111')[0]
+        );
       }),
     ],
   },

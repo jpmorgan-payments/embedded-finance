@@ -126,7 +126,7 @@ export function generateRequestBody(
 
 export function generatePartyRequestBody(
   formValues: Partial<OnboardingWizardFormValues>,
-  obj:  Partial<UpdatePartyRequest>
+  obj: Partial<UpdatePartyRequest>
 ) {
   const formValueKeys = Object.keys(formValues) as Array<
     keyof OnboardingWizardFormValues

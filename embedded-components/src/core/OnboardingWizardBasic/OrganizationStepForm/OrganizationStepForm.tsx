@@ -8,9 +8,15 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
-import { useSmbdoGetClient, useSmbdoUpdateClient, useUpdateParty as useSmbdoUpdateParty } from '@/api/generated/smbdo';
-import { UpdateClientRequestSmbdo, UpdatePartyRequest } from '@/api/generated/smbdo.schemas';
-
+import {
+  useSmbdoGetClient,
+  useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
+} from '@/api/generated/smbdo';
+import {
+  UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
+} from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -67,8 +73,12 @@ import {
 
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
-  const { clientId, onPostClientResponse, onPostPartyResponse, usePartyResource } =
-    useOnboardingContext();
+  const {
+    clientId,
+    onPostClientResponse,
+    onPostPartyResponse,
+    usePartyResource,
+  } = useOnboardingContext();
   const { t } = useTranslation('onboarding');
 
   // Fetch client data
@@ -838,16 +848,16 @@ export const OrganizationStepForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="EIN">EIN</SelectItem>
-                            <SelectItem value="BUSINESS_REGISTRATION_ID">
+                          <SelectItem value="EIN">EIN</SelectItem>
+                          <SelectItem value="BUSINESS_REGISTRATION_ID">
                             Business Registration ID
-                            </SelectItem>
-                            <SelectItem value="BUSINESS_NUMBER">
+                          </SelectItem>
+                          <SelectItem value="BUSINESS_NUMBER">
                             Business Number
-                            </SelectItem>
-                            <SelectItem value="BUSINESS_REGISTRATION_NUMBER">
+                          </SelectItem>
+                          <SelectItem value="BUSINESS_REGISTRATION_NUMBER">
                             Business Registration Number
-                            </SelectItem>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1111,7 +1121,9 @@ export const OrganizationStepForm = () => {
             />
           )}
         </fieldset>
-        <ServerErrorAlert error={usePartyResource ? updatePartyError : updateClientError} />
+        <ServerErrorAlert
+          error={usePartyResource ? updatePartyError : updateClientError}
+        />
         <FormActions />
       </form>
     </Form>
