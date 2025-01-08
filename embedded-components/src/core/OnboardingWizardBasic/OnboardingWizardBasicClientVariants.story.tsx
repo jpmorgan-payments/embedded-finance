@@ -43,6 +43,11 @@ SoleProprietorship_EP_NEW.parameters = {
       http.post('/clients/0030000135', () => {
         return HttpResponse.json(efClientSolPropNew);
       }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(
+          efClientSolPropNew?.parties?.filter((p) => p.id === '2000000111')[0]
+        );
+      }),
     ],
   },
 };
@@ -73,6 +78,13 @@ SoleProprietorship_EP.parameters = {
       http.post('/clients/0030000129', () => {
         return HttpResponse.json(efClientSolPropWithMoreData);
       }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(
+          efClientSolPropWithMoreData?.parties?.filter(
+            (p) => p.id === '2000000111'
+          )[0]
+        );
+      }),
     ],
   },
 };
@@ -89,6 +101,14 @@ LLC_EP.parameters = {
     handlers: [
       http.get('/clients/0030000130', async () => {
         return HttpResponse.json(efClientCorpMock);
+      }),
+      http.post('/clients/0030000130', async () => {
+        return HttpResponse.json(efClientCorpMock);
+      }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(
+          efClientCorpMock?.parties?.filter((p) => p.id === '2000000111')[0]
+        );
       }),
     ],
   },
@@ -110,6 +130,11 @@ LLC_Canada_MS.parameters = {
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientCorpEBMock);
+      }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(
+          efClientCorpEBMock?.parties?.filter((p) => p.id === '2000000111')[0]
+        );
       }),
     ],
   },

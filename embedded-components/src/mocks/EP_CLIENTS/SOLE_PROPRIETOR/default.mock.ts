@@ -2,14 +2,7 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 export const efClientSolPropWithMoreData: ClientResponse = {
   id: '0030000129',
-  attestations: [
-    {
-      attesterFullName: 'Monica Gellar',
-      attestationTime: '2023-10-19T12:28:11.232Z',
-      documentId: '62d29548-f55a-458e-b9bb-ed32a6a05a1b',
-      ipAddress: '1.1.1.1',
-    },
-  ],
+  attestations: [],
   parties: [
     {
       id: '2000000111',
@@ -78,10 +71,11 @@ export const efClientSolPropWithMoreData: ClientResponse = {
         countryOfResidence: 'US',
         natureOfOwnership: 'Direct',
         jobTitle: 'CEO',
+        jobTitleDescription: 'Chief Executive Officer',
         soleOwner: true,
-        birthDate: '1990-10-09',
+        birthDate: '1990-01-01',
         phone: {
-          phoneType: 'MOBILE_PHONE',
+          phoneType: 'BUSINESS_PHONE',
           countryCode: '+1',
           phoneNumber: '2126215110',
         },
