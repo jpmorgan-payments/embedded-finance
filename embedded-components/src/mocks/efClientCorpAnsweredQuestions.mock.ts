@@ -30,7 +30,6 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
         industryType: 'Jewelry Retailers',
         countryOfFormation: 'US',
         yearOfFormation: '2023',
-        significantOwnership: true,
         entitiesInOwnership: false,
         addresses: [
           {
