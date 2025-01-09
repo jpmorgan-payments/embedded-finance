@@ -64,17 +64,11 @@ export const OrganizationIdSchema = z
           'onboarding:fields.organizationIds.expiryDate.validation.format'
         ),
       })
-      .refine(
-        (val) => {
-          const date = new Date(val);
-          return !Number.isNaN(date.getTime());
-        },
-        {
-          message: i18n.t(
-            'onboarding:fields.organizationIds.expiryDate.validation.invalid'
-          ),
-        }
-      )
+      .refine((val) => !Number.isNaN(new Date(val).getTime()), {
+        message: i18n.t(
+          'onboarding:fields.organizationIds.expiryDate.validation.invalid'
+        ),
+      })
       .refine(
         (val) => {
           const date = new Date(val);
@@ -184,7 +178,8 @@ export const OrganizationStepFormSchema = z.object({
     .refine(
       (val) => !val || !/\s\s/.test(val),
       i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
-    ),
+    )
+    .optional(),
   countryOfFormation: z
     .string()
     .length(
