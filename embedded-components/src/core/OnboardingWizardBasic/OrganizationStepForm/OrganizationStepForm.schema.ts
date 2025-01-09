@@ -2,6 +2,7 @@ import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
+import { COUNTRIES_OF_FORMATION } from '../utils/countriesOfFormationList';
 
 const PERSONAL_EMAIL_DOMAINS = [
   'gmail.com',
@@ -157,14 +158,9 @@ export const OrganizationStepFormSchema = z.object({
     .refine(
       (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
       i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
-    )
-    .refine(
-      (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(val.length - 1)),
-      i18n.t('onboarding:fields.organizationName.validation.noSpecialAtEnd')
     ),
   dbaName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.dbaName.validation.minLength'))
     .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
     .regex(NAME_PATTERN, i18n.t('onboarding:fields.dbaName.validation.pattern'))
     .refine(
@@ -179,12 +175,20 @@ export const OrganizationStepFormSchema = z.object({
       (val) => !val || !/\s\s/.test(val),
       i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
     )
+    .refine(
+      (val) => !val || val.length >= 2,
+      i18n.t('onboarding:fields.dbaName.validation.minLength')
+    )
     .optional(),
   countryOfFormation: z
     .string()
     .length(
       2,
       i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+    )
+    .refine(
+      (val) => COUNTRIES_OF_FORMATION.includes(val),
+      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
     ),
   organizationEmail: z
     .string()
