@@ -430,6 +430,15 @@
         "format": "Invalid phone number format",
         "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
       }
+    },
+    "additionalQuestions": {
+      "validation": {
+        "dateFormat": "Invalid date format",
+        "required": "Required",
+        "invalidFormat": "Invalid format",
+        "numberFormat": "Must be a number",
+        "maxItems": "Cannot exceed {{maxItems}} items"
+      }
     }
   },
   "title": "Client Onboarding",
