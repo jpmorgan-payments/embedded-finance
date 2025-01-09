@@ -400,7 +400,7 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="soleOwner"
             render={({ field }) => (
-              <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-md p-4">
+              <FormItem className="p-4 eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-md">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
