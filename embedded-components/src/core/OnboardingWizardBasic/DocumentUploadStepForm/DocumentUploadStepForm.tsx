@@ -169,7 +169,7 @@ export const DocumentUploadStepForm = ({
     return <FormLoadingState message="Fetching document requests..." />;
   }
 
-  if (documentRequestsQueries?.data?.length === 0) {
+  if (documentRequestsQueries?.data?.length === 0 && !standalone) {
     return (
       <p className="eb-text-sm">
         No document requests found. Please proceed to the next step.
