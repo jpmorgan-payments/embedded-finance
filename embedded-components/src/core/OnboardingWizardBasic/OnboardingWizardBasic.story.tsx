@@ -202,6 +202,12 @@ AdditionalDocumentsRequested.parameters = {
       http.get('/document-requests/68430', () => {
         return HttpResponse.json(efDocumentRequestDetails);
       }),
+      http.post('/documents', () => {
+        return HttpResponse.json({
+          requestId: Math.random().toString(36).substring(7),
+          traceId: `doc-${Math.random().toString(36).substring(7)}`,
+        });
+      }),
     ],
   },
 };

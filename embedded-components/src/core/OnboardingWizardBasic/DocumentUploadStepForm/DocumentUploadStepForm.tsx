@@ -1,6 +1,6 @@
 import { Fragment, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -43,6 +43,7 @@ export const DocumentUploadStepForm = ({
 }: DocumentUploadStepFormProps) => {
   const { nextStep } = useStepper();
   const { clientId } = useOnboardingContext();
+  const queryClient = useQueryClient();
   const uploadDocumentMutation = useSmbdoUploadDocument();
 
   // Fetch client data
@@ -119,7 +120,20 @@ export const DocumentUploadStepForm = ({
               },
             };
 
-            await uploadDocumentMutation.mutateAsync({ data: documentData });
+            await uploadDocumentMutation.mutateAsync(
+              { data: documentData },
+              {
+                onSuccess: () => {
+                  // Invalidate both client and document request queries
+                  queryClient.invalidateQueries({
+                    queryKey: ['documentRequest'],
+                  });
+                  queryClient.invalidateQueries({
+                    queryKey: ['client', clientId],
+                  });
+                },
+              }
+            );
           }
         }
       }
