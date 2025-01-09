@@ -25,13 +25,13 @@ import {
   FormLabel,
   FormMessage,
   Separator,
-  toast,
 } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { DOCUMENT_TYPE_MAPPING } from '../utils/documentTypeMapping';
+import { toast } from 'sonner';
 
 interface DocumentUploadStepFormProps {
   standalone?: boolean;
