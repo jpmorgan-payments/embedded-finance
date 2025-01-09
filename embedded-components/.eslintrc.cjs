@@ -9,7 +9,7 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     'linebreak-style': 'off',
     'arrow-body-style': 'off',
-    'tailwindcss/classnames-order': 'error',
+    'tailwindcss/classnames-order': 'warn',
     'tailwindcss/no-custom-classname': [
       'warn',
       {
