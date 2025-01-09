@@ -324,15 +324,13 @@ function filterSchemaByClientContext(
       if (!fieldRule.required) {
         fieldSchema = value.optional();
       }
-      if (fieldRule.minItems) {
-        fieldSchema = (value as z.ZodArray<z.ZodType<any>>).min(
-          fieldRule.minItems
-        );
-      }
-      if (fieldRule.maxItems) {
-        fieldSchema = (value as z.ZodArray<z.ZodType<any>>).max(
-          fieldRule.maxItems
-        );
+      if (value instanceof z.ZodArray) {
+        if (fieldRule.minItems !== undefined) {
+          fieldSchema = z.array(value.element).min(fieldRule.minItems);
+        }
+        if (fieldRule.maxItems !== undefined) {
+          fieldSchema = z.array(value.element).max(fieldRule.maxItems);
+        }
       }
       filteredSchema[key] = fieldSchema;
     }

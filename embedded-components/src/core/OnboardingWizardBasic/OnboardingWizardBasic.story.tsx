@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
+import { efClientSolPropAdditionalDocuments } from '@/mocks/efClientSolPropAdditionalDocuments.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
+import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -179,6 +181,32 @@ ReviewAndAttest.parameters = {
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+    ],
+  },
+};
+
+export const AdditionalDocumentsRequested = Default.bind({});
+AdditionalDocumentsRequested.storyName =
+  '6. Additional Documents requested step';
+AdditionalDocumentsRequested.args = {
+  ...WithClientId.args,
+  blockPostVerification: true,
+};
+AdditionalDocumentsRequested.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000133', () => {
+        return HttpResponse.json(efClientSolPropAdditionalDocuments);
+      }),
+      http.get('/document-requests/68430', () => {
+        return HttpResponse.json(efDocumentRequestDetails);
+      }),
+      http.post('/documents', () => {
+        return HttpResponse.json({
+          requestId: Math.random().toString(36).substring(7),
+          traceId: `doc-${Math.random().toString(36).substring(7)}`,
+        });
       }),
     ],
   },

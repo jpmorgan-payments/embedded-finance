@@ -17,7 +17,7 @@ import {
   clientDetailsScenario1,
   clientDetailsScenario2,
   clientDetailsScenario3,
-  clientDetailsScenario4
+  clientDetailsScenario4,
 } from 'mocks/clientDetails.mock';
 
 export const createHandlers = (apiUrl) => [

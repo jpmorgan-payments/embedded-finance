@@ -13,6 +13,7 @@ import { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
@@ -134,6 +135,7 @@ export const ClientOnboardingStateView = () => {
             )}
           </div>
         </div>
+        <DocumentUploadStepForm standalone />
       </CardContent>
     </Card>
   );
