@@ -169,7 +169,7 @@ export const DocumentUploadStepForm = ({
     return <FormLoadingState message="Fetching document requests..." />;
   }
 
-  if (documentRequestsQueries?.data?.length === 0 && !standalone) {
+  if (partiesDocumentRequests?.length === 0 && !standalone) {
     return (
       <p className="eb-text-sm">
         No document requests found. Please proceed to the next step.
@@ -263,7 +263,7 @@ export const DocumentUploadStepForm = ({
         })}
 
         {!standalone && <FormActions />}
-        {standalone && (
+        {standalone && partiesDocumentRequests?.length !== 0 && (
           <Button
             type="submit"
             disabled={!form.formState.isValid || form.formState.isSubmitting}
