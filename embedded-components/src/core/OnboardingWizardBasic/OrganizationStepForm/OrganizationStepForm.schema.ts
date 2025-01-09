@@ -12,6 +12,10 @@ const PERSONAL_EMAIL_DOMAINS = [
 ];
 const CURRENT_YEAR = new Date().getFullYear();
 
+// Regex pattern from OAS for organization and DBA names
+const NAME_PATTERN = /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/;
+const SPECIAL_CHARS_PATTERN = /[()_/&+%@#;,.: -?]/;
+
 export const OrganizationIdSchema = z
   .object({
     description: z
@@ -139,8 +143,8 @@ export const OrganizationStepFormSchema = z.object({
     .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))
     .max(100, i18n.t('onboarding:fields.organizationName.validation.maxLength'))
     .regex(
-      /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/,
-      i18n.t('onboarding:fields.organizationName.validation.format')
+      NAME_PATTERN,
+      i18n.t('onboarding:fields.organizationName.validation.pattern')
     )
     .refine(
       (val) => !val.startsWith(' '),
@@ -155,10 +159,32 @@ export const OrganizationStepFormSchema = z.object({
       i18n.t(
         'onboarding:fields.organizationName.validation.noConsecutiveSpaces'
       )
+    )
+    .refine(
+      (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
+      i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
+    )
+    .refine(
+      (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(val.length - 1)),
+      i18n.t('onboarding:fields.organizationName.validation.noSpecialAtEnd')
     ),
   dbaName: z
     .string()
-    .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength')),
+    .min(2, i18n.t('onboarding:fields.dbaName.validation.minLength'))
+    .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
+    .regex(NAME_PATTERN, i18n.t('onboarding:fields.dbaName.validation.pattern'))
+    .refine(
+      (val) => !val || !val.startsWith(' '),
+      i18n.t('onboarding:fields.dbaName.validation.noLeadingSpace')
+    )
+    .refine(
+      (val) => !val || !val.endsWith(' '),
+      i18n.t('onboarding:fields.dbaName.validation.noTrailingSpace')
+    )
+    .refine(
+      (val) => !val || !/\s\s/.test(val),
+      i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
+    ),
   countryOfFormation: z
     .string()
     .length(

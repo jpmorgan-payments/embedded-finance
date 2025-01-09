@@ -15,16 +15,19 @@
     "organizationName": {
       "label": "Organization name",
       "placeholder": "Enter organization name",
-      "description": "",
-      "tooltip": "",
+      "description": "The organization's legal name as it appears on government forms and business paperwork",
+      "tooltip": "Must match exactly with your business registration documents",
       "validation": {
         "required": "Organization name is required",
-        "format": "Invalid string, should contain only letters, numbers, and ()_/&+%@#;,.: -? special characters",
+        "format": "Organization name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "pattern": "Invalid organization name format. Please use only allowed characters",
         "minLength": "Organization name must be at least 2 characters",
         "maxLength": "Organization name must be at most 100 characters",
         "noLeadingSpace": "Organization name cannot start with a space",
         "noTrailingSpace": "Organization name cannot end with a space",
-        "noConsecutiveSpaces": "Organization name cannot contain consecutive spaces"
+        "noConsecutiveSpaces": "Organization name cannot contain consecutive spaces",
+        "noSpecialAtStart": "Organization name cannot start with a special character",
+        "noSpecialAtEnd": "Organization name cannot end with a special character"
       }
     },
     "organizationDescription": {
@@ -42,10 +45,16 @@
     "dbaName": {
       "label": "DBA (Doing Business As) name (optional)",
       "placeholder": "Enter DBA name",
-      "description": "",
-      "tooltip": "",
+      "description": "An alternate name that the business is doing business under. Provide this if your business is registered with an alias.",
+      "tooltip": "The DBA name must match your business registration documents.",
       "validation": {
-        "maxLength": "DBA name must be 100 characters or less"
+        "maxLength": "DBA name must be 100 characters or less",
+        "format": "DBA name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "pattern": "Invalid DBA name format. Please use only allowed characters",
+        "noLeadingSpace": "DBA name cannot start with a space",
+        "noTrailingSpace": "DBA name cannot end with a space",
+        "noConsecutiveSpaces": "DBA name cannot contain consecutive spaces",
+        "minLength": "DBA name must be at least 2 characters"
       }
     },
     "organizationType": {
