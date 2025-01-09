@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
   Separator,
+  toast,
 } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -124,7 +125,7 @@ export const DocumentUploadStepForm = ({
               { data: documentData },
               {
                 onSuccess: () => {
-                  toast.success('Document uploaded successfully');  
+                  toast.success('Document uploaded successfully');
                   // Invalidate both client and document request queries
                   queryClient.invalidateQueries({
                     queryKey: ['documentRequest'],
