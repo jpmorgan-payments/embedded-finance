@@ -124,6 +124,7 @@ export const DocumentUploadStepForm = ({
               { data: documentData },
               {
                 onSuccess: () => {
+                  toast.success('Document uploaded successfully');  
                   // Invalidate both client and document request queries
                   queryClient.invalidateQueries({
                     queryKey: ['documentRequest'],
@@ -131,6 +132,9 @@ export const DocumentUploadStepForm = ({
                   queryClient.invalidateQueries({
                     queryKey: ['client', clientId],
                   });
+                },
+                onError: () => {
+                  toast.error('Error uploading document');
                 },
               }
             );
