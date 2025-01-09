@@ -2,6 +2,7 @@ import { Fragment, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import {
@@ -31,7 +32,6 @@ import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { DOCUMENT_TYPE_MAPPING } from '../utils/documentTypeMapping';
-import { toast } from 'sonner';
 
 interface DocumentUploadStepFormProps {
   standalone?: boolean;
