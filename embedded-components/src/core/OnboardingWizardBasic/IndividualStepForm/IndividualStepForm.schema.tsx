@@ -162,9 +162,11 @@ const individualIdSchema = z.object({
       ),
     })
     .superRefine((val, ctx) => {
-      const {
-        parent: { idType },
-      } = ctx as unknown as { parent: { idType: 'SSN' | 'ITIN' } };
+      const {parent} = (ctx as any);
+      if (!parent) return true;
+
+      const idType = parent.idType as 'SSN' | 'ITIN';
+      if (!idType) return true;
 
       if (idType === 'SSN' && !/^\d{9}$/.test(val)) {
         ctx.addIssue({
