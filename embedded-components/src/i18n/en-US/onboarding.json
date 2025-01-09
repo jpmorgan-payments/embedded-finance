@@ -16,19 +16,29 @@
       "label": "Organization name",
       "placeholder": "Enter organization name",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "required": "Organization name is required",
+        "format": "Invalid string, should contain only letters, numbers, and ()_/&+%@#;,.: -? special characters"
+      }
     },
     "organizationDescription": {
       "label": "Organization description",
       "placeholder": "Enter organization description",
       "description": "",
-      "tooltip": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork."
+      "tooltip": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
+      "validation": {
+        "maxLength": "Organization description must be 500 characters or less"
+      }
     },
     "dbaName": {
       "label": "DBA (Doing Business As) name (optional)",
       "placeholder": "Enter DBA name",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "maxLength": "DBA name must be 100 characters or less"
+      }
     },
     "organizationType": {
       "label": "Organization type",
@@ -40,7 +50,10 @@
       "label": "Organization email",
       "placeholder": "Enter organization email",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "invalid": "Invalid email address"
+      }
     },
     "countryOfFormation": {
       "label": "Country of formation",
@@ -55,7 +68,10 @@
       "label": "Year of formation",
       "placeholder": "Enter year of formation",
       "description": "",
-      "tooltip": "Year of company formation (e.g. 2000)"
+      "tooltip": "Year of company formation (e.g. 2000)",
+      "validation": {
+        "format": "Invalid year of formation"
+      }
     },
     "addresses.addressType": {
       "label": "Address type",
@@ -68,6 +84,167 @@
       "placeholder": "Select address type",
       "description": "",
       "tooltip": ""
+    },
+    "individualAddresses": {
+      "addressLines": {
+        "validation": {
+          "maxLength": "Address line must be 60 characters or less",
+          "minLines": "At least one address line is required",
+          "maxLines": "Maximum 5 address lines allowed",
+          "firstLine": "First line must not be a PO Box and must begin with a number"
+        }
+      },
+      "city": {
+        "validation": {
+          "maxLength": "City name must be 34 characters or less"
+        }
+      },
+      "state": {
+        "validation": {
+          "maxLength": "State name must be 30 characters or less"
+        }
+      },
+      "postalCode": {
+        "validation": {
+          "maxLength": "Postal code must be 10 characters or less"
+        }
+      },
+      "country": {
+        "validation": {
+          "exactlyTwoChars": "Country code must be exactly 2 characters"
+        }
+      }
+    },
+    "individualIds": {
+      "expiryDate": {
+        "validation": {
+          "format": "Expiry date must be in 'YYYY-MM-DD' format",
+          "invalid": "Invalid date"
+        }
+      },
+      "issuer": {
+        "validation": {
+          "exactlyTwoChars": "Issuer must be a 2-letter country code"
+        }
+      },
+      "value": {
+        "validation": {
+          "format": "SSN/ITIN must be 9 digits"
+        }
+      }
+    },
+    "birthDate": {
+      "validation": {
+        "format": "Birth date must be in 'YYYY-MM-DD' format"
+      }
+    },
+    "countryOfResidence": {
+      "validation": {
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
+    },
+    "firstName": {
+      "validation": {
+        "minLength": "First name must be at least 2 characters",
+        "maxLength": "First name must be at most 30 characters"
+      }
+    },
+    "middleName": {
+      "validation": {
+        "maxLength": "Middle name must be at most 30 characters"
+      }
+    },
+    "lastName": {
+      "validation": {
+        "minLength": "Last name must be at least 2 characters",
+        "maxLength": "Last name must be at most 30 characters"
+      }
+    },
+    "nameSuffix": {
+      "validation": {
+        "minLength": "Name suffix must be at least 1 character",
+        "maxLength": "Name suffix must be at most 5 characters"
+      }
+    },
+    "jobTitleDescription": {
+      "validation": {
+        "maxLength": "Job title description must be at most 50 characters"
+      }
+    },
+    "addresses": {
+      "validation": {
+        "minAddresses": "At least one address is required",
+        "maxAddresses": "Maximum 5 addresses allowed"
+      }
+    },
+    "associatedCountries": {
+      "validation": {
+        "maxCountries": "Maximum 100 associated countries allowed"
+      }
+    },
+    "industryCategory": {
+      "validation": {
+        "maxLength": "Industry category must be 100 characters or less"
+      }
+    },
+    "industryType": {
+      "validation": {
+        "maxLength": "Industry type must be 100 characters or less"
+      }
+    },
+    "organizationIds": {
+      "validation": {
+        "minIds": "At least one organization ID is required",
+        "maxIds": "Maximum 6 organization IDs allowed"
+      },
+      "description": {
+        "validation": {
+          "maxLength": "Description must be 100 characters or less"
+        }
+      },
+      "value": {
+        "validation": {
+          "required": "ID value is required",
+          "maxLength": "ID value must be 100 characters or less",
+          "einFormat": "EIN must be exactly 9 digits"
+        }
+      },
+      "issuer": {
+        "validation": {
+          "required": "Issuer is required",
+          "maxLength": "Issuer must be 500 characters or less"
+        }
+      },
+      "expiryDate": {
+        "validation": {
+          "format": "Expiry date must be in 'YYYY-MM-DD' format",
+          "invalid": "Invalid date",
+          "future": "Expiry date must be in the future",
+          "maxYears": "Expiry date must be less than 10 years in the future"
+        }
+      }
+    },
+    "website": {
+      "validation": {
+        "invalid": "Invalid URL",
+        "maxLength": "Website URL must be 500 characters or less",
+        "required": "Website URL is required"
+      }
+    },
+    "mcc": {
+      "validation": {
+        "format": "MCC must be empty or exactly 4 digits"
+      }
+    },
+    "secondaryMccList": {
+      "validation": {
+        "maxMcc": "Maximum 50 secondary MCCs allowed"
+      },
+      "mcc": {
+        "validation": {
+          "format": "MCC must be exactly 4 digits"
+        }
+      }
     }
   },
   "title": "Client Onboarding",

@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
@@ -6,7 +7,12 @@ export const OrganizationIdSchema = z
   .object({
     description: z
       .string()
-      .max(100, 'Description must be 100 characters or less')
+      .max(
+        100,
+        i18n.t(
+          'onboarding:fields.organizationIds.description.validation.maxLength'
+        )
+      )
       .optional(),
     idType: z.enum([
       'EIN',
@@ -16,47 +22,56 @@ export const OrganizationIdSchema = z
     ]),
     value: z
       .string()
-      .min(1, 'ID value is required')
-      .max(100, 'ID value must be 100 characters or less'),
+      .min(
+        1,
+        i18n.t('onboarding:fields.organizationIds.value.validation.required')
+      )
+      .max(
+        100,
+        i18n.t('onboarding:fields.organizationIds.value.validation.maxLength')
+      ),
     issuer: z
       .string()
-      .min(1, 'Issuer is required')
-      .max(500, 'Issuer must be 500 characters or less'),
+      .min(
+        1,
+        i18n.t('onboarding:fields.organizationIds.issuer.validation.required')
+      )
+      .max(
+        500,
+        i18n.t('onboarding:fields.organizationIds.issuer.validation.maxLength')
+      ),
     expiryDate: z
       .string()
+      .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
+        message: i18n.t(
+          'onboarding:fields.organizationIds.expiryDate.validation.format'
+        ),
+      })
       .refine(
         (val) => {
-          // Check if the string is in 'YYYY-MM-DD' format
-          return /^\d{4}-\d{2}-\d{2}$/.test(val);
-        },
-        {
-          message: "Expiry date must be in 'YYYY-MM-DD' format",
-        }
-      )
-      .refine(
-        (val) => {
-          // Check if the date is valid
           const date = new Date(val);
           return !Number.isNaN(date.getTime());
         },
         {
-          message: 'Invalid date',
+          message: i18n.t(
+            'onboarding:fields.organizationIds.expiryDate.validation.invalid'
+          ),
         }
       )
       .refine(
         (val) => {
-          // Check if the date is in the future
           const date = new Date(val);
           const now = new Date();
           return date > now;
         },
         {
-          message: 'Expiry date must be in the future',
+          message: i18n.t(
+            'onboarding:fields.organizationIds.expiryDate.validation.future'
+          ),
         }
       )
       .refine(
         (val) => {
-          // Check if the date is less than 10 years in the future
           const date = new Date(val);
           const now = new Date();
           const tenYearsFromNow = new Date(
@@ -65,7 +80,9 @@ export const OrganizationIdSchema = z
           return date < tenYearsFromNow;
         },
         {
-          message: 'Expiry date must be less than 10 years in the future',
+          message: i18n.t(
+            'onboarding:fields.organizationIds.expiryDate.validation.maxYears'
+          ),
         }
       )
       .optional(),
@@ -75,74 +92,104 @@ export const OrganizationIdSchema = z
       if (data.idType === 'EIN') {
         return /^\d{9}$/.test(data.value);
       }
-      // Add more conditions for other idTypes if needed
       return true;
     },
     {
-      message: 'EIN must be exactly 9 digits',
-      path: ['value'], // Specify the path to the field that the error message should be associated with
+      message: i18n.t(
+        'onboarding:fields.organizationIds.value.validation.einFormat'
+      ),
+      path: ['value'],
     }
   );
 
 const associatedCountrySchema = z.object({
-  country: z.string().length(2, 'Country code must be exactly 2 characters'),
+  country: z
+    .string()
+    .length(
+      2,
+      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+    ),
 });
 
 const secondaryMccSchema = z.object({
-  mcc: z.string().regex(/^\d{4}$/, 'MCC must be exactly 4 digits'),
+  mcc: z
+    .string()
+    .regex(
+      /^\d{4}$/,
+      i18n.t('onboarding:fields.secondaryMccList.mcc.validation.format')
+    ),
 });
 
 export const OrganizationStepFormSchema = z.object({
   organizationName: z
     .string()
-    .min(1, 'Organization name is required')
+    .min(1, i18n.t('onboarding:fields.organizationName.validation.required'))
     .regex(
       /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/,
-      'Invalid string, should contain only letters, numbers, and ()_/&+%@#;,.: -? special characters'
+      i18n.t('onboarding:fields.organizationName.validation.format')
     ),
-  dbaName: z.string().max(100, 'DBA name must be 100 characters or less'),
+  dbaName: z
+    .string()
+    .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength')),
   countryOfFormation: z
     .string()
-    .length(2, 'Country code must be exactly 2 characters'),
-  organizationEmail: z.string().email('Invalid email address'),
+    .length(
+      2,
+      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+    ),
+  organizationEmail: z
+    .string()
+    .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid')),
   yearOfFormation: z
     .string()
-    .regex(/^(19|20)\d{2}$/, 'Invalid year of formation'),
+    .regex(
+      /^(19|20)\d{2}$/,
+      i18n.t('onboarding:fields.yearOfFormation.validation.format')
+    ),
   addresses: z
     .array(AddressSchema)
-    .min(1, 'At least one address is required')
-    .max(5, 'Maximum 5 addresses allowed'),
+    .min(1, i18n.t('onboarding:fields.addresses.validation.minAddresses'))
+    .max(5, i18n.t('onboarding:fields.addresses.validation.maxAddresses')),
   associatedCountries: z
     .array(associatedCountrySchema)
-    .max(100, 'Maximum 100 associated countries allowed'),
+    .max(
+      100,
+      i18n.t('onboarding:fields.associatedCountries.validation.maxCountries')
+    ),
   entitiesInOwnership: z.enum(['yes', 'no']),
   industryCategory: z
     .string()
-    .max(100, 'Industry category must be 100 characters or less'),
+    .max(
+      100,
+      i18n.t('onboarding:fields.industryCategory.validation.maxLength')
+    ),
   industryType: z
     .string()
-    .max(100, 'Industry type must be 100 characters or less'),
+    .max(100, i18n.t('onboarding:fields.industryType.validation.maxLength')),
   organizationDescription: z
     .string()
-    .max(500, 'Organization description must be 500 characters or less'),
+    .max(
+      500,
+      i18n.t('onboarding:fields.organizationDescription.validation.maxLength')
+    ),
   organizationIds: z
     .array(OrganizationIdSchema)
-    .min(1, 'At least one organization ID is required')
-    .max(6, 'Maximum 6 organization IDs allowed'),
+    .min(1, i18n.t('onboarding:fields.organizationIds.validation.minIds'))
+    .max(6, i18n.t('onboarding:fields.organizationIds.validation.maxIds')),
   organizationPhone: PhoneSchema,
   tradeOverInternet: z.enum(['yes', 'no']),
   website: z
     .string()
-    .url('Invalid URL')
-    .max(500, 'Website URL must be 500 characters or less')
+    .url(i18n.t('onboarding:fields.website.validation.invalid'))
+    .max(500, i18n.t('onboarding:fields.website.validation.maxLength'))
     .or(z.literal('')),
   websiteAvailable: z.boolean(),
   mcc: z.string().refine((value) => value === '' || /^\d{4}$/.test(value), {
-    message: 'MCC must be empty or exactly 4 digits',
+    message: i18n.t('onboarding:fields.mcc.validation.format'),
   }),
   secondaryMccList: z
     .array(secondaryMccSchema)
-    .max(50, 'Maximum 50 secondary MCCs allowed'),
+    .max(50, i18n.t('onboarding:fields.secondaryMccList.validation.maxMcc')),
 });
 
 export const refineOrganizationStepFormSchema = (
@@ -152,7 +199,7 @@ export const refineOrganizationStepFormSchema = (
     if (values.websiteAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Website URL is required',
+        message: i18n.t('onboarding:fields.website.validation.required'),
         path: ['website'],
       });
     }
