@@ -96,18 +96,6 @@
         "invalid": "Please enter a valid year between 1800 and current year"
       }
     },
-    "addresses.addressType": {
-      "label": "Address type",
-      "placeholder": "Select address type",
-      "description": "",
-      "tooltip": ""
-    },
-    "individualAddresses.addressType": {
-      "label": "Address type",
-      "placeholder": "Select address type",
-      "description": "",
-      "tooltip": ""
-    },
     "individualIds": {
       "label": "Government IDs",
       "description": "Government-issued identification numbers",
@@ -159,6 +147,12 @@
       "validation": {
         "minAddresses": "At least one address is required",
         "maxAddresses": "Maximum 5 addresses allowed"
+      },
+      "addressType": {
+        "label": "Address type",
+        "placeholder": "Select address type",
+        "description": "",
+        "tooltip": ""
       }
     },
     "associatedCountries": {
@@ -260,6 +254,12 @@
       }
     },
     "individualAddresses": {
+      "addressType": {
+        "label": "Address type",
+        "placeholder": "Select address type",
+        "description": "",
+        "tooltip": ""
+      },
       "label": "Addresses",
       "validation": {
         "required": "At least one address is required",

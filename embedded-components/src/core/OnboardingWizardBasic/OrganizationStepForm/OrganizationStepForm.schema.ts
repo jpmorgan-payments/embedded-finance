@@ -233,11 +233,7 @@ export const OrganizationStepFormSchema = z.object({
   industryType: z
     .string()
     .min(3, i18n.t('onboarding:fields.industryType.validation.minLength'))
-    .max(100, i18n.t('onboarding:fields.industryType.validation.maxLength'))
-    .regex(
-      /^[a-zA-Z0-9\s,.&-]+$/,
-      i18n.t('onboarding:fields.industryType.validation.format')
-    ),
+    .max(100, i18n.t('onboarding:fields.industryType.validation.maxLength')),
   organizationDescription: z
     .string()
     .min(
