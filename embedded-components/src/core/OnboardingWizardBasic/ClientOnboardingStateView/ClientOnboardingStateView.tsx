@@ -135,7 +135,7 @@ export const ClientOnboardingStateView = () => {
             )}
           </div>
         </div>
-        <DocumentUploadStepForm />
+        <DocumentUploadStepForm standalone />
       </CardContent>
     </Card>
   );

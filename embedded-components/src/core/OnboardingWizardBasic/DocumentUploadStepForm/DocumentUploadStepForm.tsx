@@ -7,11 +7,16 @@ import { z } from 'zod';
 import {
   smbdoGetDocumentRequest,
   useSmbdoGetClient,
+  useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
-import { DocumentRequestResponse } from '@/api/generated/smbdo.schemas';
+import {
+  DocumentRequestResponse,
+  PostUploadDocument,
+} from '@/api/generated/smbdo.schemas';
 import Dropzone from '@/components/ui/dropzone';
 import { useStepper } from '@/components/ui/stepper';
 import {
+  Button,
   Form,
   FormControl,
   FormDescription,
@@ -27,18 +32,31 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { DOCUMENT_TYPE_MAPPING } from '../utils/documentTypeMapping';
 
-export const DocumentUploadStepForm = () => {
+interface DocumentUploadStepFormProps {
+  standalone?: boolean;
+  onSubmit?: (values: any) => void;
+}
+
+export const DocumentUploadStepForm = ({
+  standalone = false,
+  onSubmit: externalOnSubmit,
+}: DocumentUploadStepFormProps) => {
   const { nextStep } = useStepper();
   const { clientId } = useOnboardingContext();
+  const uploadDocumentMutation = useSmbdoUploadDocument();
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
-  const partiesDocumentRequests = clientData?.parties
-    ?.map((p) => p?.validationResponse?.map((v) => v?.documentRequestIds))
-    ?.flat(2)
-    ?.filter((v) => v?.length)
-    .concat(clientData?.outstanding?.documentRequestIds);
+  const partiesDocumentRequests = Array.from(
+    new Set(
+      clientData?.parties
+        ?.map((p) => p?.validationResponse?.map((v) => v?.documentRequestIds))
+        ?.flat(2)
+        ?.filter((v) => v?.length)
+        .concat(clientData?.outstanding?.documentRequestIds)
+    )
+  );
 
   const documentRequestsQueries = useQueries({
     queries: (partiesDocumentRequests ?? []).map((documentRequestId) => ({
@@ -77,9 +95,44 @@ export const DocumentUploadStepForm = () => {
     resolver: zodResolver(DocumentUploadSchema),
   });
 
-  const onSubmit = form.handleSubmit((values) => {
-    console.log(values);
-    nextStep();
+  const onSubmit = form.handleSubmit(async (values) => {
+    try {
+      // Convert files to base64 and upload them
+      for (const [documentRequestId, documentTypes] of Object.entries(values)) {
+        for (const [documentType, files] of Object.entries(documentTypes)) {
+          for (const file of files as File[]) {
+            const base64Content = await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64 = reader.result as string;
+                resolve(base64.split(',')[1]); // Remove data URL prefix
+              };
+              reader.readAsDataURL(file);
+            });
+
+            const documentData: PostUploadDocument = {
+              documentContent: base64Content,
+              documentName: file.name,
+              documentType,
+              documentMetadata: {
+                documentRequestId,
+              },
+            };
+
+            await uploadDocumentMutation.mutateAsync({ data: documentData });
+          }
+        }
+      }
+
+      if (externalOnSubmit) {
+        externalOnSubmit(values);
+      } else {
+        nextStep();
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error uploading documents:', error);
+    }
   });
 
   if (documentRequestsQueries?.pending) {
@@ -88,17 +141,9 @@ export const DocumentUploadStepForm = () => {
 
   if (documentRequestsQueries?.data?.length === 0) {
     return (
-      <Form {...form}>
-        <form
-          onSubmit={nextStep}
-          className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
-        >
-          <p className="eb-text-sm">
-            No document requests found. Please proceed to the next step.
-          </p>
-          <FormActions />
-        </form>
-      </Form>
+      <p className="eb-text-sm">
+        No document requests found. Please proceed to the next step.
+      </p>
     );
   }
 
@@ -161,7 +206,16 @@ export const DocumentUploadStepForm = () => {
           );
         })}
 
-        <FormActions />
+        {!standalone && <FormActions />}
+        {standalone && (
+          <Button
+            type="submit"
+            disabled={!form.formState.isValid || form.formState.isSubmitting}
+            className="eb-ml-auto"
+          >
+            {form.formState.isSubmitting ? 'Uploading...' : 'Upload Documents'}
+          </Button>
+        )}
       </form>
     </Form>
   );
