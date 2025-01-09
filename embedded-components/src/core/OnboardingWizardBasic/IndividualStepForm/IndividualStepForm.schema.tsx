@@ -162,7 +162,7 @@ const individualIdSchema = z.object({
       ),
     })
     .superRefine((val, ctx) => {
-      const {parent} = (ctx as any);
+      const { parent } = ctx as any;
       if (!parent) return true;
 
       const idType = parent.idType as 'SSN' | 'ITIN';
