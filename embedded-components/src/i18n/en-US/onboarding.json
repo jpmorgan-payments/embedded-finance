@@ -19,7 +19,12 @@
       "tooltip": "",
       "validation": {
         "required": "Organization name is required",
-        "format": "Invalid string, should contain only letters, numbers, and ()_/&+%@#;,.: -? special characters"
+        "format": "Invalid string, should contain only letters, numbers, and ()_/&+%@#;,.: -? special characters",
+        "minLength": "Organization name must be at least 2 characters",
+        "maxLength": "Organization name must be at most 100 characters",
+        "noLeadingSpace": "Organization name cannot start with a space",
+        "noTrailingSpace": "Organization name cannot end with a space",
+        "noConsecutiveSpaces": "Organization name cannot contain consecutive spaces"
       }
     },
     "organizationDescription": {
@@ -28,7 +33,10 @@
       "description": "",
       "tooltip": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
       "validation": {
-        "maxLength": "Organization description must be 500 characters or less"
+        "maxLength": "Organization description must be 500 characters or less",
+        "minLength": "Organization description must be at least 10 characters",
+        "noHtml": "Organization description cannot contain HTML tags",
+        "noUrls": "Organization description cannot contain URLs"
       }
     },
     "dbaName": {
@@ -52,7 +60,10 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "invalid": "Invalid email address"
+        "invalid": "Invalid email address",
+        "format": "Email must be in a valid business email format",
+        "maxLength": "Email must be at most 100 characters",
+        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
       }
     },
     "countryOfFormation": {
@@ -70,7 +81,10 @@
       "description": "",
       "tooltip": "Year of company formation (e.g. 2000)",
       "validation": {
-        "format": "Invalid year of formation"
+        "format": "Invalid year of formation",
+        "min": "Year of formation cannot be before 1800",
+        "max": "Year of formation cannot be in the future",
+        "invalid": "Please enter a valid year between 1800 and current year"
       }
     },
     "addresses.addressType": {
@@ -184,18 +198,26 @@
     },
     "industryCategory": {
       "validation": {
-        "maxLength": "Industry category must be 100 characters or less"
+        "maxLength": "Industry category must be 100 characters or less",
+        "required": "Industry category is required",
+        "format": "Industry category can only contain letters, numbers, and basic punctuation",
+        "minLength": "Industry category must be at least 3 characters"
       }
     },
     "industryType": {
       "validation": {
-        "maxLength": "Industry type must be 100 characters or less"
+        "maxLength": "Industry type must be 100 characters or less",
+        "required": "Industry type is required",
+        "format": "Industry type can only contain letters, numbers, and basic punctuation",
+        "minLength": "Industry type must be at least 3 characters"
       }
     },
     "organizationIds": {
       "validation": {
         "minIds": "At least one organization ID is required",
-        "maxIds": "Maximum 6 organization IDs allowed"
+        "maxIds": "Maximum 6 organization IDs allowed",
+        "uniqueTypes": "Each organization ID type must be unique",
+        "required": "Organization ID is required"
       },
       "description": {
         "validation": {
@@ -206,7 +228,9 @@
         "validation": {
           "required": "ID value is required",
           "maxLength": "ID value must be 100 characters or less",
-          "einFormat": "EIN must be exactly 9 digits"
+          "einFormat": "EIN must be exactly 9 digits",
+          "format": "ID value can only contain letters, numbers, and hyphens",
+          "noSpaces": "ID value cannot contain spaces"
         }
       },
       "issuer": {
@@ -228,12 +252,18 @@
       "validation": {
         "invalid": "Invalid URL",
         "maxLength": "Website URL must be 500 characters or less",
-        "required": "Website URL is required"
+        "required": "Website URL is required",
+        "httpsRequired": "Website URL must start with https://",
+        "format": "Website must be a valid URL (e.g., https://www.example.com)",
+        "noIp": "Website URL cannot be an IP address"
       }
     },
     "mcc": {
       "validation": {
-        "format": "MCC must be empty or exactly 4 digits"
+        "format": "MCC must be empty or exactly 4 digits",
+        "invalid": "Invalid MCC code",
+        "required": "MCC code is required for this business type",
+        "range": "MCC must be a valid code between 0001 and 9999"
       }
     },
     "secondaryMccList": {
