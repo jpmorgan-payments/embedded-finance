@@ -290,9 +290,7 @@ function evaluateFieldRules(
  * @returns Object containing filter functions for schemas and values
  * Used to adapt form behavior based on client context
  */
-export function useFilterFunctionsByClientContext(
-  clientData?: ClientResponse
-) {
+export function useFilterFunctionsByClientContext(clientData?: ClientResponse) {
   const organizationParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   );
@@ -344,7 +342,7 @@ export function useFilterFunctionsByClientContext(
     isFieldRequired,
     clientContext,
   };
-};
+}
 
 /**
  * Retrieves field rules for a specific field based on client context

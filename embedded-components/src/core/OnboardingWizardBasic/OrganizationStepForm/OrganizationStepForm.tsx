@@ -108,7 +108,6 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { countryOptions } from '../utils/countryOptions';
-import { stateOptions } from '../utils/stateOptions';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -117,6 +116,7 @@ import {
   translateApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
+import { stateOptions } from '../utils/stateOptions';
 import naicsCodes from './naics-codes.json';
 import {
   OrganizationStepFormSchema,

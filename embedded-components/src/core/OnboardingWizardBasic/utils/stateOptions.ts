@@ -1,4 +1,4 @@
-export const stateOptions: { label: string; value: string; }[] = [
+export const stateOptions: { label: string; value: string }[] = [
   { label: 'Alabama', value: 'AL' },
   { label: 'Alaska', value: 'AK' },
   { label: 'Arizona', value: 'AZ' },
@@ -48,5 +48,5 @@ export const stateOptions: { label: string; value: string; }[] = [
   { label: 'Washington', value: 'WA' },
   { label: 'West Virginia', value: 'WV' },
   { label: 'Wisconsin', value: 'WI' },
-  { label: 'Wyoming', value: 'WY' }
+  { label: 'Wyoming', value: 'WY' },
 ];

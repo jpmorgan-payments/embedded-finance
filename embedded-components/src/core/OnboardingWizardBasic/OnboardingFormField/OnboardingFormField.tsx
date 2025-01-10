@@ -1,21 +1,11 @@
+import { useState } from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { ControllerProps, FieldPath, FieldValues } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronsUpDown } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Button,
   Command,
   CommandEmpty,
@@ -23,19 +13,27 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
   Popover,
   PopoverContent,
   PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui';
-import { cn } from '@/lib/utils';
-
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
 import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
-
-import { useState } from 'react';
 
 type FieldType =
   | 'text'
@@ -186,8 +184,9 @@ export const OnboardingFormField = <
                             className="eb-w-full eb-justify-between"
                           >
                             {field.value
-                              ? options?.find((option) => option.value === field.value)
-                                  ?.label
+                              ? options?.find(
+                                  (option) => option.value === field.value
+                                )?.label
                               : fieldPlaceholder}
                             <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
                           </Button>
@@ -204,14 +203,20 @@ export const OnboardingFormField = <
                                   key={option.value}
                                   value={option.value}
                                   onSelect={(currentValue) => {
-                                    field.onChange(currentValue === field.value ? "" : currentValue);
+                                    field.onChange(
+                                      currentValue === field.value
+                                        ? ''
+                                        : currentValue
+                                    );
                                     setOpen(false);
                                   }}
                                 >
                                   <Check
                                     className={cn(
-                                      "eb-mr-2 eb-h-4 eb-w-4",
-                                      field.value === option.value ? "eb-opacity-100" : "eb-opacity-0"
+                                      'eb-mr-2 eb-h-4 eb-w-4',
+                                      field.value === option.value
+                                        ? 'eb-opacity-100'
+                                        : 'eb-opacity-0'
                                     )}
                                   />
                                   {option.label}

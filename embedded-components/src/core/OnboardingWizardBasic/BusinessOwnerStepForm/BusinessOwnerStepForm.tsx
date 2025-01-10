@@ -2,7 +2,7 @@
  * BusinessOwnerStepForm Component
  * ==============================
  * Form component for managing business owners during the onboarding process.
- * 
+ *
  * Table of Contents:
  * -----------------
  * 1. Imports & Dependencies (1-40)
@@ -40,7 +40,7 @@
  *          * Multiple IDs Support
  *          * ID Type
  *          * ID Number
- * 
+ *
  * @component
  * @example
  * return (

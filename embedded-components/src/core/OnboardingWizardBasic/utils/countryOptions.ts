@@ -43,5 +43,5 @@ export const countryOptions: CountryOption[] = [
   { value: 'TR', label: 'Turkey' },
   { value: 'PL', label: 'Poland' },
   { value: 'CZ', label: 'Czech Republic' },
-  { value: 'HU', label: 'Hungary' }
+  { value: 'HU', label: 'Hungary' },
 ];

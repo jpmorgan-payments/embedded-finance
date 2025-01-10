@@ -2,7 +2,7 @@
  * IndividualStepForm Component
  * ===========================
  * Form component for collecting individual's information during onboarding.
- * 
+ *
  * Table of Contents:
  * -----------------
  * 1. Imports & Dependencies (1-50)
@@ -41,7 +41,7 @@
  *        - Issuer
  *        - Expiry Date
  *        - Description
- * 
+ *
  * @component
  * @example
  * return (
