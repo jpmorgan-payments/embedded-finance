@@ -14,6 +14,7 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
+import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -178,6 +179,9 @@ ReviewAndAttest.parameters = {
     handlers: [
       http.get('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+      http.get('/documents/abcd1c1d-6635-43ff-a8e5-b252926bddef', () => {
+        return HttpResponse.json(efDocumentClientDetail);
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
