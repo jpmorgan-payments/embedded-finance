@@ -166,7 +166,6 @@ export const ReviewAndAttestStepForm = () => {
               },
               onSuccess: () => {
                 toast.success('Attestation details updated successfully');
-                nextStep();
               },
               onError: () => {
                 toast.error('Failed to update attestation details');
@@ -182,6 +181,7 @@ export const ReviewAndAttestStepForm = () => {
               onSuccess: () => {
                 toast.success('KYC initiated successfully');
                 queryClient.invalidateQueries();
+                nextStep();
               },
               onError: () => {
                 toast.error('Failed to initiate KYC');

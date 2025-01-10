@@ -186,6 +186,10 @@ ReviewAndAttest.parameters = {
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
       }),
+      http.post('/clients/0030000133/verifications', () => {
+        return HttpResponse.json({acceptedAt: new Date().toISOString()});
+        // return HttpResponse.error({status: 400, body: {error: 'Bad Request'}});
+      }),
     ],
   },
 };
