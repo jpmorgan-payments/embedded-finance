@@ -1,5 +1,6 @@
 import { ControllerProps, FieldPath, FieldValues } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { Check, ChevronsUpDown } from 'lucide-react';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
@@ -15,12 +16,26 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Button,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@/components/ui';
+import { cn } from '@/lib/utils';
+
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
 import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
+
+import { useState } from 'react';
 
 type FieldType =
   | 'text'
@@ -28,7 +43,8 @@ type FieldType =
   | 'select'
   | 'radio-group'
   | 'checkbox'
-  | 'array';
+  | 'array'
+  | 'combobox';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -48,7 +64,7 @@ interface SelectOrRadioGroupProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends BaseProps<TFieldValues, TName> {
-  type: 'select' | 'radio-group';
+  type: 'select' | 'radio-group' | 'combobox';
   options: Array<{ label: string; value: string }>;
 }
 
@@ -56,7 +72,7 @@ interface OtherFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends BaseProps<TFieldValues, TName> {
-  type: Exclude<FieldType, 'select' | 'radio-group'>;
+  type: Exclude<FieldType, 'select' | 'radio-group' | 'combobox'>;
   options?: never;
 }
 
@@ -157,6 +173,57 @@ export const OnboardingFormField = <
           ) : (
             (() => {
               switch (type) {
+                case 'combobox': {
+                  const [open, setOpen] = useState(false);
+                  return (
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={open}
+                            className="eb-w-full eb-justify-between"
+                          >
+                            {field.value
+                              ? options?.find((option) => option.value === field.value)
+                                  ?.label
+                              : fieldPlaceholder}
+                            <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="eb-w-full eb-p-0">
+                        <Command>
+                          <CommandInput placeholder={fieldPlaceholder} />
+                          <CommandList>
+                            <CommandEmpty>No option found.</CommandEmpty>
+                            <CommandGroup>
+                              {options?.map((option) => (
+                                <CommandItem
+                                  key={option.value}
+                                  value={option.value}
+                                  onSelect={(currentValue) => {
+                                    field.onChange(currentValue === field.value ? "" : currentValue);
+                                    setOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "eb-mr-2 eb-h-4 eb-w-4",
+                                      field.value === option.value ? "eb-opacity-100" : "eb-opacity-0"
+                                    )}
+                                  />
+                                  {option.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                }
                 case 'select':
                   return (
                     <Select onValueChange={field.onChange} value={field.value}>
@@ -175,16 +242,72 @@ export const OnboardingFormField = <
                     </Select>
                   );
                 case 'email':
+                  return (
+                    <FormControl>
+                      <Input
+                        {...field}
+                        {...inputProps}
+                        type="email"
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
                 case 'radio-group':
+                  return (
+                    <FormControl>
+                      <div className="eb-flex eb-flex-col eb-space-y-2">
+                        {options?.map((option) => (
+                          <label
+                            key={option.value}
+                            className="eb-flex eb-items-center eb-space-x-2"
+                          >
+                            <input
+                              type="radio"
+                              {...field}
+                              value={option.value}
+                              checked={field.value === option.value}
+                              className="eb-h-4 eb-w-4"
+                            />
+                            <span>{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </FormControl>
+                  );
                 case 'checkbox':
+                  return (
+                    <FormControl>
+                      <div className="eb-flex eb-items-center eb-space-x-2">
+                        <input
+                          type="checkbox"
+                          {...field}
+                          checked={field.value}
+                          className="eb-h-4 eb-w-4"
+                        />
+                        <span>{fieldPlaceholder}</span>
+                      </div>
+                    </FormControl>
+                  );
                 case 'text':
+                  return (
+                    <FormControl>
+                      <Input
+                        {...field}
+                        {...inputProps}
+                        type="text"
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
                 default:
                   return (
                     <FormControl>
                       <Input
                         {...field}
                         {...inputProps}
-                        type={type}
+                        type="text"
                         value={field.value}
                         placeholder={fieldPlaceholder}
                       />

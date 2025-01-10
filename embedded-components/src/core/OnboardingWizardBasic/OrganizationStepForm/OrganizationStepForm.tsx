@@ -1,13 +1,61 @@
-/* eslint-disable react/no-unescaped-entities */
-import { Fragment, useEffect, useState } from 'react';
+/**
+ * OrganizationStepForm Component
+ * =============================
+ * Form component for collecting and managing organization details during onboarding.
+ * 
+ * Table of Contents:
+ * -----------------
+ * 1. Imports & Dependencies (1-30)
+ * 2. Types & Schemas (30-70)
+ * 3. Main Component (73-1134)
+ *    - Hook Initialization (75-90)
+ *    - Data Fetching & Client Context (90-120)
+ *    - Form Configuration (120-200)
+ *    - Event Handlers (200-300)
+ *    - Form Fields & UI (300+)
+ *      + General Information Fieldset
+ *        - Organization Name
+ *        - Organization Description
+ *        - DBA Name
+ *        - Organization Email
+ *        - Country of Formation
+ *        - Year of Formation
+ *      + Phone Information Fieldset
+ *        - Phone Type
+ *        - Phone Number
+ *      + Industry Information Fieldset
+ *        - Industry Type (with NAICS codes)
+ *        - Merchant Category Code (MCC)
+ *        - Entities in Ownership
+ *        - Trade Over Internet
+ *      + Address Information Fieldset(s)
+ *        - Address Type
+ *        - Street Address
+ *        - City
+ *        - State/Province
+ *        - Postal Code
+ *        - Country
+ *      + Website Information
+ *        - Website Availability
+ *        - Website URL
+ *      + Organization Identifiers
+ *        - ID Type
+ *        - ID Value
+ * 
+ * @component
+ * @example
+ * return (
+ *   <OrganizationStepForm />
+ * )
+ */
+
+import { Fragment, useEffect, useState, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
@@ -20,13 +68,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
   Form,
   FormControl,
   FormField,
@@ -36,11 +77,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -70,6 +106,7 @@ import {
   OrganizationStepFormSchema,
   refineOrganizationStepFormSchema,
 } from './OrganizationStepForm.schema';
+import { countryOptions } from '../utils/countryOptions';
 
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
@@ -137,9 +174,14 @@ export const OrganizationStepForm = () => {
     }),
   });
 
-  const industryCategories = Array.from(
-    new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
-  ).sort((a, b) => a.localeCompare(b));
+  const industryOptions = useMemo(() => {
+    return naicsCodes.map((code) => ({
+      label: `[${code.sectorDescription}] ${code.description} (${code.id})`,
+      value: code.description,
+      category: code.sectorDescription,
+      id: code.id,
+    }));
+  }, [naicsCodes]);
 
   const {
     fields: addressFields,
@@ -263,8 +305,6 @@ export const OrganizationStepForm = () => {
             }),
       }) as UpdatePartyRequest;
 
-      console.log('existingOrgParty?.id', existingOrgParty?.id);
-
       if (usePartyResource && existingOrgParty?.id) {
         updateParty(
           {
@@ -335,8 +375,6 @@ export const OrganizationStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  console.log('errors', form.formState.errors);
-
   return (
     <Form {...form}>
       <form
@@ -373,8 +411,8 @@ export const OrganizationStepForm = () => {
           <OnboardingFormField
             control={form.control}
             name="countryOfFormation"
-            type="text"
-            inputProps={{ maxLength: 2 }}
+            type="combobox"
+            options={countryOptions}
           />
 
           <OnboardingFormField
@@ -454,113 +492,12 @@ export const OrganizationStepForm = () => {
             Industry Info
           </legend>
 
-          {isFieldVisible('industryType') && (
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="industryType"
-              disabled={isFieldDisabled('industryType')}
-              render={({ field }) => {
-                const [open, setOpen] = useState(false);
-                return (
-                  <FormItem className="eb-flex eb-flex-col">
-                    <div className="eb-flex eb-items-center eb-space-x-2">
-                      <FormLabel asterisk={isFieldRequired('industryType')}>
-                        Industry Type
-                      </FormLabel>
-                      <InfoPopover>
-                        Your business industry - search for the relevant
-                        industry type or the NAICS code.
-                      </InfoPopover>
-                    </div>
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'eb-justify-between eb-font-normal',
-                              !field.value && 'eb-text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              <div className="eb-flex eb-w-[calc(100%-1rem)]">
-                                <span className="eb-overflow-hidden eb-text-ellipsis">
-                                  [{form.getValues('industryCategory')}]{' '}
-                                  {field.value}
-                                </span>
-                                <span className="eb-pl-2 eb-text-muted-foreground">
-                                  {
-                                    naicsCodes.find(
-                                      (code) => code.description === field.value
-                                    )?.id
-                                  }
-                                </span>
-                              </div>
-                            ) : (
-                              'Select industry type'
-                            )}
-                            <CaretSortIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search industry type..."
-                            className="eb-h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No results found</CommandEmpty>
-                            {industryCategories.map((category) => (
-                              <Fragment key={category}>
-                                {naicsCodes
-                                  .filter(
-                                    (code) =>
-                                      code.sectorDescription === category
-                                  )
-                                  .map(({ description: industryType, id }) => (
-                                    <CommandItem
-                                      key={industryType}
-                                      value={`${category} ${industryType} ${id}`}
-                                      className="eb-cursor-pointer"
-                                      onSelect={() => {
-                                        field.onChange(industryType);
-                                        form.setValue(
-                                          'industryCategory',
-                                          category
-                                        );
-                                        setOpen(false);
-                                      }}
-                                    >
-                                      <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                                        [{category}] {industryType}
-                                        <span className="eb-pl-2 eb-text-muted-foreground">
-                                          {id}
-                                        </span>
-                                      </span>
-                                      <CheckIcon
-                                        className={cn(
-                                          'eb-ml-2 eb-h-4 eb-w-4',
-                                          field.value === industryType
-                                            ? 'eb-opacity-100'
-                                            : 'eb-opacity-0'
-                                        )}
-                                      />
-                                    </CommandItem>
-                                  ))}
-                              </Fragment>
-                            ))}
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-          )}
+              type="combobox"
+              options={industryOptions}
+            /> 
 
           {isFieldVisible('mcc') && (
             <FormField

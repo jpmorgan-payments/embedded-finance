@@ -1,3 +1,53 @@
+/**
+ * BusinessOwnerStepForm Component
+ * ==============================
+ * Form component for managing business owners during the onboarding process.
+ * 
+ * Table of Contents:
+ * -----------------
+ * 1. Imports & Dependencies (1-40)
+ * 2. Types & Interfaces (40-50)
+ * 3. Main Component (50-723)
+ *    - Hook Initialization (50-70)
+ *    - Data Fetching & Context (70-90)
+ *    - Form Configuration (90-120)
+ *    - Field Arrays Setup (120-150)
+ *    - Event Handlers (150-250)
+ *      + Edit Business Owner
+ *      + Add Business Owner
+ *      + Delete Business Owner
+ *      + Form Submission
+ *    - Form Fields & UI (250+)
+ *      + Business Owner Cards
+ *        - Name Display
+ *        - Job Title
+ *        - Edit/Delete Actions
+ *      + Business Owner Form Dialog
+ *        - Personal Information
+ *          * First Name
+ *          * Last Name
+ *          * Job Title
+ *          * Date of Birth
+ *        - Contact Information
+ *          * Email
+ *          * Phone Number
+ *        - Address Information
+ *          * Multiple Addresses Support
+ *          * Address Type
+ *          * Street Address
+ *          * City/State/ZIP
+ *        - Identification
+ *          * Multiple IDs Support
+ *          * ID Type
+ *          * ID Number
+ * 
+ * @component
+ * @example
+ * return (
+ *   <BusinessOwnerStepForm />
+ * )
+ */
+
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react';

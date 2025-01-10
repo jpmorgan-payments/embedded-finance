@@ -23,3 +23,13 @@ export { Text } from './text';
 export { TextArea } from './textarea';
 export { Title } from './title';
 export { Box } from './box';
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+} from './command';

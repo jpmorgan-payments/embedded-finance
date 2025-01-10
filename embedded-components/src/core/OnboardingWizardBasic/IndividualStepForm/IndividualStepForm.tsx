@@ -1,3 +1,54 @@
+/**
+ * IndividualStepForm Component
+ * ===========================
+ * Form component for collecting individual's information during onboarding.
+ * 
+ * Table of Contents:
+ * -----------------
+ * 1. Imports & Dependencies (1-50)
+ * 2. Main Component (53-759)
+ *    - Hook Initialization (55-80)
+ *    - Data Fetching & Context (80-120)
+ *    - Form Configuration (120-150)
+ *    - Field Arrays Setup (150-180)
+ *    - Event Handlers (180-250)
+ *    - Form Fields & UI (250+)
+ *      + Personal Information Fieldset
+ *        - First Name
+ *        - Middle Name
+ *        - Last Name
+ *        - Date of Birth
+ *        - Country of Residence
+ *        - Job Title
+ *        - Nature of Ownership
+ *        - Sole Owner
+ *      + Phone Information Fieldset
+ *        - Phone Type
+ *        - Phone Number
+ *      + Address Information Fieldset(s)
+ *        - Multiple Addresses Support
+ *        - Address Type
+ *        - Address Line 1
+ *        - Address Line 2
+ *        - City
+ *        - State
+ *        - Postal Code
+ *        - Country
+ *      + Identification Fieldset
+ *        - Multiple IDs Support
+ *        - ID Type Selection
+ *        - ID Value Input
+ *        - Issuer
+ *        - Expiry Date
+ *        - Description
+ * 
+ * @component
+ * @example
+ * return (
+ *   <IndividualStepForm />
+ * )
+ */
+
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm } from 'react-hook-form';

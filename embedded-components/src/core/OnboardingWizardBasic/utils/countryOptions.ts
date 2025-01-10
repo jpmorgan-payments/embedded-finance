@@ -1,0 +1,47 @@
+export interface CountryOption {
+  label: string;
+  value: string;
+}
+
+export const countryOptions: CountryOption[] = [
+  { value: 'US', label: 'United States' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'IT', label: 'Italy' },
+  { value: 'ES', label: 'Spain' },
+  { value: 'PT', label: 'Portugal' },
+  { value: 'NL', label: 'Netherlands' },
+  { value: 'BE', label: 'Belgium' },
+  { value: 'CH', label: 'Switzerland' },
+  { value: 'AT', label: 'Austria' },
+  { value: 'SE', label: 'Sweden' },
+  { value: 'NO', label: 'Norway' },
+  { value: 'DK', label: 'Denmark' },
+  { value: 'FI', label: 'Finland' },
+  { value: 'IE', label: 'Ireland' },
+  { value: 'NZ', label: 'New Zealand' },
+  { value: 'JP', label: 'Japan' },
+  { value: 'KR', label: 'South Korea' },
+  { value: 'SG', label: 'Singapore' },
+  { value: 'HK', label: 'Hong Kong' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'AR', label: 'Argentina' },
+  { value: 'CL', label: 'Chile' },
+  { value: 'CO', label: 'Colombia' },
+  { value: 'PE', label: 'Peru' },
+  { value: 'IN', label: 'India' },
+  { value: 'CN', label: 'China' },
+  { value: 'RU', label: 'Russia' },
+  { value: 'ZA', label: 'South Africa' },
+  { value: 'AE', label: 'United Arab Emirates' },
+  { value: 'SA', label: 'Saudi Arabia' },
+  { value: 'IL', label: 'Israel' },
+  { value: 'TR', label: 'Turkey' },
+  { value: 'PL', label: 'Poland' },
+  { value: 'CZ', label: 'Czech Republic' },
+  { value: 'HU', label: 'Hungary' }
+];
