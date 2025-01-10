@@ -1,4 +1,6 @@
-import { ClientResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+} from '@/api/generated/smbdo.schemas';
 
 export const efClientSolPropAdditionalDocuments: ClientResponse = {
   id: '0030000129',
@@ -56,6 +58,13 @@ export const efClientSolPropAdditionalDocuments: ClientResponse = {
         ],
         websiteAvailable: false,
       },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          documentRequestIds: ['68430'],
+        },
+      ],
     },
     {
       id: '2000000112',

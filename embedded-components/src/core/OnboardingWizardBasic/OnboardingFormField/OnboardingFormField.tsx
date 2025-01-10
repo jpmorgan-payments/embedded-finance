@@ -135,26 +135,18 @@ export const OnboardingFormField = <
                 )}
             </FormLabel>
             <InfoPopover>
-              {tooltip ??
-                t(
-                  [
-                    `fields.${tName}.tooltip`,
-                    '',
-                  ] as unknown as TemplateStringsArray,
-                  { index: lastIndex }
-                )}
+              <div className="eb-text-sm">
+                {tooltip ??
+                  t(
+                    [
+                      `fields.${tName}.tooltip`,
+                      '',
+                    ] as unknown as TemplateStringsArray,
+                    { index: lastIndex }
+                  )}
+              </div>
             </InfoPopover>
           </div>
-          <FormDescription>
-            {description ??
-              t(
-                [
-                  `fields.${tName}.description`,
-                  '',
-                ] as unknown as TemplateStringsArray,
-                { index: lastIndex }
-              )}
-          </FormDescription>
 
           {fieldVisibility === 'readonly' ? (
             <p className="eb-font-bold">
@@ -201,6 +193,16 @@ export const OnboardingFormField = <
               }
             })()
           )}
+          <FormDescription className="eb-text-xs eb-text-gray-500">
+            {description ??
+              t(
+                [
+                  `fields.${tName}.description`,
+                  '',
+                ] as unknown as TemplateStringsArray,
+                { index: lastIndex }
+              )}
+          </FormDescription>
 
           <FormMessage />
         </FormItem>
