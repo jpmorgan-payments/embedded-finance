@@ -137,11 +137,19 @@ export const DocumentUploadStepForm = ({
               {
                 onSuccess: async () => {
                   toast.success('Document uploaded successfully');
-
                   // submit documetn request
-                  await submitDocumentMutation.mutateAsync({
-                    id: documentRequestId,
-                  });
+                  await submitDocumentMutation.mutateAsync(
+                    {
+                      id: documentRequestId,
+                    },
+                    {
+                      onError: () => {
+                        toast.error(
+                          'Error submitting document request confirmation'
+                        );
+                      },
+                    }
+                  );
                 },
                 onError: () => {
                   toast.error('Error uploading document');
@@ -151,6 +159,7 @@ export const DocumentUploadStepForm = ({
           }
         }
       }
+      
       // Invalidate both client and document request queries
       queryClient.invalidateQueries();
 

@@ -163,8 +163,22 @@ export const ReviewAndAttestStepForm = () => {
             onSettled: (data, error) => {
               onPostClientResponse?.(data, error?.response?.data);
             },
-            onSuccess: () => {
+            onSuccess: async () => {
               toast.success('Attestation details updated successfully');
+              if (!blockPostVerification) {
+                await initiateKYC(
+                  { id: clientId, data: verificationRequestBody },
+                  {
+                    onSuccess: () => {
+                      toast.success('KYC initiated successfully');
+                      queryClient.invalidateQueries();
+                    },
+                    onError: () => {
+                      toast.error('Failed to initiate KYC');
+                    },
+                  }
+                );
+              }
               nextStep();
             },
             onError: () => {
@@ -174,20 +188,7 @@ export const ReviewAndAttestStepForm = () => {
         );
       }
 
-      if (!blockPostVerification) {
-        await initiateKYC(
-          { id: clientId, data: verificationRequestBody },
-          {
-            onSuccess: () => {
-              toast.success('KYC initiated successfully');
-              queryClient.invalidateQueries();
-            },
-            onError: () => {
-              toast.error('Failed to initiate KYC');
-            },
-          }
-        );
-      }
+  
     }
   };
 
