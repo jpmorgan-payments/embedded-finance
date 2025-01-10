@@ -83,7 +83,7 @@
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       }
-    },    
+    },
     "yearOfFormation": {
       "label": "Year of formation",
       "placeholder": "Enter year of formation",
@@ -144,6 +144,32 @@
       }
     },
     "addresses": {
+      "label": "Addresses",
+      "state": {
+        "label": "State",
+        "placeholder": "Select state",
+        "description": "State of your business address",
+        "validation": {
+          "required": "State is required"
+        }
+      },
+      "postalCode": {
+        "label": "Postal Code",
+        "placeholder": "Enter postal code",
+        "description": "5-digit ZIP code",
+        "validation": {
+          "required": "Postal code is required",
+          "pattern": "Postal code must be exactly 5 digits"
+        }
+      },
+      "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "description": "Country of your business address",
+        "validation": {
+          "required": "Country is required"
+        }
+      },
       "validation": {
         "minAddresses": "At least one address is required",
         "maxAddresses": "Maximum 5 addresses allowed"
@@ -161,6 +187,10 @@
       }
     },
     "industryCategory": {
+      "label": "Industry type",
+      "placeholder": "Select industry type",
+      "description": "Your business industry - search for the relevant industry type or the NAICS code.",
+      "tooltip": "should match your business registration documents NAICS code",
       "validation": {
         "maxLength": "Industry category must be 100 characters or less",
         "required": "Industry category is required",
@@ -171,7 +201,7 @@
     "industryType": {
       "label": "Industry type",
       "placeholder": "Select industry type",
-      "description": "your organization's primary industry",
+      "description": "Your business industry - search for the relevant industry type or the NAICS code.",
       "tooltip": "should match your business registration documents NAICS code",
       "validation": {
         "maxLength": "Industry type must be 100 characters or less",

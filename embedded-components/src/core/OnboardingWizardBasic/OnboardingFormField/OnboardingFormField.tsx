@@ -193,7 +193,7 @@ export const OnboardingFormField = <
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="eb-w-full eb-p-0">
+                      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
                         <Command>
                           <CommandInput placeholder={fieldPlaceholder} />
                           <CommandList>

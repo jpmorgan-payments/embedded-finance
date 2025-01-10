@@ -2,7 +2,7 @@
  * OrganizationStepForm Component
  * =============================
  * Form component for collecting and managing organization details during onboarding.
- * 
+ *
  * Table of Contents:
  * -----------------
  * 1. Imports & Dependencies (1-30)
@@ -41,7 +41,7 @@
  *      + Organization Identifiers
  *        - ID Type
  *        - ID Value
- * 
+ *
  * @component
  * @example
  * return (
@@ -49,13 +49,16 @@
  * )
  */
 
-import { Fragment, useEffect, useState, useMemo } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CaretSortIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
@@ -65,7 +68,6 @@ import {
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
@@ -85,7 +87,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
-import { RadioGroup, RadioGroupItem } from '@/components/ui';
+import {
+  Button,
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  RadioGroup,
+  RadioGroupItem,
+} from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -93,6 +107,8 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { countryOptions } from '../utils/countryOptions';
+import { stateOptions } from '../utils/stateOptions';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -106,7 +122,6 @@ import {
   OrganizationStepFormSchema,
   refineOrganizationStepFormSchema,
 } from './OrganizationStepForm.schema';
-import { countryOptions } from '../utils/countryOptions';
 
 export const OrganizationStepForm = () => {
   const { nextStep } = useStepper();
@@ -174,14 +189,11 @@ export const OrganizationStepForm = () => {
     }),
   });
 
-  const industryOptions = useMemo(() => {
-    return naicsCodes.map((code) => ({
-      label: `[${code.sectorDescription}] ${code.description} (${code.id})`,
-      value: code.description,
-      category: code.sectorDescription,
-      id: code.id,
-    }));
-  }, [naicsCodes]);
+  console.log('form errors', form.formState.errors);
+
+  const industryCategories = Array.from(
+    new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
+  ).sort((a, b) => a.localeCompare(b));
 
   const {
     fields: addressFields,
@@ -492,12 +504,113 @@ export const OrganizationStepForm = () => {
             Industry Info
           </legend>
 
-            <OnboardingFormField
+          {isFieldVisible('industryType') && (
+            <FormField
               control={form.control}
               name="industryType"
-              type="combobox"
-              options={industryOptions}
-            /> 
+              disabled={isFieldDisabled('industryType')}
+              render={({ field }) => {
+                const [open, setOpen] = useState(false);
+                return (
+                  <FormItem className="eb-flex eb-flex-col">
+                    <div className="eb-flex eb-items-center eb-space-x-2">
+                      <FormLabel asterisk={isFieldRequired('industryType')}>
+                        Industry Type
+                      </FormLabel>
+                      <InfoPopover>
+                        Your business industry - search for the relevant
+                        industry type or the NAICS code.
+                      </InfoPopover>
+                    </div>
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'eb-justify-between eb-font-normal',
+                              !field.value && 'eb-text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              <div className="eb-flex eb-w-[calc(100%-1rem)]">
+                                <span className="eb-overflow-hidden eb-text-ellipsis">
+                                  [{form.getValues('industryCategory')}]{' '}
+                                  {field.value}
+                                </span>
+                                <span className="eb-pl-2 eb-text-muted-foreground">
+                                  {
+                                    naicsCodes.find(
+                                      (code) => code.description === field.value
+                                    )?.id
+                                  }
+                                </span>
+                              </div>
+                            ) : (
+                              'Select industry type'
+                            )}
+                            <CaretSortIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search industry type..."
+                            className="eb-h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>No results found</CommandEmpty>
+                            {industryCategories.map((category) => (
+                              <Fragment key={category}>
+                                {naicsCodes
+                                  .filter(
+                                    (code) =>
+                                      code.sectorDescription === category
+                                  )
+                                  .map(({ description: industryType, id }) => (
+                                    <CommandItem
+                                      key={industryType}
+                                      value={`${category} ${industryType} ${id}`}
+                                      className="eb-cursor-pointer"
+                                      onSelect={() => {
+                                        field.onChange(industryType);
+                                        form.setValue(
+                                          'industryCategory',
+                                          category
+                                        );
+                                        setOpen(false);
+                                      }}
+                                    >
+                                      <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                                        [{category}] {industryType}
+                                        <span className="eb-pl-2 eb-text-muted-foreground">
+                                          {id}
+                                        </span>
+                                      </span>
+                                      <CheckIcon
+                                        className={cn(
+                                          'eb-ml-2 eb-h-4 eb-w-4',
+                                          field.value === industryType
+                                            ? 'eb-opacity-100'
+                                            : 'eb-opacity-0'
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                              </Fragment>
+                            ))}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+          )}
 
           {isFieldVisible('mcc') && (
             <FormField
@@ -675,50 +788,28 @@ export const OrganizationStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.state`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>State</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter state" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={stateOptions}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.postalCode`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Postal Code</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter postal code" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
+                  inputProps={{
+                    pattern: '[0-9]{5}',
+                    maxLength: 5,
+                    inputMode: 'numeric',
+                  }}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.country`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Country</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          maxLength={2}
-                          placeholder="e.g., US"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={countryOptions}
                 />
-
                 <div className="eb-col-span-full">
                   <Button
                     type="button"
@@ -780,8 +871,8 @@ export const OrganizationStepForm = () => {
                     <FormItem>
                       <FormLabel>ID Type</FormLabel>
                       <Select
+                        value={field.value}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger ref={field.ref}>
