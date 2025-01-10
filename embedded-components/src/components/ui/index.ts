@@ -16,6 +16,7 @@ export { RadioGroup, RadioGroupItem } from './radio-group';
 export { ScrollArea, ScrollBar } from './scroll-area';
 export * from './select';
 export { Separator } from './separator';
+export { Skeleton } from './skeleton';
 export { Stack } from './stack';
 export * from './table';
 export { Text } from './text';
