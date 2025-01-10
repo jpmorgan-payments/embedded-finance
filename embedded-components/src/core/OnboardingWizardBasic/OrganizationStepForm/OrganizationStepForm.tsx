@@ -896,31 +896,16 @@ export const OrganizationStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.value`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID Value</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter ID value" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.issuer`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Issuer</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter issuer" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={countryOptions}
                 />
                 <FormField
                   control={form.control}
