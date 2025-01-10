@@ -15,7 +15,7 @@ export const efClientSolPropAnsweredQuestions: ClientResponse = {
       id: '2000000111',
       partyType: 'ORGANIZATION',
       externalId: 'TCU1234',
-      email: 'monica@cpgetaways.com',
+      email: 'monica@ggmail.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
       status: 'ACTIVE',
