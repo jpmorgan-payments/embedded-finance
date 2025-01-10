@@ -223,6 +223,10 @@
         }
       },
       "value": {
+        "label": "ID value",
+        "placeholder": "Enter ID value",
+        "description": "Organization ID value",
+        "tooltip": "should match your business registration documents ID value",
         "validation": {
           "required": "ID value is required",
           "maxLength": "ID value must be 100 characters or less",
@@ -232,6 +236,10 @@
         }
       },
       "issuer": {
+        "label": "Issuer",
+        "placeholder": "Enter issuer",
+        "description": "Organization ID issuer",
+        "tooltip": "should match your business registration documents ID issuer",
         "validation": {
           "required": "Issuer is required",
           "maxLength": "Issuer must be 500 characters or less"
