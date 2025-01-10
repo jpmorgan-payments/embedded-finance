@@ -38,150 +38,10 @@ import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-
-// Define question IDs that should use a datepicker
-const DATE_QUESTION_IDS = ['30071', '30073']; // Add more IDs as needed
-
-const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
-  const schemaFields: Record<string, z.ZodTypeAny> = {};
-
-  questionsData.forEach((question) => {
-    const itemType = question?.responseSchema?.items?.type ?? 'string';
-    const itemEnum = question?.responseSchema?.items?.enum;
-    const itemPattern = question?.responseSchema?.items?.pattern;
-    const isOptional = !!question.parentQuestionId;
-
-    let valueSchema: z.ZodTypeAny;
-
-    if (question.id && DATE_QUESTION_IDS.includes(question.id)) {
-      valueSchema = z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format');
-    } else if (itemType) {
-      switch (itemType) {
-        case 'boolean':
-          valueSchema = z.enum(['true', 'false']);
-          break;
-        case 'string':
-          if (itemEnum) {
-            if (itemEnum.length > 0) {
-              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)]);
-            } else {
-              valueSchema = z.string();
-            }
-          } else {
-            valueSchema = z.string().min(1, 'Required');
-            if (itemPattern) {
-              valueSchema = (valueSchema as z.ZodString).regex(
-                new RegExp(itemPattern),
-                'Invalid format'
-              );
-            }
-          }
-          break;
-        case 'integer':
-          valueSchema = z
-            .string()
-            .min(1, 'Required')
-            .regex(/^\d+$/, 'Must be a number');
-          break;
-        default:
-          valueSchema = z.string();
-      }
-    } else {
-      console.log('Unknown question type', question);
-      return;
-    }
-
-    // If the question allows multiple values, wrap it in an array
-    if (question?.responseSchema?.type === 'array') {
-      const childSchema = valueSchema;
-      valueSchema = z.array(childSchema);
-
-      if (!isOptional) {
-        valueSchema = (valueSchema as z.ZodArray<z.ZodTypeAny>)
-          .min(question?.responseSchema?.minItems ?? 1, 'Required')
-          .max(
-            question?.responseSchema?.maxItems ?? 1,
-            `Cannot exceed ${question?.responseSchema?.maxItems} items`
-          )
-          // Extract error from child schema
-          .superRefine((values, context) => {
-            values.forEach((value: any) => {
-              const result = childSchema.safeParse(value);
-              if (result.error) {
-                context.addIssue(result.error.issues[0]);
-              }
-            });
-            return true;
-          });
-      }
-    }
-
-    schemaFields[`question_${question.id}`] = valueSchema;
-  });
-
-  return z.object(schemaFields).superRefine((values, context) => {
-    questionsData.forEach((question) => {
-      if (question.parentQuestionId) {
-        const parentQuestionValue =
-          values?.[`question_${question.parentQuestionId}`];
-        const parentQuestion = questionsData.find(
-          (q) => q.id === question.parentQuestionId
-        );
-        if (parentQuestion?.subQuestions) {
-          const subQuestion = parentQuestion.subQuestions.find((sq) =>
-            sq.questionIds?.includes(question.id ?? '')
-          );
-          if (subQuestion) {
-            if (
-              (typeof subQuestion?.anyValuesMatch === 'string' &&
-                parentQuestionValue.includes(subQuestion.anyValuesMatch)) ||
-              (Array.isArray(subQuestion?.anyValuesMatch) &&
-                parentQuestionValue.some((value: any) =>
-                  subQuestion.anyValuesMatch?.includes(value)
-                ))
-            ) {
-              if (question?.responseSchema?.type === 'array') {
-                if (question?.responseSchema?.minItems) {
-                  if (
-                    !values?.[`question_${question.id}`] ||
-                    values?.[`question_${question.id}`].length <
-                      question?.responseSchema?.minItems
-                  ) {
-                    context.addIssue({
-                      code: z.ZodIssueCode.custom,
-                      message: 'Required',
-                      path: [`question_${question.id}`],
-                    });
-                  }
-                }
-                if (question?.responseSchema?.maxItems) {
-                  if (
-                    values?.[`question_${question.id}`].length >
-                    question?.responseSchema?.maxItems
-                  ) {
-                    context.addIssue({
-                      code: z.ZodIssueCode.custom,
-                      message: `Cannot exceed ${question?.responseSchema?.maxItems} items`,
-                      path: [`question_${question.id}`],
-                    });
-                  }
-                }
-              } else if (!values?.[`question_${question.id}`]) {
-                context.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: 'Required',
-                  path: [`question_${question.id}`],
-                });
-              }
-            }
-          }
-        }
-      }
-    });
-  });
-};
+import {
+  createDynamicZodSchema,
+  DATE_QUESTION_IDS,
+} from './AdditionalQuestionsStepForm.schema';
 
 export const AdditionalQuestionsStepForm = () => {
   const { nextStep } = useStepper();
@@ -448,7 +308,6 @@ export const AdditionalQuestionsStepForm = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const dynamicSchema = useMemo(() => {
     const visibleQuestions: QuestionResponse[] = questionsData?.questions ?? [];
     if (!visibleQuestions) return z.object({});

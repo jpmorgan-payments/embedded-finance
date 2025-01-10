@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
 const handlers = [
-  http.get('/ef/do/v1/clients/*', () => {
+  http.get('/clients/*', () => {
     return HttpResponse.json(efClientSolPropWithMoreData);
   }),
 ];

@@ -1,9 +1,15 @@
+import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
+import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { userEvent } from '@test-utils';
 
-// import userEvent from '@testing-library/user-event';
+import { ClientProduct } from '@/api/generated/smbdo.schemas';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { OnboardingContextProvider } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { Jurisdiction } from '../utils/types';
 import { IndividualStepForm } from './IndividualStepForm';
 
 // Mock the useStepper hook
@@ -11,44 +17,59 @@ vi.mock('@/components/ui/stepper', () => ({
   useStepper: () => ({ nextStep: vi.fn() }),
 }));
 
+const mockClientData = efClientSolPropWithMoreData;
+
 // Mock the OnboardingContextProvider
 const mockOnboardingContext = {
-  clientId: '123',
+  clientId: '0030000129',
   onPostClientResponse: vi.fn(),
+  availableJurisdictions: ['US' as Jurisdiction],
+  availableProducts: ['EMBEDDED_PAYMENTS' as ClientProduct],
 };
 
-const queryClient = new QueryClient(); // Declare and initialize queryClient
+const queryClient = new QueryClient();
 
-const renderComponent = () =>
-  render(
-    <OnboardingContextProvider
-      {...mockOnboardingContext}
-      availableJurisdictions={['US']}
-      availableProducts={['EMBEDDED_PAYMENTS']}
-    >
-      <QueryClientProvider client={queryClient}>
-        <IndividualStepForm />
-      </QueryClientProvider>
-    </OnboardingContextProvider>
+const renderComponent = () => {
+  // Reset MSW handlers before each render
+  server.resetHandlers();
+
+  // Setup explicit handlers
+  server.use(
+    http.get('/clients/:clientId', () => {
+      return HttpResponse.json(mockClientData);
+    })
   );
 
+  return render(
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{
+        name: 'enUS',
+      }}
+    >
+      <OnboardingContextProvider {...mockOnboardingContext}>
+        <QueryClientProvider client={queryClient}>
+          <IndividualStepForm />
+        </QueryClientProvider>
+      </OnboardingContextProvider>
+    </EBComponentsProvider>
+  );
+};
+
 describe('IndividualStepForm', () => {
-  test('renders the form', () => {
+  test('renders the form with prefilled data and submits successfully', async () => {
     renderComponent();
+
+    // Check if form is pre-filled with mock data
     expect(screen.getByLabelText(/address type/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    // Submit form
+    userEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    // Verify submission
+    await waitFor(() => {
+      expect(mockOnboardingContext.onPostClientResponse).toHaveBeenCalled();
+    });
   });
-
-  // test('submits the form successfully', async () => {
-  //   renderComponent();
-
-  //   userEvent.type(await screen.findByLabelText(/ID Value/i), '123456789');
-
-  //   userEvent.click(screen.getByRole('button', { name: /next/i }));
-
-  //   //TODO: Fix this test
-
-  //   /* await waitFor(() => {
-  //     expect(mockOnboardingContext.onPostClientResponse).toHaveBeenCalled();
-  //   }); */
-  // });
 });
