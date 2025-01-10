@@ -12,10 +12,10 @@ import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
