@@ -75,11 +75,11 @@ export const ReviewAndAttestStepForm = () => {
   const { data: IPAddress } = useIPAddress();
 
   // Update client attestation
-  const { mutateAsync: updateClient, error: updateClientError } =
+  const { mutateAsync: updateClientAsync, error: updateClientError } =
     useSmbdoUpdateClient();
 
   // Initiate KYC
-  const { mutateAsync: initiateKYC, error: clientVerificationsError } =
+  const { mutateAsync: initiateKYCAsync, error: clientVerificationsError } =
     useSmbdoPostClientVerifications();
 
   const documentIds = clientData?.outstanding?.attestationDocumentIds || [];
@@ -155,7 +155,7 @@ export const ReviewAndAttestStepForm = () => {
 
       try {
         if (clientData?.outstanding?.attestationDocumentIds?.length) {
-          await updateClient(
+          await updateClientAsync(
             {
               id: clientId,
               data: requestBody,
@@ -176,7 +176,7 @@ export const ReviewAndAttestStepForm = () => {
         }
 
         if (!blockPostVerification) {
-          await initiateKYC(
+          await initiateKYCAsync(
             { id: clientId, data: verificationRequestBody },
             {
               onSuccess: () => {
