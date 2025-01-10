@@ -3,11 +3,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import {
   smbdoGetDocumentRequest,
   useSmbdoGetClient,
+  useSmbdoSubmitDocumentRequest,
   useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
 import {
@@ -38,6 +40,12 @@ interface DocumentUploadStepFormProps {
   onSubmit?: (values: any) => void;
 }
 
+const generateRequestId = () => {
+  return uuidv4()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 32);
+};
+
 export const DocumentUploadStepForm = ({
   standalone = false,
   onSubmit: externalOnSubmit,
@@ -46,6 +54,8 @@ export const DocumentUploadStepForm = ({
   const { clientId } = useOnboardingContext();
   const queryClient = useQueryClient();
   const uploadDocumentMutation = useSmbdoUploadDocument();
+
+  const submitDocumentMutation = useSmbdoSubmitDocumentRequest();
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -113,6 +123,7 @@ export const DocumentUploadStepForm = ({
             });
 
             const documentData: PostUploadDocument = {
+              requestId: generateRequestId(),
               documentContent: base64Content,
               documentName: file.name,
               documentType,
@@ -124,14 +135,12 @@ export const DocumentUploadStepForm = ({
             await uploadDocumentMutation.mutateAsync(
               { data: documentData },
               {
-                onSuccess: () => {
+                onSuccess: async () => {
                   toast.success('Document uploaded successfully');
-                  // Invalidate both client and document request queries
-                  queryClient.invalidateQueries({
-                    queryKey: ['documentRequest'],
-                  });
-                  queryClient.invalidateQueries({
-                    queryKey: ['client', clientId],
+
+                  // submit documetn request
+                  await submitDocumentMutation.mutateAsync({
+                    id: documentRequestId,
                   });
                 },
                 onError: () => {
@@ -142,6 +151,8 @@ export const DocumentUploadStepForm = ({
           }
         }
       }
+      // Invalidate both client and document request queries
+      queryClient.invalidateQueries();
 
       if (externalOnSubmit) {
         externalOnSubmit(values);
@@ -158,7 +169,7 @@ export const DocumentUploadStepForm = ({
     return <FormLoadingState message="Fetching document requests..." />;
   }
 
-  if (documentRequestsQueries?.data?.length === 0) {
+  if (partiesDocumentRequests?.length === 0 && !standalone) {
     return (
       <p className="eb-text-sm">
         No document requests found. Please proceed to the next step.
@@ -207,8 +218,34 @@ export const DocumentUploadStepForm = ({
                                 multiple={(requirement.minRequired ?? 0) > 1}
                                 accept={{
                                   'application/pdf': ['.pdf'],
+                                  'image/jpeg': ['.jpeg', '.jpg'],
+                                  'image/png': ['.png'],
+                                  'image/gif': ['.gif'],
+                                  'image/bmp': ['.bmp'],
+                                  'image/tiff': ['.tiff', '.tif'],
+                                  'image/webp': ['.webp'],
                                 }}
-                                onChange={onChange}
+                                onChange={(files) => {
+                                  const maxSize = 2 * 1024 * 1024; // 2 MB
+                                  const validFiles = files.filter((file) => {
+                                    if (file.size > maxSize) {
+                                      form.setError(
+                                        `${documentRequest?.id}.${documentType}`,
+                                        {
+                                          message:
+                                            'Each file must be less than 2MB',
+                                        }
+                                      );
+                                      return false;
+                                    }
+                                    form.clearErrors(
+                                      `${documentRequest?.id}.${documentType}`
+                                    );
+
+                                    return true;
+                                  });
+                                  onChange(validFiles);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -226,7 +263,7 @@ export const DocumentUploadStepForm = ({
         })}
 
         {!standalone && <FormActions />}
-        {standalone && (
+        {standalone && partiesDocumentRequests?.length !== 0 && (
           <Button
             type="submit"
             disabled={!form.formState.isValid || form.formState.isSubmitting}

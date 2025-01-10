@@ -26,7 +26,6 @@ import {
   SecureContent,
 } from 'features/Authentication';
 import { EmbeddedComponentsPage } from 'pages/EmbeddedComponentsPage';
-import { OnboardingNextPage } from 'pages/OnboardingNextPage';
 import { EPLinkedAccountPage } from 'pages/EPLinkedAccountsPage';
 import { OnboardingNextPageV2 } from 'pages/OnboardingNextPageV2';
 import { ThemeEditorPage } from 'pages/ThemeEditorPage';
@@ -78,10 +77,6 @@ const App = () => {
                 <Route
                   path="embedded-components"
                   element={<EmbeddedComponentsPage />}
-                />
-                <Route
-                  path="ep/onboarding-other"
-                  element={<OnboardingNextPage />}
                 />
                 <Route
                   path="ep/onboarding"

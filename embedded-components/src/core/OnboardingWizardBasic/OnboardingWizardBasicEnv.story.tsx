@@ -16,7 +16,7 @@ Mocked.storyName = 'PDP mocked APIs';
 Mocked.args = {
   ...Default.args,
   apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/',
-  clientId: '123',
+  initialClientId: '123',
 };
 
 export const UAT = Default.bind({});

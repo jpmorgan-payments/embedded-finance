@@ -40,7 +40,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   argTypes: {
     onPostClientResponse: { table: { disable: true } },
     onPostClientVerificationsResponse: { table: { disable: true } },
-    setClientId: { table: { disable: true } },
+    onSetClientId: { table: { disable: true } },
     availableProducts: {
       control: {
         type: 'check',
@@ -92,7 +92,7 @@ const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => (
 export const Default = Template.bind({});
 Default.storyName = '1a. Initial step without clientId';
 Default.args = {
-  clientId: '',
+  initialClientId: '',
   apiBaseUrl: '/',
   headers: {
     api_gateway_client_id: 'test',
@@ -111,7 +111,7 @@ export const WithClientId = Default.bind({});
 WithClientId.storyName = '1b. Initial step with clientId';
 WithClientId.args = {
   ...Default.args,
-  clientId: '0030000133',
+  initialClientId: '0030000133',
 };
 WithClientId.parameters = {
   msw: {
