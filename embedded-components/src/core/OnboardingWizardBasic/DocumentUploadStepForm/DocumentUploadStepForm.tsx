@@ -132,34 +132,15 @@ export const DocumentUploadStepForm = ({
               },
             };
 
-            await uploadDocumentMutation.mutateAsync(
-              { data: documentData },
-              {
-                onSuccess: async () => {
-                  toast.success('Document uploaded successfully');
-                  // submit documetn request
-                  await submitDocumentMutation.mutateAsync(
-                    {
-                      id: documentRequestId,
-                    },
-                    {
-                      onError: () => {
-                        toast.error(
-                          'Error submitting document request confirmation'
-                        );
-                      },
-                    }
-                  );
-                },
-                onError: () => {
-                  toast.error('Error uploading document');
-                },
-              }
-            );
+            await uploadDocumentMutation.mutateAsync({ data: documentData });
+
+            await submitDocumentMutation.mutateAsync({
+              id: documentRequestId,
+            });
           }
         }
       }
-      
+
       // Invalidate both client and document request queries
       queryClient.invalidateQueries();
 
@@ -171,6 +152,7 @@ export const DocumentUploadStepForm = ({
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error uploading documents:', error);
+      toast.error('Error uploading document');
     }
   });
 

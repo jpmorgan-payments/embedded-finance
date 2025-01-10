@@ -153,42 +153,46 @@ export const ReviewAndAttestStepForm = () => {
         },
       };
 
-      if (clientData?.outstanding?.attestationDocumentIds?.length) {
-        await updateClient(
-          {
-            id: clientId,
-            data: requestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostClientResponse?.(data, error?.response?.data);
+      try {
+        if (clientData?.outstanding?.attestationDocumentIds?.length) {
+          await updateClient(
+            {
+              id: clientId,
+              data: requestBody,
             },
-            onSuccess: async () => {
-              toast.success('Attestation details updated successfully');
-              if (!blockPostVerification) {
-                await initiateKYC(
-                  { id: clientId, data: verificationRequestBody },
-                  {
-                    onSuccess: () => {
-                      toast.success('KYC initiated successfully');
-                      queryClient.invalidateQueries();
-                    },
-                    onError: () => {
-                      toast.error('Failed to initiate KYC');
-                    },
-                  }
-                );
-              }
-              nextStep();
-            },
-            onError: () => {
-              toast.error('Failed to update attestation details');
-            },
-          }
-        );
-      }
+            {
+              onSettled: (data, error) => {
+                onPostClientResponse?.(data, error?.response?.data);
+              },
+              onSuccess: () => {
+                toast.success('Attestation details updated successfully');
+                nextStep();
+              },
+              onError: () => {
+                toast.error('Failed to update attestation details');
+              },
+            }
+          );
+        }
 
-  
+        if (!blockPostVerification) {
+          await initiateKYC(
+            { id: clientId, data: verificationRequestBody },
+            {
+              onSuccess: () => {
+                toast.success('KYC initiated successfully');
+                queryClient.invalidateQueries();
+              },
+              onError: () => {
+                toast.error('Failed to initiate KYC');
+              },
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Error completing KYC process:', error);
+        toast.error('An error occurred while completing the KYC process');
+      }
     }
   };
 
