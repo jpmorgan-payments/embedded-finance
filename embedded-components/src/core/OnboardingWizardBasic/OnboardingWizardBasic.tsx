@@ -20,7 +20,8 @@ import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
 import { InitialStepForm } from './InitialStepForm/InitialStepForm';
 import {
   OnboardingContextProvider,
-  OnboardingContextType,
+  OnboardingProps,
+  useOnboardingContext,
 } from './OnboardingContextProvider/OnboardingContextProvider';
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
@@ -37,7 +38,7 @@ type OnboardingStep = StepProps &
     };
   };
 
-export interface OnboardingWizardBasicProps extends OnboardingContextType {
+export interface OnboardingWizardBasicProps extends OnboardingProps {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
   onboardingContentTokens?: DeepPartial<
@@ -49,8 +50,8 @@ export interface OnboardingWizardBasicProps extends OnboardingContextType {
 }
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
-  initialStep = 0,
-  variant = 'circle-alt',
+  initialStep,
+  variant,
   onboardingContentTokens = {},
   alertOnExit = false,
   userEventsToTrack = [],
@@ -58,18 +59,8 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   usePartyResource = true,
   ...props
 }) => {
-  const {
-    data: clientData,
-    status: clientGetStatus,
-    error: clientGetError,
-    refetch: refetchClient,
-  } = useSmbdoGetClient(props.clientId ?? '', {
-    query: {
-      enabled: !!props.clientId,
-    },
-  });
   const { tokens: globalContentTokens = {} } = useContentTokens();
-  const { t, i18n } = useTranslation('onboarding');
+  const { i18n } = useTranslation('onboarding');
 
   // Apply content tokens
   useEffect(() => {
@@ -82,81 +73,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     JSON.stringify(globalContentTokens.onboarding),
     JSON.stringify(onboardingContentTokens),
     i18n.language,
-  ]);
-
-  const productFromResponse = clientData?.products?.[0];
-  const organizationDetailsFromResponse = clientData?.parties?.find(
-    (party) => party?.partyType === 'ORGANIZATION'
-  )?.organizationDetails;
-
-  const initialSteps: OnboardingStep[] = [
-    { label: t('stepLabels.initialDetails'), children: <InitialStepForm /> },
-    {
-      label: t('stepLabels.organizationDetails'),
-      children: <OrganizationStepForm />,
-    },
-    {
-      label: t('stepLabels.individualDetails'),
-      children: <IndividualStepForm />,
-    },
-    {
-      label: t('stepLabels.decisionMakers'),
-      children: <DecisionMakerStepForm />,
-      onlyVisibleFor: {
-        organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      },
-    },
-    {
-      label: t('stepLabels.businessOwners'),
-      children: <BusinessOwnerStepForm />,
-      onlyVisibleFor: {
-        organizationType: ['LIMITED_LIABILITY_COMPANY'],
-      },
-    },
-    {
-      label: t('stepLabels.additionalQuestions'),
-      children: <AdditionalQuestionsStepForm />,
-    },
-    {
-      label: t('stepLabels.uploadDocuments'),
-      children: <DocumentUploadStepForm />,
-      onlyVisibleFor: {
-        product: ['MERCHANT_SERVICES'],
-      },
-    },
-    {
-      label: t('stepLabels.reviewAndAttest'),
-      children: <ReviewAndAttestStepForm />,
-    },
-  ];
-
-  function getOnboardingSteps(
-    product?: ClientProduct,
-    jurisdiction?: Jurisdiction,
-    organizationType?: OrganizationType
-  ) {
-    if (product && jurisdiction && organizationType) {
-      return initialSteps.filter(
-        (step) =>
-          !step.onlyVisibleFor ||
-          (step.onlyVisibleFor.jurisdiction?.includes(jurisdiction) &&
-            step.onlyVisibleFor.organizationType?.includes(organizationType) &&
-            step.onlyVisibleFor.product?.includes(product))
-      );
-    }
-    return initialSteps.filter((step) => !step.onlyVisibleFor);
-  }
-
-  const steps = useMemo(() => {
-    return getOnboardingSteps(
-      productFromResponse,
-      organizationDetailsFromResponse?.jurisdiction as Jurisdiction,
-      organizationDetailsFromResponse?.organizationType
-    );
-  }, [
-    productFromResponse,
-    organizationDetailsFromResponse?.jurisdiction,
-    organizationDetailsFromResponse?.organizationType,
   ]);
 
   // Prevent the user from leaving the page
@@ -208,44 +124,152 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 
   return (
     <OnboardingContextProvider {...{ ...props, usePartyResource }}>
-      <Card className="eb-component">
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
-          {clientData && <OutstandingInfoDebug clientData={clientData} />}
-          {props.clientId && clientGetStatus === 'pending' ? (
-            <FormLoadingState message={t('fetchingClientData')} />
-          ) : clientGetStatus === 'error' ? (
-            <ServerErrorAlert
-              error={clientGetError}
-              tryAgainAction={refetchClient}
-              customErrorMessage={{
-                default: t('errorMessages.default'),
-                '404': t('errorMessages.clientNotFound'),
-              }}
-            />
-          ) : clientData?.status === 'NEW' || !props.clientId ? (
-            <Stepper
-              initialStep={initialStep}
-              steps={steps}
-              variant={variant}
-              mobileBreakpoint="1279px"
-            >
-              {steps.map((stepProps, index) => {
-                const { children, ...rest } = stepProps;
-                return (
-                  <Step key={index} {...rest}>
-                    <div className="eb-px-1">{children}</div>
-                  </Step>
-                );
-              })}
-            </Stepper>
-          ) : (
-            <ClientOnboardingStateView />
-          )}
-        </CardContent>
-      </Card>
+      <OnboardingWizardBasicComponent
+        initialStep={initialStep}
+        variant={variant}
+      />
     </OnboardingContextProvider>
+  );
+};
+
+const OnboardingWizardBasicComponent: FC<
+  Pick<OnboardingWizardBasicProps, 'initialStep' | 'variant'>
+> = ({ initialStep = 0, variant = 'circle-alt' }) => {
+  const { t } = useTranslation('onboarding');
+
+  const { clientId, wasClientIdCreated } = useOnboardingContext();
+
+  const {
+    data: clientData,
+    status: clientGetStatus,
+    error: clientGetError,
+    refetch: refetchClient,
+  } = useSmbdoGetClient(clientId ?? '', {
+    query: {
+      enabled: !!clientId,
+    },
+  });
+
+  const productFromResponse = clientData?.products?.[0];
+  const organizationDetailsFromResponse = clientData?.parties?.find(
+    (party) => party?.partyType === 'ORGANIZATION'
+  )?.organizationDetails;
+
+  const initialSteps: OnboardingStep[] = [
+    { label: t('stepLabels.initialDetails'), children: <InitialStepForm /> },
+    {
+      label: t('stepLabels.organizationDetails'),
+      children: <OrganizationStepForm />,
+    },
+    {
+      label: t('stepLabels.individualDetails'),
+      children: <IndividualStepForm />,
+    },
+    {
+      label: t('stepLabels.decisionMakers'),
+      children: <DecisionMakerStepForm />,
+      onlyVisibleFor: {
+        organizationType: ['LIMITED_LIABILITY_COMPANY'],
+      },
+    },
+    {
+      label: t('stepLabels.businessOwners'),
+      children: <BusinessOwnerStepForm />,
+      onlyVisibleFor: {
+        organizationType: ['LIMITED_LIABILITY_COMPANY'],
+      },
+    },
+    {
+      label: t('stepLabels.additionalQuestions'),
+      children: <AdditionalQuestionsStepForm />,
+    },
+    {
+      label: t('stepLabels.uploadDocuments'),
+      children: <DocumentUploadStepForm />,
+    },
+    {
+      label: t('stepLabels.reviewAndAttest'),
+      children: <ReviewAndAttestStepForm />,
+    },
+  ];
+
+  const getOnboardingSteps = useCallback(
+    (
+      product?: ClientProduct,
+      jurisdiction?: Jurisdiction,
+      organizationType?: OrganizationType
+    ) => {
+      return initialSteps.filter(
+        (step) =>
+          (!step.onlyVisibleFor?.jurisdiction ||
+            (jurisdiction &&
+              step.onlyVisibleFor.jurisdiction.includes(jurisdiction))) &&
+          (!step.onlyVisibleFor?.organizationType ||
+            (organizationType &&
+              step.onlyVisibleFor.organizationType.includes(
+                organizationType
+              ))) &&
+          (!step.onlyVisibleFor?.product ||
+            (product && step.onlyVisibleFor.product.includes(product)))
+      );
+    },
+    [initialSteps]
+  );
+
+  const steps = useMemo(() => {
+    return getOnboardingSteps(
+      productFromResponse,
+      organizationDetailsFromResponse?.jurisdiction as Jurisdiction,
+      organizationDetailsFromResponse?.organizationType
+    );
+  }, [
+    productFromResponse,
+    organizationDetailsFromResponse?.jurisdiction,
+    organizationDetailsFromResponse?.organizationType,
+  ]);
+
+  return (
+    <Card className="eb-component">
+      <CardHeader>
+        <CardTitle>{t('title')}</CardTitle>
+      </CardHeader>
+      <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
+        {clientData && <OutstandingInfoDebug clientData={clientData} />}
+        {clientData?.status === 'NEW' || !clientId ? (
+          <Stepper
+            initialStep={wasClientIdCreated && !initialStep ? 1 : initialStep}
+            steps={steps}
+            variant={variant}
+            mobileBreakpoint="1279px"
+          >
+            {steps.map((stepProps, index) => {
+              const { children, ...rest } = stepProps;
+              return (
+                <Step key={index} {...rest}>
+                  <div className="eb-px-1">
+                    {clientId && clientGetStatus === 'pending' ? (
+                      <FormLoadingState message={t('fetchingClientData')} />
+                    ) : clientGetStatus === 'error' ? (
+                      <ServerErrorAlert
+                        error={clientGetError}
+                        tryAgainAction={refetchClient}
+                        customErrorMessage={{
+                          default: t('errorMessages.default'),
+                          '404': t('errorMessages.clientNotFound'),
+                        }}
+                      />
+                    ) : (
+                      children
+                    )}
+                  </div>
+                </Step>
+              );
+            })}
+          </Stepper>
+        ) : (
+          <ClientOnboardingStateView />
+        )}
+      </CardContent>
+    </Card>
   );
 };

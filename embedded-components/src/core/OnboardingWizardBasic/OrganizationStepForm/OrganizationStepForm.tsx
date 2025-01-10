@@ -263,6 +263,8 @@ export const OrganizationStepForm = () => {
             }),
       }) as UpdatePartyRequest;
 
+      console.log('existingOrgParty?.id', existingOrgParty?.id);
+
       if (usePartyResource && existingOrgParty?.id) {
         updateParty(
           {
@@ -332,6 +334,8 @@ export const OrganizationStepForm = () => {
   if (usePartyResource && updatePartyStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
+
+  console.log('errors', form.formState.errors);
 
   return (
     <Form {...form}>

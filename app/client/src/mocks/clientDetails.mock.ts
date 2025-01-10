@@ -225,14 +225,189 @@ export const clientDetailsScenario2 = {
 
 export const clientDetailsScenario3 = {
   id: '0030000134',
-  attestations: [
+  parties: [
     {
-      attesterFullName: 'John wick',
-      attestationTime: '2023-10-19T12:28:11.232Z',
-      documentId: '62d29548-f55a-458e-b9bb-ed32a6a05a1b',
-      ipAddress: '1.1.1.1',
+      id: '2000000111',
+      partyType: 'ORGANIZATION',
+      externalId: 'TCU1234',
+      email: 'info@Neverlandbooks.com',
+      roles: ['CLIENT'],
+      profileStatus: 'NEW',
+      status: 'ACTIVE',
+      createdAt: '2024-06-21T18:12:21.005Z',
+      organizationDetails: {
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        organizationName: 'Neverland Books',
+        dbaName: 'FT Books',
+        organizationDescription: 'Step into a world of stories and imagination',
+        industryCategory:
+          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
+        industryType: 'Book Retailers and News Dealers',
+        countryOfFormation: 'US',
+        yearOfFormation: '1989',
+        entitiesInOwnership: false,
+        addresses: [
+          {
+            addressType: 'BUSINESS_ADDRESS',
+            addressLines: ['2029 Century Park E'],
+            city: 'Los Angeles',
+            state: 'CA',
+            postalCode: '90067',
+            country: 'US',
+          },
+        ],
+        phone: {
+          phoneType: 'BUSINESS_PHONE',
+          countryCode: '+1',
+          phoneNumber: '7606810558',
+        },
+        organizationIds: [
+          {
+            idType: 'EIN',
+            issuer: 'US',
+            value: '300030003',
+          },
+        ],
+        websiteAvailable: true,
+        website: 'https://www.Neverlandbooks.com',
+      },
+    },
+    {
+      id: '2000000112',
+      partyType: 'INDIVIDUAL',
+      parentPartyId: '2000000111',
+      parentExternalId: 'TCU1234',
+      externalId: 'TCU12344',
+      email: 'Peiter@neverlandbooks.com',
+      profileStatus: 'APPROVED',
+      status: 'ACTIVE',
+      createdAt: '2024-06-21T18:12:21.005Z',
+      roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+      individualDetails: {
+        firstName: 'Peiter',
+        lastName: 'Pan',
+        countryOfResidence: 'US',
+        natureOfOwnership: 'Direct',
+        jobTitle: 'CFO',
+        soleOwner: false,
+        birthDate: '1945-01-30',
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['2029 Century Park E'],
+            city: 'Los Angeles',
+            state: 'CA',
+            postalCode: '90067',
+            country: 'US',
+          },
+        ],
+        individualIds: [
+          {
+            idType: 'SSN',
+            issuer: 'US',
+            value: '300400004',
+          },
+        ],
+        phone: {
+          phoneType: 'MOBILE_PHONE',
+          countryCode: '+1',
+          phoneNumber: '7606810558',
+        },
+      },
+    },
+    {
+      id: '2000000113',
+      partyType: 'INDIVIDUAL',
+      parentPartyId: '2000000111',
+      parentExternalId: 'TCU1234',
+      externalId: 'TCU12344',
+      email: 'Tinker@neverlandbook.com',
+      profileStatus: 'APPROVED',
+      status: 'ACTIVE',
+      createdAt: '2024-06-21T18:12:21.005Z',
+      roles: ['BENEFICIAL_OWNER'],
+      individualDetails: {
+        firstName: 'Tinker',
+        lastName: 'Ball',
+        countryOfResidence: 'US',
+        natureOfOwnership: 'Direct',
+        jobTitle: 'CEO',
+        soleOwner: false,
+        birthDate: '1969-08-18',
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['3223 Hanover St'],
+            city: 'Palo Alto',
+            state: 'CA',
+            postalCode: '94304',
+            country: 'US',
+          },
+        ],
+        individualIds: [
+          {
+            idType: 'SSN',
+            issuer: 'US',
+            value: '300050005',
+          },
+        ],
+        phone: {
+          phoneType: 'MOBILE_PHONE',
+          countryCode: '+1',
+          phoneNumber: '6503532444',
+        },
+      },
     },
   ],
+  partyId: '2000000111',
+  products: ['EMBEDDED_PAYMENTS'],
+  outstanding: {
+    attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
+    documentRequestIds: [],
+    partyIds: [],
+    partyRoles: [],
+    questionIds: [],
+  },
+  questionResponses: [
+    {
+      questionId: '300005',
+      values: ['$10,000'],
+    },
+    {
+      questionId: '30026',
+      values: ['No'],
+    },
+    {
+      questionId: '30069',
+      values: ['Licensed'],
+    },
+    {
+      questionId: '30070',
+      values: ['US'],
+    },
+    {
+      questionId: '30071',
+      values: ['09/10/1996'],
+    },
+    {
+      questionId: '30072',
+      values: ['US'],
+    },
+    {
+      questionId: '30073',
+      values: ['09/10/1996'],
+    },
+  ],
+  results: {
+    customerIdentityStatus: 'APPROVED',
+  },
+  status: 'NEW',
+};
+
+export const clientDetailsScenario4 = {
+  attestations: [],
+  createdAt: '2024-12-23T14:45:41.136Z',
+  id: '0030000135',
   parties: [
     {
       id: '2000000111',
@@ -240,19 +415,20 @@ export const clientDetailsScenario3 = {
       externalId: 'TCU1234',
       email: 'monica@cpgetaways.com',
       roles: ['CLIENT'],
-      profileStatus: 'APPROVED',
+      profileStatus: 'NEW',
       status: 'ACTIVE',
       createdAt: '2023-10-31T00:20:09.401Z',
       organizationDetails: {
-        jurisdiction: 'CA',
-        organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationName: 'John Wick Bakery',
-        dbaName: 'CP Getaways',
-        organizationDescription: 'Relax, unwind and bake',
-        industryCategory: 'Bakery',
+        organizationType: 'SOLE_PROPRIETORSHIP',
+        organizationName: 'Monica Gellar',
+        dbaName: '',
+        organizationDescription:
+          'Relax, unwind and experience the comforting charm of our apartment',
+        industryCategory: 'Accommodation and Food Services',
         industryType: 'All Other Traveler Accommodation',
-        countryOfFormation: 'CA',
-        yearOfFormation: '2023',
+        countryOfFormation: 'US',
+        yearOfFormation: '1990',
+        // significantOwnership: true,
         entitiesInOwnership: false,
         addresses: [
           {
@@ -267,7 +443,7 @@ export const clientDetailsScenario3 = {
         phone: {
           phoneType: 'BUSINESS_PHONE',
           countryCode: '+1',
-          phoneNumber: '3656215110',
+          phoneNumber: '2126215110',
         },
         organizationIds: [
           {
@@ -285,7 +461,7 @@ export const clientDetailsScenario3 = {
       parentPartyId: '2000000111',
       parentExternalId: 'TCU1234',
       externalId: 'TCU12344',
-      email: 'monica@cpgetaways.com',
+      email: 'monica@ggmail.com',
       profileStatus: 'APPROVED',
       status: 'ACTIVE',
       createdAt: '2023-10-31T00:20:09.401Z',
@@ -295,9 +471,14 @@ export const clientDetailsScenario3 = {
         lastName: 'Gellar',
         countryOfResidence: 'US',
         natureOfOwnership: 'Direct',
-        jobTitle: 'Other',
-        jobTitleDescription: 'CEO',
+        jobTitle: 'CEO',
         soleOwner: true,
+        birthDate: '1990-10-09',
+        phone: {
+          phoneType: 'MOBILE_PHONE',
+          countryCode: '+1',
+          phoneNumber: '2126215110',
+        },
         addresses: [
           {
             addressType: 'RESIDENTIAL_ADDRESS',
@@ -312,82 +493,31 @@ export const clientDetailsScenario3 = {
           {
             idType: 'SSN',
             issuer: 'US',
-            value: '100010001',
+            value: '000000001',
           },
         ],
       },
     },
   ],
-  createdAt: '2023-10-31T00:02:15.499Z',
   partyId: '2000000111',
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
-    attestationDocumentIds: [],
+    attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
     questionIds: [],
   },
-  questionResponses: [],
-  results: {
-    customerIdentityStatus: 'APPROVED',
-  },
-  status: 'NEW',
-};
-
-export const clientDetailsScenario4 = {
-  attestations: [],
-  createdAt: '2024-12-23T14:45:41.136Z',
-  id: '0030000135',
-  parties: [
+  questionResponses: [
     {
-      id: '2000000111',
-      createdAt: '2024-12-23T14:45:40.816Z',
-      email: 'monica@cpgetaways.com',
-      partyType: 'ORGANIZATION',
-      profileStatus: 'NEW',
-      roles: ['CLIENT'],
-      status: 'ACTIVE',
-      active: true,
-      validationResponse: [
-        {
-          validationStatus: 'NEEDS_INFO',
-          validationType: 'ENTITY_VALIDATION',
-          fields: [
-            {
-              name: 'organizationDescription',
-            },
-            {
-              name: 'addresses',
-            },
-            {
-              name: 'phone',
-            },
-            {
-              name: 'naics',
-            },
-          ],
-        },
-      ],
-      organizationDetails: {
-        countryOfFormation: 'US',
-        organizationName: 'CP Getaways',
-        organizationType: 'SOLE_PROPRIETORSHIP',
-        organizationIds: [],
-        websiteAvailable: false,
-      },
+      questionId: '300005',
+      values: ['$10,000'],
+    },
+    {
+      questionId: '30026',
+      values: ['false'],
     },
   ],
-  partyId: '2000000111',
-  products: ['EMBEDDED_PAYMENTS'],
-  outstanding: {
-    attestationDocumentIds: ['538170f9-0428-45a0-bdd8-fd371b953db9'],
-    documentRequestIds: [],
-    questionIds: ['30026', '30005', '30027'],
-    partyIds: ['2000000111'],
-    partyRoles: ['CONTROLLER'],
-  },
-  questionResponses: [],
   results: {
     customerIdentityStatus: 'NOT_STARTED',
   },

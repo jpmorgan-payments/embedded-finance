@@ -21,7 +21,7 @@ const mockClientData = efClientSolPropWithMoreData;
 
 // Mock the OnboardingContextProvider
 const mockOnboardingContext = {
-  clientId: '0030000129',
+  initialClientId: '0030000129',
   onPostClientResponse: vi.fn(),
   availableJurisdictions: ['US' as Jurisdiction],
   availableProducts: ['EMBEDDED_PAYMENTS' as ClientProduct],
