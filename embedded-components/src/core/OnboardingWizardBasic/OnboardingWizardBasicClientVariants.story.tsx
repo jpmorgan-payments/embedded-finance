@@ -21,7 +21,7 @@ export const SoleProprietorship_EP_NEW = Default.bind({});
 SoleProprietorship_EP_NEW.storyName = 'Sole Proprietorship EP NEW';
 SoleProprietorship_EP_NEW.args = {
   ...Default.args,
-  clientId: '0030000135',
+  initialClientId: '0030000135',
   availableProducts: ['EMBEDDED_PAYMENTS'],
 };
 SoleProprietorship_EP_NEW.parameters = {
@@ -56,7 +56,7 @@ export const SoleProprietorship_EP = Default.bind({});
 SoleProprietorship_EP.storyName = 'Sole Proprietorship EP';
 SoleProprietorship_EP.args = {
   ...Default.args,
-  clientId: '0030000129',
+  initialClientId: '0030000129',
   availableProducts: ['EMBEDDED_PAYMENTS'],
 };
 SoleProprietorship_EP.parameters = {
@@ -93,7 +93,7 @@ export const LLC_EP = Default.bind({});
 LLC_EP.storyName = 'Limited Liability Company EP';
 LLC_EP.args = {
   ...Default.args,
-  clientId: '0030000130',
+  initialClientId: '0030000130',
   availableProducts: ['EMBEDDED_PAYMENTS'],
 };
 LLC_EP.parameters = {
@@ -118,7 +118,7 @@ export const LLC_Canada_MS = Default.bind({});
 LLC_Canada_MS.storyName = 'Limited Liability Company Canada MS';
 LLC_Canada_MS.args = {
   ...Default.args,
-  clientId: '0030000133',
+  initialClientId: '0030000133',
   availableJurisdictions: ['CA'],
   availableProducts: ['MERCHANT_SERVICES'],
 };

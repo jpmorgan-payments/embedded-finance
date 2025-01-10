@@ -246,8 +246,8 @@ export const InitialStepForm = () => {
           onSettled: (data, error) => {
             onPostClientResponse?.(data, error?.response?.data);
           },
-          onSuccess: (response) => {
-            setClientId?.(response.id);
+          onSuccess: async (response) => {
+            await setClientId?.(response.id);
             toast.success(
               `Client created successfully with ID: ${response.id}`,
               {}

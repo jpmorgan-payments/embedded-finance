@@ -1,4 +1,11 @@
-import { createContext, FC, PropsWithChildren, useContext } from 'react';
+import {
+  createContext,
+  FC,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   ApiError,
@@ -10,9 +17,9 @@ import {
 
 import { Jurisdiction } from '../utils/types';
 
-export type OnboardingContextType = {
-  clientId?: string;
-  setClientId?: (clientId: string) => void;
+export type OnboardingProps = {
+  initialClientId?: string;
+  onSetClientId?: (clientId: string) => Promise<void>;
   onPostClientResponse?: (response?: ClientResponse, error?: ApiError) => void;
   onPostPartyResponse?: (response?: PartyResponse, error?: ApiError) => void;
   onPostClientVerificationsResponse?: (
@@ -25,15 +32,44 @@ export type OnboardingContextType = {
   blockPostVerification?: boolean;
 };
 
+type OnboardingContextType = OnboardingProps & {
+  clientId: string;
+  setClientId: (clientId: string) => Promise<void>;
+  wasClientIdCreated: boolean;
+};
+
 const OnboardingContext = createContext<OnboardingContextType | undefined>(
   undefined
 );
 
 export const OnboardingContextProvider: FC<
-  PropsWithChildren<OnboardingContextType>
+  PropsWithChildren<OnboardingProps>
 > = ({ children, ...props }) => {
+  const [clientId, setClientId] = useState(props.initialClientId ?? '');
+  const [wasClientIdCreated, setWasClientIdCreated] = useState(false);
+
+  useEffect(() => {
+    setClientId(props.initialClientId ?? '');
+    setWasClientIdCreated(false);
+  }, [props.initialClientId]);
+
+  const handleSetClientId = async (id: string) => {
+    setClientId(id);
+    setWasClientIdCreated(true);
+    if (props.onSetClientId) {
+      await props.onSetClientId('');
+    }
+  };
+
   return (
-    <OnboardingContext.Provider value={props}>
+    <OnboardingContext.Provider
+      value={{
+        ...props,
+        clientId,
+        setClientId: handleSetClientId,
+        wasClientIdCreated,
+      }}
+    >
       {children}
     </OnboardingContext.Provider>
   );
