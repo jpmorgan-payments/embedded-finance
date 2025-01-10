@@ -362,10 +362,26 @@ Use theme tokens from the provider:
 3. Optimize re-renders
 4. Monitor bundle size impact
 
-## Version Control Guidelines
+## Git Usage
+Commit Message Prefixes:
+- "fix:" for bug fixes
+- "feat:" for new features
+- "perf:" for performance improvements
+- "docs:" for documentation changes
+- "style:" for formatting changes
+- "refactor:" for code refactoring
+- "test:" for adding missing tests
+- "chore:" for maintenance tasks
 
-1. Use feature branches
-2. Write clear commit messages
-3. Include tests with changes
-4. Update documentation
-5. Follow semantic versioning
+Rules:
+- Use lowercase for commit messages
+- Keep the summary line concise
+- Include description for non-obvious changes
+- Reference issue numbers when applicable
+
+## Documentation
+- Maintain clear README with setup instructions
+- Document API interactions and data flows
+- Keep manifest.json well-documented
+- Don't include comments unless it's for complex logic
+- Document permission requirements
