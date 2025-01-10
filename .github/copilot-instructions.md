@@ -76,11 +76,31 @@ ComponentName/
 3. **Styling**:
 
    - Use Tailwind CSS classes
+   - Prefix custom Tailwind classes with `eb-` for embedded components
+   - Example:
+
+     ```typescript
+     // In your component
+     <div className="eb-custom-class">
+
+     // In tailwind.config.js
+     module.exports = {
+       theme: {
+         extend: {
+           // Custom classes should be prefixed
+           '.eb-custom-class': {
+             // styles
+           }
+         }
+       }
+     }
+     ```
+
    - Follow design token system
    - Maintain responsive design
-   - Example:
+   - Base component example:
      ```typescript
-     <div className="flex items-center space-x-4 p-4 rounded-lg bg-white shadow-sm">
+     <div className="flex items-center space-x-4 p-4 rounded-lg bg-white shadow-sm eb-custom-style">
      ```
 
 4. **Data Fetching**:

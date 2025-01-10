@@ -3,6 +3,7 @@ import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropAdditionalDocuments } from '@/mocks/efClientSolPropAdditionalDocuments.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
+import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
@@ -178,6 +179,9 @@ ReviewAndAttest.parameters = {
     handlers: [
       http.get('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+      http.get('/documents/abcd1c1d-6635-43ff-a8e5-b252926bddef', () => {
+        return HttpResponse.json(efDocumentClientDetail);
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);

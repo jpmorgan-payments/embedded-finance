@@ -24,6 +24,13 @@ type FormError = {
   path?: string;
 };
 
+/**
+ * Converts API validation errors into form-friendly error objects
+ * @param errors - Array of API error reasons
+ * @param partyIndex - Index of the party in the form array
+ * @param arrayName - Name of the array field ('parties' or 'addParties')
+ * @returns Array of FormError objects with mapped field names and messages
+ */
 export function translateApiErrorsToFormErrors(
   errors: ApiErrorReasonV2[],
   partyIndex: number,
@@ -49,6 +56,13 @@ export function translateApiErrorsToFormErrors(
   });
 }
 
+/**
+ * Sets API errors into the form state and handles unhandled errors
+ * @param form - React Hook Form instance
+ * @param apiFormErrors - Array of form errors from API
+ * Shows toast notifications for unhandled errors in development mode
+ * Focuses the first field with an error
+ */
 export function setApiFormErrors(
   form: UseFormReturn<any>,
   apiFormErrors: FormError[]
@@ -77,6 +91,13 @@ export function setApiFormErrors(
   }
 }
 
+/**
+ * Sets a value in a nested object using dot notation path
+ * @param obj - Target object to set value in
+ * @param path - Dot notation path (e.g., 'user.address.street')
+ * @param value - Value to set at the specified path
+ * Creates nested objects/arrays as needed while traversing
+ */
 function setValueByPath(obj: any, path: string, value: any) {
   const keys = path.split('.');
   keys.reduce((acc, key, index) => {
@@ -89,7 +110,15 @@ function setValueByPath(obj: any, path: string, value: any) {
   }, obj);
 }
 
-// Modify the request body with the form values at the specified partyIndex
+/**
+ * Converts form values into an API request body format
+ * @param formValues - Form values to convert
+ * @param partyIndex - Index of the party in the form array
+ * @param arrayName - Name of the array field ('parties' or 'addParties')
+ * @param obj - Target request object to populate
+ * @returns Modified request object with mapped form values
+ * Applies field transformations using toRequestFn if specified
+ */
 export function generateRequestBody(
   formValues: Partial<OnboardingWizardFormValues>,
   partyIndex: number,
@@ -124,6 +153,13 @@ export function generateRequestBody(
   return obj;
 }
 
+/**
+ * Converts form values into a party-specific API request body
+ * @param formValues - Form values to convert
+ * @param obj - Target party request object to populate
+ * @returns Modified party request object with mapped form values
+ * Similar to generateRequestBody but specifically for party updates
+ */
 export function generatePartyRequestBody(
   formValues: Partial<OnboardingWizardFormValues>,
   obj: Partial<UpdatePartyRequest>
@@ -156,6 +192,12 @@ export function generatePartyRequestBody(
   return obj;
 }
 
+/**
+ * Safely retrieves a value from a nested object using dot notation path
+ * @param obj - Source object to get value from
+ * @param pathTemplate - Dot notation path, supports array indices
+ * @returns Value at the specified path or undefined if not found
+ */
 export function getValueByPath(obj: any, pathTemplate: string): any {
   const keys = pathTemplate.replace(/\[(\w+)\]/g, '.$1').split('.');
   return keys.reduce(
@@ -164,7 +206,13 @@ export function getValueByPath(obj: any, pathTemplate: string): any {
   );
 }
 
-// Convert data of party (with the specified partyId) to form values
+/**
+ * Converts API response data into form values format
+ * @param response - Client response from API
+ * @param partyId - Optional party ID to filter specific party data
+ * @returns Partial form values object with mapped API data
+ * Cleans empty organization IDs and applies response transformations
+ */
 export function convertClientResponseToFormValues(
   response: ClientResponse,
   partyId?: string
@@ -204,6 +252,12 @@ export function convertClientResponseToFormValues(
   return formValues;
 }
 
+/**
+ * Evaluates field configuration rules based on client context
+ * @param fieldConfig - Field configuration object
+ * @param clientContext - Current client context
+ * @returns Field rule determining visibility and validation
+ */
 function evaluateFieldRules(
   fieldConfig: FieldConfiguration<any>,
   clientContext: ClientContext
@@ -230,9 +284,13 @@ function evaluateFieldRules(
   return rule;
 }
 
-export const useFilterFunctionsByClientContext = (
-  clientData?: ClientResponse
-) => {
+/**
+ * React hook that provides context-aware filtering functions
+ * @param clientData - Optional client response data
+ * @returns Object containing filter functions for schemas and values
+ * Used to adapt form behavior based on client context
+ */
+export function useFilterFunctionsByClientContext(clientData?: ClientResponse) {
   const organizationParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   );
@@ -284,9 +342,15 @@ export const useFilterFunctionsByClientContext = (
     isFieldRequired,
     clientContext,
   };
-};
+}
 
-function getFieldRuleByClientContext(
+/**
+ * Retrieves field rules for a specific field based on client context
+ * @param fieldName - Name of the form field
+ * @param clientContext - Current client context
+ * @returns Field rule determining field behavior
+ */
+export function getFieldRuleByClientContext(
   fieldName: keyof OnboardingWizardFormValues,
   clientContext: ClientContext
 ): FieldRule {
@@ -300,7 +364,14 @@ function getFieldRuleByClientContext(
   return fieldRule;
 }
 
-function filterSchemaByClientContext(
+/**
+ * Filters and modifies a Zod schema based on client context
+ * @param schema - Source Zod schema to filter
+ * @param clientContext - Current client context
+ * @param refineFn - Optional function to apply additional schema refinements
+ * @returns Modified Zod schema with context-appropriate validations
+ */
+export function filterSchemaByClientContext(
   schema: z.ZodObject<Record<string, z.ZodType<any>>>,
   clientContext: ClientContext,
   refineFn?: (
@@ -341,7 +412,13 @@ function filterSchemaByClientContext(
   return z.object(filteredSchema);
 }
 
-function filterDefaultValuesByClientContext(
+/**
+ * Filters form default values based on client context
+ * @param defaultValues - Source default values object
+ * @param clientContext - Current client context
+ * @returns Modified default values appropriate for the context
+ */
+export function filterDefaultValuesByClientContext(
   defaultValues: Partial<OnboardingWizardFormValues>,
   clientContext: ClientContext
 ): Partial<OnboardingWizardFormValues> {

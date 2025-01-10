@@ -1,7 +1,58 @@
-/* eslint-disable react/no-unescaped-entities */
+/**
+ * OrganizationStepForm Component
+ * =============================
+ * Form component for collecting and managing organization details during onboarding.
+ *
+ * Table of Contents:
+ * -----------------
+ * 1. Imports & Dependencies (1-30)
+ * 2. Types & Schemas (30-70)
+ * 3. Main Component (73-1134)
+ *    - Hook Initialization (75-90)
+ *    - Data Fetching & Client Context (90-120)
+ *    - Form Configuration (120-200)
+ *    - Event Handlers (200-300)
+ *    - Form Fields & UI (300+)
+ *      + General Information Fieldset
+ *        - Organization Name
+ *        - Organization Description
+ *        - DBA Name
+ *        - Organization Email
+ *        - Country of Formation
+ *        - Year of Formation
+ *      + Phone Information Fieldset
+ *        - Phone Type
+ *        - Phone Number
+ *      + Industry Information Fieldset
+ *        - Industry Type (with NAICS codes)
+ *        - Merchant Category Code (MCC)
+ *        - Entities in Ownership
+ *        - Trade Over Internet
+ *      + Address Information Fieldset(s)
+ *        - Address Type
+ *        - Street Address
+ *        - City
+ *        - State/Province
+ *        - Postal Code
+ *        - Country
+ *      + Website Information
+ *        - Website Availability
+ *        - Website URL
+ *      + Organization Identifiers
+ *        - ID Type
+ *        - ID Value
+ *
+ * @component
+ * @example
+ * return (
+ *   <OrganizationStepForm />
+ * )
+ */
+
 import { Fragment, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { CaretSortIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -17,15 +68,7 @@ import {
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import {
   Form,
   FormControl,
@@ -37,11 +80,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -49,7 +87,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
-import { RadioGroup, RadioGroupItem } from '@/components/ui';
+import {
+  Button,
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  RadioGroup,
+  RadioGroupItem,
+} from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -57,6 +107,7 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { countryOptions } from '../utils/countryOptions';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -65,6 +116,7 @@ import {
   translateApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
+import { stateOptions } from '../utils/stateOptions';
 import naicsCodes from './naics-codes.json';
 import {
   OrganizationStepFormSchema,
@@ -136,6 +188,8 @@ export const OrganizationStepForm = () => {
       associatedCountries: [],
     }),
   });
+
+  console.log('form errors', form.formState.errors);
 
   const industryCategories = Array.from(
     new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
@@ -263,8 +317,6 @@ export const OrganizationStepForm = () => {
             }),
       }) as UpdatePartyRequest;
 
-      console.log('existingOrgParty?.id', existingOrgParty?.id);
-
       if (usePartyResource && existingOrgParty?.id) {
         updateParty(
           {
@@ -335,8 +387,6 @@ export const OrganizationStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  console.log('errors', form.formState.errors);
-
   return (
     <Form {...form}>
       <form
@@ -373,8 +423,8 @@ export const OrganizationStepForm = () => {
           <OnboardingFormField
             control={form.control}
             name="countryOfFormation"
-            type="text"
-            inputProps={{ maxLength: 2 }}
+            type="combobox"
+            options={countryOptions}
           />
 
           <OnboardingFormField
@@ -738,50 +788,28 @@ export const OrganizationStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.state`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>State</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter state" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={stateOptions}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.postalCode`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Postal Code</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter postal code" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
+                  inputProps={{
+                    pattern: '[0-9]{5}',
+                    maxLength: 5,
+                    inputMode: 'numeric',
+                  }}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.country`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Country</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          maxLength={2}
-                          placeholder="e.g., US"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={countryOptions}
                 />
-
                 <div className="eb-col-span-full">
                   <Button
                     type="button"
@@ -843,8 +871,8 @@ export const OrganizationStepForm = () => {
                     <FormItem>
                       <FormLabel>ID Type</FormLabel>
                       <Select
+                        value={field.value}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger ref={field.ref}>

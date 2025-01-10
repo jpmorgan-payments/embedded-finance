@@ -66,9 +66,31 @@ The `embedded-components` package is our primary UI component library for embedd
    - Implement React Query for data fetching
    - Use proper TypeScript types
 4. Styling:
+
    - Use Tailwind CSS for styling
+   - Prefix custom Tailwind classes with `eb-` for embedded components
+   - Example:
+
+     ```typescript
+     // In your component
+     <div className="eb-custom-class">
+
+     // In tailwind.config.js
+     module.exports = {
+       theme: {
+         extend: {
+           // Custom classes should be prefixed
+           '.eb-custom-class': {
+             // styles
+           }
+         }
+       }
+     }
+     ```
+
    - Follow project color scheme and design tokens
    - Ensure responsive design
+
 5. Props:
    - Define clear prop interfaces
    - Use proper TypeScript types
@@ -363,7 +385,9 @@ Use theme tokens from the provider:
 4. Monitor bundle size impact
 
 ## Git Usage
+
 Commit Message Prefixes:
+
 - "fix:" for bug fixes
 - "feat:" for new features
 - "perf:" for performance improvements
@@ -374,12 +398,14 @@ Commit Message Prefixes:
 - "chore:" for maintenance tasks
 
 Rules:
+
 - Use lowercase for commit messages
 - Keep the summary line concise
 - Include description for non-obvious changes
 - Reference issue numbers when applicable
 
 ## Documentation
+
 - Maintain clear README with setup instructions
 - Document API interactions and data flows
 - Keep manifest.json well-documented

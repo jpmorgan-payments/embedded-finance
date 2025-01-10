@@ -5,7 +5,11 @@ import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { ClientProduct, OrganizationType } from '@/api/generated/smbdo.schemas';
+import {
+  ClientProduct,
+  ClientResponse,
+  OrganizationType,
+} from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step, StepItem, Stepper, StepProps } from '@/components/ui/stepper';
 
@@ -184,6 +188,7 @@ const OnboardingWizardBasicComponent: FC<
       children: <AdditionalQuestionsStepForm />,
     },
     {
+      id: 'documentUpload',
       label: t('stepLabels.uploadDocuments'),
       children: <DocumentUploadStepForm />,
     },
@@ -197,10 +202,15 @@ const OnboardingWizardBasicComponent: FC<
     (
       product?: ClientProduct,
       jurisdiction?: Jurisdiction,
-      organizationType?: OrganizationType
+      organizationType?: OrganizationType,
+      _clientData?: ClientResponse
     ) => {
       return initialSteps.filter(
         (step) =>
+          !(
+            _clientData?.outstanding?.documentRequestIds?.length! === 0 &&
+            step?.id === 'documentUpload'
+          ) &&
           (!step.onlyVisibleFor?.jurisdiction ||
             (jurisdiction &&
               step.onlyVisibleFor.jurisdiction.includes(jurisdiction))) &&
@@ -220,7 +230,8 @@ const OnboardingWizardBasicComponent: FC<
     return getOnboardingSteps(
       productFromResponse,
       organizationDetailsFromResponse?.jurisdiction as Jurisdiction,
-      organizationDetailsFromResponse?.organizationType
+      organizationDetailsFromResponse?.organizationType,
+      clientData
     );
   }, [
     productFromResponse,

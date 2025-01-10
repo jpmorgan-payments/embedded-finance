@@ -56,6 +56,13 @@ export const efClientSolPropAdditionalDocuments: ClientResponse = {
         ],
         websiteAvailable: false,
       },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          documentRequestIds: ['68430'],
+        },
+      ],
     },
     {
       id: '2000000112',
