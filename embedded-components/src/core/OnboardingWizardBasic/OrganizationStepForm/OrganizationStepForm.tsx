@@ -107,7 +107,7 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { countryOptions } from '../utils/countryOptions';
+import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -420,11 +420,22 @@ export const OrganizationStepForm = () => {
             name="organizationEmail"
             type="email"
           />
+
           <OnboardingFormField
             control={form.control}
             name="countryOfFormation"
             type="combobox"
-            options={countryOptions}
+            options={COUNTRIES_OF_FORMATION.map((code) => ({
+              value: code,
+              label: (
+                <span>
+                  <span className="eb-font-medium">[{code}]</span>{' '}
+                  {t([
+                    `common:countries.${code}`,
+                  ] as unknown as TemplateStringsArray)}
+                </span>
+              ),
+            }))}
           />
 
           <OnboardingFormField
@@ -804,12 +815,24 @@ export const OrganizationStepForm = () => {
                     inputMode: 'numeric',
                   }}
                 />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.country`}
                   type="combobox"
-                  options={countryOptions}
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
                 />
+
                 <div className="eb-col-span-full">
                   <Button
                     type="button"
@@ -905,7 +928,17 @@ export const OrganizationStepForm = () => {
                   control={form.control}
                   name={`organizationIds.${index}.issuer`}
                   type="combobox"
-                  options={countryOptions}
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
                 />
                 <FormField
                   control={form.control}

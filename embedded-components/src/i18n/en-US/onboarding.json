@@ -77,7 +77,7 @@
     },
     "countryOfFormation": {
       "label": "Country of formation",
-      "placeholder": "Enter country of formation",
+      "placeholder": "Select country of formation",
       "description": "",
       "tooltip": "Country code in ISO alpha-2 format",
       "validation": {
