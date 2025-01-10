@@ -160,7 +160,7 @@ export const OnboardingNextPageV2 = () => {
             // @ts-ignore
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
             title="Onboarding Wizard"
-            clientId={scenario?.clientId}
+            initialClientId={scenario?.clientId}
             onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
