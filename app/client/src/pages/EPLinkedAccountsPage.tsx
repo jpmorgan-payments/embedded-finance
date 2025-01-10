@@ -1,7 +1,6 @@
 import {
   EBComponentsProvider,
   LinkedAccountWidget,
-  OnboardingWizard,
 } from '@jpmorgan-payments/embedded-finance-components';
 import { Badge, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
