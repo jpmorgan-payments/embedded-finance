@@ -1,8 +1,8 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-import { AddressSchema, PhoneSchema } from '../utils/schemas';
 import { COUNTRIES_OF_FORMATION } from '../utils/countriesOfFormationList';
+import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 const PERSONAL_EMAIL_DOMAINS = [
   'gmail.com',
