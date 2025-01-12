@@ -30,7 +30,7 @@ import {
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
-import { OutstandingInfoDebug } from './utils/OutstandingInfoDebug';
+import { MissingInfoAlert } from './utils/MissingInfoAlert';
 import { Jurisdiction } from './utils/types';
 
 type OnboardingStep = StepProps &
@@ -245,7 +245,7 @@ const OnboardingWizardBasicComponent: FC<
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
-        {clientData && <OutstandingInfoDebug clientData={clientData} />}
+        {clientData && <MissingInfoAlert clientData={clientData} />}
         {clientData?.status === 'NEW' || !clientId ? (
           <Stepper
             initialStep={wasClientIdCreated && !initialStep ? 1 : initialStep}
