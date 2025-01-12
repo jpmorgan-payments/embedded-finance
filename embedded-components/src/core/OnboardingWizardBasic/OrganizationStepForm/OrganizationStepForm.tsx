@@ -189,8 +189,6 @@ export const OrganizationStepForm = () => {
     }),
   });
 
-  console.log('form errors', form.formState.errors);
-
   const industryCategories = Array.from(
     new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
   ).sort((a, b) => a.localeCompare(b));

@@ -1,106 +1,13 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-import { PhoneSchema } from '../utils/schemas';
+import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 // Constants for validation
 const NAME_PATTERN = /^[a-zA-Z\s'-]+$/;
 const SUFFIX_PATTERN = /^[A-Z]+\.?$|^[IVX]+$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
-
-const addressSchema = z.object({
-  addressType: z.enum([
-    'LEGAL_ADDRESS',
-    'MAILING_ADDRESS',
-    'BUSINESS_ADDRESS',
-    'RESIDENTIAL_ADDRESS',
-  ]),
-  addressLines: z
-    .array(
-      z
-        .string()
-        .max(
-          60,
-          i18n.t(
-            'onboarding:fields.individualAddresses.addressLines.validation.maxLength'
-          )
-        )
-        .regex(
-          /^[a-zA-Z0-9\s,.#'-]+$/,
-          i18n.t(
-            'onboarding:fields.individualAddresses.addressLines.validation.pattern'
-          )
-        )
-    )
-    .min(
-      1,
-      i18n.t(
-        'onboarding:fields.individualAddresses.addressLines.validation.minLines'
-      )
-    )
-    .max(
-      5,
-      i18n.t(
-        'onboarding:fields.individualAddresses.addressLines.validation.maxLines'
-      )
-    )
-    .refine(
-      (lines) =>
-        lines[0] && !lines[0].startsWith('PO Box') && /^\d/.test(lines[0]),
-      i18n.t(
-        'onboarding:fields.individualAddresses.addressLines.validation.firstLine'
-      )
-    ),
-  city: z
-    .string()
-    .max(
-      34,
-      i18n.t('onboarding:fields.individualAddresses.city.validation.maxLength')
-    )
-    .regex(
-      /^[a-zA-Z\s.-]+$/,
-      i18n.t('onboarding:fields.individualAddresses.city.validation.pattern')
-    ),
-  state: z
-    .string()
-    .max(
-      30,
-      i18n.t('onboarding:fields.individualAddresses.state.validation.maxLength')
-    )
-    .regex(
-      /^[a-zA-Z\s.-]+$/,
-      i18n.t('onboarding:fields.individualAddresses.state.validation.pattern')
-    )
-    .optional(),
-  postalCode: z
-    .string()
-    .max(
-      10,
-      i18n.t(
-        'onboarding:fields.individualAddresses.postalCode.validation.maxLength'
-      )
-    )
-    .refine(
-      (val) => {
-        if (val.length === 5 || val.length === 9) {
-          return /^\d+$/.test(val);
-        }
-        return /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/.test(val);
-      },
-      {
-        message: i18n.t(
-          'onboarding:fields.individualAddresses.postalCode.validation.pattern'
-        ),
-      }
-    ),
-  country: z
-    .string()
-    .length(
-      2,
-      i18n.t('onboarding:fields.countryOfResidence.validation.exactlyTwoChars')
-    ),
-});
 
 const individualIdSchema = z.object({
   description: z.string().optional(),
@@ -194,7 +101,7 @@ const individualIdSchema = z.object({
 
 export const IndividualStepFormSchema = z.object({
   individualAddresses: z
-    .array(addressSchema)
+    .array(AddressSchema)
     .min(1, i18n.t('onboarding:fields.individualAddresses.validation.required'))
     .max(
       5,
