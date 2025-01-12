@@ -1,12 +1,14 @@
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
-import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, Key } from 'react';
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, Key, useState } from 'react';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const MissingInfoAlert = ({
   clientData,
 }: {
   clientData: ClientResponse;
 }) => {
-
+  const [isDismissed, setIsDismissed] = useState(false);
 
   const getMissingFields = () => {
     const missing: string[] = [];
@@ -45,10 +47,19 @@ export const MissingInfoAlert = ({
     return fields && fields.length > 0;
   }));
 
-  if (!hasAnyMissingInfo) return null;
+  if (!hasAnyMissingInfo || isDismissed) return null;
 
   return (
-    <div className="eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded-md eb-p-3 eb-text-sm eb-text-blue-900 eb-mb-4">
+    <div className="eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded-md eb-p-3 eb-text-sm eb-text-blue-900 eb-mb-4 eb-relative">
+      <Button
+        onClick={() => setIsDismissed(true)}
+        variant="ghost"
+        size="icon"
+        className="eb-absolute eb-right-2 eb-top-2 eb-h-6 eb-w-6 eb-p-0"
+        aria-label="Dismiss alert"
+      >
+        <X className="eb-h-4 eb-w-4" />
+      </Button>
       <div className="eb-font-medium eb-mb-2">Missing Information:</div>
       <div className="eb-space-y-2">
         {missingFields.length > 0 && (
