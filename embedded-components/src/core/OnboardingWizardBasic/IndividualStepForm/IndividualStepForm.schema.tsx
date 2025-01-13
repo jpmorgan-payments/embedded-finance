@@ -253,5 +253,4 @@ export const IndividualStepFormSchema = z.object({
     .optional(),
   individualPhone: PhoneSchema,
   natureOfOwnership: z.enum(['Direct', 'Indirect']).optional(),
-  soleOwner: z.boolean().optional(),
 });

@@ -560,6 +560,7 @@ export const DecisionMakerStepForm = () => {
                       appendAddress({
                         addressType: 'RESIDENTIAL_ADDRESS',
                         addressLines: [''],
+                        state: '',
                         city: '',
                         postalCode: '',
                         country: '',
