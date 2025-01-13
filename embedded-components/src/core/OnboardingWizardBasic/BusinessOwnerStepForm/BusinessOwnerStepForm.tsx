@@ -109,9 +109,8 @@ export const BusinessOwnerStepForm = () => {
   const { t } = useTranslation(['onboarding', 'common']);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentDecisionMakerId, setCurrentDecisionMakerId] = useState<
-    string | null
-  >(null);
+  const [currentDecisionMakerId, setCurrentDecisionMakerId] =
+    useState<string>('');
 
   // Fetch client data
   const {
@@ -236,36 +235,45 @@ export const BusinessOwnerStepForm = () => {
 
   const onSubmit = (values: BusinessOwner) => {
     if (clientId) {
-      const requestBody = generateRequestBody(values, 0, 'addParties', {
-        addParties: [
-          {
-            partyType: 'INDIVIDUAL',
-            roles: ['BENEFICIAL_OWNER'],
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
+      if (currentDecisionMakerId) {
+        const requestBody = generateRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['BENEFICIAL_OWNER'],
+            },
+          ],
+        }) as UpdateClientRequestSmbdo;
 
-      updateClient(
-        {
-          id: clientId,
-          data: requestBody,
-        },
-        {
-          onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
+        updateClient(
+          {
+            id: clientId,
+            data: requestBody,
           },
-          onSuccess: () => {
-            toast.success('Beneficial owner details updated successfully');
-            setIsDialogOpen(false);
-            setCurrentDecisionMakerId(null);
-            ownerForm.reset({});
-            refetchClientData();
-          },
-          onError: () => {
-            toast.error('Failed to update beneficial owner details');
-          },
-        }
-      );
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              toast.success('Beneficial owner details updated successfully');
+              setIsDialogOpen(false);
+              setCurrentDecisionMakerId(null);
+              ownerForm.reset({});
+              refetchClientData();
+            },
+            onError: () => {
+              toast.error('Failed to update beneficial owner details');
+            },
+          }
+        );
+      } else {
+        const partyRequestBody = generatePartyRequestBody(values, {});
+
+        updateParty({
+          partyId: currentDecisionMakerId,
+          data: partyRequestBody,
+        });
+      }
     }
   };
 
