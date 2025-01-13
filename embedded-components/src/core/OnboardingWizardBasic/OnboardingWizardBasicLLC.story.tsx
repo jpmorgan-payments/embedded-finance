@@ -14,6 +14,7 @@ import {
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuestions.mock';
+import { ORGANIZATION_TYPE_LIST } from './utils/organizationTypeList';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -52,6 +53,12 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         type: 'check',
       },
       options: ['US', 'CA'],
+    },
+    availableOrganizationTypes: {
+      control: {
+        type: 'check',
+      },
+      options: ORGANIZATION_TYPE_LIST,
     },
     usePartyResource: { control: 'boolean' },
   },
@@ -99,6 +106,7 @@ Default.args = {
   },
   availableProducts: ['EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['US'],
+  availableOrganizationTypes: ['SOLE_PROPRIETORSHIP', 'LIMITED_LIABILITY_COMPANY'],
   theme: {},
   contentTokens: {
     name: 'enUS',
