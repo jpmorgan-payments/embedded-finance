@@ -32,6 +32,7 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { countryOptions } from '../utils/countryOptions';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -50,6 +51,7 @@ export const InitialStepForm = () => {
     setClientId,
     availableProducts,
     availableJurisdictions,
+    availableOrganizationTypes,
     usePartyResource,
     onPostPartyResponse,
   } = useOnboardingContext();
@@ -270,15 +272,11 @@ export const InitialStepForm = () => {
     }
   });
 
-  if (updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
-  if (postClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
-  if (usePartyResource && updatePartyStatus === 'pending') {
+  if (
+    updateClientStatus === 'pending' ||
+    postClientStatus === 'pending' ||
+    (usePartyResource && updatePartyStatus === 'pending')
+  ) {
     return <FormLoadingState message="Submitting..." />;
   }
 
@@ -333,7 +331,9 @@ export const InitialStepForm = () => {
               control={form.control}
               name="organizationType"
               type="select"
-              options={ORGANIZATION_TYPE_LIST.map((type) => ({
+              options={(
+                availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST
+              ).map((type) => ({
                 value: type,
                 label: t(`organizationTypes.${type}`),
               }))}
@@ -354,10 +354,8 @@ export const InitialStepForm = () => {
             <OnboardingFormField
               control={form.control}
               name="countryOfFormation"
-              type="text"
-              inputProps={{
-                maxLength: 2,
-              }}
+              type="combobox"
+              options={countryOptions}
             />
 
             <ServerErrorAlert

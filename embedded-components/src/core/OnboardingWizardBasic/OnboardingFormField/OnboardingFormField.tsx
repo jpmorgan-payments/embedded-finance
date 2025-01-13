@@ -181,7 +181,7 @@ export const OnboardingFormField = <
                             variant="outline"
                             role="combobox"
                             aria-expanded={open}
-                            className="eb-w-full eb-justify-between"
+                            className="eb-w-full eb-justify-between eb-font-normal"
                           >
                             {field.value
                               ? options?.find(
