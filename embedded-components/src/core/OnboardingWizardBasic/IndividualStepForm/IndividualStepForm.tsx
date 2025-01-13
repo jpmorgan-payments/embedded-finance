@@ -66,11 +66,9 @@ import {
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -118,6 +116,7 @@ export const IndividualStepForm = () => {
   );
 
   const {
+    filterDefaultValues,
     getFieldRule,
     isFieldDisabled,
     isFieldRequired,
@@ -128,23 +127,31 @@ export const IndividualStepForm = () => {
   const form = useForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onChange',
     resolver: zodResolver(IndividualStepFormSchema),
-    defaultValues: {
+    defaultValues: filterDefaultValues({
       individualAddresses: [
         {
           addressType: 'RESIDENTIAL_ADDRESS',
           addressLines: [''],
+          state: '',
           city: '',
           postalCode: '',
           country: '',
         },
       ],
-      individualIds: [{}],
+      individualIds: [
+        {
+          idType: 'SSN',
+          value: '',
+          issuer: '',
+          expiryDate: '',
+          description: '',
+        },
+      ],
       individualPhone: {
         phoneType: 'MOBILE_PHONE',
         phoneNumber: '',
       },
-      soleOwner: false,
-    },
+    }),
   });
 
   const {
@@ -167,7 +174,8 @@ export const IndividualStepForm = () => {
 
   // Get INDIVIDUAL's partyId
   const existingIndividualParty = clientData?.parties?.find(
-    (party) => party?.partyType === 'INDIVIDUAL'
+    (party) =>
+      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
   );
 
   // Populate form with client data
@@ -198,31 +206,16 @@ export const IndividualStepForm = () => {
       const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
         addParties: [
           {
-            ...(existingIndividualParty?.id
-              ? {
-                  id: existingIndividualParty?.id,
-                  partyType: existingIndividualParty?.partyType,
-                  roles: existingIndividualParty?.roles,
-                }
-              : {
-                  partyType: 'INDIVIDUAL',
-                  roles: ['CONTROLLER'],
-                }),
+            partyType: 'INDIVIDUAL',
+            roles: ['CONTROLLER'],
           },
         ],
       }) as UpdateClientRequestSmbdo;
 
-      const partyRequestBody = generatePartyRequestBody(values, {
-        ...(existingIndividualParty?.id
-          ? {
-              partyType: existingIndividualParty?.partyType,
-              roles: existingIndividualParty?.roles,
-            }
-          : {
-              partyType: 'INDIVIDUAL',
-              roles: ['CONTROLLER'],
-            }),
-      }) as UpdatePartyRequest;
+      const partyRequestBody = generatePartyRequestBody(
+        values,
+        {}
+      ) as UpdatePartyRequest;
 
       if (usePartyResource && existingIndividualParty?.id) {
         updateParty(
@@ -421,52 +414,6 @@ export const IndividualStepForm = () => {
               )}
             />
           )}
-
-          <FormField
-            control={form.control}
-            name="natureOfOwnership"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nature of Ownership</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select nature of ownership" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Direct">Direct</SelectItem>
-                    <SelectItem value="Indirect">Indirect</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="soleOwner"
-            render={({ field }) => (
-              <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-md eb-p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="eb-space-y-1 eb-leading-none">
-                  <FormLabel>Sole Owner</FormLabel>
-                  <FormDescription>
-                    Check if this individual is the sole owner of the business.
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
         </fieldset>
 
         {/* Phone Information */}

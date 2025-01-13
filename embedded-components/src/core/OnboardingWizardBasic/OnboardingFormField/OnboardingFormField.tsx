@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { ControllerProps, FieldPath, FieldValues } from 'react-hook-form';
+import {
+  Control,
+  ControllerProps,
+  FieldPath,
+  FieldValues,
+} from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -23,6 +28,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  RadioGroup,
+  RadioGroupItem,
   Select,
   SelectContent,
   SelectItem,
@@ -48,6 +55,7 @@ interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
+  control: Control<TFieldValues>;
   type: FieldType;
   label?: string;
   placeholder?: string;
@@ -56,6 +64,7 @@ interface BaseProps<
   required?: boolean;
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
+  disableMapping?: boolean;
 }
 
 interface SelectOrRadioGroupProps<
@@ -96,6 +105,7 @@ export const OnboardingFormField = <
   visibility,
   options,
   inputProps,
+  disableMapping,
   ...props
 }: OnboardingFormFieldProps<TFieldValues, TName>) => {
   const { clientId } = useOnboardingContext();
@@ -105,7 +115,7 @@ export const OnboardingFormField = <
   const { t } = useTranslation(['onboarding', 'common']);
 
   const fieldRule: FieldRule =
-    name === 'product'
+    name === 'product' || disableMapping
       ? { visibility: 'visible', required: true }
       : getFieldRule(name.split('.')[0] as keyof OnboardingWizardFormValues);
 
@@ -261,23 +271,23 @@ export const OnboardingFormField = <
                 case 'radio-group':
                   return (
                     <FormControl>
-                      <div className="eb-flex eb-flex-col eb-space-y-2">
+                      <RadioGroup
+                        {...field}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="eb-flex eb-flex-col eb-space-y-1"
+                      >
                         {options?.map((option) => (
-                          <label
-                            key={option.value}
-                            className="eb-flex eb-items-center eb-space-x-2"
-                          >
-                            <input
-                              type="radio"
-                              {...field}
-                              value={option.value}
-                              checked={field.value === option.value}
-                              className="eb-h-4 eb-w-4"
-                            />
-                            <span>{option.label}</span>
-                          </label>
+                          <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value={option.value} />
+                            </FormControl>
+                            <FormLabel className="eb-font-normal">
+                              {option.label}
+                            </FormLabel>
+                          </FormItem>
                         ))}
-                      </div>
+                      </RadioGroup>
                     </FormControl>
                   );
                 case 'checkbox':

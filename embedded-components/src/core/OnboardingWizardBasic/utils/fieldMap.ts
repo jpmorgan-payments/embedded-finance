@@ -206,10 +206,10 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.natureOfOwnership',
     baseRule: { visibility: 'visible', required: false },
   },
-  soleOwner: {
-    path: 'individualDetails.soleOwner',
-    baseRule: { visibility: 'visible', required: true },
-  },
+  // soleOwner: {
+  //   path: 'individualDetails.soleOwner',
+  //   baseRule: { visibility: 'visible', required: true },
+  // },
   individualAddresses: {
     path: 'individualDetails.addresses',
     baseRule: { visibility: 'visible', minItems: 1, maxItems: 1 },

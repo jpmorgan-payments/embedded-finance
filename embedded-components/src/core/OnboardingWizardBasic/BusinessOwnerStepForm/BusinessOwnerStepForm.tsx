@@ -50,12 +50,17 @@
 
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EditIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { EditIcon, PlusIcon, TrashIcon, UserPlusIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
+import {
+  useSmbdoGetClient,
+  useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
+} from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,9 +92,12 @@ import { useStepper } from '@/components/ui/stepper';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
+  generatePartyRequestBody,
+  generateRequestBody,
   useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
 
@@ -98,6 +106,8 @@ type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
 export const BusinessOwnerStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
   const { clientId, onPostClientResponse } = useOnboardingContext();
+  const { t } = useTranslation(['onboarding', 'common']);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentDecisionMakerId, setCurrentDecisionMakerId] = useState<
     string | null
@@ -110,13 +120,53 @@ export const BusinessOwnerStepForm = () => {
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
-  const { clientContext } = useFilterFunctionsByClientContext(clientData);
+  const {
+    filterDefaultValues,
+    getFieldRule,
+    isFieldDisabled,
+    isFieldRequired,
+    isFieldVisible,
+    clientContext,
+  } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useForm<BusinessOwner>({
+  const controllerForm = useForm({});
+
+  const ownerForm = useForm<z.infer<typeof IndividualStepFormSchema>>({
+    mode: 'onBlur',
     resolver: zodResolver(IndividualStepFormSchema),
+    defaultValues: filterDefaultValues({
+      individualAddresses: [
+        {
+          addressType: 'RESIDENTIAL_ADDRESS',
+          addressLines: [''],
+          state: '',
+          city: '',
+          postalCode: '',
+          country: '',
+        },
+      ],
+      individualIds: [
+        {
+          idType: 'SSN',
+          value: '',
+          issuer: '',
+          expiryDate: '',
+          description: '',
+        },
+      ],
+      individualPhone: {
+        phoneType: 'MOBILE_PHONE',
+        phoneNumber: '',
+      },
+    }),
   });
 
-  const businessOwners =
+  const controllerData = clientData?.parties?.find(
+    (party) =>
+      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+  );
+
+  const ownersData =
     clientData?.parties?.filter(
       (party) =>
         party?.partyType === 'INDIVIDUAL' &&
@@ -128,7 +178,7 @@ export const BusinessOwnerStepForm = () => {
     append: appendAddress,
     remove: removeAddress,
   } = useFieldArray({
-    control: form.control,
+    control: ownerForm.control,
     name: 'individualAddresses',
   });
 
@@ -137,7 +187,7 @@ export const BusinessOwnerStepForm = () => {
     append: appendId,
     remove: removeId,
   } = useFieldArray({
-    control: form.control,
+    control: ownerForm.control,
     name: 'individualIds',
   });
 
@@ -145,23 +195,13 @@ export const BusinessOwnerStepForm = () => {
     mutate: updateClient,
     error: updateClientError,
     status: updateClientStatus,
-  } = useSmbdoUpdateClient({
-    mutation: {
-      onSettled: (data, error) => {
-        onPostClientResponse?.(data, error?.response?.data);
-      },
-      onSuccess: () => {
-        toast.success('Business owner details updated successfully');
-        setIsDialogOpen(false);
-        setCurrentDecisionMakerId(null);
-        form.reset({});
-        refetchClientData();
-      },
-      onError: () => {
-        toast.error('Failed to update business owner details');
-      },
-    },
-  });
+  } = useSmbdoUpdateClient();
+
+  const {
+    mutate: updateParty,
+    error: updatePartyError,
+    status: updatePartyStatus,
+  } = useSmbdoUpdateParty();
 
   const handleEditDecisionMaker = (decisionMakerId: string) => {
     if (getClientStatus === 'success' && clientData) {
@@ -170,14 +210,14 @@ export const BusinessOwnerStepForm = () => {
         clientData,
         decisionMakerId
       );
-      form.reset(formValues as BusinessOwner);
+      ownerForm.reset(formValues as BusinessOwner);
       setIsDialogOpen(true);
     }
   };
 
   const handleAddDecisionMaker = () => {
     setCurrentDecisionMakerId(null);
-    form.reset({});
+    ownerForm.reset({});
     setIsDialogOpen(true);
   };
 
@@ -196,44 +236,74 @@ export const BusinessOwnerStepForm = () => {
 
   const onSubmit = (values: BusinessOwner) => {
     if (clientId) {
-      const requestBody = {
+      const requestBody = generateRequestBody(values, 0, 'addParties', {
         addParties: [
           {
-            ...(currentDecisionMakerId ? { id: currentDecisionMakerId } : {}),
-            ...values,
+            partyType: 'INDIVIDUAL',
+            roles: ['BENEFICIAL_OWNER'],
           },
         ],
-      } as UpdateClientRequestSmbdo;
+      }) as UpdateClientRequestSmbdo;
 
-      updateClient({
-        id: clientId,
-        data: requestBody,
-      });
+      updateClient(
+        {
+          id: clientId,
+          data: requestBody,
+        },
+        {
+          onSettled: (data, error) => {
+            onPostClientResponse?.(data, error?.response?.data);
+          },
+          onSuccess: () => {
+            toast.success('Beneficial owner details updated successfully');
+            setIsDialogOpen(false);
+            setCurrentDecisionMakerId(null);
+            ownerForm.reset({});
+            refetchClientData();
+          },
+          onError: () => {
+            toast.error('Failed to update beneficial owner details');
+          },
+        }
+      );
     }
   };
 
-  if (updateClientStatus === 'pending') {
+  if (updateClientStatus === 'pending' || updatePartyStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
 
   return (
-    <div className="eb-space-y-6">
-      <h2 className="eb-text-2xl eb-font-bold">Business Owners</h2>
-      <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-        {businessOwners.map((businessOwner) => (
-          <Card key={businessOwner.id}>
+    <div className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1">
+      {/* <OnboardingFormField
+        control={controllerForm.control}
+        disableMapping
+        type="radio-group"
+        name="controllerIsOwner"
+        label="Do you, the controller, own 25% or more of the business?"
+        options={[
+          { value: 'yes', label: t('common:yes') },
+          { value: 'no', label: t('common:no') },
+        ]}
+      /> */}
+
+      <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+          Beneficial Owners
+        </legend>
+        {ownersData.map((owner) => (
+          <Card key={owner.id}>
             <CardHeader>
-              <CardTitle>{`${businessOwner?.individualDetails?.firstName} ${businessOwner?.individualDetails?.lastName}`}</CardTitle>
+              <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{businessOwner?.individualDetails?.jobTitle ?? ''}</p>
+              <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
               <div className="eb-mt-4 eb-space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    businessOwner?.id &&
-                    handleEditDecisionMaker(businessOwner?.id)
+                    owner?.id && handleEditDecisionMaker(owner?.id)
                   }
                 >
                   <EditIcon className="eb-mr-2 eb-h-4 eb-w-4" />
@@ -243,8 +313,7 @@ export const BusinessOwnerStepForm = () => {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    businessOwner?.id &&
-                    handleDeleteDecisionMaker(businessOwner?.id)
+                    owner?.id && handleDeleteDecisionMaker(owner?.id)
                   }
                 >
                   <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
@@ -254,16 +323,15 @@ export const BusinessOwnerStepForm = () => {
             </CardContent>
           </Card>
         ))}
-        <Card
+        <Button
           className="eb-flex eb-cursor-pointer eb-items-center eb-justify-center"
           onClick={handleAddDecisionMaker}
         >
-          <CardContent className="eb-flex eb-items-center eb-justify-center">
-            <PlusIcon className="eb-h-6 eb-w-6" />
-            <p className="eb-mt-2">Add Business Owner</p>
-          </CardContent>
-        </Card>
-      </div>
+          <UserPlusIcon className="eb-mr-2 eb-h-4 eb-w-4 eb-stroke-2" />
+          Add Business Owner
+        </Button>
+      </fieldset>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="eb-max-h-full eb-max-w-3xl eb-overflow-auto">
           <DialogHeader>
@@ -273,14 +341,14 @@ export const BusinessOwnerStepForm = () => {
                 : 'Add Business Owner'}
             </DialogTitle>
           </DialogHeader>
-          <Form {...form}>
+          <Form {...ownerForm}>
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={ownerForm.handleSubmit(onSubmit)}
               className="eb-space-y-6"
             >
               <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                 <FormField
-                  control={form.control}
+                  control={ownerForm.control}
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
@@ -293,7 +361,7 @@ export const BusinessOwnerStepForm = () => {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={ownerForm.control}
                   name="middleName"
                   render={({ field }) => (
                     <FormItem>
@@ -309,7 +377,7 @@ export const BusinessOwnerStepForm = () => {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={ownerForm.control}
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
@@ -322,7 +390,7 @@ export const BusinessOwnerStepForm = () => {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={ownerForm.control}
                   name="birthDate"
                   render={({ field }) => (
                     <FormItem>
@@ -335,7 +403,7 @@ export const BusinessOwnerStepForm = () => {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={ownerForm.control}
                   name="countryOfResidence"
                   render={({ field }) => (
                     <FormItem>
@@ -352,7 +420,7 @@ export const BusinessOwnerStepForm = () => {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={ownerForm.control}
                   name="jobTitle"
                   render={({ field }) => (
                     <FormItem>
@@ -382,9 +450,9 @@ export const BusinessOwnerStepForm = () => {
                     </FormItem>
                   )}
                 />
-                {form.watch('jobTitle') === 'Other' && (
+                {ownerForm.watch('jobTitle') === 'Other' && (
                   <FormField
-                    control={form.control}
+                    control={ownerForm.control}
                     name="jobTitleDescription"
                     render={({ field }) => (
                       <FormItem>
@@ -411,7 +479,7 @@ export const BusinessOwnerStepForm = () => {
                 </CardHeader>
                 <CardContent className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-3">
                   <FormField
-                    control={form.control}
+                    control={ownerForm.control}
                     name="individualPhone.phoneType"
                     render={({ field }) => (
                       <FormItem>
@@ -442,7 +510,7 @@ export const BusinessOwnerStepForm = () => {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={ownerForm.control}
                     name="individualPhone.phoneNumber"
                     render={({ field }) => (
                       <FormItem>
@@ -482,7 +550,7 @@ export const BusinessOwnerStepForm = () => {
                       <h4 className="eb-font-medium">Address {index + 1}</h4>
                       <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualAddresses.${index}.addressType`}
                           render={({ field }) => (
                             <FormItem>
@@ -516,7 +584,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualAddresses.${index}.addressLines.0`}
                           render={({ field }) => (
                             <FormItem>
@@ -532,7 +600,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualAddresses.${index}.city`}
                           render={({ field }) => (
                             <FormItem>
@@ -545,7 +613,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualAddresses.${index}.state`}
                           render={({ field }) => (
                             <FormItem>
@@ -558,7 +626,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualAddresses.${index}.postalCode`}
                           render={({ field }) => (
                             <FormItem>
@@ -574,7 +642,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualAddresses.${index}.country`}
                           render={({ field }) => (
                             <FormItem>
@@ -608,6 +676,7 @@ export const BusinessOwnerStepForm = () => {
                       appendAddress({
                         addressType: 'RESIDENTIAL_ADDRESS',
                         addressLines: [''],
+                        state: '',
                         city: '',
                         postalCode: '',
                         country: '',
@@ -636,7 +705,7 @@ export const BusinessOwnerStepForm = () => {
                       <h4 className="eb-font-medium">ID {index + 1}</h4>
                       <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualIds.${index}.idType`}
                           render={({ field }) => (
                             <FormItem>
@@ -660,7 +729,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualIds.${index}.value`}
                           render={({ field }) => (
                             <FormItem>
@@ -676,7 +745,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualIds.${index}.issuer`}
                           render={({ field }) => (
                             <FormItem>
@@ -693,7 +762,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualIds.${index}.expiryDate`}
                           render={({ field }) => (
                             <FormItem>
@@ -706,7 +775,7 @@ export const BusinessOwnerStepForm = () => {
                           )}
                         />
                         <FormField
-                          control={form.control}
+                          control={ownerForm.control}
                           name={`individualIds.${index}.description`}
                           render={({ field }) => (
                             <FormItem>
