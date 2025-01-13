@@ -215,7 +215,7 @@ export const BusinessOwnerStepForm = () => {
   };
 
   const handleAddDecisionMaker = () => {
-    setCurrentDecisionMakerId(null);
+    setCurrentDecisionMakerId('');
     ownerForm.reset({});
     setIsDialogOpen(true);
   };
@@ -257,7 +257,7 @@ export const BusinessOwnerStepForm = () => {
             onSuccess: () => {
               toast.success('Beneficial owner details updated successfully');
               setIsDialogOpen(false);
-              setCurrentDecisionMakerId(null);
+              setCurrentDecisionMakerId('');
               ownerForm.reset({});
               refetchClientData();
             },
