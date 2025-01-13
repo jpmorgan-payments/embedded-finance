@@ -12,6 +12,7 @@ import {
   ClientProduct,
   ClientResponse,
   ClientVerificationResponse,
+  OrganizationType,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 
@@ -28,6 +29,7 @@ export type OnboardingProps = {
   ) => void;
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
+  availableOrganizationTypes?: Array<OrganizationType>;
   usePartyResource?: boolean;
   blockPostVerification?: boolean;
 };

@@ -6,7 +6,7 @@ import { delay, http, HttpResponse } from 'msw';
 import OnboardingWizardBasicMeta, {
   Default,
   OnboardingWizardBasicWithProviderProps,
-} from './OnboardingWizardBasic.story';
+} from './OnboardingWizardBasicSP.story';
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,

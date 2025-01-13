@@ -75,11 +75,11 @@ export const ReviewAndAttestStepForm = () => {
   const { data: IPAddress } = useIPAddress();
 
   // Update client attestation
-  const { mutateAsync: updateClient, error: updateClientError } =
+  const { mutateAsync: updateClientAsync, error: updateClientError } =
     useSmbdoUpdateClient();
 
   // Initiate KYC
-  const { mutateAsync: initiateKYC, error: clientVerificationsError } =
+  const { mutateAsync: initiateKYCAsync, error: clientVerificationsError } =
     useSmbdoPostClientVerifications();
 
   const documentIds = clientData?.outstanding?.attestationDocumentIds || [];
@@ -153,40 +153,45 @@ export const ReviewAndAttestStepForm = () => {
         },
       };
 
-      if (clientData?.outstanding?.attestationDocumentIds?.length) {
-        await updateClient(
-          {
-            id: clientId,
-            data: requestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostClientResponse?.(data, error?.response?.data);
+      try {
+        if (clientData?.outstanding?.attestationDocumentIds?.length) {
+          await updateClientAsync(
+            {
+              id: clientId,
+              data: requestBody,
             },
-            onSuccess: () => {
-              toast.success('Attestation details updated successfully');
-              nextStep();
-            },
-            onError: () => {
-              toast.error('Failed to update attestation details');
-            },
-          }
-        );
-      }
+            {
+              onSettled: (data, error) => {
+                onPostClientResponse?.(data, error?.response?.data);
+              },
+              onSuccess: () => {
+                toast.success('Attestation details updated successfully');
+              },
+              onError: () => {
+                toast.error('Failed to update attestation details');
+              },
+            }
+          );
+        }
 
-      if (!blockPostVerification) {
-        await initiateKYC(
-          { id: clientId, data: verificationRequestBody },
-          {
-            onSuccess: () => {
-              toast.success('KYC initiated successfully');
-              queryClient.invalidateQueries();
-            },
-            onError: () => {
-              toast.error('Failed to initiate KYC');
-            },
-          }
-        );
+        if (!blockPostVerification) {
+          await initiateKYCAsync(
+            { id: clientId, data: verificationRequestBody },
+            {
+              onSuccess: () => {
+                toast.success('KYC initiated successfully');
+                queryClient.invalidateQueries();
+                nextStep();
+              },
+              onError: () => {
+                toast.error('Failed to initiate KYC');
+              },
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Error completing KYC process:', error);
+        toast.error('An error occurred while completing the KYC process');
       }
     }
   };
@@ -286,29 +291,11 @@ export const ReviewAndAttestStepForm = () => {
             Terms and Conditions
           </Title>
           <p className="eb-mb-4">
-            Please read the Deposit Agreement and review the Online Disclosure
-            for Caterease Banking by J.P. Morgan to complete the process.
+            Please read and attest the below documents by J.P. Morgan to
+            complete the process.
           </p>
 
           <div className="eb-space-y-6">
-            <div className="eb-flex eb-items-center eb-space-x-2">
-              <Checkbox
-                id="useOfAccount"
-                checked={termsAgreed.useOfAccount}
-                onCheckedChange={handleTermsChange('useOfAccount')}
-                className="eb-mr-4"
-              />
-              <Label
-                htmlFor="useOfAccount"
-                className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
-              >
-                The Embedded Payment Account may only be used to receive funds
-                through [the Platform] pursuant to [my Commerce Terms with the
-                Platform] and I am appointing [the Platform] as my agent for the
-                Account.
-              </Label>
-            </div>
-
             <div className="eb-flex eb-items-center eb-space-x-2">
               <Checkbox
                 id="dataAccuracy"

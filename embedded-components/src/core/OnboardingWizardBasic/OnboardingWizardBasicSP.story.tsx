@@ -20,7 +20,7 @@ export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
-  title: 'Onboarding Wizard Basic/ Steps (EP, US, new Sol Prop)',
+  title: 'Onboarding Wizard Basic/ Steps (EP, US, Sole Prop)',
   component: OnboardingWizardBasic,
   args: {
     onPostClientResponse: (data, error) => {
@@ -185,6 +185,10 @@ ReviewAndAttest.parameters = {
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropAnsweredQuestions);
+      }),
+      http.post('/clients/0030000133/verifications', () => {
+        // return HttpResponse.json({acceptedAt: new Date().toISOString()});
+        return HttpResponse.error();
       }),
     ],
   },

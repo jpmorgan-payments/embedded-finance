@@ -145,8 +145,7 @@ export const efClientCorpEBMock: ClientResponse = {
     },
   ],
   partyId: '2000000111',
-  // MERCHANT_SERVICES',
-  products: ['MERCHANT_SERVICES'],
+  products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
     attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
     documentRequestIds: [],
