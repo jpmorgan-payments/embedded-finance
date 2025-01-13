@@ -164,6 +164,7 @@ export const OrganizationStepForm = () => {
         {
           addressType: 'BUSINESS_ADDRESS',
           city: '',
+          state: '',
           postalCode: '',
           country: '',
           addressLines: [''],
@@ -800,8 +801,9 @@ export const OrganizationStepForm = () => {
                 <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.state`}
-                  type="combobox"
+                  type="select"
                   options={stateOptions}
+                  required
                 />
                 <OnboardingFormField
                   control={form.control}
@@ -812,6 +814,7 @@ export const OrganizationStepForm = () => {
                     maxLength: 5,
                     inputMode: 'numeric',
                   }}
+                  required
                 />
 
                 <OnboardingFormField
@@ -862,6 +865,7 @@ export const OrganizationStepForm = () => {
                 addressType: 'BUSINESS_ADDRESS',
                 addressLines: [''],
                 city: '',
+                state: '',
                 postalCode: '',
                 country: '',
               },

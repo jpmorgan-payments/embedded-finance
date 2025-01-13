@@ -43,13 +43,6 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: { visibility: 'hidden' },
       },
-      {
-        condition: {
-          product: ['EMBEDDED_PAYMENTS'],
-          entityType: ['LIMITED_LIABILITY_COMPANY'],
-        },
-        rule: { visibility: 'disabled' },
-      },
     ],
   },
   organizationDescription: {

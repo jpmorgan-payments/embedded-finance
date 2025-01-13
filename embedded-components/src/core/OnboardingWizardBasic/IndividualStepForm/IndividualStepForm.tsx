@@ -451,7 +451,7 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="soleOwner"
             render={({ field }) => (
-              <FormItem className="p-4 eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-md">
+              <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-md eb-p-4">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -661,6 +661,7 @@ export const IndividualStepForm = () => {
             appendAddress({
               addressType: 'RESIDENTIAL_ADDRESS',
               addressLines: [''],
+              state: '',
               city: '',
               postalCode: '',
               country: '',
