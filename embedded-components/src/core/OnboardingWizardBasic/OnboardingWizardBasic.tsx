@@ -237,7 +237,7 @@ const OnboardingWizardBasicComponent: FC<
   }, [
     productFromResponse,
     organizationDetailsFromResponse?.jurisdiction,
-    organizationDetailsFromResponse?.organizationType
+    organizationDetailsFromResponse?.organizationType,
   ]);
 
   return (

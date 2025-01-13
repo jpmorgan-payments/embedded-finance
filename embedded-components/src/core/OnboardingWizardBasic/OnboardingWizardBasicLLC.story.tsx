@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuestions.mock';
+import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
@@ -12,8 +14,7 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
-import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
-import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuestions.mock';
+
 import { ORGANIZATION_TYPE_LIST } from './utils/organizationTypeList';
 
 export type OnboardingWizardBasicWithProviderProps =
@@ -106,7 +107,10 @@ Default.args = {
   },
   availableProducts: ['EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['US'],
-  availableOrganizationTypes: ['SOLE_PROPRIETORSHIP', 'LIMITED_LIABILITY_COMPANY'],
+  availableOrganizationTypes: [
+    'SOLE_PROPRIETORSHIP',
+    'LIMITED_LIABILITY_COMPANY',
+  ],
   theme: {},
   contentTokens: {
     name: 'enUS',

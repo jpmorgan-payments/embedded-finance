@@ -291,29 +291,11 @@ export const ReviewAndAttestStepForm = () => {
             Terms and Conditions
           </Title>
           <p className="eb-mb-4">
-            Please read the Deposit Agreement and review the Online Disclosure
-            for Caterease Banking by J.P. Morgan to complete the process.
+            Please read and attest the below documents by J.P. Morgan to
+            complete the process.
           </p>
 
           <div className="eb-space-y-6">
-            <div className="eb-flex eb-items-center eb-space-x-2">
-              <Checkbox
-                id="useOfAccount"
-                checked={termsAgreed.useOfAccount}
-                onCheckedChange={handleTermsChange('useOfAccount')}
-                className="eb-mr-4"
-              />
-              <Label
-                htmlFor="useOfAccount"
-                className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
-              >
-                The Embedded Payment Account may only be used to receive funds
-                through [the Platform] pursuant to [my Commerce Terms with the
-                Platform] and I am appointing [the Platform] as my agent for the
-                Account.
-              </Label>
-            </div>
-
             <div className="eb-flex eb-items-center eb-space-x-2">
               <Checkbox
                 id="dataAccuracy"
