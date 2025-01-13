@@ -236,7 +236,7 @@ export const BusinessOwnerStepForm = () => {
 
   const onSubmit = (values: BusinessOwner) => {
     if (clientId) {
-      if (currentDecisionMakerId) {
+      if (!currentDecisionMakerId) {
         const requestBody = generateRequestBody(values, 0, 'addParties', {
           addParties: [
             {

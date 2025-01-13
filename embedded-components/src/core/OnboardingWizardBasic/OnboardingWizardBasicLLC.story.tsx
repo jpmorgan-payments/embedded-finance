@@ -187,7 +187,7 @@ AdditionalQuestions.args = {
 AdditionalQuestions.parameters = WithClientId.parameters;
 
 export const ReviewAndAttest = Default.bind({});
-ReviewAndAttest.storyName = '5. Review and Attest step';
+ReviewAndAttest.storyName = '6. Review and Attest step';
 ReviewAndAttest.args = {
   ...WithClientId.args,
   blockPostVerification: true,
@@ -215,7 +215,7 @@ ReviewAndAttest.parameters = {
 
 export const AdditionalDocumentsRequested = Default.bind({});
 AdditionalDocumentsRequested.storyName =
-  '6. Additional Documents requested step';
+  '7. Additional Documents requested step';
 AdditionalDocumentsRequested.args = {
   ...WithClientId.args,
   blockPostVerification: true,
