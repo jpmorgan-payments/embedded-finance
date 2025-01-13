@@ -20,7 +20,7 @@ export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
-  title: 'Onboarding Wizard Basic/ Steps (EP, US, new Sol Prop)',
+  title: 'Onboarding Wizard Basic/ Steps (EP, US, Sole Prop)',
   component: OnboardingWizardBasic,
   args: {
     onPostClientResponse: (data, error) => {

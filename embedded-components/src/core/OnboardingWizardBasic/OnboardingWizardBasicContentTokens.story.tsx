@@ -3,7 +3,7 @@ import type { Meta } from '@storybook/react';
 import OnboardingWizardBasicMeta, {
   Default,
   OnboardingWizardBasicWithProviderProps,
-} from './OnboardingWizardBasic.story';
+} from './OnboardingWizardBasicSP.story';
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,

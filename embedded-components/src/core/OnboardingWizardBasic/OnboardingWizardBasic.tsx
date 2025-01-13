@@ -174,6 +174,7 @@ const OnboardingWizardBasicComponent: FC<
       children: <DecisionMakerStepForm />,
       onlyVisibleFor: {
         organizationType: ['LIMITED_LIABILITY_COMPANY'],
+        product: ['MERCHANT_SERVICES'],
       },
     },
     {
@@ -236,7 +237,7 @@ const OnboardingWizardBasicComponent: FC<
   }, [
     productFromResponse,
     organizationDetailsFromResponse?.jurisdiction,
-    organizationDetailsFromResponse?.organizationType,
+    organizationDetailsFromResponse?.organizationType
   ]);
 
   return (
