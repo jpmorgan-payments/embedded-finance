@@ -100,6 +100,7 @@ export const efClientSolPropWithMoreData: ClientResponse = {
             idType: 'SSN',
             issuer: 'US',
             value: '000000001',
+            expiryDate: '2026-10-31',
           },
         ],
       },
