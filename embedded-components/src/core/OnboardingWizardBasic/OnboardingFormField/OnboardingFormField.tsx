@@ -63,7 +63,7 @@ interface SelectOrRadioGroupProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends BaseProps<TFieldValues, TName> {
   type: 'select' | 'radio-group' | 'combobox';
-  options: Array<{ label: string; value: string }>;
+  options: Array<{ label: JSX.Element | string; value: string }>;
 }
 
 interface OtherFieldProps<
@@ -102,7 +102,7 @@ export const OnboardingFormField = <
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
 
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation(['onboarding', 'common']);
 
   const fieldRule: FieldRule =
     name === 'product'
@@ -149,16 +149,14 @@ export const OnboardingFormField = <
                 )}
             </FormLabel>
             <InfoPopover>
-              <div className="eb-text-sm">
-                {tooltip ??
-                  t(
-                    [
-                      `fields.${tName}.tooltip`,
-                      '',
-                    ] as unknown as TemplateStringsArray,
-                    { index: lastIndex }
-                  )}
-              </div>
+              {tooltip ??
+                t(
+                  [
+                    `fields.${tName}.tooltip`,
+                    '',
+                  ] as unknown as TemplateStringsArray,
+                  { index: lastIndex }
+                )}
             </InfoPopover>
           </div>
 
@@ -181,7 +179,7 @@ export const OnboardingFormField = <
                             variant="outline"
                             role="combobox"
                             aria-expanded={open}
-                            className="eb-w-full eb-justify-between"
+                            className="eb-w-full eb-justify-between eb-font-normal"
                           >
                             {field.value
                               ? options?.find(
@@ -196,7 +194,9 @@ export const OnboardingFormField = <
                         <Command>
                           <CommandInput placeholder={fieldPlaceholder} />
                           <CommandList>
-                            <CommandEmpty>No option found.</CommandEmpty>
+                            <CommandEmpty>
+                              {t('common:noOptionFound')}
+                            </CommandEmpty>
                             <CommandGroup>
                               {options?.map((option) => (
                                 <CommandItem

@@ -23,7 +23,9 @@ export const InfoPopover = ({ children }: InfoPopoverProps) => {
           <InfoIcon className="eb-h-4 eb-w-4 eb-stroke-primary" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="top">{children}</PopoverContent>
+      <PopoverContent side="top" className="eb-text-sm">
+        {children}
+      </PopoverContent>
     </Popover>
   );
 };
