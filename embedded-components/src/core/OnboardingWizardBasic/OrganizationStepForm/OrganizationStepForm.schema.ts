@@ -258,7 +258,6 @@ export const OrganizationStepFormSchema = z.object({
     ),
   organizationIds: z
     .array(OrganizationIdSchema)
-    .min(1, i18n.t('onboarding:fields.organizationIds.validation.minIds'))
     .max(6, i18n.t('onboarding:fields.organizationIds.validation.maxIds'))
     .refine((ids) => {
       const types = ids.map((id) => id.idType);

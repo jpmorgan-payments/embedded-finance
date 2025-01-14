@@ -47,7 +47,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationDescription: {
     path: 'organizationDetails.organizationDescription',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: { visibility: 'visible', required: true },
   },
   industryCategory: {
     path: 'organizationDetails.industryCategory',
@@ -92,7 +92,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationIds: {
     path: 'organizationDetails.organizationIds',
-    baseRule: { visibility: 'visible', maxItems: 1, minItems: 1 },
+    baseRule: { visibility: 'visible', maxItems: 1, minItems: 0 },
   },
   organizationPhone: {
     path: 'organizationDetails.phone',
