@@ -404,14 +404,14 @@ export const OrganizationStepForm = () => {
 
           <OnboardingFormField
             control={form.control}
-            name="organizationDescription"
+            name="dbaName"
             type="text"
           />
 
           <OnboardingFormField
             control={form.control}
-            name="dbaName"
-            type="text"
+            name="organizationDescription"
+            type="textarea"
           />
 
           <OnboardingFormField

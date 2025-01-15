@@ -20,7 +20,7 @@ export { Skeleton } from './skeleton';
 export { Stack } from './stack';
 export * from './table';
 export { Text } from './text';
-export { TextArea } from './textarea';
+export { Textarea } from './textarea';
 export { Title } from './title';
 export { Box } from './box';
 export {

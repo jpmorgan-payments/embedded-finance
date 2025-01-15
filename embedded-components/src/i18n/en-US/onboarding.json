@@ -98,7 +98,16 @@
     },
     "individualIds": {
       "label": "Government IDs",
-      "description": "Government-issued identification numbers",
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description",
+        "description": "Description of the ID",
+        "tooltip": "should match your business registration documents ID description",
+        "validation": {
+          "maxLength": "Description must be 100 characters or less"
+        }
+
+      },
       "validation": {
         "required": "At least one government ID is required",
         "maxIds": "Maximum 16 IDs allowed",
@@ -122,12 +131,20 @@
         }
       },
       "issuer": {
+        "label": "Issuer",
+        "placeholder": "Enter issuer",
+        "description": "Organization ID issuer",
+        "tooltip": "should match your business registration documents ID issuer",
         "validation": {
           "exactlyTwoChars": "Issuer must be a 2-letter country code"
         }
       }
     },
     "countryOfResidence": {
+      "label": "Country of residence",
+      "placeholder": "Select country of residence",
+      "description": "",
+      "tooltip": "Country code in ISO alpha-2 format",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       }
@@ -326,16 +343,25 @@
         }
       },
       "state": {
+        "label": "State",
+        "placeholder": "Select state",
+        "description": "State of your business address",
         "validation": {
           "maxLength": "State name must be 30 characters or less"
         }
       },
       "postalCode": {
+        "label": "Postal Code", 
+        "placeholder": "Enter postal code",
+        "description": "5-digit ZIP code",
         "validation": {
           "maxLength": "Postal code must be 10 characters or less"
         }
       },
       "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "description": "Country of your business address",
         "validation": {
           "exactlyTwoChars": "Country code must be exactly 2 characters"
         }
@@ -345,6 +371,7 @@
       "label": "Job title",
       "placeholder": "Enter job title",
       "description": "Your current position in the organization",
+      "tooltip": "Should match your business registration documents job title",
       "validation": {
         "required": "Job title is required",
         "minLength": "Job title must be at least 2 characters",

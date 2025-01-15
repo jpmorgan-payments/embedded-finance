@@ -35,6 +35,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
@@ -49,6 +50,8 @@ type FieldType =
   | 'radio-group'
   | 'checkbox'
   | 'array'
+  | 'date'
+  | 'textarea'
   | 'combobox';
 
 interface BaseProps<
@@ -302,6 +305,30 @@ export const OnboardingFormField = <
                         />
                         <span>{fieldPlaceholder}</span>
                       </div>
+                    </FormControl>
+                  );
+                case 'date':
+                  return (
+                    <FormControl>
+                      <Input
+                        {...field}
+                        {...inputProps}
+                        type="date"
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
+                case 'textarea':
+                  return (
+                    <FormControl>
+                      <Textarea
+                        {...(field as any)}
+                        {...inputProps}
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                        onChange={(e) => field.onChange(e)}
+                      />
                     </FormControl>
                   );
                 case 'text':
