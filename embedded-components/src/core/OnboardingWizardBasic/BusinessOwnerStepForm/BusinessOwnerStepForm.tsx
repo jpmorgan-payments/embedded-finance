@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * BusinessOwnerStepForm Component
  * ==============================
@@ -49,9 +48,9 @@
  * )
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EditIcon, PlusIcon, TrashIcon, UserPlusIcon } from 'lucide-react';
+import { EditIcon, TrashIcon, UserPlusIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -106,7 +105,8 @@ type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
 
 export const BusinessOwnerStepForm = () => {
   const { nextStep, prevStep, isDisabledStep } = useStepper();
-  const { clientId, onPostClientResponse } = useOnboardingContext();
+  const { clientId, onPostClientResponse, onPostPartyResponse } =
+    useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -120,16 +120,8 @@ export const BusinessOwnerStepForm = () => {
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
-  const {
-    filterDefaultValues,
-    getFieldRule,
-    isFieldDisabled,
-    isFieldRequired,
-    isFieldVisible,
-    clientContext,
-  } = useFilterFunctionsByClientContext(clientData);
-
-  const controllerForm = useForm({});
+  const { filterDefaultValues, clientContext } =
+    useFilterFunctionsByClientContext(clientData);
 
   const ownerForm = useForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onBlur',
@@ -166,6 +158,66 @@ export const BusinessOwnerStepForm = () => {
       party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
   );
 
+  console.log('hey', controllerData?.roles);
+
+  const controllerForm = useForm({
+    defaultValues: {
+      controllerIsOwner: controllerData?.roles?.includes('BENEFICIAL_OWNER')
+        ? 'yes'
+        : 'no',
+    },
+  });
+
+  useEffect(() => {
+    const controllerRoles = controllerData?.roles || [];
+
+    const updateControllerRoles = () => {
+      if (controllerData?.id) {
+        updateParty(
+          {
+            partyId: controllerData.id,
+            data: {
+              roles: controllerRoles,
+            },
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {},
+            onError: (error) => {
+              console.log(error);
+              console.log(controllerData?.roles);
+              controllerForm.setValue(
+                'controllerIsOwner',
+                controllerData?.roles?.includes('BENEFICIAL_OWNER')
+                  ? 'yes'
+                  : 'no'
+              );
+              controllerForm.setError('controllerIsOwner', {
+                type: 'server',
+                message: error?.response?.data?.context?.[0]?.message,
+              });
+            },
+          }
+        );
+      }
+    };
+    if (
+      controllerForm.watch('controllerIsOwner') === 'yes' &&
+      !controllerRoles.includes('BENEFICIAL_OWNER')
+    ) {
+      controllerRoles.push('BENEFICIAL_OWNER');
+      updateControllerRoles();
+    } else if (
+      controllerForm.watch('controllerIsOwner') === 'no' &&
+      controllerRoles.includes('BENEFICIAL_OWNER')
+    ) {
+      controllerRoles.splice(controllerRoles.indexOf('BENEFICIAL_OWNER'), 1);
+      updateControllerRoles();
+    }
+  }, [controllerForm.watch('controllerIsOwner')]);
+
   const ownersData =
     clientData?.parties?.filter(
       (party) =>
@@ -199,7 +251,7 @@ export const BusinessOwnerStepForm = () => {
 
   const {
     mutate: updateParty,
-    error: updatePartyError,
+    // error: updatePartyError,
     status: updatePartyStatus,
   } = useSmbdoUpdateParty();
 
@@ -284,17 +336,21 @@ export const BusinessOwnerStepForm = () => {
 
   return (
     <div className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1">
-      {/* <OnboardingFormField
-        control={controllerForm.control}
-        disableMapping
-        type="radio-group"
-        name="controllerIsOwner"
-        label="Do you, the controller, own 25% or more of the business?"
-        options={[
-          { value: 'yes', label: t('common:yes') },
-          { value: 'no', label: t('common:no') },
-        ]}
-      /> */}
+      <Form {...controllerForm}>
+        <form>
+          <OnboardingFormField
+            control={controllerForm.control}
+            disableMapping
+            type="radio-group"
+            name="controllerIsOwner"
+            label="Do you, the controller, own 25% or more of the business?"
+            options={[
+              { value: 'yes', label: t('common:yes') },
+              { value: 'no', label: t('common:no') },
+            ]}
+          />
+        </form>
+      </Form>
 
       <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
         <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
