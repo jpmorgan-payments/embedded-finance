@@ -133,12 +133,11 @@ export const DocumentUploadStepForm = ({
             };
 
             await uploadDocumentMutation.mutateAsync({ data: documentData });
-
-            await submitDocumentMutation.mutateAsync({
-              id: documentRequestId,
-            });
           }
         }
+        await submitDocumentMutation.mutateAsync({
+          id: documentRequestId,
+        });
       }
 
       // Invalidate both client and document request queries
@@ -175,8 +174,18 @@ export const DocumentUploadStepForm = ({
         className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
       >
         {documentRequestsQueries?.data?.map((documentRequest) => {
+          const partyDetails = clientData?.parties?.find(
+            (p) => p.id === documentRequest?.partyId
+          );
+          const partyName =
+            partyDetails?.partyType === 'INDIVIDUAL'
+              ? `${partyDetails?.individualDetails?.firstName} ${partyDetails?.individualDetails?.lastName}`
+              : partyDetails?.organizationDetails?.organizationName;
           return (
             <Fragment key={documentRequest?.id}>
+              {documentRequest?.partyId && (
+                <h2 className="eb-text-lg eb-font-semibold eb-mt-4">{`Document request for ${partyName}`}</h2>
+              )}
               <div className="eb-border-l-4 eb-border-yellow-500 eb-bg-yellow-100 eb-p-4 eb-text-yellow-700">
                 {documentRequest?.description?.split('\n').map((item, key) => (
                   <p key={key} className="eb-text-sm">
