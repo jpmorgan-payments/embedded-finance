@@ -158,8 +158,6 @@ export const BusinessOwnerStepForm = () => {
       party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
   );
 
-  console.log('hey', controllerData?.roles);
-
   const controllerForm = useForm({
     defaultValues: {
       controllerIsOwner: controllerData?.roles?.includes('BENEFICIAL_OWNER')
@@ -186,8 +184,6 @@ export const BusinessOwnerStepForm = () => {
             },
             onSuccess: () => {},
             onError: (error) => {
-              console.log(error);
-              console.log(controllerData?.roles);
               controllerForm.setValue(
                 'controllerIsOwner',
                 controllerData?.roles?.includes('BENEFICIAL_OWNER')
