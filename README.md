@@ -49,7 +49,7 @@ Such capabilities include:
 - Adding a recipient. A recipient is someone you can make a payment to.
 - Checking an account balance.
 - Authenticating with ForgeRock using forgerock-javascript-sdk
-  - To test this locally, you will need to define `VITE_FR_URL` and `VITE_FR_CLIENT` in `./app/client/.env`
+  - To test this locally, you will need to define `VITE_FR_URL` and `VITE_FR_CLIENT` in `./app/client/.env`.
 
 Check out the [features](./app/client/src/features/) directory to explore the the components and hooks that explore these features.
 
