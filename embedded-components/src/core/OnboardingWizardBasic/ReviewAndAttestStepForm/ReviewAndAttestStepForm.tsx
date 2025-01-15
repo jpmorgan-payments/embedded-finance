@@ -5,21 +5,26 @@ import { get } from 'lodash';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
-
-
-import { smbdoDownloadDocument, smbdoGetDocumentDetail, useSmbdoGetClient, useSmbdoListQuestions, useSmbdoPostClientVerifications, useSmbdoUpdateClient } from '@/api/generated/smbdo';
-import { PartyResponse, UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import {
+  smbdoDownloadDocument,
+  smbdoGetDocumentDetail,
+  useSmbdoGetClient,
+  useSmbdoListQuestions,
+  useSmbdoPostClientVerifications,
+  useSmbdoUpdateClient,
+} from '@/api/generated/smbdo';
+import {
+  PartyResponse,
+  UpdateClientRequestSmbdo,
+} from '@/api/generated/smbdo.schemas';
 import { useStepper } from '@/components/ui/stepper';
 import { Button, Checkbox, Label, Stack, Title } from '@/components/ui';
-
-
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { useIPAddress } from '../utils/getIPAddress';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';
-
 
 const generateSessionId = () => {
   const sessionId = uuidv4();

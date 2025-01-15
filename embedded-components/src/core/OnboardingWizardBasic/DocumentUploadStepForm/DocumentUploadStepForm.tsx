@@ -184,7 +184,7 @@ export const DocumentUploadStepForm = ({
           return (
             <Fragment key={documentRequest?.id}>
               {documentRequest?.partyId && (
-                <h2 className="eb-text-lg eb-font-semibold eb-mt-4">{`Document request for ${partyName}`}</h2>
+                <h2 className="eb-mt-4 eb-text-lg eb-font-semibold">{`Document request for ${partyName}`}</h2>
               )}
               <div className="eb-border-l-4 eb-border-yellow-500 eb-bg-yellow-100 eb-p-4 eb-text-yellow-700">
                 {documentRequest?.description?.split('\n').map((item, key) => (
