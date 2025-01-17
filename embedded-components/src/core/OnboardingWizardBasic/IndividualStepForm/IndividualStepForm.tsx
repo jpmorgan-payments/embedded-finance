@@ -300,7 +300,6 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="firstName"
             type="text"
-            required
           />
 
           <OnboardingFormField
