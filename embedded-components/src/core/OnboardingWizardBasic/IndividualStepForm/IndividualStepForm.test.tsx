@@ -5,17 +5,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { userEvent } from '@test-utils';
 
-
-
 import { ClientProduct } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsProvider';
-
-
 
 import { OnboardingContextProvider } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { Jurisdiction } from '../utils/types';
 import { IndividualStepForm } from './IndividualStepForm';
-
 
 // Mock the useStepper hook
 vi.mock('@/components/ui/stepper', () => ({
@@ -108,25 +103,25 @@ describe('IndividualStepForm', () => {
     ).toBeInTheDocument();
   });
 
-    test.skip('validates required fields on form submission', async () => {
-      // Arrange
-      renderComponent();
-      expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+  test.skip('validates required fields on form submission', async () => {
+    // Arrange
+    renderComponent();
+    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
 
-      const firstNameInput = screen.getByLabelText(/first name/i);
-      const lastNameInput = screen.getByLabelText(/last name/i);
+    const firstNameInput = screen.getByLabelText(/first name/i);
+    const lastNameInput = screen.getByLabelText(/last name/i);
 
-      // Act
-      await userEvent.clear(firstNameInput);
-      await userEvent.clear(lastNameInput);
-      await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    // Act
+    await userEvent.clear(firstNameInput);
+    await userEvent.clear(lastNameInput);
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
-      // Assert
-      expect(
-        await screen.findByText(/first name is required/i)
-      ).toBeInTheDocument();
-      expect(screen.getByText(/last name is required/i)).toBeInTheDocument();
-    });
+    // Assert
+    expect(
+      await screen.findByText(/first name is required/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/last name is required/i)).toBeInTheDocument();
+  });
 
   test('validates phone number format', async () => {
     // Arrange

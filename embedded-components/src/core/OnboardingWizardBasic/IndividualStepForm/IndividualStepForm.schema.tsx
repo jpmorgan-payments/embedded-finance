@@ -1,10 +1,7 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-
-
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
-
 
 // Constants for validation
 const NAME_PATTERN = /^[a-zA-Z\s'-]+$/;
@@ -77,7 +74,6 @@ const individualIdSchema = z
       }),
   })
   .superRefine((objValue, customError) => {
-
     const idType = objValue.idType as 'SSN' | 'ITIN';
     const val = objValue.value;
     if (!idType) return true;
