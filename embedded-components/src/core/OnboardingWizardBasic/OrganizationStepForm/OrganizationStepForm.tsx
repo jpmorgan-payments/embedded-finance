@@ -49,12 +49,13 @@
  * )
  */
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CaretSortIcon } from '@radix-ui/react-icons';
 import { CheckIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { VariableSizeList as List } from 'react-window';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -189,10 +190,6 @@ export const OrganizationStepForm = () => {
       associatedCountries: [],
     }),
   });
-
-  const industryCategories = Array.from(
-    new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
-  ).sort((a, b) => a.localeCompare(b));
 
   const {
     fields: addressFields,
@@ -521,6 +518,61 @@ export const OrganizationStepForm = () => {
               disabled={isFieldDisabled('industryType')}
               render={({ field }) => {
                 const [open, setOpen] = useState(false);
+                const [searchQuery, setSearchQuery] = useState('');
+
+                // Memoize the filtered NAICS codes
+                const filteredCodes = useMemo(() => {
+                  if (!searchQuery) {
+                    return naicsCodes;
+                  }
+                  const query = searchQuery.toLowerCase();
+                  return naicsCodes.filter(
+                    (code) =>
+                      code.description.toLowerCase().includes(query) ||
+                      code.id.includes(query) ||
+                      code.sectorDescription.toLowerCase().includes(query)
+                  );
+                }, [searchQuery]);
+
+                // Group codes by category for better organization
+                const items = useMemo(() => {
+                  const groupedItems: Array<{
+                    id: string;
+                    type: 'header' | 'item';
+                    category: string;
+                    description?: string;
+                    code?: string;
+                  }> = [];
+
+                  filteredCodes.reduce(
+                    (acc, code) => {
+                      const category = code.sectorDescription;
+                      if (!acc[category]) {
+                        acc[category] = [];
+                        // Add header
+                        groupedItems.push({
+                          id: `header-${category}`,
+                          type: 'header',
+                          category,
+                        });
+                      }
+                      // Add item
+                      groupedItems.push({
+                        id: code.id,
+                        type: 'item',
+                        category,
+                        description: code.description,
+                        code: code.id,
+                      });
+                      acc[category].push(code);
+                      return acc;
+                    },
+                    {} as Record<string, typeof naicsCodes>
+                  );
+
+                  return groupedItems;
+                }, [filteredCodes]);
+
                 return (
                   <FormItem className="eb-flex eb-flex-col">
                     <div className="eb-flex eb-items-center eb-space-x-2">
@@ -565,52 +617,87 @@ export const OrganizationStepForm = () => {
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                        <Command>
+                        <Command shouldFilter={false}>
                           <CommandInput
                             placeholder="Search industry type..."
                             className="eb-h-9"
+                            value={searchQuery}
+                            onValueChange={setSearchQuery}
                           />
-                          <CommandList>
+                          <CommandList className="eb-max-h-[300px]">
                             <CommandEmpty>No results found</CommandEmpty>
-                            {industryCategories.map((category) => (
-                              <Fragment key={category}>
-                                {naicsCodes
-                                  .filter(
-                                    (code) =>
-                                      code.sectorDescription === category
-                                  )
-                                  .map(({ description: industryType, id }) => (
+                            <div
+                              className="eb-relative"
+                              style={{ height: 300 }}
+                            >
+                              <List
+                                height={300}
+                                itemCount={items.length}
+                                itemSize={(index) => {
+                                  return items[index].type === 'header' ? 36 : 60;
+                                }}
+                                width="100%"
+                                className="eb-scrollbar-none eb-overflow-y-auto"
+                              >
+                                {({ index, style }) => {
+                                  const item = items[index];
+
+                                  if (item.type === 'header') {
+                                    return (
+                                      <div
+                                        style={{
+                                          ...style,
+                                          padding: '8px',
+                                          backgroundColor: 'rgb(243 244 246)',
+                                        }}
+                                        className="eb-text-sm eb-font-medium eb-text-muted-foreground"
+                                      >
+                                        {item.category}
+                                      </div>
+                                    );
+                                  }
+
+                                  return (
                                     <CommandItem
-                                      key={industryType}
-                                      value={`${category} ${industryType} ${id}`}
-                                      className="eb-cursor-pointer"
+                                      key={item.id}
+                                      value={`${item.category} ${item.description} ${item.code}`}
                                       onSelect={() => {
-                                        field.onChange(industryType);
+                                        field.onChange(item.description);
                                         form.setValue(
                                           'industryCategory',
-                                          category
+                                          item.category
                                         );
+                                        form.setValue('industry', {
+                                          codeType: 'NAICS',
+                                          code: item.code,
+                                        });
                                         setOpen(false);
+                                      }}
+                                      className="eb-text-sm"
+                                      style={{
+                                        ...style,
+                                        padding: '8px',
                                       }}
                                     >
                                       <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                                        [{category}] {industryType}
+                                        [{item.category}] {item.description}
                                         <span className="eb-pl-2 eb-text-muted-foreground">
-                                          {id}
+                                          {item.code}
                                         </span>
                                       </span>
                                       <CheckIcon
                                         className={cn(
                                           'eb-ml-2 eb-h-4 eb-w-4',
-                                          field.value === industryType
+                                          field.value === item.description
                                             ? 'eb-opacity-100'
                                             : 'eb-opacity-0'
                                         )}
                                       />
                                     </CommandItem>
-                                  ))}
-                              </Fragment>
-                            ))}
+                                  );
+                                }}
+                              </List>
+                            </div>
                           </CommandList>
                         </Command>
                       </PopoverContent>
@@ -863,11 +950,11 @@ export const OrganizationStepForm = () => {
             appendAddress(
               {
                 addressType: 'BUSINESS_ADDRESS',
-                addressLines: [''],
                 city: '',
                 state: '',
                 postalCode: '',
                 country: '',
+                addressLines: [''],
               },
               {
                 shouldFocus: false,

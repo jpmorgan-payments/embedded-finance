@@ -238,6 +238,13 @@ export const OrganizationStepFormSchema = z.object({
     .string()
     .min(3, i18n.t('onboarding:fields.industryType.validation.minLength'))
     .max(100, i18n.t('onboarding:fields.industryType.validation.maxLength')),
+  industry: z.object({
+    codeType: z.enum(['SIC', 'NAICS']),
+    code: z.string().regex(
+      /^[0-9]{2}(-[0-9]{6})?$/,
+      i18n.t('onboarding:fields.industry.code.validation.format')
+    ),
+  }),
   organizationDescription: z
     .string()
     .min(
