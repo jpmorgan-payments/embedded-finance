@@ -1,5 +1,9 @@
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
+
+
+
+
 export const efClientCorpEBMock: ClientResponse = {
   id: '0030000130',
   attestations: [
@@ -99,6 +103,13 @@ export const efClientCorpEBMock: ClientResponse = {
           phoneNumber: '7606810558',
         },
       },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          documentRequestIds: ['68804'],
+        },
+      ],
     },
     {
       id: '2000000113',
@@ -142,6 +153,13 @@ export const efClientCorpEBMock: ClientResponse = {
           phoneNumber: '6503532444',
         },
       },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          documentRequestIds: ['68805'],
+        },
+      ],
     },
   ],
   partyId: '2000000111',

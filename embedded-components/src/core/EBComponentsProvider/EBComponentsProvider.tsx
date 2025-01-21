@@ -1,5 +1,6 @@
 import {
   createContext,
+  lazy,
   PropsWithChildren,
   useContext,
   useEffect,
@@ -22,6 +23,15 @@ const ContentTokensContext = createContext<
   EBConfig['contentTokens'] | undefined
 >(undefined);
 
+const ReactQueryDevtoolsProduction = lazy(() =>
+  // eslint-disable-next-line import/extensions
+  import('@tanstack/react-query-devtools/build/modern/production.js').then(
+    (d) => ({
+      default: d.ReactQueryDevtools,
+    })
+  )
+);
+
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
@@ -30,9 +40,10 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   reactQueryDefaultOptions = {},
   contentTokens = {},
 }) => {
-  const { i18n } = useTranslation();
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
 
+  const { i18n } = useTranslation();
+  
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
     // Remove the previous interceptor
@@ -135,6 +146,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
           {children}
         </ContentTokensContext.Provider>
         <Toaster closeButton expand />
+        { process.env.NODE_ENV === 'development' && <ReactQueryDevtoolsProduction />}
       </QueryClientProvider>
     </>
   );

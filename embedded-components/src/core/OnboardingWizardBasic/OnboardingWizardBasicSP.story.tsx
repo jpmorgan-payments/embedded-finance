@@ -190,6 +190,9 @@ ReviewAndAttest.parameters = {
         // return HttpResponse.json({acceptedAt: new Date().toISOString()});
         return HttpResponse.error();
       }),
+      http.get('/questions', () => {
+        return HttpResponse.json(efClientQuestionsMock);
+      })
     ],
   },
 };
