@@ -57,10 +57,6 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.industryType',
     baseRule: { visibility: 'visible', required: true },
   },
-  industry: {
-    path: 'organizationDetails.industry',
-    baseRule: { visibility: 'hidden', required: true },
-  },
   entitiesInOwnership: {
     path: 'organizationDetails.entitiesInOwnership',
     baseRule: { visibility: 'visible', required: true },
