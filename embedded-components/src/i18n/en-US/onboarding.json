@@ -162,6 +162,22 @@
     },
     "addresses": {
       "label": "Addresses",
+      "addressLines": {
+        "label": "Address lines",
+        "placeholder": "Enter address lines",
+        "description": "Address lines of your business address",
+        "validation": {
+          "required": "Address lines are required"
+        }
+      },
+      "city": {
+        "label": "City",
+        "placeholder": "Enter city",
+        "description": "City of your business address",
+        "validation": {
+          "required": "City is required"
+        }
+      },  
       "state": {
         "label": "State",
         "placeholder": "Select state",
@@ -234,7 +250,20 @@
         "uniqueTypes": "Each organization ID type must be unique",
         "required": "Organization ID is required"
       },
+      "idType": {
+        "label": "ID type",
+        "placeholder": "Select ID type",
+        "description": "Type of organization ID",
+        "tooltip": "should match your business registration documents ID type",
+        "validation": {
+          "required": "ID type is required"
+        }
+      },
       "description": {
+        "label": "Description",
+        "placeholder": "Enter description",
+        "description": "Description of the organization ID",
+        "tooltip": "should match your business registration documents ID description",
         "validation": {
           "maxLength": "Description must be 100 characters or less"
         }
@@ -263,6 +292,10 @@
         }
       },
       "expiryDate": {
+        "label": "Expiry date",
+        "placeholder": "YYYY-MM-DD",
+        "description": "Date when the organization ID expires",
+        "tooltip": "Date when the organization ID expires",
         "validation": {
           "format": "Expiry date must be in 'YYYY-MM-DD' format",
           "invalid": "Invalid date",
@@ -473,14 +506,6 @@
       "description": "Whether there are other entities involved in ownership",
       "validation": {
         "required": "Please specify if there are entities in ownership"
-      }
-    },
-    "tradeOverInternet": {
-      "label": "Trade over internet",
-      "placeholder": "Select yes/no",
-      "description": "Whether your business conducts trade over the internet",
-      "validation": {
-        "required": "Please specify if you trade over internet"
       }
     },
     "websiteAvailable": {
