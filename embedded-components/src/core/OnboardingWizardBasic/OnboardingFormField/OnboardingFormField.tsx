@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 import {
   Button,
   Command,
@@ -43,7 +44,6 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
 import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
-import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 
 type FieldType =
   | 'text'

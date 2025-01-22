@@ -99,7 +99,7 @@ export const IndustryTypeSelect = ({
             variant="outline"
             role="combobox"
             className={cn(
-              'eb-w-full eb-max-w-[400px] eb-justify-between eb-font-normal',
+              'eb-w-full eb-justify-between eb-font-normal',
               !field.value && 'eb-text-muted-foreground'
             )}
           >
