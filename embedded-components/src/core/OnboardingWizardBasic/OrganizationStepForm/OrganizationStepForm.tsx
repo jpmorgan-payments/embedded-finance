@@ -725,7 +725,7 @@ export const OrganizationStepForm = () => {
                   <Button
                     type="button"
                     disabled={
-                      organizationIdFields.length <=
+                      organizationIdFields.length <
                       (getFieldRule('organizationIds').minItems ?? 0)
                     }
                     onClick={() => removeOrganizationId(index)}
