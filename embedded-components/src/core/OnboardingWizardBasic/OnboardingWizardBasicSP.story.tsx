@@ -192,7 +192,7 @@ ReviewAndAttest.parameters = {
       }),
       http.get('/questions', () => {
         return HttpResponse.json(efClientQuestionsMock);
-      })
+      }),
     ],
   },
 };

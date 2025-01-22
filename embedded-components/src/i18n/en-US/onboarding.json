@@ -106,7 +106,6 @@
         "validation": {
           "maxLength": "Description must be 100 characters or less"
         }
-
       },
       "validation": {
         "required": "At least one government ID is required",
@@ -177,7 +176,7 @@
         "validation": {
           "required": "City is required"
         }
-      },  
+      },
       "state": {
         "label": "State",
         "placeholder": "Select state",
@@ -276,9 +275,12 @@
         "validation": {
           "required": "ID value is required",
           "maxLength": "ID value must be 100 characters or less",
-          "einFormat": "EIN must be exactly 9 digits",
           "format": "ID value can only contain letters, numbers, and hyphens",
-          "noSpaces": "ID value cannot contain spaces"
+          "noSpaces": "ID value cannot contain spaces",
+          "einFormat": "EIN must be exactly 9 digits",
+          "business_registration_idFormat": "Business Registration ID must be 5-15 alphanumeric characters",
+          "business_numberFormat": "Business Number must be 9-12 digits",
+          "business_registration_numberFormat": "Business Registration Number must be 6-15 alphanumeric characters with optional dashes"
         }
       },
       "issuer": {
@@ -384,7 +386,7 @@
         }
       },
       "postalCode": {
-        "label": "Postal Code", 
+        "label": "Postal Code",
         "placeholder": "Enter postal code",
         "description": "5-digit ZIP code",
         "validation": {

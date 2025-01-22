@@ -43,7 +43,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
 
   const { i18n } = useTranslation();
-  
+
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
     // Remove the previous interceptor
@@ -146,7 +146,9 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
           {children}
         </ContentTokensContext.Provider>
         <Toaster closeButton expand />
-        { process.env.NODE_ENV === 'development' && <ReactQueryDevtoolsProduction />}
+        {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtoolsProduction />
+        )}
       </QueryClientProvider>
     </>
   );
