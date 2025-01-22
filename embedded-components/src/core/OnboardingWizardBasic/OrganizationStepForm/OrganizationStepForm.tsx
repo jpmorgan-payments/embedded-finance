@@ -84,7 +84,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
-import { IndustryTypeSelect } from '@/components/IndustryTypeSelect';
 import { Button, RadioGroup, RadioGroupItem } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
@@ -103,7 +102,6 @@ import {
   useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
-import naicsCodes from './naics-codes.json';
 import {
   OrganizationStepFormSchema,
   refineOrganizationStepFormSchema,
@@ -496,20 +494,13 @@ export const OrganizationStepForm = () => {
             Industry Info
           </legend>
 
-          {isFieldVisible('industryType') && (
-            <FormField
-              control={form.control}
-              name="industryType"
-              disabled={isFieldDisabled('industryType')}
-              render={({ field }) => (
-                <IndustryTypeSelect
-                  field={field}
-                  form={form}
-                  naicsCodes={naicsCodes}
-                />
-              )}
-            />
-          )}
+          <OnboardingFormField
+            form={form}
+            control={form.control}
+            name="industryType"
+            type="industrySelect"
+          />
+
           {isFieldVisible('mcc') && (
             <FormField
               control={form.control}

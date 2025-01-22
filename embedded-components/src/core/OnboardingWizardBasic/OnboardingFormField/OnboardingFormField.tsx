@@ -5,6 +5,7 @@ import {
   ControllerProps,
   FieldPath,
   FieldValues,
+  UseFormReturn,
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -42,6 +43,7 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
 import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
+import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 
 type FieldType =
   | 'text'
@@ -52,7 +54,8 @@ type FieldType =
   | 'array'
   | 'date'
   | 'textarea'
-  | 'combobox';
+  | 'combobox'
+  | 'industrySelect';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -68,6 +71,7 @@ interface BaseProps<
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
   disableMapping?: boolean;
+  form?: UseFormReturn<any>;
 }
 
 interface SelectOrRadioGroupProps<
@@ -109,6 +113,7 @@ export const OnboardingFormField = <
   options,
   inputProps,
   disableMapping,
+  form,
   ...props
 }: OnboardingFormFieldProps<TFieldValues, TName>) => {
   const { clientId } = useOnboardingContext();
@@ -182,6 +187,8 @@ export const OnboardingFormField = <
           ) : (
             (() => {
               switch (type) {
+                case 'industrySelect':
+                  return <IndustryTypeSelect field={field} form={form} />;
                 case 'combobox': {
                   const [open, setOpen] = useState(false);
                   return (
