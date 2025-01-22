@@ -1,21 +1,16 @@
 import { i18n } from '@/i18n/config';
+import DOMPurify from 'dompurify';
 import { z } from 'zod';
 
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
-const PERSONAL_EMAIL_DOMAINS = [
-  'gmail.com',
-  'yahoo.com',
-  'hotmail.com',
-  'outlook.com',
-  'aol.com',
-];
 const CURRENT_YEAR = new Date().getFullYear();
 
 // Regex pattern from OAS for organization and DBA names
 const NAME_PATTERN = /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/;
 const SPECIAL_CHARS_PATTERN = /[()_/&+%@#;,.: -?]/;
+const INDUSTRY_CATEGORY_PATTERN = /^[a-zA-Z0-9\s,.&-]+$/;
 
 export const OrganizationIdSchema = z
   .object({
@@ -101,17 +96,29 @@ export const OrganizationIdSchema = z
   })
   .refine(
     (data) => {
-      if (data.idType === 'EIN') {
-        return /^\d{9}$/.test(data.value);
+      switch (data.idType) {
+        case 'EIN':
+          // EIN: 9 digits
+          return /^\d{9}$/.test(data.value);
+        case 'BUSINESS_REGISTRATION_ID':
+          // Business Registration ID: Alphanumeric, 5-15 chars
+          return /^[A-Za-z0-9]{5,15}$/.test(data.value);
+        case 'BUSINESS_NUMBER':
+          // Business Number: 9-12 digits
+          return /^\d{9,12}$/.test(data.value);
+        case 'BUSINESS_REGISTRATION_NUMBER':
+          // Business Registration Number: Alphanumeric with optional dashes, 6-15 chars
+          return /^[A-Za-z0-9-]{6,15}$/.test(data.value);
+        default:
+          return true;
       }
-      return true;
     },
-    {
+    (data) => ({
       message: i18n.t(
-        'onboarding:fields.organizationIds.value.validation.einFormat'
+        `onboarding:fields.organizationIds.value.validation.${data.idType.toLowerCase()}Format`
       ),
       path: ['value'],
-    }
+    })
   );
 
 const associatedCountrySchema = z.object({
@@ -132,6 +139,28 @@ const secondaryMccSchema = z.object({
     ),
 });
 
+const sanitizeDescription = (input: string): string => {
+  // First pass: DOMPurify to handle any HTML/XSS
+  let sanitized = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [], // strip all HTML
+    ALLOWED_ATTR: [],
+    KEEP_CONTENT: true,
+  });
+
+  // Second pass: Custom cleaning
+  sanitized = sanitized
+    // Remove URLs
+    .replace(/https?:\/\/[^\s]+/g, '')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    // Remove any remaining < > characters
+    .replace(/[<>]/g, '')
+    // Trim
+    .trim();
+
+  return sanitized;
+};
+
 export const OrganizationStepFormSchema = z.object({
   organizationName: z
     .string()
@@ -142,14 +171,6 @@ export const OrganizationStepFormSchema = z.object({
       i18n.t('onboarding:fields.organizationName.validation.pattern')
     )
     .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.organizationName.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.organizationName.validation.noTrailingSpace')
-    )
-    .refine(
       (val) => !/\s\s/.test(val),
       i18n.t(
         'onboarding:fields.organizationName.validation.noConsecutiveSpaces'
@@ -158,19 +179,12 @@ export const OrganizationStepFormSchema = z.object({
     .refine(
       (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
       i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
-    ),
+    )
+    .transform((val) => val.trim()),
   dbaName: z
     .string()
     .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
     .regex(NAME_PATTERN, i18n.t('onboarding:fields.dbaName.validation.pattern'))
-    .refine(
-      (val) => !val || !val.startsWith(' '),
-      i18n.t('onboarding:fields.dbaName.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val || !val.endsWith(' '),
-      i18n.t('onboarding:fields.dbaName.validation.noTrailingSpace')
-    )
     .refine(
       (val) => !val || !/\s\s/.test(val),
       i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
@@ -179,6 +193,7 @@ export const OrganizationStepFormSchema = z.object({
       (val) => !val || val.length >= 2,
       i18n.t('onboarding:fields.dbaName.validation.minLength')
     )
+    .transform((val) => val.trim())
     .optional(),
   countryOfFormation: z
     .string()
@@ -197,10 +212,7 @@ export const OrganizationStepFormSchema = z.object({
       100,
       i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
     )
-    .refine((email) => {
-      const domain = email.split('@')[1]?.toLowerCase();
-      return !PERSONAL_EMAIL_DOMAINS.includes(domain);
-    }, i18n.t('onboarding:fields.organizationEmail.validation.noPersonal')),
+    .transform((val) => val.trim()),
   yearOfFormation: z
     .string()
     .regex(
@@ -231,7 +243,7 @@ export const OrganizationStepFormSchema = z.object({
     .min(3, i18n.t('onboarding:fields.industryCategory.validation.minLength'))
     .max(100, i18n.t('onboarding:fields.industryCategory.validation.maxLength'))
     .regex(
-      /^[a-zA-Z0-9\s,.&-]+$/,
+      INDUSTRY_CATEGORY_PATTERN,
       i18n.t('onboarding:fields.industryCategory.validation.format')
     ),
   industryType: z
@@ -240,22 +252,9 @@ export const OrganizationStepFormSchema = z.object({
     .max(100, i18n.t('onboarding:fields.industryType.validation.maxLength')),
   organizationDescription: z
     .string()
-    .min(
-      10,
-      i18n.t('onboarding:fields.organizationDescription.validation.minLength')
-    )
-    .max(
-      500,
-      i18n.t('onboarding:fields.organizationDescription.validation.maxLength')
-    )
-    .refine(
-      (val) => !/(<[^>]*>)/.test(val),
-      i18n.t('onboarding:fields.organizationDescription.validation.noHtml')
-    )
-    .refine(
-      (val) => !/https?:\/\/[^\s]+/.test(val),
-      i18n.t('onboarding:fields.organizationDescription.validation.noUrls')
-    ),
+    .min(10)
+    .max(500)
+    .transform(sanitizeDescription),
   organizationIds: z
     .array(OrganizationIdSchema)
     .max(6, i18n.t('onboarding:fields.organizationIds.validation.maxIds'))
@@ -264,7 +263,6 @@ export const OrganizationStepFormSchema = z.object({
       return new Set(types).size === types.length;
     }, i18n.t('onboarding:fields.organizationIds.validation.uniqueTypes')),
   organizationPhone: PhoneSchema,
-  tradeOverInternet: z.enum(['yes', 'no']),
   website: z
     .string()
     .url(i18n.t('onboarding:fields.website.validation.invalid'))

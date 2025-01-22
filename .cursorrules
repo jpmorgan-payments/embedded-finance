@@ -64,7 +64,7 @@ The `embedded-components` package is our primary UI component library for embedd
 3. Follow React 18 best practices:
    - Use proper error boundaries
    - Implement React Query for data fetching
-   - Use proper TypeScript types
+   - Use Orval generated types and react-query hooks
 4. Styling:
 
    - Use Tailwind CSS for styling

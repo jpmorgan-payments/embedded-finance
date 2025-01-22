@@ -5,11 +5,13 @@ import {
   ControllerProps,
   FieldPath,
   FieldValues,
+  UseFormReturn,
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 import {
   Button,
   Command,
@@ -35,6 +37,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
@@ -49,7 +52,10 @@ type FieldType =
   | 'radio-group'
   | 'checkbox'
   | 'array'
-  | 'combobox';
+  | 'date'
+  | 'textarea'
+  | 'combobox'
+  | 'industrySelect';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -65,6 +71,7 @@ interface BaseProps<
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
   disableMapping?: boolean;
+  form?: UseFormReturn<TFieldValues>;
 }
 
 interface SelectOrRadioGroupProps<
@@ -83,17 +90,13 @@ interface OtherFieldProps<
   options?: never;
 }
 
-type OnboardingFormFieldProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> =
-  | SelectOrRadioGroupProps<TFieldValues, TName>
-  | OtherFieldProps<TFieldValues, TName>;
+type OnboardingFormFieldProps<T extends FieldValues> =
+  | SelectOrRadioGroupProps<T, FieldPath<T>>
+  | OtherFieldProps<T, FieldPath<T>>;
 
-export const OnboardingFormField = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
+export function OnboardingFormField<T extends FieldValues>({
+  disableMapping,
+  form,
   control,
   name,
   type = 'text',
@@ -105,9 +108,7 @@ export const OnboardingFormField = <
   visibility,
   options,
   inputProps,
-  disableMapping,
-  ...props
-}: OnboardingFormFieldProps<TFieldValues, TName>) => {
+}: OnboardingFormFieldProps<T>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
@@ -179,6 +180,8 @@ export const OnboardingFormField = <
           ) : (
             (() => {
               switch (type) {
+                case 'industrySelect':
+                  return <IndustryTypeSelect field={field} form={form} />;
                 case 'combobox': {
                   const [open, setOpen] = useState(false);
                   return (
@@ -304,6 +307,29 @@ export const OnboardingFormField = <
                       </div>
                     </FormControl>
                   );
+                case 'date':
+                  return (
+                    <FormControl>
+                      <Input
+                        {...field}
+                        {...inputProps}
+                        type="date"
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
+                case 'textarea':
+                  return (
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                        onChange={(e) => field.onChange(e)}
+                      />
+                    </FormControl>
+                  );
                 case 'text':
                   return (
                     <FormControl>
@@ -345,7 +371,6 @@ export const OnboardingFormField = <
           <FormMessage />
         </FormItem>
       )}
-      {...props}
     />
   );
-};
+}

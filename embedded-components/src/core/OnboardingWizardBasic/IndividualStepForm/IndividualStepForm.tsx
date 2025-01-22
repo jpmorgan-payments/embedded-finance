@@ -90,6 +90,7 @@ import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -98,6 +99,7 @@ import {
   translateApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
+import { stateOptions } from '../utils/stateOptions';
 import { IndividualStepFormSchema } from './IndividualStepForm.schema';
 
 export const IndividualStepForm = () => {
@@ -294,126 +296,68 @@ export const IndividualStepForm = () => {
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             General
           </legend>
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Enter first name" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="text"
           />
 
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="middleName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Middle Name</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Enter middle name (optional)"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="text"
           />
 
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Enter last name" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="text"
+            required
           />
 
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="birthDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date of Birth</FormLabel>
-                <FormControl>
-                  <Input {...field} type="date" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="date"
+            required
           />
 
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="countryOfResidence"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country of Residence</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g., US" maxLength={2} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="combobox"
+            options={COUNTRIES_OF_FORMATION.map((code) => ({
+              value: code,
+              label: (
+                <span>
+                  <span className="eb-font-medium">[{code}]</span>{' '}
+                  {t([
+                    `common:countries.${code}`,
+                  ] as unknown as TemplateStringsArray)}
+                </span>
+              ),
+            }))}
+            required
           />
 
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="jobTitle"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Job Title</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select job title" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="CEO">CEO</SelectItem>
-                    <SelectItem value="CFO">CFO</SelectItem>
-                    <SelectItem value="COO">COO</SelectItem>
-                    <SelectItem value="President">President</SelectItem>
-                    <SelectItem value="Chairman">Chairman</SelectItem>
-                    <SelectItem value="Senior Branch Manager">
-                      Senior Branch Manager
-                    </SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="select"
+            required
+            options={[
+              { value: 'CEO', label: 'CEO' },
+              { value: 'CFO', label: 'CFO' },
+              { value: 'COO', label: 'COO' },
+              { value: 'President', label: 'President' },
+              { value: 'Chairman', label: 'Chairman' },
+              {
+                value: 'Senior Branch Manager',
+                label: 'Senior Branch Manager',
+              },
+              { value: 'Other', label: 'Other' },
+            ]}
           />
-
-          {form.watch('jobTitle') === 'Other' && (
-            <FormField
-              control={form.control}
-              name="jobTitleDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Job Title Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Describe your job title" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
         </fieldset>
 
         {/* Phone Information */}
@@ -539,18 +483,13 @@ export const IndividualStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+
+                <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.state`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>State</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter state" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="select"
+                  options={stateOptions}
+                  required
                 />
                 <FormField
                   control={form.control}
@@ -565,22 +504,23 @@ export const IndividualStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+
+                <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.country`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Country</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          maxLength={2}
-                          placeholder="e.g., US"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
+                  required
                 />
 
                 <div className="eb-col-span-full">
@@ -669,19 +609,25 @@ export const IndividualStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+
+                <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.issuer`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Issuer</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter issuer" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="combobox"
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
+                  required
                 />
+
                 <FormField
                   control={form.control}
                   name={`individualIds.${index}.expiryDate`}
@@ -695,21 +641,10 @@ export const IndividualStepForm = () => {
                     </FormItem>
                   )}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.description`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Enter description (optional)"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="textarea"
                 />
 
                 <div className="eb-col-span-full">

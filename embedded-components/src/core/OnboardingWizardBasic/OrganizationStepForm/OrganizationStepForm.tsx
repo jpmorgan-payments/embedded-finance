@@ -49,16 +49,13 @@
  * )
  */
 
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CaretSortIcon } from '@radix-ui/react-icons';
-import { CheckIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
@@ -87,20 +84,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
-import {
-  Button,
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  RadioGroup,
-  RadioGroupItem,
-} from '@/components/ui';
-import { InfoPopover } from '@/components/ux/InfoPopover';
+import { Button } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
@@ -117,7 +101,6 @@ import {
   useFilterFunctionsByClientContext,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
-import naicsCodes from './naics-codes.json';
 import {
   OrganizationStepFormSchema,
   refineOrganizationStepFormSchema,
@@ -182,17 +165,12 @@ export const OrganizationStepForm = () => {
         phoneNumber: '',
       },
       entitiesInOwnership: undefined,
-      tradeOverInternet: undefined,
       websiteAvailable: false,
       secondaryMccList: [],
       mcc: '',
       associatedCountries: [],
     }),
   });
-
-  const industryCategories = Array.from(
-    new Set(naicsCodes?.map((code) => code?.sectorDescription) || [])
-  ).sort((a, b) => a.localeCompare(b));
 
   const {
     fields: addressFields,
@@ -404,14 +382,14 @@ export const OrganizationStepForm = () => {
 
           <OnboardingFormField
             control={form.control}
-            name="organizationDescription"
+            name="dbaName"
             type="text"
           />
 
           <OnboardingFormField
             control={form.control}
-            name="dbaName"
-            type="text"
+            name="organizationDescription"
+            type="textarea"
           />
 
           <OnboardingFormField
@@ -514,215 +492,33 @@ export const OrganizationStepForm = () => {
             Industry Info
           </legend>
 
-          {isFieldVisible('industryType') && (
-            <FormField
-              control={form.control}
-              name="industryType"
-              disabled={isFieldDisabled('industryType')}
-              render={({ field }) => {
-                const [open, setOpen] = useState(false);
-                return (
-                  <FormItem className="eb-flex eb-flex-col">
-                    <div className="eb-flex eb-items-center eb-space-x-2">
-                      <FormLabel asterisk={isFieldRequired('industryType')}>
-                        Industry Type
-                      </FormLabel>
-                      <InfoPopover>
-                        Your business industry - search for the relevant
-                        industry type or the NAICS code.
-                      </InfoPopover>
-                    </div>
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'eb-justify-between eb-font-normal',
-                              !field.value && 'eb-text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              <div className="eb-flex eb-w-[calc(100%-1rem)]">
-                                <span className="eb-overflow-hidden eb-text-ellipsis">
-                                  [{form.getValues('industryCategory')}]{' '}
-                                  {field.value}
-                                </span>
-                                <span className="eb-pl-2 eb-text-muted-foreground">
-                                  {
-                                    naicsCodes.find(
-                                      (code) => code.description === field.value
-                                    )?.id
-                                  }
-                                </span>
-                              </div>
-                            ) : (
-                              'Select industry type'
-                            )}
-                            <CaretSortIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search industry type..."
-                            className="eb-h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No results found</CommandEmpty>
-                            {industryCategories.map((category) => (
-                              <Fragment key={category}>
-                                {naicsCodes
-                                  .filter(
-                                    (code) =>
-                                      code.sectorDescription === category
-                                  )
-                                  .map(({ description: industryType, id }) => (
-                                    <CommandItem
-                                      key={industryType}
-                                      value={`${category} ${industryType} ${id}`}
-                                      className="eb-cursor-pointer"
-                                      onSelect={() => {
-                                        field.onChange(industryType);
-                                        form.setValue(
-                                          'industryCategory',
-                                          category
-                                        );
-                                        setOpen(false);
-                                      }}
-                                    >
-                                      <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                                        [{category}] {industryType}
-                                        <span className="eb-pl-2 eb-text-muted-foreground">
-                                          {id}
-                                        </span>
-                                      </span>
-                                      <CheckIcon
-                                        className={cn(
-                                          'eb-ml-2 eb-h-4 eb-w-4',
-                                          field.value === industryType
-                                            ? 'eb-opacity-100'
-                                            : 'eb-opacity-0'
-                                        )}
-                                      />
-                                    </CommandItem>
-                                  ))}
-                              </Fragment>
-                            ))}
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-          )}
+          <OnboardingFormField
+            form={form}
+            control={form.control}
+            name="industryType"
+            type="industrySelect"
+          />
 
-          {isFieldVisible('mcc') && (
-            <FormField
-              control={form.control}
-              name="mcc"
-              disabled={isFieldDisabled('mcc')}
-              render={({ field }) => (
-                <FormItem className="eb-grow sm:eb-grow-0">
-                  <div className="eb-flex eb-items-center eb-space-x-2">
-                    <FormLabel asterisk={isFieldRequired('mcc')}>
-                      Merchant Category Code (MCC)
-                    </FormLabel>
-                    <InfoPopover>
-                      Leave empty or enter exactly 4 digits for the MCC.
-                    </InfoPopover>
-                  </div>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      maxLength={4}
-                      placeholder="Enter 4-digit MCC (optional)"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          {isFieldVisible('entitiesInOwnership') && (
-            <FormField
-              control={form.control}
-              name="entitiesInOwnership"
-              disabled={isFieldDisabled('entitiesInOwnership')}
-              render={({ field }) => (
-                <FormItem className="eb-space-y-3">
-                  <FormLabel asterisk={isFieldRequired('entitiesInOwnership')}>
-                    Are there one or more entities that own part of the business
-                    connected to the client?
-                  </FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      {...field}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      className="eb-flex eb-flex-col eb-space-y-1"
-                    >
-                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="yes" />
-                        </FormControl>
-                        <FormLabel className="eb-font-normal">Yes</FormLabel>
-                      </FormItem>
-                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="no" />
-                        </FormControl>
-                        <FormLabel className="eb-font-normal">No</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="mcc"
+            type="text"
+            inputProps={{
+              pattern: '[0-9]{4}',
+              maxLength: 4,
+              inputMode: 'numeric',
+            }}
+          />
 
-          {isFieldVisible('tradeOverInternet') && (
-            <FormField
-              control={form.control}
-              name="tradeOverInternet"
-              disabled={isFieldDisabled('tradeOverInternet')}
-              render={({ field }) => (
-                <FormItem className="eb-space-y-3">
-                  <FormLabel asterisk={isFieldRequired('tradeOverInternet')}>
-                    Does the business conduct trade over the internet?
-                  </FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      {...field}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      className="eb-flex eb-flex-col eb-space-y-1"
-                    >
-                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="yes" />
-                        </FormControl>
-                        <FormLabel className="eb-font-normal">Yes</FormLabel>
-                      </FormItem>
-                      <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="no" />
-                        </FormControl>
-                        <FormLabel className="eb-font-normal">No</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="entitiesInOwnership"
+            type="radio-group"
+            options={[
+              { value: 'yes', label: 'Yes' },
+              { value: 'no', label: 'No' },
+            ]}
+          />
         </fieldset>
 
         {/* ADDRESSES */}
@@ -758,46 +554,27 @@ export const OrganizationStepForm = () => {
                   ]}
                 />
 
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.addressLines.0`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Address Line 1</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter address line 1" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Address Line 1"
+                  type="text"
+                  required
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
+                  label="Address Line 2"
                   name={`addresses.${index}.addressLines.1`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 2</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter address line 2" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
                 />
 
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.city`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>City</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter city" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
+                  required
                 />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.state`}
@@ -805,6 +582,7 @@ export const OrganizationStepForm = () => {
                   options={stateOptions}
                   required
                 />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`addresses.${index}.postalCode`}
@@ -863,11 +641,11 @@ export const OrganizationStepForm = () => {
             appendAddress(
               {
                 addressType: 'BUSINESS_ADDRESS',
-                addressLines: [''],
                 city: '',
                 state: '',
                 postalCode: '',
                 country: '',
+                addressLines: [''],
               },
               {
                 shouldFocus: false,
@@ -889,43 +667,33 @@ export const OrganizationStepForm = () => {
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Organization ID {index + 1}
                 </legend>
-                <FormField
+
+                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.idType`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID Type</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger ref={field.ref}>
-                            <SelectValue placeholder="Select ID type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="EIN">EIN</SelectItem>
-                          <SelectItem value="BUSINESS_REGISTRATION_ID">
-                            Business Registration ID
-                          </SelectItem>
-                          <SelectItem value="BUSINESS_NUMBER">
-                            Business Number
-                          </SelectItem>
-                          <SelectItem value="BUSINESS_REGISTRATION_NUMBER">
-                            Business Registration Number
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="select"
+                  options={[
+                    { value: 'EIN', label: 'EIN' },
+                    {
+                      value: 'BUSINESS_REGISTRATION_ID',
+                      label: 'Business Registration ID',
+                    },
+                    { value: 'BUSINESS_NUMBER', label: 'Business Number' },
+                    {
+                      value: 'BUSINESS_REGISTRATION_NUMBER',
+                      label: 'Business Registration Number',
+                    },
+                  ]}
+                  required
                 />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.value`}
                   type="text"
+                  required
                 />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.issuer`}
@@ -942,41 +710,22 @@ export const OrganizationStepForm = () => {
                     ),
                   }))}
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.expiryDate`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expiry Date</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="date" className="eb-w-full" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="date"
                 />
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.description`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Enter description (optional)"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
                 />
 
                 <div className="eb-col-span-full">
                   <Button
                     type="button"
                     disabled={
-                      organizationIdFields.length <=
+                      organizationIdFields.length <
                       (getFieldRule('organizationIds').minItems ?? 0)
                     }
                     onClick={() => removeOrganizationId(index)}
