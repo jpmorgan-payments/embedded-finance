@@ -13,7 +13,7 @@
       "tooltip": ""
     },
     "organizationName": {
-      "label": "Organization name",
+      "label": "Organization Name",
       "placeholder": "Enter organization name",
       "description": "The organization's legal name as it appears on government forms and business paperwork",
       "tooltip": "Must match exactly with your business registration documents",
@@ -28,10 +28,11 @@
         "noConsecutiveSpaces": "Organization name cannot contain consecutive spaces",
         "noSpecialAtStart": "Organization name cannot start with a special character",
         "noSpecialAtEnd": "Organization name cannot end with a special character"
-      }
+      },
+      "group": "organization"
     },
     "organizationDescription": {
-      "label": "Organization description",
+      "label": "Organization Description",
       "placeholder": "Enter organization description",
       "description": "",
       "tooltip": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
@@ -58,13 +59,14 @@
       }
     },
     "organizationType": {
-      "label": "Organization type",
+      "label": "Organization Type",
       "placeholder": "Select organization type",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "group": "organization"
     },
     "organizationEmail": {
-      "label": "Organization email",
+      "label": "Organization Email",
       "placeholder": "Enter organization email",
       "description": "",
       "tooltip": "",
@@ -73,19 +75,21 @@
         "format": "Email must be in a valid business email format",
         "maxLength": "Email must be at most 100 characters",
         "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
-      }
+      },
+      "group": "contact"
     },
     "countryOfFormation": {
-      "label": "Country of formation",
+      "label": "Country of Formation",
       "placeholder": "Select country of formation",
       "description": "",
       "tooltip": "Country code in ISO alpha-2 format",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
-      }
+      },
+      "group": "organization"
     },
     "yearOfFormation": {
-      "label": "Year of formation",
+      "label": "Year of Formation",
       "placeholder": "Enter year of formation",
       "description": "",
       "tooltip": "Year of company formation (e.g. 2000)",
@@ -137,7 +141,8 @@
         "validation": {
           "exactlyTwoChars": "Issuer must be a 2-letter country code"
         }
-      }
+      },
+      "group": "identification"
     },
     "countryOfResidence": {
       "label": "Country of residence",
@@ -211,7 +216,8 @@
         "placeholder": "Select address type",
         "description": "",
         "tooltip": ""
-      }
+      },
+      "group": "address"
     },
     "associatedCountries": {
       "validation": {
@@ -304,7 +310,8 @@
           "future": "Expiry date must be in the future",
           "maxYears": "Expiry date must be less than 10 years in the future"
         }
-      }
+      },
+      "group": "identification"
     },
     "website": {
       "validation": {
@@ -414,7 +421,8 @@
         "pattern": "Job title can only contain letters, numbers, and basic punctuation",
         "noLeadingSpace": "Job title cannot start with a space",
         "noTrailingSpace": "Job title cannot end with a space"
-      }
+      },
+      "group": "controller"
     },
     "individualPhone": {
       "label": "Phone number",
@@ -437,7 +445,8 @@
         "minLength": "First name must be at least 2 characters",
         "maxLength": "First name must be at most 30 characters",
         "pattern": "First name can only contain letters, hyphens, apostrophes, and spaces"
-      }
+      },
+      "group": "controller"
     },
     "middleName": {
       "label": "Middle name (optional)",
@@ -459,7 +468,8 @@
         "minLength": "Last name must be at least 2 characters",
         "maxLength": "Last name must be at most 30 characters",
         "pattern": "Last name can only contain letters, hyphens, apostrophes, and spaces"
-      }
+      },
+      "group": "controller"
     },
     "nameSuffix": {
       "label": "Suffix (optional)",
@@ -485,7 +495,8 @@
         "tooOld": "Date of birth indicates age over 120 years",
         "tooYoung": "Must be at least 18 years old",
         "pattern": "Please use format YYYY-MM-DD (e.g., 1990-01-31)"
-      }
+      },
+      "group": "controller"
     },
     "natureOfOwnership": {
       "label": "Nature of ownership",
@@ -525,7 +536,8 @@
         "required": "Organization phone is required",
         "format": "Invalid phone number format",
         "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
-      }
+      },
+      "group": "contact"
     },
     "additionalQuestions": {
       "validation": {
@@ -552,7 +564,9 @@
   "initialStepDescription1": "The information we request from you will help us complete setting up your account.",
   "initialStepDescription2": "Please review and update any information that needs confirmation; and provide any additional information requested.",
   "initialStepNoOrganizationType": "Please select your <strong>organization type</strong> to preview the information you will need to confirm or provide.",
-  "initialStepOrganizationTypeInformation": "As a <strong>$t(organizationTypes.{{organizationType}})</strong>, you will need to confirm or provide the following information:",
+  "initialStepOrganizationTypeInformation": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
+  "initialStepOrganizationTypeInformationBasic": "As a <strong>$t(organizationTypes.{{organizationType}})</strong>, you will need to confirm or provide the following information:",
+  "initialStepOrganizationTypeInformationFull": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
   "postalCode": "ZIP / Postal code",
   "city": "City",
   "state": "State / Province",
@@ -590,5 +604,21 @@
   "errorMessages": {
     "default": "An error occurred while fetching client data. Please try again.",
     "clientNotFound": "Client not found. Please try again or contact support."
+  },
+  "fieldGroups": {
+    "organization": "Organization Information",
+    "controller": "Controller Information",
+    "address": "Address Information",
+    "contact": "Contact Information",
+    "identification": "Identification Documents",
+    "other": "Additional Information"
+  },
+  "initialStepNotes": {
+    "title": "Important Notes",
+    "additionalQuestions": "Additional questions may be required based on your provided information",
+    "llcOwners": "As an LLC, you will be able to add additional beneficial owners",
+    "attestation": "You will need to review and attest to the accuracy of all provided information",
+    "kycProcess": "Identity verification (KYC) process will be required for all controlling parties",
+    "termsAndConditions": "You will need to review and accept the Terms & Conditions"
   }
 }
