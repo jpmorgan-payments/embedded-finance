@@ -27,8 +27,8 @@ export interface NAICSCode {
 }
 
 interface IndustryTypeSelectProps {
-  field: any; // Replace with proper form field type
-  form: any; // Replace with proper form type
+  field: any; // TODO: Replace with proper form field type
+  form: any; // TODO: Replace with proper form type
 }
 
 export const IndustryTypeSelect = ({
@@ -50,7 +50,7 @@ export const IndustryTypeSelect = ({
         code.id.includes(query) ||
         code.sectorDescription.toLowerCase().includes(query)
     );
-  }, [searchQuery, naicsCodes]);
+  }, [searchQuery]);
 
   // Group codes by category for better organization
   const items = useMemo(() => {

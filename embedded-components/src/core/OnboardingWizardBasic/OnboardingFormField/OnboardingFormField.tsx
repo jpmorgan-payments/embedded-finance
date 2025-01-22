@@ -71,7 +71,7 @@ interface BaseProps<
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
   disableMapping?: boolean;
-  form?: UseFormReturn<any>;
+  form?: UseFormReturn<TFieldValues>;
 }
 
 interface SelectOrRadioGroupProps<
@@ -90,17 +90,13 @@ interface OtherFieldProps<
   options?: never;
 }
 
-type OnboardingFormFieldProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> =
-  | SelectOrRadioGroupProps<TFieldValues, TName>
-  | OtherFieldProps<TFieldValues, TName>;
+type OnboardingFormFieldProps<T extends FieldValues> =
+  | SelectOrRadioGroupProps<T, FieldPath<T>>
+  | OtherFieldProps<T, FieldPath<T>>;
 
-export const OnboardingFormField = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
+export function OnboardingFormField<T extends FieldValues>({
+  disableMapping,
+  form,
   control,
   name,
   type = 'text',
@@ -112,10 +108,7 @@ export const OnboardingFormField = <
   visibility,
   options,
   inputProps,
-  disableMapping,
-  form,
-  ...props
-}: OnboardingFormFieldProps<TFieldValues, TName>) => {
+}: OnboardingFormFieldProps<T>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
@@ -330,8 +323,7 @@ export const OnboardingFormField = <
                   return (
                     <FormControl>
                       <Textarea
-                        {...(field as any)}
-                        {...inputProps}
+                        {...field}
                         value={field.value}
                         placeholder={fieldPlaceholder}
                         onChange={(e) => field.onChange(e)}
@@ -379,7 +371,6 @@ export const OnboardingFormField = <
           <FormMessage />
         </FormItem>
       )}
-      {...props}
     />
   );
-};
+}
