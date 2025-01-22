@@ -441,7 +441,7 @@ export const InitialStepForm = () => {
             <CardContent>
               {form.watch('organizationType') ? (
                 <>
-                  <p className="eb-text-sm eb-my-4">
+                  <p className="eb-my-4 eb-text-sm">
                     <Trans
                       t={t}
                       i18nKey={
