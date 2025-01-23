@@ -213,7 +213,7 @@ export function OnboardingFormField<T extends FieldValues>({
                             <CommandGroup>
                               {options?.map((option) => (
                                 <CommandItem
-                                  key={option.value}
+                                  key={`combobox-option-${option.value}`}
                                   value={option.value}
                                   onSelect={(currentValue) => {
                                     field.onChange(
@@ -252,7 +252,10 @@ export function OnboardingFormField<T extends FieldValues>({
                       </FormControl>
                       <SelectContent>
                         {options?.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
+                          <SelectItem
+                            key={`select-option-${option.value}`}
+                            value={option.value}
+                          >
                             {option.label}
                           </SelectItem>
                         ))}
@@ -281,7 +284,10 @@ export function OnboardingFormField<T extends FieldValues>({
                         className="eb-flex eb-flex-col eb-space-y-1"
                       >
                         {options?.map((option) => (
-                          <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                          <FormItem
+                            className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0"
+                            key={`radio-group-option-${option.value}`}
+                          >
                             <FormControl>
                               <RadioGroupItem value={option.value} />
                             </FormControl>

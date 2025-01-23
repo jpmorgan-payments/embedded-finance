@@ -425,7 +425,10 @@ export const IndividualStepForm = () => {
         {isFieldVisible('individualAddresses') && (
           <>
             {addressFields.map((fieldName, index) => (
-              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <fieldset
+                key={`individual-address-${index}`}
+                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Individual Address {index + 1}
                 </legend>
@@ -568,7 +571,10 @@ export const IndividualStepForm = () => {
         {isFieldVisible('individualIds') && (
           <>
             {idFields.map((fieldItem, index) => (
-              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <fieldset
+                key={`individual-id-${index}`}
+                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Individual ID {index + 1}
                 </legend>
