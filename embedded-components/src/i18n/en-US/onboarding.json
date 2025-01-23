@@ -102,6 +102,20 @@
     },
     "individualIds": {
       "label": "Government IDs",
+      "validation": {
+        "required": "At least one government ID is required",
+        "maxIds": "Maximum 16 IDs allowed",
+        "uniqueTypes": "Each ID type must be unique"
+      },
+      "idType": {
+        "label": "ID type",
+        "placeholder": "Select ID type",
+        "description": "Type of individual ID",
+        "tooltip": "should match your individual ID type",
+        "validation": {
+          "required": "ID type is required"
+        }
+      },
       "description": {
         "label": "Description",
         "placeholder": "Enter description",
@@ -111,12 +125,11 @@
           "maxLength": "Description must be 100 characters or less"
         }
       },
-      "validation": {
-        "required": "At least one government ID is required",
-        "maxIds": "Maximum 16 IDs allowed",
-        "uniqueTypes": "Each ID type must be unique"
-      },
       "value": {
+        "label": "ID value",
+        "placeholder": "Enter ID value",
+        "description": "ID value",
+        "tooltip": "should match your individual ID number",
         "validation": {
           "required": "ID value is required",
           "format": "Invalid ID format",
@@ -126,6 +139,10 @@
         }
       },
       "expiryDate": {
+        "label": "Expiry date",
+        "placeholder": "YYYY-MM-DD",
+        "description": "Date when the individual ID expires",
+        "tooltip": "Date when the individual ID expires",
         "validation": {
           "format": "Expiry date must be in 'YYYY-MM-DD' format",
           "invalid": "Invalid date",
@@ -355,17 +372,17 @@
       }
     },
     "individualAddresses": {
-      "addressType": {
-        "label": "Address type",
-        "placeholder": "Select address type",
-        "description": "",
-        "tooltip": ""
-      },
       "label": "Addresses",
       "validation": {
         "required": "At least one address is required",
         "maxAddresses": "Maximum 5 addresses allowed",
         "uniqueTypes": "Each address type must be unique"
+      },
+      "addressType": {
+        "label": "Address type",
+        "placeholder": "Select address type",
+        "description": "",
+        "tooltip": ""
       },
       "addressLines": {
         "validation": {
@@ -380,6 +397,9 @@
         }
       },
       "city": {
+        "label": "City",
+        "placeholder": "Enter city",
+        "description": "City of your individual address",
         "validation": {
           "maxLength": "City name must be 34 characters or less"
         }
@@ -387,7 +407,7 @@
       "state": {
         "label": "State",
         "placeholder": "Select state",
-        "description": "State of your business address",
+        "description": "State of your individual address",
         "validation": {
           "maxLength": "State name must be 30 characters or less"
         }
@@ -403,7 +423,7 @@
       "country": {
         "label": "Country",
         "placeholder": "Select country",
-        "description": "Country of your business address",
+        "description": "Country of your individual address",
         "validation": {
           "exactlyTwoChars": "Country code must be exactly 2 characters"
         }

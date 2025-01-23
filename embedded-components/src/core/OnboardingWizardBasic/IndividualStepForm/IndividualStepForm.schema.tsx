@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 // Constants for validation
-const NAME_PATTERN = /^[a-zA-Z\s'-]+$/;
-const SUFFIX_PATTERN = /^[A-Z]+\.?$|^[IVX]+$/;
+const NAME_PATTERN = /^[a-zA-Z0-9()_/\\&+%@#;,.: -?]*$/;
+const SUFFIX_PATTERN = /^[A-Za-z.IVX]+$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
@@ -52,7 +52,15 @@ const individualIdSchema = z
         }
       )
       .optional(),
-    idType: z.enum(['SSN', 'ITIN']),
+    idType: z.enum([
+      'SSN',
+      'ITIN',
+      'NATIONAL_ID',
+      'DRIVERS_LICENSE',
+      'PASSPORT',
+      'SOCIAL_INSURANCE_NUMBER',
+      'OTHER_GOVERNMENT_ID',
+    ]),
     issuer: z
       .string()
       .length(
@@ -73,35 +81,26 @@ const individualIdSchema = z
         ),
       }),
   })
-  .superRefine((objValue, customError) => {
-    const idType = objValue.idType as 'SSN' | 'ITIN';
-    const val = objValue.value;
-    if (!idType) return true;
-
-    if (idType === 'SSN' && !/^\d{9}$/.test(val)) {
-      customError.addIssue({
-        path: ['value'],
-        code: z.ZodIssueCode.custom,
-        message: i18n.t(
-          'onboarding:fields.individualIds.value.validation.ssnFormat'
-        ),
-      });
-      return false;
-    }
-
-    if (idType === 'ITIN' && !/^9\d{8}$/.test(val)) {
-      customError.addIssue({
-        path: ['value'],
-        code: z.ZodIssueCode.custom,
-        message: i18n.t(
-          'onboarding:fields.individualIds.value.validation.itinFormat'
-        ),
-      });
-      return false;
-    }
-
-    return true;
-  });
+  .refine(
+    (data) => {
+      switch (data.idType) {
+        case 'SSN':
+          // SSN: 9 digits
+          return /^\d{9}$/.test(data.value);
+        case 'ITIN':
+          // ITIN: 9 digits
+          return /^\d{9}$/.test(data.value);
+        default:
+          return true;
+      }
+    },
+    (data) => ({
+      message: i18n.t(
+        `onboarding:fields.individualIds.value.validation.${data.idType.toLowerCase()}Format`
+      ),
+      path: ['value'],
+    })
+  );
 
 export const IndividualStepFormSchema = z.object({
   individualAddresses: z

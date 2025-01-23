@@ -62,7 +62,7 @@ interface BaseProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
   control: Control<TFieldValues>;
-  type: FieldType;
+  type?: FieldType;
   label?: string;
   placeholder?: string;
   description?: string;
