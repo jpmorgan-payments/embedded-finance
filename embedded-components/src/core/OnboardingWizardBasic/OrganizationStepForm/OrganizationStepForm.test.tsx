@@ -5,17 +5,12 @@ import { render, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { userEvent } from '@test-utils';
 
-
-
 import { ClientProduct } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsProvider';
-
-
 
 import { OnboardingContextProvider } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { Jurisdiction } from '../utils/types';
 import { OrganizationStepForm } from './OrganizationStepForm';
-
 
 // Mock the useStepper hook
 vi.mock('@/components/ui/stepper', () => ({
@@ -137,7 +132,6 @@ describe('OrganizationStepForm', () => {
       await screen.findByText(/Invalid phone number/i)
     ).toBeInTheDocument();
   });
-
 
   test('validates postal code format', async () => {
     // Arrange
