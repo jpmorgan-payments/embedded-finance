@@ -152,6 +152,7 @@ export const IndustryTypeSelect = ({
                   if (item.type === 'header') {
                     return (
                       <div
+                        key={item.id}
                         style={{
                           ...style,
                           padding: '8px',
