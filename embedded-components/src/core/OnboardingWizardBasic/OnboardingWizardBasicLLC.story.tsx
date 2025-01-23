@@ -31,6 +31,13 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         console.log('@@POST client response error', error);
       }
     },
+    onPostPartyResponse(response, error) {
+      if (response) {
+        console.log('@@POST party response data', response);
+      } else if (error) {
+        console.log('@@POST party response error', error);
+      }
+    },
     onPostClientVerificationsResponse: (data, error) => {
       if (data) {
         console.log('@@POST verifications response data', data);

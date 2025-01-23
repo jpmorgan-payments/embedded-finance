@@ -525,7 +525,10 @@ export const OrganizationStepForm = () => {
         {isFieldVisible('addresses') && (
           <>
             {addressFields.map((fieldName, index) => (
-              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <fieldset
+                key={`address-${index}`}
+                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Organization Address {index + 1}
                 </legend>
@@ -663,7 +666,10 @@ export const OrganizationStepForm = () => {
         {isFieldVisible('organizationIds') && (
           <>
             {organizationIdFields.map((fieldItem, index) => (
-              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <fieldset
+                key={`organization-id-${index}`}
+                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Organization ID {index + 1}
                 </legend>
@@ -767,7 +773,7 @@ export const OrganizationStepForm = () => {
               </h3>
               {associatedCountriesFields.map((fieldItem, index) => (
                 <div
-                  key={fieldItem.id}
+                  key={`associated-country-${index}`}
                   className="eb-flex eb-items-center eb-space-x-2"
                 >
                   <FormField
@@ -821,7 +827,7 @@ export const OrganizationStepForm = () => {
               <h3 className="eb-text-lg eb-font-medium">Secondary MCC</h3>
               {secondaryMccFields.map((fieldItem, index) => (
                 <div
-                  key={fieldItem.id}
+                  key={`secondary-mcc-${index}`}
                   className="eb-flex eb-items-center eb-space-x-2"
                 >
                   <FormField

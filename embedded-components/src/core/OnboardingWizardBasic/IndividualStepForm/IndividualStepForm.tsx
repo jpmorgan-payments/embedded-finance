@@ -74,7 +74,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
   Select,
@@ -425,7 +424,10 @@ export const IndividualStepForm = () => {
         {isFieldVisible('individualAddresses') && (
           <>
             {addressFields.map((fieldName, index) => (
-              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <fieldset
+                key={`individual-address-${index}`}
+                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Individual Address {index + 1}
                 </legend>
@@ -442,46 +444,26 @@ export const IndividualStepForm = () => {
                   ]}
                 />
 
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.addressLines.0`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Address Line 1</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter address line 1" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Address Line 1"
+                  type="text"
+                  required
                 />
 
-                <FormField
+                <OnboardingFormField
                   control={form.control}
+                  label="Address Line 2"
                   name={`individualAddresses.${index}.addressLines.1`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 2</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter address line 2" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
                 />
 
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.city`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>City</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter city" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
+                  required
                 />
 
                 <OnboardingFormField
@@ -491,18 +473,12 @@ export const IndividualStepForm = () => {
                   options={stateOptions}
                   required
                 />
-                <FormField
+
+                <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.postalCode`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel asterisk>Postal Code</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter postal code" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
+                  required
                 />
 
                 <OnboardingFormField
@@ -564,50 +540,32 @@ export const IndividualStepForm = () => {
         </Button>
 
         {/* Individual IDs */}
-
         {isFieldVisible('individualIds') && (
           <>
             {idFields.map((fieldItem, index) => (
-              <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <fieldset
+                key={`individual-id-${index}`}
+                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Individual ID {index + 1}
                 </legend>
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.idType`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger ref={field.ref}>
-                            <SelectValue placeholder="Select ID type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="SSN">SSN</SelectItem>
-                          <SelectItem value="ITIN">ITIN</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="select"
+                  options={[
+                    { value: 'SSN', label: 'SSN' },
+                    { value: 'ITIN', label: 'ITIN' },
+                  ]}
+                  required
                 />
-                <FormField
+
+                <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.value`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID Value</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Enter ID value" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="text"
+                  required
                 />
 
                 <OnboardingFormField
@@ -628,19 +586,13 @@ export const IndividualStepForm = () => {
                   required
                 />
 
-                <FormField
+                <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.expiryDate`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expiry Date</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="date" className="eb-w-full" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  type="date"
+                  label="Expiry Date"
                 />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.description`}
