@@ -119,8 +119,8 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 
 #### Main Features:
 
-- Add and manage external linked bank accounts for clients
-- Handle complex micro-deposits initiation logic
+- Add and manage external linked bank accounts for clients.
+- Handle complex micro-deposits initiation logic.
 
 #### Usage:
 
