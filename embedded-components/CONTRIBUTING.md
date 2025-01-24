@@ -17,7 +17,7 @@ embedded-components/
 ### Core
 
 - React 18.x with TypeScript
-- Radix UI primitives
+- Shadcn/UI components with Radix UI primitives 
 - Tailwind CSS
 - Vite & TypeScript
 
@@ -26,6 +26,7 @@ embedded-components/
 - Storybook 8.x for component development
 - MSW for API mocking
 - React Query for data management
+  - where most of the API hooks are being generated using Orval with types based on the OpenAPI specification
 - Zod/Yup for schema validation
 
 ### Testing
