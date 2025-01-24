@@ -5,11 +5,13 @@ import {
   ControllerProps,
   FieldPath,
   FieldValues,
+  UseFormReturn,
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 import {
   Button,
   Command,
@@ -35,6 +37,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 
@@ -49,14 +52,17 @@ type FieldType =
   | 'radio-group'
   | 'checkbox'
   | 'array'
-  | 'combobox';
+  | 'date'
+  | 'textarea'
+  | 'combobox'
+  | 'industrySelect';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
   control: Control<TFieldValues>;
-  type: FieldType;
+  type?: FieldType;
   label?: string;
   placeholder?: string;
   description?: string;
@@ -65,6 +71,7 @@ interface BaseProps<
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
   disableMapping?: boolean;
+  form?: UseFormReturn<TFieldValues>;
 }
 
 interface SelectOrRadioGroupProps<
@@ -83,17 +90,13 @@ interface OtherFieldProps<
   options?: never;
 }
 
-type OnboardingFormFieldProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> =
-  | SelectOrRadioGroupProps<TFieldValues, TName>
-  | OtherFieldProps<TFieldValues, TName>;
+type OnboardingFormFieldProps<T extends FieldValues> =
+  | SelectOrRadioGroupProps<T, FieldPath<T>>
+  | OtherFieldProps<T, FieldPath<T>>;
 
-export const OnboardingFormField = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
+export function OnboardingFormField<T extends FieldValues>({
+  disableMapping,
+  form,
   control,
   name,
   type = 'text',
@@ -105,9 +108,7 @@ export const OnboardingFormField = <
   visibility,
   options,
   inputProps,
-  disableMapping,
-  ...props
-}: OnboardingFormFieldProps<TFieldValues, TName>) => {
+}: OnboardingFormFieldProps<T>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
@@ -179,6 +180,8 @@ export const OnboardingFormField = <
           ) : (
             (() => {
               switch (type) {
+                case 'industrySelect':
+                  return <IndustryTypeSelect field={field} form={form} />;
                 case 'combobox': {
                   const [open, setOpen] = useState(false);
                   return (
@@ -210,7 +213,7 @@ export const OnboardingFormField = <
                             <CommandGroup>
                               {options?.map((option) => (
                                 <CommandItem
-                                  key={option.value}
+                                  key={`combobox-option-${option.value}`}
                                   value={option.value}
                                   onSelect={(currentValue) => {
                                     field.onChange(
@@ -249,7 +252,10 @@ export const OnboardingFormField = <
                       </FormControl>
                       <SelectContent>
                         {options?.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
+                          <SelectItem
+                            key={`select-option-${option.value}`}
+                            value={option.value}
+                          >
                             {option.label}
                           </SelectItem>
                         ))}
@@ -278,7 +284,10 @@ export const OnboardingFormField = <
                         className="eb-flex eb-flex-col eb-space-y-1"
                       >
                         {options?.map((option) => (
-                          <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
+                          <FormItem
+                            className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0"
+                            key={`radio-group-option-${option.value}`}
+                          >
                             <FormControl>
                               <RadioGroupItem value={option.value} />
                             </FormControl>
@@ -302,6 +311,29 @@ export const OnboardingFormField = <
                         />
                         <span>{fieldPlaceholder}</span>
                       </div>
+                    </FormControl>
+                  );
+                case 'date':
+                  return (
+                    <FormControl>
+                      <Input
+                        {...field}
+                        {...inputProps}
+                        type="date"
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
+                case 'textarea':
+                  return (
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                        onChange={(e) => field.onChange(e)}
+                      />
                     </FormControl>
                   );
                 case 'text':
@@ -345,7 +377,6 @@ export const OnboardingFormField = <
           <FormMessage />
         </FormItem>
       )}
-      {...props}
     />
   );
-};
+}

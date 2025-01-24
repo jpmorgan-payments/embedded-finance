@@ -155,7 +155,7 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
   },
   questionResponses: [
     {
-      questionId: '300005',
+      questionId: '30005',
       values: ['$10,000'],
     },
     {

@@ -30,6 +30,13 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         console.log('@@POST client response error', error);
       }
     },
+    onPostPartyResponse(response, error) {
+      if (response) {
+        console.log('@@POST party response data', response);
+      } else if (error) {
+        console.log('@@POST party response error', error);
+      }
+    },
     onPostClientVerificationsResponse: (data, error) => {
       if (data) {
         console.log('@@POST verifications response data', data);
@@ -189,6 +196,9 @@ ReviewAndAttest.parameters = {
       http.post('/clients/0030000133/verifications', () => {
         // return HttpResponse.json({acceptedAt: new Date().toISOString()});
         return HttpResponse.error();
+      }),
+      http.get('/questions', () => {
+        return HttpResponse.json(efClientQuestionsMock);
       }),
     ],
   },

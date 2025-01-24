@@ -1,38 +1,22 @@
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-const textareaVariants = cva(
-  'eb-rounded-md eb-border eb-p-3 eb-leading-7 eb-text-gray-900 sm:eb-tracking-tight',
-  {
-    variants: {
-      size: {
-        sm: `eb-text-sm`,
-        md: `eb-text-base`,
-        lg: `eb-text-lg`,
-        xl: `eb-text-xl`,
-      },
-    },
-    defaultVariants: {
-      size: 'md',
-    },
-  }
-);
-
-const TextArea = React.forwardRef<
+const Textarea = React.forwardRef<
   HTMLTextAreaElement,
-  React.HTMLAttributes<HTMLTextAreaElement> &
-    VariantProps<typeof textareaVariants>
->(({ className, asChild, size, children, ...props }: any, ref) => (
-  <textarea
-    ref={ref}
-    className={cn(textareaVariants({ size }), className)}
-    {...props}
-  >
-    {children}
-  </textarea>
-));
-TextArea.displayName = 'TextArea';
+  React.ComponentProps<'textarea'>
+>(({ className, ...props }, ref) => {
+  return (
+    <textarea
+      className={cn(
+        'eb-flex eb-min-h-[80px] eb-w-full eb-rounded-md eb-border eb-border-input eb-bg-background eb-px-3 eb-py-2 eb-text-base eb-ring-offset-background placeholder:eb-text-muted-foreground focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 disabled:eb-cursor-not-allowed disabled:eb-opacity-50 md:eb-text-sm',
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  );
+});
+Textarea.displayName = 'Textarea';
 
-export { TextArea };
+export { Textarea };

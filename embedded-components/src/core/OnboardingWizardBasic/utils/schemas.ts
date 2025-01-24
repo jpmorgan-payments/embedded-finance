@@ -54,7 +54,10 @@ export const AddressSchema = z
     postalCode: z
       .string()
       .min(1, 'Postal code is required')
-      .max(10, 'Postal code must be 10 characters or less'),
+      .max(10, 'Postal code must be 10 characters or less')
+      .refine((val) => /^\d{5}(-\d{4})?$/.test(val), {
+        message: 'Invalid US postal code format',
+      }),
     country: z.string().length(2, 'Country code must be exactly 2 characters'),
   })
   .transform((data) => {

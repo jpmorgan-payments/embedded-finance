@@ -112,12 +112,6 @@ export const partyFieldMap: PartyFieldMap = {
       };
     },
   },
-  tradeOverInternet: {
-    path: 'organizationDetails.tradeOverInternet',
-    baseRule: { visibility: 'visible', required: true },
-    fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
-    toRequestFn: (val): boolean => val === 'yes',
-  },
   website: {
     path: 'organizationDetails.website',
     baseRule: { visibility: 'visible', required: false },

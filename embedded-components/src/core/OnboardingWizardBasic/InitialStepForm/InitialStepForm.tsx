@@ -26,13 +26,13 @@ import {
 } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
-import { Separator } from '@/components/ui';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
+import { partyFieldMap } from '../utils/fieldMap';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -42,6 +42,11 @@ import {
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
+
+interface RequiredFieldsList {
+  fields: Record<string, string[]>;
+  notes: string[];
+}
 
 export const InitialStepForm = () => {
   const { nextStep } = useStepper();
@@ -280,20 +285,68 @@ export const InitialStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  function generateRequiredFieldsList(type?: OrganizationType) {
-    if (!type) return [];
+  function generateRequiredFieldsList(
+    type?: OrganizationType
+  ): RequiredFieldsList {
+    if (!type) return { fields: {}, notes: [] };
 
-    const requiredFields = [
-      'Organization Name',
-      'Organization Type',
-      'Country of Formation',
-      'Email',
-    ];
+    const { product, jurisdiction } = form.getValues();
 
-    // Add more fields based on the data if necessary
-    // Example: if (data.someCondition) requiredFields.push('Some Other Field');
+    // Get required fields from fieldMap based on base rules and conditional rules
+    const requiredFields = Object.entries(partyFieldMap)
+      .filter(([, fieldConfig]) => {
+        // Check base rule
+        if (!fieldConfig.baseRule.required) return false;
 
-    return requiredFields;
+        // Check conditional rules if they exist
+        if (fieldConfig.conditionalRules) {
+          return !fieldConfig.conditionalRules.some(
+            (rule) =>
+              (!rule.condition.product ||
+                rule.condition.product.includes(product)) &&
+              (!rule.condition.jurisdiction ||
+                rule.condition.jurisdiction.includes(jurisdiction)) &&
+              rule.rule.visibility === 'hidden'
+          );
+        }
+
+        return true;
+      })
+      .reduce<Record<string, string[]>>((acc, [fieldName, fieldConfig]) => {
+        // If path has no dot, it's a root attribute - put it in generic category
+        const step = fieldConfig.path.includes('.')
+          ? fieldConfig.path.split('.')[0]
+          : 'generic';
+
+        // Ensure generic category appears first
+        const sortedStep = step === 'generic' ? '0_generic' : step;
+
+        // Create step if it doesn't exist
+        if (!acc[sortedStep]) {
+          acc[sortedStep] = [];
+        }
+
+        acc[sortedStep].push(`fields.${fieldName}.label`);
+        return acc;
+      }, {});
+
+    // Remove the '0_' prefix from generic step
+    if (requiredFields['0_generic']) {
+      requiredFields.generic = requiredFields['0_generic'];
+      delete requiredFields['0_generic'];
+    }
+
+    return {
+      fields: requiredFields,
+      notes: [
+        'initialStepNotes.additionalQuestions',
+        ...(type === 'LIMITED_LIABILITY_COMPANY'
+          ? ['initialStepNotes.llcOwners']
+          : []),
+        'initialStepNotes.attestation',
+        'initialStepNotes.kycProcess',
+      ],
+    };
   }
 
   return (
@@ -381,36 +434,69 @@ export const InitialStepForm = () => {
             </div>
           </div>
           <Card className="eb-hidden md:eb-block">
-            <CardHeader>
+            <CardHeader className="eb-border-l-2 eb-bg-gray-100">
               <CardDescription>{t('initialStepDescription1')}</CardDescription>
               <CardDescription>{t('initialStepDescription2')}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Separator className="eb-mb-4" />
-              {form.getValues('organizationType') ? (
+              {form.watch('organizationType') ? (
                 <>
-                  <p className="eb-text-sm">
+                  <p className="eb-my-4 eb-text-sm">
                     <Trans
                       t={t}
-                      i18nKey="initialStepOrganizationTypeInformation"
+                      i18nKey={
+                        form.watch('product') && form.watch('jurisdiction')
+                          ? 'initialStepOrganizationTypeInformationFull'
+                          : 'initialStepOrganizationTypeInformationBasic'
+                      }
                       values={{
                         organizationType: form.watch('organizationType'),
+                        product: form.watch('product')
+                          ? t(`clientProducts.${form.watch('product')}`)
+                          : '',
+                        jurisdiction: form.watch('jurisdiction')
+                          ? t(
+                              `clientJurisdictions.${form.watch('jurisdiction')}`
+                            )
+                          : '',
                       }}
                     />
                   </p>
-                  <ul>
-                    {generateRequiredFieldsList(
-                      form.getValues('organizationType')
-                    ).map((field) => (
-                      <li key={field} className="eb-text-sm">
-                        - {field}
-                      </li>
-                    ))}
-                  </ul>
+                  {Object.entries(
+                    generateRequiredFieldsList(form.watch('organizationType'))
+                      .fields
+                  ).map(([step, fields]) => (
+                    <div key={step} className="eb-mb-4">
+                      <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
+                        {t(`stepLabels.${step}`, { defaultValue: step })}
+                      </h4>
+                      <ul>
+                        {fields.map((fieldKey) => (
+                          <li key={fieldKey} className="eb-text-sm">
+                            - {t(fieldKey, { defaultValue: fieldKey })}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  <div className="eb-mt-6">
+                    <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
+                      {t('initialStepNotes.title')}
+                    </h4>
+                    <ul>
+                      {generateRequiredFieldsList(
+                        form.watch('organizationType')
+                      ).notes.map((noteKey) => (
+                        <li key={noteKey} className="eb-text-sm">
+                          - {t(noteKey, { defaultValue: noteKey })}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </>
               ) : (
                 <p className="eb-text-sm">
-                  <Trans t={t} i18nKey="initialStepNoOrganizationType" />
+                  {t('initialStepNoOrganizationType')}
                 </p>
               )}
             </CardContent>

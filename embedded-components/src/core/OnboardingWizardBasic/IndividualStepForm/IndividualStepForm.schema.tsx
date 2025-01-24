@@ -4,100 +4,103 @@ import { z } from 'zod';
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 // Constants for validation
-const NAME_PATTERN = /^[a-zA-Z\s'-]+$/;
-const SUFFIX_PATTERN = /^[A-Z]+\.?$|^[IVX]+$/;
+const NAME_PATTERN = /^[a-zA-Z0-9()_/\\&+%@#;,.: -?]*$/;
+const SUFFIX_PATTERN = /^[A-Za-z.IVX]+$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
-const individualIdSchema = z.object({
-  description: z.string().optional(),
-  expiryDate: z
-    .string()
-    .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
-      message: i18n.t(
-        'onboarding:fields.individualIds.expiryDate.validation.format'
-      ),
-    })
-    .refine((val) => !Number.isNaN(new Date(val).getTime()), {
-      message: i18n.t(
-        'onboarding:fields.individualIds.expiryDate.validation.invalid'
-      ),
-    })
-    .refine(
-      (val) => {
-        const date = new Date(val);
-        const now = new Date();
-        return date > now;
-      },
-      {
+const individualIdSchema = z
+  .object({
+    description: z.string().optional(),
+    expiryDate: z
+      .string()
+      .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
         message: i18n.t(
-          'onboarding:fields.individualIds.expiryDate.validation.past'
+          'onboarding:fields.individualIds.expiryDate.validation.format'
         ),
-      }
-    )
-    .refine(
-      (val) => {
-        const date = new Date(val);
-        const now = new Date();
-        const tenYearsFromNow = new Date(
-          now.setFullYear(now.getFullYear() + 10)
-        );
-        return date <= tenYearsFromNow;
-      },
-      {
+      })
+      .refine((val) => !Number.isNaN(new Date(val).getTime()), {
         message: i18n.t(
-          'onboarding:fields.individualIds.expiryDate.validation.tooFar'
+          'onboarding:fields.individualIds.expiryDate.validation.invalid'
         ),
-      }
-    )
-    .optional(),
-  idType: z.enum(['SSN', 'ITIN']),
-  issuer: z
-    .string()
-    .length(
-      2,
-      i18n.t(
-        'onboarding:fields.individualIds.issuer.validation.exactlyTwoChars'
+      })
+      .refine(
+        (val) => {
+          const date = new Date(val);
+          const now = new Date();
+          return date > now;
+        },
+        {
+          message: i18n.t(
+            'onboarding:fields.individualIds.expiryDate.validation.past'
+          ),
+        }
       )
-    ),
-  value: z
-    .string()
-    .min(1, i18n.t('onboarding:fields.individualIds.value.validation.required'))
-    .refine((val: string) => !/\s/.test(val), {
-      message: i18n.t(
-        'onboarding:fields.individualIds.value.validation.noSpaces'
+      .refine(
+        (val) => {
+          const date = new Date(val);
+          const now = new Date();
+          const tenYearsFromNow = new Date(
+            now.setFullYear(now.getFullYear() + 10)
+          );
+          return date <= tenYearsFromNow;
+        },
+        {
+          message: i18n.t(
+            'onboarding:fields.individualIds.expiryDate.validation.tooFar'
+          ),
+        }
+      )
+      .optional(),
+    idType: z.enum([
+      'SSN',
+      'ITIN',
+      'NATIONAL_ID',
+      'DRIVERS_LICENSE',
+      'PASSPORT',
+      'SOCIAL_INSURANCE_NUMBER',
+      'OTHER_GOVERNMENT_ID',
+    ]),
+    issuer: z
+      .string()
+      .length(
+        2,
+        i18n.t(
+          'onboarding:fields.individualIds.issuer.validation.exactlyTwoChars'
+        )
       ),
+    value: z
+      .string()
+      .min(
+        1,
+        i18n.t('onboarding:fields.individualIds.value.validation.required')
+      )
+      .refine((val: string) => !/\s/.test(val), {
+        message: i18n.t(
+          'onboarding:fields.individualIds.value.validation.noSpaces'
+        ),
+      }),
+  })
+  .refine(
+    (data) => {
+      switch (data.idType) {
+        case 'SSN':
+          // SSN: 9 digits
+          return /^\d{9}$/.test(data.value);
+        case 'ITIN':
+          // ITIN: 9 digits
+          return /^\d{9}$/.test(data.value);
+        default:
+          return true;
+      }
+    },
+    (data) => ({
+      message: i18n.t(
+        `onboarding:fields.individualIds.value.validation.${data.idType.toLowerCase()}Format`
+      ),
+      path: ['value'],
     })
-    .superRefine((val, ctx) => {
-      const { parent } = ctx as any;
-      if (!parent) return true;
-
-      const idType = parent.idType as 'SSN' | 'ITIN';
-      if (!idType) return true;
-
-      if (idType === 'SSN' && !/^\d{9}$/.test(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: i18n.t(
-            'onboarding:fields.individualIds.value.validation.ssnFormat'
-          ),
-        });
-        return false;
-      }
-
-      if (idType === 'ITIN' && !/^9\d{8}$/.test(val)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: i18n.t(
-            'onboarding:fields.individualIds.value.validation.itinFormat'
-          ),
-        });
-        return false;
-      }
-
-      return true;
-    }),
-});
+  );
 
 export const IndividualStepFormSchema = z.object({
   individualAddresses: z

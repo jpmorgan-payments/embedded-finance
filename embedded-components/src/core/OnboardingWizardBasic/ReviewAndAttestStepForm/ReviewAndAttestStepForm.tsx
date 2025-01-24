@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { IconCheck } from '@tabler/icons-react';
-import { QueryClient, useQueries } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { get } from 'lodash';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -51,13 +51,14 @@ const isOutstandingEmpty = (
 };
 
 export const ReviewAndAttestStepForm = () => {
-  const { nextStep, prevStep, isDisabledStep } = useStepper();
+  // Get QueryClient from the context
+  const queryClient = useQueryClient();
+
+  const { prevStep, isDisabledStep } = useStepper();
   const { clientId, onPostClientResponse, blockPostVerification } =
     useOnboardingContext();
-  const queryClient = new QueryClient();
 
   const [termsAgreed, setTermsAgreed] = useState({
-    useOfAccount: false,
     dataAccuracy: false,
     termsAndConditions: false,
   });
@@ -181,7 +182,6 @@ export const ReviewAndAttestStepForm = () => {
               onSuccess: () => {
                 toast.success('KYC initiated successfully');
                 queryClient.invalidateQueries();
-                nextStep();
               },
               onError: () => {
                 toast.error('Failed to initiate KYC');
