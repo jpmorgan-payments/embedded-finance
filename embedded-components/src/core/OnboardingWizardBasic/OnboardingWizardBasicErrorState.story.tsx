@@ -49,7 +49,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
 export default meta;
 
 const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = () => (
-  <BuggyComponent/>
+  <BuggyComponent />
 );
 
 export const Default = Template.bind({});

@@ -63,7 +63,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   usePartyResource = true,
   ...props
 }) => {
-  
   const { tokens: globalContentTokens = {} } = useContentTokens();
   const { i18n } = useTranslation('onboarding');
 
