@@ -495,8 +495,8 @@ export const InitialStepForm = () => {
                   </div>
                 </>
               ) : (
-                <p className="eb-text-sm">
-                  {t('initialStepNoOrganizationType')}
+                <p className="eb-my-4 eb-text-sm">
+                  <Trans t={t} i18nKey="initialStepNoOrganizationType" />
                 </p>
               )}
             </CardContent>
