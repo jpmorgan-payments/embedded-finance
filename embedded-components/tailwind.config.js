@@ -99,5 +99,19 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    scopedPreflightStyles({
+      isolationStrategy: isolateInsideOfContainer('.eb-component', {
+        rootStyles: 'add :where',
+      }),
+    }),
+    ({ addUtilities }) => {
+      addUtilities({
+        '.texttransform-btn': {
+          textTransform: 'uppercase',
+        },
+      });
+    },
+  ],
 };
