@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { UseFormReturn } from 'react-hook-form';
 
 import {
   ApiError,
@@ -38,6 +39,10 @@ type OnboardingContextType = OnboardingProps & {
   clientId: string;
   setClientId: (clientId: string) => Promise<void>;
   wasClientIdCreated: boolean;
+  currentForm?: UseFormReturn<any>;
+  setCurrentForm: (form: UseFormReturn<any> | undefined) => void;
+  currentStepIndex?: number;
+  setCurrentStepIndex: (index: number) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(
@@ -63,6 +68,14 @@ export const OnboardingContextProvider: FC<
     }
   };
 
+  const [currentForm, setCurrentForm] = useState<
+    UseFormReturn<any> | undefined
+  >(undefined);
+
+  const [currentStepIndex, setCurrentStepIndex] = useState<number | undefined>(
+    undefined
+  );
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -70,6 +83,10 @@ export const OnboardingContextProvider: FC<
         clientId,
         setClientId: handleSetClientId,
         wasClientIdCreated,
+        currentForm,
+        setCurrentForm,
+        currentStepIndex,
+        setCurrentStepIndex,
       }}
     >
       {children}

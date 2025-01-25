@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -12,6 +11,7 @@ import {
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
+  ClientProduct,
   CreateClientRequestSmbdo,
   OrganizationType,
   UpdateClientRequestSmbdo,
@@ -39,8 +39,11 @@ import {
   generateRequestBody,
   setApiFormErrors,
   translateApiErrorsToFormErrors,
+  useFilterFunctionsByClientContext,
+  useStepForm,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
+import { Jurisdiction } from '../utils/types';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
 
 interface RequiredFieldsList {
@@ -62,6 +65,8 @@ export const InitialStepForm = () => {
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
+  const { filterDefaultValues } = useFilterFunctionsByClientContext();
+
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
   const defaultJurisdiction =
@@ -70,17 +75,17 @@ export const InitialStepForm = () => {
       : undefined;
 
   // Create a form with empty default values
-  const form = useForm<z.infer<typeof InitialStepFormSchema>>({
+  const form = useStepForm<z.infer<typeof InitialStepFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(InitialStepFormSchema),
-    defaultValues: {
+    defaultValues: filterDefaultValues({
       jurisdiction: defaultJurisdiction,
       product: defaultProduct,
       organizationName: '',
       organizationType: undefined,
       organizationEmail: '',
       countryOfFormation: '',
-    },
+    }),
   });
 
   // Set default product and jurisdiction if props change
@@ -286,11 +291,11 @@ export const InitialStepForm = () => {
   }
 
   function generateRequiredFieldsList(
-    type?: OrganizationType
+    type?: OrganizationType,
+    product?: ClientProduct,
+    jurisdiction?: Jurisdiction
   ): RequiredFieldsList {
     if (!type) return { fields: {}, notes: [] };
-
-    const { product, jurisdiction } = form.getValues();
 
     // Get required fields from fieldMap based on base rules and conditional rules
     const requiredFields = Object.entries(partyFieldMap)
@@ -303,9 +308,10 @@ export const InitialStepForm = () => {
           return !fieldConfig.conditionalRules.some(
             (rule) =>
               (!rule.condition.product ||
-                rule.condition.product.includes(product)) &&
+                (product && rule.condition.product.includes(product))) &&
               (!rule.condition.jurisdiction ||
-                rule.condition.jurisdiction.includes(jurisdiction)) &&
+                (jurisdiction &&
+                  rule.condition.jurisdiction.includes(jurisdiction))) &&
               rule.rule.visibility === 'hidden'
           );
         }
