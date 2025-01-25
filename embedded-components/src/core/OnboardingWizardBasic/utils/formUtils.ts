@@ -1,4 +1,11 @@
-import { UseFormReturn } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import {
+  FieldErrors,
+  FieldValues,
+  useForm,
+  UseFormProps,
+  UseFormReturn,
+} from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -9,7 +16,9 @@ import {
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
+import { useStepper } from '@/components/ui/stepper';
 
+import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { partyFieldMap } from './fieldMap';
 import {
   ClientContext,
@@ -426,6 +435,9 @@ export function filterDefaultValuesByClientContext(
   Object.entries(defaultValues).forEach(([key, value]) => {
     const fieldConfig = partyFieldMap[key as keyof OnboardingWizardFormValues];
     if (!fieldConfig) {
+      if (key === 'product') {
+        return;
+      }
       throw new Error(`${key} is not mapped in fieldMap`);
     }
     const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
@@ -435,4 +447,56 @@ export function filterDefaultValuesByClientContext(
     }
   });
   return filteredDefaultValues;
+}
+
+export function useStepForm<T extends FieldValues>(
+  props: UseFormProps<T>
+): UseFormReturn<T> {
+  const { activeStep } = useStepper();
+  const { currentForm, setCurrentForm, currentStepIndex, setCurrentStepIndex } =
+    useOnboardingContext();
+
+  // Check if the step has changed
+  const isNewStep = useMemo(() => {
+    return currentStepIndex === undefined || currentStepIndex !== activeStep;
+  }, [currentStepIndex, activeStep]);
+
+  // Update currentStepIndex when the step changes
+  useEffect(() => {
+    if (isNewStep) {
+      setCurrentStepIndex(activeStep);
+    }
+  }, [isNewStep, setCurrentStepIndex, activeStep]);
+
+  // Initialize the form with the cached form if the step has not changed
+  const defaultValues = useMemo(() => {
+    return {
+      ...props.defaultValues,
+      ...(!isNewStep ? (currentForm?.getValues() ?? {}) : {}),
+    };
+  }, [props.defaultValues, isNewStep, currentForm]);
+
+  const errors = useMemo(() => {
+    return !isNewStep
+      ? ({
+          ...props.errors,
+          ...currentForm?.formState.errors,
+        } as FieldErrors<T>)
+      : props.errors;
+  }, [props.errors, isNewStep, currentForm]);
+
+  const form = useForm<T>({
+    ...props,
+    defaultValues,
+    errors,
+  });
+
+  // Cache the current form so it can be reused in the next render
+  useEffect(() => {
+    if (form !== currentForm) {
+      setCurrentForm(form);
+    }
+  }, [form, setCurrentForm]);
+
+  return form;
 }

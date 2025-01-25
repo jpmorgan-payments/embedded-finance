@@ -51,7 +51,7 @@
 
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -99,6 +99,7 @@ import {
   setApiFormErrors,
   translateApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
+  useStepForm,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import {
@@ -131,7 +132,7 @@ export const OrganizationStepForm = () => {
     clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useForm<z.infer<typeof OrganizationStepFormSchema>>({
+  const form = useStepForm<z.infer<typeof OrganizationStepFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(
       filterSchema(OrganizationStepFormSchema, refineOrganizationStepFormSchema)

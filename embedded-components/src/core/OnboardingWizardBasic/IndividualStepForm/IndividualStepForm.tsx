@@ -51,7 +51,7 @@
 
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -97,6 +97,7 @@ import {
   setApiFormErrors,
   translateApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
+  useStepForm,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import { IndividualStepFormSchema } from './IndividualStepForm.schema';
@@ -125,7 +126,7 @@ export const IndividualStepForm = () => {
     clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useForm<z.infer<typeof IndividualStepFormSchema>>({
+  const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onChange',
     resolver: zodResolver(IndividualStepFormSchema),
     defaultValues: filterDefaultValues({

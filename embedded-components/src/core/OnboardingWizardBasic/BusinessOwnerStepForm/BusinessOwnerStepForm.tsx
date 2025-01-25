@@ -99,6 +99,7 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   useFilterFunctionsByClientContext,
+  useStepForm,
 } from '../utils/formUtils';
 
 type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
@@ -123,7 +124,7 @@ export const BusinessOwnerStepForm = () => {
   const { filterDefaultValues, clientContext } =
     useFilterFunctionsByClientContext(clientData);
 
-  const ownerForm = useForm<z.infer<typeof IndividualStepFormSchema>>({
+  const ownerForm = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(IndividualStepFormSchema),
     defaultValues: filterDefaultValues({
