@@ -715,6 +715,7 @@ export const OrganizationStepForm = () => {
                       </span>
                     ),
                   }))}
+                  required
                 />
                 <OnboardingFormField
                   control={form.control}

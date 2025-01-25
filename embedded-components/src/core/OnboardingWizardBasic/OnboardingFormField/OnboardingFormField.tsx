@@ -171,6 +171,17 @@ export function OnboardingFormField<T extends FieldValues>({
             </InfoPopover>
           </div>
 
+          <FormDescription className="eb-text-xs eb-text-gray-500">
+            {description ??
+              t(
+                [
+                  `fields.${tName}.description`,
+                  '',
+                ] as unknown as TemplateStringsArray,
+                { index: lastIndex }
+              )}
+          </FormDescription>
+
           {fieldVisibility === 'readonly' ? (
             <p className="eb-font-bold">
               {(options
@@ -363,16 +374,6 @@ export function OnboardingFormField<T extends FieldValues>({
               }
             })()
           )}
-          <FormDescription className="eb-text-xs eb-text-gray-500">
-            {description ??
-              t(
-                [
-                  `fields.${tName}.description`,
-                  '',
-                ] as unknown as TemplateStringsArray,
-                { index: lastIndex }
-              )}
-          </FormDescription>
 
           <FormMessage />
         </FormItem>
