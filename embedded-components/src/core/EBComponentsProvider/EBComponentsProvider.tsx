@@ -6,8 +6,11 @@ import {
   useEffect,
   useMemo,
   useState,
+  type ErrorInfo,
 } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AlertCircle } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
@@ -31,6 +34,31 @@ const ReactQueryDevtoolsProduction = lazy(() =>
     })
   )
 );
+
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="eb-flex eb-min-h-[200px] eb-w-full eb-flex-col eb-items-center eb-justify-center eb-rounded-lg eb-border eb-border-destructive/50 eb-bg-destructive/10 eb-p-6 eb-text-center">
+      <AlertCircle className="eb-h-12 eb-w-12 eb-text-destructive" />
+      <h2 className="eb-mt-4 eb-text-lg eb-font-semibold eb-text-destructive">
+        Something went wrong
+      </h2>
+      <p className="eb-mt-2 eb-text-sm eb-text-destructive/80">
+        An error occurred in the embedded components. Please try refreshing the
+        page or contact support if the issue persists.
+      </p>
+      {process.env.NODE_ENV === 'development' && (
+        <pre className="eb-mt-4 eb-max-w-full eb-overflow-x-auto eb-rounded eb-bg-destructive/20 eb-p-4 eb-text-left eb-text-xs eb-text-destructive/90">
+          {error.message}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+const logError = (error: Error, info: ErrorInfo) => {
+  // In production, you might want to send this to an error reporting service
+  console.error('Caught by error boundary:', error, info);
+};
 
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
@@ -141,15 +169,17 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
         }}
       />
 
-      <QueryClientProvider client={queryClient}>
-        <ContentTokensContext.Provider value={contentTokens}>
-          {children}
-        </ContentTokensContext.Provider>
-        <Toaster closeButton expand />
-        {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtoolsProduction />
-        )}
-      </QueryClientProvider>
+      <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
+        <QueryClientProvider client={queryClient}>
+          <ContentTokensContext.Provider value={contentTokens}>
+            {children}
+          </ContentTokensContext.Provider>
+          <Toaster closeButton expand />
+          {process.env.NODE_ENV === 'development' && (
+            <ReactQueryDevtoolsProduction />
+          )}
+        </QueryClientProvider>
+      </ErrorBoundary>
     </>
   );
 };

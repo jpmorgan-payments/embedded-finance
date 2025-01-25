@@ -94,13 +94,14 @@ const OnboardingSection = () => {
 
   return (
     <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      {/* you could use https://api-mock.payments.jpmorgan.com/tsapi/ef/do/v1/ from the API mock server, please find more details at https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/onboarding#/ */}
       <OnboardingWizardBasic
         title="Client Onboarding"
-        clientId={clientId}
+        initialClientId={clientId}
         onPostClientResponse={handlePostClientResponse}
         onPostClientVerificationResponse={handlePostClientVerificationsResponse}
-        availableProducts={['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES']}
-        availableJurisdictions={['US', 'CA']}
+        availableProducts={['EMBEDDED_PAYMENTS']}
+        availableJurisdictions={['US']}
       />
     </EBComponentsProvider>
   );
