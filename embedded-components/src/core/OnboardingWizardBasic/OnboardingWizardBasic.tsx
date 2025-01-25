@@ -258,7 +258,8 @@ const OnboardingWizardBasicComponent: FC<
               const { children, ...rest } = stepProps;
               return (
                 <Step key={index} {...rest}>
-                  <div className="eb-px-1">
+                  {/* The padding prevents the focus rings from being cut off */}
+                  <div className="eb-px-2">
                     {clientId && clientGetStatus === 'pending' ? (
                       <FormLoadingState message={t('fetchingClientData')} />
                     ) : clientGetStatus === 'error' ? (
