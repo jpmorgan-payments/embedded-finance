@@ -49,7 +49,7 @@
  * )
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -119,6 +119,7 @@ export const IndividualStepForm = () => {
 
   const {
     filterDefaultValues,
+    filterSchema,
     getFieldRule,
     isFieldDisabled,
     isFieldRequired,
@@ -127,7 +128,7 @@ export const IndividualStepForm = () => {
   } = useFilterFunctionsByClientContext(clientData);
 
   const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    resolver: zodResolver(IndividualStepFormSchema),
+    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
     defaultValues: filterDefaultValues({
       individualAddresses: [
         {
@@ -179,16 +180,30 @@ export const IndividualStepForm = () => {
       party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
   );
 
+  const [isFormPopulated, setIsFormPopulated] = useState(false);
+
   // Populate form with client data
   useEffect(() => {
-    if (getClientStatus === 'success' && clientData) {
+    if (
+      getClientStatus === 'success' &&
+      clientData &&
+      existingIndividualParty?.id &&
+      !isFormPopulated
+    ) {
       const formValues = convertClientResponseToFormValues(
         clientData,
-        existingIndividualParty?.id
+        existingIndividualParty.id
       );
-      form.reset(formValues);
+      form.reset({ ...form.getValues(), ...formValues });
+      setIsFormPopulated(true);
     }
-  }, [clientData, getClientStatus, form, existingIndividualParty?.id]);
+  }, [
+    clientData,
+    getClientStatus,
+    form.reset,
+    existingIndividualParty?.id,
+    isFormPopulated,
+  ]);
 
   const {
     mutate: updateClient,
@@ -279,6 +294,10 @@ export const IndividualStepForm = () => {
       }
     }
   });
+
+  if (clientData && !isFormPopulated) {
+    return <FormLoadingState message="Loading..." />;
+  }
 
   if (updateClientStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;

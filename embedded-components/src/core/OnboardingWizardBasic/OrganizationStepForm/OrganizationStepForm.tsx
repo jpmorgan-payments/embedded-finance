@@ -137,12 +137,6 @@ export const OrganizationStepForm = () => {
       filterSchema(OrganizationStepFormSchema, refineOrganizationStepFormSchema)
     ),
     defaultValues: filterDefaultValues({
-      organizationName: '',
-      dbaName: '',
-      organizationDescription: '',
-      organizationEmail: '',
-      countryOfFormation: '',
-      yearOfFormation: '',
       addresses: [
         {
           addressType: 'BUSINESS_ADDRESS',
@@ -164,11 +158,6 @@ export const OrganizationStepForm = () => {
         phoneType: 'BUSINESS_PHONE',
         phoneNumber: '',
       },
-      entitiesInOwnership: undefined,
-      websiteAvailable: false,
-      secondaryMccList: [],
-      mcc: '',
-      associatedCountries: [],
     }),
   });
 
@@ -225,10 +214,9 @@ export const OrganizationStepForm = () => {
     ) {
       const formValues = convertClientResponseToFormValues(
         clientData,
-        existingOrgParty?.id
+        existingOrgParty.id
       );
-
-      form.reset(formValues);
+      form.reset({ ...form.getValues(), ...formValues });
       setIsFormPopulated(true);
     }
   }, [
@@ -355,6 +343,10 @@ export const OrganizationStepForm = () => {
       }
     }
   });
+
+  if (clientData && !isFormPopulated) {
+    return <FormLoadingState message="Loading..." />;
+  }
 
   if (updateClientStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;

@@ -63,9 +63,10 @@ export const AdditionalQuestionsStepForm = () => {
   }, [outstandingQuestionIds, existingQuestionResponses]);
 
   // Fetch all questions
-  const { data: questionsData } = useSmbdoListQuestions({
-    questionIds: allQuestionIds.join(','),
-  });
+  const { data: questionsData, status: questionsFetchStatus } =
+    useSmbdoListQuestions({
+      questionIds: allQuestionIds.join(','),
+    });
 
   // Prepare default values for the form
   const defaultValues = useMemo(
@@ -371,7 +372,13 @@ export const AdditionalQuestionsStepForm = () => {
   };
 
   const renderQuestions = () => {
-    if (!questionsData) return null;
+    if (!questionsData) {
+      return (
+        <div className="eb-text-muted-foreground">
+          There are no additional questions. You may proceed to the next step.
+        </div>
+      );
+    }
 
     return questionsData?.questions?.map((question, index) => {
       if (!isQuestionVisible(question)) {
@@ -386,6 +393,10 @@ export const AdditionalQuestionsStepForm = () => {
       );
     });
   };
+
+  if (questionsFetchStatus === 'pending') {
+    return <FormLoadingState message="Loading questions..." />;
+  }
 
   if (updateClientStatus === 'pending') {
     return <FormLoadingState message="Submitting additional questions..." />;
