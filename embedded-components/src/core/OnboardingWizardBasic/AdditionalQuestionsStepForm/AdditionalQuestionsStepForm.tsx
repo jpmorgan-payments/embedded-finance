@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -379,12 +379,10 @@ export const AdditionalQuestionsStepForm = () => {
       }
 
       return (
-        <>
+        <Fragment key={question.id}>
           {isQuestionParent(question) && index !== 0 && <Separator />}
-          <div key={question.id} className="eb-mb-6">
-            {renderQuestionInput(question)}
-          </div>
-        </>
+          <div className="eb-mb-6">{renderQuestionInput(question)}</div>
+        </Fragment>
       );
     });
   };
