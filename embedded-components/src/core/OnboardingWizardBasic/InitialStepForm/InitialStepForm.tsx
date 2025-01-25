@@ -76,7 +76,6 @@ export const InitialStepForm = () => {
 
   // Create a form with empty default values
   const form = useStepForm<z.infer<typeof InitialStepFormSchema>>({
-    mode: 'onBlur',
     resolver: zodResolver(InitialStepFormSchema),
     defaultValues: filterDefaultValues({
       jurisdiction: defaultJurisdiction,

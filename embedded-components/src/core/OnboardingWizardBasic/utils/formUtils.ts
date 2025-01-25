@@ -486,6 +486,8 @@ export function useStepForm<T extends FieldValues>(
   }, [props.errors, isNewStep, currentForm]);
 
   const form = useForm<T>({
+    mode: 'onBlur',
+    reValidateMode: 'onChange', // prevents edge cases where select fields are not revalidated
     ...props,
     defaultValues,
     errors,

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -38,6 +37,7 @@ import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { useStepForm } from '../utils/formUtils';
 import {
   createDynamicZodSchema,
   DATE_QUESTION_IDS,
@@ -314,8 +314,7 @@ export const AdditionalQuestionsStepForm = () => {
     return createDynamicZodSchema(visibleQuestions);
   }, [questionsData]);
 
-  const form = useForm({
-    mode: 'onBlur',
+  const form = useStepForm({
     resolver: zodResolver(dynamicSchema),
     defaultValues,
   });

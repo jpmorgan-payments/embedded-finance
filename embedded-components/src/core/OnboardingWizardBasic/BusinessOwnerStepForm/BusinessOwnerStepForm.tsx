@@ -125,7 +125,6 @@ export const BusinessOwnerStepForm = () => {
     useFilterFunctionsByClientContext(clientData);
 
   const ownerForm = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    mode: 'onBlur',
     resolver: zodResolver(IndividualStepFormSchema),
     defaultValues: filterDefaultValues({
       individualAddresses: [

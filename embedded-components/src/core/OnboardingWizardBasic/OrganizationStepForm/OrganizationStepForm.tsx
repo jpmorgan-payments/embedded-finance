@@ -133,7 +133,6 @@ export const OrganizationStepForm = () => {
   } = useFilterFunctionsByClientContext(clientData);
 
   const form = useStepForm<z.infer<typeof OrganizationStepFormSchema>>({
-    mode: 'onBlur',
     resolver: zodResolver(
       filterSchema(OrganizationStepFormSchema, refineOrganizationStepFormSchema)
     ),

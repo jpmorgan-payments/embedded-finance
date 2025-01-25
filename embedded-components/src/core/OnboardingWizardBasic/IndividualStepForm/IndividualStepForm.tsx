@@ -127,7 +127,6 @@ export const IndividualStepForm = () => {
   } = useFilterFunctionsByClientContext(clientData);
 
   const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    mode: 'onChange',
     resolver: zodResolver(IndividualStepFormSchema),
     defaultValues: filterDefaultValues({
       individualAddresses: [
