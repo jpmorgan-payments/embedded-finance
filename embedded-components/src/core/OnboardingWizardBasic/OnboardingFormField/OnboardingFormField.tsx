@@ -40,11 +40,11 @@ import {
   Textarea,
 } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
+import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
 import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
-import { PatternInput } from '@/components/ux/PatternInput';
 
 type FieldType =
   | 'text'

@@ -367,7 +367,13 @@ export const OrganizationStepForm = () => {
   };
 
   // Get label for value field based on ID type
-  const getValueLabel = (idType: "EIN" | "BUSINESS_REGISTRATION_ID" | "BUSINESS_NUMBER" | "BUSINESS_REGISTRATION_NUMBER") => {
+  const getValueLabel = (
+    idType:
+      | 'EIN'
+      | 'BUSINESS_REGISTRATION_ID'
+      | 'BUSINESS_NUMBER'
+      | 'BUSINESS_REGISTRATION_NUMBER'
+  ) => {
     if (!idType) return t('idValueLabels.placeholder');
     return t(`idValueLabels.organization.${idType}`);
   };
@@ -704,12 +710,22 @@ export const OrganizationStepForm = () => {
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.value`}
-                  type={getMaskFormat(form.watch(`organizationIds.${index}.idType`)) ? "text-with-mask" : "text"}
-                  {...(getMaskFormat(form.watch(`organizationIds.${index}.idType`)) && {
-                    maskFormat: getMaskFormat(form.watch(`organizationIds.${index}.idType`)),
-                    maskChar: "_"
+                  type={
+                    getMaskFormat(form.watch(`organizationIds.${index}.idType`))
+                      ? 'text-with-mask'
+                      : 'text'
+                  }
+                  {...(getMaskFormat(
+                    form.watch(`organizationIds.${index}.idType`)
+                  ) && {
+                    maskFormat: getMaskFormat(
+                      form.watch(`organizationIds.${index}.idType`)
+                    ),
+                    maskChar: '_',
                   })}
-                  label={getValueLabel(form.watch(`organizationIds.${index}.idType`))}
+                  label={getValueLabel(
+                    form.watch(`organizationIds.${index}.idType`)
+                  )}
                   required
                 />
 
