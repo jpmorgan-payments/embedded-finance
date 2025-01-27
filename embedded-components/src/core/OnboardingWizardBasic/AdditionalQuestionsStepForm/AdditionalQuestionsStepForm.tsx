@@ -1,7 +1,6 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -38,6 +37,7 @@ import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { useStepForm } from '../utils/formUtils';
 import {
   createDynamicZodSchema,
   DATE_QUESTION_IDS,
@@ -63,9 +63,10 @@ export const AdditionalQuestionsStepForm = () => {
   }, [outstandingQuestionIds, existingQuestionResponses]);
 
   // Fetch all questions
-  const { data: questionsData } = useSmbdoListQuestions({
-    questionIds: allQuestionIds.join(','),
-  });
+  const { data: questionsData, status: questionsFetchStatus } =
+    useSmbdoListQuestions({
+      questionIds: allQuestionIds.join(','),
+    });
 
   // Prepare default values for the form
   const defaultValues = useMemo(
@@ -314,8 +315,7 @@ export const AdditionalQuestionsStepForm = () => {
     return createDynamicZodSchema(visibleQuestions);
   }, [questionsData]);
 
-  const form = useForm({
-    mode: 'onBlur',
+  const form = useStepForm({
     resolver: zodResolver(dynamicSchema),
     defaultValues,
   });
@@ -372,7 +372,13 @@ export const AdditionalQuestionsStepForm = () => {
   };
 
   const renderQuestions = () => {
-    if (!questionsData) return null;
+    if (!questionsData) {
+      return (
+        <div className="eb-text-muted-foreground">
+          There are no additional questions. You may proceed to the next step.
+        </div>
+      );
+    }
 
     return questionsData?.questions?.map((question, index) => {
       if (!isQuestionVisible(question)) {
@@ -380,15 +386,17 @@ export const AdditionalQuestionsStepForm = () => {
       }
 
       return (
-        <>
+        <Fragment key={question.id}>
           {isQuestionParent(question) && index !== 0 && <Separator />}
-          <div key={question.id} className="eb-mb-6">
-            {renderQuestionInput(question)}
-          </div>
-        </>
+          <div className="eb-mb-6">{renderQuestionInput(question)}</div>
+        </Fragment>
       );
     });
   };
+
+  if (questionsFetchStatus === 'pending') {
+    return <FormLoadingState message="Loading questions..." />;
+  }
 
   if (updateClientStatus === 'pending') {
     return <FormLoadingState message="Submitting additional questions..." />;

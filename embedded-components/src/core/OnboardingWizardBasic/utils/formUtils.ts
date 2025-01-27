@@ -299,7 +299,9 @@ function evaluateFieldRules(
  * @returns Object containing filter functions for schemas and values
  * Used to adapt form behavior based on client context
  */
-export function useFilterFunctionsByClientContext(clientData?: ClientResponse) {
+export function useFilterFunctionsByClientContext(
+  clientData: ClientResponse | undefined
+) {
   const organizationParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   );
@@ -395,6 +397,10 @@ export function filterSchemaByClientContext(
   Object.entries(shape).forEach(([key, value]) => {
     const fieldConfig = partyFieldMap[key as keyof OnboardingWizardFormValues];
     if (!fieldConfig) {
+      if (key === 'product') {
+        filteredSchema[key] = value;
+        return;
+      }
       throw new Error(`${key} is not mapped in fieldMap`);
     }
     const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
@@ -432,10 +438,13 @@ export function filterDefaultValuesByClientContext(
   clientContext: ClientContext
 ): Partial<OnboardingWizardFormValues> {
   const filteredDefaultValues: Partial<OnboardingWizardFormValues> = {};
+
   Object.entries(defaultValues).forEach(([key, value]) => {
     const fieldConfig = partyFieldMap[key as keyof OnboardingWizardFormValues];
     if (!fieldConfig) {
       if (key === 'product') {
+        filteredDefaultValues[key] =
+          value as OnboardingWizardFormValues['product'];
         return;
       }
       throw new Error(`${key} is not mapped in fieldMap`);
@@ -486,6 +495,8 @@ export function useStepForm<T extends FieldValues>(
   }, [props.errors, isNewStep, currentForm]);
 
   const form = useForm<T>({
+    mode: 'onBlur',
+    reValidateMode: 'onChange', // prevents edge cases where select fields are not revalidated
     ...props,
     defaultValues,
     errors,
@@ -499,4 +510,32 @@ export function useStepForm<T extends FieldValues>(
   }, [form, setCurrentForm]);
 
   return form;
+}
+
+// Not used
+export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
+  formValues: Partial<OnboardingWizardFormValues>,
+  schema: z.ZodObject<T>
+): Partial<OnboardingWizardFormValues> {
+  const schemaShape = schema.shape;
+  const schemaKeys = Object.keys(schemaShape) as Array<
+    keyof OnboardingWizardFormValues
+  >;
+
+  return schemaKeys.reduce(
+    (acc, key) => {
+      // If the key exists in formValues, use its value
+      if (key in formValues) {
+        acc[key] = formValues[key];
+      }
+      // Otherwise set empty string, or empty array
+      else if (schemaShape[key] instanceof z.ZodArray) {
+        acc[key] = [];
+      } else {
+        acc[key] = '';
+      }
+      return acc;
+    },
+    {} as Record<string, any>
+  );
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -65,7 +65,13 @@ export const InitialStepForm = () => {
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
-  const { filterDefaultValues } = useFilterFunctionsByClientContext();
+  // Fetch client data
+  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
+    clientId ?? ''
+  );
+
+  const { filterDefaultValues, filterSchema } =
+    useFilterFunctionsByClientContext(clientData);
 
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
@@ -76,15 +82,10 @@ export const InitialStepForm = () => {
 
   // Create a form with empty default values
   const form = useStepForm<z.infer<typeof InitialStepFormSchema>>({
-    mode: 'onBlur',
-    resolver: zodResolver(InitialStepFormSchema),
+    resolver: zodResolver(filterSchema(InitialStepFormSchema)),
     defaultValues: filterDefaultValues({
       jurisdiction: defaultJurisdiction,
       product: defaultProduct,
-      organizationName: '',
-      organizationType: undefined,
-      organizationEmail: '',
-      countryOfFormation: '',
     }),
   });
 
@@ -101,30 +102,42 @@ export const InitialStepForm = () => {
     }
   }, [defaultJurisdiction]);
 
-  // Fetch client data
-  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
-    clientId ?? ''
-  );
-
   // Get organization's party
   const existingOrgParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   );
 
+  const [isFormPopulated, setIsFormPopulated] = useState(false);
+
   // If clientId exists, populate form with client data
   useEffect(() => {
-    if (clientData && getClientStatus === 'success' && existingOrgParty?.id) {
+    if (
+      clientData &&
+      getClientStatus === 'success' &&
+      existingOrgParty?.id &&
+      !isFormPopulated
+    ) {
       const formValues = convertClientResponseToFormValues(
         clientData,
-        existingOrgParty?.id
+        existingOrgParty.id
       );
-      const productFromResponse = clientData.products?.[0];
-      if (productFromResponse) {
-        formValues.product = productFromResponse;
-      }
-      form.reset(formValues);
+
+      // Get product from response since it's not in the party object
+      formValues.product = clientData.products?.[0] ?? defaultProduct;
+      formValues.jurisdiction = formValues.jurisdiction ?? defaultJurisdiction;
+
+      form.reset({ ...form.getValues(), ...formValues });
+      setIsFormPopulated(true);
     }
-  }, [clientData, getClientStatus, form.reset, existingOrgParty?.id]);
+  }, [
+    clientData,
+    getClientStatus,
+    form.reset,
+    existingOrgParty?.id,
+    isFormPopulated,
+    defaultProduct,
+    defaultJurisdiction,
+  ]);
 
   const {
     mutate: postClient,
@@ -353,6 +366,10 @@ export const InitialStepForm = () => {
         'initialStepNotes.kycProcess',
       ],
     };
+  }
+
+  if (clientData && !isFormPopulated) {
+    return <FormLoadingState message="Loading..." />;
   }
 
   return (

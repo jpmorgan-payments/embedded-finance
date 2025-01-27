@@ -121,12 +121,11 @@ export const BusinessOwnerStepForm = () => {
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
-  const { filterDefaultValues, clientContext } =
+  const { filterDefaultValues, filterSchema, clientContext } =
     useFilterFunctionsByClientContext(clientData);
 
   const ownerForm = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    mode: 'onBlur',
-    resolver: zodResolver(IndividualStepFormSchema),
+    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
     defaultValues: filterDefaultValues({
       individualAddresses: [
         {
