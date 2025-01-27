@@ -1,8 +1,13 @@
-import {  PatternFormat } from 'react-number-format';
+import { PatternFormat } from 'react-number-format';
 
 import { Input } from '../ui';
 
-export function PatternInput({ onChange, maskFormat, maskChar, ...props }: any) {
+export function PatternInput({
+  onChange,
+  maskFormat,
+  maskChar,
+  ...props
+}: any) {
   if (props.disabled) {
     return <Input {...props} value="" placeholder="N/A" />;
   }
