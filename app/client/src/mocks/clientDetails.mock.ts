@@ -366,11 +366,13 @@ export const clientDetailsScenario3 = {
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
-    questionIds: [],
+    questionIds: [
+      '30005',
+    ],
   },
   questionResponses: [
     {
-      questionId: '300005',
+      questionId: '30005',
       values: ['$10,000'],
     },
     {
@@ -506,7 +508,7 @@ export const clientDetailsScenario4 = {
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
-    questionIds: [],
+    questionIds: ['30005'],
   },
   questionResponses: [
     {

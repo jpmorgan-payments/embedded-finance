@@ -41,6 +41,7 @@ import {
   Textarea,
 } from '@/components/ui';
 import { InfoPopover } from '@/components/ux/InfoPopover';
+import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFilterFunctionsByClientContext } from '../utils/formUtils';
@@ -56,7 +57,8 @@ type FieldType =
   | 'date'
   | 'textarea'
   | 'combobox'
-  | 'industrySelect';
+  | 'industrySelect'
+  | 'text-with-mask';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -73,6 +75,8 @@ interface BaseProps<
   inputProps?: React.ComponentProps<typeof Input>;
   disableMapping?: boolean;
   form?: UseFormReturn<TFieldValues>;
+  maskFormat?: string;
+  maskChar?: string;
 }
 
 interface SelectOrRadioGroupProps<
@@ -108,6 +112,8 @@ export function OnboardingFormField<T extends FieldValues>({
   required,
   visibility,
   options,
+  maskFormat,
+  maskChar,
   inputProps,
   disabled,
 }: OnboardingFormFieldProps<T>) {
@@ -396,6 +402,19 @@ export function OnboardingFormField<T extends FieldValues>({
                         {...field}
                         {...inputProps}
                         type="text"
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
+                case 'text-with-mask':
+                  return (
+                    <FormControl>
+                      <PatternInput
+                        {...field}
+                        {...inputProps}
+                        maskFormat={maskFormat}
+                        maskChar={maskChar}
                         value={field.value}
                         placeholder={fieldPlaceholder}
                       />

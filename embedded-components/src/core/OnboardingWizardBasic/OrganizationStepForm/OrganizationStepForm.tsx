@@ -355,6 +355,28 @@ export const OrganizationStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
+  // Get mask format based on ID type
+  const getMaskFormat = (idType: string) => {
+    switch (idType) {
+      case 'EIN':
+        return '## - #######';
+      default:
+        return undefined;
+    }
+  };
+
+  // Get label for value field based on ID type
+  const getValueLabel = (
+    idType:
+      | 'EIN'
+      | 'BUSINESS_REGISTRATION_ID'
+      | 'BUSINESS_NUMBER'
+      | 'BUSINESS_REGISTRATION_NUMBER'
+  ) => {
+    if (!idType) return t('idValueLabels.placeholder');
+    return t(`idValueLabels.organization.${idType}`);
+  };
+
   return (
     <Form {...form}>
       <form
@@ -687,7 +709,22 @@ export const OrganizationStepForm = () => {
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.value`}
-                  type="text"
+                  type={
+                    getMaskFormat(form.watch(`organizationIds.${index}.idType`))
+                      ? 'text-with-mask'
+                      : 'text'
+                  }
+                  {...(getMaskFormat(
+                    form.watch(`organizationIds.${index}.idType`)
+                  ) && {
+                    maskFormat: getMaskFormat(
+                      form.watch(`organizationIds.${index}.idType`)
+                    ),
+                    maskChar: '_',
+                  })}
+                  label={getValueLabel(
+                    form.watch(`organizationIds.${index}.idType`)
+                  )}
                   required
                 />
 

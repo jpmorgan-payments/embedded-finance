@@ -580,10 +580,28 @@
     "uploadDocuments": "Upload documents",
     "reviewAndAttest": "Review and attest"
   },
+  "idValueLabels": {
+    "placeholder": "Enter ID value",
+    "individual": {
+      "SSN": "Social Security Number",
+      "ITIN": "Individual Taxpayer Identification Number",
+      "NATIONAL_ID": "National ID",
+      "DRIVERS_LICENSE": "Driver's License",
+      "PASSPORT": "Passport",
+      "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number",
+      "OTHER_GOVERNMENT_ID": "Other Government ID"
+    },
+    "organization": {
+      "EIN": "Employer Identification Number",
+      "BUSINESS_REGISTRATION_ID": "Business Registration ID",
+      "BUSINESS_NUMBER": "Business Number",
+      "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+    }
+  },
   "fetchingClientData": "Fetching client data...",
   "initialStepDescription1": "The information we request from you will help us complete setting up your account.",
   "initialStepDescription2": "Please review and update any information that needs confirmation; and provide any additional information requested.",
-  "initialStepNoOrganizationType": "Please select your <strong>organization type</strong> to preview the information you will need to confirm or provide.",
+  "initialStepNoOrganizationType": "Please select your organization type to preview the information you will need to confirm or provide.",
   "initialStepOrganizationTypeInformation": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
   "initialStepOrganizationTypeInformationBasic": "As a <strong>$t(organizationTypes.{{organizationType}})</strong>, you will need to confirm or provide the following information:",
   "initialStepOrganizationTypeInformationFull": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",

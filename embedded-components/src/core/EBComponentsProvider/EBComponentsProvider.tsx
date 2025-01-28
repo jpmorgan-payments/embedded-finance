@@ -26,14 +26,18 @@ const ContentTokensContext = createContext<
   EBConfig['contentTokens'] | undefined
 >(undefined);
 
-const ReactQueryDevtoolsProduction = lazy(() =>
-  // eslint-disable-next-line import/extensions
-  import('@tanstack/react-query-devtools/build/modern/production.js').then(
-    (d) => ({
-      default: d.ReactQueryDevtools,
-    })
-  )
-);
+// Only import devtools in development
+const ReactQueryDevtoolsProduction =
+  process.env.NODE_ENV === 'development'
+    ? lazy(() =>
+        import(
+          // eslint-disable-next-line import/extensions
+          '@tanstack/react-query-devtools/build/modern/production.js'
+        ).then((d) => ({
+          default: d.ReactQueryDevtools,
+        }))
+      )
+    : null;
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
@@ -175,9 +179,8 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             {children}
           </ContentTokensContext.Provider>
           <Toaster closeButton expand />
-          {process.env.NODE_ENV === 'development' && (
-            <ReactQueryDevtoolsProduction />
-          )}
+          {process.env.NODE_ENV === 'development' &&
+            ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
         </QueryClientProvider>
       </ErrorBoundary>
     </>

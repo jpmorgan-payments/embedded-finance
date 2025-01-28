@@ -307,6 +307,33 @@ export const IndividualStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
+  // Get mask format based on ID type
+  const getMaskFormat = (idType: string) => {
+    switch (idType) {
+      case 'SSN':
+        return '### - ## - ####';
+      case 'ITIN':
+        return '### - ## - ####';
+      default:
+        return undefined;
+    }
+  };
+
+  // Get label for value field based on ID type
+  const getValueLabel = (
+    idType:
+      | 'SSN'
+      | 'ITIN'
+      | 'NATIONAL_ID'
+      | 'DRIVERS_LICENSE'
+      | 'PASSPORT'
+      | 'SOCIAL_INSURANCE_NUMBER'
+      | 'OTHER_GOVERNMENT_ID'
+  ) => {
+    if (!idType) return t('idValueLabels.placeholder');
+    return t(`idValueLabels.individual.${idType}`);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-space-y-6">
@@ -583,7 +610,22 @@ export const IndividualStepForm = () => {
                 <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.value`}
-                  type="text"
+                  type={
+                    getMaskFormat(form.watch(`individualIds.${index}.idType`))
+                      ? 'text-with-mask'
+                      : 'text'
+                  }
+                  {...(getMaskFormat(
+                    form.watch(`individualIds.${index}.idType`)
+                  ) && {
+                    maskFormat: getMaskFormat(
+                      form.watch(`individualIds.${index}.idType`)
+                    ),
+                    maskChar: '_',
+                  })}
+                  label={getValueLabel(
+                    form.watch(`individualIds.${index}.idType`)
+                  )}
                   required
                 />
 

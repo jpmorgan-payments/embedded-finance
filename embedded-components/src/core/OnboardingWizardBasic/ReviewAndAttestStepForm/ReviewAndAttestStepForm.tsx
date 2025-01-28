@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { IconCheck } from '@tabler/icons-react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { get } from 'lodash';
+import { CheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
+import { _get } from '@/lib/utils';
 import {
   smbdoDownloadDocument,
   smbdoGetDocumentDetail,
@@ -207,7 +207,7 @@ export const ReviewAndAttestStepForm = () => {
       <h2 className="eb-mb-4 eb-text-xl eb-font-bold">{party?.partyType}</h2>
       <dl className="eb-ml-2 eb-space-y-2">
         {fields.map(({ label, path, transformFunc }) => {
-          const value = get(party, path);
+          const value = _get(party, path);
           if (value !== undefined && value !== null) {
             return (
               <div
@@ -337,7 +337,7 @@ export const ReviewAndAttestStepForm = () => {
                       <span className="">
                         {query.data?.id &&
                         termsDocumentsOpened[query.data.id] ? (
-                          <IconCheck className="eb-h-4 eb-w-4" />
+                          <CheckIcon className="eb-h-4 eb-w-4" />
                         ) : (
                           <span className="eb-h-4" />
                         )}

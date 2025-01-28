@@ -10,6 +10,7 @@ import {
   Select,
   SimpleGrid,
   Text,
+  NumberInput,
 } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
@@ -50,6 +51,11 @@ export const OnboardingNextPageV2 = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const initialStepId = params.get('initialStep');
+  const [initialStep, setInitialStep] = useState<number>(
+    initialStepId ? parseInt(initialStepId) : 1,
+  );
 
   useEffect(() => {
     if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -96,6 +102,10 @@ export const OnboardingNextPageV2 = () => {
     setSelectedLocale(locale);
   }
 
+  function handleStepChange(value: number) {
+    setInitialStep(value || 0);
+  }
+
   const code = `
 <EBComponentsProvider
   apiBaseUrl="${scenario?.baseURL ?? ''}"
@@ -106,7 +116,7 @@ export const OnboardingNextPageV2 = () => {
 >
   <OnboardingWizardBasic
     title="Onboarding Wizard"
-    clientId="${scenario?.clientId}"
+    initialClientId="${scenario?.clientId}"
     availableProducts={[${scenario?.availableProducts.map((product) => `"${product}"`).join(', ')}]}
     availableJurisdictions={[${scenario?.availableJurisdictions.map((jurisdiction) => `"${jurisdiction}"`).join(',')}]}
   />
@@ -135,7 +145,7 @@ export const OnboardingNextPageV2 = () => {
         </div>
       )}
       <EBComponentsProvider
-        key={`provider-${scenario?.clientId}-${selectedThemeId}`}
+        key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
         apiBaseUrl={scenario?.baseURL ?? ''}
         headers={{
           api_gateway_client_id: scenario?.gatewayID ?? '',
@@ -161,6 +171,7 @@ export const OnboardingNextPageV2 = () => {
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
             title="Onboarding Wizard"
             initialClientId={scenario?.clientId}
+            initialStep={initialStep - 1}
             onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
@@ -214,7 +225,18 @@ export const OnboardingNextPageV2 = () => {
           />
         </Grid.Col>
 
-        <Grid.Col span={3}>
+        <Grid.Col span={2}>
+          <NumberInput
+            label="Initial Step"
+            placeholder="Step"
+            min={1}
+            max={7}
+            value={initialStep}
+            onChange={handleStepChange}
+          />
+        </Grid.Col>
+
+        <Grid.Col span={2}>
           <Select
             name="locale"
             label="Locale"
@@ -229,7 +251,7 @@ export const OnboardingNextPageV2 = () => {
         </Grid.Col>
 
         {listThemes()?.length > 0 && (
-          <Grid.Col span={3}>
+          <Grid.Col span={2}>
             <Select
               clearable
               name="theme"

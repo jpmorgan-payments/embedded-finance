@@ -37,7 +37,7 @@
     "yup": "^0.32.11"
   },
   "scripts": {
-    "start": " cross-env VITE_API_URL='' vite --port 3000",
+    "start": " cross-env VITE_API_URL='' vite --port 3010",
     "build": "node_modules/typescript/bin/tsc && vite build",
     "serve": "vite preview",
     "test": "vitest watch",

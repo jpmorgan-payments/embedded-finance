@@ -10,6 +10,8 @@ import {
   recipientsMock,
   transactionDetailsMock,
   transactionsMock,
+  efClientQuestionsMock,
+  efDocumentClientDetail,
 } from 'mocks';
 
 import { API_URL } from 'data/constants';
@@ -83,5 +85,26 @@ export const createHandlers = (apiUrl) => [
         },
       },
     );
+  }),
+
+  http.post('/ef/do/v1/parties/:partyId', (req) => {
+    return HttpResponse.json(
+      clientDetailsScenario1?.parties?.filter((p) => p.id === '2000000111')[0],
+    );
+  }),
+
+  http.get('/ef/do/v1/questions', (req) => {
+    const url = new URL(req.request.url);
+    const questionIds = url.searchParams.get('questionIds');
+    return HttpResponse.json({
+      metadata: efClientQuestionsMock.metadata,
+      questions: efClientQuestionsMock?.questions.filter((q) =>
+        questionIds?.includes(q.id),
+      ),
+    });
+  }),
+
+  http.get('/ef/do/v1/documents/abcd1c1d-6635-43ff-a8e5-b252926bddef', () => {
+    return HttpResponse.json(efDocumentClientDetail);
   }),
 ];
