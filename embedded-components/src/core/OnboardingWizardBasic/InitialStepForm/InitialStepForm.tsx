@@ -17,7 +17,6 @@ import {
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -27,6 +26,7 @@ import {
 import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
 
+import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
@@ -376,7 +376,7 @@ export const InitialStepForm = () => {
     <Form {...form}>
       <form onSubmit={onSubmit}>
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
-          <div className="eb-space-y-6">
+          <fieldset className="eb-space-y-6">
             <OnboardingFormField
               control={form.control}
               name="product"
@@ -413,6 +413,7 @@ export const InitialStepForm = () => {
                 value: type,
                 label: t(`organizationTypes.${type}`),
               }))}
+              disabled
             />
 
             <OnboardingFormField
@@ -452,10 +453,8 @@ export const InitialStepForm = () => {
               }
             />
 
-            <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
-              <Button>{t('common:next')}</Button>
-            </div>
-          </div>
+            <FormActions />
+          </fieldset>
           <Card className="eb-hidden md:eb-block">
             <CardHeader className="eb-border-l-2 eb-bg-gray-100">
               <CardDescription>{t('initialStepDescription1')}</CardDescription>

@@ -87,8 +87,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useStepper } from '@/components/ui/stepper';
 
+import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
@@ -105,7 +105,6 @@ import {
 type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
 
 export const BusinessOwnerStepForm = () => {
-  const { nextStep, prevStep, isDisabledStep } = useStepper();
   const { clientId, onPostClientResponse, onPostPartyResponse } =
     useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
@@ -891,16 +890,7 @@ export const BusinessOwnerStepForm = () => {
       </Dialog>
 
       <ServerErrorAlert error={updateClientError} />
-      <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
-        <Button
-          disabled={isDisabledStep}
-          variant="secondary"
-          onClick={prevStep}
-        >
-          Previous
-        </Button>
-        <Button onClick={nextStep}>Next</Button>
-      </div>
+      <FormActions />
     </div>
   );
 };
