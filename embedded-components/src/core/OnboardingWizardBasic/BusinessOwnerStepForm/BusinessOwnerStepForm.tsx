@@ -55,7 +55,6 @@ import {
   ArchiveRestoreIcon,
   EditIcon,
   Loader2Icon,
-  PersonStandingIcon,
   TrashIcon,
   UserPlusIcon,
 } from 'lucide-react';
@@ -83,11 +82,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
