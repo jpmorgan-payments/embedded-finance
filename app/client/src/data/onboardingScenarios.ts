@@ -1,22 +1,4 @@
 export const onboardingScenarios = [
-  // {
-  //   id: 'scenario1',
-  //   name: 'Canada MS - Sole Proprietor - existing client',
-  //   clientId: '0030000132',
-  //   availableJurisdictions: ['CA'],
-  //   availableProducts: ['MERCHANT_SERVICES'],
-  //   baseURL: '/ef/do/v1/',
-  //   gatewayID: '',
-  // },
-  // {
-  //   id: 'scenario2',
-  //   name: 'Canada MS - LLC - existing client',
-  //   clientId: '0030000133',
-  //   availableJurisdictions: ['CA'],
-  //   availableProducts: ['MERCHANT_SERVICES'],
-  //   baseURL: '/ef/do/v1/',
-  //   gatewayID: '',
-  // },
   {
     id: 'scenario3',
     name: 'LLC - existing client',
@@ -37,10 +19,10 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario5',
-    name: 'LLC - new client',
+    name: 'New client',
     clientId: undefined,
     availableJurisdictions: ['US'],
-    availableProducts: ['MERCHANT_SERVICES'],
+    availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',
     gatewayID: '',
   },
