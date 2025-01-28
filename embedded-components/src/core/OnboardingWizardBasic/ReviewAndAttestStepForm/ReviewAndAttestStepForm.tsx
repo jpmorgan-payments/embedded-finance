@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { get } from 'lodash';
 import { CheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -25,6 +24,7 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { useIPAddress } from '../utils/getIPAddress';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';
+import { _get } from '@/lib/utils';
 
 const generateSessionId = () => {
   const sessionId = uuidv4();
@@ -207,7 +207,7 @@ export const ReviewAndAttestStepForm = () => {
       <h2 className="eb-mb-4 eb-text-xl eb-font-bold">{party?.partyType}</h2>
       <dl className="eb-ml-2 eb-space-y-2">
         {fields.map(({ label, path, transformFunc }) => {
-          const value = get(party, path);
+          const value = _get(party, path);
           if (value !== undefined && value !== null) {
             return (
               <div
