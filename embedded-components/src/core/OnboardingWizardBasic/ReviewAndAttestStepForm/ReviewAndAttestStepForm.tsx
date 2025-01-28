@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { IconCheck } from '@tabler/icons-react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { get } from 'lodash';
+import { CheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -337,7 +337,7 @@ export const ReviewAndAttestStepForm = () => {
                       <span className="">
                         {query.data?.id &&
                         termsDocumentsOpened[query.data.id] ? (
-                          <IconCheck className="eb-h-4 eb-w-4" />
+                          <CheckIcon className="eb-h-4 eb-w-4" />
                         ) : (
                           <span className="eb-h-4" />
                         )}
