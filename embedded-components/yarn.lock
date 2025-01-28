@@ -1610,7 +1610,6 @@ __metadata:
     "@storybook/react-vite": "npm:^8.5.0"
     "@storybook/test": "npm:^8.5.0"
     "@storybook/testing-library": "npm:^0.2.2"
-    "@tabler/icons-react": "npm:^3.11.0"
     "@tanstack/react-query": "npm:^5.51.16"
     "@tanstack/react-query-devtools": "npm:^5.51.16"
     "@tanstack/react-table": "npm:^8.19.3"
@@ -1618,7 +1617,6 @@ __metadata:
     "@testing-library/react": "npm:^14.3.1"
     "@testing-library/user-event": "npm:^14.5.2"
     "@types/dompurify": "npm:^3.2.0"
-    "@types/lodash": "npm:^4.17.13"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@types/react-window": "npm:^1"
@@ -1650,7 +1648,6 @@ __metadata:
     jsdom: "npm:^24.1.1"
     json-diff-ts: "npm:^4.0.1"
     libphonenumber-js: "npm:^1.11.5"
-    lodash: "npm:^4.17.21"
     lucide-react: "npm:^0.418.0"
     msw: "npm:^2.7.0"
     msw-storybook-addon: "npm:^2.0.4"
@@ -1679,7 +1676,6 @@ __metadata:
     sonner: "npm:^1.5.0"
     storybook: "npm:^8.5.0"
     storybook-dark-mode: "npm:^4.0.2"
-    tabler-icons-react: "npm:^1.56.0"
     tailwind-merge: "npm:^2.4.0"
     tailwindcss: "npm:^3.4.7"
     tailwindcss-animate: "npm:^1.0.7"
@@ -4392,24 +4388,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons-react@npm:^3.11.0":
-  version: 3.11.0
-  resolution: "@tabler/icons-react@npm:3.11.0"
-  dependencies:
-    "@tabler/icons": "npm:3.11.0"
-  peerDependencies:
-    react: ">= 16"
-  checksum: 10c0/5c3c999ecf9d09ed598ad15e7f938abc3a4eef31f601a0f2523123d925358db8c3286cbe4ec1b2de18e70a1e765c371f15e070ab1e82320f4f417a43a7d8ea87
-  languageName: node
-  linkType: hard
-
-"@tabler/icons@npm:3.11.0":
-  version: 3.11.0
-  resolution: "@tabler/icons@npm:3.11.0"
-  checksum: 10c0/335558d3e2272e7301a51e5ec2b7c00f32364a004406e5f3ed21a02391017572be4d1baa409718384178bcf1d590b2f84470e847228d0b1305aef597d8be5cd7
-  languageName: node
-  linkType: hard
-
 "@tanstack/query-core@npm:5.51.16":
   version: 5.51.16
   resolution: "@tanstack/query-core@npm:5.51.16"
@@ -4705,13 +4683,6 @@ __metadata:
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
   checksum: 10c0/6bf5337bc447b706bb5b4431d37686aa2ea6d07cfd6f79cc31de80170d6ff9b1c7384a9c0ccbc45b3f512bae9e9f75c2e12109806a15331dc94e8a8db6dbb4ac
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:^4.17.13":
-  version: 4.17.13
-  resolution: "@types/lodash@npm:4.17.13"
-  checksum: 10c0/c3d0b7efe7933ac0369b99f2f7bff9240d960680fdb74b41ed4bd1b3ca60cca1e31fe4046d9abbde778f941a41bc2a75eb629abf8659fa6c27b66efbbb0802a9
   languageName: node
   linkType: hard
 
@@ -12255,15 +12226,6 @@ __metadata:
   version: 3.2.4
   resolution: "symbol-tree@npm:3.2.4"
   checksum: 10c0/dfbe201ae09ac6053d163578778c53aa860a784147ecf95705de0cd23f42c851e1be7889241495e95c37cabb058edb1052f141387bef68f705afc8f9dd358509
-  languageName: node
-  linkType: hard
-
-"tabler-icons-react@npm:^1.56.0":
-  version: 1.56.0
-  resolution: "tabler-icons-react@npm:1.56.0"
-  peerDependencies:
-    react: ">= 16.8.0"
-  checksum: 10c0/65706011940ead0c6e39771fddce31aae11966e31a1da5bbddeaaa2b4d00b589fbdb8722bbd90af2a537ea2a69ff78b254c6f59bca04b02dca3deac38e1d2615
   languageName: node
   linkType: hard
 
