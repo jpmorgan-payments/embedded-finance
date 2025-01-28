@@ -587,12 +587,8 @@
   "initialStepOrganizationTypeInformation": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
   "initialStepOrganizationTypeInformationBasic": "As a <strong>$t(organizationTypes.{{organizationType}})</strong>, you will need to confirm or provide the following information:",
   "initialStepOrganizationTypeInformationFull": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
-  "postalCode": "ZIP / Postal code",
-  "city": "City",
-  "state": "State / Province",
-  "country": "Country",
-  "email": null,
-  "phone": null,
+  "beneficialOwnerDialogDescriptionEdit": "Make changes to beneficial owner information here. Click save when you're done.",
+  "beneficialOwnerDialogDescriptionAdd": "Fill out the information for the new beneficial owner here. Click save when you're done.",
   "clientProducts": {
     "EMBEDDED_PAYMENTS": "Embedded Payments",
     "MERCHANT_SERVICES": "Merchant Services"

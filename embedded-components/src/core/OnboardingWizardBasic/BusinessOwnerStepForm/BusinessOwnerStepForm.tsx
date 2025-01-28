@@ -50,7 +50,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EditIcon, TrashIcon, UserPlusIcon } from 'lucide-react';
+import { AccordionContent } from '@radix-ui/react-accordion';
+import {
+  ArchiveRestoreIcon,
+  EditIcon,
+  Loader2Icon,
+  PersonStandingIcon,
+  TrashIcon,
+  UserPlusIcon,
+} from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -62,11 +70,29 @@ import {
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -87,6 +113,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
@@ -164,13 +191,19 @@ export const BusinessOwnerStepForm = () => {
     },
   });
 
+  const {
+    mutate: updateController,
+    // error: partyUpdateError,
+    status: controllerUpdateStatus,
+  } = useSmbdoUpdateParty();
+
   // Update controller roles on change
   useEffect(() => {
     const controllerRoles = controllerData?.roles || [];
 
     const updateControllerRoles = () => {
       if (controllerData?.id) {
-        updateParty(
+        updateController(
           {
             partyId: controllerData.id,
             data: {
@@ -253,7 +286,7 @@ export const BusinessOwnerStepForm = () => {
     status: partyUpdateStatus,
   } = useSmbdoUpdateParty();
 
-  const handleUpdateBeneficialOwner = (beneficialOwnerId: string) => {
+  const handleEditBeneficialOwner = (beneficialOwnerId: string) => {
     if (clientDataGetStatus === 'success' && clientData) {
       setCurrentBeneficialOwnerId(beneficialOwnerId);
       const formValues = convertClientResponseToFormValues(
@@ -276,6 +309,15 @@ export const BusinessOwnerStepForm = () => {
       partyId: beneficialOwnerId,
       data: {
         active: false,
+      },
+    });
+  };
+
+  const handleRestoreBeneficialOwner = (beneficialOwnerId: string) => {
+    updateParty({
+      partyId: beneficialOwnerId,
+      data: {
+        active: true,
       },
     });
   };
@@ -324,6 +366,14 @@ export const BusinessOwnerStepForm = () => {
     }
   };
 
+  const activeOwners = ownersData.filter((owner) => owner.active);
+  const inactiveOwners = ownersData.filter((owner) => !owner.active);
+
+  const isFormDisabled =
+    controllerUpdateStatus === 'pending' ||
+    partyUpdateStatus === 'pending' ||
+    clientUpdateStatus === 'pending';
+
   if (clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
@@ -335,6 +385,7 @@ export const BusinessOwnerStepForm = () => {
           <OnboardingFormField
             control={controllerForm.control}
             disableMapping
+            disabled={isFormDisabled}
             type="radio-group"
             name="controllerIsOwner"
             label="Do you, the controller, own 25% or more of the business?"
@@ -343,6 +394,12 @@ export const BusinessOwnerStepForm = () => {
               { value: 'no', label: t('common:no') },
             ]}
           />
+          {controllerUpdateStatus === 'pending' && (
+            <div className="eb-mt-2 eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+              <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
+              <span>Making changes...</span>
+            </div>
+          )}
         </form>
       </Form>
 
@@ -350,32 +407,44 @@ export const BusinessOwnerStepForm = () => {
         <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
           Beneficial Owners
         </legend>
-        {ownersData.map((owner) => (
+        {activeOwners.map((owner) => (
           <Card key={owner.id}>
             <CardHeader>
               <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
+              <CardDescription className="eb-flex eb-gap-2 eb-pt-2">
+                {owner.roles?.includes('CONTROLLER') ? (
+                  <Badge>Controller</Badge>
+                ) : null}
+                <Badge variant="secondary">Owner</Badge>
+                {owner?.individualDetails?.jobTitle ? (
+                  <Badge variant="outline">
+                    Job title: {owner.individualDetails.jobTitle}
+                  </Badge>
+                ) : null}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
-              <div className="eb-mt-4 eb-space-x-2">
+              <div className="eb-space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
+                  disabled={isFormDisabled}
                   onClick={() =>
-                    owner?.id && handleUpdateBeneficialOwner(owner?.id)
+                    owner?.id && handleEditBeneficialOwner(owner.id)
                   }
                 >
-                  <EditIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                  <EditIcon />
                   Edit
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
+                  disabled={isFormDisabled}
                   onClick={() =>
-                    owner?.id && handleDeactivateBeneficialOwner(owner?.id)
+                    owner?.id && handleDeactivateBeneficialOwner(owner.id)
                   }
                 >
-                  <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                  <TrashIcon />
                   Delete
                 </Button>
               </div>
@@ -384,28 +453,70 @@ export const BusinessOwnerStepForm = () => {
         ))}
         <Button
           className="eb-flex eb-cursor-pointer eb-items-center eb-justify-center"
+          disabled={isFormDisabled}
           onClick={handleAddBeneficialOwner}
         >
-          <UserPlusIcon className="eb-mr-2 eb-h-4 eb-w-4 eb-stroke-2" />
+          <UserPlusIcon />
           Add Beneficial Owner
         </Button>
       </fieldset>
 
+      <Accordion type="single" collapsible>
+        <AccordionItem value="inactive-owners" className="eb-rounded eb-border">
+          <AccordionTrigger
+            className="eb-px-4"
+            disabled={inactiveOwners.length === 0}
+          >
+            Inactive Owners ({inactiveOwners.length})
+          </AccordionTrigger>
+          <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+            {ownersData
+              .filter((owner) => !owner.active)
+              .map((owner) => (
+                <Card key={owner.id} className="eb-mb-4">
+                  <CardHeader>
+                    <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
+                    <div className="eb-mt-4 eb-space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isFormDisabled}
+                        onClick={() =>
+                          owner?.id && handleRestoreBeneficialOwner(owner.id)
+                        }
+                      >
+                        <ArchiveRestoreIcon />
+                        Restore
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="eb-max-h-[98%] eb-px-0 lg:eb-max-w-screen-lg">
-          <DialogHeader className="eb-px-6">
-            <DialogTitle>
-              {currentBeneficialOwnerId
-                ? 'Edit Beneficial Owner'
-                : 'Add Beneficial Owner'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="eb-flex-1 eb-overflow-y-auto eb-p-6">
-            <Form {...ownerForm}>
-              <form
-                onSubmit={ownerForm.handleSubmit(onSubmit)}
-                className="eb-space-y-6"
-              >
+        <Form {...ownerForm}>
+          <form onSubmit={ownerForm.handleSubmit(onSubmit)}>
+            <DialogContent className="eb-max-h-[98%] eb-gap-0 eb-px-0 lg:eb-max-w-screen-lg">
+              <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
+                <DialogTitle>
+                  {currentBeneficialOwnerId
+                    ? 'Edit Beneficial Owner'
+                    : 'Add Beneficial Owner'}
+                </DialogTitle>
+                <DialogDescription>
+                  {currentBeneficialOwnerId
+                    ? t('beneficialOwnerDialogDescriptionEdit')
+                    : t('beneficialOwnerDialogDescriptionAdd')}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="eb-flex-1 eb-overflow-y-auto eb-p-6">
                 <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                   <FormField
                     control={ownerForm.control}
@@ -878,18 +989,19 @@ export const BusinessOwnerStepForm = () => {
                     </Button>
                   </CardContent>
                 </Card>
+              </div>
 
-                <Button type="submit">
-                  {currentBeneficialOwnerId ? 'Update' : 'Add'} Beneficial Owner
-                </Button>
-              </form>
-            </Form>
-          </div>
-        </DialogContent>
+              <DialogFooter className="eb-border-t eb-px-6 eb-pt-6">
+                <Button type="submit">Save changes</Button>
+              </DialogFooter>
+            </DialogContent>
+          </form>
+        </Form>
       </Dialog>
 
+      {/* TODO: move this */}
       <ServerErrorAlert error={clientUpdateError} />
-      <FormActions />
+      <FormActions disabled={isFormDisabled} />
     </div>
   );
 };
