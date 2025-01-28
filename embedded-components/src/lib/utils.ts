@@ -13,9 +13,29 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function _get(object: any, path: string | string[], defval = null) {
-  if (typeof path === 'string') path = path.split('.');
-  return path.reduce((xs, x) => (xs && xs[x] ? xs[x] : defval), object);
+export function _get(
+  object: any,
+  path: string | string[],
+  defaultValue?: any
+): any {
+  // Handle null/undefined objects
+  if (object == null) return defaultValue;
+
+  // Normalize path to array
+  const segments = Array.isArray(path) ? path : path.split('.');
+
+  // Handle array indexes and nested paths
+  let result = object;
+  for (const segment of segments) {
+    // Handle array indices in bracket notation e.g. "foo[0].bar"
+    const matches = segment.match(/^([^[]+)|\[(.+)\]$/);
+    const key = matches ? matches[1] || matches[2] : segment;
+
+    result = result?.[key];
+    if (result === undefined) return defaultValue;
+  }
+
+  return result ?? defaultValue;
 }
 
 export function createRegExpAndMessage(
