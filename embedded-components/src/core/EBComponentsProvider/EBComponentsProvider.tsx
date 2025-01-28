@@ -1,20 +1,24 @@
-import { createContext, lazy, PropsWithChildren, useContext, useEffect, useMemo, useState, type ErrorInfo } from 'react';
+import {
+  createContext,
+  lazy,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ErrorInfo,
+} from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 
-
-
 import { loadContentTokens } from '@/lib/utils';
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
 
-
-
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
-
 
 const queryClient = new QueryClient();
 
