@@ -110,13 +110,12 @@ export const BusinessOwnerStepForm = () => {
   const { t } = useTranslation(['onboarding', 'common']);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentDecisionMakerId, setCurrentDecisionMakerId] =
+  const [currentBeneficialOwnerId, setCurrentBeneficialOwnerId] =
     useState<string>('');
 
-  // Fetch client data
   const {
     data: clientData,
-    status: getClientStatus,
+    status: clientDataGetStatus,
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
@@ -165,6 +164,7 @@ export const BusinessOwnerStepForm = () => {
     },
   });
 
+  // Update controller roles on change
   useEffect(() => {
     const controllerRoles = controllerData?.roles || [];
 
@@ -198,6 +198,7 @@ export const BusinessOwnerStepForm = () => {
         );
       }
     };
+
     if (
       controllerForm.watch('controllerIsOwner') === 'yes' &&
       !controllerRoles.includes('BENEFICIAL_OWNER')
@@ -238,52 +239,50 @@ export const BusinessOwnerStepForm = () => {
     name: 'individualIds',
   });
 
+  // Used for adding a party to the client
   const {
     mutate: updateClient,
-    error: updateClientError,
-    status: updateClientStatus,
+    error: clientUpdateError,
+    status: clientUpdateStatus,
   } = useSmbdoUpdateClient();
 
+  // Used for updating party details
   const {
     mutate: updateParty,
-    // error: updatePartyError,
-    status: updatePartyStatus,
+    // error: partyUpdateError,
+    status: partyUpdateStatus,
   } = useSmbdoUpdateParty();
 
-  const handleEditDecisionMaker = (decisionMakerId: string) => {
-    if (getClientStatus === 'success' && clientData) {
-      setCurrentDecisionMakerId(decisionMakerId);
+  const handleUpdateBeneficialOwner = (beneficialOwnerId: string) => {
+    if (clientDataGetStatus === 'success' && clientData) {
+      setCurrentBeneficialOwnerId(beneficialOwnerId);
       const formValues = convertClientResponseToFormValues(
         clientData,
-        decisionMakerId
+        beneficialOwnerId
       );
       ownerForm.reset(formValues as BusinessOwner);
       setIsDialogOpen(true);
     }
   };
 
-  const handleAddDecisionMaker = () => {
-    setCurrentDecisionMakerId('');
+  const handleAddBeneficialOwner = () => {
+    setCurrentBeneficialOwnerId('');
     ownerForm.reset({});
     setIsDialogOpen(true);
   };
 
-  const handleDeleteDecisionMaker = (decisionMakerId: string) => {
-    if (clientId) {
-      const requestBody = {
-        removeParties: [{ id: decisionMakerId }],
-      } as UpdateClientRequestSmbdo;
-
-      updateClient({
-        id: clientId,
-        data: requestBody,
-      });
-    }
+  const handleDeactivateBeneficialOwner = (beneficialOwnerId: string) => {
+    updateParty({
+      partyId: beneficialOwnerId,
+      data: {
+        active: false,
+      },
+    });
   };
 
   const onSubmit = (values: BusinessOwner) => {
     if (clientId) {
-      if (!currentDecisionMakerId) {
+      if (!currentBeneficialOwnerId) {
         const requestBody = generateRequestBody(values, 0, 'addParties', {
           addParties: [
             {
@@ -305,7 +304,7 @@ export const BusinessOwnerStepForm = () => {
             onSuccess: () => {
               toast.success('Beneficial owner details updated successfully');
               setIsDialogOpen(false);
-              setCurrentDecisionMakerId('');
+              setCurrentBeneficialOwnerId('');
               ownerForm.reset({});
               refetchClientData();
             },
@@ -318,14 +317,14 @@ export const BusinessOwnerStepForm = () => {
         const partyRequestBody = generatePartyRequestBody(values, {});
 
         updateParty({
-          partyId: currentDecisionMakerId,
+          partyId: currentBeneficialOwnerId,
           data: partyRequestBody,
         });
       }
     }
   };
 
-  if (updateClientStatus === 'pending' || updatePartyStatus === 'pending') {
+  if (clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending') {
     return <FormLoadingState message="Submitting..." />;
   }
 
@@ -363,7 +362,7 @@ export const BusinessOwnerStepForm = () => {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    owner?.id && handleEditDecisionMaker(owner?.id)
+                    owner?.id && handleUpdateBeneficialOwner(owner?.id)
                   }
                 >
                   <EditIcon className="eb-mr-2 eb-h-4 eb-w-4" />
@@ -373,7 +372,7 @@ export const BusinessOwnerStepForm = () => {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    owner?.id && handleDeleteDecisionMaker(owner?.id)
+                    owner?.id && handleDeactivateBeneficialOwner(owner?.id)
                   }
                 >
                   <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
@@ -385,7 +384,7 @@ export const BusinessOwnerStepForm = () => {
         ))}
         <Button
           className="eb-flex eb-cursor-pointer eb-items-center eb-justify-center"
-          onClick={handleAddDecisionMaker}
+          onClick={handleAddBeneficialOwner}
         >
           <UserPlusIcon className="eb-mr-2 eb-h-4 eb-w-4 eb-stroke-2" />
           Add Beneficial Owner
@@ -396,7 +395,7 @@ export const BusinessOwnerStepForm = () => {
         <DialogContent className="eb-max-h-[98%] eb-px-0 lg:eb-max-w-screen-lg">
           <DialogHeader className="eb-px-6">
             <DialogTitle>
-              {currentDecisionMakerId
+              {currentBeneficialOwnerId
                 ? 'Edit Beneficial Owner'
                 : 'Add Beneficial Owner'}
             </DialogTitle>
@@ -881,7 +880,7 @@ export const BusinessOwnerStepForm = () => {
                 </Card>
 
                 <Button type="submit">
-                  {currentDecisionMakerId ? 'Update' : 'Add'} Beneficial Owner
+                  {currentBeneficialOwnerId ? 'Update' : 'Add'} Beneficial Owner
                 </Button>
               </form>
             </Form>
@@ -889,7 +888,7 @@ export const BusinessOwnerStepForm = () => {
         </DialogContent>
       </Dialog>
 
-      <ServerErrorAlert error={updateClientError} />
+      <ServerErrorAlert error={clientUpdateError} />
       <FormActions />
     </div>
   );
