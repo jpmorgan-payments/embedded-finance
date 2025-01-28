@@ -1,5 +1,4 @@
 import i18n from 'i18next';
-import _ from 'lodash';
 import { initReactI18next } from 'react-i18next';
 import { z } from 'zod';
 import { zodI18nMap } from 'zod-i18n-map';
@@ -26,7 +25,7 @@ export const defaultResources = {
   },
 };
 
-export const resources = _.cloneDeep(defaultResources);
+export const resources = JSON.parse(JSON.stringify(defaultResources));
 
 i18n.use(initReactI18next).init({
   lng: 'enUS',
