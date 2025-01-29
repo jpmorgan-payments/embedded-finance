@@ -2,14 +2,7 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import {
-  Badge,
-  Divider,
-  Grid,
-  Select,
-  Text,
-  NumberInput,
-} from '@mantine/core';
+import { Badge, Divider, Grid, Select, Text, NumberInput } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -251,6 +244,13 @@ export const OnboardingNextPageV2 = () => {
             availableProducts={scenario?.availableProducts ?? []}
             // @ts-ignore
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
+            // @ts-ignore
+            availableOrganizationTypes={
+              scenario?.availableOrganizationTypes ?? [
+                'SOLE_PROPRIETORSHIP',
+                'LIMITED_LIABILITY_COMPANY',
+              ]
+            }
             title="Onboarding Wizard"
             initialClientId={clientIdFromParams ?? scenario?.clientId}
             initialStep={initialStep - 1}
