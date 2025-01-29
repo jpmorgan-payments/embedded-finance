@@ -65,7 +65,6 @@ import {
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -904,32 +903,12 @@ export const OrganizationStepForm = () => {
               </Button>
             </div>
           )}
-          {isFieldVisible('websiteAvailable') && (
-            <FormField
-              control={form.control}
-              name="websiteAvailable"
-              disabled={isFieldDisabled('websiteAvailable')}
-              render={({ field }) => (
-                <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-p-4">
-                  <FormControl>
-                    <Checkbox
-                      disabled={field.disabled}
-                      ref={field.ref}
-                      name={field.name}
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        form.clearErrors('website');
-                        field.onChange(checked);
-                      }}
-                    />
-                  </FormControl>
-                  <FormLabel asterisk={isFieldRequired('websiteAvailable')}>
-                    Website Available
-                  </FormLabel>
-                </FormItem>
-              )}
-            />
-          )}
+
+          <OnboardingFormField
+            control={form.control}
+            name="websiteAvailable"
+            type="checkbox"
+          />
           {isFieldVisible('website') && (
             <FormField
               control={form.control}
