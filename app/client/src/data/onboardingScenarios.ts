@@ -1,3 +1,15 @@
+const availableOrganizationTypes = [
+  'SOLE_PROPRIETORSHIP',
+  'LIMITED_LIABILITY_COMPANY',
+  'LIMITED_LIABILITY_PARTNERSHIP',
+  'GENERAL_PARTNERSHIP',
+  'LIMITED_PARTNERSHIP',
+  'C_CORPORATION',
+  'S_CORPORATION',
+  'PARTNERSHIP',
+  'PUBLICLY_TRADED_COMPANY',
+];
+
 export const onboardingScenarios = [
   {
     id: 'scenario1',
@@ -7,6 +19,7 @@ export const onboardingScenarios = [
     availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',
     gatewayID: '',
+    availableOrganizationTypes,
   },
   {
     id: 'scenario2',
@@ -16,6 +29,7 @@ export const onboardingScenarios = [
     availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',
     gatewayID: '',
+    availableOrganizationTypes,
   },
   {
     id: 'scenario3',
@@ -25,6 +39,7 @@ export const onboardingScenarios = [
     availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',
     gatewayID: '',
+    availableOrganizationTypes,
   },
   {
     id: 'scenario4',
@@ -34,5 +49,6 @@ export const onboardingScenarios = [
     availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',
     gatewayID: '',
+    availableOrganizationTypes,
   },
 ];

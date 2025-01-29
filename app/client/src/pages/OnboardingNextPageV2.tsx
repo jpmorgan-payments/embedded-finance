@@ -2,16 +2,7 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import {
-  Badge,
-  Divider,
-  Grid,
-  Group,
-  Select,
-  SimpleGrid,
-  Text,
-  NumberInput,
-} from '@mantine/core';
+import { Badge, Divider, Grid, Select, Text, NumberInput } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -20,6 +11,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
+import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {
   if (!theme) return {};
@@ -252,6 +244,13 @@ export const OnboardingNextPageV2 = () => {
             availableProducts={scenario?.availableProducts ?? []}
             // @ts-ignore
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
+            // @ts-ignore
+            availableOrganizationTypes={
+              scenario?.availableOrganizationTypes ?? [
+                'SOLE_PROPRIETORSHIP',
+                'LIMITED_LIABILITY_COMPANY',
+              ]
+            }
             title="Onboarding Wizard"
             initialClientId={clientIdFromParams ?? scenario?.clientId}
             initialStep={initialStep - 1}
@@ -279,6 +278,7 @@ export const OnboardingNextPageV2 = () => {
       apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
+      <DevelopmentNotice />
       {validationError && (
         <div role="alert" className="text-red-600 mb-4">
           {validationError}

@@ -247,7 +247,9 @@ const OnboardingWizardBasicComponent: FC<
       </CardHeader>
       <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
         {clientData && <MissingInfoAlert clientData={clientData} />}
-        {clientData?.status === 'NEW' || !clientId ? (
+        {clientData?.status === 'NEW' ||
+        !clientId ||
+        clientGetStatus === 'pending' ? (
           <Stepper
             initialStep={wasClientIdCreated && !initialStep ? 1 : initialStep}
             steps={steps}

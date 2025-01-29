@@ -13,38 +13,38 @@
       "tooltip": ""
     },
     "organizationName": {
-      "label": "Organization Name",
-      "placeholder": "Enter organization name",
-      "description": "The organization's legal name as it appears on government forms and business paperwork",
+      "label": "Legal Business Name",
+      "placeholder": "Enter business name",
+      "description": "The business's legal name as it appears on government forms and business paperwork",
       "tooltip": "Must match exactly with your business registration documents",
       "validation": {
-        "required": "Organization name is required",
-        "format": "Organization name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
-        "pattern": "Invalid organization name format. Please use only allowed characters",
-        "minLength": "Organization name must be at least 2 characters",
-        "maxLength": "Organization name must be at most 100 characters",
-        "noLeadingSpace": "Organization name cannot start with a space",
-        "noTrailingSpace": "Organization name cannot end with a space",
-        "noConsecutiveSpaces": "Organization name cannot contain consecutive spaces",
-        "noSpecialAtStart": "Organization name cannot start with a special character",
-        "noSpecialAtEnd": "Organization name cannot end with a special character"
+        "required": "Business name is required",
+        "format": "Business name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "pattern": "Invalid business name format. Please use only allowed characters",
+        "minLength": "Business name must be at least 2 characters",
+        "maxLength": "Business name must be at most 100 characters",
+        "noLeadingSpace": "Business name cannot start with a space",
+        "noTrailingSpace": "Business name cannot end with a space",
+        "noConsecutiveSpaces": "Business name cannot contain consecutive spaces",
+        "noSpecialAtStart": "Business name cannot start with a special character",
+        "noSpecialAtEnd": "Business name cannot end with a special character"
       },
       "group": "organization"
     },
     "organizationDescription": {
-      "label": "Organization Description",
-      "placeholder": "Enter organization description",
+      "label": "Business Description",
+      "placeholder": "Enter business description",
       "description": "",
-      "tooltip": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
+      "tooltip": "The business's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
       "validation": {
-        "maxLength": "Organization description must be 500 characters or less",
-        "minLength": "Organization description must be at least 10 characters",
-        "noHtml": "Organization description cannot contain HTML tags",
-        "noUrls": "Organization description cannot contain URLs"
+        "maxLength": "Business description must be 500 characters or less",
+        "minLength": "Business description must be at least 10 characters",
+        "noHtml": "Business description cannot contain HTML tags",
+        "noUrls": "Business description cannot contain URLs"
       }
     },
     "dbaName": {
-      "label": "DBA (Doing Business As) name (optional)",
+      "label": "Doing Business As (DBA) Name (optional)",
       "placeholder": "Enter DBA name",
       "description": "An alternate name that the business is doing business under. Provide this if your business is registered with an alias.",
       "tooltip": "The DBA name must match your business registration documents.",
@@ -59,14 +59,14 @@
       }
     },
     "organizationType": {
-      "label": "Organization Type",
-      "placeholder": "Select organization type",
-      "description": "",
+      "label": "Business Type",
+      "placeholder": "Select business type",
+      "description": "Please select the most appropriate NAICS code, ensuring it accurately represents your business activity and avoiding similar but less relevant codes.",
       "tooltip": "",
       "group": "organization"
     },
     "organizationEmail": {
-      "label": "Organization Email",
+      "label": "Business Email",
       "placeholder": "Enter organization email",
       "description": "",
       "tooltip": "",
@@ -456,7 +456,7 @@
       }
     },
     "firstName": {
-      "label": "First name",
+      "label": "Legal First name",
       "placeholder": "Enter first name",
       "description": "Legal first name as it appears on government ID",
       "tooltip": "Must match your government-issued identification",
@@ -469,7 +469,7 @@
       "group": "controller"
     },
     "middleName": {
-      "label": "Middle name (optional)",
+      "label": "Legal Middle name (optional)",
       "placeholder": "Enter middle name",
       "description": "Legal middle name as it appears on government ID",
       "tooltip": "Must match your government-issued identification",
@@ -479,7 +479,7 @@
       }
     },
     "lastName": {
-      "label": "Last name",
+      "label": "Legal Last name",
       "placeholder": "Enter last name",
       "description": "Legal last name as it appears on government ID",
       "tooltip": "Must match your government-issued identification",
@@ -571,14 +571,14 @@
   },
   "title": "Client Onboarding",
   "stepLabels": {
-    "initialDetails": "Initial details",
-    "organizationDetails": "Organization details",
-    "individualDetails": "Individual details",
-    "decisionMakers": "Decision makers",
-    "businessOwners": "Beneficial owners",
-    "additionalQuestions": "Additional questions",
-    "uploadDocuments": "Upload documents",
-    "reviewAndAttest": "Review and attest"
+    "initialDetails": "Initial Details",
+    "organizationDetails": "Business Information",
+    "individualDetails": "Controller Information",
+    "decisionMakers": "Decision Makers",
+    "businessOwners": "Beneficial Owners",
+    "additionalQuestions": "Due Diligence Questions",
+    "uploadDocuments": "Additional Documents",
+    "reviewAndAttest": "Review and Attest"
   },
   "idValueLabels": {
     "placeholder": "Enter ID value",

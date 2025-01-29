@@ -484,8 +484,8 @@ export const IndividualStepForm = () => {
                   required
                   options={[
                     {
-                      value: 'RESIDENTIAL_ADDRESS',
-                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                      value: 'MAILING_ADDRESS',
+                      label: t('addressTypes.MAILING_ADDRESS'),
                     },
                   ]}
                 />
