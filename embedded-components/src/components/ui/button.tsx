@@ -24,7 +24,7 @@ const buttonVariants = cva(
         default: 'eb-h-10 eb-px-4 eb-py-2',
         sm: 'eb-h-9 eb-rounded-md eb-px-3',
         lg: 'eb-h-11 eb-rounded-md eb-px-8',
-        icon: 'eb-h-5 eb-w-5',
+        icon: 'eb-h-3 eb-w-3',
       },
     },
     defaultVariants: {
