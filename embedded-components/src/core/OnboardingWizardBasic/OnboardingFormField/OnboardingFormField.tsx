@@ -68,7 +68,7 @@ interface BaseProps<
 > extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
   control: Control<TFieldValues>;
   type?: FieldType;
-  label?: string;
+  label?: string | JSX.Element;
   placeholder?: string;
   description?: string;
   tooltip?: string;

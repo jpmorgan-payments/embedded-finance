@@ -63,12 +63,16 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { ErrorType } from '@/api/axios-instance';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import {
+  ApiError,
+  UpdateClientRequestSmbdo,
+} from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -106,10 +110,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStepper } from '@/components/ui/stepper';
 import { Badge } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
-import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
@@ -119,6 +123,8 @@ import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
   generateRequestBody,
+  setApiFormErrors,
+  translateApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
   useStepForm,
 } from '../utils/formUtils';
@@ -126,6 +132,7 @@ import {
 type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
 
 export const BusinessOwnerStepForm = () => {
+  const { nextStep } = useStepper();
   const { clientId, onPostClientResponse, onPostPartyResponse } =
     useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
@@ -353,10 +360,35 @@ export const BusinessOwnerStepForm = () => {
       } else {
         const partyRequestBody = generatePartyRequestBody(values, {});
 
-        updateParty({
-          partyId: currentBeneficialOwnerId,
-          data: partyRequestBody,
-        });
+        updateParty(
+          {
+            partyId: currentBeneficialOwnerId,
+            data: partyRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              toast.success('Beneficial owner details updated successfully');
+              setIsDialogOpen(false);
+              setCurrentBeneficialOwnerId('');
+              ownerForm.reset({});
+              refetchClientData();
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(ownerForm, apiFormErrors);
+              }
+            },
+          }
+        );
       }
     }
   };
@@ -364,16 +396,73 @@ export const BusinessOwnerStepForm = () => {
   const activeOwners = ownersData.filter((owner) => owner.active);
   const inactiveOwners = ownersData.filter((owner) => !owner.active);
 
+  // Used for updating the soleOwner field of a party
+  const { mutateAsync: updateSoleOwner, status: soleOwnerUpdateStatus } =
+    useSmbdoUpdateParty();
+
+  const soleOwnerForm = useForm({
+    defaultValues: {
+      soleOwner: false,
+    },
+  });
+
+  useEffect(() => {
+    if (activeOwners.length === 1) {
+      soleOwnerForm.setValue(
+        'soleOwner',
+        activeOwners[0].individualDetails?.soleOwner === true
+      );
+    } else {
+      soleOwnerForm.setValue('soleOwner', false);
+    }
+  }, [activeOwners.length]);
+
+  const [soleOwnerFormErrors, setSoleOwnerFormErrors] = useState<
+    Array<ErrorType<ApiError>>
+  >([]);
+
+  const handleSoleOwnerFormSubmit = soleOwnerForm.handleSubmit(
+    async (values) => {
+      const errors: Array<ErrorType<ApiError>> = [];
+      for (const owner of activeOwners) {
+        if (
+          owner.id &&
+          owner.individualDetails?.soleOwner !== values.soleOwner
+        ) {
+          await updateSoleOwner(
+            {
+              partyId: owner.id,
+              data: {
+                individualDetails: {
+                  soleOwner: values.soleOwner,
+                },
+              },
+            },
+            {
+              onError: (error) => {
+                errors.push(error);
+              },
+            }
+          );
+        }
+      }
+
+      if (errors.length > 0) {
+        setSoleOwnerFormErrors(errors);
+      } else {
+        nextStep();
+        toast.success("Client's owner details updated successfully");
+      }
+    }
+  );
+
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
+    soleOwnerUpdateStatus === 'pending' ||
     partyUpdateStatus === 'pending' ||
     clientUpdateStatus === 'pending';
 
   const ownerFormId = React.useId();
-
-  if (clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
 
   return (
     <div className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1">
@@ -446,17 +535,19 @@ export const BusinessOwnerStepForm = () => {
                   <EditIcon />
                   Edit
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isFormDisabled}
-                  onClick={() =>
-                    owner?.id && handleDeactivateBeneficialOwner(owner.id)
-                  }
-                >
-                  <TrashIcon />
-                  Delete
-                </Button>
+                {!owner.roles?.includes('CONTROLLER') ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isFormDisabled}
+                    onClick={() =>
+                      owner?.id && handleDeactivateBeneficialOwner(owner.id)
+                    }
+                  >
+                    <TrashIcon />
+                    Delete
+                  </Button>
+                ) : null}
               </div>
             </CardContent>
           </Card>
@@ -510,10 +601,61 @@ export const BusinessOwnerStepForm = () => {
         </AccordionItem>
       </Accordion>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* TODO: move this */}
+      <ServerErrorAlert error={clientUpdateError} />
+
+      <Form {...soleOwnerForm}>
+        <form className="eb-space-y-6" onSubmit={handleSoleOwnerFormSubmit}>
+          {activeOwners.length === 1 && (
+            <OnboardingFormField
+              disableMapping
+              control={soleOwnerForm.control}
+              disabled={isFormDisabled}
+              name="soleOwner"
+              type="checkbox"
+              label={
+                <span>
+                  <span className="eb-font-bold">
+                    {[
+                      activeOwners[0].individualDetails?.firstName,
+                      activeOwners[0].individualDetails?.middleName,
+                      activeOwners[0].individualDetails?.lastName,
+                    ].join(' ')}{' '}
+                    (
+                    {activeOwners[0].individualDetails?.jobTitle === 'Other'
+                      ? activeOwners[0].individualDetails?.jobTitleDescription
+                      : activeOwners[0].individualDetails?.jobTitle}
+                    )
+                  </span>{' '}
+                  is the sole owner of the business
+                </span>
+              }
+              description="Check this box if the indicated individual is the only owner of your business."
+            />
+          )}
+
+          {soleOwnerFormErrors.map((error, index) => (
+            <ServerErrorAlert key={index} error={error} />
+          ))}
+
+          <FormActions
+            disabled={isFormDisabled}
+            isLoading={soleOwnerUpdateStatus === 'pending'}
+          />
+        </form>
+      </Form>
+
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(opened) => {
+          if (!isFormDisabled) {
+            setIsDialogOpen(opened);
+          }
+        }}
+      >
         <Form {...ownerForm}>
           <form id={ownerFormId} onSubmit={ownerForm.handleSubmit(onSubmit)}>
-            <DialogContent className="eb-max-h-[98%] eb-gap-0 eb-px-0 lg:eb-max-w-screen-lg">
+            <DialogContent className="eb-max-h-full eb-gap-0 eb-px-0 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg">
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>
                   {currentBeneficialOwnerId
@@ -918,7 +1060,14 @@ export const BusinessOwnerStepForm = () => {
               </div>
 
               <DialogFooter className="eb-border-t eb-px-6 eb-pt-6">
-                <Button type="submit" form={ownerFormId}>
+                <Button
+                  type="submit"
+                  form={ownerFormId}
+                  disabled={isFormDisabled}
+                >
+                  {partyUpdateStatus === 'pending' && (
+                    <Loader2Icon className="eb-animate-spin" />
+                  )}
                   Save changes
                 </Button>
               </DialogFooter>
@@ -926,10 +1075,6 @@ export const BusinessOwnerStepForm = () => {
           </form>
         </Form>
       </Dialog>
-
-      {/* TODO: move this */}
-      <ServerErrorAlert error={clientUpdateError} />
-      <FormActions disabled={isFormDisabled} />
     </div>
   );
 };
