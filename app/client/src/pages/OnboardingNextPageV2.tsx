@@ -37,6 +37,10 @@ const mapToEBTheme = (theme?: ThemeConfig) => {
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
 
+  const apiBaseUrlFromParams = params.get('apiBaseUrl');
+  const clientIdFromParams = params.get('clientId');
+  const platformIdFromParams = params.get('platformId');
+
   const fullScreen = params.get('fullScreen') === 'true';
 
   const scenarioId = params.get('scenario');
@@ -146,9 +150,9 @@ export const OnboardingNextPageV2 = () => {
       )}
       <EBComponentsProvider
         key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
-        apiBaseUrl={scenario?.baseURL ?? ''}
+        apiBaseUrl={apiBaseUrlFromParams ?? scenario?.baseURL ?? ''}
         headers={{
-          api_gateway_client_id: scenario?.gatewayID ?? '',
+          api_gateway_client_id: platformIdFromParams ?? scenario?.gatewayID ?? '',
           Accept: 'application/json',
         }}
         theme={mapToEBTheme(
@@ -170,7 +174,7 @@ export const OnboardingNextPageV2 = () => {
             // @ts-ignore
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
             title="Onboarding Wizard"
-            initialClientId={scenario?.clientId}
+            initialClientId={clientIdFromParams ?? scenario?.clientId}
             initialStep={initialStep - 1}
             onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
