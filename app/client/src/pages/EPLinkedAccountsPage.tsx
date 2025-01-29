@@ -5,6 +5,7 @@ import {
 import { Badge, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { PageWrapper } from 'components';
+import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 import { GITHUB_REPO } from 'data/constants';
 
 export const EPLinkedAccountPage = () => {
@@ -20,6 +21,7 @@ export const EPLinkedAccountPage = () => {
       apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
+      <DevelopmentNotice />
       <EBComponentsProvider apiBaseUrl="https://api-mock.payments.jpmorgan.com/tsapi/ef/v1/">
         <LinkedAccountWidget />
       </EBComponentsProvider>

@@ -11,6 +11,7 @@ import {
   SimpleGrid,
   Text,
   NumberInput,
+  Alert,
 } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
@@ -19,7 +20,8 @@ import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
-import { IconMaximize } from '@tabler/icons-react';
+import { IconMaximize, IconAlertTriangle } from '@tabler/icons-react';
+import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {
   if (!theme) return {};
@@ -279,6 +281,7 @@ export const OnboardingNextPageV2 = () => {
       apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
+      <DevelopmentNotice />
       {validationError && (
         <div role="alert" className="text-red-600 mb-4">
           {validationError}
