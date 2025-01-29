@@ -78,7 +78,7 @@ describe('OrganizationStepForm', () => {
     // Assert
     expect(
       await screen.findByText(
-        /Organization name must be at least 2 characters/i
+        /Business name must be at least 2 characters/i
       )
     ).toBeInTheDocument();
   });
