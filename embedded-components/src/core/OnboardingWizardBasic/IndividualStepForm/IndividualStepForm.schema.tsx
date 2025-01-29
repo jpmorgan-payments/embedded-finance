@@ -254,6 +254,13 @@ export const IndividualStepFormSchema = z.object({
       i18n.t('onboarding:fields.jobTitleDescription.validation.noUrls')
     )
     .optional(),
+  individualEmail: z
+    .string()
+    .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
+    .max(
+      100,
+      i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
+    ),
   individualPhone: PhoneSchema,
   natureOfOwnership: z.enum(['Direct', 'Indirect']).optional(),
 });

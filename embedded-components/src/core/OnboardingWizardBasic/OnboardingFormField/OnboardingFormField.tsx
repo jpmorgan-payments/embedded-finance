@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 import {
   Button,
@@ -58,7 +59,8 @@ type FieldType =
   | 'textarea'
   | 'combobox'
   | 'industrySelect'
-  | 'text-with-mask';
+  | 'text-with-mask'
+  | 'phone';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -203,6 +205,18 @@ export function OnboardingFormField<T extends FieldValues>({
           ) : (
             (() => {
               switch (type) {
+                case 'phone':
+                  return (
+                    <FormControl>
+                      <PhoneInput
+                        {...field}
+                        countries={['US']}
+                        placeholder="Enter phone number"
+                        international={false}
+                        defaultCountry="US"
+                      />
+                    </FormControl>
+                  );
                 case 'industrySelect':
                   return <IndustryTypeSelect field={field} form={form} />;
                 case 'combobox': {
@@ -289,18 +303,6 @@ export function OnboardingFormField<T extends FieldValues>({
                       </SelectContent>
                     </Select>
                   );
-                case 'email':
-                  return (
-                    <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type="email"
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
-                    </FormControl>
-                  );
                 case 'radio-group':
                   return (
                     <FormControl>
@@ -372,18 +374,6 @@ export function OnboardingFormField<T extends FieldValues>({
                       </div>
                     </div>
                   );
-                case 'date':
-                  return (
-                    <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type="date"
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
-                    </FormControl>
-                  );
                 case 'textarea':
                   return (
                     <FormControl>
@@ -392,18 +382,6 @@ export function OnboardingFormField<T extends FieldValues>({
                         value={field.value}
                         placeholder={fieldPlaceholder}
                         onChange={(e) => field.onChange(e)}
-                      />
-                    </FormControl>
-                  );
-                case 'text':
-                  return (
-                    <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type="text"
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
                       />
                     </FormControl>
                   );
@@ -420,13 +398,16 @@ export function OnboardingFormField<T extends FieldValues>({
                       />
                     </FormControl>
                   );
+                case 'text':
+                case 'email':
+                case 'date':
                 default:
                   return (
                     <FormControl>
                       <Input
                         {...field}
                         {...inputProps}
-                        type="text"
+                        type={type}
                         value={field.value}
                         placeholder={fieldPlaceholder}
                       />

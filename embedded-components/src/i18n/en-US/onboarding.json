@@ -78,6 +78,19 @@
       },
       "group": "contact"
     },
+    "individualEmail": {
+      "label": "Email",
+      "placeholder": "Enter email",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "invalid": "Invalid email address",
+        "format": "Email must be in a valid business email format",
+        "maxLength": "Email must be at most 100 characters",
+        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
+      },
+      "group": "contact"
+    },
     "countryOfFormation": {
       "label": "Country of Formation",
       "placeholder": "Select country of formation",
@@ -164,8 +177,7 @@
     "countryOfResidence": {
       "label": "Country of residence",
       "placeholder": "Select country of residence",
-      "description": "",
-      "tooltip": "Country code in ISO alpha-2 format",
+      "description": "The country where this individual resides",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       }
@@ -444,17 +456,6 @@
       },
       "group": "controller"
     },
-    "individualPhone": {
-      "label": "Phone number",
-      "placeholder": "Enter phone number",
-      "description": "Your business contact number",
-      "validation": {
-        "required": "Phone number is required",
-        "format": "Invalid phone number format",
-        "noPersonal": "Please provide a business phone number",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
-      }
-    },
     "firstName": {
       "label": "First name",
       "placeholder": "Enter first name",
@@ -504,17 +505,14 @@
     },
     "birthDate": {
       "label": "Date of birth",
-      "placeholder": "YYYY-MM-DD",
-      "description": "Your date of birth as it appears on government ID",
-      "tooltip": "Must be in YYYY-MM-DD format",
+      "description": "Date of birth as it appears on government ID",
       "validation": {
         "required": "Date of birth is required",
         "format": "Date must be in 'YYYY-MM-DD' format",
         "invalid": "Invalid date",
         "future": "Date of birth cannot be in the future",
         "tooOld": "Date of birth indicates age over 120 years",
-        "tooYoung": "Must be at least 18 years old",
-        "pattern": "Please use format YYYY-MM-DD (e.g., 1990-01-31)"
+        "tooYoung": "Must be at least 18 years old"
       },
       "group": "controller"
     },
@@ -558,6 +556,24 @@
         "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
       },
       "group": "contact"
+    },
+    "individualPhone.phoneType": {
+      "label": "Phone type",
+      "placeholder": "Select phone type",
+      "validation": {
+        "required": "Phone type is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
+    },
+    "individualPhone.phoneNumber": {
+      "label": "Phone number",
+      "placeholder": "Enter organization phone number",
+      "validation": {
+        "required": "Phone number is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
     },
     "additionalQuestions": {
       "validation": {
@@ -634,6 +650,20 @@
     "MAILING_ADDRESS": "Mailing address",
     "BUSINESS_ADDRESS": "Business address",
     "RESIDENTIAL_ADDRESS": "Residential address"
+  },
+  "jobTitles": {
+    "CEO": "CEO",
+    "CFO": "CFO",
+    "COO": "COO",
+    "President": "President",
+    "Chairman": "Chairman",
+    "Senior Branch Manager": "Senior Branch Manager",
+    "Other": "Other"
+  },
+  "phoneTypes": {
+    "BUSINESS_PHONE": "Business Phone",
+    "MOBILE_PHONE": "Mobile Phone",
+    "ALTERNATE_PHONE": "Alternate Phone"
   },
   "errorMessages": {
     "default": "An error occurred while fetching client data. Please try again.",
