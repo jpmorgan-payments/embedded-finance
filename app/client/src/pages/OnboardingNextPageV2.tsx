@@ -42,9 +42,10 @@ const isValidApiUrl = (url: string | null): boolean => {
     // Only allow specific domains - adjust these based on your requirements
     const allowedDomains = [
       'payments.jpmorgan.com',
-      'jpmorgan.net',
+      'jpmchase.net',
       'localhost',
     ];
+
     return allowedDomains.some((domain) => urlObj.hostname.endsWith(domain));
   } catch {
     return false;
@@ -88,6 +89,7 @@ export const OnboardingNextPageV2 = () => {
     }
 
     setValidationError(null);
+
     return apiBaseUrlFromParams;
   }, [apiBaseUrlFromParams, scenario?.baseURL]);
 
