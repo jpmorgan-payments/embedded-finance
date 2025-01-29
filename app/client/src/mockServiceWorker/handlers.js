@@ -12,15 +12,21 @@ import {
   transactionsMock,
   efClientQuestionsMock,
   efDocumentClientDetail,
+  efDocumentRequestDetails,
 } from 'mocks';
 
 import { API_URL } from 'data/constants';
 import {
-  clientDetailsScenario1,
-  clientDetailsScenario2,
-  clientDetailsScenario3,
-  clientDetailsScenario4,
+  SoleProprietorExistingClient,
+  LLCExistingClient,
+  LLCExistingClientOutstandingDocuments,
 } from 'mocks/clientDetails.mock';
+
+const clientIdScenarioMap = {
+  '0030000131': SoleProprietorExistingClient,
+  '0030000132': LLCExistingClient,
+  '0030000133': LLCExistingClientOutstandingDocuments,
+};
 
 export const createHandlers = (apiUrl) => [
   http.get(`${API_URL}/api/transactions`, () => {
@@ -52,44 +58,26 @@ export const createHandlers = (apiUrl) => [
   }),
 
   http.get(`/ef/do/v1/clients/:clientId`, (req) => {
-    const clientIdToMock = {
-      '0030000132': clientDetailsScenario1,
-      '0030000133': clientDetailsScenario2,
-      '0030000134': clientDetailsScenario3,
-      '0030000135': clientDetailsScenario4,
-    };
     const { clientId } = req.params;
-    return HttpResponse.json(
-      clientIdToMock[clientId] || clientDetailsScenario1,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    return HttpResponse.json(clientIdScenarioMap[clientId] || LLCExistingClient, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
   }),
 
   http.post(`/ef/do/v1/clients/:clientId`, (req) => {
-    const clientIdToMock = {
-      '0030000132': clientDetailsScenario1,
-      '0030000133': clientDetailsScenario2,
-      '0030000134': clientDetailsScenario3,
-      '0030000135': clientDetailsScenario4,
-    };
     const { clientId } = req.params;
-    return HttpResponse.json(
-      clientIdToMock[clientId] || clientDetailsScenario1,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    return HttpResponse.json(clientIdScenarioMap[clientId] || LLCExistingClient, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
   }),
 
   http.post('/ef/do/v1/parties/:partyId', (req) => {
     return HttpResponse.json(
-      clientDetailsScenario1?.parties?.filter((p) => p.id === '2000000111')[0],
+      LLCExistingClient?.parties?.filter((p) => p.id === '2000000111')[0],
     );
   }),
 
@@ -106,5 +94,9 @@ export const createHandlers = (apiUrl) => [
 
   http.get('/ef/do/v1/documents/abcd1c1d-6635-43ff-a8e5-b252926bddef', () => {
     return HttpResponse.json(efDocumentClientDetail);
+  }),
+
+  http.get('/ef/do/v1/document-requests/:documentRequestId', () => {
+    return HttpResponse.json(efDocumentRequestDetails);
   }),
 ];
