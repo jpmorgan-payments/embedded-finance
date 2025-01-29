@@ -10,7 +10,7 @@ import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
-import { IconMaximize } from '@tabler/icons-react';
+import { IconMaximize } from '@tabler/icons';
 import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {

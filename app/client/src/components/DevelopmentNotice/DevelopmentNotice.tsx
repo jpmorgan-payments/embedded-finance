@@ -1,5 +1,5 @@
 import { Alert, Text } from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import { IconAlertTriangle } from '@tabler/icons';
 
 export const DevelopmentNotice = () => {
   return (
