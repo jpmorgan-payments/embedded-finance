@@ -51,13 +51,29 @@ const isValidApiUrl = (url: string | null): boolean => {
   }
 };
 
+// Add header parsing helper
+const parseHeadersFromParams = (
+  searchParams: URLSearchParams,
+): Record<string, string> => {
+  const headers: Record<string, string> = {};
+
+  // Get all params that start with 'headers.'
+  for (const [key, value] of searchParams.entries()) {
+    if (key.startsWith('headers.')) {
+      const headerKey = key.replace('headers.', '');
+      headers[headerKey] = value;
+    }
+  }
+
+  return headers;
+};
+
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const apiBaseUrlFromParams = params.get('apiBaseUrl');
   const clientIdFromParams = params.get('clientId');
-  const platformIdFromParams = params.get('platformId');
 
   const fullScreen = params.get('fullScreen') === 'true';
 
@@ -90,6 +106,9 @@ export const OnboardingNextPageV2 = () => {
     setValidationError(null);
     return apiBaseUrlFromParams;
   }, [apiBaseUrlFromParams, scenario?.baseURL]);
+
+  // Get headers from URL params
+  const urlHeaders = useMemo(() => parseHeadersFromParams(params), [params]);
 
   useEffect(() => {
     if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -182,9 +201,11 @@ export const OnboardingNextPageV2 = () => {
         key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
         apiBaseUrl={sanitizedApiBaseUrl}
         headers={{
-          api_gateway_client_id:
-            platformIdFromParams ?? scenario?.gatewayID ?? '',
+          // Merge default headers with URL headers
           Accept: 'application/json',
+          api_gateway_client_id:
+            scenario?.gatewayID ?? '',
+          ...urlHeaders,
         }}
         theme={mapToEBTheme(
           listThemes()?.find((t) => t.id === selectedThemeId),
