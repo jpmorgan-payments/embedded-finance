@@ -413,7 +413,6 @@ export const InitialStepForm = () => {
                 value: type,
                 label: t(`organizationTypes.${type}`),
               }))}
-              disabled
             />
 
             <OnboardingFormField
