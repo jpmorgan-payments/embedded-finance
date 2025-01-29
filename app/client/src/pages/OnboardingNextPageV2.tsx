@@ -16,7 +16,7 @@ import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
 import { IconMaximize } from '@tabler/icons-react';
@@ -34,8 +34,26 @@ const mapToEBTheme = (theme?: ThemeConfig) => {
   };
 };
 
+// Add URL validation helper
+const isValidApiUrl = (url: string | null): boolean => {
+  if (!url) return false;
+  try {
+    const urlObj = new URL(url);
+    // Only allow specific domains - adjust these based on your requirements
+    const allowedDomains = [
+      'payments.jpmorgan.com',
+      'jpmorgan.net',
+      'localhost',
+    ];
+    return allowedDomains.some((domain) => urlObj.hostname.endsWith(domain));
+  } catch {
+    return false;
+  }
+};
+
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const apiBaseUrlFromParams = params.get('apiBaseUrl');
   const clientIdFromParams = params.get('clientId');
@@ -60,6 +78,18 @@ export const OnboardingNextPageV2 = () => {
   const [initialStep, setInitialStep] = useState<number>(
     initialStepId ? parseInt(initialStepId) : 1,
   );
+
+  const sanitizedApiBaseUrl = useMemo(() => {
+    if (!apiBaseUrlFromParams) return scenario?.baseURL ?? '';
+
+    if (!isValidApiUrl(apiBaseUrlFromParams)) {
+      setValidationError('Invalid API URL provided');
+      return scenario?.baseURL ?? '';
+    }
+
+    setValidationError(null);
+    return apiBaseUrlFromParams;
+  }, [apiBaseUrlFromParams, scenario?.baseURL]);
 
   useEffect(() => {
     if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -150,9 +180,10 @@ export const OnboardingNextPageV2 = () => {
       )}
       <EBComponentsProvider
         key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
-        apiBaseUrl={apiBaseUrlFromParams ?? scenario?.baseURL ?? ''}
+        apiBaseUrl={sanitizedApiBaseUrl}
         headers={{
-          api_gateway_client_id: platformIdFromParams ?? scenario?.gatewayID ?? '',
+          api_gateway_client_id:
+            platformIdFromParams ?? scenario?.gatewayID ?? '',
           Accept: 'application/json',
         }}
         theme={mapToEBTheme(
@@ -200,6 +231,12 @@ export const OnboardingNextPageV2 = () => {
       apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
+      {validationError && (
+        <div role="alert" className="text-red-600 mb-4">
+          {validationError}
+        </div>
+      )}
+
       <div>
         <Text>
           Use the <Badge color="dark">POST /clients</Badge> call to begin the
