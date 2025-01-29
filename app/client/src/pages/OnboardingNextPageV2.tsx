@@ -10,7 +10,7 @@ import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
-import { IconMaximize } from '@tabler/icons-react';
+import { Maximize } from 'lucide-react';
 import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {
@@ -200,7 +200,7 @@ export const OnboardingNextPageV2 = () => {
             window.open(newUrl, '_blank');
           }}
         >
-          <IconMaximize size={20} />
+          <Maximize size={20} />
         </div>
       )}
 
