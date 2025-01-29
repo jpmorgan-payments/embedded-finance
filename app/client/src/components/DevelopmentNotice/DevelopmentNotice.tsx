@@ -12,8 +12,7 @@ export const DevelopmentNotice = () => {
     >
       <Text size="sm">
         This is a preview version under active development. All data and API
-        interactions are simulated using local mock services. Please do not use
-        for production purposes.
+        interactions are simulated using local mock services.
       </Text>
     </Alert>
   );
