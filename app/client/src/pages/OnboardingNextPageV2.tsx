@@ -112,6 +112,18 @@ export const OnboardingNextPageV2 = () => {
   // Get headers from URL params
   const urlHeaders = useMemo(() => parseHeadersFromParams(params), [params]);
 
+  const [packageVersion, setPackageVersion] = useState<string>('');
+
+  useEffect(() => {
+    import('../../package.json').then((pkg) => {
+      setPackageVersion(
+        pkg.dependencies[
+          '@jpmorgan-payments/embedded-finance-components'
+        ].replace('^', ''),
+      );
+    });
+  }, []);
+
   useEffect(() => {
     if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
       setError('Invalid scenario selected');
@@ -199,14 +211,27 @@ export const OnboardingNextPageV2 = () => {
           <IconMaximize size={20} />
         </div>
       )}
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 4,
+          right: 35,
+          zIndex: 10,
+          cursor: 'pointer',
+        }}
+      >
+        <Badge size="sm" variant="light">
+          v{packageVersion}
+        </Badge>
+      </div>
       <EBComponentsProvider
         key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
         apiBaseUrl={sanitizedApiBaseUrl}
         headers={{
           // Merge default headers with URL headers
           Accept: 'application/json',
-          api_gateway_client_id:
-            scenario?.gatewayID ?? '',
+          api_gateway_client_id: scenario?.gatewayID ?? '',
           ...urlHeaders,
         }}
         theme={mapToEBTheme(
