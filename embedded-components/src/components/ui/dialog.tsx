@@ -21,7 +21,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'eb-fixed eb-inset-0 eb-z-50 eb-bg-black/80 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0',
+      'eb-fixed eb-inset-0 eb-z-overlay eb-bg-black/80 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0',
       className
     )}
     {...props}
@@ -38,7 +38,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'eb-fixed eb-left-[50%] eb-top-[50%] eb-z-50 eb-flex eb-w-full eb-max-w-lg eb-translate-x-[-50%] eb-translate-y-[-50%] eb-flex-col eb-gap-4 eb-border eb-bg-background eb-p-6 eb-shadow-lg eb-duration-200 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0 data-[state=closed]:eb-zoom-out-95 data-[state=open]:eb-zoom-in-95 data-[state=closed]:eb-slide-out-to-left-1/2 data-[state=closed]:eb-slide-out-to-top-[48%] data-[state=open]:eb-slide-in-from-left-1/2 data-[state=open]:eb-slide-in-from-top-[48%] sm:eb-rounded-lg',
+        'eb-fixed eb-left-[50%] eb-top-[50%] eb-z-overlay eb-flex eb-w-full eb-max-w-lg eb-translate-x-[-50%] eb-translate-y-[-50%] eb-flex-col eb-gap-4 eb-border eb-bg-background eb-p-6 eb-shadow-lg eb-duration-200 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0 data-[state=closed]:eb-zoom-out-95 data-[state=open]:eb-zoom-in-95 data-[state=closed]:eb-slide-out-to-left-1/2 data-[state=closed]:eb-slide-out-to-top-[48%] data-[state=open]:eb-slide-in-from-left-1/2 data-[state=open]:eb-slide-in-from-top-[48%] sm:eb-rounded-lg',
         className
       )}
       {...props}
