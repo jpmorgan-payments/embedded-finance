@@ -18,7 +18,7 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
       email: 'info@Neverlandbooks.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
@@ -65,7 +65,7 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
       externalId: 'TCU12344',
       email: 'Peiter@neverlandbooks.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
       individualDetails: {
@@ -108,7 +108,7 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
       externalId: 'TCU12344',
       email: 'Tinker@neverlandbook.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       roles: ['BENEFICIAL_OWNER'],
       individualDetails: {

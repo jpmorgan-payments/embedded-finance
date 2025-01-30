@@ -182,7 +182,9 @@ export const BusinessOwnerStepForm = () => {
 
   const controllerData = clientData?.parties?.find(
     (party) =>
-      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+      party?.partyType === 'INDIVIDUAL' &&
+      party?.roles?.includes('CONTROLLER') &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const controllerForm = useForm({
@@ -201,7 +203,7 @@ export const BusinessOwnerStepForm = () => {
 
   // Update controller roles on change
   useEffect(() => {
-    const controllerRoles = controllerData?.roles || [];
+    const controllerRoles = [...(controllerData?.roles ?? [])];
 
     const updateControllerRoles = () => {
       if (controllerData?.id) {
@@ -393,8 +395,12 @@ export const BusinessOwnerStepForm = () => {
     }
   };
 
-  const activeOwners = ownersData.filter((owner) => owner.active);
-  const inactiveOwners = ownersData.filter((owner) => !owner.active);
+  const activeOwners = ownersData.filter(
+    (owner) => owner.active || owner.status === 'ACTIVE'
+  );
+  const inactiveOwners = ownersData.filter(
+    (owner) => !owner.active && owner.status !== 'ACTIVE'
+  );
 
   // Used for updating the soleOwner field of a party
   const { mutateAsync: updateSoleOwner, status: soleOwnerUpdateStatus } =
