@@ -300,7 +300,7 @@ export const OnboardingNextPageV2 = () => {
       </div>
 
       <Grid>
-        <Grid.Col span={6}>
+        <Grid.Col span={12} lg={6}>
           <Select
             name="scenario"
             label="Demo Scenarios"
@@ -314,7 +314,7 @@ export const OnboardingNextPageV2 = () => {
           />
         </Grid.Col>
 
-        <Grid.Col span={2}>
+        <Grid.Col span={4} lg={2}>
           <NumberInput
             label="Initial Step"
             placeholder="Step"
@@ -325,7 +325,7 @@ export const OnboardingNextPageV2 = () => {
           />
         </Grid.Col>
 
-        <Grid.Col span={2}>
+        <Grid.Col span={4} lg={2}>
           <Select
             name="locale"
             label="Locale"
@@ -340,7 +340,7 @@ export const OnboardingNextPageV2 = () => {
         </Grid.Col>
 
         {listThemes()?.length > 0 && (
-          <Grid.Col span={2}>
+          <Grid.Col span={4} lg={2}>
             <Select
               clearable
               name="theme"

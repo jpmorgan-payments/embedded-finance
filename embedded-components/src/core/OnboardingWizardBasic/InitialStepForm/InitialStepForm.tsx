@@ -11,9 +11,7 @@ import {
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
-  ClientProduct,
   CreateClientRequestSmbdo,
-  OrganizationType,
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
@@ -32,7 +30,6 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
-import { partyFieldMap } from '../utils/fieldMap';
 import {
   convertClientResponseToFormValues,
   generatePartyRequestBody,
@@ -43,13 +40,8 @@ import {
   useStepForm,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
-import { Jurisdiction } from '../utils/types';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
-
-interface RequiredFieldsList {
-  fields: Record<string, string[]>;
-  notes: string[];
-}
+import { generateRequiredFieldsList } from './requiredFields';
 
 export const InitialStepForm = () => {
   const { nextStep } = useStepper();
@@ -303,71 +295,6 @@ export const InitialStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  function generateRequiredFieldsList(
-    type?: OrganizationType,
-    product?: ClientProduct,
-    jurisdiction?: Jurisdiction
-  ): RequiredFieldsList {
-    if (!type) return { fields: {}, notes: [] };
-
-    // Get required fields from fieldMap based on base rules and conditional rules
-    const requiredFields = Object.entries(partyFieldMap)
-      .filter(([, fieldConfig]) => {
-        // Check base rule
-        if (!fieldConfig.baseRule.required) return false;
-
-        // Check conditional rules if they exist
-        if (fieldConfig.conditionalRules) {
-          return !fieldConfig.conditionalRules.some(
-            (rule) =>
-              (!rule.condition.product ||
-                (product && rule.condition.product.includes(product))) &&
-              (!rule.condition.jurisdiction ||
-                (jurisdiction &&
-                  rule.condition.jurisdiction.includes(jurisdiction))) &&
-              rule.rule.visibility === 'hidden'
-          );
-        }
-
-        return true;
-      })
-      .reduce<Record<string, string[]>>((acc, [fieldName, fieldConfig]) => {
-        // If path has no dot, it's a root attribute - put it in generic category
-        const step = fieldConfig.path.includes('.')
-          ? fieldConfig.path.split('.')[0]
-          : 'generic';
-
-        // Ensure generic category appears first
-        const sortedStep = step === 'generic' ? '0_generic' : step;
-
-        // Create step if it doesn't exist
-        if (!acc[sortedStep]) {
-          acc[sortedStep] = [];
-        }
-
-        acc[sortedStep].push(`fields.${fieldName}.label`);
-        return acc;
-      }, {});
-
-    // Remove the '0_' prefix from generic step
-    if (requiredFields['0_generic']) {
-      requiredFields.generic = requiredFields['0_generic'];
-      delete requiredFields['0_generic'];
-    }
-
-    return {
-      fields: requiredFields,
-      notes: [
-        'initialStepNotes.additionalQuestions',
-        ...(type === 'LIMITED_LIABILITY_COMPANY'
-          ? ['initialStepNotes.llcOwners']
-          : []),
-        'initialStepNotes.attestation',
-        'initialStepNotes.kycProcess',
-      ],
-    };
-  }
-
   if (clientData && !isFormPopulated) {
     return <FormLoadingState message="Loading..." />;
   }
@@ -484,12 +411,17 @@ export const InitialStepForm = () => {
                     />
                   </p>
                   {Object.entries(
-                    generateRequiredFieldsList(form.watch('organizationType'))
-                      .fields
+                    generateRequiredFieldsList(
+                      form.watch('organizationType'),
+                      form.watch('product'),
+                      form.watch('jurisdiction')
+                    ).fields
                   ).map(([step, fields]) => (
                     <div key={step} className="eb-mb-4">
                       <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
-                        {t(`stepLabels.${step}`, { defaultValue: step })}
+                        {t(`stepLabels.${step}`, {
+                          defaultValue: step,
+                        }).toUpperCase()}
                       </h4>
                       <ul>
                         {fields.map((fieldKey) => (
@@ -506,7 +438,9 @@ export const InitialStepForm = () => {
                     </h4>
                     <ul>
                       {generateRequiredFieldsList(
-                        form.watch('organizationType')
+                        form.watch('organizationType'),
+                        form.watch('product'),
+                        form.watch('jurisdiction')
                       ).notes.map((noteKey) => (
                         <li key={noteKey} className="eb-text-sm">
                           - {t(noteKey, { defaultValue: noteKey })}

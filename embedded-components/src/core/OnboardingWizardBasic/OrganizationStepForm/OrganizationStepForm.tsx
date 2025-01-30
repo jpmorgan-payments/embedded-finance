@@ -121,6 +121,10 @@ export const OrganizationStepForm = () => {
     clientId ?? ''
   );
 
+  const legalEntityType = clientData?.parties?.find(
+    (p) => p.partyType === 'ORGANIZATION'
+  )?.organizationDetails?.organizationType;
+
   const {
     filterDefaultValues,
     filterSchema,
@@ -146,13 +150,15 @@ export const OrganizationStepForm = () => {
           addressLines: [''],
         },
       ],
-      organizationIds: [
-        {
-          value: '',
-          idType: 'BUSINESS_REGISTRATION_ID',
-          issuer: '',
-        },
-      ],
+      ...(legalEntityType !== 'SOLE_PROPRIETORSHIP' && {
+        organizationIds: [
+          {
+            value: '',
+            idType: 'EIN',
+            issuer: '',
+          },
+        ],
+      }),
       organizationPhone: {
         phoneType: 'BUSINESS_PHONE',
         phoneNumber: '',
@@ -689,6 +695,34 @@ export const OrganizationStepForm = () => {
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
           <>
+            {organizationIdFields.length === 0 &&
+              legalEntityType === 'SOLE_PROPRIETORSHIP' && (
+                <div className="eb-rounded-md eb-bg-blue-50 eb-p-4">
+                  <div className="eb-flex">
+                    <div className="eb-shrink-0">
+                      <svg
+                        className="eb-h-5 eb-w-5 eb-text-blue-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="eb-ml-3">
+                      <p className="eb-text-sm eb-text-blue-700">
+                        As a sole proprietor, an EIN is optional unless you have
+                        employees or file certain tax returns. However, having
+                        an EIN can help establish business credit and simplify
+                        tax filing.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             {organizationIdFields.map((fieldItem, index) => {
               const idType = form.watch(`organizationIds.${index}.idType`);
               return (
@@ -697,7 +731,7 @@ export const OrganizationStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Organization ID {index + 1}
+                    Business Identification {index + 1}
                   </legend>
 
                   <OnboardingFormField
@@ -770,7 +804,7 @@ export const OrganizationStepForm = () => {
                       size="sm"
                       className="eb-mt-2"
                     >
-                      Remove Organization ID
+                      Remove Business Identification
                     </Button>
                   </div>
                 </fieldset>
@@ -785,12 +819,18 @@ export const OrganizationStepForm = () => {
             (getFieldRule('organizationIds').maxItems ?? 6)
           }
           onClick={() =>
-            appendOrganizationId({ idType: 'EIN', value: '', issuer: '' })
+            appendOrganizationId(
+              { idType: 'EIN', value: '', issuer: '' },
+              {
+                shouldFocus: true,
+                focusName: `organizationIds.${organizationIdFields.length}.value`,
+              }
+            )
           }
           variant="outline"
           size="sm"
         >
-          Add Organization ID
+          Add Business Identification
         </Button>
 
         <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
