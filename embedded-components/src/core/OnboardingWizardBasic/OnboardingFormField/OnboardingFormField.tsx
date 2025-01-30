@@ -59,7 +59,6 @@ type FieldType =
   | 'textarea'
   | 'combobox'
   | 'industrySelect'
-  | 'text-with-mask'
   | 'phone';
 
 interface BaseProps<
@@ -88,7 +87,6 @@ interface SelectOrRadioGroupProps<
   type: 'select' | 'radio-group' | 'combobox';
   options: Array<{ label: JSX.Element | string; value: string }>;
 }
-
 interface OtherFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -385,20 +383,31 @@ export function OnboardingFormField<T extends FieldValues>({
                       />
                     </FormControl>
                   );
-                case 'text-with-mask':
-                  return (
+                case 'text':
+                  return maskFormat ? (
                     <FormControl>
                       <PatternInput
                         {...field}
                         {...inputProps}
-                        maskFormat={maskFormat}
-                        maskChar={maskChar}
+                        format={maskFormat ?? ''}
+                        mask={maskChar}
+                        type={type}
+                        defaultValue={field.value}
+                        value={field.value}
+                        placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  ) : (
+                    <FormControl>
+                      <Input
+                        {...field}
+                        {...inputProps}
+                        type={type}
                         value={field.value}
                         placeholder={fieldPlaceholder}
                       />
                     </FormControl>
                   );
-                case 'text':
                 case 'email':
                 case 'date':
                 default:
