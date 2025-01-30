@@ -301,7 +301,7 @@ export const IndividualStepForm = () => {
       case 'SSN':
         return '### - ## - ####';
       case 'ITIN':
-        return '### - ### - ####';
+        return '### - ## - ####';
       default:
         return undefined;
     }
