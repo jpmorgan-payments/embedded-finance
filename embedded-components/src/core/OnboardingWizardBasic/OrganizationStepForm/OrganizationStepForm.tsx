@@ -349,18 +349,6 @@ export const OrganizationStepForm = () => {
     }
   });
 
-  if (clientData && !isFormPopulated) {
-    return <FormLoadingState message="Loading..." />;
-  }
-
-  if (updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
-  if (usePartyResource && updatePartyStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
@@ -382,6 +370,29 @@ export const OrganizationStepForm = () => {
     if (!idType) return t('idValueLabels.placeholder');
     return t(`idValueLabels.organization.${idType}`);
   };
+
+  // Reset value of ID value field when ID type changes
+  useEffect(() => {
+    const subscription = form.watch((_, { name }) => {
+      if (name?.startsWith('organizationIds') && name.endsWith('idType')) {
+        const index = parseInt(name.split('.')[1], 10);
+        form.setValue(`organizationIds.${index}.value`, '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  if (clientData && !isFormPopulated) {
+    return <FormLoadingState message="Loading..." />;
+  }
+
+  if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
 
   return (
     <Form {...form}>
@@ -721,74 +732,63 @@ export const OrganizationStepForm = () => {
                   Business Identification {index + 1}
                 </legend>
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.idType`}
-                  type="select"
-                  options={[
-                    { value: 'EIN', label: 'EIN' },
-                    {
-                      value: 'BUSINESS_REGISTRATION_ID',
-                      label: 'Business Registration ID',
-                    },
-                    { value: 'BUSINESS_NUMBER', label: 'Business Number' },
-                    {
-                      value: 'BUSINESS_REGISTRATION_NUMBER',
-                      label: 'Business Registration Number',
-                    },
-                  ]}
-                  required
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.idType`}
+                    type="select"
+                    options={[
+                      { value: 'EIN', label: 'EIN' },
+                      {
+                        value: 'BUSINESS_REGISTRATION_ID',
+                        label: 'Business Registration ID',
+                      },
+                      { value: 'BUSINESS_NUMBER', label: 'Business Number' },
+                      {
+                        value: 'BUSINESS_REGISTRATION_NUMBER',
+                        label: 'Business Registration Number',
+                      },
+                    ]}
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.value`}
-                  type={
-                    getMaskFormat(form.watch(`organizationIds.${index}.idType`))
-                      ? 'text-with-mask'
-                      : 'text'
-                  }
-                  {...(getMaskFormat(
-                    form.watch(`organizationIds.${index}.idType`)
-                  ) && {
-                    maskFormat: getMaskFormat(
-                      form.watch(`organizationIds.${index}.idType`)
-                    ),
-                    maskChar: '_',
-                  })}
-                  label={getValueLabel(
-                    form.watch(`organizationIds.${index}.idType`)
-                  )}
-                  required
-                />
+                  <OnboardingFormField
+                    key={`organization-id-value-${index}-${idType}`}
+                    control={form.control}
+                    name={`organizationIds.${index}.value`}
+                    type="text"
+                    label={getValueLabel(idType)}
+                    maskFormat={getMaskFormat(idType)}
+                    maskChar="_"
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.issuer`}
-                  type="combobox"
-                  options={COUNTRIES_OF_FORMATION.map((code) => ({
-                    value: code,
-                    label: (
-                      <span>
-                        <span className="eb-font-medium">[{code}]</span>{' '}
-                        {t([
-                          `common:countries.${code}`,
-                        ] as unknown as TemplateStringsArray)}
-                      </span>
-                    ),
-                  }))}
-                  required
-                />
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.expiryDate`}
-                  type="date"
-                />
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.description`}
-                  type="text"
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.issuer`}
+                    type="combobox"
+                    options={COUNTRIES_OF_FORMATION.map((code) => ({
+                      value: code,
+                      label: (
+                        <span>
+                          <span className="eb-font-medium">[{code}]</span>{' '}
+                          {t([
+                            `common:countries.${code}`,
+                          ] as unknown as TemplateStringsArray)}
+                        </span>
+                      ),
+                    }))}
+                    required
+                  />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.expiryDate`}
+                    type="date"
+                  />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.description`}
+                    type="text"
+                  />
 
                 <div className="eb-col-span-full">
                   <Button

@@ -1,28 +1,30 @@
-import { PatternFormat } from 'react-number-format';
+import * as React from 'react';
+import { PatternFormat, PatternFormatProps } from 'react-number-format';
 
-import { Input } from '../ui';
+import { Input } from '@/components/ui/input';
 
-export function PatternInput({
-  onChange,
-  maskFormat,
-  maskChar,
-  ...props
-}: any) {
-  if (props.disabled) {
-    return <Input {...props} value="" placeholder="N/A" />;
+const PatternInput = React.forwardRef<HTMLInputElement, PatternFormatProps>(
+  ({ onChange, ...props }, ref) => {
+    return (
+      <PatternFormat
+        customInput={Input}
+        allowEmptyFormatting
+        onValueChange={(values) => {
+          if (values?.value) {
+            const syntheticEvent = {
+              target: {
+                value: values.value,
+              },
+            } as React.ChangeEvent<HTMLInputElement>;
+            onChange?.(syntheticEvent);
+          }
+        }}
+        getInputRef={ref}
+        {...props}
+      />
+    );
   }
-  return (
-    <PatternFormat
-      customInput={Input}
-      format={maskFormat}
-      allowEmptyFormatting
-      mask={maskChar}
-      onValueChange={(event) => {
-        if (event?.value) {
-          onChange?.(event.value);
-        }
-      }}
-      {...props}
-    />
-  );
-}
+);
+PatternInput.displayName = 'PatternInput';
+
+export { PatternInput };
