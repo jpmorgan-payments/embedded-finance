@@ -212,10 +212,12 @@ export const ReviewAndAttestStepForm = () => {
             return (
               <div
                 key={path}
-                className="eb-flex eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-justify-between"
+                className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between"
               >
-                <dt className="eb-w-1/3 sm:eb-mb-0">{label}:</dt>
-                <dd className="sm:eb-w-2/3 sm:eb-pl-4">
+                <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
+                  {label}:
+                </dt>
+                <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
                   {transformFunc
                     ? transformFunc(value)
                     : typeof value === 'boolean'
@@ -235,7 +237,7 @@ export const ReviewAndAttestStepForm = () => {
 
   return (
     <>
-      <Stack className="eb-w-full eb-text-sm">
+      <Stack className="eb-mx-auto eb-w-full eb-max-w-full eb-text-sm md:eb-max-w-3xl lg:eb-max-w-4xl">
         <Title as="h2" className="eb-mb-4">
           Review
         </Title>
@@ -296,60 +298,64 @@ export const ReviewAndAttestStepForm = () => {
           </p>
 
           <div className="eb-space-y-6">
-            <div className="eb-flex eb-items-center eb-space-x-2">
+            <div className="eb-flex eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-items-center">
               <Checkbox
                 id="dataAccuracy"
                 checked={termsAgreed.dataAccuracy}
                 onCheckedChange={handleTermsChange('dataAccuracy')}
-                className="eb-mr-4"
+                className="eb-shrink-0"
               />
               <Label
                 htmlFor="dataAccuracy"
-                className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
+                className="eb-text-sm eb-leading-normal sm:eb-leading-none"
               >
                 The data I am providing is true, accurate, current and complete
                 to the best of my knowledge.
               </Label>
             </div>
 
-            <div className="eb-flex eb-items-center eb-space-x-2">
+            <div className="eb-flex eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-items-start">
               <Checkbox
                 id="termsAndConditions"
                 checked={termsAgreed.termsAndConditions}
                 onCheckedChange={handleTermsChange('termsAndConditions')}
-                className="eb-mr-4"
+                className="eb-shrink-0"
               />
               <Label
                 htmlFor="termsAndConditions"
-                className="eb-peer-disabled:eb-cursor-not-allowed eb-peer-disabled:eb-opacity-70 eb-text-sm eb-leading-none"
+                className="eb-text-sm eb-leading-normal"
               >
                 I have read and agree to the below attestation documents:
-                {documentQueries.map((query, index) => (
-                  <div key={index}>
-                    <Button
-                      onClick={handleDocumentOpen(query.data?.id ?? '')}
-                      className="eb-text-blue-600 eb-underline"
-                      variant="link"
-                      disabled={
-                        query.data?.id ? loadingDocuments[query.data.id] : false
-                      } // Disable button while loading
-                    >
-                      <span className="">
-                        {query.data?.id &&
-                        termsDocumentsOpened[query.data.id] ? (
-                          <CheckIcon className="eb-h-4 eb-w-4" />
-                        ) : (
-                          <span className="eb-h-4" />
-                        )}
-                      </span>
-                      {query.data?.id && loadingDocuments[query.data.id]
-                        ? 'Downloading...'
-                        : query.data?.documentType}
-                    </Button>
-                  </div>
-                ))}
+                <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
+                  {documentQueries.map((query, index) => (
+                    <div key={index}>
+                      <Button
+                        onClick={handleDocumentOpen(query.data?.id ?? '')}
+                        className="eb-text-left eb-text-blue-600 eb-underline"
+                        variant="link"
+                        disabled={
+                          query.data?.id
+                            ? loadingDocuments[query.data.id]
+                            : false
+                        }
+                      >
+                        <span className="eb-inline-flex eb-items-center eb-gap-2">
+                          {query.data?.id &&
+                          termsDocumentsOpened[query.data.id] ? (
+                            <CheckIcon className="eb-h-4 eb-w-4 eb-shrink-0" />
+                          ) : (
+                            <span className="eb-h-4 eb-w-4" />
+                          )}
+                          {query.data?.id && loadingDocuments[query.data.id]
+                            ? 'Downloading...'
+                            : query.data?.documentType}
+                        </span>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
                 {!allDocumentsOpened && (
-                  <p className="eb-text-sm eb-font-semibold eb-text-red-600">
+                  <p className="eb-mt-2 eb-text-sm eb-font-semibold eb-text-red-600">
                     Please open the documents links to enable the terms and
                     conditions checkbox.
                   </p>
@@ -363,10 +369,11 @@ export const ReviewAndAttestStepForm = () => {
           error={updateClientError || clientVerificationsError}
         />
 
-        <div className="eb-mt-8 eb-flex eb-w-full eb-justify-end eb-gap-4">
+        <div className="eb-mt-8 eb-flex eb-w-full eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-justify-end">
           <Button
             disabled={isDisabledStep}
             variant="secondary"
+            className="eb-w-full sm:eb-w-auto"
             onClick={prevStep}
           >
             Previous
@@ -376,12 +383,15 @@ export const ReviewAndAttestStepForm = () => {
             disabled={
               !canSubmit || !isOutstandingEmpty(clientData?.outstanding)
             }
+            className="eb-w-full sm:eb-w-auto"
           >
-            {!canSubmit
-              ? 'Please agree to all terms and review all documents'
-              : !isOutstandingEmpty(clientData?.outstanding)
-                ? 'Please address all outstanding items'
-                : 'Submit'}
+            <span className="eb-block eb-max-w-[200px] eb-truncate sm:eb-max-w-none">
+              {!canSubmit
+                ? 'Please agree to all terms and review all documents'
+                : !isOutstandingEmpty(clientData?.outstanding)
+                  ? 'Please address all outstanding items'
+                  : 'Submit'}
+            </span>
           </Button>
         </div>
       </Stack>
