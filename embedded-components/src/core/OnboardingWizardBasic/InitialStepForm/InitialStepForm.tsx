@@ -4,15 +4,25 @@ import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-
-
-import { useSmbdoGetClient, useSmbdoPostClients, useSmbdoUpdateClient, useUpdateParty as useSmbdoUpdateParty } from '@/api/generated/smbdo';
-import { ClientProduct, CreateClientRequestSmbdo, OrganizationType, UpdateClientRequestSmbdo, UpdatePartyRequest } from '@/api/generated/smbdo.schemas';
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import {
+  useSmbdoGetClient,
+  useSmbdoPostClients,
+  useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
+} from '@/api/generated/smbdo';
+import {
+  CreateClientRequestSmbdo,
+  UpdateClientRequestSmbdo,
+  UpdatePartyRequest,
+} from '@/api/generated/smbdo.schemas';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
-
-
 
 import { FormActions } from '../FormActions/FormActions';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
@@ -20,73 +30,18 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
-import { convertClientResponseToFormValues, generatePartyRequestBody, generateRequestBody, setApiFormErrors, translateApiErrorsToFormErrors, useFilterFunctionsByClientContext, useStepForm } from '../utils/formUtils';
+import {
+  convertClientResponseToFormValues,
+  generatePartyRequestBody,
+  generateRequestBody,
+  setApiFormErrors,
+  translateApiErrorsToFormErrors,
+  useFilterFunctionsByClientContext,
+  useStepForm,
+} from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
-import { Jurisdiction } from '../utils/types';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
-
-
-interface RequiredFieldsList {
-  fields: Record<string, string[]>;
-  notes: string[];
-}
-
-const REQUIRED_FIELDS_BY_TYPE: Record<string, string[]> = {
-  SOLE_PROPRIETORSHIP_US_EP: [
-    'fields.organizationName.label',
-    'fields.organizationDescription.label',
-    'fields.organizationEmail.label',
-    'fields.countryOfFormation.label',
-    'fields.organizationPhone.label',
-    'fields.addresses.label',
-    'fields.yearOfFormation.label',
-    'fields.countryOfFormation.label',
-    'fields.individualIds.label',
-  ],
-  DEFAULT: [
-    'fields.organizationName.label',
-    'fields.organizationDescription.label',
-    'fields.organizationEmail.label',
-    'fields.countryOfFormation.label',
-    'fields.organizationPhone.label',
-    'fields.addresses.label',
-    'fields.yearOfFormation.label',
-    'fields.countryOfFormation.label',
-    'fields.organizationIds.label',
-    'fields.industryType.label',
-  ],
-};
-
-function generateRequiredFieldsList(
-  type?: OrganizationType,
-  product?: ClientProduct,
-  jurisdiction?: Jurisdiction
-): RequiredFieldsList {
-  if (!type) return { fields: {}, notes: [] };
-
-  // Determine if this is a US Sole Proprietorship with Embedded Payments
-  const isSoleProprietorshipUsEp =
-    type === 'SOLE_PROPRIETORSHIP' &&
-    jurisdiction === 'US' &&
-    product === 'EMBEDDED_PAYMENTS';
-
-  // Get the appropriate field list
-  const fieldList = isSoleProprietorshipUsEp
-    ? REQUIRED_FIELDS_BY_TYPE.SOLE_PROPRIETORSHIP_US_EP
-    : REQUIRED_FIELDS_BY_TYPE.DEFAULT;
-
-  return {
-    fields: { required: fieldList },
-    notes: [
-      'initialStepNotes.additionalQuestions',
-      ...(type === 'LIMITED_LIABILITY_COMPANY'
-        ? ['initialStepNotes.llcOwners']
-        : []),
-      'initialStepNotes.attestation',
-      'initialStepNotes.kycProcess',
-    ],
-  };
-}
+import { generateRequiredFieldsList } from './requiredFields';
 
 export const InitialStepForm = () => {
   const { nextStep } = useStepper();
@@ -464,7 +419,9 @@ export const InitialStepForm = () => {
                   ).map(([step, fields]) => (
                     <div key={step} className="eb-mb-4">
                       <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
-                        {t(`stepLabels.${step}`, { defaultValue: step }).toUpperCase()}
+                        {t(`stepLabels.${step}`, {
+                          defaultValue: step,
+                        }).toUpperCase()}
                       </h4>
                       <ul>
                         {fields.map((fieldKey) => (
