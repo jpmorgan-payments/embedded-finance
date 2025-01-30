@@ -295,25 +295,13 @@ export const IndividualStepForm = () => {
     }
   });
 
-  if (clientData && !isFormPopulated) {
-    return <FormLoadingState message="Loading..." />;
-  }
-
-  if (updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
-  if (usePartyResource && updatePartyStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
       case 'SSN':
         return '### - ## - ####';
       case 'ITIN':
-        return '### - ## - ####';
+        return '### - ### - ####';
       default:
         return undefined;
     }
@@ -333,6 +321,29 @@ export const IndividualStepForm = () => {
     if (!idType) return t('idValueLabels.placeholder');
     return t(`idValueLabels.individual.${idType}`);
   };
+
+  // Reset value of ID value field when ID type changes
+  useEffect(() => {
+    const subscription = form.watch((_, { name }) => {
+      if (name?.startsWith('individualIds') && name.endsWith('idType')) {
+        const index = parseInt(name.split('.')[1], 10);
+        form.setValue(`individualIds.${index}.value`, '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  if (clientData && !isFormPopulated) {
+    return <FormLoadingState message="Loading..." />;
+  }
+
+  if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
 
   return (
     <Form {...form}>
@@ -588,95 +599,87 @@ export const IndividualStepForm = () => {
         {/* Individual IDs */}
         {isFieldVisible('individualIds') && (
           <>
-            {idFields.map((fieldItem, index) => (
-              <fieldset
-                key={`individual-id-${index}`}
-                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-              >
-                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Individual ID {index + 1}
-                </legend>
-                <OnboardingFormField
-                  control={form.control}
-                  name={`individualIds.${index}.idType`}
-                  type="select"
-                  options={[
-                    { value: 'SSN', label: 'SSN' },
-                    { value: 'ITIN', label: 'ITIN' },
-                  ]}
-                  required
-                />
+            {idFields.map((fieldItem, index) => {
+              const idType = form.watch(`individualIds.${index}.idType`);
+              return (
+                <fieldset
+                  key={`individual-id-${index}`}
+                  className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+                >
+                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                    Individual ID {index + 1}
+                  </legend>
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`individualIds.${index}.idType`}
+                    type="select"
+                    options={[
+                      { value: 'SSN', label: 'SSN' },
+                      { value: 'ITIN', label: 'ITIN' },
+                    ]}
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`individualIds.${index}.value`}
-                  type={
-                    getMaskFormat(form.watch(`individualIds.${index}.idType`))
-                      ? 'text-with-mask'
-                      : 'text'
-                  }
-                  {...(getMaskFormat(
-                    form.watch(`individualIds.${index}.idType`)
-                  ) && {
-                    maskFormat: getMaskFormat(
-                      form.watch(`individualIds.${index}.idType`)
-                    ),
-                    maskChar: '_',
-                  })}
-                  label={getValueLabel(
-                    form.watch(`individualIds.${index}.idType`)
-                  )}
-                  required
-                />
+                  <OnboardingFormField
+                    key={`individual-id-value-${index}-${idType}`}
+                    control={form.control}
+                    name={`individualIds.${index}.value`}
+                    type="text"
+                    label={getValueLabel(idType)}
+                    maskFormat={getMaskFormat(idType)}
+                    maskChar="_"
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`individualIds.${index}.issuer`}
-                  type="combobox"
-                  options={COUNTRIES_OF_FORMATION.map((code) => ({
-                    value: code,
-                    label: (
-                      <span>
-                        <span className="eb-font-medium">[{code}]</span>{' '}
-                        {t([
-                          `common:countries.${code}`,
-                        ] as unknown as TemplateStringsArray)}
-                      </span>
-                    ),
-                  }))}
-                  required
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`individualIds.${index}.issuer`}
+                    type="combobox"
+                    options={COUNTRIES_OF_FORMATION.map((code) => ({
+                      value: code,
+                      label: (
+                        <span>
+                          <span className="eb-font-medium">[{code}]</span>{' '}
+                          {t([
+                            `common:countries.${code}`,
+                          ] as unknown as TemplateStringsArray)}
+                        </span>
+                      ),
+                    }))}
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`individualIds.${index}.expiryDate`}
-                  type="date"
-                  label="Expiry Date"
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`individualIds.${index}.expiryDate`}
+                    type="date"
+                    label="Expiry Date"
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`individualIds.${index}.description`}
-                  type="textarea"
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`individualIds.${index}.description`}
+                    type="textarea"
+                  />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    disabled={
-                      idFields.length <=
-                      (getFieldRule('organizationIds').minItems ?? 0)
-                    }
-                    onClick={() => removeId(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                  >
-                    Remove Individual ID
-                  </Button>
-                </div>
-              </fieldset>
-            ))}
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      disabled={
+                        idFields.length <=
+                        (getFieldRule('organizationIds').minItems ?? 0)
+                      }
+                      onClick={() => removeId(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                    >
+                      Remove Individual ID
+                    </Button>
+                  </div>
+                </fieldset>
+              );
+            })}
           </>
         )}
         <Button

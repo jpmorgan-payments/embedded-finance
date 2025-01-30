@@ -343,18 +343,6 @@ export const OrganizationStepForm = () => {
     }
   });
 
-  if (clientData && !isFormPopulated) {
-    return <FormLoadingState message="Loading..." />;
-  }
-
-  if (updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
-  if (usePartyResource && updatePartyStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
@@ -376,6 +364,29 @@ export const OrganizationStepForm = () => {
     if (!idType) return t('idValueLabels.placeholder');
     return t(`idValueLabels.organization.${idType}`);
   };
+
+  // Reset value of ID value field when ID type changes
+  useEffect(() => {
+    const subscription = form.watch((_, { name }) => {
+      if (name?.startsWith('organizationIds') && name.endsWith('idType')) {
+        const index = parseInt(name.split('.')[1], 10);
+        form.setValue(`organizationIds.${index}.value`, '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  if (clientData && !isFormPopulated) {
+    return <FormLoadingState message="Loading..." />;
+  }
+
+  if (updateClientStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
+
+  if (usePartyResource && updatePartyStatus === 'pending') {
+    return <FormLoadingState message="Submitting..." />;
+  }
 
   return (
     <Form {...form}>
@@ -678,101 +689,93 @@ export const OrganizationStepForm = () => {
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
           <>
-            {organizationIdFields.map((fieldItem, index) => (
-              <fieldset
-                key={`organization-id-${index}`}
-                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-              >
-                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Organization ID {index + 1}
-                </legend>
+            {organizationIdFields.map((fieldItem, index) => {
+              const idType = form.watch(`organizationIds.${index}.idType`);
+              return (
+                <fieldset
+                  key={`organization-id-${index}`}
+                  className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+                >
+                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                    Organization ID {index + 1}
+                  </legend>
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.idType`}
-                  type="select"
-                  options={[
-                    { value: 'EIN', label: 'EIN' },
-                    {
-                      value: 'BUSINESS_REGISTRATION_ID',
-                      label: 'Business Registration ID',
-                    },
-                    { value: 'BUSINESS_NUMBER', label: 'Business Number' },
-                    {
-                      value: 'BUSINESS_REGISTRATION_NUMBER',
-                      label: 'Business Registration Number',
-                    },
-                  ]}
-                  required
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.idType`}
+                    type="select"
+                    options={[
+                      { value: 'EIN', label: 'EIN' },
+                      {
+                        value: 'BUSINESS_REGISTRATION_ID',
+                        label: 'Business Registration ID',
+                      },
+                      { value: 'BUSINESS_NUMBER', label: 'Business Number' },
+                      {
+                        value: 'BUSINESS_REGISTRATION_NUMBER',
+                        label: 'Business Registration Number',
+                      },
+                    ]}
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.value`}
-                  type={
-                    getMaskFormat(form.watch(`organizationIds.${index}.idType`))
-                      ? 'text-with-mask'
-                      : 'text'
-                  }
-                  {...(getMaskFormat(
-                    form.watch(`organizationIds.${index}.idType`)
-                  ) && {
-                    maskFormat: getMaskFormat(
-                      form.watch(`organizationIds.${index}.idType`)
-                    ),
-                    maskChar: '_',
-                  })}
-                  label={getValueLabel(
-                    form.watch(`organizationIds.${index}.idType`)
-                  )}
-                  required
-                />
+                  <OnboardingFormField
+                    key={`organization-id-value-${index}-${idType}`}
+                    control={form.control}
+                    name={`organizationIds.${index}.value`}
+                    type="text"
+                    label={getValueLabel(idType)}
+                    maskFormat={getMaskFormat(idType)}
+                    maskChar="_"
+                    required
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.issuer`}
-                  type="combobox"
-                  options={COUNTRIES_OF_FORMATION.map((code) => ({
-                    value: code,
-                    label: (
-                      <span>
-                        <span className="eb-font-medium">[{code}]</span>{' '}
-                        {t([
-                          `common:countries.${code}`,
-                        ] as unknown as TemplateStringsArray)}
-                      </span>
-                    ),
-                  }))}
-                  required
-                />
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.expiryDate`}
-                  type="date"
-                />
-                <OnboardingFormField
-                  control={form.control}
-                  name={`organizationIds.${index}.description`}
-                  type="text"
-                />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.issuer`}
+                    type="combobox"
+                    options={COUNTRIES_OF_FORMATION.map((code) => ({
+                      value: code,
+                      label: (
+                        <span>
+                          <span className="eb-font-medium">[{code}]</span>{' '}
+                          {t([
+                            `common:countries.${code}`,
+                          ] as unknown as TemplateStringsArray)}
+                        </span>
+                      ),
+                    }))}
+                    required
+                  />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.expiryDate`}
+                    type="date"
+                  />
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`organizationIds.${index}.description`}
+                    type="text"
+                  />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    disabled={
-                      organizationIdFields.length <
-                      (getFieldRule('organizationIds').minItems ?? 0)
-                    }
-                    onClick={() => removeOrganizationId(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                  >
-                    Remove Organization ID
-                  </Button>
-                </div>
-              </fieldset>
-            ))}
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      disabled={
+                        organizationIdFields.length <
+                        (getFieldRule('organizationIds').minItems ?? 0)
+                      }
+                      onClick={() => removeOrganizationId(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                    >
+                      Remove Organization ID
+                    </Button>
+                  </div>
+                </fieldset>
+              );
+            })}
           </>
         )}
         <Button
