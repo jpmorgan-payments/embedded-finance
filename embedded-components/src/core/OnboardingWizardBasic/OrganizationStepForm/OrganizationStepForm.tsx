@@ -699,7 +699,7 @@ export const OrganizationStepForm = () => {
               legalEntityType === 'SOLE_PROPRIETORSHIP' && (
                 <div className="eb-rounded-md eb-bg-blue-50 eb-p-4">
                   <div className="eb-flex">
-                    <div className="eb-flex-shrink-0">
+                    <div className="eb-shrink-0">
                       <svg
                         className="eb-h-5 eb-w-5 eb-text-blue-400"
                         viewBox="0 0 20 20"
@@ -723,14 +723,16 @@ export const OrganizationStepForm = () => {
                   </div>
                 </div>
               )}
-            {organizationIdFields.map((fieldItem, index) => (
-              <fieldset
-                key={`organization-id-${index}`}
-                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-              >
-                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Business Identification {index + 1}
-                </legend>
+            {organizationIdFields.map((fieldItem, index) => {
+              const idType = form.watch(`organizationIds.${index}.idType`);
+              return (
+                <fieldset
+                  key={`organization-id-${index}`}
+                  className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+                >
+                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                    Business Identification {index + 1}
+                  </legend>
 
                   <OnboardingFormField
                     control={form.control}
@@ -790,23 +792,24 @@ export const OrganizationStepForm = () => {
                     type="text"
                   />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    disabled={
-                      organizationIdFields.length <
-                      (getFieldRule('organizationIds').minItems ?? 0)
-                    }
-                    onClick={() => removeOrganizationId(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                  >
-                    Remove Business Identification
-                  </Button>
-                </div>
-              </fieldset>
-            ))}
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      disabled={
+                        organizationIdFields.length <
+                        (getFieldRule('organizationIds').minItems ?? 0)
+                      }
+                      onClick={() => removeOrganizationId(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                    >
+                      Remove Business Identification
+                    </Button>
+                  </div>
+                </fieldset>
+              );
+            })}
           </>
         )}
         <Button
