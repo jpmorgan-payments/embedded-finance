@@ -550,8 +550,8 @@ export const OrganizationStepForm = () => {
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Organization Address{' '}
-                  {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                  Business Address{' '}
+                  {Number(getFieldRule('addresses')?.maxItems) > 1
                     ? index + 1
                     : ''}
                 </legend>
@@ -638,21 +638,24 @@ export const OrganizationStepForm = () => {
                   }))}
                 />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    onClick={() => removeAddress(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                    disabled={
-                      addressFields.length <=
-                      (getFieldRule('addresses').minItems ?? 1)
-                    }
-                  >
-                    Remove Address
-                  </Button>
-                </div>
+                {addressFields.length >
+                  Number(getFieldRule('addresses')?.minItems) && (
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      onClick={() => removeAddress(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                      disabled={
+                        addressFields.length <=
+                        (getFieldRule('addresses').minItems ?? 1)
+                      }
+                    >
+                      Remove Address
+                    </Button>
+                  </div>
+                )}
               </fieldset>
             ))}
           </>
@@ -725,7 +728,7 @@ export const OrganizationStepForm = () => {
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                     Business Identification{' '}
-                    {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                    {Number(getFieldRule('organizationIds')?.maxItems) > 1
                       ? index + 1
                       : ''}
                   </legend>
@@ -788,21 +791,24 @@ export const OrganizationStepForm = () => {
                     type="text"
                   />
 
-                  <div className="eb-col-span-full">
-                    <Button
-                      type="button"
-                      disabled={
-                        organizationIdFields.length <
-                        (getFieldRule('organizationIds').minItems ?? 0)
-                      }
-                      onClick={() => removeOrganizationId(index)}
-                      variant="outline"
-                      size="sm"
-                      className="eb-mt-2"
-                    >
-                      Remove Business Identification
-                    </Button>
-                  </div>
+                  {organizationIdFields.length >
+                    Number(getFieldRule('organizationIds')?.minItems) && (
+                    <div className="eb-col-span-full">
+                      <Button
+                        type="button"
+                        disabled={
+                          organizationIdFields.length <
+                          (getFieldRule('organizationIds').minItems ?? 0)
+                        }
+                        onClick={() => removeOrganizationId(index)}
+                        variant="outline"
+                        size="sm"
+                        className="eb-mt-2"
+                      >
+                        Remove Business Identification
+                      </Button>
+                    </div>
+                  )}
                 </fieldset>
               );
             })}

@@ -487,7 +487,7 @@ export const IndividualStepForm = () => {
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Individual Address{' '}
-                  {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                  {Number(getFieldRule('individualAddresses')?.maxItems) > 1
                     ? index + 1
                     : ''}
                 </legend>
@@ -559,21 +559,24 @@ export const IndividualStepForm = () => {
                   required
                 />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    onClick={() => removeAddress(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                    disabled={
-                      addressFields.length <=
-                      (getFieldRule('individualAddresses').minItems ?? 1)
-                    }
-                  >
-                    Remove Address
-                  </Button>
-                </div>
+                {addressFields.length >
+                  Number(getFieldRule('individualAddresses')?.minItems) && (
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      onClick={() => removeAddress(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                      disabled={
+                        addressFields.length <=
+                        (getFieldRule('individualAddresses').minItems ?? 1)
+                      }
+                    >
+                      Remove Address
+                    </Button>
+                  </div>
+                )}
               </fieldset>
             ))}
           </>
@@ -611,7 +614,7 @@ export const IndividualStepForm = () => {
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                     Individual Identification Document{' '}
-                    {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                    {Number(getFieldRule('individualIds')?.maxItems) > 1
                       ? index + 1
                       : ''}
                   </legend>
@@ -668,21 +671,24 @@ export const IndividualStepForm = () => {
                     type="textarea"
                   />
 
-                  <div className="eb-col-span-full">
-                    <Button
-                      type="button"
-                      disabled={
-                        idFields.length <=
-                        (getFieldRule('organizationIds').minItems ?? 0)
-                      }
-                      onClick={() => removeId(index)}
-                      variant="outline"
-                      size="sm"
-                      className="eb-mt-2"
-                    >
-                      Remove Individual Identification Document
-                    </Button>
-                  </div>
+                  {idFields.length >
+                    Number(getFieldRule('individualIds')?.minItems) && (
+                    <div className="eb-col-span-full">
+                      <Button
+                        type="button"
+                        disabled={
+                          idFields.length <=
+                          (getFieldRule('individualIds').minItems ?? 0)
+                        }
+                        onClick={() => removeId(index)}
+                        variant="outline"
+                        size="sm"
+                        className="eb-mt-2"
+                      >
+                        Remove Individual Identification Document
+                      </Button>
+                    </div>
+                  )}
                 </fieldset>
               );
             })}
