@@ -661,32 +661,34 @@ export const OrganizationStepForm = () => {
           </>
         )}
 
-        <Button
-          type="button"
-          disabled={
-            addressFields.length >= (getFieldRule('addresses').maxItems ?? 5)
-          }
-          onClick={() =>
-            appendAddress(
-              {
-                addressType: 'BUSINESS_ADDRESS',
-                city: '',
-                state: '',
-                postalCode: '',
-                country: '',
-                addressLines: [''],
-              },
-              {
-                shouldFocus: false,
-              }
-            )
-          }
-          variant="outline"
-          size="sm"
-          className="eb-mt-2"
-        >
-          Add Address
-        </Button>
+        {Number(getFieldRule('addresses')?.maxItems) > addressFields.length && (
+          <Button
+            type="button"
+            disabled={
+              addressFields.length >= (getFieldRule('addresses').maxItems ?? 5)
+            }
+            onClick={() =>
+              appendAddress(
+                {
+                  addressType: 'BUSINESS_ADDRESS',
+                  city: '',
+                  state: '',
+                  postalCode: '',
+                  country: '',
+                  addressLines: [''],
+                },
+                {
+                  shouldFocus: false,
+                }
+              )
+            }
+            variant="outline"
+            size="sm"
+            className="eb-mt-2"
+          >
+            Add Address
+          </Button>
+        )}
 
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
