@@ -382,7 +382,7 @@ export const OrganizationStepForm = () => {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  if (clientData && !isFormPopulated) {
+  if (existingOrgParty && !isFormPopulated) {
     return <FormLoadingState message="Loading..." />;
   }
 
