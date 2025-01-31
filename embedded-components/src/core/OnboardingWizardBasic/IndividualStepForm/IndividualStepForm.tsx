@@ -326,7 +326,7 @@ export const IndividualStepForm = () => {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  if (clientData && !isFormPopulated) {
+  if (existingIndividualParty && !isFormPopulated) {
     return <FormLoadingState message="Loading..." />;
   }
 

@@ -59,11 +59,18 @@ export const createHandlers = (apiUrl) => [
 
   http.get(`/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params;
-    return HttpResponse.json(clientIdScenarioMap[clientId] || LLCExistingClient, {
-      headers: {
-        'Content-Type': 'application/json',
+    return HttpResponse.json(
+      clientIdScenarioMap[clientId] || LLCExistingClient,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          // Add cache-control headers
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache', // For legacy browsers
+          Expires: '0', // Proxies
+        },
       },
-    });
+    );
   }),
 
   http.post(`/ef/do/v1/clients/:clientId`, (req) => {

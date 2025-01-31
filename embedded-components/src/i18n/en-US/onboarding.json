@@ -114,7 +114,7 @@
       }
     },
     "individualIds": {
-      "label": "Government IDs",
+      "label": "Individual Identification Documents",
       "validation": {
         "required": "At least one government ID is required",
         "maxIds": "Maximum 16 IDs allowed",
@@ -194,7 +194,7 @@
       }
     },
     "addresses": {
-      "label": "Addresses",
+      "label": "Business Addresses",
       "addressLines": {
         "label": "Address lines",
         "placeholder": "Enter address lines",
@@ -278,6 +278,7 @@
       }
     },
     "organizationIds": {
+      "label": "Business Identification Documents",
       "validation": {
         "minIds": "At least one organization ID is required",
         "maxIds": "Maximum 6 organization IDs allowed",
@@ -384,7 +385,7 @@
       }
     },
     "individualAddresses": {
-      "label": "Addresses",
+      "label": "Individual Addresses",
       "validation": {
         "required": "At least one address is required",
         "maxAddresses": "Maximum 5 addresses allowed",
@@ -540,7 +541,7 @@
       }
     },
     "websiteAvailable": {
-      "label": "Website available",
+      "label": "Business doesn't have a website",
       "description": "Whether your business has a website",
       "validation": {
         "required": "Please specify if you have a website"

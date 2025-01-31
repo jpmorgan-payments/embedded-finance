@@ -13,7 +13,7 @@ const availableOrganizationTypes = [
 export const onboardingScenarios = [
   {
     id: 'scenario1',
-    name: 'Sole Proprietor - existing client',
+    name: 'Sole Proprietor (US/Embedded Payments mocked data)',
     clientId: '0030000131',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -23,7 +23,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario2',
-    name: 'LLC - existing client',
+    name: 'LLC (US/Embedded Payments mocked data)',
     clientId: '0030000132',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -33,7 +33,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario3',
-    name: 'LLC - existing client - outstanding documents',
+    name: 'LLC (US/Embedded Payments outstanding documents)',
     clientId: '0030000133',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -43,7 +43,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario4',
-    name: 'New client',
+    name: 'New Client (US/Embedded Payments, no mocked data)',
     clientId: undefined,
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
