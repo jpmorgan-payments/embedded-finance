@@ -10,7 +10,6 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { ClientProduct, OrganizationType } from '@/api/generated/smbdo.schemas';
 import {
   Card,
   CardContent,
