@@ -57,12 +57,6 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.industryType',
     baseRule: { visibility: 'visible', required: true },
   },
-  entitiesInOwnership: {
-    path: 'organizationDetails.entitiesInOwnership',
-    baseRule: { visibility: 'visible', required: true },
-    fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
-    toRequestFn: (val): boolean => val === 'yes',
-  },
   mcc: {
     path: 'organizationDetails.mcc',
     baseRule: { visibility: 'hidden', required: false },
