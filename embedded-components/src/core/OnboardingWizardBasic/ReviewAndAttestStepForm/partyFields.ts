@@ -1,3 +1,18 @@
+const maskIdentification = (value: string) => {
+  if (!value) return value;
+  const lastFourDigits = value.slice(-4);
+  return `****${lastFourDigits}`;
+};
+
+const formatIdentifications = (
+  ids: Array<{ idType: string; value: string; issuer: string }>
+) => {
+  if (!ids?.length) return [];
+  return ids.map(
+    (id) => `${id.idType} (${id.issuer}): ${maskIdentification(id.value)}`
+  );
+};
+
 export const organizationFields = [
   {
     label: 'Legal Business Name',
@@ -21,11 +36,15 @@ export const organizationFields = [
           `${address?.addressType}: ${address?.addressLines?.join(' ')}, ${address?.city}, ${address?.state}, ${address?.country}, ${address?.postalCode}`
       ),
   },
+  {
+    label: 'Business Identifications',
+    path: 'organizationDetails.organizationIds',
+    transformFunc: formatIdentifications,
+  },
 ];
 
 export const individualFields = [
   { label: 'Email', path: 'email' },
-
   { label: 'Roles', path: 'roles' },
   { label: 'First Name', path: 'individualDetails.firstName' },
   { label: 'Last Name', path: 'individualDetails.lastName' },
@@ -48,5 +67,10 @@ export const individualFields = [
         (address: any) =>
           `${address?.addressType}: ${address?.addressLines?.join(' ')}, ${address?.city}, ${address?.state}, ${address?.country}, ${address?.postalCode}`
       ),
+  },
+  {
+    label: 'Personal Identifications',
+    path: 'individualDetails.individualIds',
+    transformFunc: formatIdentifications,
   },
 ];
