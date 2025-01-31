@@ -539,16 +539,6 @@ export const OrganizationStepForm = () => {
               inputMode: 'numeric',
             }}
           />
-
-          <OnboardingFormField
-            control={form.control}
-            name="entitiesInOwnership"
-            type="radio-group"
-            options={[
-              { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No' },
-            ]}
-          />
         </fieldset>
 
         {/* ADDRESSES */}
@@ -560,7 +550,10 @@ export const OrganizationStepForm = () => {
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Organization Address {index + 1}
+                  Organization Address{' '}
+                  {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                    ? index + 1
+                    : ''}
                 </legend>
                 <OnboardingFormField
                   control={form.control}
@@ -731,7 +724,10 @@ export const OrganizationStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Business Identification {index + 1}
+                    Business Identification{' '}
+                    {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                      ? index + 1
+                      : ''}
                   </legend>
 
                   <OnboardingFormField

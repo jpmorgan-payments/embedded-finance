@@ -486,7 +486,10 @@ export const IndividualStepForm = () => {
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Individual Address {index + 1}
+                  Individual Address{' '}
+                  {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                    ? index + 1
+                    : ''}
                 </legend>
                 <OnboardingFormField
                   control={form.control}
@@ -607,7 +610,10 @@ export const IndividualStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Individual ID {index + 1}
+                    Individual Identification Document{' '}
+                    {(getFieldRule('addresses')?.maxItems ?? 0 > 1)
+                      ? index + 1
+                      : ''}
                   </legend>
                   <OnboardingFormField
                     control={form.control}
@@ -674,7 +680,7 @@ export const IndividualStepForm = () => {
                       size="sm"
                       className="eb-mt-2"
                     >
-                      Remove Individual ID
+                      Remove Individual Identification Document
                     </Button>
                   </div>
                 </fieldset>
@@ -697,7 +703,7 @@ export const IndividualStepForm = () => {
           variant="outline"
           size="sm"
         >
-          Add Individual ID
+          Add Individual Identification Document
         </Button>
 
         <ServerErrorAlert
