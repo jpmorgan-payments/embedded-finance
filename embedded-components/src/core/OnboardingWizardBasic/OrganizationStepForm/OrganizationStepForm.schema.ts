@@ -263,6 +263,7 @@ export const OrganizationStepFormSchema = z.object({
       return new Set(types).size === types.length;
     }, i18n.t('onboarding:fields.organizationIds.validation.uniqueTypes')),
   organizationPhone: PhoneSchema,
+  websiteAvailable: z.boolean(),
   website: z
     .string()
     .url(i18n.t('onboarding:fields.website.validation.invalid'))
@@ -275,9 +276,7 @@ export const OrganizationStepFormSchema = z.object({
       (val) =>
         !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
       i18n.t('onboarding:fields.website.validation.noIp')
-    )
-    .or(z.literal('')),
-  websiteAvailable: z.boolean(),
+    ),
   mcc: z
     .string()
     .refine(
@@ -298,7 +297,7 @@ export const refineOrganizationStepFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
-    if (values.websiteAvailable && !values.website) {
+    if (!values.websiteAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: i18n.t('onboarding:fields.website.validation.required'),

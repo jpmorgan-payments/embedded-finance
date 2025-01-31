@@ -382,7 +382,7 @@ export const OrganizationStepForm = () => {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  if (clientData && !isFormPopulated) {
+  if (existingOrgParty && !isFormPopulated) {
     return <FormLoadingState message="Loading..." />;
   }
 
@@ -947,37 +947,41 @@ export const OrganizationStepForm = () => {
             </div>
           )}
 
-          <OnboardingFormField
-            control={form.control}
-            name="websiteAvailable"
-            type="checkbox"
-          />
           {isFieldVisible('website') && (
-            <FormField
-              control={form.control}
-              name="website"
-              disabled={
-                isFieldDisabled('website') ||
-                !form.getValues('websiteAvailable')
-              }
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk={isFieldRequired('website')}>
-                    Website
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={
-                        form.getValues('websiteAvailable') ? field.value : 'N/A'
-                      }
-                      type="url"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <>
+              <FormField
+                control={form.control}
+                name="website"
+                disabled={
+                  isFieldDisabled('website') ||
+                  form.getValues('websiteAvailable')
+                }
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel asterisk={isFieldRequired('website')}>
+                      Website
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={
+                          !form.getValues('websiteAvailable')
+                            ? field.value
+                            : 'N/A'
+                        }
+                        type="url"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <OnboardingFormField
+                control={form.control}
+                name="websiteAvailable"
+                type="checkbox"
+              />
+            </>
           )}
         </fieldset>
         <ServerErrorAlert

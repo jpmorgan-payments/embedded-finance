@@ -119,6 +119,8 @@ export const partyFieldMap: PartyFieldMap = {
   websiteAvailable: {
     path: 'organizationDetails.websiteAvailable',
     baseRule: { visibility: 'visible', required: false },
+    fromResponseFn: (val: boolean) => !val,
+    toRequestFn: (val: boolean) => !val,
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',

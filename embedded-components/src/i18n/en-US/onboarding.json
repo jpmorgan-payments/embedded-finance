@@ -541,7 +541,7 @@
       }
     },
     "websiteAvailable": {
-      "label": "Website available",
+      "label": "Business doesn't have a website",
       "description": "Whether your business has a website",
       "validation": {
         "required": "Please specify if you have a website"
