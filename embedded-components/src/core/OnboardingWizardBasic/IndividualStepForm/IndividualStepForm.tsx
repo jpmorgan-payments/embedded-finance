@@ -75,13 +75,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -421,34 +414,16 @@ export const IndividualStepForm = () => {
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Individual Phone Information
           </legend>
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="individualPhone.phoneType"
-            disabled={isFieldDisabled('individualPhone')}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel asterisk={isFieldRequired('individualPhone')}>
-                  Phone Type
-                </FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger ref={field.ref}>
-                      <SelectValue placeholder="Select phone type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="BUSINESS_PHONE">
-                      Business Phone
-                    </SelectItem>
-                    <SelectItem value="MOBILE_PHONE">Mobile Phone</SelectItem>
-                    <SelectItem value="ALTERNATE_PHONE">
-                      Alternate Phone
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="select"
+            label="Phone Type"
+            options={[
+              { value: 'BUSINESS_PHONE', label: 'Business Phone' },
+              { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
+              { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
+            ]}
           />
 
           <FormField
@@ -500,6 +475,10 @@ export const IndividualStepForm = () => {
                     {
                       value: 'MAILING_ADDRESS',
                       label: t('addressTypes.MAILING_ADDRESS'),
+                    },
+                    {
+                      value: 'RESIDENTIAL_ADDRESS',
+                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
                     },
                   ]}
                 />

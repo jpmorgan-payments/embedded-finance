@@ -75,13 +75,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui';
 
@@ -458,34 +451,15 @@ export const OrganizationStepForm = () => {
             Organization Phone Information
           </legend>
           {isFieldVisible('organizationPhone') && (
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="organizationPhone.phoneType"
-              disabled={isFieldDisabled('organizationPhone')}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk={isFieldRequired('organizationPhone')}>
-                    Phone Type
-                  </FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger ref={field.ref}>
-                        <SelectValue placeholder="Select phone type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="BUSINESS_PHONE">
-                        Business Phone
-                      </SelectItem>
-                      <SelectItem value="MOBILE_PHONE">Mobile Phone</SelectItem>
-                      <SelectItem value="ALTERNATE_PHONE">
-                        Alternate Phone
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="select"
+              options={[
+                { value: 'BUSINESS_PHONE', label: 'Business Phone' },
+                { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
+                { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
+              ]}
             />
           )}
 
