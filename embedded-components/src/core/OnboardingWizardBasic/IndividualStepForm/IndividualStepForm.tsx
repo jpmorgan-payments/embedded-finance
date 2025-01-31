@@ -174,7 +174,9 @@ export const IndividualStepForm = () => {
   // Get INDIVIDUAL's partyId
   const existingIndividualParty = clientData?.parties?.find(
     (party) =>
-      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+      party?.partyType === 'INDIVIDUAL' &&
+      party?.roles?.includes('CONTROLLER') &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);

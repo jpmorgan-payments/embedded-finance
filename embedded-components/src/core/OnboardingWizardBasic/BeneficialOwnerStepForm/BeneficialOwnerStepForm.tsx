@@ -176,7 +176,7 @@ export const BeneficialOwnerStepForm = () => {
     }),
   });
 
-  const controllerData = clientData?.parties?.find(
+  const controllerParty = clientData?.parties?.find(
     (party) =>
       party?.partyType === 'INDIVIDUAL' &&
       party?.roles?.includes('CONTROLLER') &&
@@ -185,7 +185,7 @@ export const BeneficialOwnerStepForm = () => {
 
   const controllerForm = useForm({
     defaultValues: {
-      controllerIsOwner: controllerData?.roles?.includes('BENEFICIAL_OWNER')
+      controllerIsOwner: controllerParty?.roles?.includes('BENEFICIAL_OWNER')
         ? 'yes'
         : 'no',
     },
@@ -199,13 +199,13 @@ export const BeneficialOwnerStepForm = () => {
 
   // Update controller roles on change
   useEffect(() => {
-    const controllerRoles = [...(controllerData?.roles ?? [])];
+    const controllerRoles = [...(controllerParty?.roles ?? [])];
 
     const updateControllerRoles = () => {
-      if (controllerData?.id) {
+      if (controllerParty?.id) {
         updateController(
           {
-            partyId: controllerData.id,
+            partyId: controllerParty.id,
             data: {
               roles: controllerRoles,
             },
@@ -218,7 +218,7 @@ export const BeneficialOwnerStepForm = () => {
             onError: (error) => {
               controllerForm.setValue(
                 'controllerIsOwner',
-                controllerData?.roles?.includes('BENEFICIAL_OWNER')
+                controllerParty?.roles?.includes('BENEFICIAL_OWNER')
                   ? 'yes'
                   : 'no'
               );
