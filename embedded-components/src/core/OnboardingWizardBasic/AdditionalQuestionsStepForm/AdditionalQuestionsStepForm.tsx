@@ -9,10 +9,7 @@ import {
   useSmbdoListQuestions,
   useSmbdoUpdateClient,
 } from '@/api/generated/smbdo';
-import {
-  QuestionResponse,
-  UpdateClientRequestSmbdo,
-} from '@/api/generated/smbdo.schemas';
+import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
   Form,
   FormControl,
@@ -362,7 +359,7 @@ export const AdditionalQuestionsStepForm = () => {
 
       const requestBody = {
         questionResponses,
-      } as UpdateClientRequestSmbdo;
+      };
 
       updateClient({
         id: clientId,

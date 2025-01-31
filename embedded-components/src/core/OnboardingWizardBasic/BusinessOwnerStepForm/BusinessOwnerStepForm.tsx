@@ -69,10 +69,7 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  ApiError,
-  UpdateClientRequestSmbdo,
-} from '@/api/generated/smbdo.schemas';
+import { ApiError } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -121,10 +118,11 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateRequestBody as generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
   useStepForm,
 } from '../utils/formUtils';
@@ -328,40 +326,9 @@ export const BusinessOwnerStepForm = () => {
 
   const onSubmit = (values: BusinessOwner) => {
     if (clientId) {
-      if (!currentBeneficialOwnerId) {
-        const requestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'INDIVIDUAL',
-              roles: ['BENEFICIAL_OWNER'],
-            },
-          ],
-        }) as UpdateClientRequestSmbdo;
-
-        updateClient(
-          {
-            id: clientId,
-            data: requestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostClientResponse?.(data, error?.response?.data);
-            },
-            onSuccess: () => {
-              toast.success('Beneficial owner details updated successfully');
-              setIsDialogOpen(false);
-              setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
-            },
-            onError: () => {
-              toast.error('Failed to update beneficial owner details');
-            },
-          }
-        );
-      } else {
+      // Update party for beneficial owner being edited
+      if (currentBeneficialOwnerId) {
         const partyRequestBody = generatePartyRequestBody(values, {});
-
         updateParty(
           {
             partyId: currentBeneficialOwnerId,
@@ -381,7 +348,42 @@ export const BusinessOwnerStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
+                setApiFormErrors(ownerForm, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        const requestBody = generateClientRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['BENEFICIAL_OWNER'],
+            },
+          ],
+        });
+        updateClient(
+          {
+            id: clientId,
+            data: requestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              toast.success('Beneficial owner details updated successfully');
+              setIsDialogOpen(false);
+              setCurrentBeneficialOwnerId('');
+              ownerForm.reset({});
+              refetchClientData();
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
