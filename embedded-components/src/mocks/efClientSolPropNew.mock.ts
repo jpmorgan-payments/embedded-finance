@@ -18,7 +18,7 @@ export const efClientSolPropNew: ClientResponse = {
       email: 'monica@ggmail.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:20:09.401Z',
       organizationDetails: {
         organizationType: 'SOLE_PROPRIETORSHIP',

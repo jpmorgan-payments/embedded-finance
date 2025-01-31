@@ -69,10 +69,7 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  ApiError,
-  UpdateClientRequestSmbdo,
-} from '@/api/generated/smbdo.schemas';
+import { ApiError } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -121,17 +118,16 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateRequestBody as generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
   useStepForm,
 } from '../utils/formUtils';
 
-type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
-
-export const BusinessOwnerStepForm = () => {
+export const BeneficialOwnerStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId, onPostClientResponse, onPostPartyResponse } =
     useOnboardingContext();
@@ -180,14 +176,16 @@ export const BusinessOwnerStepForm = () => {
     }),
   });
 
-  const controllerData = clientData?.parties?.find(
+  const controllerParty = clientData?.parties?.find(
     (party) =>
-      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+      party?.partyType === 'INDIVIDUAL' &&
+      party?.roles?.includes('CONTROLLER') &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const controllerForm = useForm({
     defaultValues: {
-      controllerIsOwner: controllerData?.roles?.includes('BENEFICIAL_OWNER')
+      controllerIsOwner: controllerParty?.roles?.includes('BENEFICIAL_OWNER')
         ? 'yes'
         : 'no',
     },
@@ -201,13 +199,13 @@ export const BusinessOwnerStepForm = () => {
 
   // Update controller roles on change
   useEffect(() => {
-    const controllerRoles = controllerData?.roles || [];
+    const controllerRoles = [...(controllerParty?.roles ?? [])];
 
     const updateControllerRoles = () => {
-      if (controllerData?.id) {
+      if (controllerParty?.id) {
         updateController(
           {
-            partyId: controllerData.id,
+            partyId: controllerParty.id,
             data: {
               roles: controllerRoles,
             },
@@ -220,7 +218,7 @@ export const BusinessOwnerStepForm = () => {
             onError: (error) => {
               controllerForm.setValue(
                 'controllerIsOwner',
-                controllerData?.roles?.includes('BENEFICIAL_OWNER')
+                controllerParty?.roles?.includes('BENEFICIAL_OWNER')
                   ? 'yes'
                   : 'no'
               );
@@ -295,7 +293,7 @@ export const BusinessOwnerStepForm = () => {
         clientData,
         beneficialOwnerId
       );
-      ownerForm.reset(formValues as BusinessOwner);
+      ownerForm.reset(formValues);
       setIsDialogOpen(true);
     }
   };
@@ -324,42 +322,11 @@ export const BusinessOwnerStepForm = () => {
     });
   };
 
-  const onSubmit = (values: BusinessOwner) => {
+  const onOwnerFormSubmit = ownerForm.handleSubmit((values) => {
     if (clientId) {
-      if (!currentBeneficialOwnerId) {
-        const requestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'INDIVIDUAL',
-              roles: ['BENEFICIAL_OWNER'],
-            },
-          ],
-        }) as UpdateClientRequestSmbdo;
-
-        updateClient(
-          {
-            id: clientId,
-            data: requestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostClientResponse?.(data, error?.response?.data);
-            },
-            onSuccess: () => {
-              toast.success('Beneficial owner details updated successfully');
-              setIsDialogOpen(false);
-              setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
-            },
-            onError: () => {
-              toast.error('Failed to update beneficial owner details');
-            },
-          }
-        );
-      } else {
+      // Update party for beneficial owner being edited
+      if (currentBeneficialOwnerId) {
         const partyRequestBody = generatePartyRequestBody(values, {});
-
         updateParty(
           {
             partyId: currentBeneficialOwnerId,
@@ -379,7 +346,42 @@ export const BusinessOwnerStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
+                setApiFormErrors(ownerForm, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        const requestBody = generateClientRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['BENEFICIAL_OWNER'],
+            },
+          ],
+        });
+        updateClient(
+          {
+            id: clientId,
+            data: requestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              toast.success('Beneficial owner details updated successfully');
+              setIsDialogOpen(false);
+              setCurrentBeneficialOwnerId('');
+              ownerForm.reset({});
+              refetchClientData();
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -391,10 +393,14 @@ export const BusinessOwnerStepForm = () => {
         );
       }
     }
-  };
+  });
 
-  const activeOwners = ownersData.filter((owner) => owner.active);
-  const inactiveOwners = ownersData.filter((owner) => !owner.active);
+  const activeOwners = ownersData.filter(
+    (owner) => owner.active || owner.status === 'ACTIVE'
+  );
+  const inactiveOwners = ownersData.filter(
+    (owner) => !owner.active && owner.status !== 'ACTIVE'
+  );
 
   // Used for updating the soleOwner field of a party
   const { mutateAsync: updateSoleOwner, status: soleOwnerUpdateStatus } =
@@ -654,7 +660,7 @@ export const BusinessOwnerStepForm = () => {
         }}
       >
         <Form {...ownerForm}>
-          <form id={ownerFormId} onSubmit={ownerForm.handleSubmit(onSubmit)}>
+          <form id={ownerFormId} onSubmit={onOwnerFormSubmit}>
             <DialogContent className="eb-max-h-full eb-gap-0 eb-px-0 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg">
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>

@@ -228,6 +228,7 @@ export function OnboardingFormField<T extends FieldValues>({
                             role="combobox"
                             aria-expanded={open}
                             className="eb-w-full eb-justify-between eb-font-normal"
+                            {...field}
                           >
                             {field.value
                               ? options?.find(

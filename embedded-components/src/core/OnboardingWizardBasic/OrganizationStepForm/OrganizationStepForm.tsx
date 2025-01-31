@@ -62,10 +62,6 @@ import {
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
-  UpdateClientRequestSmbdo,
-  UpdatePartyRequest,
-} from '@/api/generated/smbdo.schemas';
-import {
   Form,
   FormControl,
   FormField,
@@ -89,7 +85,8 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
   useStepForm,
 } from '../utils/formUtils';
@@ -197,7 +194,9 @@ export const OrganizationStepForm = () => {
 
   // Get organization's party
   const existingOrgParty = clientData?.parties?.find(
-    (party) => party?.partyType === 'ORGANIZATION'
+    (party) =>
+      party?.partyType === 'ORGANIZATION' &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
@@ -245,45 +244,12 @@ export const OrganizationStepForm = () => {
         website: values.websiteAvailable ? values.website : '',
       };
 
-      const clientRequestBody = generateRequestBody(
-        modifiedValues,
-        0,
-        'addParties',
-        {
-          addParties: [
-            {
-              ...(existingOrgParty?.id
-                ? {
-                    id: existingOrgParty?.id,
-                    partyType: existingOrgParty?.partyType,
-                    roles: existingOrgParty?.roles,
-                  }
-                : {
-                    partyType: 'ORGANIZATION',
-                    roles: ['CLIENT'],
-                  }),
-            },
-          ],
-        }
-      ) as UpdateClientRequestSmbdo;
-
-      const partyRequestBody = generatePartyRequestBody(modifiedValues, {
-        ...(existingOrgParty?.id
-          ? {
-              id: existingOrgParty?.id,
-              partyType: existingOrgParty?.partyType,
-              roles: existingOrgParty?.roles,
-            }
-          : {
-              partyType: 'ORGANIZATION',
-              roles: ['CLIENT'],
-            }),
-      }) as UpdatePartyRequest;
-
+      // Update party if it exists
       if (usePartyResource && existingOrgParty?.id) {
+        const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
         updateParty(
           {
-            partyId: existingOrgParty?.id,
+            partyId: existingOrgParty.id,
             data: partyRequestBody,
           },
           {
@@ -299,17 +265,29 @@ export const OrganizationStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
-                  context,
-                  0,
-                  'addParties'
-                );
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
           }
         );
-      } else {
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateRequestBody(
+          modifiedValues,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'ORGANIZATION',
+                roles: ['CLIENT'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -328,7 +306,7 @@ export const OrganizationStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'

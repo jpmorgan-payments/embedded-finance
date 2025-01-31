@@ -61,10 +61,6 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  UpdateClientRequestSmbdo,
-  UpdatePartyRequest,
-} from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -88,7 +84,8 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
   useStepForm,
 } from '../utils/formUtils';
@@ -170,7 +167,9 @@ export const IndividualStepForm = () => {
   // Get INDIVIDUAL's partyId
   const existingIndividualParty = clientData?.parties?.find(
     (party) =>
-      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+      party?.partyType === 'INDIVIDUAL' &&
+      party?.roles?.includes('CONTROLLER') &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
@@ -212,21 +211,10 @@ export const IndividualStepForm = () => {
 
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
-      const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-        addParties: [
-          {
-            partyType: 'INDIVIDUAL',
-            roles: ['CONTROLLER'],
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
-
-      const partyRequestBody = generatePartyRequestBody(
-        values,
-        {}
-      ) as UpdatePartyRequest;
-
+      // Update party if it exists
       if (usePartyResource && existingIndividualParty?.id) {
+        const partyRequestBody = generatePartyRequestBody(values, {});
+
         updateParty(
           {
             partyId: existingIndividualParty?.id,
@@ -245,17 +233,24 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
-                  context,
-                  0,
-                  'addParties'
-                );
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
           }
         );
-      } else {
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['CONTROLLER'],
+            },
+          ],
+        });
         updateClient(
           {
             id: clientId,
@@ -274,7 +269,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'

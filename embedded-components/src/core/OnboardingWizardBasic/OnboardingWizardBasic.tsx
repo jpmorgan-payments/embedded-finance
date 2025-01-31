@@ -15,7 +15,7 @@ import { Step, StepItem, Stepper, StepProps } from '@/components/ui/stepper';
 
 import { useContentTokens } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
-import { BusinessOwnerStepForm } from './BusinessOwnerStepForm/BusinessOwnerStepForm';
+import { BeneficialOwnerStepForm } from './BeneficialOwnerStepForm/BeneficialOwnerStepForm';
 import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnboardingStateView';
 import { DecisionMakerStepForm } from './DecisionMakerStepForm/DecisionMakerStepForm';
 import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadStepForm';
@@ -179,7 +179,7 @@ const OnboardingWizardBasicComponent: FC<
     },
     {
       label: t('stepLabels.businessOwners'),
-      children: <BusinessOwnerStepForm />,
+      children: <BeneficialOwnerStepForm />,
       onlyVisibleFor: {
         organizationType: ['LIMITED_LIABILITY_COMPANY'],
       },

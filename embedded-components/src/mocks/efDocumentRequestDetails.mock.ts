@@ -23,6 +23,6 @@ export const efDocumentRequestDetails = {
       minRequired: 0,
     },
   ],
-  status: 'ACTIVE',
+  active: true,
   validForDays: 120,
 };
