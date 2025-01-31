@@ -807,7 +807,12 @@ export const BeneficialOwnerStepForm = () => {
                         className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                       >
                         <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                          Individual Address {index + 1}
+                          Individual Address{' '}
+                          {Number(
+                            getFieldRule('individualAddresses')?.maxItems
+                          ) > 1
+                            ? index + 1
+                            : ''}
                         </legend>
                         <OnboardingFormField
                           control={ownerForm.control}
@@ -818,6 +823,10 @@ export const BeneficialOwnerStepForm = () => {
                             {
                               value: 'MAILING_ADDRESS',
                               label: t('addressTypes.MAILING_ADDRESS'),
+                            },
+                            {
+                              value: 'RESIDENTIAL_ADDRESS',
+                              label: t('addressTypes.RESIDENTIAL_ADDRESS'),
                             },
                           ]}
                         />
@@ -877,22 +886,27 @@ export const BeneficialOwnerStepForm = () => {
                           required
                         />
 
-                        <div className="eb-col-span-full">
-                          <Button
-                            type="button"
-                            onClick={() => removeAddress(index)}
-                            variant="outline"
-                            size="sm"
-                            className="eb-mt-2"
-                            disabled={
-                              addresses.length <=
-                              (getFieldRule('individualAddresses').minItems ??
-                                1)
-                            }
-                          >
-                            Remove Address
-                          </Button>
-                        </div>
+                        {addresses.length >
+                          Number(
+                            getFieldRule('individualAddresses')?.minItems
+                          ) && (
+                          <div className="eb-col-span-full">
+                            <Button
+                              type="button"
+                              onClick={() => removeAddress(index)}
+                              variant="outline"
+                              size="sm"
+                              className="eb-mt-2"
+                              disabled={
+                                addresses.length <=
+                                (getFieldRule('individualAddresses').minItems ??
+                                  1)
+                              }
+                            >
+                              Remove Address
+                            </Button>
+                          </div>
+                        )}
                       </fieldset>
                     ))}
                   </>
@@ -900,14 +914,19 @@ export const BeneficialOwnerStepForm = () => {
                 <Button
                   type="button"
                   onClick={() =>
-                    appendAddress({
-                      addressType: 'RESIDENTIAL_ADDRESS',
-                      addressLines: [''],
-                      state: '',
-                      city: '',
-                      postalCode: '',
-                      country: '',
-                    })
+                    appendAddress(
+                      {
+                        addressType: 'RESIDENTIAL_ADDRESS',
+                        addressLines: [''],
+                        state: '',
+                        city: '',
+                        postalCode: '',
+                        country: '',
+                      },
+                      {
+                        focusName: `individualAddresses.${addresses.length}.addressLines.0`,
+                      }
+                    )
                   }
                   disabled={
                     idFields.length >=
@@ -932,7 +951,10 @@ export const BeneficialOwnerStepForm = () => {
                           className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                         >
                           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                            Individual ID {index + 1}
+                            Individual Identification Document{' '}
+                            {Number(getFieldRule('individualIds')?.maxItems) > 1
+                              ? index + 1
+                              : ''}
                           </legend>
                           <OnboardingFormField
                             control={ownerForm.control}
@@ -989,45 +1011,50 @@ export const BeneficialOwnerStepForm = () => {
                             type="textarea"
                           />
 
-                          <div className="eb-col-span-full">
-                            <Button
-                              type="button"
-                              disabled={
-                                idFields.length <=
-                                (getFieldRule('organizationIds').minItems ?? 0)
-                              }
-                              onClick={() => removeId(index)}
-                              variant="outline"
-                              size="sm"
-                              className="eb-mt-2"
-                            >
-                              Remove Individual ID
-                            </Button>
-                          </div>
+                          {idFields.length >
+                            Number(getFieldRule('individualIds')?.minItems) && (
+                            <div className="eb-col-span-full">
+                              <Button
+                                type="button"
+                                disabled={
+                                  idFields.length <=
+                                  (getFieldRule('individualIds').minItems ?? 0)
+                                }
+                                onClick={() => removeId(index)}
+                                variant="outline"
+                                size="sm"
+                                className="eb-mt-2"
+                              >
+                                Remove Individual Identification Document
+                              </Button>
+                            </div>
+                          )}
                         </fieldset>
                       );
                     })}
                   </>
                 )}
-
-                <Button
-                  type="button"
-                  onClick={() =>
-                    appendId({
-                      idType: 'SSN',
-                      value: '',
-                      issuer: '',
-                    })
-                  }
-                  disabled={
-                    idFields.length >=
-                    (getFieldRule('individualIds').maxItems ?? 50)
-                  }
-                  variant="outline"
-                  size="sm"
-                >
-                  Add Individual ID
-                </Button>
+                {Number(getFieldRule('individualIds')?.maxItems) >
+                  idFields.length && (
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      appendId({
+                        idType: 'SSN',
+                        value: '',
+                        issuer: '',
+                      })
+                    }
+                    disabled={
+                      idFields.length >=
+                      (getFieldRule('individualIds').maxItems ?? 50)
+                    }
+                    variant="outline"
+                    size="sm"
+                  >
+                    Add Individual Identification Document
+                  </Button>
+                )}
               </div>
 
               <DialogFooter className="eb-border-t eb-px-6 eb-pt-6">

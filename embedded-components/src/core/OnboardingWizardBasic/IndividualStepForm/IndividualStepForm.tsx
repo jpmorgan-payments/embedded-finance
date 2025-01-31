@@ -558,14 +558,19 @@ export const IndividualStepForm = () => {
         <Button
           type="button"
           onClick={() =>
-            appendAddress({
-              addressType: 'RESIDENTIAL_ADDRESS',
-              addressLines: [''],
-              state: '',
-              city: '',
-              postalCode: '',
-              country: '',
-            })
+            appendAddress(
+              {
+                addressType: 'RESIDENTIAL_ADDRESS',
+                addressLines: [''],
+                state: '',
+                city: '',
+                postalCode: '',
+                country: '',
+              },
+              {
+                focusName: `individualAddresses.${addressFields.length}.addressLines.0`,
+              }
+            )
           }
           disabled={
             idFields.length >=
