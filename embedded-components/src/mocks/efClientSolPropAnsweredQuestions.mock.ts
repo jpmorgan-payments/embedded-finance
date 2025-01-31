@@ -115,10 +115,6 @@ export const efClientSolPropAnsweredQuestions: ClientResponse = {
       questionId: '30005',
       values: ['$10,000'],
     },
-    {
-      questionId: '30026',
-      values: ['false'],
-    },
   ],
   status: 'NEW',
 };

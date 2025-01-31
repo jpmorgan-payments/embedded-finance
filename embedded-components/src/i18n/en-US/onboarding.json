@@ -266,9 +266,9 @@
       }
     },
     "industryType": {
-      "label": "Industry type",
+      "label": "Industry Classification",
       "placeholder": "Select industry type",
-      "description": "Your business industry - search for the relevant industry type or the NAICS code.",
+      "description": "Your business industry - search for the relevant industry type/category or the NAICS code.",
       "tooltip": "should match your business registration documents NAICS code",
       "validation": {
         "maxLength": "Industry type must be 100 characters or less",

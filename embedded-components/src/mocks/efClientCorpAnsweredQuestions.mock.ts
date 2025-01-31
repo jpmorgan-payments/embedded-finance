@@ -158,30 +158,6 @@ export const efClientCorpAnsweredQuestions: ClientResponse = {
       questionId: '30005',
       values: ['$10,000'],
     },
-    {
-      questionId: '30026',
-      values: ['No'],
-    },
-    {
-      questionId: '30069',
-      values: ['Licensed'],
-    },
-    {
-      questionId: '30070',
-      values: ['US'],
-    },
-    {
-      questionId: '30071',
-      values: ['09/10/1996'],
-    },
-    {
-      questionId: '30072',
-      values: ['US'],
-    },
-    {
-      questionId: '30073',
-      values: ['09/10/1996'],
-    },
   ],
   status: 'NEW',
 };

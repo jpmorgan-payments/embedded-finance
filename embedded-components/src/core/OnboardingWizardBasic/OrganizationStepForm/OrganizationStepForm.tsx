@@ -71,13 +71,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui';
 
@@ -436,34 +429,15 @@ export const OrganizationStepForm = () => {
             Organization Phone Information
           </legend>
           {isFieldVisible('organizationPhone') && (
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="organizationPhone.phoneType"
-              disabled={isFieldDisabled('organizationPhone')}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk={isFieldRequired('organizationPhone')}>
-                    Phone Type
-                  </FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger ref={field.ref}>
-                        <SelectValue placeholder="Select phone type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="BUSINESS_PHONE">
-                        Business Phone
-                      </SelectItem>
-                      <SelectItem value="MOBILE_PHONE">Mobile Phone</SelectItem>
-                      <SelectItem value="ALTERNATE_PHONE">
-                        Alternate Phone
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="select"
+              options={[
+                { value: 'BUSINESS_PHONE', label: 'Business Phone' },
+                { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
+                { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
+              ]}
             />
           )}
 
@@ -517,16 +491,6 @@ export const OrganizationStepForm = () => {
               inputMode: 'numeric',
             }}
           />
-
-          <OnboardingFormField
-            control={form.control}
-            name="entitiesInOwnership"
-            type="radio-group"
-            options={[
-              { value: 'yes', label: 'Yes' },
-              { value: 'no', label: 'No' },
-            ]}
-          />
         </fieldset>
 
         {/* ADDRESSES */}
@@ -538,7 +502,10 @@ export const OrganizationStepForm = () => {
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Organization Address {index + 1}
+                  Business Address{' '}
+                  {Number(getFieldRule('addresses')?.maxItems) > 1
+                    ? index + 1
+                    : ''}
                 </legend>
                 <OnboardingFormField
                   control={form.control}
@@ -623,52 +590,57 @@ export const OrganizationStepForm = () => {
                   }))}
                 />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    onClick={() => removeAddress(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                    disabled={
-                      addressFields.length <=
-                      (getFieldRule('addresses').minItems ?? 1)
-                    }
-                  >
-                    Remove Address
-                  </Button>
-                </div>
+                {addressFields.length >
+                  Number(getFieldRule('addresses')?.minItems) && (
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      onClick={() => removeAddress(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                      disabled={
+                        addressFields.length <=
+                        (getFieldRule('addresses').minItems ?? 1)
+                      }
+                    >
+                      Remove Address
+                    </Button>
+                  </div>
+                )}
               </fieldset>
             ))}
           </>
         )}
 
-        <Button
-          type="button"
-          disabled={
-            addressFields.length >= (getFieldRule('addresses').maxItems ?? 5)
-          }
-          onClick={() =>
-            appendAddress(
-              {
-                addressType: 'BUSINESS_ADDRESS',
-                city: '',
-                state: '',
-                postalCode: '',
-                country: '',
-                addressLines: [''],
-              },
-              {
-                shouldFocus: false,
-              }
-            )
-          }
-          variant="outline"
-          size="sm"
-          className="eb-mt-2"
-        >
-          Add Address
-        </Button>
+        {Number(getFieldRule('addresses')?.maxItems) > addressFields.length && (
+          <Button
+            type="button"
+            disabled={
+              addressFields.length >= (getFieldRule('addresses').maxItems ?? 5)
+            }
+            onClick={() =>
+              appendAddress(
+                {
+                  addressType: 'BUSINESS_ADDRESS',
+                  city: '',
+                  state: '',
+                  postalCode: '',
+                  country: '',
+                  addressLines: [''],
+                },
+                {
+                  shouldFocus: false,
+                }
+              )
+            }
+            variant="outline"
+            size="sm"
+            className="eb-mt-2"
+          >
+            Add Address
+          </Button>
+        )}
 
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
@@ -709,7 +681,10 @@ export const OrganizationStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Business Identification {index + 1}
+                    Business Identification{' '}
+                    {Number(getFieldRule('organizationIds')?.maxItems) > 1
+                      ? index + 1
+                      : ''}
                   </legend>
 
                   <OnboardingFormField
@@ -770,46 +745,52 @@ export const OrganizationStepForm = () => {
                     type="text"
                   />
 
-                  <div className="eb-col-span-full">
-                    <Button
-                      type="button"
-                      disabled={
-                        organizationIdFields.length <
-                        (getFieldRule('organizationIds').minItems ?? 0)
-                      }
-                      onClick={() => removeOrganizationId(index)}
-                      variant="outline"
-                      size="sm"
-                      className="eb-mt-2"
-                    >
-                      Remove Business Identification
-                    </Button>
-                  </div>
+                  {organizationIdFields.length >
+                    Number(getFieldRule('organizationIds')?.minItems) && (
+                    <div className="eb-col-span-full">
+                      <Button
+                        type="button"
+                        disabled={
+                          organizationIdFields.length <
+                          (getFieldRule('organizationIds').minItems ?? 0)
+                        }
+                        onClick={() => removeOrganizationId(index)}
+                        variant="outline"
+                        size="sm"
+                        className="eb-mt-2"
+                      >
+                        Remove Business Identification
+                      </Button>
+                    </div>
+                  )}
                 </fieldset>
               );
             })}
           </>
         )}
-        <Button
-          type="button"
-          disabled={
-            organizationIdFields.length >=
-            (getFieldRule('organizationIds').maxItems ?? 6)
-          }
-          onClick={() =>
-            appendOrganizationId(
-              { idType: 'EIN', value: '', issuer: '' },
-              {
-                shouldFocus: true,
-                focusName: `organizationIds.${organizationIdFields.length}.value`,
-              }
-            )
-          }
-          variant="outline"
-          size="sm"
-        >
-          Add Business Identification
-        </Button>
+        {Number(getFieldRule('organizationIds')?.maxItems) >
+          organizationIdFields.length && (
+          <Button
+            type="button"
+            disabled={
+              organizationIdFields.length >=
+              (getFieldRule('organizationIds').maxItems ?? 6)
+            }
+            onClick={() =>
+              appendOrganizationId(
+                { idType: 'EIN', value: '', issuer: '' },
+                {
+                  shouldFocus: true,
+                  focusName: `organizationIds.${organizationIdFields.length}.value`,
+                }
+              )
+            }
+            variant="outline"
+            size="sm"
+          >
+            Add Business Identification
+          </Button>
+        )}
 
         <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
