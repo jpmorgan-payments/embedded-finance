@@ -477,7 +477,7 @@ export const IndividualStepForm = () => {
           <>
             {addressFields.map((fieldName, index) => (
               <fieldset
-                key={`individual-address-${index}`}
+                key={fieldName.id}
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
@@ -583,7 +583,8 @@ export const IndividualStepForm = () => {
             })
           }
           disabled={
-            idFields.length >= (getFieldRule('addresses').maxItems ?? 50)
+            idFields.length >=
+            (getFieldRule('individualAddresses').maxItems ?? 50)
           }
           variant="outline"
           size="sm"
@@ -598,7 +599,7 @@ export const IndividualStepForm = () => {
               const idType = form.watch(`individualIds.${index}.idType`);
               return (
                 <fieldset
-                  key={`individual-id-${index}`}
+                  key={fieldItem.id}
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
