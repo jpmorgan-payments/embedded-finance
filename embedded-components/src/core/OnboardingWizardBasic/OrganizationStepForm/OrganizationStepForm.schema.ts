@@ -237,7 +237,6 @@ export const OrganizationStepFormSchema = z.object({
       100,
       i18n.t('onboarding:fields.associatedCountries.validation.maxCountries')
     ),
-  entitiesInOwnership: z.enum(['yes', 'no']),
   industryCategory: z
     .string()
     .min(3, i18n.t('onboarding:fields.industryCategory.validation.minLength'))
