@@ -814,26 +814,29 @@ export const OrganizationStepForm = () => {
             })}
           </>
         )}
-        <Button
-          type="button"
-          disabled={
-            organizationIdFields.length >=
-            (getFieldRule('organizationIds').maxItems ?? 6)
-          }
-          onClick={() =>
-            appendOrganizationId(
-              { idType: 'EIN', value: '', issuer: '' },
-              {
-                shouldFocus: true,
-                focusName: `organizationIds.${organizationIdFields.length}.value`,
-              }
-            )
-          }
-          variant="outline"
-          size="sm"
-        >
-          Add Business Identification
-        </Button>
+        {Number(getFieldRule('organizationIds')?.maxItems) >
+          organizationIdFields.length && (
+          <Button
+            type="button"
+            disabled={
+              organizationIdFields.length >=
+              (getFieldRule('organizationIds').maxItems ?? 6)
+            }
+            onClick={() =>
+              appendOrganizationId(
+                { idType: 'EIN', value: '', issuer: '' },
+                {
+                  shouldFocus: true,
+                  focusName: `organizationIds.${organizationIdFields.length}.value`,
+                }
+              )
+            }
+            variant="outline"
+            size="sm"
+          >
+            Add Business Identification
+          </Button>
+        )}
 
         <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">

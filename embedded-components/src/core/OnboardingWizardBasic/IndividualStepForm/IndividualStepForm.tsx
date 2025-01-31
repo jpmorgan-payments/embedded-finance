@@ -694,23 +694,25 @@ export const IndividualStepForm = () => {
             })}
           </>
         )}
-        <Button
-          type="button"
-          onClick={() =>
-            appendId({
-              idType: 'SSN',
-              value: '',
-              issuer: '',
-            })
-          }
-          disabled={
-            idFields.length >= (getFieldRule('individualIds').maxItems ?? 50)
-          }
-          variant="outline"
-          size="sm"
-        >
-          Add Individual Identification Document
-        </Button>
+        {Number(getFieldRule('individualIds')?.maxItems) > idFields.length && (
+          <Button
+            type="button"
+            onClick={() =>
+              appendId({
+                idType: 'SSN',
+                value: '',
+                issuer: '',
+              })
+            }
+            disabled={
+              idFields.length >= (getFieldRule('individualIds').maxItems ?? 50)
+            }
+            variant="outline"
+            size="sm"
+          >
+            Add Individual Identification Document
+          </Button>
+        )}
 
         <ServerErrorAlert
           error={usePartyResource ? updatePartyError : updateClientError}
