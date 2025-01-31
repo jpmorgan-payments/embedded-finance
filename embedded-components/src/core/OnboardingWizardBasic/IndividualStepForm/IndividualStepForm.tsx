@@ -75,13 +75,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -421,34 +414,16 @@ export const IndividualStepForm = () => {
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Individual Phone Information
           </legend>
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="individualPhone.phoneType"
-            disabled={isFieldDisabled('individualPhone')}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel asterisk={isFieldRequired('individualPhone')}>
-                  Phone Type
-                </FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger ref={field.ref}>
-                      <SelectValue placeholder="Select phone type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="BUSINESS_PHONE">
-                      Business Phone
-                    </SelectItem>
-                    <SelectItem value="MOBILE_PHONE">Mobile Phone</SelectItem>
-                    <SelectItem value="ALTERNATE_PHONE">
-                      Alternate Phone
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="select"
+            label="Phone Type"
+            options={[
+              { value: 'BUSINESS_PHONE', label: 'Business Phone' },
+              { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
+              { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
+            ]}
           />
 
           <FormField
@@ -486,7 +461,10 @@ export const IndividualStepForm = () => {
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Individual Address {index + 1}
+                  Individual Address{' '}
+                  {Number(getFieldRule('individualAddresses')?.maxItems) > 1
+                    ? index + 1
+                    : ''}
                 </legend>
                 <OnboardingFormField
                   control={form.control}
@@ -497,6 +475,10 @@ export const IndividualStepForm = () => {
                     {
                       value: 'MAILING_ADDRESS',
                       label: t('addressTypes.MAILING_ADDRESS'),
+                    },
+                    {
+                      value: 'RESIDENTIAL_ADDRESS',
+                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
                     },
                   ]}
                 />
@@ -556,21 +538,24 @@ export const IndividualStepForm = () => {
                   required
                 />
 
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    onClick={() => removeAddress(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                    disabled={
-                      addressFields.length <=
-                      (getFieldRule('individualAddresses').minItems ?? 1)
-                    }
-                  >
-                    Remove Address
-                  </Button>
-                </div>
+                {addressFields.length >
+                  Number(getFieldRule('individualAddresses')?.minItems) && (
+                  <div className="eb-col-span-full">
+                    <Button
+                      type="button"
+                      onClick={() => removeAddress(index)}
+                      variant="outline"
+                      size="sm"
+                      className="eb-mt-2"
+                      disabled={
+                        addressFields.length <=
+                        (getFieldRule('individualAddresses').minItems ?? 1)
+                      }
+                    >
+                      Remove Address
+                    </Button>
+                  </div>
+                )}
               </fieldset>
             ))}
           </>
@@ -607,7 +592,10 @@ export const IndividualStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Individual ID {index + 1}
+                    Individual Identification Document{' '}
+                    {Number(getFieldRule('individualIds')?.maxItems) > 1
+                      ? index + 1
+                      : ''}
                   </legend>
                   <OnboardingFormField
                     control={form.control}
@@ -662,43 +650,48 @@ export const IndividualStepForm = () => {
                     type="textarea"
                   />
 
-                  <div className="eb-col-span-full">
-                    <Button
-                      type="button"
-                      disabled={
-                        idFields.length <=
-                        (getFieldRule('organizationIds').minItems ?? 0)
-                      }
-                      onClick={() => removeId(index)}
-                      variant="outline"
-                      size="sm"
-                      className="eb-mt-2"
-                    >
-                      Remove Individual ID
-                    </Button>
-                  </div>
+                  {idFields.length >
+                    Number(getFieldRule('individualIds')?.minItems) && (
+                    <div className="eb-col-span-full">
+                      <Button
+                        type="button"
+                        disabled={
+                          idFields.length <=
+                          (getFieldRule('individualIds').minItems ?? 0)
+                        }
+                        onClick={() => removeId(index)}
+                        variant="outline"
+                        size="sm"
+                        className="eb-mt-2"
+                      >
+                        Remove Individual Identification Document
+                      </Button>
+                    </div>
+                  )}
                 </fieldset>
               );
             })}
           </>
         )}
-        <Button
-          type="button"
-          onClick={() =>
-            appendId({
-              idType: 'SSN',
-              value: '',
-              issuer: '',
-            })
-          }
-          disabled={
-            idFields.length >= (getFieldRule('individualIds').maxItems ?? 50)
-          }
-          variant="outline"
-          size="sm"
-        >
-          Add Individual ID
-        </Button>
+        {Number(getFieldRule('individualIds')?.maxItems) > idFields.length && (
+          <Button
+            type="button"
+            onClick={() =>
+              appendId({
+                idType: 'SSN',
+                value: '',
+                issuer: '',
+              })
+            }
+            disabled={
+              idFields.length >= (getFieldRule('individualIds').maxItems ?? 50)
+            }
+            variant="outline"
+            size="sm"
+          >
+            Add Individual Identification Document
+          </Button>
+        )}
 
         <ServerErrorAlert
           error={usePartyResource ? updatePartyError : updateClientError}
