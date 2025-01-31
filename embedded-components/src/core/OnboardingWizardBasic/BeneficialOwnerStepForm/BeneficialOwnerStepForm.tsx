@@ -127,9 +127,7 @@ import {
   useStepForm,
 } from '../utils/formUtils';
 
-type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
-
-export const BusinessOwnerStepForm = () => {
+export const BeneficialOwnerStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId, onPostClientResponse, onPostPartyResponse } =
     useOnboardingContext();
@@ -295,7 +293,7 @@ export const BusinessOwnerStepForm = () => {
         clientData,
         beneficialOwnerId
       );
-      ownerForm.reset(formValues as BusinessOwner);
+      ownerForm.reset(formValues);
       setIsDialogOpen(true);
     }
   };
@@ -324,7 +322,7 @@ export const BusinessOwnerStepForm = () => {
     });
   };
 
-  const onSubmit = (values: BusinessOwner) => {
+  const onOwnerFormSubmit = ownerForm.handleSubmit((values) => {
     if (clientId) {
       // Update party for beneficial owner being edited
       if (currentBeneficialOwnerId) {
@@ -395,7 +393,7 @@ export const BusinessOwnerStepForm = () => {
         );
       }
     }
-  };
+  });
 
   const activeOwners = ownersData.filter(
     (owner) => owner.active || owner.status === 'ACTIVE'
@@ -662,7 +660,7 @@ export const BusinessOwnerStepForm = () => {
         }}
       >
         <Form {...ownerForm}>
-          <form id={ownerFormId} onSubmit={ownerForm.handleSubmit(onSubmit)}>
+          <form id={ownerFormId} onSubmit={onOwnerFormSubmit}>
             <DialogContent className="eb-max-h-full eb-gap-0 eb-px-0 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg">
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>
