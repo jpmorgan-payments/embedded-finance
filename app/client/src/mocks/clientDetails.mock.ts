@@ -1,4 +1,3 @@
-
 export const LLCExistingClient = {
   id: '0030000131',
   parties: [
@@ -9,7 +8,7 @@ export const LLCExistingClient = {
       email: 'info@Neverlandbooks.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
@@ -56,7 +55,7 @@ export const LLCExistingClient = {
       externalId: 'TCU12344',
       email: 'Peiter@neverlandbooks.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
       individualDetails: {
@@ -99,7 +98,7 @@ export const LLCExistingClient = {
       externalId: 'TCU12344',
       email: 'Tinker@neverlandbook.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       roles: ['BENEFICIAL_OWNER'],
       individualDetails: {
@@ -142,9 +141,7 @@ export const LLCExistingClient = {
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
-    questionIds: [
-      '30005',
-    ],
+    questionIds: ['30005'],
   },
   questionResponses: [
     {
@@ -194,7 +191,7 @@ export const SoleProprietorExistingClient = {
       email: 'monica@cpgetaways.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:20:09.401Z',
       organizationDetails: {
         organizationType: 'SOLE_PROPRIETORSHIP',
@@ -241,7 +238,7 @@ export const SoleProprietorExistingClient = {
       externalId: 'TCU12344',
       email: 'monica@ggmail.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:20:09.401Z',
       roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
       individualDetails: {
@@ -312,7 +309,7 @@ export const LLCExistingClientOutstandingDocuments = {
       email: 'info@Neverlandbooks.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
@@ -366,7 +363,7 @@ export const LLCExistingClientOutstandingDocuments = {
       externalId: 'TCU12344',
       email: 'Peiter@neverlandbooks.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
       individualDetails: {
@@ -409,7 +406,7 @@ export const LLCExistingClientOutstandingDocuments = {
       externalId: 'TCU12344',
       email: 'Tinker@neverlandbook.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2024-06-21T18:12:21.005Z',
       roles: ['BENEFICIAL_OWNER'],
       individualDetails: {

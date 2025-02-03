@@ -18,7 +18,7 @@ export const efClientSolPropWithMoreData: ClientResponse = {
       email: 'monica@ggmail.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:20:09.401Z',
       organizationDetails: {
         organizationType: 'SOLE_PROPRIETORSHIP',
@@ -69,7 +69,7 @@ export const efClientSolPropWithMoreData: ClientResponse = {
       externalId: 'TCU12344',
       email: 'monicageller@ggmail.com',
       profileStatus: 'APPROVED',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:20:09.401Z',
       roles: ['CONTROLLER', 'BENEFICIAL_OWNER', 'DECISION_MAKER'],
       individualDetails: {

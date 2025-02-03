@@ -49,7 +49,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { AccordionContent } from '@radix-ui/react-accordion';
 import {
   ArchiveRestoreIcon,
@@ -69,10 +68,7 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  ApiError,
-  UpdateClientRequestSmbdo,
-} from '@/api/generated/smbdo.schemas';
+import { ApiError } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -94,22 +90,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
 import { Badge } from '@/components/ui';
 
@@ -121,17 +102,18 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateRequestBody as generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  shapeFormValuesBySchema,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
+import { stateOptions } from '../utils/stateOptions';
 
-type BusinessOwner = z.infer<typeof IndividualStepFormSchema>;
-
-export const BusinessOwnerStepForm = () => {
+export const BeneficialOwnerStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId, onPostClientResponse, onPostPartyResponse } =
     useOnboardingContext();
@@ -148,12 +130,15 @@ export const BusinessOwnerStepForm = () => {
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
-  const { filterDefaultValues, filterSchema, getFieldRule } =
+  const { getFieldRule, isFieldVisible } =
     useFilterFunctionsByClientContext(clientData);
 
-  const ownerForm = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
-    defaultValues: filterDefaultValues({
+  const ownerForm = useStepFormWithFilters<
+    z.infer<typeof IndividualStepFormSchema>
+  >({
+    clientData,
+    schema: IndividualStepFormSchema,
+    defaultValues: {
       individualAddresses: [
         {
           addressType: 'RESIDENTIAL_ADDRESS',
@@ -177,17 +162,19 @@ export const BusinessOwnerStepForm = () => {
         phoneType: 'MOBILE_PHONE',
         phoneNumber: '',
       },
-    }),
+    },
   });
 
-  const controllerData = clientData?.parties?.find(
+  const controllerParty = clientData?.parties?.find(
     (party) =>
-      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+      party?.partyType === 'INDIVIDUAL' &&
+      party?.roles?.includes('CONTROLLER') &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const controllerForm = useForm({
     defaultValues: {
-      controllerIsOwner: controllerData?.roles?.includes('BENEFICIAL_OWNER')
+      controllerIsOwner: controllerParty?.roles?.includes('BENEFICIAL_OWNER')
         ? 'yes'
         : 'no',
     },
@@ -201,13 +188,13 @@ export const BusinessOwnerStepForm = () => {
 
   // Update controller roles on change
   useEffect(() => {
-    const controllerRoles = controllerData?.roles || [];
+    const controllerRoles = [...(controllerParty?.roles ?? [])];
 
     const updateControllerRoles = () => {
-      if (controllerData?.id) {
+      if (controllerParty?.id) {
         updateController(
           {
-            partyId: controllerData.id,
+            partyId: controllerParty.id,
             data: {
               roles: controllerRoles,
             },
@@ -220,7 +207,7 @@ export const BusinessOwnerStepForm = () => {
             onError: (error) => {
               controllerForm.setValue(
                 'controllerIsOwner',
-                controllerData?.roles?.includes('BENEFICIAL_OWNER')
+                controllerParty?.roles?.includes('BENEFICIAL_OWNER')
                   ? 'yes'
                   : 'no'
               );
@@ -295,7 +282,9 @@ export const BusinessOwnerStepForm = () => {
         clientData,
         beneficialOwnerId
       );
-      ownerForm.reset(formValues as BusinessOwner);
+      ownerForm.reset(
+        shapeFormValuesBySchema(formValues, IndividualStepFormSchema)
+      );
       setIsDialogOpen(true);
     }
   };
@@ -324,42 +313,11 @@ export const BusinessOwnerStepForm = () => {
     });
   };
 
-  const onSubmit = (values: BusinessOwner) => {
+  const onOwnerFormSubmit = ownerForm.handleSubmit((values) => {
     if (clientId) {
-      if (!currentBeneficialOwnerId) {
-        const requestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'INDIVIDUAL',
-              roles: ['BENEFICIAL_OWNER'],
-            },
-          ],
-        }) as UpdateClientRequestSmbdo;
-
-        updateClient(
-          {
-            id: clientId,
-            data: requestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostClientResponse?.(data, error?.response?.data);
-            },
-            onSuccess: () => {
-              toast.success('Beneficial owner details updated successfully');
-              setIsDialogOpen(false);
-              setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
-            },
-            onError: () => {
-              toast.error('Failed to update beneficial owner details');
-            },
-          }
-        );
-      } else {
+      // Update party for beneficial owner being edited
+      if (currentBeneficialOwnerId) {
         const partyRequestBody = generatePartyRequestBody(values, {});
-
         updateParty(
           {
             partyId: currentBeneficialOwnerId,
@@ -379,7 +337,42 @@ export const BusinessOwnerStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
+                setApiFormErrors(ownerForm, apiFormErrors);
+              }
+            },
+          }
+        );
+      } else {
+        const requestBody = generateClientRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['BENEFICIAL_OWNER'],
+            },
+          ],
+        });
+        updateClient(
+          {
+            id: clientId,
+            data: requestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              toast.success('Beneficial owner details updated successfully');
+              setIsDialogOpen(false);
+              setCurrentBeneficialOwnerId('');
+              ownerForm.reset({});
+              refetchClientData();
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -391,10 +384,14 @@ export const BusinessOwnerStepForm = () => {
         );
       }
     }
-  };
+  });
 
-  const activeOwners = ownersData.filter((owner) => owner.active);
-  const inactiveOwners = ownersData.filter((owner) => !owner.active);
+  const activeOwners = ownersData.filter(
+    (owner) => owner.active || owner.status === 'ACTIVE'
+  );
+  const inactiveOwners = ownersData.filter(
+    (owner) => !owner.active && owner.status !== 'ACTIVE'
+  );
 
   // Used for updating the soleOwner field of a party
   const { mutateAsync: updateSoleOwner, status: soleOwnerUpdateStatus } =
@@ -420,6 +417,44 @@ export const BusinessOwnerStepForm = () => {
   const [soleOwnerFormErrors, setSoleOwnerFormErrors] = useState<
     Array<ErrorType<ApiError>>
   >([]);
+
+  // Get mask format based on ID type
+  const getMaskFormat = (idType: string) => {
+    switch (idType) {
+      case 'SSN':
+        return '### - ## - ####';
+      case 'ITIN':
+        return '### - ## - ####';
+      default:
+        return undefined;
+    }
+  };
+
+  // Get label for value field based on ID type
+  const getValueLabel = (
+    idType:
+      | 'SSN'
+      | 'ITIN'
+      | 'NATIONAL_ID'
+      | 'DRIVERS_LICENSE'
+      | 'PASSPORT'
+      | 'SOCIAL_INSURANCE_NUMBER'
+      | 'OTHER_GOVERNMENT_ID'
+  ) => {
+    if (!idType) return t('idValueLabels.placeholder');
+    return t(`idValueLabels.individual.${idType}`);
+  };
+
+  // Reset value of ID value field when ID type changes
+  useEffect(() => {
+    const subscription = ownerForm.watch((_, { name }) => {
+      if (name?.startsWith('individualIds') && name.endsWith('idType')) {
+        const index = parseInt(name.split('.')[1], 10);
+        ownerForm.setValue(`individualIds.${index}.value`, '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [ownerForm.watch]);
 
   const handleSoleOwnerFormSubmit = soleOwnerForm.handleSubmit(
     async (values) => {
@@ -654,7 +689,7 @@ export const BusinessOwnerStepForm = () => {
         }}
       >
         <Form {...ownerForm}>
-          <form id={ownerFormId} onSubmit={ownerForm.handleSubmit(onSubmit)}>
+          <form id={ownerFormId} onSubmit={onOwnerFormSubmit}>
             <DialogContent className="eb-max-h-full eb-gap-0 eb-px-0 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg">
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>
@@ -769,294 +804,262 @@ export const BusinessOwnerStepForm = () => {
                 </fieldset>
 
                 {/* Addresses */}
-                <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Addresses
-                  </legend>
-                  {addresses?.map((fieldName, index) => (
-                    <div
-                      key={fieldName?.id}
-                      className="eb-space-y-4 eb-rounded-md eb-border eb-p-4"
-                    >
-                      <h4 className="eb-font-medium">Address {index + 1}</h4>
-                      <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                        <FormField
+                {isFieldVisible('individualAddresses') && (
+                  <>
+                    {addresses.map((fieldName, index) => (
+                      <fieldset
+                        key={fieldName.id}
+                        className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+                      >
+                        <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                          Individual Address{' '}
+                          {Number(
+                            getFieldRule('individualAddresses')?.maxItems
+                          ) > 1
+                            ? index + 1
+                            : ''}
+                        </legend>
+                        <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.addressType`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Address Type</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select address type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="LEGAL_ADDRESS">
-                                    Legal Address
-                                  </SelectItem>
-                                  <SelectItem value="MAILING_ADDRESS">
-                                    Mailing Address
-                                  </SelectItem>
-                                  <SelectItem value="BUSINESS_ADDRESS">
-                                    Business Address
-                                  </SelectItem>
-                                  <SelectItem value="RESIDENTIAL_ADDRESS">
-                                    Residential Address
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          type="select"
+                          required
+                          options={[
+                            {
+                              value: 'MAILING_ADDRESS',
+                              label: t('addressTypes.MAILING_ADDRESS'),
+                            },
+                            {
+                              value: 'RESIDENTIAL_ADDRESS',
+                              label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                            },
+                          ]}
                         />
-                        <FormField
+
+                        <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.addressLines.0`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Address Line 1</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Enter address line 1"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          label="Address Line 1"
+                          type="text"
+                          required
                         />
-                        <FormField
+
+                        <OnboardingFormField
+                          control={ownerForm.control}
+                          label="Address Line 2"
+                          name={`individualAddresses.${index}.addressLines.1`}
+                          type="text"
+                        />
+
+                        <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.city`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>City</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Enter city" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          type="text"
+                          required
                         />
-                        <FormField
+
+                        <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.state`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>State</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Enter state" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          type="select"
+                          options={stateOptions}
+                          required
                         />
-                        <FormField
+
+                        <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.postalCode`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Postal Code</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Enter postal code"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          type="text"
+                          required
                         />
-                        <FormField
+
+                        <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.country`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Country</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Enter country code"
-                                  maxLength={2}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          type="combobox"
+                          options={COUNTRIES_OF_FORMATION.map((code) => ({
+                            value: code,
+                            label: (
+                              <span>
+                                <span className="eb-font-medium">[{code}]</span>{' '}
+                                {t([
+                                  `common:countries.${code}`,
+                                ] as unknown as TemplateStringsArray)}
+                              </span>
+                            ),
+                          }))}
+                          required
                         />
-                      </div>
-                      <Button
-                        type="button"
-                        disabled={
-                          addresses.length <=
-                          (getFieldRule('individualAddresses').minItems ?? 1)
-                        }
-                        onClick={() => removeAddress(index)}
-                        variant="outline"
-                        size="sm"
-                        className="eb-mt-2"
-                      >
-                        Remove Address
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    disabled={
-                      addresses.length >=
-                      (getFieldRule('individualAddresses').maxItems ?? 5)
-                    }
-                    onClick={() =>
-                      appendAddress({
+
+                        {addresses.length >
+                          Number(
+                            getFieldRule('individualAddresses')?.minItems
+                          ) && (
+                          <div className="eb-col-span-full">
+                            <Button
+                              type="button"
+                              onClick={() => removeAddress(index)}
+                              variant="outline"
+                              size="sm"
+                              className="eb-mt-2"
+                              disabled={
+                                addresses.length <=
+                                (getFieldRule('individualAddresses').minItems ??
+                                  1)
+                              }
+                            >
+                              Remove Address
+                            </Button>
+                          </div>
+                        )}
+                      </fieldset>
+                    ))}
+                  </>
+                )}
+                <Button
+                  type="button"
+                  onClick={() =>
+                    appendAddress(
+                      {
                         addressType: 'RESIDENTIAL_ADDRESS',
                         addressLines: [''],
                         state: '',
                         city: '',
                         postalCode: '',
                         country: '',
+                      },
+                      {
+                        focusName: `individualAddresses.${addresses.length}.addressLines.0`,
+                      }
+                    )
+                  }
+                  disabled={
+                    idFields.length >=
+                    (getFieldRule('individualAddresses').maxItems ?? 50)
+                  }
+                  variant="outline"
+                  size="sm"
+                >
+                  Add Address
+                </Button>
+
+                {/* Individual IDs */}
+                {isFieldVisible('individualIds') && (
+                  <>
+                    {idFields.map((fieldItem, index) => {
+                      const idType = ownerForm.watch(
+                        `individualIds.${index}.idType`
+                      );
+                      return (
+                        <fieldset
+                          key={fieldItem.id}
+                          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+                        >
+                          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                            Individual Identification Document{' '}
+                            {Number(getFieldRule('individualIds')?.maxItems) > 1
+                              ? index + 1
+                              : ''}
+                          </legend>
+                          <OnboardingFormField
+                            control={ownerForm.control}
+                            name={`individualIds.${index}.idType`}
+                            type="select"
+                            options={[
+                              { value: 'SSN', label: 'SSN' },
+                              { value: 'ITIN', label: 'ITIN' },
+                            ]}
+                            required
+                          />
+
+                          <OnboardingFormField
+                            key={`individual-id-value-${index}-${idType}`}
+                            control={ownerForm.control}
+                            name={`individualIds.${index}.value`}
+                            type="text"
+                            label={getValueLabel(idType)}
+                            maskFormat={getMaskFormat(idType)}
+                            maskChar="_"
+                            required
+                          />
+
+                          <OnboardingFormField
+                            control={ownerForm.control}
+                            name={`individualIds.${index}.issuer`}
+                            type="combobox"
+                            options={COUNTRIES_OF_FORMATION.map((code) => ({
+                              value: code,
+                              label: (
+                                <span>
+                                  <span className="eb-font-medium">
+                                    [{code}]
+                                  </span>{' '}
+                                  {t([
+                                    `common:countries.${code}`,
+                                  ] as unknown as TemplateStringsArray)}
+                                </span>
+                              ),
+                            }))}
+                            required
+                          />
+
+                          <OnboardingFormField
+                            control={ownerForm.control}
+                            name={`individualIds.${index}.expiryDate`}
+                            type="date"
+                            label="Expiry Date"
+                          />
+
+                          <OnboardingFormField
+                            control={ownerForm.control}
+                            name={`individualIds.${index}.description`}
+                            type="textarea"
+                          />
+
+                          {idFields.length >
+                            Number(getFieldRule('individualIds')?.minItems) && (
+                            <div className="eb-col-span-full">
+                              <Button
+                                type="button"
+                                disabled={
+                                  idFields.length <=
+                                  (getFieldRule('individualIds').minItems ?? 0)
+                                }
+                                onClick={() => removeId(index)}
+                                variant="outline"
+                                size="sm"
+                                className="eb-mt-2"
+                              >
+                                Remove Individual Identification Document
+                              </Button>
+                            </div>
+                          )}
+                        </fieldset>
+                      );
+                    })}
+                  </>
+                )}
+                {Number(getFieldRule('individualIds')?.maxItems) >
+                  idFields.length && (
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      appendId({
+                        idType: 'SSN',
+                        value: '',
+                        issuer: '',
                       })
+                    }
+                    disabled={
+                      idFields.length >=
+                      (getFieldRule('individualIds').maxItems ?? 50)
                     }
                     variant="outline"
                     size="sm"
                   >
-                    Add Address
+                    Add Individual Identification Document
                   </Button>
-                </fieldset>
-
-                {/* Individual IDs */}
-                <Card className="eb-mt-6">
-                  <CardHeader>
-                    <CardTitle className="eb-text-lg eb-font-medium">
-                      Individual IDs
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="eb-space-y-4">
-                    {idFields.map((fieldName, index) => (
-                      <div
-                        key={fieldName.id}
-                        className="eb-space-y-4 eb-rounded-md eb-border eb-p-4"
-                      >
-                        <h4 className="eb-font-medium">ID {index + 1}</h4>
-                        <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                          <FormField
-                            control={ownerForm.control}
-                            name={`individualIds.${index}.idType`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>ID Type</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select ID type" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="SSN">SSN</SelectItem>
-                                    <SelectItem value="ITIN">ITIN</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={ownerForm.control}
-                            name={`individualIds.${index}.value`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>ID Value</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Enter ID value"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={ownerForm.control}
-                            name={`individualIds.${index}.issuer`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Issuer</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Enter issuer country code"
-                                    maxLength={2}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={ownerForm.control}
-                            name={`individualIds.${index}.expiryDate`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Expiry Date</FormLabel>
-                                <FormControl>
-                                  <Input {...field} type="date" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={ownerForm.control}
-                            name={`individualIds.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Enter description (optional)"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={() => removeId(index)}
-                          variant="outline"
-                          size="sm"
-                          className="eb-mt-2"
-                        >
-                          Remove ID
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        appendId({
-                          idType: 'SSN',
-                          value: '',
-                          issuer: '',
-                        })
-                      }
-                      variant="outline"
-                      size="sm"
-                    >
-                      Add ID
-                    </Button>
-                  </CardContent>
-                </Card>
+                )}
               </div>
 
               <DialogFooter className="eb-border-t eb-px-6 eb-pt-6">

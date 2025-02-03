@@ -1,5 +1,7 @@
 import { useEffect, useMemo } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  DefaultValues,
   FieldErrors,
   FieldValues,
   useForm,
@@ -28,7 +30,7 @@ import {
 } from './types';
 
 type FormError = {
-  field?: keyof typeof partyFieldMap;
+  field?: keyof typeof partyFieldMap | `${keyof typeof partyFieldMap}${string}`;
   message: string;
   path?: string;
 };
@@ -40,7 +42,7 @@ type FormError = {
  * @param arrayName - Name of the array field ('parties' or 'addParties')
  * @returns Array of FormError objects with mapped field names and messages
  */
-export function translateApiErrorsToFormErrors(
+export function translateClientApiErrorsToFormErrors(
   errors: ApiErrorReasonV2[],
   partyIndex: number,
   arrayName: 'parties' | 'addParties'
@@ -49,11 +51,22 @@ export function translateApiErrorsToFormErrors(
     keyof typeof partyFieldMap
   >;
   return errors.map((error) => {
-    const matchedKey = fieldMapKeys.find(
-      (key) =>
-        `${arrayName}.${partyIndex}.${partyFieldMap[key]}` === error.field ||
-        `${arrayName}[${partyIndex}].${partyFieldMap[key]}` === error.field
-    );
+    let remainingPath = '';
+    const matchedKey = fieldMapKeys.find((key) => {
+      const path = partyFieldMap[key]?.path;
+      const errorFieldInDotNotation = error.field?.replace(/\[(\w+)\]/g, '.$1');
+      if (
+        path &&
+        errorFieldInDotNotation &&
+        errorFieldInDotNotation.startsWith(`${arrayName}.${partyIndex}.${path}`)
+      ) {
+        remainingPath = errorFieldInDotNotation.substring(
+          `${arrayName}.${partyIndex}.${path}`.length
+        );
+        return true;
+      }
+      return false;
+    });
     if (!matchedKey && error.field && error.field in partyFieldMap) {
       return {
         field: error.field as keyof typeof partyFieldMap,
@@ -61,7 +74,47 @@ export function translateApiErrorsToFormErrors(
         path: error.field,
       };
     }
-    return { field: matchedKey, message: error.message, path: error.field };
+    return {
+      field: matchedKey ? `${matchedKey}${remainingPath}` : undefined,
+      message: error.message,
+      path: error.field,
+    };
+  });
+}
+
+/**
+ * Converts API validation errors into form-friendly error objects
+ * @param errors - Array of API error reasons
+ * @returns Array of FormError objects with mapped field names and messages
+ */
+export function translatePartyApiErrorsToFormErrors(
+  errors: ApiErrorReasonV2[]
+): FormError[] {
+  const fieldMapKeys = Object.keys(partyFieldMap) as Array<
+    keyof typeof partyFieldMap
+  >;
+  return errors.map((error) => {
+    let remainingPath = '';
+    const matchedKey = fieldMapKeys.find((key) => {
+      const path = partyFieldMap[key]?.path;
+      if (path && error.field && error.field.startsWith(`$.${path}`)) {
+        remainingPath = error.field.substring(`$.${path}`.length);
+        return true;
+      }
+      return false;
+    });
+    if (!matchedKey && error.field && error.field in partyFieldMap) {
+      return {
+        field: error.field as keyof typeof partyFieldMap,
+        message: error.message,
+        path: error.field,
+      };
+    }
+    return {
+      field: matchedKey ? `${matchedKey}${remainingPath}` : undefined,
+      message: error.message,
+      path: error.field,
+    };
   });
 }
 
@@ -228,28 +281,12 @@ export function convertClientResponseToFormValues(
 ): Partial<OnboardingWizardFormValues> {
   const formValues: Partial<OnboardingWizardFormValues> = {};
 
-  const cleanedResponse = { ...response };
-  cleanedResponse.parties = cleanedResponse.parties?.map((party) => {
-    const cleanedParty = { ...party };
-    if (cleanedParty?.organizationDetails?.organizationIds?.length === 0) {
-      delete cleanedParty.organizationDetails.organizationIds;
-    }
-    return cleanedParty;
-  });
-
-  cleanedResponse.parties?.forEach((party) => {
-    if (party?.organizationDetails?.organizationIds?.length === 0) {
-      delete party.organizationDetails.organizationIds;
-    }
-  });
-
   Object.entries(partyFieldMap).forEach(([fieldName, config]) => {
     const partyIndex =
-      cleanedResponse.parties?.findIndex((party) => party?.id === partyId) ??
-      -1;
+      response.parties?.findIndex((party) => party?.id === partyId) ?? -1;
 
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
-    const value = getValueByPath(cleanedResponse, pathTemplate);
+    const value = getValueByPath(response, pathTemplate);
     if (value !== undefined) {
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
@@ -408,7 +445,7 @@ export function filterSchemaByClientContext(
     let fieldSchema = value;
     if (fieldRule.visibility !== 'hidden') {
       if (!fieldRule.required) {
-        fieldSchema = value.optional();
+        fieldSchema = value.or(z.literal('')).optional();
       }
       if (value instanceof z.ZodArray) {
         if (fieldRule.minItems !== undefined) {
@@ -496,7 +533,7 @@ export function useStepForm<T extends FieldValues>(
 
   const form = useForm<T>({
     mode: 'onBlur',
-    reValidateMode: 'onChange', // prevents edge cases where select fields are not revalidated
+    reValidateMode: 'onChange',
     ...props,
     defaultValues,
     errors,
@@ -512,7 +549,32 @@ export function useStepForm<T extends FieldValues>(
   return form;
 }
 
-// Not used
+export function useStepFormWithFilters<T extends FieldValues>(
+  props: Omit<UseFormProps<T>, 'resolver'> & {
+    clientData: ClientResponse | undefined;
+    schema: z.ZodObject<Record<string, z.ZodType<any>>>;
+    refineSchemaFn?: (
+      schema: z.ZodObject<Record<string, z.ZodType<any>>>
+    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
+  }
+): UseFormReturn<T> {
+  const { filterDefaultValues, filterSchema } =
+    useFilterFunctionsByClientContext(props.clientData);
+
+  const form = useStepForm<T>({
+    ...props,
+    resolver: zodResolver(filterSchema(props.schema, props.refineSchemaFn)),
+    defaultValues: filterDefaultValues(
+      shapeFormValuesBySchema(
+        props.defaultValues as Partial<OnboardingWizardFormValues>,
+        props.schema
+      )
+    ) as DefaultValues<T>,
+  });
+
+  return form;
+}
+
 export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
   formValues: Partial<OnboardingWizardFormValues>,
   schema: z.ZodObject<T>

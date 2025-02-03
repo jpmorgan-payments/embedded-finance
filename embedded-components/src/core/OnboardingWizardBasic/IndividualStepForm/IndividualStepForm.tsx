@@ -50,7 +50,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -61,10 +60,6 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  UpdateClientRequestSmbdo,
-  UpdatePartyRequest,
-} from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
@@ -80,9 +75,11 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  shapeFormValuesBySchema,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import { IndividualStepFormSchema } from './IndividualStepForm.schema';
@@ -102,37 +99,40 @@ export const IndividualStepForm = () => {
     clientId ?? ''
   );
 
-  const { filterDefaultValues, filterSchema, getFieldRule, isFieldVisible } =
+  const { getFieldRule, isFieldVisible } =
     useFilterFunctionsByClientContext(clientData);
 
-  const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
-    defaultValues: filterDefaultValues({
-      individualAddresses: [
-        {
-          addressType: 'RESIDENTIAL_ADDRESS',
-          addressLines: [''],
-          state: '',
-          city: '',
-          postalCode: '',
-          country: '',
+  const form = useStepFormWithFilters<z.infer<typeof IndividualStepFormSchema>>(
+    {
+      clientData,
+      schema: IndividualStepFormSchema,
+      defaultValues: {
+        individualAddresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: [''],
+            state: '',
+            city: '',
+            postalCode: '',
+            country: '',
+          },
+        ],
+        individualIds: [
+          {
+            idType: 'SSN',
+            value: '',
+            issuer: '',
+            expiryDate: '',
+            description: '',
+          },
+        ],
+        individualPhone: {
+          phoneType: 'MOBILE_PHONE',
+          phoneNumber: '',
         },
-      ],
-      individualIds: [
-        {
-          idType: 'SSN',
-          value: '',
-          issuer: '',
-          expiryDate: '',
-          description: '',
-        },
-      ],
-      individualPhone: {
-        phoneType: 'MOBILE_PHONE',
-        phoneNumber: '',
       },
-    }),
-  });
+    }
+  );
 
   const {
     fields: addressFields,
@@ -155,7 +155,9 @@ export const IndividualStepForm = () => {
   // Get INDIVIDUAL's partyId
   const existingIndividualParty = clientData?.parties?.find(
     (party) =>
-      party?.partyType === 'INDIVIDUAL' && party?.roles?.includes('CONTROLLER')
+      party?.partyType === 'INDIVIDUAL' &&
+      party?.roles?.includes('CONTROLLER') &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
@@ -172,7 +174,12 @@ export const IndividualStepForm = () => {
         clientData,
         existingIndividualParty.id
       );
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          IndividualStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [
@@ -197,21 +204,10 @@ export const IndividualStepForm = () => {
 
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
-      const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-        addParties: [
-          {
-            partyType: 'INDIVIDUAL',
-            roles: ['CONTROLLER'],
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
-
-      const partyRequestBody = generatePartyRequestBody(
-        values,
-        {}
-      ) as UpdatePartyRequest;
-
+      // Update party if it exists
       if (usePartyResource && existingIndividualParty?.id) {
+        const partyRequestBody = generatePartyRequestBody(values, {});
+
         updateParty(
           {
             partyId: existingIndividualParty?.id,
@@ -230,17 +226,24 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
-                  context,
-                  0,
-                  'addParties'
-                );
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
           }
         );
-      } else {
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['CONTROLLER'],
+            },
+          ],
+        });
         updateClient(
           {
             id: clientId,
@@ -259,7 +262,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -272,6 +275,8 @@ export const IndividualStepForm = () => {
       }
     }
   });
+
+  console.log(form.formState.errors);
 
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
@@ -346,14 +351,24 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="lastName"
             type="text"
-            required
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="nameSuffix"
+            type="text"
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="individualEmail"
+            type="email"
           />
 
           <OnboardingFormField
             control={form.control}
             name="birthDate"
             type="date"
-            required
           />
 
           <OnboardingFormField
@@ -371,7 +386,6 @@ export const IndividualStepForm = () => {
                 </span>
               ),
             }))}
-            required
           />
 
           <OnboardingFormField
@@ -391,6 +405,12 @@ export const IndividualStepForm = () => {
               },
               { value: 'Other', label: 'Other' },
             ]}
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="jobTitleDescription"
+            type="text"
           />
         </fieldset>
 
@@ -422,7 +442,7 @@ export const IndividualStepForm = () => {
           <>
             {addressFields.map((fieldName, index) => (
               <fieldset
-                key={`individual-address-${index}`}
+                key={fieldName.id}
                 className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
@@ -528,17 +548,23 @@ export const IndividualStepForm = () => {
         <Button
           type="button"
           onClick={() =>
-            appendAddress({
-              addressType: 'RESIDENTIAL_ADDRESS',
-              addressLines: [''],
-              state: '',
-              city: '',
-              postalCode: '',
-              country: '',
-            })
+            appendAddress(
+              {
+                addressType: 'RESIDENTIAL_ADDRESS',
+                addressLines: [''],
+                state: '',
+                city: '',
+                postalCode: '',
+                country: '',
+              },
+              {
+                focusName: `individualAddresses.${addressFields.length}.addressLines.0`,
+              }
+            )
           }
           disabled={
-            idFields.length >= (getFieldRule('addresses').maxItems ?? 50)
+            idFields.length >=
+            (getFieldRule('individualAddresses').maxItems ?? 50)
           }
           variant="outline"
           size="sm"
@@ -553,7 +579,7 @@ export const IndividualStepForm = () => {
               const idType = form.watch(`individualIds.${index}.idType`);
               return (
                 <fieldset
-                  key={`individual-id-${index}`}
+                  key={fieldItem.id}
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">

@@ -50,7 +50,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -61,10 +60,6 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  UpdateClientRequestSmbdo,
-  UpdatePartyRequest,
-} from '@/api/generated/smbdo.schemas';
 import {
   Form,
   FormControl,
@@ -88,9 +83,11 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  shapeFormValuesBySchema,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import {
@@ -118,19 +115,19 @@ export const OrganizationStepForm = () => {
   )?.organizationDetails?.organizationType;
 
   const {
-    filterDefaultValues,
-    filterSchema,
     getFieldRule,
     isFieldDisabled,
     isFieldRequired,
     isFieldVisible,
   } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useStepForm<z.infer<typeof OrganizationStepFormSchema>>({
-    resolver: zodResolver(
-      filterSchema(OrganizationStepFormSchema, refineOrganizationStepFormSchema)
-    ),
-    defaultValues: filterDefaultValues({
+  const form = useStepFormWithFilters<
+    z.infer<typeof OrganizationStepFormSchema>
+  >({
+    clientData,
+    schema: OrganizationStepFormSchema,
+    refineSchemaFn: refineOrganizationStepFormSchema,
+    defaultValues: {
       addresses: [
         {
           addressType: 'BUSINESS_ADDRESS',
@@ -154,7 +151,7 @@ export const OrganizationStepForm = () => {
         phoneType: 'BUSINESS_PHONE',
         phoneNumber: '',
       },
-    }),
+    },
   });
 
   const {
@@ -195,7 +192,9 @@ export const OrganizationStepForm = () => {
 
   // Get organization's party
   const existingOrgParty = clientData?.parties?.find(
-    (party) => party?.partyType === 'ORGANIZATION'
+    (party) =>
+      party?.partyType === 'ORGANIZATION' &&
+      (party.active || party.status === 'ACTIVE')
   );
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
@@ -212,7 +211,12 @@ export const OrganizationStepForm = () => {
         clientData,
         existingOrgParty.id
       );
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          OrganizationStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [
@@ -243,45 +247,12 @@ export const OrganizationStepForm = () => {
         website: values.websiteAvailable ? values.website : '',
       };
 
-      const clientRequestBody = generateRequestBody(
-        modifiedValues,
-        0,
-        'addParties',
-        {
-          addParties: [
-            {
-              ...(existingOrgParty?.id
-                ? {
-                    id: existingOrgParty?.id,
-                    partyType: existingOrgParty?.partyType,
-                    roles: existingOrgParty?.roles,
-                  }
-                : {
-                    partyType: 'ORGANIZATION',
-                    roles: ['CLIENT'],
-                  }),
-            },
-          ],
-        }
-      ) as UpdateClientRequestSmbdo;
-
-      const partyRequestBody = generatePartyRequestBody(modifiedValues, {
-        ...(existingOrgParty?.id
-          ? {
-              id: existingOrgParty?.id,
-              partyType: existingOrgParty?.partyType,
-              roles: existingOrgParty?.roles,
-            }
-          : {
-              partyType: 'ORGANIZATION',
-              roles: ['CLIENT'],
-            }),
-      }) as UpdatePartyRequest;
-
+      // Update party if it exists
       if (usePartyResource && existingOrgParty?.id) {
+        const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
         updateParty(
           {
-            partyId: existingOrgParty?.id,
+            partyId: existingOrgParty.id,
             data: partyRequestBody,
           },
           {
@@ -297,17 +268,29 @@ export const OrganizationStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
-                  context,
-                  0,
-                  'addParties'
-                );
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
           }
         );
-      } else {
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateRequestBody(
+          modifiedValues,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'ORGANIZATION',
+                roles: ['CLIENT'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -326,7 +309,7 @@ export const OrganizationStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -467,7 +450,7 @@ export const OrganizationStepForm = () => {
           />
         </fieldset>
 
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 lg:eb-grid-cols-2 xl:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Industry Info
           </legend>
@@ -628,7 +611,7 @@ export const OrganizationStepForm = () => {
                   addressLines: [''],
                 },
                 {
-                  shouldFocus: false,
+                  focusName: `addresses.${addressFields.length}.addressLines.0`,
                 }
               )
             }

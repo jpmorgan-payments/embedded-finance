@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -10,11 +9,6 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  CreateClientRequestSmbdo,
-  UpdateClientRequestSmbdo,
-  UpdatePartyRequest,
-} from '@/api/generated/smbdo.schemas';
 import {
   Card,
   CardContent,
@@ -35,9 +29,10 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
-  useFilterFunctionsByClientContext,
-  useStepForm,
+  shapeFormValuesBySchema,
+  translateClientApiErrorsToFormErrors,
+  translatePartyApiErrorsToFormErrors,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
@@ -62,9 +57,6 @@ export const InitialStepForm = () => {
     clientId ?? ''
   );
 
-  const { filterDefaultValues, filterSchema } =
-    useFilterFunctionsByClientContext(clientData);
-
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
   const defaultJurisdiction =
@@ -73,12 +65,13 @@ export const InitialStepForm = () => {
       : undefined;
 
   // Create a form with empty default values
-  const form = useStepForm<z.infer<typeof InitialStepFormSchema>>({
-    resolver: zodResolver(filterSchema(InitialStepFormSchema)),
-    defaultValues: filterDefaultValues({
+  const form = useStepFormWithFilters<z.infer<typeof InitialStepFormSchema>>({
+    clientData,
+    schema: InitialStepFormSchema,
+    defaultValues: {
       jurisdiction: defaultJurisdiction,
       product: defaultProduct,
-    }),
+    },
   });
 
   // Set default product and jurisdiction if props change
@@ -118,7 +111,12 @@ export const InitialStepForm = () => {
       formValues.product = clientData.products?.[0] ?? defaultProduct;
       formValues.jurisdiction = formValues.jurisdiction ?? defaultJurisdiction;
 
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          InitialStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [
@@ -152,40 +150,12 @@ export const InitialStepForm = () => {
   const onSubmit = form.handleSubmit((values) => {
     // Update client if clientId exists
     if (clientId) {
-      const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-        addParties: [
-          {
-            ...(existingOrgParty?.id
-              ? {
-                  id: existingOrgParty?.id,
-                  partyType: existingOrgParty?.partyType,
-                  roles: existingOrgParty?.roles,
-                }
-              : {
-                  partyType: 'ORGANIZATION',
-                  roles: ['CLIENT'],
-                }),
-          },
-        ],
-      }) as UpdateClientRequestSmbdo;
-
-      const partyRequestBody = generatePartyRequestBody(values, {
-        ...(existingOrgParty?.id
-          ? {
-              id: existingOrgParty?.id,
-              partyType: existingOrgParty?.partyType,
-              roles: existingOrgParty?.roles,
-            }
-          : {
-              partyType: 'ORGANIZATION',
-              roles: ['CLIENT'],
-            }),
-      }) as UpdatePartyRequest;
-
+      // Update party if it exists
       if (usePartyResource && existingOrgParty?.id) {
+        const partyRequestBody = generatePartyRequestBody(values, {});
         updateParty(
           {
-            partyId: existingOrgParty?.id,
+            partyId: existingOrgParty.id,
             data: partyRequestBody,
           },
           {
@@ -201,17 +171,24 @@ export const InitialStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
-                  context,
-                  0,
-                  'addParties'
-                );
+                const apiFormErrors =
+                  translatePartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
           }
         );
-      } else {
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
+          addParties: [
+            {
+              partyType: 'ORGANIZATION',
+              roles: ['CLIENT'],
+            },
+          ],
+        });
         updateClient(
           {
             id: clientId,
@@ -230,7 +207,7 @@ export const InitialStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateApiErrorsToFormErrors(
+                const apiFormErrors = translateClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -246,18 +223,20 @@ export const InitialStepForm = () => {
     // Create client if clientId does not exist
     else {
       const requestBody = generateRequestBody(values, 0, 'parties', {
-        products: values.product ? [values.product] : [],
         parties: [
           {
             partyType: 'ORGANIZATION',
             roles: ['CLIENT'],
           },
         ],
-      }) as CreateClientRequestSmbdo;
+      });
 
       postClient(
         {
-          data: requestBody,
+          data: {
+            products: values.product ? [values.product] : [],
+            ...requestBody,
+          },
         },
         {
           onSettled: (data, error) => {
@@ -274,7 +253,7 @@ export const InitialStepForm = () => {
           onError: (error) => {
             if (error.response?.data?.context) {
               const { context } = error.response.data;
-              const apiFormErrors = translateApiErrorsToFormErrors(
+              const apiFormErrors = translateClientApiErrorsToFormErrors(
                 context,
                 0,
                 'parties'
@@ -295,7 +274,7 @@ export const InitialStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  if (clientData && !isFormPopulated) {
+  if (existingOrgParty && !isFormPopulated) {
     return <FormLoadingState message="Loading..." />;
   }
 

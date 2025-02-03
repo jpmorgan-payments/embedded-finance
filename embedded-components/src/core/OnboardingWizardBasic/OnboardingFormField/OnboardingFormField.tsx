@@ -218,6 +218,7 @@ export function OnboardingFormField<T extends FieldValues>({
                 case 'industrySelect':
                   return <IndustryTypeSelect field={field} form={form} />;
                 case 'combobox': {
+                  const { onBlur, onChange, ...fieldWithoutBlur } = field;
                   const [open, setOpen] = useState(false);
                   return (
                     <Popover open={open} onOpenChange={setOpen}>
@@ -228,6 +229,7 @@ export function OnboardingFormField<T extends FieldValues>({
                             role="combobox"
                             aria-expanded={open}
                             className="eb-w-full eb-justify-between eb-font-normal"
+                            {...fieldWithoutBlur}
                           >
                             {field.value
                               ? options?.find(
@@ -251,11 +253,12 @@ export function OnboardingFormField<T extends FieldValues>({
                                   key={`combobox-option-${option.value}`}
                                   value={option.value}
                                   onSelect={(currentValue) => {
-                                    field.onChange(
+                                    onChange(
                                       currentValue === field.value
                                         ? ''
                                         : currentValue
                                     );
+                                    onBlur();
                                     setOpen(false);
                                   }}
                                 >
@@ -277,14 +280,17 @@ export function OnboardingFormField<T extends FieldValues>({
                     </Popover>
                   );
                 }
-                case 'select':
+                case 'select': {
+                  const { onBlur, onChange, ...fieldWithoutBlur } = field;
                   return (
                     <Select
-                      {...field}
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        onChange(value);
+                        onBlur();
+                      }}
                       value={field.value}
                     >
-                      <FormControl>
+                      <FormControl {...fieldWithoutBlur}>
                         <SelectTrigger>
                           <SelectValue placeholder={fieldPlaceholder} />
                         </SelectTrigger>
@@ -301,6 +307,7 @@ export function OnboardingFormField<T extends FieldValues>({
                       </SelectContent>
                     </Select>
                   );
+                }
                 case 'radio-group':
                   return (
                     <FormControl>
