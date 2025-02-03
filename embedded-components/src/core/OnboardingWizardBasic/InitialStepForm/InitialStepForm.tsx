@@ -272,7 +272,7 @@ export const InitialStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
-  if (clientData && !isFormPopulated) {
+  if (existingOrgParty && !isFormPopulated) {
     return <FormLoadingState message="Loading..." />;
   }
 

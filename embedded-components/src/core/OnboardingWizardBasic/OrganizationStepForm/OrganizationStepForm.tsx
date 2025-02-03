@@ -630,7 +630,7 @@ export const OrganizationStepForm = () => {
                   addressLines: [''],
                 },
                 {
-                  shouldFocus: false,
+                  focusName: `addresses.${addressFields.length}.addressLines.0`,
                 }
               )
             }

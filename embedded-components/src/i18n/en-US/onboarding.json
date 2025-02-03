@@ -547,16 +547,23 @@
         "required": "Please specify if you have a website"
       }
     },
-    "organizationPhone": {
-      "label": "Organization phone",
-      "placeholder": "Enter organization phone number",
-      "description": "Primary business contact number",
+    "organizationPhone.phoneType": {
+      "label": "Phone type",
+      "placeholder": "Select phone type",
       "validation": {
-        "required": "Organization phone is required",
+        "required": "Phone type is required",
         "format": "Invalid phone number format",
         "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
-      },
-      "group": "contact"
+      }
+    },
+    "organizationPhone.phoneNumber": {
+      "label": "Phone number",
+      "placeholder": "Enter organization phone number",
+      "validation": {
+        "required": "Phone number is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
     },
     "individualPhone.phoneType": {
       "label": "Phone type",
