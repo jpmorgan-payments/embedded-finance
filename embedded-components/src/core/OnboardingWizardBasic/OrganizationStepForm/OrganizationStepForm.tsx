@@ -114,12 +114,8 @@ export const OrganizationStepForm = () => {
     (p) => p.partyType === 'ORGANIZATION'
   )?.organizationDetails?.organizationType;
 
-  const {
-    getFieldRule,
-    isFieldDisabled,
-    isFieldRequired,
-    isFieldVisible,
-  } = useFilterFunctionsByClientContext(clientData);
+  const { getFieldRule, isFieldDisabled, isFieldRequired, isFieldVisible } =
+    useFilterFunctionsByClientContext(clientData);
 
   const form = useStepFormWithFilters<
     z.infer<typeof OrganizationStepFormSchema>
