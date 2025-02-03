@@ -1,5 +1,7 @@
 import { useEffect, useMemo } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  DefaultValues,
   FieldErrors,
   FieldValues,
   useForm,
@@ -443,7 +445,7 @@ export function filterSchemaByClientContext(
     let fieldSchema = value;
     if (fieldRule.visibility !== 'hidden') {
       if (!fieldRule.required) {
-        fieldSchema = value.optional();
+        fieldSchema = value.or(z.literal('')).optional();
       }
       if (value instanceof z.ZodArray) {
         if (fieldRule.minItems !== undefined) {
@@ -531,7 +533,7 @@ export function useStepForm<T extends FieldValues>(
 
   const form = useForm<T>({
     mode: 'onBlur',
-    reValidateMode: 'onChange', // prevents edge cases where select fields are not revalidated
+    reValidateMode: 'onChange',
     ...props,
     defaultValues,
     errors,
@@ -547,7 +549,32 @@ export function useStepForm<T extends FieldValues>(
   return form;
 }
 
-// Not used
+export function useStepFormWithFilters<T extends FieldValues>(
+  props: Omit<UseFormProps<T>, 'resolver'> & {
+    clientData: ClientResponse | undefined;
+    schema: z.ZodObject<Record<string, z.ZodType<any>>>;
+    refineSchemaFn?: (
+      schema: z.ZodObject<Record<string, z.ZodType<any>>>
+    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
+  }
+): UseFormReturn<T> {
+  const { filterDefaultValues, filterSchema } =
+    useFilterFunctionsByClientContext(props.clientData);
+
+  const form = useStepForm<T>({
+    ...props,
+    resolver: zodResolver(filterSchema(props.schema, props.refineSchemaFn)),
+    defaultValues: filterDefaultValues(
+      shapeFormValuesBySchema(
+        props.defaultValues as Partial<OnboardingWizardFormValues>,
+        props.schema
+      )
+    ) as DefaultValues<T>,
+  });
+
+  return form;
+}
+
 export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
   formValues: Partial<OnboardingWizardFormValues>,
   schema: z.ZodObject<T>

@@ -548,7 +548,7 @@
       }
     },
     "organizationPhone.phoneType": {
-      "label": "Phone type",
+      "label": "Organization phone type",
       "placeholder": "Select phone type",
       "validation": {
         "required": "Phone type is required",
@@ -557,7 +557,7 @@
       }
     },
     "organizationPhone.phoneNumber": {
-      "label": "Phone number",
+      "label": "Organization phone number",
       "placeholder": "Enter organization phone number",
       "validation": {
         "required": "Phone number is required",
@@ -566,7 +566,7 @@
       }
     },
     "individualPhone.phoneType": {
-      "label": "Phone type",
+      "label": "Individual phone type",
       "placeholder": "Select phone type",
       "validation": {
         "required": "Phone type is required",
@@ -575,7 +575,7 @@
       }
     },
     "individualPhone.phoneNumber": {
-      "label": "Phone number",
+      "label": "Individual phone number",
       "placeholder": "Enter organization phone number",
       "validation": {
         "required": "Phone number is required",

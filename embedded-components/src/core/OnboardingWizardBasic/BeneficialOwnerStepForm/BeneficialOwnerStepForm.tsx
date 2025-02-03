@@ -49,7 +49,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { AccordionContent } from '@radix-ui/react-accordion';
 import {
   ArchiveRestoreIcon,
@@ -106,10 +105,11 @@ import {
   generateRequestBody as generateClientRequestBody,
   generatePartyRequestBody,
   setApiFormErrors,
+  shapeFormValuesBySchema,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 
@@ -130,12 +130,15 @@ export const BeneficialOwnerStepForm = () => {
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
-  const { filterDefaultValues, filterSchema, getFieldRule, isFieldVisible } =
+  const { getFieldRule, isFieldVisible } =
     useFilterFunctionsByClientContext(clientData);
 
-  const ownerForm = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
-    defaultValues: filterDefaultValues({
+  const ownerForm = useStepFormWithFilters<
+    z.infer<typeof IndividualStepFormSchema>
+  >({
+    clientData,
+    schema: IndividualStepFormSchema,
+    defaultValues: {
       individualAddresses: [
         {
           addressType: 'RESIDENTIAL_ADDRESS',
@@ -159,7 +162,7 @@ export const BeneficialOwnerStepForm = () => {
         phoneType: 'MOBILE_PHONE',
         phoneNumber: '',
       },
-    }),
+    },
   });
 
   const controllerParty = clientData?.parties?.find(
@@ -279,7 +282,9 @@ export const BeneficialOwnerStepForm = () => {
         clientData,
         beneficialOwnerId
       );
-      ownerForm.reset(formValues);
+      ownerForm.reset(
+        shapeFormValuesBySchema(formValues, IndividualStepFormSchema)
+      );
       setIsDialogOpen(true);
     }
   };

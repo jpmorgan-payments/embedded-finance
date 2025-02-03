@@ -67,7 +67,7 @@ describe('IndividualStepForm', () => {
   test('renders the form with prefilled data and submits successfully', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
@@ -84,7 +84,7 @@ describe('IndividualStepForm', () => {
   test.skip('validates minimum length of first and last name', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const firstNameInput = screen.getByLabelText(/first name/i);
     const lastNameInput = screen.getByLabelText(/last name/i);
@@ -106,7 +106,7 @@ describe('IndividualStepForm', () => {
   test.skip('validates required fields on form submission', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const firstNameInput = screen.getByLabelText(/first name/i);
     const lastNameInput = screen.getByLabelText(/last name/i);
@@ -126,7 +126,7 @@ describe('IndividualStepForm', () => {
   test('validates phone number format', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const phoneInput = screen.getByLabelText(/phone number/i);
 
@@ -144,7 +144,7 @@ describe('IndividualStepForm', () => {
   test.skip('handles adding and removing addresses', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const initialAddresses = screen.getAllByText(/individual address/i);
     const initialCount = initialAddresses.length;
@@ -174,7 +174,7 @@ describe('IndividualStepForm', () => {
   test('validates postal code format', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const postalCodeInput = screen.getByLabelText(/postal code/i);
 
@@ -192,7 +192,7 @@ describe('IndividualStepForm', () => {
   test('validates SSN format in individual IDs', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const ssnInput = screen.getByPlaceholderText(/enter id value/i);
 
@@ -227,7 +227,7 @@ describe('IndividualStepForm', () => {
     );
 
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
@@ -241,7 +241,7 @@ describe('IndividualStepForm', () => {
   test.skip('handles adding and removing individual IDs', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     const initialIds = screen.getAllByText(/individual id/i);
     const initialCount = initialIds.length;
@@ -274,7 +274,7 @@ describe('IndividualStepForm', () => {
     // Arrange
     renderComponent();
     const birthDateInput = await screen.findByLabelText(/Date of birth/i);
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     // Act
     await userEvent.clear(birthDateInput);

@@ -284,14 +284,13 @@ export function OnboardingFormField<T extends FieldValues>({
                   const { onBlur, onChange, ...fieldWithoutBlur } = field;
                   return (
                     <Select
-                      {...fieldWithoutBlur}
                       onValueChange={(value) => {
                         onChange(value);
                         onBlur();
                       }}
                       value={field.value}
                     >
-                      <FormControl>
+                      <FormControl {...fieldWithoutBlur}>
                         <SelectTrigger>
                           <SelectValue placeholder={fieldPlaceholder} />
                         </SelectTrigger>

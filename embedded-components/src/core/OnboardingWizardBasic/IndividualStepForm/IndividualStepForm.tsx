@@ -50,7 +50,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -84,10 +83,11 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
+  shapeFormValuesBySchema,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import { IndividualStepFormSchema } from './IndividualStepForm.schema';
@@ -108,8 +108,6 @@ export const IndividualStepForm = () => {
   );
 
   const {
-    filterDefaultValues,
-    filterSchema,
     getFieldRule,
     isFieldDisabled,
     isFieldRequired,
@@ -117,34 +115,37 @@ export const IndividualStepForm = () => {
     clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
-    defaultValues: filterDefaultValues({
-      individualAddresses: [
-        {
-          addressType: 'RESIDENTIAL_ADDRESS',
-          addressLines: [''],
-          state: '',
-          city: '',
-          postalCode: '',
-          country: '',
+  const form = useStepFormWithFilters<z.infer<typeof IndividualStepFormSchema>>(
+    {
+      clientData,
+      schema: IndividualStepFormSchema,
+      defaultValues: {
+        individualAddresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: [''],
+            state: '',
+            city: '',
+            postalCode: '',
+            country: '',
+          },
+        ],
+        individualIds: [
+          {
+            idType: 'SSN',
+            value: '',
+            issuer: '',
+            expiryDate: '',
+            description: '',
+          },
+        ],
+        individualPhone: {
+          phoneType: 'MOBILE_PHONE',
+          phoneNumber: '',
         },
-      ],
-      individualIds: [
-        {
-          idType: 'SSN',
-          value: '',
-          issuer: '',
-          expiryDate: '',
-          description: '',
-        },
-      ],
-      individualPhone: {
-        phoneType: 'MOBILE_PHONE',
-        phoneNumber: '',
       },
-    }),
-  });
+    }
+  );
 
   const {
     fields: addressFields,
@@ -186,7 +187,12 @@ export const IndividualStepForm = () => {
         clientData,
         existingIndividualParty.id
       );
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          IndividualStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [
@@ -283,6 +289,8 @@ export const IndividualStepForm = () => {
     }
   });
 
+  console.log(form.formState.errors);
+
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
@@ -356,14 +364,24 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="lastName"
             type="text"
-            required
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="nameSuffix"
+            type="text"
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="individualEmail"
+            type="email"
           />
 
           <OnboardingFormField
             control={form.control}
             name="birthDate"
             type="date"
-            required
           />
 
           <OnboardingFormField
@@ -381,7 +399,6 @@ export const IndividualStepForm = () => {
                 </span>
               ),
             }))}
-            required
           />
 
           <OnboardingFormField
@@ -401,6 +418,12 @@ export const IndividualStepForm = () => {
               },
               { value: 'Other', label: 'Other' },
             ]}
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="jobTitleDescription"
+            type="text"
           />
         </fieldset>
 
