@@ -62,34 +62,32 @@ The Embedded UI Components are built using a sophisticated approach that leverag
 ### Architecture Overview
 
 ```mermaid
-graph TD
+graph TB
     subgraph "Development Time"
-        OAS[OpenAPI Specification]
-        AF[Arazzo Flows]
-        OAS --> |Orval Generation| Types[TypeScript Types]
+        direction TB
+        OAS[OpenAPI Specification] --> |Orval Generation| Types[TypeScript Types]
         OAS --> |Orval Generation| Hooks[React Query Hooks]
-        AF --> |Future: Flow Generation| Flows[Operation Sequences]
+
+        AF[Arazzo Flows] --> |Future: Flow Generation| Flows[Operation Sequences]
 
         subgraph "Embedded UI Components"
-            Types --> Components
-            Hooks --> Components
-            Flows --> Components
+            direction TB
+            Types & Hooks & Flows --> Components
 
             subgraph "Opinionated Layer"
-                V[Enhanced Client Validations]
-                P[Smart Payload Formation]
-                E[Error Mapping & Recovery]
-                U[UX Optimizations:<br/>- Smart field prepopulation<br/>- Cognitive load reduction<br/>- Intelligent navigation]
-
-                V --> Components
-                P --> Components
-                E --> Components
-                U --> Components
+                direction LR
+                V[Enhanced Client<br/>Validations]
+                P[Smart Payload<br/>Formation]
+                E[Error Mapping<br/>& Recovery]
+                U[UX Optimizations]
             end
+
+            V & P & E & U --> Components
         end
     end
 
     subgraph "Runtime"
+        direction TB
         Components --> |API Calls| PSL[Platform Service Layer]
         PSL --> |Authentication| API[Backend APIs]
     end
