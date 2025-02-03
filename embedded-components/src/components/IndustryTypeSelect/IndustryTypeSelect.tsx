@@ -37,6 +37,7 @@ export const IndustryTypeSelect = ({
 }: IndustryTypeSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { onBlur, onChange, ...fieldWithoutBlur } = field;
 
   // Memoize the filtered NAICS codes
   const filteredCodes = useMemo(() => {
@@ -102,6 +103,7 @@ export const IndustryTypeSelect = ({
               'eb-w-full eb-justify-between eb-font-normal',
               !field.value && 'eb-text-muted-foreground'
             )}
+            {...fieldWithoutBlur}
           >
             {field.value ? (
               <div className="eb-flex eb-w-[calc(100%-1rem)]">
@@ -170,8 +172,9 @@ export const IndustryTypeSelect = ({
                       key={item.id}
                       value={`${item.category} ${item.description} ${item.code}`}
                       onSelect={() => {
-                        field.onChange(item.description);
+                        onChange(item.description);
                         form.setValue('industryCategory', item.category);
+                        onBlur();
                         setOpen(false);
                       }}
                       className="eb-text-sm"
