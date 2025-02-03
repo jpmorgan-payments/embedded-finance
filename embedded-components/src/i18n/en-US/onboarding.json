@@ -547,10 +547,20 @@
         "required": "Please specify if you have a website"
       }
     },
-    "organizationPhone": {
+
+    "organizationPhone.phoneType": {
+      "label": "Phone type",
+      "placeholder": "Select phone type",
+      "validation": {
+        "required": "Phone type is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
+    },
+
+    "organizationPhone.phoneNumber": {
       "label": "Organization phone",
       "placeholder": "Enter organization phone number",
-      "description": "Primary business contact number",
       "validation": {
         "required": "Organization phone is required",
         "format": "Invalid phone number format",

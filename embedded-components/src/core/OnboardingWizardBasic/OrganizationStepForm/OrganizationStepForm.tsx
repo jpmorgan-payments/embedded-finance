@@ -74,7 +74,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { useStepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui';
 
@@ -125,7 +124,6 @@ export const OrganizationStepForm = () => {
     isFieldDisabled,
     isFieldRequired,
     isFieldVisible,
-    clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
   const form = useStepForm<z.infer<typeof OrganizationStepFormSchema>>({
@@ -450,45 +448,23 @@ export const OrganizationStepForm = () => {
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Organization Phone Information
           </legend>
-          {isFieldVisible('organizationPhone') && (
-            <OnboardingFormField
-              control={form.control}
-              name="organizationPhone.phoneType"
-              type="select"
-              options={[
-                { value: 'BUSINESS_PHONE', label: 'Business Phone' },
-                { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
-                { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
-              ]}
-            />
-          )}
 
-          {isFieldVisible('organizationPhone') && (
-            <FormField
-              control={form.control}
-              name="organizationPhone.phoneNumber"
-              disabled={isFieldDisabled('organizationPhone')}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk={isFieldRequired('organizationPhone')}>
-                    Phone Number
-                  </FormLabel>
-                  <FormControl key={clientContext.jurisdiction}>
-                    <PhoneInput
-                      {...field}
-                      countries={['CA', 'US']}
-                      placeholder="Enter phone number"
-                      international={false}
-                      defaultCountry={
-                        clientContext.jurisdiction === 'CanadaMS' ? 'CA' : 'US'
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <OnboardingFormField
+            control={form.control}
+            name="organizationPhone.phoneType"
+            type="select"
+            options={[
+              { value: 'BUSINESS_PHONE', label: 'Business Phone' },
+              { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
+              { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
+            ]}
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="organizationPhone.phoneNumber"
+            type="phone"
+          />
         </fieldset>
 
         <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">

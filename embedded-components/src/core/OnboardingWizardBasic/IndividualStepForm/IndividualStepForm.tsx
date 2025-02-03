@@ -68,13 +68,7 @@ import {
 import { Button } from '@/components/ui/button';
 import {
   Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -114,10 +108,7 @@ export const IndividualStepForm = () => {
     filterDefaultValues,
     filterSchema,
     getFieldRule,
-    isFieldDisabled,
-    isFieldRequired,
     isFieldVisible,
-    clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
   const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
@@ -418,7 +409,6 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="individualPhone.phoneType"
             type="select"
-            label="Phone Type"
             options={[
               { value: 'BUSINESS_PHONE', label: 'Business Phone' },
               { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
@@ -426,29 +416,10 @@ export const IndividualStepForm = () => {
             ]}
           />
 
-          <FormField
+          <OnboardingFormField
             control={form.control}
             name="individualPhone.phoneNumber"
-            disabled={isFieldDisabled('individualPhone')}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel asterisk={isFieldRequired('individualPhone')}>
-                  Phone Number
-                </FormLabel>
-                <FormControl key={clientContext.jurisdiction}>
-                  <PhoneInput
-                    {...field}
-                    countries={['CA', 'US']}
-                    placeholder="Enter phone number"
-                    international={false}
-                    defaultCountry={
-                      clientContext.jurisdiction === 'CanadaMS' ? 'CA' : 'US'
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="phone"
           />
         </fieldset>
 
