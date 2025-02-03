@@ -67,7 +67,7 @@ describe('IndividualStepForm', () => {
   test('renders the form with prefilled data and submits successfully', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue(/Monica/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
