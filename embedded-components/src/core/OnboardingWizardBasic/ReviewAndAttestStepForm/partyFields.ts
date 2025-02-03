@@ -19,9 +19,9 @@ export const organizationFields = [
     path: 'organizationDetails.organizationName',
   },
   { label: 'Organization Type', path: 'organizationDetails.organizationType' },
-  { 
-    label: 'Organization Description', 
-    path: 'organizationDetails.organizationDescription' 
+  {
+    label: 'Organization Description',
+    path: 'organizationDetails.organizationDescription',
   },
   { label: 'DBA Name', path: 'organizationDetails.dbaName' },
   { label: 'Industry Category', path: 'organizationDetails.industryCategory' },
@@ -29,7 +29,7 @@ export const organizationFields = [
   {
     label: 'Industry Code',
     path: 'organizationDetails.industry',
-    transformFunc: (industry: any) => 
+    transformFunc: (industry: any) =>
       industry ? `${industry.codeType}: ${industry.code}` : undefined,
   },
   {
@@ -46,12 +46,14 @@ export const organizationFields = [
     label: 'Phone',
     path: 'organizationDetails.phone',
     transformFunc: (phone: any) =>
-      phone ? `${phone.phoneType}: +${phone.countryCode} ${phone.phoneNumber}` : undefined,
+      phone
+        ? `${phone.phoneType}: +${phone.countryCode} ${phone.phoneNumber}`
+        : undefined,
   },
   { label: 'Website', path: 'organizationDetails.website' },
-  { 
-    label: 'Website Available', 
-    path: 'organizationDetails.websiteAvailable' 
+  {
+    label: 'Website Available',
+    path: 'organizationDetails.websiteAvailable',
   },
   {
     label: 'Addresses',
@@ -76,8 +78,8 @@ export const individualFields = [
   { label: 'Middle Name', path: 'individualDetails.middleName' },
   { label: 'Last Name', path: 'individualDetails.lastName' },
   { label: 'Suffix', path: 'individualDetails.nameSuffix' },
-  { 
-    label: 'Date of Birth', 
+  {
+    label: 'Date of Birth',
     path: 'individualDetails.birthDate',
   },
   {
@@ -99,7 +101,9 @@ export const individualFields = [
     label: 'Phone',
     path: 'individualDetails.phone',
     transformFunc: (phone: any) =>
-      phone ? `${phone.phoneType}: +${phone.countryCode} ${phone.phoneNumber}` : undefined,
+      phone
+        ? `${phone.phoneType}: +${phone.countryCode} ${phone.phoneNumber}`
+        : undefined,
   },
   {
     label: 'Addresses',

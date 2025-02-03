@@ -66,9 +66,7 @@ import {
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -104,12 +102,8 @@ export const IndividualStepForm = () => {
     clientId ?? ''
   );
 
-  const {
-    filterDefaultValues,
-    filterSchema,
-    getFieldRule,
-    isFieldVisible,
-  } = useFilterFunctionsByClientContext(clientData);
+  const { filterDefaultValues, filterSchema, getFieldRule, isFieldVisible } =
+    useFilterFunctionsByClientContext(clientData);
 
   const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
     resolver: zodResolver(filterSchema(IndividualStepFormSchema)),

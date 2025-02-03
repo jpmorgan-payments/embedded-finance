@@ -1,5 +1,6 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
+
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 
 export const InitialStepFormSchema = z.object({
