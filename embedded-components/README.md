@@ -55,6 +55,84 @@ const EmbeddedFinanceSection = () => {
 };
 ```
 
+## Main concepts
+
+The Embedded UI Components are built using a sophisticated approach that leverages OpenAPI Specifications (OAS) and automated code generation to ensure type safety and consistent API integration.
+
+### Architecture Overview
+
+```mermaid
+graph TD
+    subgraph "Development Time"
+        OAS[OpenAPI Specification]
+        AF[Arazzo Flows]
+        OAS --> |Orval Generation| Types[TypeScript Types]
+        OAS --> |Orval Generation| Hooks[React Query Hooks]
+        AF --> |Future: Flow Generation| Flows[Operation Sequences]
+
+        subgraph "Embedded UI Components"
+            Types --> Components
+            Hooks --> Components
+            Flows --> Components
+
+            subgraph "Opinionated Layer"
+                V[Enhanced Client Validations]
+                P[Smart Payload Formation]
+                E[Error Mapping & Recovery]
+                U[UX Optimizations:<br/>- Smart field prepopulation<br/>- Cognitive load reduction<br/>- Intelligent navigation]
+
+                V --> Components
+                P --> Components
+                E --> Components
+                U --> Components
+            end
+        end
+    end
+
+    subgraph "Runtime"
+        Components --> |API Calls| PSL[Platform Service Layer]
+        PSL --> |Authentication| API[Backend APIs]
+    end
+```
+
+### Key Architecture Components
+
+1. **OpenAPI Specification (OAS) & Future Arazzo Flows**
+
+   - OAS defines API contracts and types
+   - Source of truth for API interfaces
+   - Used to generate TypeScript types and React Query hooks
+   - Note: Arazzo Flows and automated flow generation are planned future capabilities - currently no flows are pre-configured
+
+2. **Automated Code Generation**
+
+   - Currently, Orval generates from OAS:
+     - TypeScript interfaces
+     - Type-safe React Query hooks
+     - API client utilities
+   - Future capability: Flow generation from Arazzo Flows
+   - Ensures type consistency between API and UI
+
+3. **Component Architecture**
+
+   Built using generated types and hooks with an opinionated layer providing:
+
+   - Enhanced client validations based on API specifications
+   - Smart payload formation
+   - Error mapping & recovery
+   - UX optimizations implemented based on best practices:
+     - Smart field prepopulation
+     - Cognitive load reduction
+     - Intelligent navigation
+
+4. **Runtime Flow**
+   - Components make API calls to Platform Service Layer (PSL)
+   - PSL handles:
+     - Authentication & authorization
+     - Request forwarding to backend APIs
+     - Response processing
+     - Error handling
+
 ## Main Components
 
 ### 1. OnboardingWizardBasic
