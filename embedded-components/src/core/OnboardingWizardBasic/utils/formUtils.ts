@@ -445,7 +445,7 @@ export function filterSchemaByClientContext(
     let fieldSchema = value;
     if (fieldRule.visibility !== 'hidden') {
       if (!fieldRule.required) {
-        fieldSchema = value.optional();
+        fieldSchema = value.or(z.literal('')).optional();
       }
       if (value instanceof z.ZodArray) {
         if (fieldRule.minItems !== undefined) {

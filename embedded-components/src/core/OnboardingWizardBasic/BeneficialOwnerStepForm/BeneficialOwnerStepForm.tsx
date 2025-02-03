@@ -105,6 +105,7 @@ import {
   generateRequestBody as generateClientRequestBody,
   generatePartyRequestBody,
   setApiFormErrors,
+  shapeFormValuesBySchema,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
@@ -281,7 +282,9 @@ export const BeneficialOwnerStepForm = () => {
         clientData,
         beneficialOwnerId
       );
-      ownerForm.reset(formValues);
+      ownerForm.reset(
+        shapeFormValuesBySchema(formValues, IndividualStepFormSchema)
+      );
       setIsDialogOpen(true);
     }
   };

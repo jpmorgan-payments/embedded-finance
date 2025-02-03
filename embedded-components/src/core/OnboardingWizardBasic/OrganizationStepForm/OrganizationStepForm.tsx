@@ -84,6 +84,7 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
+  shapeFormValuesBySchema,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
@@ -212,7 +213,12 @@ export const OrganizationStepForm = () => {
         clientData,
         existingOrgParty.id
       );
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          OrganizationStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [

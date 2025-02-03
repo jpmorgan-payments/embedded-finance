@@ -83,6 +83,7 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
+  shapeFormValuesBySchema,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
@@ -186,7 +187,12 @@ export const IndividualStepForm = () => {
         clientData,
         existingIndividualParty.id
       );
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          IndividualStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [
@@ -283,6 +289,8 @@ export const IndividualStepForm = () => {
     }
   });
 
+  console.log(form.formState.errors);
+
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
@@ -356,14 +364,24 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="lastName"
             type="text"
-            required
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="nameSuffix"
+            type="text"
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="individualEmail"
+            type="email"
           />
 
           <OnboardingFormField
             control={form.control}
             name="birthDate"
             type="date"
-            required
           />
 
           <OnboardingFormField
@@ -381,7 +399,6 @@ export const IndividualStepForm = () => {
                 </span>
               ),
             }))}
-            required
           />
 
           <OnboardingFormField
@@ -401,6 +418,12 @@ export const IndividualStepForm = () => {
               },
               { value: 'Other', label: 'Other' },
             ]}
+          />
+
+          <OnboardingFormField
+            control={form.control}
+            name="jobTitleDescription"
+            type="text"
           />
         </fieldset>
 

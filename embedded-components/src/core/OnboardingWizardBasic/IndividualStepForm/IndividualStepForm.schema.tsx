@@ -5,7 +5,7 @@ import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 // Constants for validation
 const NAME_PATTERN = /^[a-zA-Z0-9()_/\\&+%@#;,.: -?]*$/;
-const SUFFIX_PATTERN = /^[A-Za-z.IVX]+$/;
+const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
@@ -176,8 +176,7 @@ export const IndividualStepFormSchema = z.object({
     .regex(
       NAME_PATTERN,
       i18n.t('onboarding:fields.middleName.validation.pattern')
-    )
-    .optional(),
+    ),
   lastName: z
     .string()
     .min(2, i18n.t('onboarding:fields.lastName.validation.minLength'))
@@ -209,8 +208,7 @@ export const IndividualStepFormSchema = z.object({
     .regex(
       SUFFIX_PATTERN,
       i18n.t('onboarding:fields.nameSuffix.validation.pattern')
-    )
-    .optional(),
+    ),
   individualIds: z
     .array(individualIdSchema)
     .min(1, i18n.t('onboarding:fields.individualIds.validation.required'))
@@ -252,8 +250,7 @@ export const IndividualStepFormSchema = z.object({
     .refine(
       (val) => !/https?:\/\/[^\s]+/.test(val),
       i18n.t('onboarding:fields.jobTitleDescription.validation.noUrls')
-    )
-    .optional(),
+    ),
   individualEmail: z
     .string()
     .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
@@ -262,5 +259,5 @@ export const IndividualStepFormSchema = z.object({
       i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
     ),
   individualPhone: PhoneSchema,
-  natureOfOwnership: z.enum(['Direct', 'Indirect']).optional(),
+  natureOfOwnership: z.enum(['Direct', 'Indirect']),
 });

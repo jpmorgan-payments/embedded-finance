@@ -29,6 +29,7 @@ import {
   generatePartyRequestBody,
   generateRequestBody,
   setApiFormErrors,
+  shapeFormValuesBySchema,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useStepFormWithFilters,
@@ -110,7 +111,12 @@ export const InitialStepForm = () => {
       formValues.product = clientData.products?.[0] ?? defaultProduct;
       formValues.jurisdiction = formValues.jurisdiction ?? defaultJurisdiction;
 
-      form.reset({ ...form.getValues(), ...formValues });
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          InitialStepFormSchema
+        )
+      );
       setIsFormPopulated(true);
     }
   }, [
