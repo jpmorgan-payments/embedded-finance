@@ -468,7 +468,7 @@ export const OrganizationStepForm = () => {
           )}
         </fieldset>
 
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 lg:eb-grid-cols-2 xl:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Industry Info
           </legend>
