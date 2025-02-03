@@ -50,7 +50,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -87,7 +86,7 @@ import {
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import { IndividualStepFormSchema } from './IndividualStepForm.schema';
@@ -108,8 +107,6 @@ export const IndividualStepForm = () => {
   );
 
   const {
-    filterDefaultValues,
-    filterSchema,
     getFieldRule,
     isFieldDisabled,
     isFieldRequired,
@@ -117,34 +114,37 @@ export const IndividualStepForm = () => {
     clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useStepForm<z.infer<typeof IndividualStepFormSchema>>({
-    resolver: zodResolver(filterSchema(IndividualStepFormSchema)),
-    defaultValues: filterDefaultValues({
-      individualAddresses: [
-        {
-          addressType: 'RESIDENTIAL_ADDRESS',
-          addressLines: [''],
-          state: '',
-          city: '',
-          postalCode: '',
-          country: '',
+  const form = useStepFormWithFilters<z.infer<typeof IndividualStepFormSchema>>(
+    {
+      clientData,
+      schema: IndividualStepFormSchema,
+      defaultValues: {
+        individualAddresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: [''],
+            state: '',
+            city: '',
+            postalCode: '',
+            country: '',
+          },
+        ],
+        individualIds: [
+          {
+            idType: 'SSN',
+            value: '',
+            issuer: '',
+            expiryDate: '',
+            description: '',
+          },
+        ],
+        individualPhone: {
+          phoneType: 'MOBILE_PHONE',
+          phoneNumber: '',
         },
-      ],
-      individualIds: [
-        {
-          idType: 'SSN',
-          value: '',
-          issuer: '',
-          expiryDate: '',
-          description: '',
-        },
-      ],
-      individualPhone: {
-        phoneType: 'MOBILE_PHONE',
-        phoneNumber: '',
       },
-    }),
-  });
+    }
+  );
 
   const {
     fields: addressFields,

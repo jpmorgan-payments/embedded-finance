@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -32,8 +31,7 @@ import {
   setApiFormErrors,
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
-  useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
@@ -58,9 +56,6 @@ export const InitialStepForm = () => {
     clientId ?? ''
   );
 
-  const { filterDefaultValues, filterSchema } =
-    useFilterFunctionsByClientContext(clientData);
-
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
   const defaultJurisdiction =
@@ -69,12 +64,13 @@ export const InitialStepForm = () => {
       : undefined;
 
   // Create a form with empty default values
-  const form = useStepForm<z.infer<typeof InitialStepFormSchema>>({
-    resolver: zodResolver(filterSchema(InitialStepFormSchema)),
-    defaultValues: filterDefaultValues({
+  const form = useStepFormWithFilters<z.infer<typeof InitialStepFormSchema>>({
+    clientData,
+    schema: InitialStepFormSchema,
+    defaultValues: {
       jurisdiction: defaultJurisdiction,
       product: defaultProduct,
-    }),
+    },
   });
 
   // Set default product and jurisdiction if props change

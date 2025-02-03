@@ -50,7 +50,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -88,7 +87,7 @@ import {
   translateClientApiErrorsToFormErrors,
   translatePartyApiErrorsToFormErrors,
   useFilterFunctionsByClientContext,
-  useStepForm,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
 import {
@@ -116,8 +115,6 @@ export const OrganizationStepForm = () => {
   )?.organizationDetails?.organizationType;
 
   const {
-    filterDefaultValues,
-    filterSchema,
     getFieldRule,
     isFieldDisabled,
     isFieldRequired,
@@ -125,11 +122,13 @@ export const OrganizationStepForm = () => {
     clientContext,
   } = useFilterFunctionsByClientContext(clientData);
 
-  const form = useStepForm<z.infer<typeof OrganizationStepFormSchema>>({
-    resolver: zodResolver(
-      filterSchema(OrganizationStepFormSchema, refineOrganizationStepFormSchema)
-    ),
-    defaultValues: filterDefaultValues({
+  const form = useStepFormWithFilters<
+    z.infer<typeof OrganizationStepFormSchema>
+  >({
+    clientData,
+    schema: OrganizationStepFormSchema,
+    refineSchemaFn: refineOrganizationStepFormSchema,
+    defaultValues: {
       addresses: [
         {
           addressType: 'BUSINESS_ADDRESS',
@@ -153,7 +152,7 @@ export const OrganizationStepForm = () => {
         phoneType: 'BUSINESS_PHONE',
         phoneNumber: '',
       },
-    }),
+    },
   });
 
   const {
