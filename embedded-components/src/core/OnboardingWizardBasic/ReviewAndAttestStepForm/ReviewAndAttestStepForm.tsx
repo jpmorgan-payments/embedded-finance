@@ -50,6 +50,13 @@ const isOutstandingEmpty = (
   });
 };
 
+const isValueEmpty = (value: any): boolean => {
+  if (value === undefined || value === null || value === '') return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value).length === 0;
+  return false;
+};
+
 export const ReviewAndAttestStepForm = () => {
   // Get QueryClient from the context
   const queryClient = useQueryClient();
@@ -208,7 +215,7 @@ export const ReviewAndAttestStepForm = () => {
       <dl className="eb-ml-2 eb-space-y-2">
         {fields.map(({ label, path, transformFunc }) => {
           const value = _get(party, path);
-          if (value !== undefined && value !== null) {
+          if (!isValueEmpty(value)) {
             return (
               <div
                 key={path}
