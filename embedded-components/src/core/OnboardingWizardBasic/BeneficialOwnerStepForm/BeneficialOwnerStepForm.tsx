@@ -542,12 +542,12 @@ export const BeneficialOwnerStepForm = () => {
           <Card key={owner.id}>
             <CardHeader>
               <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
-              <CardDescription className="eb-flex eb-gap-2 eb-pt-2">
+              <div className="eb-flex eb-gap-2 eb-pt-2">
                 <Badge variant="secondary">Owner</Badge>
                 {owner.roles?.includes('CONTROLLER') ? (
                   <Badge>Controller</Badge>
                 ) : null}
-              </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="eb-space-y-4 eb-leading-snug">
               <div>
