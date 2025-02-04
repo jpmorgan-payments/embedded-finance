@@ -68,7 +68,7 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { ApiError } from '@/api/generated/smbdo.schemas';
+import { ApiError, Role } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -190,20 +190,26 @@ export const BeneficialOwnerStepForm = () => {
   useEffect(() => {
     const controllerRoles = [...(controllerParty?.roles ?? [])];
 
-    const updateControllerRoles = () => {
-      if (controllerParty?.id) {
+    const updateControllerRoles = (roles: Role[]) => {
+      if (
+        controllerParty?.id &&
+        controllerUpdateStatus !== 'pending' &&
+        clientDataGetStatus !== 'pending'
+      ) {
         updateController(
           {
             partyId: controllerParty.id,
             data: {
-              roles: controllerRoles,
+              roles,
             },
           },
           {
             onSettled: (data, error) => {
               onPostPartyResponse?.(data, error?.response?.data);
             },
-            onSuccess: () => {},
+            onSuccess: () => {
+              refetchClientData();
+            },
             onError: (error) => {
               controllerForm.setValue(
                 'controllerIsOwner',
@@ -226,15 +232,19 @@ export const BeneficialOwnerStepForm = () => {
       !controllerRoles.includes('BENEFICIAL_OWNER')
     ) {
       controllerRoles.push('BENEFICIAL_OWNER');
-      updateControllerRoles();
+      updateControllerRoles(controllerRoles);
     } else if (
       controllerForm.watch('controllerIsOwner') === 'no' &&
       controllerRoles.includes('BENEFICIAL_OWNER')
     ) {
       controllerRoles.splice(controllerRoles.indexOf('BENEFICIAL_OWNER'), 1);
-      updateControllerRoles();
+      updateControllerRoles(controllerRoles);
     }
-  }, [controllerForm.watch('controllerIsOwner')]);
+  }, [
+    controllerForm.watch('controllerIsOwner'),
+    controllerParty?.roles,
+    controllerParty?.id,
+  ]);
 
   const ownersData =
     clientData?.parties?.filter(
