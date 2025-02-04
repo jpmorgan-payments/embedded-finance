@@ -75,13 +75,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -306,21 +300,37 @@ export const BeneficialOwnerStepForm = () => {
   };
 
   const handleDeactivateBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty({
-      partyId: beneficialOwnerId,
-      data: {
-        active: false,
+    updateParty(
+      {
+        partyId: beneficialOwnerId,
+        data: {
+          active: false,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success('Beneficial owner removed successfully');
+          refetchClientData();
+        },
+      }
+    );
   };
 
   const handleRestoreBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty({
-      partyId: beneficialOwnerId,
-      data: {
-        active: true,
+    updateParty(
+      {
+        partyId: beneficialOwnerId,
+        data: {
+          active: true,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success('Beneficial owner restored successfully');
+          refetchClientData();
+        },
+      }
+    );
   };
 
   const onOwnerFormSubmit = ownerForm.handleSubmit((values) => {
