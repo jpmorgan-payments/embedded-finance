@@ -58,10 +58,12 @@ export function translateClientApiErrorsToFormErrors(
       if (
         path &&
         errorFieldInDotNotation &&
-        errorFieldInDotNotation.startsWith(`${arrayName}.${partyIndex}.${path}`)
+        errorFieldInDotNotation.startsWith(
+          `$.${arrayName}.${partyIndex}.${path}`
+        )
       ) {
         remainingPath = errorFieldInDotNotation.substring(
-          `${arrayName}.${partyIndex}.${path}`.length
+          `$.${arrayName}.${partyIndex}.${path}`.length
         );
         return true;
       }
