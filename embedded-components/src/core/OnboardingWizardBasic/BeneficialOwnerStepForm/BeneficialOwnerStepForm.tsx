@@ -608,43 +608,45 @@ export const BeneficialOwnerStepForm = () => {
         {/* TODO: add alert if at 4 owners */}
       </fieldset>
 
-      <Accordion type="single" collapsible>
-        <AccordionItem value="inactive-owners" className="eb-rounded eb-border">
-          <AccordionTrigger
-            className="eb-px-4"
-            disabled={inactiveOwners.length === 0}
+      {inactiveOwners.length > 0 && (
+        <Accordion type="single" collapsible>
+          <AccordionItem
+            value="inactive-owners"
+            className="eb-rounded eb-border"
           >
-            Inactive Owners ({inactiveOwners.length})
-          </AccordionTrigger>
-          <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-            {ownersData
-              .filter((owner) => !owner.active)
-              .map((owner) => (
-                <Card key={owner.id} className="eb-mb-4">
-                  <CardHeader>
-                    <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
-                    <div className="eb-mt-4 eb-space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isFormDisabled}
-                        onClick={() =>
-                          owner?.id && handleRestoreBeneficialOwner(owner.id)
-                        }
-                      >
-                        <ArchiveRestoreIcon />
-                        Restore
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            <AccordionTrigger className="eb-px-4">
+              Inactive Owners ({inactiveOwners.length})
+            </AccordionTrigger>
+            <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              {ownersData
+                .filter((owner) => !owner.active)
+                .map((owner) => (
+                  <Card key={owner.id} className="eb-mb-4">
+                    <CardHeader>
+                      <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
+                      <div className="eb-mt-4 eb-space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isFormDisabled}
+                          onClick={() =>
+                            owner?.id && handleRestoreBeneficialOwner(owner.id)
+                          }
+                        >
+                          <ArchiveRestoreIcon />
+                          Restore
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
 
       {/* TODO: move this */}
       <ServerErrorAlert error={clientUpdateError} />
