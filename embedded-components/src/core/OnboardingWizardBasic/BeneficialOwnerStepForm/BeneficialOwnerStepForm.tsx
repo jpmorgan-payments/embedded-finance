@@ -68,20 +68,14 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { ApiError } from '@/api/generated/smbdo.schemas';
+import { ApiError, Role } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -190,20 +184,26 @@ export const BeneficialOwnerStepForm = () => {
   useEffect(() => {
     const controllerRoles = [...(controllerParty?.roles ?? [])];
 
-    const updateControllerRoles = () => {
-      if (controllerParty?.id) {
+    const updateControllerRoles = (roles: Role[]) => {
+      if (
+        controllerParty?.id &&
+        controllerUpdateStatus !== 'pending' &&
+        clientDataGetStatus !== 'pending'
+      ) {
         updateController(
           {
             partyId: controllerParty.id,
             data: {
-              roles: controllerRoles,
+              roles,
             },
           },
           {
             onSettled: (data, error) => {
               onPostPartyResponse?.(data, error?.response?.data);
             },
-            onSuccess: () => {},
+            onSuccess: () => {
+              refetchClientData();
+            },
             onError: (error) => {
               controllerForm.setValue(
                 'controllerIsOwner',
@@ -226,15 +226,19 @@ export const BeneficialOwnerStepForm = () => {
       !controllerRoles.includes('BENEFICIAL_OWNER')
     ) {
       controllerRoles.push('BENEFICIAL_OWNER');
-      updateControllerRoles();
+      updateControllerRoles(controllerRoles);
     } else if (
       controllerForm.watch('controllerIsOwner') === 'no' &&
       controllerRoles.includes('BENEFICIAL_OWNER')
     ) {
       controllerRoles.splice(controllerRoles.indexOf('BENEFICIAL_OWNER'), 1);
-      updateControllerRoles();
+      updateControllerRoles(controllerRoles);
     }
-  }, [controllerForm.watch('controllerIsOwner')]);
+  }, [
+    controllerForm.watch('controllerIsOwner'),
+    controllerParty?.roles,
+    controllerParty?.id,
+  ]);
 
   const ownersData =
     clientData?.parties?.filter(
@@ -296,21 +300,37 @@ export const BeneficialOwnerStepForm = () => {
   };
 
   const handleDeactivateBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty({
-      partyId: beneficialOwnerId,
-      data: {
-        active: false,
+    updateParty(
+      {
+        partyId: beneficialOwnerId,
+        data: {
+          active: false,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success('Beneficial owner removed successfully');
+          refetchClientData();
+        },
+      }
+    );
   };
 
   const handleRestoreBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty({
-      partyId: beneficialOwnerId,
-      data: {
-        active: true,
+    updateParty(
+      {
+        partyId: beneficialOwnerId,
+        data: {
+          active: true,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success('Beneficial owner restored successfully');
+          refetchClientData();
+        },
+      }
+    );
   };
 
   const onOwnerFormSubmit = ownerForm.handleSubmit((values) => {
@@ -532,12 +552,12 @@ export const BeneficialOwnerStepForm = () => {
           <Card key={owner.id}>
             <CardHeader>
               <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
-              <CardDescription className="eb-flex eb-gap-2 eb-pt-2">
+              <div className="eb-flex eb-gap-2 eb-pt-2">
                 <Badge variant="secondary">Owner</Badge>
                 {owner.roles?.includes('CONTROLLER') ? (
                   <Badge>Controller</Badge>
                 ) : null}
-              </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="eb-space-y-4 eb-leading-snug">
               <div>
@@ -598,43 +618,45 @@ export const BeneficialOwnerStepForm = () => {
         {/* TODO: add alert if at 4 owners */}
       </fieldset>
 
-      <Accordion type="single" collapsible>
-        <AccordionItem value="inactive-owners" className="eb-rounded eb-border">
-          <AccordionTrigger
-            className="eb-px-4"
-            disabled={inactiveOwners.length === 0}
+      {inactiveOwners.length > 0 && (
+        <Accordion type="single" collapsible>
+          <AccordionItem
+            value="inactive-owners"
+            className="eb-rounded eb-border"
           >
-            Inactive Owners ({inactiveOwners.length})
-          </AccordionTrigger>
-          <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-            {ownersData
-              .filter((owner) => !owner.active)
-              .map((owner) => (
-                <Card key={owner.id} className="eb-mb-4">
-                  <CardHeader>
-                    <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
-                    <div className="eb-mt-4 eb-space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isFormDisabled}
-                        onClick={() =>
-                          owner?.id && handleRestoreBeneficialOwner(owner.id)
-                        }
-                      >
-                        <ArchiveRestoreIcon />
-                        Restore
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            <AccordionTrigger className="eb-px-4">
+              Inactive Owners ({inactiveOwners.length})
+            </AccordionTrigger>
+            <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              {ownersData
+                .filter((owner) => !owner.active)
+                .map((owner) => (
+                  <Card key={owner.id} className="eb-mb-4">
+                    <CardHeader>
+                      <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
+                      <div className="eb-mt-4 eb-space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isFormDisabled}
+                          onClick={() =>
+                            owner?.id && handleRestoreBeneficialOwner(owner.id)
+                          }
+                        >
+                          <ArchiveRestoreIcon />
+                          Restore
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
 
       {/* TODO: move this */}
       <ServerErrorAlert error={clientUpdateError} />

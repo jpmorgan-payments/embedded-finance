@@ -9,3 +9,4 @@ export { initEBComponentsManager } from './vanilla/EBComponentsManager';
 export * from './core/TransactionsDisplay/TransactionsDisplay';
 
 export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
+export type * from './core/OnboardingWizardBasic/utils/types';
