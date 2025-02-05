@@ -119,7 +119,6 @@ export const BeneficialOwnerStepForm = () => {
 
   const {
     data: clientData,
-    status: clientDataGetStatus,
     refetch: refetchClientData,
     isFetching: isClientDataFetching,
   } = useSmbdoGetClient(clientId ?? '');
@@ -278,7 +277,7 @@ export const BeneficialOwnerStepForm = () => {
   } = useSmbdoUpdateParty();
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string) => {
-    if (clientDataGetStatus === 'success' && clientData) {
+    if (!isClientDataFetching && clientData) {
       setCurrentBeneficialOwnerId(beneficialOwnerId);
       const formValues = convertClientResponseToFormValues(
         clientData,
