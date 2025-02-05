@@ -178,7 +178,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
           <ContentTokensContext.Provider value={contentTokens}>
             {children}
           </ContentTokensContext.Provider>
-          <Toaster closeButton expand />
+          <Toaster closeButton expand position="bottom-left" />
           {process.env.NODE_ENV === 'development' &&
             ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
         </QueryClientProvider>
