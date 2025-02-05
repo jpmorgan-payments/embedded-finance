@@ -174,7 +174,7 @@ describe('OrganizationStepForm', () => {
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
     expect(
-      await screen.findByText('Website URL must start with https://')
+      await screen.findByText('ⓘ Website URL must start with https://')
     ).toBeInTheDocument();
   });
 
