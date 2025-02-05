@@ -117,11 +117,11 @@ export const BeneficialOwnerStepForm = () => {
   const [currentBeneficialOwnerId, setCurrentBeneficialOwnerId] =
     useState<string>('');
 
-  const {
-    data: clientData,
-    refetch: refetchClientData,
-    isFetching: isClientDataFetching,
-  } = useSmbdoGetClient(clientId ?? '');
+  const { data: clientData, refetch: refetchClientData } = useSmbdoGetClient(
+    clientId ?? ''
+  );
+
+  const [isClientDataRefetching, setIsClientDataRefetching] = useState(false);
 
   const { getFieldRule, isFieldVisible } =
     useFilterFunctionsByClientContext(clientData);
@@ -175,61 +175,60 @@ export const BeneficialOwnerStepForm = () => {
 
   const {
     mutate: updateController,
-    // error: partyUpdateError,
+    error: controllerUpdateError,
     status: controllerUpdateStatus,
   } = useSmbdoUpdateParty();
 
   // Update controller roles on change
   useEffect(() => {
-    const updateControllerRoles = (roles: Role[]) => {
-      if (
-        controllerParty?.id &&
-        controllerUpdateStatus !== 'pending' &&
-        !isClientDataFetching
-      ) {
-        updateController(
-          {
-            partyId: controllerParty.id,
-            data: {
-              roles,
-            },
+    const updateControllerRoles = (controllerId: string, roles: Role[]) => {
+      updateController(
+        {
+          partyId: controllerId,
+          data: {
+            roles,
           },
-          {
-            onSettled: (data, error) => {
-              onPostPartyResponse?.(data, error?.response?.data);
-            },
-            onSuccess: () => {
-              refetchClientData();
-            },
-            onError: (error) => {
-              controllerForm.setValue(
-                'controllerIsOwner',
-                controllerParty?.roles?.includes('BENEFICIAL_OWNER')
-                  ? 'yes'
-                  : 'no'
-              );
-              controllerForm.setError('controllerIsOwner', {
-                type: 'server',
-                message: error?.response?.data?.context?.[0]?.message,
-              });
-            },
-          }
-        );
-      }
+        },
+        {
+          onSettled: (data, error) => {
+            onPostPartyResponse?.(data, error?.response?.data);
+          },
+          onSuccess: () => {
+            refetchClientData();
+          },
+          onError: (error) => {
+            controllerForm.setValue(
+              'controllerIsOwner',
+              controllerParty?.roles?.includes('BENEFICIAL_OWNER')
+                ? 'yes'
+                : 'no'
+            );
+            controllerForm.setError('controllerIsOwner', {
+              type: 'server',
+              message: error?.response?.data?.context?.[0]?.message,
+            });
+          },
+        }
+      );
     };
 
     if (
       controllerForm.watch('controllerIsOwner') === 'yes' &&
+      controllerParty?.id &&
       controllerParty?.roles &&
       !controllerParty.roles.includes('BENEFICIAL_OWNER')
     ) {
-      updateControllerRoles([...controllerParty.roles, 'BENEFICIAL_OWNER']);
+      updateControllerRoles(controllerParty.id, [
+        ...controllerParty.roles,
+        'BENEFICIAL_OWNER',
+      ]);
     } else if (
       controllerForm.watch('controllerIsOwner') === 'no' &&
+      controllerParty?.id &&
       controllerParty?.roles &&
       controllerParty.roles.includes('BENEFICIAL_OWNER')
     ) {
-      updateControllerRoles([
+      updateControllerRoles(controllerParty.id, [
         ...controllerParty.roles.filter((role) => role !== 'BENEFICIAL_OWNER'),
       ]);
     }
@@ -315,7 +314,10 @@ export const BeneficialOwnerStepForm = () => {
       {
         onSuccess: () => {
           toast.success('Beneficial owner removed successfully');
-          refetchClientData();
+          setIsClientDataRefetching(true);
+          refetchClientData().then(() => {
+            setIsClientDataRefetching(false);
+          });
         },
       }
     );
@@ -333,7 +335,10 @@ export const BeneficialOwnerStepForm = () => {
       {
         onSuccess: () => {
           toast.success('Beneficial owner restored successfully');
-          refetchClientData();
+          setIsClientDataRefetching(true);
+          refetchClientData().then(() => {
+            setIsClientDataRefetching(false);
+          });
         },
       }
     );
@@ -357,8 +362,10 @@ export const BeneficialOwnerStepForm = () => {
               toast.success('Beneficial owner details updated successfully');
               setIsDialogOpen(false);
               setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
+              setIsClientDataRefetching(true);
+              refetchClientData().then(() => {
+                setIsClientDataRefetching(false);
+              });
             },
             onError: (error) => {
               if (error.response?.data?.context) {
@@ -392,8 +399,10 @@ export const BeneficialOwnerStepForm = () => {
               toast.success('Beneficial owner details updated successfully');
               setIsDialogOpen(false);
               setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
+              setIsClientDataRefetching(true);
+              refetchClientData().then(() => {
+                setIsClientDataRefetching(false);
+              });
             },
             onError: (error) => {
               if (error.response?.data?.context) {
@@ -469,10 +478,10 @@ export const BeneficialOwnerStepForm = () => {
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
     partyActiveUpdateStatus === 'pending' ||
-    isClientDataFetching ||
+    isClientDataRefetching ||
     isDialogOpen;
 
-  const isOwnerFormDisabled =
+  const isOwnerFormSubmitting =
     partyUpdateStatus === 'pending' || clientUpdateStatus === 'pending';
 
   const ownerFormId = React.useId();
@@ -571,7 +580,7 @@ export const BeneficialOwnerStepForm = () => {
                   >
                     {currentBeneficialOwnerId === owner.id &&
                     (partyActiveUpdateStatus === 'pending' ||
-                      isClientDataFetching) ? (
+                      isClientDataRefetching) ? (
                       <Loader2Icon className="eb-animate-spin" />
                     ) : (
                       <TrashIcon />
@@ -647,7 +656,7 @@ export const BeneficialOwnerStepForm = () => {
                         >
                           {currentBeneficialOwnerId === owner.id &&
                           (partyActiveUpdateStatus === 'pending' ||
-                            isClientDataFetching) ? (
+                            isClientDataRefetching) ? (
                             <Loader2Icon className="eb-animate-spin" />
                           ) : (
                             <ArchiveRestoreIcon />
@@ -663,7 +672,9 @@ export const BeneficialOwnerStepForm = () => {
         </Accordion>
       )}
 
-      <ServerErrorAlert error={partyActiveUpdateError} />
+      <ServerErrorAlert
+        error={controllerUpdateError || partyActiveUpdateError}
+      />
 
       <Form {...form}>
         <form className="eb-space-y-6" onSubmit={handleFormSubmit}>
@@ -674,7 +685,7 @@ export const BeneficialOwnerStepForm = () => {
       <Dialog
         open={isDialogOpen}
         onOpenChange={(opened) => {
-          if (!isOwnerFormDisabled) {
+          if (!isOwnerFormSubmitting) {
             setIsDialogOpen(opened);
             if (!opened) {
               setCurrentBeneficialOwnerId('');
@@ -1071,7 +1082,7 @@ export const BeneficialOwnerStepForm = () => {
                 <Button
                   type="submit"
                   form={ownerFormId}
-                  disabled={isOwnerFormDisabled}
+                  disabled={isOwnerFormSubmitting}
                 >
                   {(partyUpdateStatus === 'pending' ||
                     clientUpdateStatus === 'pending') && (
