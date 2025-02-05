@@ -62,13 +62,12 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { ErrorType } from '@/api/axios-instance';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { ApiError, Role } from '@/api/generated/smbdo.schemas';
+import { Role } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -295,7 +294,7 @@ export const BeneficialOwnerStepForm = () => {
 
   const handleAddBeneficialOwner = () => {
     setCurrentBeneficialOwnerId('');
-    ownerForm.reset({});
+    ownerForm.reset();
     setIsDialogOpen(true);
   };
 
@@ -413,31 +412,6 @@ export const BeneficialOwnerStepForm = () => {
     (owner) => !owner.active && owner.status !== 'ACTIVE'
   );
 
-  // Used for updating the soleOwner field of a party
-  const { mutateAsync: updateSoleOwner, status: soleOwnerUpdateStatus } =
-    useSmbdoUpdateParty();
-
-  const soleOwnerForm = useForm({
-    defaultValues: {
-      soleOwner: false,
-    },
-  });
-
-  useEffect(() => {
-    if (activeOwners.length === 1) {
-      soleOwnerForm.setValue(
-        'soleOwner',
-        activeOwners[0].individualDetails?.soleOwner === true
-      );
-    } else {
-      soleOwnerForm.setValue('soleOwner', false);
-    }
-  }, [activeOwners.length]);
-
-  const [soleOwnerFormErrors, setSoleOwnerFormErrors] = useState<
-    Array<ErrorType<ApiError>>
-  >([]);
-
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
@@ -476,44 +450,17 @@ export const BeneficialOwnerStepForm = () => {
     return () => subscription.unsubscribe();
   }, [ownerForm.watch]);
 
-  const handleSoleOwnerFormSubmit = soleOwnerForm.handleSubmit(
-    async (values) => {
-      const errors: Array<ErrorType<ApiError>> = [];
-      for (const owner of activeOwners) {
-        if (
-          owner.id &&
-          owner.individualDetails?.soleOwner !== values.soleOwner
-        ) {
-          await updateSoleOwner(
-            {
-              partyId: owner.id,
-              data: {
-                individualDetails: {
-                  soleOwner: values.soleOwner,
-                },
-              },
-            },
-            {
-              onError: (error) => {
-                errors.push(error);
-              },
-            }
-          );
-        }
-      }
+  const form = useForm({
+    defaultValues: {},
+  });
 
-      if (errors.length > 0) {
-        setSoleOwnerFormErrors(errors);
-      } else {
-        nextStep();
-        toast.success("Client's owner details updated successfully");
-      }
-    }
-  );
+  const handleFormSubmit = form.handleSubmit(() => {
+    nextStep();
+    toast.success("Client's beneficial owners updated successfully");
+  });
 
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
-    soleOwnerUpdateStatus === 'pending' ||
     partyUpdateStatus === 'pending' ||
     clientUpdateStatus === 'pending';
 
@@ -661,44 +608,9 @@ export const BeneficialOwnerStepForm = () => {
       {/* TODO: move this */}
       <ServerErrorAlert error={clientUpdateError} />
 
-      <Form {...soleOwnerForm}>
-        <form className="eb-space-y-6" onSubmit={handleSoleOwnerFormSubmit}>
-          {activeOwners.length === 1 && (
-            <OnboardingFormField
-              disableMapping
-              control={soleOwnerForm.control}
-              disabled={isFormDisabled}
-              name="soleOwner"
-              type="checkbox"
-              label={
-                <span>
-                  <span className="eb-font-bold">
-                    {[
-                      activeOwners[0].individualDetails?.firstName,
-                      activeOwners[0].individualDetails?.middleName,
-                      activeOwners[0].individualDetails?.lastName,
-                    ].join(' ')}{' '}
-                    (
-                    {activeOwners[0].individualDetails?.jobTitle === 'Other'
-                      ? activeOwners[0].individualDetails?.jobTitleDescription
-                      : activeOwners[0].individualDetails?.jobTitle}
-                    )
-                  </span>{' '}
-                  is the sole owner of the business
-                </span>
-              }
-              description="Check this box if the indicated individual is the only owner of your business."
-            />
-          )}
-
-          {soleOwnerFormErrors.map((error, index) => (
-            <ServerErrorAlert key={index} error={error} />
-          ))}
-
-          <FormActions
-            disabled={isFormDisabled}
-            isLoading={soleOwnerUpdateStatus === 'pending'}
-          />
+      <Form {...form}>
+        <form className="eb-space-y-6" onSubmit={handleFormSubmit}>
+          <FormActions disabled={isFormDisabled} />
         </form>
       </Form>
 
