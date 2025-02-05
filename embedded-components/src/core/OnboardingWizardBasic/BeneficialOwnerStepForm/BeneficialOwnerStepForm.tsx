@@ -294,7 +294,7 @@ export const BeneficialOwnerStepForm = () => {
 
   const handleAddBeneficialOwner = () => {
     setCurrentBeneficialOwnerId('');
-    ownerForm.reset();
+    ownerForm.reset(shapeFormValuesBySchema({}, IndividualStepFormSchema));
     setIsDialogOpen(true);
   };
 
