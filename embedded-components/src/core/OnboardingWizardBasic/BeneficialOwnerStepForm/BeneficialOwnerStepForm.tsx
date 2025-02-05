@@ -121,6 +121,7 @@ export const BeneficialOwnerStepForm = () => {
     data: clientData,
     status: clientDataGetStatus,
     refetch: refetchClientData,
+    isFetching: isClientDataFetching,
   } = useSmbdoGetClient(clientId ?? '');
 
   const { getFieldRule, isFieldVisible } =
@@ -269,13 +270,15 @@ export const BeneficialOwnerStepForm = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
+    reset: resetUpdateClient,
   } = useSmbdoUpdateClient();
 
   // Used for updating party details
   const {
     mutate: updateParty,
-    // error: partyUpdateError,
+    error: partyUpdateError,
     status: partyUpdateStatus,
+    reset: resetUpdateParty,
   } = useSmbdoUpdateParty();
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string) => {
@@ -298,8 +301,16 @@ export const BeneficialOwnerStepForm = () => {
     setIsDialogOpen(true);
   };
 
+  // Used for updating party details
+  const {
+    mutate: updatePartyActive,
+    // error: partyActiveUpdateError,
+    status: partyActiveUpdateStatus,
+  } = useSmbdoUpdateParty();
+
   const handleDeactivateBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty(
+    setCurrentBeneficialOwnerId(beneficialOwnerId);
+    updatePartyActive(
       {
         partyId: beneficialOwnerId,
         data: {
@@ -316,7 +327,8 @@ export const BeneficialOwnerStepForm = () => {
   };
 
   const handleRestoreBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty(
+    setCurrentBeneficialOwnerId(beneficialOwnerId);
+    updatePartyActive(
       {
         partyId: beneficialOwnerId,
         data: {
@@ -461,8 +473,12 @@ export const BeneficialOwnerStepForm = () => {
 
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
-    partyUpdateStatus === 'pending' ||
-    clientUpdateStatus === 'pending';
+    partyActiveUpdateStatus === 'pending' ||
+    isClientDataFetching ||
+    isDialogOpen;
+
+  const isOwnerFormDisabled =
+    partyUpdateStatus === 'pending' || clientUpdateStatus === 'pending';
 
   const ownerFormId = React.useId();
 
@@ -546,8 +562,14 @@ export const BeneficialOwnerStepForm = () => {
                       owner?.id && handleDeactivateBeneficialOwner(owner.id)
                     }
                   >
-                    <TrashIcon />
-                    Delete
+                    {currentBeneficialOwnerId === owner.id &&
+                    (partyActiveUpdateStatus === 'pending' ||
+                      isClientDataFetching) ? (
+                      <Loader2Icon className="eb-animate-spin" />
+                    ) : (
+                      <TrashIcon />
+                    )}
+                    Remove
                   </Button>
                 ) : null}
               </div>
@@ -582,8 +604,25 @@ export const BeneficialOwnerStepForm = () => {
                     <CardHeader>
                       <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
+                    <CardContent className="eb-space-y-4 eb-leading-snug">
+                      <div>
+                        {owner?.individualDetails?.jobTitle ? (
+                          <p>
+                            Job title:{' '}
+                            <span className="eb-font-semibold">
+                              {owner.individualDetails.jobTitle}
+                            </span>
+                          </p>
+                        ) : null}
+                        {owner?.individualDetails?.natureOfOwnership ? (
+                          <p>
+                            Nature of ownership:{' '}
+                            <span className="eb-font-semibold">
+                              {owner.individualDetails.natureOfOwnership}
+                            </span>
+                          </p>
+                        ) : null}
+                      </div>
                       <div className="eb-mt-4 eb-space-x-2">
                         <Button
                           variant="outline"
@@ -593,7 +632,13 @@ export const BeneficialOwnerStepForm = () => {
                             owner?.id && handleRestoreBeneficialOwner(owner.id)
                           }
                         >
-                          <ArchiveRestoreIcon />
+                          {currentBeneficialOwnerId === owner.id &&
+                          (partyActiveUpdateStatus === 'pending' ||
+                            isClientDataFetching) ? (
+                            <Loader2Icon className="eb-animate-spin" />
+                          ) : (
+                            <ArchiveRestoreIcon />
+                          )}
                           Restore
                         </Button>
                       </div>
@@ -617,8 +662,13 @@ export const BeneficialOwnerStepForm = () => {
       <Dialog
         open={isDialogOpen}
         onOpenChange={(opened) => {
-          if (!isFormDisabled) {
+          if (!isOwnerFormDisabled) {
             setIsDialogOpen(opened);
+            if (!opened) {
+              setCurrentBeneficialOwnerId('');
+              resetUpdateClient();
+              resetUpdateParty();
+            }
           }
         }}
       >
@@ -999,15 +1049,20 @@ export const BeneficialOwnerStepForm = () => {
                     Add Individual Identification Document
                   </Button>
                 )}
+
+                <ServerErrorAlert
+                  error={clientUpdateError || partyUpdateError}
+                />
               </div>
 
-              <DialogFooter className="eb-border-t eb-px-4 eb-pt-2">
+              <DialogFooter className="eb-border-t eb-px-4 eb-pt-3">
                 <Button
                   type="submit"
                   form={ownerFormId}
-                  disabled={isFormDisabled}
+                  disabled={isOwnerFormDisabled}
                 >
-                  {partyUpdateStatus === 'pending' && (
+                  {(partyUpdateStatus === 'pending' ||
+                    clientUpdateStatus === 'pending') && (
                     <Loader2Icon className="eb-animate-spin" />
                   )}
                   Save changes
