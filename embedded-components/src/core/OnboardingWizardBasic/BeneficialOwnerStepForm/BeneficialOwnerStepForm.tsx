@@ -299,7 +299,7 @@ export const BeneficialOwnerStepForm = () => {
   // Used for updating party details
   const {
     mutate: updatePartyActive,
-    // error: partyActiveUpdateError,
+    error: partyActiveUpdateError,
     status: partyActiveUpdateStatus,
   } = useSmbdoUpdateParty();
 
@@ -662,6 +662,8 @@ export const BeneficialOwnerStepForm = () => {
           </AccordionItem>
         </Accordion>
       )}
+
+      <ServerErrorAlert error={partyActiveUpdateError} />
 
       <Form {...form}>
         <form className="eb-space-y-6" onSubmit={handleFormSubmit}>
