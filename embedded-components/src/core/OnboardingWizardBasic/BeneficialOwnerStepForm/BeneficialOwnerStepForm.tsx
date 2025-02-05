@@ -624,7 +624,12 @@ export const BeneficialOwnerStepForm = () => {
       >
         <Form {...ownerForm}>
           <form id={ownerFormId} onSubmit={onOwnerFormSubmit}>
-            <DialogContent className="eb-max-h-full eb-gap-0 eb-px-0 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg">
+            <DialogContent
+              className="eb-max-h-full eb-gap-0 eb-px-0 eb-pb-2 eb-pt-4 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg"
+              onInteractOutside={(e) => {
+                e.preventDefault();
+              }}
+            >
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>
                   {currentBeneficialOwnerId
@@ -639,7 +644,7 @@ export const BeneficialOwnerStepForm = () => {
               </DialogHeader>
 
               <div className="eb-flex-1 eb-space-y-6 eb-overflow-y-auto eb-p-6">
-                <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <div className="eb-grid eb-grid-cols-1 eb-gap-6 lg:eb-grid-cols-2 xl:eb-grid-cols-3">
                   <OnboardingFormField
                     control={ownerForm.control}
                     name="firstName"
@@ -996,7 +1001,7 @@ export const BeneficialOwnerStepForm = () => {
                 )}
               </div>
 
-              <DialogFooter className="eb-border-t eb-px-6 eb-pt-6">
+              <DialogFooter className="eb-border-t eb-px-4 eb-pt-2">
                 <Button
                   type="submit"
                   form={ownerFormId}
