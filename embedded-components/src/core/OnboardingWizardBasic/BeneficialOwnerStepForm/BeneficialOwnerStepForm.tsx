@@ -182,13 +182,11 @@ export const BeneficialOwnerStepForm = () => {
 
   // Update controller roles on change
   useEffect(() => {
-    const controllerRoles = [...(controllerParty?.roles ?? [])];
-
     const updateControllerRoles = (roles: Role[]) => {
       if (
         controllerParty?.id &&
         controllerUpdateStatus !== 'pending' &&
-        clientDataGetStatus !== 'pending'
+        !isClientDataFetching
       ) {
         updateController(
           {
@@ -223,22 +221,20 @@ export const BeneficialOwnerStepForm = () => {
 
     if (
       controllerForm.watch('controllerIsOwner') === 'yes' &&
-      !controllerRoles.includes('BENEFICIAL_OWNER')
+      controllerParty?.roles &&
+      !controllerParty.roles.includes('BENEFICIAL_OWNER')
     ) {
-      controllerRoles.push('BENEFICIAL_OWNER');
-      updateControllerRoles(controllerRoles);
+      updateControllerRoles([...controllerParty.roles, 'BENEFICIAL_OWNER']);
     } else if (
       controllerForm.watch('controllerIsOwner') === 'no' &&
-      controllerRoles.includes('BENEFICIAL_OWNER')
+      controllerParty?.roles &&
+      controllerParty.roles.includes('BENEFICIAL_OWNER')
     ) {
-      controllerRoles.splice(controllerRoles.indexOf('BENEFICIAL_OWNER'), 1);
-      updateControllerRoles(controllerRoles);
+      updateControllerRoles([
+        ...controllerParty.roles.filter((role) => role !== 'BENEFICIAL_OWNER'),
+      ]);
     }
-  }, [
-    controllerForm.watch('controllerIsOwner'),
-    controllerParty?.roles,
-    controllerParty?.id,
-  ]);
+  }, [controllerForm.watch('controllerIsOwner')]);
 
   const ownersData =
     clientData?.parties?.filter(
@@ -489,7 +485,11 @@ export const BeneficialOwnerStepForm = () => {
           <OnboardingFormField
             control={controllerForm.control}
             disableMapping
-            disabled={isFormDisabled}
+            disabled={
+              isFormDisabled ||
+              (activeOwners.length >= 4 &&
+                controllerForm.watch('controllerIsOwner') === 'no')
+            }
             type="radio-group"
             name="controllerIsOwner"
             label="Do you, the controller, own 25% or more of the business?"
@@ -498,6 +498,14 @@ export const BeneficialOwnerStepForm = () => {
               { value: 'no', label: t('common:no') },
             ]}
           />
+          {activeOwners.length >= 4 &&
+            controllerForm.watch('controllerIsOwner') === 'no' &&
+            controllerUpdateStatus !== 'pending' && (
+              <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
+                {'\u24d8'} You cannot set yourself as an owner since you can
+                only add up to 4 beneficial owners.
+              </p>
+            )}
           {controllerUpdateStatus === 'pending' && (
             <div className="eb-mt-2 eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
               <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
@@ -576,15 +584,21 @@ export const BeneficialOwnerStepForm = () => {
             </CardContent>
           </Card>
         ))}
-        <Button
-          className="eb-flex eb-cursor-pointer eb-items-center eb-justify-center"
-          disabled={isFormDisabled || ownersData.length >= 4}
-          onClick={handleAddBeneficialOwner}
-        >
-          <UserPlusIcon />
-          Add Beneficial Owner
-        </Button>
-        {/* TODO: add alert if at 4 owners */}
+        <div className="eb-w-full">
+          <Button
+            className="eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-justify-center"
+            disabled={isFormDisabled || ownersData.length >= 4}
+            onClick={handleAddBeneficialOwner}
+          >
+            <UserPlusIcon />
+            Add Beneficial Owner
+          </Button>
+          {ownersData.length >= 4 && (
+            <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
+              {'\u24d8'} You can only add up to 4 beneficial owners.
+            </p>
+          )}
+        </div>
       </fieldset>
 
       {inactiveOwners.length > 0 && (
@@ -649,9 +663,6 @@ export const BeneficialOwnerStepForm = () => {
           </AccordionItem>
         </Accordion>
       )}
-
-      {/* TODO: move this */}
-      <ServerErrorAlert error={clientUpdateError} />
 
       <Form {...form}>
         <form className="eb-space-y-6" onSubmit={handleFormSubmit}>
