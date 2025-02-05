@@ -52,9 +52,7 @@ export const InitialStepForm = () => {
   const { t } = useTranslation(['onboarding', 'common']);
 
   // Fetch client data
-  const { data: clientData, status: clientDataGetStatus } = useSmbdoGetClient(
-    clientId ?? ''
-  );
+  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
@@ -95,12 +93,7 @@ export const InitialStepForm = () => {
 
   // If clientId exists, populate form with client data
   useEffect(() => {
-    if (
-      clientData &&
-      clientDataGetStatus === 'success' &&
-      existingOrgParty?.id &&
-      !isFormPopulated
-    ) {
+    if (clientData && existingOrgParty?.id && !isFormPopulated) {
       const formValues = convertClientResponseToFormValues(
         clientData,
         existingOrgParty.id
@@ -120,7 +113,6 @@ export const InitialStepForm = () => {
     }
   }, [
     clientData,
-    clientDataGetStatus,
     form.reset,
     existingOrgParty?.id,
     isFormPopulated,
