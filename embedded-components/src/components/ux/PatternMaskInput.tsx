@@ -31,6 +31,7 @@ export function PatternMaskInput({
   onBlur,
 }: PatternMaskInputProps) {
   const [showMasked, setShowMasked] = useState(masked);
+  const cleanFormat = format.replace(/\s/g, '');
 
   const toggleMask = () => {
     setShowMasked(!showMasked);
@@ -43,18 +44,18 @@ export function PatternMaskInput({
           value={value}
           onChange={onChange}
           onBlur={onBlur}
-          maxLength={format.replace(/[^#]/g, '').length}
+          maxLength={cleanFormat.replace(/[^#]/g, '').length}
           pattern={pattern}
         >
           <InputOTPGroup>
-            {format.split('').map((char, index) => {
+            {cleanFormat.split('').map((char, index) => {
               return (
                 <React.Fragment key={index}>
                   {char === '#' ? (
                     <InputOTPSlot
                       index={
                         index -
-                        ((format?.slice(0, index)?.match(/[^#]/g) ?? [])
+                        ((cleanFormat?.slice(0, index)?.match(/[^#]/g) ?? [])
                           .length ?? 0)
                       }
                       style={
