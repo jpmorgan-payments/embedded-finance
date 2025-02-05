@@ -122,8 +122,6 @@ export const IndividualStepForm = () => {
             idType: 'SSN',
             value: '',
             issuer: '',
-            expiryDate: '',
-            description: '',
           },
         ],
         individualPhone: {
