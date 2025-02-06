@@ -68,6 +68,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
   headers = {},
+  queryParams = {},
   theme = {},
   reactQueryDefaultOptions = {},
   contentTokens = {},
@@ -86,14 +87,23 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     // Add the new interceptor
     const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
-        return {
-          ...config,
-          headers: {
-            ...config.headers,
-            ...headers,
-          },
-          baseURL: apiBaseUrl,
-        };
+        try {
+          return {
+            ...config,
+            headers: {
+              ...config.headers,
+              ...headers,
+            },
+            params: {
+              ...config.params,
+              ...queryParams,
+            },
+            baseURL: apiBaseUrl,
+          };
+        } catch (error) {
+          console.error('Error processing URL in interceptor:', error);
+          return config; // Return original config if URL processing fails
+        }
       }
     );
 
