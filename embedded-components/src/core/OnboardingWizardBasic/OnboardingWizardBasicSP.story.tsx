@@ -85,7 +85,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
             colorScheme: isDarkMode ? 'dark' : 'light',
             ...theme,
           }}
-
           reactQueryDefaultOptions={reactQueryDefaultOptions}
           contentTokens={contentTokens}
         >
