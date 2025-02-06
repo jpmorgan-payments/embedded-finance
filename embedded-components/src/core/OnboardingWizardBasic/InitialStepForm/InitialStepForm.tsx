@@ -19,7 +19,6 @@ import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
-import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
@@ -53,9 +52,7 @@ export const InitialStepForm = () => {
   const { t } = useTranslation(['onboarding', 'common']);
 
   // Fetch client data
-  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
-    clientId ?? ''
-  );
+  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
@@ -96,12 +93,7 @@ export const InitialStepForm = () => {
 
   // If clientId exists, populate form with client data
   useEffect(() => {
-    if (
-      clientData &&
-      getClientStatus === 'success' &&
-      existingOrgParty?.id &&
-      !isFormPopulated
-    ) {
+    if (clientData && existingOrgParty?.id && !isFormPopulated) {
       const formValues = convertClientResponseToFormValues(
         clientData,
         existingOrgParty.id
@@ -121,7 +113,6 @@ export const InitialStepForm = () => {
     }
   }, [
     clientData,
-    getClientStatus,
     form.reset,
     existingOrgParty?.id,
     isFormPopulated,
@@ -131,20 +122,20 @@ export const InitialStepForm = () => {
 
   const {
     mutate: postClient,
-    error: postClientError,
-    status: postClientStatus,
+    error: clientPostError,
+    status: clientPostStatus,
   } = useSmbdoPostClients();
 
   const {
     mutate: updateClient,
-    error: updateClientError,
-    status: updateClientStatus,
+    error: clientUpdateError,
+    status: clientUpdateStatus,
   } = useSmbdoUpdateClient();
 
   const {
     mutate: updateParty,
-    error: updatePartyError,
-    status: updatePartyStatus,
+    error: partyUpdateError,
+    status: partyUpdateStatus,
   } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
@@ -266,23 +257,20 @@ export const InitialStepForm = () => {
     }
   });
 
-  if (
-    updateClientStatus === 'pending' ||
-    postClientStatus === 'pending' ||
-    (usePartyResource && updatePartyStatus === 'pending')
-  ) {
-    return <FormLoadingState message="Submitting..." />;
-  }
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' ||
+    clientPostStatus === 'pending' ||
+    (usePartyResource && partyUpdateStatus === 'pending');
 
-  if (existingOrgParty && !isFormPopulated) {
-    return <FormLoadingState message="Loading..." />;
-  }
+  const isPopulatingForm = existingOrgParty && !isFormPopulated;
+
+  const isFormDisabled = isFormSubmitting || isPopulatingForm;
 
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
-          <fieldset className="eb-space-y-6">
+          <fieldset className="eb-space-y-6" disabled={isFormDisabled}>
             <OnboardingFormField
               control={form.control}
               name="product"
@@ -353,12 +341,15 @@ export const InitialStepForm = () => {
             <ServerErrorAlert
               error={
                 usePartyResource
-                  ? updatePartyError
-                  : updateClientError || postClientError
+                  ? partyUpdateError
+                  : clientUpdateError || clientPostError
               }
             />
 
-            <FormActions />
+            <FormActions
+              disabled={isFormDisabled}
+              isLoading={isFormSubmitting}
+            />
           </fieldset>
           <Card className="eb-hidden md:eb-block">
             <CardHeader className="eb-border-l-2 eb-bg-gray-100">

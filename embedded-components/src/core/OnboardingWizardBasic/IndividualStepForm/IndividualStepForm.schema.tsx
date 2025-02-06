@@ -51,7 +51,7 @@ const individualIdSchema = z
           ),
         }
       )
-      .optional(),
+      .or(z.literal(undefined)),
     idType: z.enum([
       'SSN',
       'ITIN',

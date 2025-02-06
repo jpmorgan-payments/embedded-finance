@@ -44,7 +44,7 @@
       }
     },
     "dbaName": {
-      "label": "Doing Business As (DBA) Name (optional)",
+      "label": "Doing Business As (DBA) Name",
       "placeholder": "Enter DBA name",
       "description": "An alternate name that the business is doing business under. Provide this if your business is registered with an alias.",
       "tooltip": "The DBA name must match your business registration documents.",
@@ -471,7 +471,7 @@
       "group": "controller"
     },
     "middleName": {
-      "label": "Legal Middle name (optional)",
+      "label": "Legal Middle name",
       "placeholder": "Enter middle name",
       "description": "Legal middle name as it appears on government ID",
       "tooltip": "Must match your government-issued identification",
@@ -494,7 +494,7 @@
       "group": "controller"
     },
     "nameSuffix": {
-      "label": "Suffix (optional)",
+      "label": "Suffix",
       "placeholder": "Enter name suffix",
       "description": "Legal name suffix as it appears on government ID (e.g., Jr., Sr., III)",
       "tooltip": "Common suffixes: Jr., Sr., II, III, IV",

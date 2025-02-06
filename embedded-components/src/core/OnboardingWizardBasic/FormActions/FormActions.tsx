@@ -24,6 +24,7 @@ export const FormActions: FC<FormActionsProps> = ({
           disabled={isDisabledStep || isLoading || disabled}
           variant="secondary"
           onClick={prevStep}
+          type="button"
         >
           {t('previous')}
         </Button>

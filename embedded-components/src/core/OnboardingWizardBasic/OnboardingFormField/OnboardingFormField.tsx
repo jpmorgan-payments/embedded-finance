@@ -149,6 +149,23 @@ export function OnboardingFormField<T extends FieldValues>({
       index: lastIndex,
     });
 
+  const fieldLabel = (
+    <span>
+      {label ??
+        t([`fields.${tName}.label`, ''] as unknown as TemplateStringsArray, {
+          index: lastIndex,
+        })}
+      {(required ?? fieldRule.required) ? (
+        ''
+      ) : (
+        <span className="eb-font-normal eb-text-muted-foreground">
+          {' '}
+          ({t('common:optional')})
+        </span>
+      )}
+    </span>
+  );
+
   return (
     <FormField
       control={control}
@@ -160,14 +177,7 @@ export function OnboardingFormField<T extends FieldValues>({
             <>
               <div className="eb-flex eb-items-center eb-space-x-2">
                 <FormLabel asterisk={required ?? fieldRule.required}>
-                  {label ??
-                    t(
-                      [
-                        `fields.${tName}.label`,
-                        '',
-                      ] as unknown as TemplateStringsArray,
-                      { index: lastIndex }
-                    )}
+                  {fieldLabel}
                 </FormLabel>
                 <InfoPopover>
                   {tooltip ??
@@ -346,14 +356,7 @@ export function OnboardingFormField<T extends FieldValues>({
                       <div className="eb-space-y-1 eb-leading-none">
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <FormLabel asterisk={required ?? fieldRule.required}>
-                            {label ??
-                              t(
-                                [
-                                  `fields.${tName}.label`,
-                                  '',
-                                ] as unknown as TemplateStringsArray,
-                                { index: lastIndex }
-                              )}
+                            {fieldLabel}
                           </FormLabel>
                           <InfoPopover>
                             {tooltip ??

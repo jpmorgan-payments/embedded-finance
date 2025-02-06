@@ -62,26 +62,19 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { ErrorType } from '@/api/axios-instance';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { ApiError } from '@/api/generated/smbdo.schemas';
+import { Role } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -124,11 +117,11 @@ export const BeneficialOwnerStepForm = () => {
   const [currentBeneficialOwnerId, setCurrentBeneficialOwnerId] =
     useState<string>('');
 
-  const {
-    data: clientData,
-    status: clientDataGetStatus,
-    refetch: refetchClientData,
-  } = useSmbdoGetClient(clientId ?? '');
+  const { data: clientData, refetch: refetchClientData } = useSmbdoGetClient(
+    clientId ?? ''
+  );
+
+  const [isClientDataRefetching, setIsClientDataRefetching] = useState(false);
 
   const { getFieldRule, isFieldVisible } =
     useFilterFunctionsByClientContext(clientData);
@@ -182,57 +175,62 @@ export const BeneficialOwnerStepForm = () => {
 
   const {
     mutate: updateController,
-    // error: partyUpdateError,
+    error: controllerUpdateError,
     status: controllerUpdateStatus,
   } = useSmbdoUpdateParty();
 
   // Update controller roles on change
   useEffect(() => {
-    const controllerRoles = [...(controllerParty?.roles ?? [])];
-
-    const updateControllerRoles = () => {
-      if (controllerParty?.id) {
-        updateController(
-          {
-            partyId: controllerParty.id,
-            data: {
-              roles: controllerRoles,
-            },
+    const updateControllerRoles = (controllerId: string, roles: Role[]) => {
+      updateController(
+        {
+          partyId: controllerId,
+          data: {
+            roles,
           },
-          {
-            onSettled: (data, error) => {
-              onPostPartyResponse?.(data, error?.response?.data);
-            },
-            onSuccess: () => {},
-            onError: (error) => {
-              controllerForm.setValue(
-                'controllerIsOwner',
-                controllerParty?.roles?.includes('BENEFICIAL_OWNER')
-                  ? 'yes'
-                  : 'no'
-              );
-              controllerForm.setError('controllerIsOwner', {
-                type: 'server',
-                message: error?.response?.data?.context?.[0]?.message,
-              });
-            },
-          }
-        );
-      }
+        },
+        {
+          onSettled: (data, error) => {
+            onPostPartyResponse?.(data, error?.response?.data);
+          },
+          onSuccess: () => {
+            refetchClientData();
+          },
+          onError: (error) => {
+            controllerForm.setValue(
+              'controllerIsOwner',
+              controllerParty?.roles?.includes('BENEFICIAL_OWNER')
+                ? 'yes'
+                : 'no'
+            );
+            controllerForm.setError('controllerIsOwner', {
+              type: 'server',
+              message: error?.response?.data?.context?.[0]?.message,
+            });
+          },
+        }
+      );
     };
 
     if (
       controllerForm.watch('controllerIsOwner') === 'yes' &&
-      !controllerRoles.includes('BENEFICIAL_OWNER')
+      controllerParty?.id &&
+      controllerParty?.roles &&
+      !controllerParty.roles.includes('BENEFICIAL_OWNER')
     ) {
-      controllerRoles.push('BENEFICIAL_OWNER');
-      updateControllerRoles();
+      updateControllerRoles(controllerParty.id, [
+        ...controllerParty.roles,
+        'BENEFICIAL_OWNER',
+      ]);
     } else if (
       controllerForm.watch('controllerIsOwner') === 'no' &&
-      controllerRoles.includes('BENEFICIAL_OWNER')
+      controllerParty?.id &&
+      controllerParty?.roles &&
+      controllerParty.roles.includes('BENEFICIAL_OWNER')
     ) {
-      controllerRoles.splice(controllerRoles.indexOf('BENEFICIAL_OWNER'), 1);
-      updateControllerRoles();
+      updateControllerRoles(controllerParty.id, [
+        ...controllerParty.roles.filter((role) => role !== 'BENEFICIAL_OWNER'),
+      ]);
     }
   }, [controllerForm.watch('controllerIsOwner')]);
 
@@ -266,17 +264,19 @@ export const BeneficialOwnerStepForm = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
+    reset: resetUpdateClient,
   } = useSmbdoUpdateClient();
 
   // Used for updating party details
   const {
     mutate: updateParty,
-    // error: partyUpdateError,
+    error: partyUpdateError,
     status: partyUpdateStatus,
+    reset: resetUpdateParty,
   } = useSmbdoUpdateParty();
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string) => {
-    if (clientDataGetStatus === 'success' && clientData) {
+    if (clientData) {
       setCurrentBeneficialOwnerId(beneficialOwnerId);
       const formValues = convertClientResponseToFormValues(
         clientData,
@@ -291,26 +291,57 @@ export const BeneficialOwnerStepForm = () => {
 
   const handleAddBeneficialOwner = () => {
     setCurrentBeneficialOwnerId('');
-    ownerForm.reset({});
+    ownerForm.reset(shapeFormValuesBySchema({}, IndividualStepFormSchema));
     setIsDialogOpen(true);
   };
 
+  // Used for updating party details
+  const {
+    mutate: updatePartyActive,
+    error: partyActiveUpdateError,
+    status: partyActiveUpdateStatus,
+  } = useSmbdoUpdateParty();
+
   const handleDeactivateBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty({
-      partyId: beneficialOwnerId,
-      data: {
-        active: false,
+    setCurrentBeneficialOwnerId(beneficialOwnerId);
+    updatePartyActive(
+      {
+        partyId: beneficialOwnerId,
+        data: {
+          active: false,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success('Beneficial owner removed successfully');
+          setIsClientDataRefetching(true);
+          refetchClientData().then(() => {
+            setIsClientDataRefetching(false);
+          });
+        },
+      }
+    );
   };
 
   const handleRestoreBeneficialOwner = (beneficialOwnerId: string) => {
-    updateParty({
-      partyId: beneficialOwnerId,
-      data: {
-        active: true,
+    setCurrentBeneficialOwnerId(beneficialOwnerId);
+    updatePartyActive(
+      {
+        partyId: beneficialOwnerId,
+        data: {
+          active: true,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          toast.success('Beneficial owner restored successfully');
+          setIsClientDataRefetching(true);
+          refetchClientData().then(() => {
+            setIsClientDataRefetching(false);
+          });
+        },
+      }
+    );
   };
 
   const onOwnerFormSubmit = ownerForm.handleSubmit((values) => {
@@ -331,8 +362,10 @@ export const BeneficialOwnerStepForm = () => {
               toast.success('Beneficial owner details updated successfully');
               setIsDialogOpen(false);
               setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
+              setIsClientDataRefetching(true);
+              refetchClientData().then(() => {
+                setIsClientDataRefetching(false);
+              });
             },
             onError: (error) => {
               if (error.response?.data?.context) {
@@ -366,8 +399,10 @@ export const BeneficialOwnerStepForm = () => {
               toast.success('Beneficial owner details updated successfully');
               setIsDialogOpen(false);
               setCurrentBeneficialOwnerId('');
-              ownerForm.reset({});
-              refetchClientData();
+              setIsClientDataRefetching(true);
+              refetchClientData().then(() => {
+                setIsClientDataRefetching(false);
+              });
             },
             onError: (error) => {
               if (error.response?.data?.context) {
@@ -392,31 +427,6 @@ export const BeneficialOwnerStepForm = () => {
   const inactiveOwners = ownersData.filter(
     (owner) => !owner.active && owner.status !== 'ACTIVE'
   );
-
-  // Used for updating the soleOwner field of a party
-  const { mutateAsync: updateSoleOwner, status: soleOwnerUpdateStatus } =
-    useSmbdoUpdateParty();
-
-  const soleOwnerForm = useForm({
-    defaultValues: {
-      soleOwner: false,
-    },
-  });
-
-  useEffect(() => {
-    if (activeOwners.length === 1) {
-      soleOwnerForm.setValue(
-        'soleOwner',
-        activeOwners[0].individualDetails?.soleOwner === true
-      );
-    } else {
-      soleOwnerForm.setValue('soleOwner', false);
-    }
-  }, [activeOwners.length]);
-
-  const [soleOwnerFormErrors, setSoleOwnerFormErrors] = useState<
-    Array<ErrorType<ApiError>>
-  >([]);
 
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
@@ -456,46 +466,23 @@ export const BeneficialOwnerStepForm = () => {
     return () => subscription.unsubscribe();
   }, [ownerForm.watch]);
 
-  const handleSoleOwnerFormSubmit = soleOwnerForm.handleSubmit(
-    async (values) => {
-      const errors: Array<ErrorType<ApiError>> = [];
-      for (const owner of activeOwners) {
-        if (
-          owner.id &&
-          owner.individualDetails?.soleOwner !== values.soleOwner
-        ) {
-          await updateSoleOwner(
-            {
-              partyId: owner.id,
-              data: {
-                individualDetails: {
-                  soleOwner: values.soleOwner,
-                },
-              },
-            },
-            {
-              onError: (error) => {
-                errors.push(error);
-              },
-            }
-          );
-        }
-      }
+  const form = useForm({
+    defaultValues: {},
+  });
 
-      if (errors.length > 0) {
-        setSoleOwnerFormErrors(errors);
-      } else {
-        nextStep();
-        toast.success("Client's owner details updated successfully");
-      }
-    }
-  );
+  const handleFormSubmit = form.handleSubmit(() => {
+    nextStep();
+    toast.success("Client's beneficial owners updated successfully");
+  });
 
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
-    soleOwnerUpdateStatus === 'pending' ||
-    partyUpdateStatus === 'pending' ||
-    clientUpdateStatus === 'pending';
+    partyActiveUpdateStatus === 'pending' ||
+    isClientDataRefetching ||
+    isDialogOpen;
+
+  const isOwnerFormSubmitting =
+    partyUpdateStatus === 'pending' || clientUpdateStatus === 'pending';
 
   const ownerFormId = React.useId();
 
@@ -506,7 +493,11 @@ export const BeneficialOwnerStepForm = () => {
           <OnboardingFormField
             control={controllerForm.control}
             disableMapping
-            disabled={isFormDisabled}
+            disabled={
+              isFormDisabled ||
+              (activeOwners.length >= 4 &&
+                controllerForm.watch('controllerIsOwner') === 'no')
+            }
             type="radio-group"
             name="controllerIsOwner"
             label="Do you, the controller, own 25% or more of the business?"
@@ -515,6 +506,14 @@ export const BeneficialOwnerStepForm = () => {
               { value: 'no', label: t('common:no') },
             ]}
           />
+          {activeOwners.length >= 4 &&
+            controllerForm.watch('controllerIsOwner') === 'no' &&
+            controllerUpdateStatus !== 'pending' && (
+              <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
+                {'\u24d8'} You cannot set yourself as an owner since you can
+                only add up to 4 beneficial owners.
+              </p>
+            )}
           {controllerUpdateStatus === 'pending' && (
             <div className="eb-mt-2 eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
               <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
@@ -532,12 +531,12 @@ export const BeneficialOwnerStepForm = () => {
           <Card key={owner.id}>
             <CardHeader>
               <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
-              <CardDescription className="eb-flex eb-gap-2 eb-pt-2">
+              <div className="eb-flex eb-gap-2 eb-pt-2">
                 <Badge variant="secondary">Owner</Badge>
                 {owner.roles?.includes('CONTROLLER') ? (
                   <Badge>Controller</Badge>
                 ) : null}
-              </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="eb-space-y-4 eb-leading-snug">
               <div>
@@ -579,118 +578,131 @@ export const BeneficialOwnerStepForm = () => {
                       owner?.id && handleDeactivateBeneficialOwner(owner.id)
                     }
                   >
-                    <TrashIcon />
-                    Delete
+                    {currentBeneficialOwnerId === owner.id &&
+                    (partyActiveUpdateStatus === 'pending' ||
+                      isClientDataRefetching) ? (
+                      <Loader2Icon className="eb-animate-spin" />
+                    ) : (
+                      <TrashIcon />
+                    )}
+                    Remove
                   </Button>
                 ) : null}
               </div>
             </CardContent>
           </Card>
         ))}
-        <Button
-          className="eb-flex eb-cursor-pointer eb-items-center eb-justify-center"
-          disabled={isFormDisabled || ownersData.length >= 4}
-          onClick={handleAddBeneficialOwner}
-        >
-          <UserPlusIcon />
-          Add Beneficial Owner
-        </Button>
-        {/* TODO: add alert if at 4 owners */}
+        <div className="eb-w-full">
+          <Button
+            className="eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-justify-center"
+            disabled={isFormDisabled || ownersData.length >= 4}
+            onClick={handleAddBeneficialOwner}
+          >
+            <UserPlusIcon />
+            Add Beneficial Owner
+          </Button>
+          {ownersData.length >= 4 && (
+            <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
+              {'\u24d8'} You can only add up to 4 beneficial owners.
+            </p>
+          )}
+        </div>
       </fieldset>
 
-      <Accordion type="single" collapsible>
-        <AccordionItem value="inactive-owners" className="eb-rounded eb-border">
-          <AccordionTrigger
-            className="eb-px-4"
-            disabled={inactiveOwners.length === 0}
+      {inactiveOwners.length > 0 && (
+        <Accordion type="single" collapsible>
+          <AccordionItem
+            value="inactive-owners"
+            className="eb-rounded eb-border"
           >
-            Inactive Owners ({inactiveOwners.length})
-          </AccordionTrigger>
-          <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-            {ownersData
-              .filter((owner) => !owner.active)
-              .map((owner) => (
-                <Card key={owner.id} className="eb-mb-4">
-                  <CardHeader>
-                    <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{owner?.individualDetails?.jobTitle ?? ''}</p>
-                    <div className="eb-mt-4 eb-space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isFormDisabled}
-                        onClick={() =>
-                          owner?.id && handleRestoreBeneficialOwner(owner.id)
-                        }
-                      >
-                        <ArchiveRestoreIcon />
-                        Restore
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            <AccordionTrigger className="eb-px-4">
+              Inactive Owners ({inactiveOwners.length})
+            </AccordionTrigger>
+            <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              {ownersData
+                .filter((owner) => !owner.active)
+                .map((owner) => (
+                  <Card key={owner.id} className="eb-mb-4">
+                    <CardHeader>
+                      <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="eb-space-y-4 eb-leading-snug">
+                      <div>
+                        {owner?.individualDetails?.jobTitle ? (
+                          <p>
+                            Job title:{' '}
+                            <span className="eb-font-semibold">
+                              {owner.individualDetails.jobTitle}
+                            </span>
+                          </p>
+                        ) : null}
+                        {owner?.individualDetails?.natureOfOwnership ? (
+                          <p>
+                            Nature of ownership:{' '}
+                            <span className="eb-font-semibold">
+                              {owner.individualDetails.natureOfOwnership}
+                            </span>
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="eb-mt-4 eb-space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isFormDisabled}
+                          onClick={() =>
+                            owner?.id && handleRestoreBeneficialOwner(owner.id)
+                          }
+                        >
+                          {currentBeneficialOwnerId === owner.id &&
+                          (partyActiveUpdateStatus === 'pending' ||
+                            isClientDataRefetching) ? (
+                            <Loader2Icon className="eb-animate-spin" />
+                          ) : (
+                            <ArchiveRestoreIcon />
+                          )}
+                          Restore
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
 
-      {/* TODO: move this */}
-      <ServerErrorAlert error={clientUpdateError} />
+      <ServerErrorAlert
+        error={controllerUpdateError || partyActiveUpdateError}
+      />
 
-      <Form {...soleOwnerForm}>
-        <form className="eb-space-y-6" onSubmit={handleSoleOwnerFormSubmit}>
-          {activeOwners.length === 1 && (
-            <OnboardingFormField
-              disableMapping
-              control={soleOwnerForm.control}
-              disabled={isFormDisabled}
-              name="soleOwner"
-              type="checkbox"
-              label={
-                <span>
-                  <span className="eb-font-bold">
-                    {[
-                      activeOwners[0].individualDetails?.firstName,
-                      activeOwners[0].individualDetails?.middleName,
-                      activeOwners[0].individualDetails?.lastName,
-                    ].join(' ')}{' '}
-                    (
-                    {activeOwners[0].individualDetails?.jobTitle === 'Other'
-                      ? activeOwners[0].individualDetails?.jobTitleDescription
-                      : activeOwners[0].individualDetails?.jobTitle}
-                    )
-                  </span>{' '}
-                  is the sole owner of the business
-                </span>
-              }
-              description="Check this box if the indicated individual is the only owner of your business."
-            />
-          )}
-
-          {soleOwnerFormErrors.map((error, index) => (
-            <ServerErrorAlert key={index} error={error} />
-          ))}
-
-          <FormActions
-            disabled={isFormDisabled}
-            isLoading={soleOwnerUpdateStatus === 'pending'}
-          />
+      <Form {...form}>
+        <form className="eb-space-y-6" onSubmit={handleFormSubmit}>
+          <FormActions disabled={isFormDisabled} />
         </form>
       </Form>
 
       <Dialog
         open={isDialogOpen}
         onOpenChange={(opened) => {
-          if (!isFormDisabled) {
+          if (!isOwnerFormSubmitting) {
             setIsDialogOpen(opened);
+            if (!opened) {
+              setCurrentBeneficialOwnerId('');
+              resetUpdateClient();
+              resetUpdateParty();
+            }
           }
         }}
       >
         <Form {...ownerForm}>
           <form id={ownerFormId} onSubmit={onOwnerFormSubmit}>
-            <DialogContent className="eb-max-h-full eb-gap-0 eb-px-0 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg">
+            <DialogContent
+              className="eb-max-h-full eb-gap-0 eb-px-0 eb-pb-2 eb-pt-4 sm:eb-max-h-[98%] md:eb-max-w-screen-sm lg:eb-max-w-screen-md xl:eb-max-w-screen-lg"
+              onInteractOutside={(e) => {
+                e.preventDefault();
+              }}
+            >
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>
                   {currentBeneficialOwnerId
@@ -705,7 +717,7 @@ export const BeneficialOwnerStepForm = () => {
               </DialogHeader>
 
               <div className="eb-flex-1 eb-space-y-6 eb-overflow-y-auto eb-p-6">
-                <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <div className="eb-grid eb-grid-cols-1 eb-gap-6 lg:eb-grid-cols-2 xl:eb-grid-cols-3">
                   <OnboardingFormField
                     control={ownerForm.control}
                     name="firstName"
@@ -1060,15 +1072,20 @@ export const BeneficialOwnerStepForm = () => {
                     Add Individual Identification Document
                   </Button>
                 )}
+
+                <ServerErrorAlert
+                  error={clientUpdateError || partyUpdateError}
+                />
               </div>
 
-              <DialogFooter className="eb-border-t eb-px-6 eb-pt-6">
+              <DialogFooter className="eb-border-t eb-px-4 eb-pt-3">
                 <Button
                   type="submit"
                   form={ownerFormId}
-                  disabled={isFormDisabled}
+                  disabled={isOwnerFormSubmitting}
                 >
-                  {partyUpdateStatus === 'pending' && (
+                  {(partyUpdateStatus === 'pending' ||
+                    clientUpdateStatus === 'pending') && (
                     <Loader2Icon className="eb-animate-spin" />
                   )}
                   Save changes

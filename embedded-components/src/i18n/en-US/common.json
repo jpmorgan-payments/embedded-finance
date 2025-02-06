@@ -5,6 +5,7 @@
   "loading": "Loading...",
   "submitting": "Submitting...",
   "noOptionFound": "No option found.",
+  "optional": "optional",
   "yes": "Yes",
   "no": "No",
   "validation": {

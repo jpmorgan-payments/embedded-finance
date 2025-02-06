@@ -58,10 +58,12 @@ export function translateClientApiErrorsToFormErrors(
       if (
         path &&
         errorFieldInDotNotation &&
-        errorFieldInDotNotation.startsWith(`${arrayName}.${partyIndex}.${path}`)
+        errorFieldInDotNotation.startsWith(
+          `$.${arrayName}.${partyIndex}.${path}`
+        )
       ) {
         remainingPath = errorFieldInDotNotation.substring(
-          `${arrayName}.${partyIndex}.${path}`.length
+          `$.${arrayName}.${partyIndex}.${path}`.length
         );
         return true;
       }
@@ -445,7 +447,7 @@ export function filterSchemaByClientContext(
     let fieldSchema = value;
     if (fieldRule.visibility !== 'hidden') {
       if (!fieldRule.required) {
-        fieldSchema = value.or(z.literal('')).optional();
+        fieldSchema = value.or(z.literal('')).or(z.undefined());
       }
       if (value instanceof z.ZodArray) {
         if (fieldRule.minItems !== undefined) {
