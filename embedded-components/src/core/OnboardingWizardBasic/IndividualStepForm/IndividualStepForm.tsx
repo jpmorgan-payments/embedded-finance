@@ -274,8 +274,6 @@ export const IndividualStepForm = () => {
     }
   });
 
-  console.log(form.formState.errors);
-
   // Get mask format based on ID type
   const getMaskFormat = (idType: string) => {
     switch (idType) {
