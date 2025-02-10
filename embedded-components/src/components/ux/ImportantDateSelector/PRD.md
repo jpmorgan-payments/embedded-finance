@@ -1,6 +1,7 @@
 
-# Date Picker Component Requirements Document (Refined)
-Component Name: Date Picker
+# Important Date Picker Component Requirements Document
+
+Component Name: ImportantDateSelector
 
 Usage Context: Banking onboarding (Date of Birth and other memorable dates selection)
 
@@ -8,6 +9,7 @@ Usage Context: Banking onboarding (Date of Birth and other memorable dates selec
 
 ### 1.1 Purpose
 To provide an accessible, efficient, and inclusive date entry experience that allows users to enter their date of birth or another memorable date (e.g., birth of a child, passport expiry date, credit card issue date) without friction. The component must minimize user mistakes through clear labeling, robust validation, and clear inline guidance while remaining compliant with best practices and accessibility standards.
+
 
 **User Research Insights:**
 
@@ -31,7 +33,7 @@ To provide an accessible, efficient, and inclusive date entry experience that al
 ### 1.3 Resources and References
 For further reading and design guidance, please refer to the following resources:
 
-**Existing Resources (Retained):**
+**Resources:**
 - [Digital.gov - Create a User Profile: Date of Birth](https://designsystem.digital.gov/patterns/create-a-user-profile/date-of-birth/) - *Provides US government design system guidance on collecting date of birth, emphasizing accessibility and user-friendliness.*
 - [Design Notes: Asking for a Date of Birth (Blog)](https://designnotes.blog.gov.uk/2013/12/05/asking-for-a-date-of-birth/) - *A blog post from the UK government design team discussing considerations for date of birth input.*
 - [GOV.UK Design System – Dates Pattern](https://design-system.service.gov.uk/patterns/dates/) - *The comprehensive dates pattern from the GOV.UK Design System, a leading example of accessible and user-centered design.*
@@ -148,14 +150,6 @@ For further reading and design guidance, please refer to the following resources
 - **Responsive Design:**
   - Must be fully responsive and function optimally across different device sizes and orientations (desktop, tablet, mobile).
 
-### 3.3 Security and Privacy
-- **Data Collection Justification:**
-  - Collect date of birth or memorable dates only when essential for the specified purpose.
-  - Clearly communicate to users why this data is needed and how it will be protected in the privacy policy and within the onboarding flow context.
-- **Data Protection:**
-  - Use secure HTTPS for data transmission.
-  - Follow relevant data protection regulations (e.g., GDPR, CCPA) for data storage and handling. Ensure input sanitization on the backend to prevent injection vulnerabilities (though less directly related to the date picker component itself).
-
 ---
 
 ## 4. Technical Implementation
@@ -207,17 +201,6 @@ For further reading and design guidance, please refer to the following resources
 - **Consistent Date Format:**
   - Maintain consistency with the MDY (Month-Day-Year) format across the entire onboarding flow, unless locale adaptation is implemented.
 
-**Visual Examples:**
-
-* **[Insert Wireframe/Mockup Image here - Date Picker Default State]** - Showing labels, input fields, placeholders, and helper text.
-* **[Insert Wireframe/Mockup Image here - Date Picker Focused State]** - Highlighting focused input field.
-* **[Insert Wireframe/Mockup Image here - Date Picker Error State]** - Showing inline error message, error icon, and highlighted error field.
-
-**Do's and Don'ts (Visual Summary):**
-
-* **[Insert "Do's" Visual - e.g., Checkmark icon next to "Clear Labels", "Numeric Keypad on Mobile"]**
-* **[Insert "Don'ts" Visual - e.g., Cross icon next to "Auto-Advance Focus", "Visual Separators Between Fields"]**
-
 ### 5.2 Avoid Common Pitfalls
 - **No Auto-Advance:**
   - Emphasize again: Absolutely avoid auto-advancing focus.
@@ -230,16 +213,12 @@ For further reading and design guidance, please refer to the following resources
 
 **Priority:** **Could Have** for all items in this section.
 
-### 6.1 Expanding Date Patterns
-- **Date Range Picker (Potential Future Need):** Consider the potential future requirement for a date range picker component for scenarios like "period of employment" or "account history timeframe selection."
-- **Relative Dates (Low Priority):**  Exploring support for relative date inputs (e.g., "today", "yesterday", "tomorrow") is a very low priority and should only be considered if user needs and business requirements clearly demonstrate a benefit.
-
-### 6.2 Localization and Adaptation
+### 6.1 Localization and Adaptation
 - **Locale-specific Formats (Phase 1: Investigation, Phase 2: Implementation - Should Have in Phase 2):**
   - **Phase 1: Investigation:** Conduct user research and analyze user data to determine the most relevant locales to support beyond MDY format. Prioritize locales based on user demographics and business needs.
   - **Phase 2: Implementation:** Implement locale-specific date format adaptation (DMY, YMD) based on browser locale or user account settings. Start with supporting **[List specific locales, e.g., UK, Canada, Australia]** in addition to the default US (MDY).
 
-### 6.3 Data Analytics and Iterative Improvement
+### 6.2 Data Analytics and Iterative Improvement
 - **User Feedback Integration:**
   - Continuously monitor user feedback (surveys, support tickets, usability testing) related to the date picker component.
 - **A/B Testing Plan (For Iteration):**
@@ -250,13 +229,5 @@ For further reading and design guidance, please refer to the following resources
   - Use analytics to track conversion rates, error rates, and completion times for different variations to identify optimal designs.
 - **Ongoing Testing:**
   - Engage in continuous accessibility testing and usability testing throughout the component's lifecycle to identify areas for further refinement and improvement.
-
----
-
-## 7. Conclusion
-
-This refined document provides a comprehensive plan for the Date Picker component, incorporating user research insights, best practices, and detailed technical specifications. By prioritizing accessibility, usability, and clear communication, this component aims to deliver a user-friendly and error-minimized date entry experience for banking onboarding.  The focus on ShadCN component compatibility and Tailwind CSS styling ensures seamless integration and maintainability within the existing design system.  Continuous testing and iterative improvement will be crucial to ensure the Date Picker remains effective and user-centered over time.
-
-*By diligently following this refined guide, the development team can confidently build a Date Picker that meets both user needs and technical requirements, serving as a robust and accessible replacement for existing ShadCN input datepicker implementations.*
 
 ---
