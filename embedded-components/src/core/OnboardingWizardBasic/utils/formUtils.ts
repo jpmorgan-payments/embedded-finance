@@ -95,7 +95,7 @@ export function translatePartyApiErrorsToFormErrors(
   const fieldMapKeys = Object.keys(partyFieldMap) as Array<
     keyof typeof partyFieldMap
   >;
-  return errors.map((error) => {
+  return errors.reduce((acc, error) => {
     let remainingPath = '';
     const matchedKey = fieldMapKeys.find((key) => {
       const path = partyFieldMap[key]?.path;
@@ -103,21 +103,41 @@ export function translatePartyApiErrorsToFormErrors(
         remainingPath = error.field.substring(`$.${path}`.length);
         return true;
       }
+      if (path && error.field && error.field.startsWith(`$.party.${path}`)) {
+        remainingPath = error.field.substring(`$.party.${path}`.length);
+        return true;
+      }
       return false;
     });
     if (!matchedKey && error.field && error.field in partyFieldMap) {
-      return {
+      acc.push({
         field: error.field as keyof typeof partyFieldMap,
         message: error.message,
         path: error.field,
-      };
+      });
     }
-    return {
-      field: matchedKey ? `${matchedKey}${remainingPath}` : undefined,
-      message: error.message,
-      path: error.field,
-    };
-  });
+    // Server error path sometimes does not include the index for array fields,
+    // so we assume it's the first index (0) and add it manually.
+    if (matchedKey && remainingPath) {
+      acc.push({
+        field: `${matchedKey}${remainingPath}`,
+        message: error.message,
+        path: error.field,
+      });
+      acc.push({
+        field: `${matchedKey}.0.${remainingPath}`,
+        message: error.message,
+        path: error.field,
+      });
+    } else {
+      acc.push({
+        field: matchedKey ?? undefined,
+        message: error.message,
+        path: error.field,
+      });
+    }
+    return acc;
+  }, [] as FormError[]);
 }
 
 /**
