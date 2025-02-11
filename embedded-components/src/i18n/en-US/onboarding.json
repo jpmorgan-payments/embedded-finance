@@ -35,7 +35,7 @@
       "label": "Business Description",
       "placeholder": "Enter business description",
       "description": "",
-      "tooltip": "The business's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
+      "tooltip": "A brief description of your business and its activities",
       "validation": {
         "maxLength": "Business description must be 500 characters or less",
         "minLength": "Business description must be at least 10 characters",
@@ -95,7 +95,6 @@
       "label": "Country of Formation",
       "placeholder": "Select country of formation",
       "description": "",
-      "tooltip": "Country code in ISO alpha-2 format",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       },
@@ -105,7 +104,6 @@
       "label": "Year of Formation",
       "placeholder": "Enter year of formation",
       "description": "",
-      "tooltip": "Year of company formation (e.g. 2000)",
       "validation": {
         "format": "Invalid year of formation",
         "min": "Year of formation cannot be before 1800",
