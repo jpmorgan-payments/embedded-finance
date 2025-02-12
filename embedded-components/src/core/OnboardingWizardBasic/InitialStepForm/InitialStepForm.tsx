@@ -340,9 +340,8 @@ export const InitialStepForm = () => {
 
             <ServerErrorAlert
               error={
-                usePartyResource
-                  ? partyUpdateError
-                  : clientUpdateError || clientPostError
+                (usePartyResource ? partyUpdateError : clientUpdateError) ||
+                clientPostError
               }
             />
 
