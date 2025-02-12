@@ -426,7 +426,11 @@ export function OnboardingFormField<T extends FieldValues>({
                       <ImportantDateSelector
                         {...field}
                         format="MDY"
-                        value={field.value ? new Date(field.value) : undefined}
+                        value={
+                          field.value
+                            ? new Date(`${field.value}T12:00:00Z`)
+                            : undefined
+                        }
                         onChange={(date) => {
                           field.onChange(date?.toISOString().split('T')[0]);
                           field.onBlur();
