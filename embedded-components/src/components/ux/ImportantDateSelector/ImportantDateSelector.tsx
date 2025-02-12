@@ -128,8 +128,6 @@ export function ImportantDateSelector({
   setErrorMsg,
   ...props
 }: ImportantDateSelectorProps) {
-  console.log('@@value', value);
-  
   const [day, setDay] = useState(() => value?.getDate().toString() ?? '');
   const [month, setMonth] = useState(() =>
     value ? (value.getMonth() + 1).toString().padStart(2, '0') : ''
