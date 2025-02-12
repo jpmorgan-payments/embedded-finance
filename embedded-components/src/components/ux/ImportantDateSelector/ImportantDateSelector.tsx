@@ -1,7 +1,6 @@
-'use client';
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,12 +19,15 @@ interface ImportantDateSelectorProps
   > {
   value?: Date;
   onChange?: (value: Date | null) => void;
+  onError?: (error: string) => void;
   minDate?: Date;
   maxDate?: Date;
   disabled?: boolean;
   format?: 'DMY' | 'YMD' | 'MDY';
   separator?: React.ReactNode;
   showClearIcon?: boolean;
+  isValidationEnabled?: boolean;
+  setErrorMsg?: (errorMessage: string) => void;
 }
 
 const generateMonthOptions = () => {
@@ -42,14 +44,22 @@ const validateDate = (
   month: string,
   year: string,
   minDate?: Date,
-  maxDate?: Date
+  maxDate?: Date,
+  setErrorMsg?: (errorMessage: string) => void,
+  t?: (key: string) => string
 ) => {
   const dayNum = Number.parseInt(day, 10);
   const monthNum = Number.parseInt(month, 10);
   const yearNum = Number.parseInt(year, 10);
 
   if (Number.isNaN(dayNum) || Number.isNaN(monthNum) || Number.isNaN(yearNum)) {
-    return { isValid: false, errorMessage: '🛈 Please enter a valid date.' };
+    return {
+      isValid: false,
+      errorMessage: setErrorMsg?.(
+        t?.('fields.birthDate.validation.format') ??
+          'Please enter a valid date in MM/DD/YYYY format'
+      ),
+    };
   }
 
   if (
@@ -60,7 +70,12 @@ const validateDate = (
     yearNum < 1000 ||
     yearNum > 9999
   ) {
-    return { isValid: false, errorMessage: '🛈 Please enter a valid date.' };
+    return {
+      isValid: false,
+      errorMessage: setErrorMsg?.(
+        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date'
+      ),
+    };
   }
 
   const date = new Date(yearNum, monthNum - 1, dayNum);
@@ -69,20 +84,31 @@ const validateDate = (
     date.getMonth() !== monthNum - 1 ||
     date.getDate() !== dayNum
   ) {
-    return { isValid: false, errorMessage: '🛈 Please enter a valid date.' };
+    return {
+      isValid: false,
+      errorMessage: setErrorMsg?.(
+        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date'
+      ),
+    };
   }
 
   if (minDate && date < minDate) {
     return {
       isValid: false,
-      errorMessage: `🛈 Date must be on or after ${minDate.toLocaleDateString()}.`,
+      errorMessage: setErrorMsg?.(
+        t?.('fields.birthDate.validation.tooOld') ??
+          'Date indicates age over 120 years old. Please verify the date'
+      ),
     };
   }
 
   if (maxDate && date > maxDate) {
     return {
       isValid: false,
-      errorMessage: `🛈 Date must be on or before ${maxDate.toLocaleDateString()}.`,
+      errorMessage: setErrorMsg?.(
+        t?.('fields.birthDate.validation.tooYoung') ??
+          'Must be at least 18 years old to proceed'
+      ),
     };
   }
 
@@ -98,22 +124,33 @@ export function ImportantDateSelector({
   format = 'MDY',
   separator = '',
   showClearIcon = false,
+  isValidationEnabled = true,
+  setErrorMsg,
+  ...props
 }: ImportantDateSelectorProps) {
-  const [day, setDay] = useState(value ? value.getDate().toString() : '');
-  const [month, setMonth] = useState(
+  const [day, setDay] = useState(() => value?.getDate().toString() ?? '');
+  const [month, setMonth] = useState(() =>
     value ? (value.getMonth() + 1).toString().padStart(2, '0') : ''
   );
-  const [year, setYear] = useState(value ? value.getFullYear().toString() : '');
+  const [year, setYear] = useState(() => value?.getFullYear().toString() ?? '');
   const [isValid, setIsValid] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
+
+  const { t } = useTranslation();
 
   const updateDate = useCallback(
     (newDay: string, newMonth: string, newYear: string) => {
-      const { isValid: newIsValid, errorMessage: newErrorMessage } =
-        validateDate(newDay, newMonth, newYear, minDate, maxDate);
+      const { isValid: newIsValid } = isValidationEnabled
+        ? validateDate(
+            newDay,
+            newMonth,
+            newYear,
+            minDate,
+            maxDate,
+            setErrorMsg,
+            t
+          )
+        : { isValid: true };
       setIsValid(newIsValid);
-      setErrorMessage(newErrorMessage);
-
       if (newIsValid) {
         const newDate = new Date(
           Number.parseInt(newYear, 10),
@@ -125,26 +162,17 @@ export function ImportantDateSelector({
         onChange?.(null);
       }
     },
-    [minDate, maxDate, onChange]
+    [minDate, maxDate, onChange] // Added onChange to dependencies
   );
-
-  useEffect(() => {
-    if (value) {
-      setDay(value.getDate().toString());
-      setMonth((value.getMonth() + 1).toString().padStart(2, '0'));
-      setYear(value.getFullYear().toString());
-    }
-  }, [value]);
 
   useEffect(() => {
     if (day && month && year) {
       updateDate(day, month, year);
     } else {
       setIsValid(true);
-      setErrorMessage('');
       onChange?.(null);
     }
-  }, [day, month, year, updateDate, onChange]);
+  }, [day, month, year]);
 
   const handleDayChange = (inputValue: string) => {
     const dayNum = Number.parseInt(inputValue, 10);
@@ -167,7 +195,6 @@ export function ImportantDateSelector({
     setMonth('');
     setYear('');
     setIsValid(true);
-    setErrorMessage('');
     onChange?.(null);
   };
 
@@ -175,7 +202,7 @@ export function ImportantDateSelector({
     switch (type) {
       case 'D':
         return (
-          <div className="eb-sm:w-14 eb-flex eb-w-12 eb-shrink-0 eb-flex-col eb-gap-1">
+          <div className="eb-flex eb-w-12 eb-shrink-0 eb-flex-col eb-gap-1">
             <label htmlFor="birth-day" className="eb-text-xs">
               Day
             </label>
@@ -199,7 +226,7 @@ export function ImportantDateSelector({
 
       case 'M':
         return (
-          <div className="eb-sm:w-28 eb-flex eb-w-24 eb-shrink-0 eb-flex-col eb-gap-1">
+          <div className="eb-flex eb-w-24 eb-shrink-0 eb-flex-col eb-gap-1">
             <label htmlFor="birth-month" className="eb-text-xs">
               Month
             </label>
@@ -223,7 +250,7 @@ export function ImportantDateSelector({
 
       case 'Y':
         return (
-          <div className="eb-sm:w-20 eb-flex eb-w-16 eb-shrink-0 eb-flex-col eb-gap-1">
+          <div className="eb-flex eb-w-16 eb-shrink-0 eb-flex-col eb-gap-1">
             <label htmlFor="birth-year" className="eb-text-xs">
               Year
             </label>
@@ -251,8 +278,12 @@ export function ImportantDateSelector({
   };
 
   return (
-    <div className="eb-space-y-2">
-      <div className="eb-flex eb-flex-nowrap eb-items-end eb-gap-2">
+    <div className="eb-space-y-1">
+      <div
+        className="eb-flex eb-flex-nowrap eb-items-end eb-gap-1"
+        role="group"
+        aria-label={props['aria-label'] || 'Date input'}
+      >
         {format.split('').map((type, index) => (
           <React.Fragment key={type}>
             {renderField(type)}
@@ -274,7 +305,6 @@ export function ImportantDateSelector({
           </Button>
         )}
       </div>
-      {!isValid && <p className="eb-text-sm eb-text-red-500">{errorMessage}</p>}
     </div>
   );
 }

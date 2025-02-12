@@ -41,6 +41,7 @@ import {
   SelectValue,
   Textarea,
 } from '@/components/ui';
+import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 
@@ -59,7 +60,8 @@ type FieldType =
   | 'textarea'
   | 'combobox'
   | 'industrySelect'
-  | 'phone';
+  | 'phone'
+  | 'importantDate';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -415,6 +417,27 @@ export function OnboardingFormField<T extends FieldValues>({
                         type={type}
                         value={field.value}
                         placeholder={fieldPlaceholder}
+                      />
+                    </FormControl>
+                  );
+                case 'importantDate':
+                  return (
+                    <FormControl>
+                      <ImportantDateSelector
+                        {...field}
+                        format="MDY"
+                        value={
+                          field.value
+                            ? new Date(`${field.value}T12:00:00Z`)
+                            : undefined
+                        }
+                        onChange={(date) => {
+                          field.onChange(date?.toISOString().split('T')[0]);
+                          field.onBlur();
+                        }}
+                        setErrorMsg={(errorMsg) =>
+                          form?.setError(field.name, { message: errorMsg })
+                        }
                       />
                     </FormControl>
                   );
