@@ -231,3 +231,80 @@ For further reading and design guidance, please refer to the following resources
   - Engage in continuous accessibility testing and usability testing throughout the component's lifecycle to identify areas for further refinement and improvement.
 
 ---
+
+The most common user errors when using date pickers stem from poor design choices, mismatched formats, and accessibility issues. Here are the key challenges users face:
+
+### **1. Selecting the Wrong Year**
+- **Cause:** Users often encounter mismatches between the date picker format and the display format, leading to incorrect year selection. For example, some systems may swap the day and year values due to format inconsistencies[3].
+- **Example:** A user selects "February 10, 2025," but the system records it as "2025-10-02."
+
+### **2. Misaligned Time Zones or Date Shifts**
+- **Cause:** Some date pickers improperly handle time zones, causing a selected date to shift by a day when saved or displayed. This is particularly common in web applications relying on browser settings[5].
+- **Example:** A user selects "June 10, 2021," but it appears as "June 9, 2021" due to time zone discrepancies.
+
+### **3. Over-Reliance on Calendar Views**
+- **Cause:** Calendar-based pickers are inefficient for dates far in the past (e.g., birthdates) or future (e.g., passport expiry). Scrolling through months or years is tedious and error-prone, especially on mobile devices[8].
+- **Example:** Clicking the back arrow 165 times to reach February 1990 can lead to frustration and mistakes.
+
+### **4. Inability to Type Dates Directly**
+- **Cause:** Some date pickers disable manual entry entirely, forcing users to rely solely on the calendar interface. This restriction can lead to errors if users accidentally select the wrong date[2][7].
+- **Example:** A user tries to type their birthdate but is forced to use a calendar picker, resulting in slower input and potential mistakes.
+
+### **5. Lack of Validation Feedback**
+- **Cause:** Insufficient or unclear validation messages can confuse users when they input invalid dates. Errors like selecting non-existent dates (e.g., February 30) or dates outside a valid range often go unaddressed until submission[1][10].
+- **Example:** A user enters "02/30/2025" but only sees an error after submitting the form without understanding what went wrong.
+
+### **6. Accessibility Challenges**
+- **Cause:** Many date pickers are not designed with accessibility in mind, making them difficult for users with disabilities or those relying on assistive technologies. Issues include small touch targets and lack of screen reader support[7].
+- **Example:** An older user struggles with selecting a date due to tiny buttons or an inaccessible interface.
+
+### **7. Crashes or Non-Responsiveness**
+- **Cause:** Some date pickers fail under certain conditions, such as browser language settings or specific device configurations[4][6].
+- **Example:** A picker becomes unresponsive when Arabic is set as the default browser language.
+
+### **8. Overcomplicated Design**
+- **Cause:** Over-designed date pickers with unnecessary features (e.g., milliseconds display) can confuse users and lead to mistakes[2][7].
+- **Example:** A user selecting a birthdate is distracted by irrelevant fields like hours or milliseconds.
+
+### **9. Context Misalignment**
+- **Cause:** Using the wrong type of date picker for a specific task can frustrate users. For instance, calendar views are great for scheduling appointments but poor for entering known dates like birthdays[7][8].
+- **Example:** A user trying to enter their birthdate finds it cumbersome to navigate through decades in a calendar view.
+
+### **10. Browser-Specific Issues**
+- **Cause:** Certain browsers (e.g., Safari) have poorly implemented native date pickers that cause usability problems, leading to significant support issues[11].
+- **Example:** A Safari user encounters frequent crashes or incorrect date formatting.
+
+### **Recommendations for Mitigating Errors**
+To reduce these common errors:
+1. Allow both manual entry and calendar selection.
+2. Validate inputs in real-time with clear error messages.
+3. Use separate fields for day, month, and year when appropriate.
+4. Ensure accessibility with large touch targets and screen reader compatibility.
+5. Align formats across display and input fields to avoid mismatches.
+6. Avoid over-complicating the design by removing irrelevant fields.
+
+By addressing these issues, designers can create more effective and user-friendly date input experiences across platforms and devices.
+
+Citations:
+[1] https://mui.com/x/react-date-pickers/validation/
+[2] https://community.appfarm.io/t/datepicker-bugs/1046
+[3] https://confluence.atlassian.com/jirakb/date-pickers-select-wrong-year-333250990.html
+[4] https://forum.adalo.com/t/date-picker-always-with-errors/26721
+[5] https://community.glideapps.com/t/need-help-with-date-picker-issue/27383
+[6] https://forum.katalon.com/t/date-picker-showing-errors/58863
+[7] https://www.reddit.com/r/UXDesign/comments/16ctze5/are_datepickers_bad_ux_design/
+[8] https://uxdesign.cc/rethinking-the-date-picker-ui-99b9dcb303ad?gi=a02bd8575964
+[9] https://stackoverflow.com/questions/75923936/inconsistent-error-behaviour-with-mui-datetimepicker-and-react-hook-form
+[10] https://ux.stackexchange.com/questions/7915/what-is-the-best-way-to-display-date-validation-errors
+[11] https://news.ycombinator.com/item?id=34145216
+[12] https://github.com/mui/mui-x/issues/4923
+[13] https://answers.laserfiche.com/questions/165803/Date-Picker-Error--JQuery
+[14] https://ux.stackexchange.com/questions/92563/are-there-any-ux-problems-with-date-pickers
+[15] https://stackoverflow.com/questions/71263501/unable-to-show-error-and-error-message-on-material-ui-datepicker
+[16] https://www.carletondesign.com/2024/05/03/date-input/
+[17] https://www.nngroup.com/articles/date-input/
+[18] https://stackoverflow.com/questions/79071544/possible-accessibility-issues-when-restricting-manual-date-entry-in-a-date-picke
+[19] https://www.bunnyfoot.com/2024/01/13-best-practices-to-design-error-friendly-forms/
+[20] https://app.uxcel.com/courses/ui-components-n-patterns/common-ui-components-ii-795/pickers-6600
+
+---

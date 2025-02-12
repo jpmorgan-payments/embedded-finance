@@ -324,6 +324,9 @@ export const IndividualStepForm = () => {
     return <FormLoadingState message="Submitting..." />;
   }
 
+  console.log('@@values', form.getValues());
+  console.log('@@errors', form.formState.errors);
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-space-y-6">
@@ -364,7 +367,7 @@ export const IndividualStepForm = () => {
           <OnboardingFormField
             control={form.control}
             name="birthDate"
-            type="date"
+            type="importantDate"
           />
 
           <OnboardingFormField

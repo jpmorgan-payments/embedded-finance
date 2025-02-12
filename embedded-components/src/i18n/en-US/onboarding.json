@@ -507,11 +507,14 @@
       "description": "Date of birth as it appears on government ID",
       "validation": {
         "required": "Date of birth is required",
-        "format": "Date must be in 'YYYY-MM-DD' format",
-        "invalid": "Invalid date",
+        "format": "Please enter a valid date in MM/DD/YYYY format",
+        "invalid": "Please enter a valid date",
         "future": "Date of birth cannot be in the future",
-        "tooOld": "Date of birth indicates age over 120 years",
-        "tooYoung": "Must be at least 18 years old"
+        "tooOld": "The date suggests an age of over 120 years. Please double-check the date",
+        "tooYoung": "Must be at least 18 years old to proceed",
+        "dayRange": "Day must be between 1 and 31",
+        "monthRange": "Month must be between 1 and 12",
+        "yearRange": "Year must be between 1000 and 9999"
       },
       "group": "controller"
     },
@@ -589,6 +592,80 @@
         "numberFormat": "Must be a number",
         "maxItems": "Cannot exceed {{maxItems}} items"
       }
+    },
+    "solePropBusinessInfo": {
+      "label": "Business Information",
+      "usePersonalAddress": {
+        "label": "Use personal address as business address",
+        "description": "Check if your business address is the same as your personal address"
+      },
+      "usePersonalPhone": {
+        "label": "Use personal phone as business phone",
+        "description": "Check if your business phone is the same as your personal phone"
+      }
+    },
+    "solePropOrganizationName": {
+      "label": "Business Name",
+      "placeholder": "Enter your business name",
+      "description": "Your business's legal name as it appears on government forms",
+      "tooltip": "Must match exactly with your business registration documents",
+      "validation": {
+        "required": "Business name is required",
+        "format": "Business name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "minLength": "Business name must be at least 2 characters",
+        "maxLength": "Business name must be at most 100 characters"
+      }
+    },
+    "solePropDbaName": {
+      "label": "Doing Business As (DBA) Name",
+      "placeholder": "Enter DBA name if different from business name",
+      "description": "The name under which you conduct business, if different from your legal business name",
+      "validation": {
+        "maxLength": "DBA name must be 100 characters or less"
+      }
+    },
+    "solePropBusinessDescription": {
+      "label": "Business Description",
+      "placeholder": "Describe your business activities",
+      "description": "Brief description of your business operations and services",
+      "validation": {
+        "required": "Business description is required",
+        "maxLength": "Description must be 500 characters or less",
+        "minLength": "Description must be at least 10 characters"
+      }
+    },
+    "solePropBusinessEmail": {
+      "label": "Business Email",
+      "placeholder": "Enter business email",
+      "description": "Email address used for business communications",
+      "validation": {
+        "format": "Must be a valid email address",
+        "maxLength": "Email must be at most 100 characters"
+      }
+    },
+    "solePropYearStarted": {
+      "label": "Year Business Started",
+      "placeholder": "YYYY",
+      "description": "Year when you started your business operations",
+      "validation": {
+        "format": "Must be a valid year",
+        "min": "Year cannot be before 1800",
+        "max": "Year cannot be in the future"
+      }
+    },
+    "solePropEin": {
+      "label": "Employer Identification Number (EIN)",
+      "placeholder": "XX-XXXXXXX",
+      "description": "Your business tax ID number (if you have one)",
+      "tooltip": "EIN is optional for sole proprietors unless you have employees",
+      "validation": {
+        "format": "EIN must be in XX-XXXXXXX format",
+        "pattern": "Must be 9 digits"
+      }
+    },
+    "solePropPersonalInfo": {
+      "label": "Personal Information",
+      "description": "Your personal information as the business owner"
     }
   },
   "title": "Client Onboarding",
