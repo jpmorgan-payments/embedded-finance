@@ -126,6 +126,7 @@ export function ImportantDateSelector({
   showClearIcon = false,
   isValidationEnabled = true,
   setErrorMsg,
+  ...props
 }: ImportantDateSelectorProps) {
   const [day, setDay] = useState(() => value?.getDate().toString() ?? '');
   const [month, setMonth] = useState(() =>
@@ -276,6 +277,9 @@ export function ImportantDateSelector({
     }
   };
 
+  // Destructure onError from props
+  const { onError, ...inputProps } = props;
+
   return (
     <div className="eb-space-y-1">
       <div className="eb-flex eb-flex-nowrap eb-items-end eb-gap-1">
@@ -287,6 +291,11 @@ export function ImportantDateSelector({
             )}
           </React.Fragment>
         ))}
+        <Input
+          type="hidden"
+          value={value?.toISOString().split('T')[0]}
+          {...inputProps}
+        />
         {showClearIcon && !disabled && (
           <Button
             type="button"

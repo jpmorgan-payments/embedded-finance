@@ -424,6 +424,7 @@ export function OnboardingFormField<T extends FieldValues>({
                   return (
                     <FormControl>
                       <ImportantDateSelector
+                        {...field}
                         format="MDY"
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) => {
