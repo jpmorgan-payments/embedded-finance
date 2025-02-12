@@ -27,44 +27,35 @@ const OptionalAddressLineSchema = z
   .max(60, 'Address line must be 60 characters or less')
   .optional();
 
-export const AddressSchema = z
-  .object({
-    addressType: z.enum([
-      'LEGAL_ADDRESS',
-      'MAILING_ADDRESS',
-      'BUSINESS_ADDRESS',
-      'RESIDENTIAL_ADDRESS',
-    ]),
+export const AddressSchema = z.object({
+  addressType: z.enum([
+    'LEGAL_ADDRESS',
+    'MAILING_ADDRESS',
+    'BUSINESS_ADDRESS',
+    'RESIDENTIAL_ADDRESS',
+  ]),
 
-    addressLines: z.tuple([AddressLineSchema]).rest(OptionalAddressLineSchema),
+  addressLines: z.tuple([AddressLineSchema]).rest(OptionalAddressLineSchema),
 
-    city: z
-      .string()
-      .min(1, 'City name is required')
-      .max(34, 'City name must be 34 characters or less'),
+  city: z
+    .string()
+    .min(1, 'City name is required')
+    .max(34, 'City name must be 34 characters or less'),
 
-    state: z
-      .string()
-      .min(2, 'State name is required')
-      .regex(
-        /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/,
-        'Invalid US state'
-      ),
+  state: z
+    .string()
+    .min(2, 'State name is required')
+    .regex(
+      /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/,
+      'Invalid US state'
+    ),
 
-    postalCode: z
-      .string()
-      .min(1, 'Postal code is required')
-      .max(10, 'Postal code must be 10 characters or less')
-      .refine((val) => /^\d{5}(-\d{4})?$/.test(val), {
-        message: 'Invalid US postal code format',
-      }),
-    country: z.string().length(2, 'Country code must be exactly 2 characters'),
-  })
-  .transform((data) => {
-    return {
-      ...data,
-      addressLines: data.addressLines.filter(
-        (line) => line && line.trim() !== ''
-      ),
-    };
-  });
+  postalCode: z
+    .string()
+    .min(1, 'Postal code is required')
+    .max(10, 'Postal code must be 10 characters or less')
+    .refine((val) => /^\d{5}(-\d{4})?$/.test(val), {
+      message: 'Invalid US postal code format',
+    }),
+  country: z.string().length(2, 'Country code must be exactly 2 characters'),
+});

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
-  Control,
   ControllerProps,
   FieldPath,
   FieldValues,
@@ -65,7 +64,6 @@ interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
-  control: Control<TFieldValues>;
   type?: FieldType;
   label?: string | JSX.Element;
   placeholder?: string;
@@ -75,7 +73,7 @@ interface BaseProps<
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
   disableMapping?: boolean;
-  form?: UseFormReturn<TFieldValues>;
+  form?: UseFormReturn<TFieldValues>; // TODO: remove when IndustrySelect refactored
   maskFormat?: string;
   maskChar?: string;
 }
@@ -126,9 +124,13 @@ export function OnboardingFormField<T extends FieldValues>({
   const fieldRule: FieldRule =
     name === 'product' || disableMapping
       ? { visibility: 'visible', required: true }
-      : getFieldRule(name.split('.')[0] as keyof OnboardingWizardFormValues);
+      : getFieldRule(
+          name as
+            | keyof OnboardingWizardFormValues
+            | `${keyof OnboardingWizardFormValues}.${string}`
+        );
 
-  const fieldVisibility = visibility ?? fieldRule.visibility;
+  const fieldVisibility = visibility ?? fieldRule.visibility ?? 'visible';
 
   if (fieldVisibility === 'hidden') {
     return null;
@@ -142,18 +144,19 @@ export function OnboardingFormField<T extends FieldValues>({
   const lastIndex = nameParts
     .reverse()
     .find((part) => !Number.isNaN(Number(part)));
+  const index = lastIndex ? Number(lastIndex) + 1 : undefined;
 
   const fieldPlaceholder =
     placeholder ??
     t([`fields.${tName}.placeholder`, ''] as unknown as TemplateStringsArray, {
-      index: lastIndex,
+      index,
     });
 
   const fieldLabel = (
     <span>
       {label ??
         t([`fields.${tName}.label`, ''] as unknown as TemplateStringsArray, {
-          index: lastIndex,
+          index,
         })}
       {(required ?? fieldRule.required) ? (
         ''
@@ -165,6 +168,18 @@ export function OnboardingFormField<T extends FieldValues>({
       )}
     </span>
   );
+
+  const fieldTooltip =
+    tooltip ??
+    t([`fields.${tName}.tooltip`, ''] as unknown as TemplateStringsArray, {
+      index,
+    });
+
+  const fieldDescription =
+    description ??
+    t([`fields.${tName}.description`, ''] as unknown as TemplateStringsArray, {
+      index,
+    });
 
   return (
     <FormField
@@ -179,27 +194,11 @@ export function OnboardingFormField<T extends FieldValues>({
                 <FormLabel asterisk={required ?? fieldRule.required}>
                   {fieldLabel}
                 </FormLabel>
-                <InfoPopover>
-                  {tooltip ??
-                    t(
-                      [
-                        `fields.${tName}.tooltip`,
-                        '',
-                      ] as unknown as TemplateStringsArray,
-                      { index: lastIndex }
-                    )}
-                </InfoPopover>
+                <InfoPopover>{fieldTooltip}</InfoPopover>
               </div>
 
               <FormDescription className="eb-text-xs eb-text-gray-500">
-                {description ??
-                  t(
-                    [
-                      `fields.${tName}.description`,
-                      '',
-                    ] as unknown as TemplateStringsArray,
-                    { index: lastIndex }
-                  )}
+                {fieldDescription}
               </FormDescription>
             </>
           ) : null}
@@ -358,26 +357,10 @@ export function OnboardingFormField<T extends FieldValues>({
                           <FormLabel asterisk={required ?? fieldRule.required}>
                             {fieldLabel}
                           </FormLabel>
-                          <InfoPopover>
-                            {tooltip ??
-                              t(
-                                [
-                                  `fields.${tName}.tooltip`,
-                                  '',
-                                ] as unknown as TemplateStringsArray,
-                                { index: lastIndex }
-                              )}
-                          </InfoPopover>
+                          <InfoPopover>{fieldTooltip}</InfoPopover>
                         </div>
                         <FormDescription className="eb-text-xs eb-text-gray-500">
-                          {description ??
-                            t(
-                              [
-                                `fields.${tName}.description`,
-                                '',
-                              ] as unknown as TemplateStringsArray,
-                              { index: lastIndex }
-                            )}
+                          {fieldDescription}
                         </FormDescription>
                       </div>
                     </div>

@@ -73,8 +73,8 @@ import { useStepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
-import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { OnboardingArrayField } from '../OnboardingFormField/OnboardingFormArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
@@ -106,7 +106,7 @@ export const OrganizationStepForm = () => {
   const { t } = useTranslation('onboarding');
 
   // Fetch client data
-  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
+  const { data: clientData, status: clientDataGetStatus } = useSmbdoGetClient(
     clientId ?? ''
   );
 
@@ -131,7 +131,7 @@ export const OrganizationStepForm = () => {
           state: '',
           postalCode: '',
           country: '',
-          addressLines: [''],
+          // addressLines: [''],
         },
       ],
       ...(legalEntityType !== 'SOLE_PROPRIETORSHIP' && {
@@ -198,7 +198,7 @@ export const OrganizationStepForm = () => {
   // Populate form with client data
   useEffect(() => {
     if (
-      getClientStatus === 'success' &&
+      clientDataGetStatus === 'success' &&
       clientData &&
       existingOrgParty?.id &&
       !isFormPopulated
@@ -217,7 +217,7 @@ export const OrganizationStepForm = () => {
     }
   }, [
     clientData,
-    getClientStatus,
+    clientDataGetStatus,
     form.reset,
     existingOrgParty?.id,
     isFormPopulated,
@@ -225,14 +225,14 @@ export const OrganizationStepForm = () => {
 
   const {
     mutate: updateClient,
-    error: updateClientError,
-    status: updateClientStatus,
+    error: clientUpdateError,
+    status: clientUpdateStatus,
   } = useSmbdoUpdateClient();
 
   const {
     mutate: updateParty,
-    error: updatePartyError,
-    status: updatePartyStatus,
+    error: partyUpdateError,
+    status: partyUpdateStatus,
   } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
@@ -352,17 +352,13 @@ export const OrganizationStepForm = () => {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  if (existingOrgParty && !isFormPopulated) {
-    return <FormLoadingState message="Loading..." />;
-  }
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' ||
+    (usePartyResource && partyUpdateStatus === 'pending');
 
-  if (updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
+  const isPopulatingForm = existingOrgParty && !isFormPopulated;
 
-  if (usePartyResource && updatePartyStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
+  const isFormDisabled = isFormSubmitting || isPopulatingForm;
 
   return (
     <Form {...form}>
@@ -370,7 +366,10 @@ export const OrganizationStepForm = () => {
         onSubmit={onSubmit}
         className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
       >
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset
+          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+          disabled={isFormDisabled}
+        >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             General
           </legend>
@@ -423,7 +422,10 @@ export const OrganizationStepForm = () => {
           />
         </fieldset>
 
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset
+          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+          disabled={isFormDisabled}
+        >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Organization Phone Information
           </legend>
@@ -446,7 +448,10 @@ export const OrganizationStepForm = () => {
           />
         </fieldset>
 
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 lg:eb-grid-cols-2 xl:eb-grid-cols-3">
+        <fieldset
+          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 lg:eb-grid-cols-2 xl:eb-grid-cols-3"
+          disabled={isFormDisabled}
+        >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Industry Info
           </legend>
@@ -471,124 +476,126 @@ export const OrganizationStepForm = () => {
         </fieldset>
 
         {/* ADDRESSES */}
-        {isFieldVisible('addresses') && (
-          <>
-            {addressFields.map((fieldName, index) => (
-              <fieldset
-                key={`address-${index}`}
-                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-              >
-                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Business Address{' '}
-                  {Number(getFieldRule('addresses')?.maxItems) > 1
-                    ? index + 1
-                    : ''}
-                </legend>
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.addressType`}
-                  type="select"
-                  required
-                  options={[
-                    {
-                      value: 'LEGAL_ADDRESS',
-                      label: t('addressTypes.LEGAL_ADDRESS'),
-                    },
-                    {
-                      value: 'MAILING_ADDRESS',
-                      label: t('addressTypes.MAILING_ADDRESS'),
-                    },
-                    {
-                      value: 'BUSINESS_ADDRESS',
-                      label: t('addressTypes.BUSINESS_ADDRESS'),
-                    },
-                    {
-                      value: 'RESIDENTIAL_ADDRESS',
-                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
-                    },
-                  ]}
-                />
+        <OnboardingArrayField
+          control={form.control}
+          name="addresses"
+          defaultAppendValue={{
+            addressType: 'BUSINESS_ADDRESS',
+            city: '',
+            state: '',
+            postalCode: '',
+            country: '',
+            addressLines: [''],
+          }}
+          renderItem={(field, index) => (
+            <fieldset
+              key={`address-${index}`}
+              className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              disabled={isFormDisabled}
+            >
+              <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                Business Address{' '}
+                {Number(getFieldRule('addresses')?.maxItems) > 1
+                  ? index + 1
+                  : ''}
+              </legend>
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.addressType`}
+                type="select"
+                options={[
+                  {
+                    value: 'LEGAL_ADDRESS',
+                    label: t('addressTypes.LEGAL_ADDRESS'),
+                  },
+                  {
+                    value: 'MAILING_ADDRESS',
+                    label: t('addressTypes.MAILING_ADDRESS'),
+                  },
+                  {
+                    value: 'BUSINESS_ADDRESS',
+                    label: t('addressTypes.BUSINESS_ADDRESS'),
+                  },
+                  {
+                    value: 'RESIDENTIAL_ADDRESS',
+                    label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                  },
+                ]}
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.addressLines.0`}
-                  label="Address Line 1"
-                  type="text"
-                  required
-                />
-                <OnboardingFormField
-                  control={form.control}
-                  label="Address Line 2"
-                  name={`addresses.${index}.addressLines.1`}
-                  type="text"
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.addressLines.0`}
+                type="text"
+              />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.addressLines.1`}
+                type="text"
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.city`}
-                  type="text"
-                  required
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.city`}
+                type="text"
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.state`}
-                  type="select"
-                  options={stateOptions}
-                  required
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.state`}
+                type="select"
+                options={stateOptions}
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.postalCode`}
-                  type="text"
-                  inputProps={{
-                    pattern: '[0-9]{5}',
-                    maxLength: 5,
-                    inputMode: 'numeric',
-                  }}
-                  required
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.postalCode`}
+                type="text"
+                inputProps={{
+                  pattern: '[0-9]{5}',
+                  maxLength: 5,
+                  inputMode: 'numeric',
+                }}
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.country`}
-                  type="combobox"
-                  options={COUNTRIES_OF_FORMATION.map((code) => ({
-                    value: code,
-                    label: (
-                      <span>
-                        <span className="eb-font-medium">[{code}]</span>{' '}
-                        {t([
-                          `common:countries.${code}`,
-                        ] as unknown as TemplateStringsArray)}
-                      </span>
-                    ),
-                  }))}
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.country`}
+                type="combobox"
+                options={COUNTRIES_OF_FORMATION.map((code) => ({
+                  value: code,
+                  label: (
+                    <span>
+                      <span className="eb-font-medium">[{code}]</span>{' '}
+                      {t([
+                        `common:countries.${code}`,
+                      ] as unknown as TemplateStringsArray)}
+                    </span>
+                  ),
+                }))}
+              />
 
-                {addressFields.length >
-                  Number(getFieldRule('addresses')?.minItems) && (
-                  <div className="eb-col-span-full">
-                    <Button
-                      type="button"
-                      onClick={() => removeAddress(index)}
-                      variant="outline"
-                      size="sm"
-                      className="eb-mt-2"
-                      disabled={
-                        addressFields.length <=
-                        (getFieldRule('addresses').minItems ?? 1)
-                      }
-                    >
-                      Remove Address
-                    </Button>
-                  </div>
-                )}
-              </fieldset>
-            ))}
-          </>
-        )}
+              {addressFields.length >
+                Number(getFieldRule('addresses')?.minItems) && (
+                <div className="eb-col-span-full">
+                  <Button
+                    type="button"
+                    onClick={() => removeAddress(index)}
+                    variant="outline"
+                    size="sm"
+                    className="eb-mt-2"
+                    disabled={
+                      addressFields.length <=
+                      (getFieldRule('addresses').minItems ?? 1)
+                    }
+                  >
+                    Remove Address
+                  </Button>
+                </div>
+              )}
+            </fieldset>
+          )}
+        />
 
         {Number(getFieldRule('addresses')?.maxItems) > addressFields.length && (
           <Button
@@ -921,9 +928,9 @@ export const OrganizationStepForm = () => {
           )}
         </fieldset>
         <ServerErrorAlert
-          error={usePartyResource ? updatePartyError : updateClientError}
+          error={usePartyResource ? partyUpdateError : clientUpdateError}
         />
-        <FormActions />
+        <FormActions disabled={isFormDisabled} isLoading={isFormSubmitting} />
       </form>
     </Form>
   );

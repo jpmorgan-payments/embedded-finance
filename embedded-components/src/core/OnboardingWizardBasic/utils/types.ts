@@ -20,10 +20,11 @@ export type Jurisdiction = 'US' | 'CA';
 export type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
 
 export type FieldRule = {
-  visibility: FieldVisibility;
+  visibility?: FieldVisibility;
   required?: boolean;
   minItems?: number;
   maxItems?: number;
+  requiredItems?: number;
 };
 
 export type ClientContext = {
@@ -47,6 +48,10 @@ export type FieldConfiguration<K extends keyof OnboardingWizardFormValues> = {
   }>;
   fromResponseFn?: (val: any) => OnboardingWizardFormValues[K];
   toRequestFn?: (val: OnboardingWizardFormValues[K]) => any;
+  subFields?: Record<
+    string,
+    Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'>
+  >;
 };
 
 export type PartyFieldMap = {

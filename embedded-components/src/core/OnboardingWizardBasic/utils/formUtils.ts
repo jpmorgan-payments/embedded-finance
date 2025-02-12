@@ -327,7 +327,7 @@ export function convertClientResponseToFormValues(
  * @returns Field rule determining visibility and validation
  */
 function evaluateFieldRules(
-  fieldConfig: FieldConfiguration<any>,
+  fieldConfig: Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'>,
   clientContext: ClientContext
 ): FieldRule {
   const { baseRule, conditionalRules } = fieldConfig;
@@ -385,7 +385,11 @@ export function useFilterFunctionsByClientContext(
     return filterDefaultValuesByClientContext(defaultValues, clientContext);
   }
 
-  function getFieldRule(fieldName: keyof OnboardingWizardFormValues) {
+  function getFieldRule(
+    fieldName:
+      | keyof OnboardingWizardFormValues
+      | `${keyof OnboardingWizardFormValues}.${string}`
+  ) {
     return getFieldRuleByClientContext(fieldName, clientContext);
   }
 
@@ -421,17 +425,43 @@ export function useFilterFunctionsByClientContext(
  * @returns Field rule determining field behavior
  */
 export function getFieldRuleByClientContext(
-  fieldName: keyof OnboardingWizardFormValues,
+  fieldName:
+    | keyof OnboardingWizardFormValues
+    | `${keyof OnboardingWizardFormValues}.${string}`,
   clientContext: ClientContext
 ): FieldRule {
-  const fieldConfig = partyFieldMap[fieldName];
-  if (!fieldConfig) {
-    throw new Error(`${fieldName} is not mapped in fieldMap`);
+  const fieldNameParts = fieldName.split('.');
+  const baseFieldName = fieldNameParts[0] as keyof OnboardingWizardFormValues;
+  const baseFieldConfig = partyFieldMap[baseFieldName];
+  if (!baseFieldConfig) {
+    throw new Error(`"${baseFieldName}" is not mapped in fieldMap`);
   }
 
-  const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
+  const baseFieldRule = evaluateFieldRules(baseFieldConfig, clientContext);
 
-  return fieldRule;
+  if (
+    baseFieldConfig.subFields &&
+    fieldNameParts.length > 1 &&
+    !Number.isNaN(Number(fieldNameParts[1])) &&
+    fieldNameParts[2] !== undefined
+  ) {
+    const subFieldName = fieldNameParts[2];
+    const subFieldConfig = baseFieldConfig.subFields[subFieldName];
+
+    // If the subfield is not mapped, return parent rule
+    if (!subFieldConfig) {
+      return {
+        visibility: baseFieldRule.visibility,
+      };
+    }
+    const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
+    return {
+      visibility: baseFieldRule.visibility,
+      ...subFieldRule,
+    };
+  }
+
+  return baseFieldRule;
 }
 
 /**

@@ -194,13 +194,15 @@
       }
     },
     "addresses": {
-      "label": "Business Addresses",
+      "label": "Business Address {{index}}",
+      "appendLabel": "Add another address",
+      "removeLabel": "Remove address",
       "addressLines": {
-        "label": "Address lines",
-        "placeholder": "Enter address lines",
-        "description": "Address lines of your business address",
+        "label": "Address line {{index}}",
+        "placeholder": "Enter address line {{index}}",
+        "description": "Address line {{index}} of your business address",
         "validation": {
-          "required": "Address lines are required"
+          "required": "Address line {{index}} is required"
         }
       },
       "city": {

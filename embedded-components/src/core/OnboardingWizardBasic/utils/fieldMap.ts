@@ -72,6 +72,11 @@ export const partyFieldMap: PartyFieldMap = {
         rule: { maxItems: 3 },
       },
     ],
+    subFields: {
+      city: {
+        baseRule: { visibility: 'visible', required: false },
+      },
+    },
   },
   associatedCountries: {
     path: 'organizationDetails.associatedCountries',
