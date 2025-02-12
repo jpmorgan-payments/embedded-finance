@@ -94,7 +94,6 @@
     "countryOfFormation": {
       "label": "Country of Formation",
       "placeholder": "Select country of formation",
-      "description": "",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       },
