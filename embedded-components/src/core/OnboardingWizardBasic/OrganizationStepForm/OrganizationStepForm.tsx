@@ -74,7 +74,7 @@ import { Button } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { OnboardingArrayField } from '../OnboardingFormField/OnboardingFormArrayField';
+import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
