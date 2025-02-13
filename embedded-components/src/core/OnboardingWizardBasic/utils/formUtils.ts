@@ -460,12 +460,13 @@ export function getFieldRuleByClientContext(
       fieldRule = {
         visibility: baseFieldRule.visibility,
       };
+    } else {
+      const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
+      fieldRule = {
+        visibility: baseFieldRule.visibility,
+        ...subFieldRule,
+      };
     }
-    const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
-    fieldRule = {
-      visibility: baseFieldRule.visibility,
-      ...subFieldRule,
-    };
   }
 
   return {

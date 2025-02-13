@@ -97,8 +97,9 @@ export interface ArrayFieldConfiguration<
     rule: Partial<ArrayFieldRule>;
   }>;
   subFields?: Record<
+    // TODO: maybe derive this somehow
     string,
-    Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'>
+    Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'> | undefined
   >;
 }
 
