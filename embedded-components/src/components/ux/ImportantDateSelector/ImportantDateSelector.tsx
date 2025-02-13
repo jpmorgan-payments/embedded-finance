@@ -18,16 +18,13 @@ interface ImportantDateSelectorProps
     'onChange' | 'value' | 'onError'
   > {
   value?: Date;
-  onChange?: (value: Date | null) => void;
-  onError?: (error: string) => void;
+  onChange?: (value: Date | null, errorMessage?: string) => void;
   minDate?: Date;
   maxDate?: Date;
   disabled?: boolean;
   format?: 'DMY' | 'YMD' | 'MDY';
   separator?: React.ReactNode;
   showClearIcon?: boolean;
-  isValidationEnabled?: boolean;
-  setErrorMsg?: (errorMessage: string) => void;
 }
 
 const generateMonthOptions = () => {
@@ -55,10 +52,9 @@ const validateDate = (
   if (Number.isNaN(dayNum) || Number.isNaN(monthNum) || Number.isNaN(yearNum)) {
     return {
       isValid: false,
-      errorMessage: setErrorMsg?.(
+      errorMessage:
         t?.('fields.birthDate.validation.format') ??
-          'Please enter a valid date in MM/DD/YYYY format'
-      ),
+        'Please enter a valid date in MM/DD/YYYY format',
     };
   }
 
@@ -72,9 +68,8 @@ const validateDate = (
   ) {
     return {
       isValid: false,
-      errorMessage: setErrorMsg?.(
-        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date'
-      ),
+      errorMessage:
+        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date',
     };
   }
 
@@ -86,29 +81,26 @@ const validateDate = (
   ) {
     return {
       isValid: false,
-      errorMessage: setErrorMsg?.(
-        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date'
-      ),
+      errorMessage:
+        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date',
     };
   }
 
   if (minDate && date < minDate) {
     return {
       isValid: false,
-      errorMessage: setErrorMsg?.(
+      errorMessage:
         t?.('fields.birthDate.validation.tooOld') ??
-          'Date indicates age over 120 years old. Please verify the date'
-      ),
+        'Date indicates age over 120 years old. Please verify the date',
     };
   }
 
   if (maxDate && date > maxDate) {
     return {
       isValid: false,
-      errorMessage: setErrorMsg?.(
+      errorMessage:
         t?.('fields.birthDate.validation.tooYoung') ??
-          'Must be at least 18 years old to proceed'
-      ),
+        'Must be at least 18 years old to proceed',
     };
   }
 
@@ -124,8 +116,6 @@ export function ImportantDateSelector({
   format = 'MDY',
   separator = '',
   showClearIcon = false,
-  isValidationEnabled = true,
-  setErrorMsg,
   ...props
 }: ImportantDateSelectorProps) {
   const [day, setDay] = useState(() => value?.getDate().toString() ?? '');
@@ -134,22 +124,21 @@ export function ImportantDateSelector({
   );
   const [year, setYear] = useState(() => value?.getFullYear().toString() ?? '');
   const [isValid, setIsValid] = useState(true);
+  const [isTouched, setIsTouched] = useState(false);
 
   const { t } = useTranslation();
 
   const updateDate = useCallback(
     (newDay: string, newMonth: string, newYear: string) => {
-      const { isValid: newIsValid } = isValidationEnabled
-        ? validateDate(
-            newDay,
-            newMonth,
-            newYear,
-            minDate,
-            maxDate,
-            setErrorMsg,
-            t
-          )
-        : { isValid: true };
+      const { isValid: newIsValid, errorMessage } = validateDate(
+        newDay,
+        newMonth,
+        newYear,
+        minDate,
+        maxDate,
+        t
+      );
+
       setIsValid(newIsValid);
       if (newIsValid) {
         const newDate = new Date(
@@ -157,9 +146,9 @@ export function ImportantDateSelector({
           Number.parseInt(newMonth, 10) - 1,
           Number.parseInt(newDay, 10)
         );
-        onChange?.(newDate);
+        isTouched && onChange?.(newDate);
       } else {
-        onChange?.(null);
+        isTouched && onChange?.(null, errorMessage);
       }
     },
     [minDate, maxDate, onChange] // Added onChange to dependencies
@@ -170,9 +159,9 @@ export function ImportantDateSelector({
       updateDate(day, month, year);
     } else {
       setIsValid(true);
-      onChange?.(null);
+      isTouched && onChange?.(null);
     }
-  }, [day, month, year]);
+  }, [day, month, year, isTouched]);
 
   const handleDayChange = (inputValue: string) => {
     const dayNum = Number.parseInt(inputValue, 10);
@@ -181,6 +170,7 @@ export function ImportantDateSelector({
       (Number.isNaN(dayNum) || (dayNum >= 1 && dayNum <= 31))
     ) {
       setDay(inputValue);
+      setIsTouched(true);
     }
   };
 
@@ -188,9 +178,16 @@ export function ImportantDateSelector({
     if (inputValue.length <= 4) {
       setYear(inputValue);
     }
+    setIsTouched(true);
+  };
+
+  const handleMonthChange = (inputValue: string) => {
+    setMonth(inputValue);
+    setIsTouched(true);
   };
 
   const handleClear = () => {
+    setIsTouched(false);
     setDay('');
     setMonth('');
     setYear('');
@@ -218,7 +215,7 @@ export function ImportantDateSelector({
                 handleDayChange(e.target.value.replace(/\D/g, ''))
               }
               disabled={disabled}
-              className={`eb-w-full ${!isValid ? 'eb-border-red-500' : ''}`}
+              className={`eb-w-full ${!isValid || (!day && isTouched) ? 'eb-border-red-500' : ''}`}
               aria-label="Day"
             />
           </div>
@@ -226,14 +223,18 @@ export function ImportantDateSelector({
 
       case 'M':
         return (
-          <div className="eb-flex eb-w-24 eb-shrink-0 eb-flex-col eb-gap-1">
+          <div className="eb-flex eb-flex-1 eb-shrink-0 eb-flex-col eb-gap-1">
             <label htmlFor="birth-month" className="eb-text-xs">
               Month
             </label>
-            <Select value={month} onValueChange={setMonth} disabled={disabled}>
+            <Select
+              value={month}
+              onValueChange={handleMonthChange}
+              disabled={disabled}
+            >
               <SelectTrigger
                 id="birth-month"
-                className={`eb-w-full ${!isValid ? 'eb-border-red-500' : ''}`}
+                className={`eb-w-full ${!isValid || (!month && isTouched) ? 'eb-border-red-500' : ''}`}
               >
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
@@ -266,7 +267,7 @@ export function ImportantDateSelector({
                 handleYearChange(e.target.value.replace(/\D/g, ''))
               }
               disabled={disabled}
-              className={`eb-w-full ${!isValid ? 'eb-border-red-500' : ''}`}
+              className={`eb-w-full ${!isValid || (!year && isTouched) ? 'eb-border-red-500' : ''}`}
               aria-label="Year"
             />
           </div>

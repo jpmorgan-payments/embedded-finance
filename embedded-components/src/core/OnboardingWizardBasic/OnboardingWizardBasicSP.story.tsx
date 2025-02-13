@@ -77,10 +77,10 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         <EBComponentsProvider
           apiBaseUrl={apiBaseUrl}
           headers={headers}
-          queryParams={{
-            platformId: '123',
-            version: 'v2',
-          }}
+          // queryParams={{
+          //   platformId: '123',
+          //   version: 'v2',
+          // }}
           theme={{
             colorScheme: isDarkMode ? 'dark' : 'light',
             ...theme,

@@ -365,6 +365,7 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="birthDate"
             type="importantDate"
+            form={form}
           />
 
           <OnboardingFormField
