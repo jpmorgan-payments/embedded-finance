@@ -13,7 +13,7 @@ import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useFilterFunctionsByClientContext } from '../utils/formUtils';
+import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import { OnboardingWizardArrayFieldNames } from '../utils/types';
 
 interface OnboardingArrayFieldProps<
@@ -57,7 +57,7 @@ export function OnboardingArrayField<
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
-  const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
+  const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'common']);
 

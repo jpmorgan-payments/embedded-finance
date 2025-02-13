@@ -72,13 +72,13 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
-  translateClientApiErrorsToFormErrors,
-  translatePartyApiErrorsToFormErrors,
-  useFilterFunctionsByClientContext,
+  useFormUtilsWithClientContext,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
@@ -100,7 +100,7 @@ export const IndividualStepForm = () => {
   );
 
   const { isFieldVisible, getArrayFieldRule } =
-    useFilterFunctionsByClientContext(clientData);
+    useFormUtilsWithClientContext(clientData);
 
   const form = useStepFormWithFilters<z.infer<typeof IndividualStepFormSchema>>(
     {
@@ -224,8 +224,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors =
-                  translatePartyApiErrorsToFormErrors(context);
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
@@ -234,14 +233,19 @@ export const IndividualStepForm = () => {
       }
       // Create party if it doesn't exist
       else {
-        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'INDIVIDUAL',
-              roles: ['CONTROLLER'],
-            },
-          ],
-        });
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'INDIVIDUAL',
+                roles: ['CONTROLLER'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -260,7 +264,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateClientApiErrorsToFormErrors(
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'

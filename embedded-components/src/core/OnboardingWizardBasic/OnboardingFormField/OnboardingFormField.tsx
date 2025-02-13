@@ -44,7 +44,7 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useFilterFunctionsByClientContext } from '../utils/formUtils';
+import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
 
 type FieldType =
@@ -72,7 +72,7 @@ interface BaseProps<
   required?: boolean;
   visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
   inputProps?: React.ComponentProps<typeof Input>;
-  disableMapping?: boolean;
+  disableFieldRule?: boolean;
   form?: UseFormReturn<TFieldValues>; // TODO: remove when IndustrySelect refactored
   maskFormat?: string;
   maskChar?: string;
@@ -98,7 +98,7 @@ type OnboardingFormFieldProps<T extends FieldValues> =
   | OtherFieldProps<T, FieldPath<T>>;
 
 export function OnboardingFormField<T extends FieldValues>({
-  disableMapping,
+  disableFieldRule,
   form,
   control,
   name,
@@ -117,13 +117,13 @@ export function OnboardingFormField<T extends FieldValues>({
 }: OnboardingFormFieldProps<T>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
-  const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
+  const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'common']);
 
   let fieldRule: FieldRule;
 
-  if (disableMapping) {
+  if (disableFieldRule) {
     fieldRule = { visibility: 'visible', required: true };
   } else {
     fieldRule = getFieldRule(

@@ -95,13 +95,13 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
-  generateRequestBody as generateClientRequestBody,
+  generateClientRequestBody,
   generatePartyRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
-  translateClientApiErrorsToFormErrors,
-  translatePartyApiErrorsToFormErrors,
-  useFilterFunctionsByClientContext,
+  useFormUtilsWithClientContext,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
@@ -124,7 +124,7 @@ export const BeneficialOwnerStepForm = () => {
   const [isClientDataRefetching, setIsClientDataRefetching] = useState(false);
 
   const { getArrayFieldRule, isFieldVisible } =
-    useFilterFunctionsByClientContext(clientData);
+    useFormUtilsWithClientContext(clientData);
 
   const ownerForm = useStepFormWithFilters<
     z.infer<typeof IndividualStepFormSchema>
@@ -370,8 +370,7 @@ export const BeneficialOwnerStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors =
-                  translatePartyApiErrorsToFormErrors(context);
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
                 setApiFormErrors(ownerForm, apiFormErrors);
               }
             },
@@ -407,7 +406,7 @@ export const BeneficialOwnerStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateClientApiErrorsToFormErrors(
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -492,7 +491,7 @@ export const BeneficialOwnerStepForm = () => {
         <form>
           <OnboardingFormField
             control={controllerForm.control}
-            disableMapping
+            disableFieldRule
             disabled={
               isFormDisabled ||
               (activeOwners.length >= 4 &&

@@ -25,12 +25,12 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
-  translateClientApiErrorsToFormErrors,
-  translatePartyApiErrorsToFormErrors,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
@@ -162,8 +162,7 @@ export const InitialStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors =
-                  translatePartyApiErrorsToFormErrors(context);
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
@@ -172,14 +171,19 @@ export const InitialStepForm = () => {
       }
       // Create party if it doesn't exist
       else {
-        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'ORGANIZATION',
-              roles: ['CLIENT'],
-            },
-          ],
-        });
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'ORGANIZATION',
+                roles: ['CLIENT'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -198,7 +202,7 @@ export const InitialStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateClientApiErrorsToFormErrors(
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -213,7 +217,7 @@ export const InitialStepForm = () => {
 
     // Create client if clientId does not exist
     else {
-      const requestBody = generateRequestBody(values, 0, 'parties', {
+      const requestBody = generateClientRequestBody(values, 0, 'parties', {
         parties: [
           {
             partyType: 'ORGANIZATION',
@@ -244,7 +248,7 @@ export const InitialStepForm = () => {
           onError: (error) => {
             if (error.response?.data?.context) {
               const { context } = error.response.data;
-              const apiFormErrors = translateClientApiErrorsToFormErrors(
+              const apiFormErrors = mapClientApiErrorsToFormErrors(
                 context,
                 0,
                 'parties'
@@ -272,7 +276,7 @@ export const InitialStepForm = () => {
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
           <fieldset className="eb-space-y-6" disabled={isFormDisabled}>
             <OnboardingFormField
-              disableMapping
+              disableFieldRule
               control={form.control}
               name="product"
               type="select"

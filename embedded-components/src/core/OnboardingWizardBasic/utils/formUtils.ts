@@ -58,7 +58,7 @@ export function getPartyFieldConfig<K extends keyof OnboardingWizardFormValues>(
  * @param arrayName - Name of the array field ('parties' or 'addParties')
  * @returns Array of FormError objects with mapped field names and messages
  */
-export function translateClientApiErrorsToFormErrors(
+export function mapClientApiErrorsToFormErrors(
   errors: ApiErrorReasonV2[],
   partyIndex: number,
   arrayName: 'parties' | 'addParties'
@@ -103,7 +103,7 @@ export function translateClientApiErrorsToFormErrors(
  * @param errors - Array of API error reasons
  * @returns Array of FormError objects with mapped field names and messages
  */
-export function translatePartyApiErrorsToFormErrors(
+export function mapPartyApiErrorsToFormErrors(
   errors: ApiErrorReasonV2[]
 ): FormError[] {
   const fieldMapKeys = objectKeys(partyFieldMap);
@@ -209,13 +209,13 @@ function setValueByPath(obj: any, path: string, value: any) {
 /**
  * Converts form values into an API request body format
  * @param formValues - Form values to convert
- * @param partyIndex - Index of the party in the form array
+ * @param partyIndex - Desired index of the party in the request
  * @param arrayName - Name of the array field ('parties' or 'addParties')
  * @param obj - Target request object to populate
  * @returns Modified request object with mapped form values
  * Applies field transformations using toRequestFn if specified
  */
-export function generateRequestBody(
+export function generateClientRequestBody(
   formValues: Partial<OnboardingWizardFormValues>,
   partyIndex: number,
   arrayName: 'parties' | 'addParties',
@@ -351,11 +351,11 @@ function evaluateFieldRules(
 
 /**
  * React hook that provides context-aware filtering functions
- * @param clientData - Optional client response data
+ * @param clientData - Client response data
  * @returns Object containing filter functions for schemas and values
  * Used to adapt form behavior based on client context
  */
-export function useFilterFunctionsByClientContext(
+export function useFormUtilsWithClientContext(
   clientData: ClientResponse | undefined
 ) {
   const organizationParty = clientData?.parties?.find(
@@ -367,19 +367,19 @@ export function useFilterFunctionsByClientContext(
     entityType: organizationParty?.organizationDetails?.organizationType,
   };
 
-  function filterSchema(
+  function modifySchema(
     schema: z.ZodObject<Record<string, z.ZodType<any>>>,
     refineFn?: (
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>
   ) {
-    return filterSchemaByClientContext(schema, clientContext, refineFn);
+    return modifySchemaByClientContext(schema, clientContext, refineFn);
   }
 
-  function filterDefaultValues(
+  function modifyDefaultValues(
     defaultValues: Partial<OnboardingWizardFormValues>
   ) {
-    return filterDefaultValuesByClientContext(defaultValues, clientContext);
+    return modifyDefaultValuesByClientContext(defaultValues, clientContext);
   }
 
   function getFieldRule(
@@ -412,8 +412,8 @@ export function useFilterFunctionsByClientContext(
   }
 
   return {
-    filterSchema,
-    filterDefaultValues,
+    modifySchema,
+    modifyDefaultValues,
     getFieldRule,
     isFieldVisible,
     isFieldDisabled,
@@ -482,7 +482,7 @@ export function getFieldRuleByClientContext(
  * @param refineFn - Optional function to apply additional schema refinements
  * @returns Modified Zod schema with context-appropriate validations
  */
-export function filterSchemaByClientContext(
+export function modifySchemaByClientContext(
   schema: z.ZodObject<Record<string, z.ZodType<any>>>,
   clientContext: ClientContext,
   refineFn?: (
@@ -535,7 +535,7 @@ export function filterSchemaByClientContext(
  * @param clientContext - Current client context
  * @returns Modified default values appropriate for the context
  */
-export function filterDefaultValuesByClientContext(
+export function modifyDefaultValuesByClientContext(
   defaultValues: Partial<OnboardingWizardFormValues>,
   clientContext: ClientContext
 ): Partial<OnboardingWizardFormValues> {
@@ -615,13 +615,14 @@ export function useStepFormWithFilters<T extends FieldValues>(
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
   }
 ): UseFormReturn<T> {
-  const { filterDefaultValues, filterSchema } =
-    useFilterFunctionsByClientContext(props.clientData);
+  const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
+    props.clientData
+  );
 
   const form = useStepForm<T>({
     ...props,
-    resolver: zodResolver(filterSchema(props.schema, props.refineSchemaFn)),
-    defaultValues: filterDefaultValues(
+    resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
+    defaultValues: modifyDefaultValues(
       shapeFormValuesBySchema(
         props.defaultValues as Partial<OnboardingWizardFormValues>,
         props.schema
