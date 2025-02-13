@@ -4,7 +4,7 @@ import { CheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
-import { _get } from '@/lib/utils';
+import { _get, isValueEmpty } from '@/lib/utils';
 import {
   smbdoDownloadDocument,
   smbdoGetDocumentDetail,
@@ -48,13 +48,6 @@ const isOutstandingEmpty = (
     }
     return Array.isArray(outstanding[key]) && outstanding[key].length === 0;
   });
-};
-
-const isValueEmpty = (value: any): boolean => {
-  if (value === undefined || value === null || value === '') return true;
-  if (Array.isArray(value)) return value.length === 0;
-  if (typeof value === 'object') return Object.keys(value).length === 0;
-  return false;
 };
 
 export const ReviewAndAttestStepForm = () => {
@@ -270,7 +263,7 @@ export const ReviewAndAttestStepForm = () => {
         {!!clientData?.questionResponses?.length && (
           <div className="eb-w-xl eb-px-4">
             <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
-              Question Responses
+              Questions Responses
             </h2>
             {clientData?.questionResponses?.map((questionResponse) => (
               <>

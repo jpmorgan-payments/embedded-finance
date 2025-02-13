@@ -94,7 +94,6 @@
     "countryOfFormation": {
       "label": "Country of Formation",
       "placeholder": "Select country of formation",
-      "description": "",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       },
@@ -112,7 +111,7 @@
       }
     },
     "individualIds": {
-      "label": "Individual Identification Documents",
+      "label": "Individual Identification",
       "validation": {
         "required": "At least one government ID is required",
         "maxIds": "Maximum 16 IDs allowed",
@@ -276,7 +275,7 @@
       }
     },
     "organizationIds": {
-      "label": "Business Identification Documents",
+      "label": "Business Identification",
       "validation": {
         "minIds": "At least one organization ID is required",
         "maxIds": "Maximum 6 organization IDs allowed",
