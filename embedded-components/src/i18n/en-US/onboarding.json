@@ -250,19 +250,8 @@
         "maxCountries": "Maximum 100 associated countries allowed"
       }
     },
-    "industryCategory": {
-      "label": "Industry type",
-      "placeholder": "Select industry type",
-      "description": "Your business industry - search for the relevant industry type or the NAICS code.",
-      "tooltip": "should match your business registration documents NAICS code",
-      "validation": {
-        "maxLength": "Industry category must be 100 characters or less",
-        "required": "Industry category is required",
-        "format": "Industry category can only contain letters, numbers, and basic punctuation",
-        "minLength": "Industry category must be at least 3 characters"
-      }
-    },
-    "industryType": {
+
+    "industry.code": {
       "label": "Industry Classification",
       "placeholder": "Select industry type",
       "description": "Your business industry - search for the relevant industry type/category or the NAICS code.",
