@@ -272,6 +272,7 @@ export const InitialStepForm = () => {
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
           <fieldset className="eb-space-y-6" disabled={isFormDisabled}>
             <OnboardingFormField
+              disableMapping
               control={form.control}
               name="product"
               type="select"

@@ -114,8 +114,12 @@ export const OrganizationStepForm = () => {
     (p) => p.partyType === 'ORGANIZATION'
   )?.organizationDetails?.organizationType;
 
-  const { getFieldRule, isFieldDisabled, isFieldRequired, isFieldVisible } =
-    useFilterFunctionsByClientContext(clientData);
+  const {
+    isFieldDisabled,
+    isFieldRequired,
+    isFieldVisible,
+    getArrayFieldRule,
+  } = useFilterFunctionsByClientContext(clientData);
 
   const form = useStepFormWithFilters<
     z.infer<typeof OrganizationStepFormSchema>
@@ -148,15 +152,6 @@ export const OrganizationStepForm = () => {
         phoneNumber: '',
       },
     },
-  });
-
-  const {
-    fields: addressFields,
-    append: appendAddress,
-    remove: removeAddress,
-  } = useFieldArray({
-    control: form.control,
-    name: 'addresses',
   });
 
   const {
@@ -481,23 +476,20 @@ export const OrganizationStepForm = () => {
           name="addresses"
           defaultAppendValue={{
             addressType: 'BUSINESS_ADDRESS',
+            addressLines: [''],
             city: '',
             state: '',
             postalCode: '',
             country: '',
-            addressLines: [''],
           }}
-          renderItem={(field, index) => (
+          renderItem={({ index, label }) => (
             <fieldset
               key={`address-${index}`}
               className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               disabled={isFormDisabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                Business Address{' '}
-                {Number(getFieldRule('addresses')?.maxItems) > 1
-                  ? index + 1
-                  : ''}
+                {label}
               </legend>
               <OnboardingFormField
                 control={form.control}
@@ -574,57 +566,9 @@ export const OrganizationStepForm = () => {
                   ),
                 }))}
               />
-
-              {addressFields.length >
-                Number(getFieldRule('addresses')?.minItems) && (
-                <div className="eb-col-span-full">
-                  <Button
-                    type="button"
-                    onClick={() => removeAddress(index)}
-                    variant="outline"
-                    size="sm"
-                    className="eb-mt-2"
-                    disabled={
-                      addressFields.length <=
-                      (getFieldRule('addresses').minItems ?? 1)
-                    }
-                  >
-                    Remove Address
-                  </Button>
-                </div>
-              )}
             </fieldset>
           )}
         />
-
-        {Number(getFieldRule('addresses')?.maxItems) > addressFields.length && (
-          <Button
-            type="button"
-            disabled={
-              addressFields.length >= (getFieldRule('addresses').maxItems ?? 5)
-            }
-            onClick={() =>
-              appendAddress(
-                {
-                  addressType: 'BUSINESS_ADDRESS',
-                  city: '',
-                  state: '',
-                  postalCode: '',
-                  country: '',
-                  addressLines: [''],
-                },
-                {
-                  focusName: `addresses.${addressFields.length}.addressLines.0`,
-                }
-              )
-            }
-            variant="outline"
-            size="sm"
-            className="eb-mt-2"
-          >
-            Add Address
-          </Button>
-        )}
 
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
@@ -666,7 +610,7 @@ export const OrganizationStepForm = () => {
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                     Business Identification{' '}
-                    {Number(getFieldRule('organizationIds')?.maxItems) > 1
+                    {Number(getArrayFieldRule('organizationIds')?.maxItems) > 1
                       ? index + 1
                       : ''}
                   </legend>
@@ -730,13 +674,13 @@ export const OrganizationStepForm = () => {
                   />
 
                   {organizationIdFields.length >
-                    Number(getFieldRule('organizationIds')?.minItems) && (
+                    Number(getArrayFieldRule('organizationIds')?.minItems) && (
                     <div className="eb-col-span-full">
                       <Button
                         type="button"
                         disabled={
                           organizationIdFields.length <
-                          (getFieldRule('organizationIds').minItems ?? 0)
+                          (getArrayFieldRule('organizationIds')?.minItems ?? 0)
                         }
                         onClick={() => removeOrganizationId(index)}
                         variant="outline"
@@ -752,13 +696,13 @@ export const OrganizationStepForm = () => {
             })}
           </>
         )}
-        {Number(getFieldRule('organizationIds')?.maxItems) >
+        {Number(getArrayFieldRule('organizationIds')?.maxItems) >
           organizationIdFields.length && (
           <Button
             type="button"
             disabled={
               organizationIdFields.length >=
-              (getFieldRule('organizationIds').maxItems ?? 6)
+              (getArrayFieldRule('organizationIds')?.maxItems ?? 6)
             }
             onClick={() =>
               appendOrganizationId(
@@ -811,7 +755,7 @@ export const OrganizationStepForm = () => {
                     type="button"
                     disabled={
                       associatedCountriesFields.length <=
-                      (getFieldRule('associatedCountries').minItems ?? 0)
+                      (getArrayFieldRule('associatedCountries')?.minItems ?? 0)
                     }
                     onClick={() => removeAssociatedCountry(index)}
                     variant="outline"
@@ -825,7 +769,7 @@ export const OrganizationStepForm = () => {
                 type="button"
                 disabled={
                   associatedCountriesFields.length >=
-                  (getFieldRule('associatedCountries').maxItems ?? 100)
+                  (getArrayFieldRule('associatedCountries')?.maxItems ?? 100)
                 }
                 onClick={() => appendAssociatedCountry({ country: '' })}
                 variant="outline"
@@ -865,7 +809,7 @@ export const OrganizationStepForm = () => {
                     type="button"
                     disabled={
                       secondaryMccFields.length <=
-                      (getFieldRule('secondaryMccList').minItems ?? 0)
+                      (getArrayFieldRule('secondaryMccList')?.minItems ?? 0)
                     }
                     onClick={() => removeSecondaryMcc(index)}
                     variant="outline"
@@ -879,7 +823,7 @@ export const OrganizationStepForm = () => {
                 type="button"
                 disabled={
                   secondaryMccFields.length >=
-                  (getFieldRule('secondaryMccList').maxItems ?? 50)
+                  (getArrayFieldRule('secondaryMccList')?.maxItems ?? 50)
                 }
                 onClick={() => appendSecondaryMcc({ mcc: '' })}
                 variant="outline"

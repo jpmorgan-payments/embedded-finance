@@ -123,7 +123,7 @@ export const BeneficialOwnerStepForm = () => {
 
   const [isClientDataRefetching, setIsClientDataRefetching] = useState(false);
 
-  const { getFieldRule, isFieldVisible } =
+  const { getArrayFieldRule, isFieldVisible } =
     useFilterFunctionsByClientContext(clientData);
 
   const ownerForm = useStepFormWithFilters<
@@ -826,7 +826,7 @@ export const BeneficialOwnerStepForm = () => {
                         <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                           Individual Address{' '}
                           {Number(
-                            getFieldRule('individualAddresses')?.maxItems
+                            getArrayFieldRule('individualAddresses')?.maxItems
                           ) > 1
                             ? index + 1
                             : ''}
@@ -905,7 +905,7 @@ export const BeneficialOwnerStepForm = () => {
 
                         {addresses.length >
                           Number(
-                            getFieldRule('individualAddresses')?.minItems
+                            getArrayFieldRule('individualAddresses')?.minItems
                           ) && (
                           <div className="eb-col-span-full">
                             <Button
@@ -916,8 +916,8 @@ export const BeneficialOwnerStepForm = () => {
                               className="eb-mt-2"
                               disabled={
                                 addresses.length <=
-                                (getFieldRule('individualAddresses').minItems ??
-                                  1)
+                                (getArrayFieldRule('individualAddresses')
+                                  ?.minItems ?? 1)
                               }
                             >
                               Remove Address
@@ -947,7 +947,7 @@ export const BeneficialOwnerStepForm = () => {
                   }
                   disabled={
                     idFields.length >=
-                    (getFieldRule('individualAddresses').maxItems ?? 50)
+                    (getArrayFieldRule('individualAddresses')?.maxItems ?? 50)
                   }
                   variant="outline"
                   size="sm"
@@ -969,7 +969,9 @@ export const BeneficialOwnerStepForm = () => {
                         >
                           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                             Individual Identification Document{' '}
-                            {Number(getFieldRule('individualIds')?.maxItems) > 1
+                            {Number(
+                              getArrayFieldRule('individualIds')?.maxItems
+                            ) > 1
                               ? index + 1
                               : ''}
                           </legend>
@@ -1029,13 +1031,16 @@ export const BeneficialOwnerStepForm = () => {
                           />
 
                           {idFields.length >
-                            Number(getFieldRule('individualIds')?.minItems) && (
+                            Number(
+                              getArrayFieldRule('individualIds')?.minItems
+                            ) && (
                             <div className="eb-col-span-full">
                               <Button
                                 type="button"
                                 disabled={
                                   idFields.length <=
-                                  (getFieldRule('individualIds').minItems ?? 0)
+                                  (getArrayFieldRule('individualIds')
+                                    ?.minItems ?? 0)
                                 }
                                 onClick={() => removeId(index)}
                                 variant="outline"
@@ -1051,7 +1056,7 @@ export const BeneficialOwnerStepForm = () => {
                     })}
                   </>
                 )}
-                {Number(getFieldRule('individualIds')?.maxItems) >
+                {Number(getArrayFieldRule('individualIds')?.maxItems) >
                   idFields.length && (
                   <Button
                     type="button"
@@ -1064,7 +1069,7 @@ export const BeneficialOwnerStepForm = () => {
                     }
                     disabled={
                       idFields.length >=
-                      (getFieldRule('individualIds').maxItems ?? 50)
+                      (getArrayFieldRule('individualIds')?.maxItems ?? 50)
                     }
                     variant="outline"
                     size="sm"

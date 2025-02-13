@@ -121,14 +121,17 @@ export function OnboardingFormField<T extends FieldValues>({
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  const fieldRule: FieldRule =
-    name === 'product' || disableMapping
-      ? { visibility: 'visible', required: true }
-      : getFieldRule(
-          name as
-            | keyof OnboardingWizardFormValues
-            | `${keyof OnboardingWizardFormValues}.${string}`
-        );
+  let fieldRule: FieldRule;
+
+  if (disableMapping) {
+    fieldRule = { visibility: 'visible', required: true };
+  } else {
+    fieldRule = getFieldRule(
+      name as
+        | keyof OnboardingWizardFormValues
+        | `${keyof OnboardingWizardFormValues}.${string}`
+    ).fieldRule;
+  }
 
   const fieldVisibility = visibility ?? fieldRule.visibility ?? 'visible';
 

@@ -7,6 +7,10 @@ import { PartyFieldMap } from './types';
 // Source of truth for mapping form fields to API fields
 // Used for handling server errors and creating request bodies
 export const partyFieldMap: PartyFieldMap = {
+  product: {
+    excludeFromMapping: true,
+    baseRule: { visibility: 'visible', required: true },
+  },
   organizationName: {
     path: 'organizationDetails.organizationName',
     baseRule: { visibility: 'visible', required: true },
@@ -63,7 +67,12 @@ export const partyFieldMap: PartyFieldMap = {
   },
   addresses: {
     path: 'organizationDetails.addresses',
-    baseRule: { visibility: 'visible', minItems: 1, maxItems: 1 },
+    baseRule: {
+      visibility: 'visible',
+      minItems: 1,
+      maxItems: 1,
+      requiredItems: 1,
+    },
     conditionalRules: [
       {
         condition: {
@@ -82,7 +91,9 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.associatedCountries',
     baseRule: {
       visibility: 'hidden',
+      minItems: 0,
       maxItems: 100,
+      requiredItems: 0,
     },
   },
   jurisdiction: {
@@ -91,7 +102,12 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationIds: {
     path: 'organizationDetails.organizationIds',
-    baseRule: { visibility: 'visible', maxItems: 1, minItems: 0 },
+    baseRule: {
+      visibility: 'visible',
+      maxItems: 1,
+      minItems: 0,
+      requiredItems: 0,
+    },
   },
   organizationPhone: {
     path: 'organizationDetails.phone',
@@ -123,7 +139,12 @@ export const partyFieldMap: PartyFieldMap = {
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
-    baseRule: { visibility: 'hidden', maxItems: 50 },
+    baseRule: {
+      visibility: 'hidden',
+      minItems: 0,
+      maxItems: 50,
+      requiredItems: 0,
+    },
   },
   birthDate: {
     path: 'individualDetails.birthDate',
@@ -160,7 +181,12 @@ export const partyFieldMap: PartyFieldMap = {
   },
   individualIds: {
     path: 'individualDetails.individualIds',
-    baseRule: { visibility: 'visible', maxItems: 1, minItems: 1 },
+    baseRule: {
+      visibility: 'visible',
+      minItems: 1,
+      maxItems: 1,
+      requiredItems: 1,
+    },
     conditionalRules: [
       {
         condition: {
@@ -207,7 +233,12 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   individualAddresses: {
     path: 'individualDetails.addresses',
-    baseRule: { visibility: 'visible', minItems: 1, maxItems: 1 },
+    baseRule: {
+      visibility: 'visible',
+      minItems: 1,
+      maxItems: 1,
+      requiredItems: 1,
+    },
     conditionalRules: [
       {
         condition: {
