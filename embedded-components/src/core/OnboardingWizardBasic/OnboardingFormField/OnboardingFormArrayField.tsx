@@ -76,15 +76,21 @@ export function OnboardingArrayField<
     return null;
   }
 
-  const getContentToken = (id: string, index?: number) =>
-    t([`fields.${name}.${id}`, ''] as unknown as TemplateStringsArray, {
-      index,
-    });
-
   const { fields, append, remove } = useFieldArray({
     control,
     name,
   });
+
+  // TODO: handle no content token found
+  const getContentToken = (id: string, number?: number) =>
+    t([`fields.${name}.${id}`, ''] as unknown as TemplateStringsArray, {
+      number,
+    });
+
+  const getFieldLabel = (index: number) =>
+    fieldRule.minItems === 1 && fieldRule.maxItems === 1 && fields.length === 1
+      ? getContentToken('label')
+      : getContentToken('labelNumbered', index + 1);
 
   const renderRemoveButton = (index: number) => {
     if (fieldVisibility === 'readonly') {
@@ -133,13 +139,13 @@ export function OnboardingArrayField<
           return renderReadOnlyItem?.({
             field,
             index,
-            label: getContentToken('label', index),
+            label: getFieldLabel(index),
           });
         }
         return renderItem({
           field,
           index,
-          label: getContentToken('label', index),
+          label: getFieldLabel(index),
           required: index < (fieldRule.requiredItems ?? 0),
           disabled: fieldDisabled,
           renderRemoveButton: () => renderRemoveButton(index),

@@ -194,7 +194,8 @@
       }
     },
     "addresses": {
-      "label": "Business Address {{index}}",
+      "label": "Business Address",
+      "labelNumbered": "Business Address {{number}}",
       "appendLabel": "Add another address",
       "removeLabel": "Remove address",
       "addressLines": {
