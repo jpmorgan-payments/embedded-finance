@@ -3,7 +3,7 @@
 
 Component Name: ImportantDateSelector
 
-Usage Context: Banking onboarding (Date of Birth and other memorable dates selection)
+Usage Context: Various KYC and onboarding flows (Date of Birth and other memorable dates selection)
 
 ## 1. Overview
 
@@ -231,6 +231,8 @@ For further reading and design guidance, please refer to the following resources
   - Engage in continuous accessibility testing and usability testing throughout the component's lifecycle to identify areas for further refinement and improvement.
 
 ---
+
+## 7. User Research Insights and common errors
 
 The most common user errors when using date pickers stem from poor design choices, mismatched formats, and accessibility issues. Here are the key challenges users face:
 
