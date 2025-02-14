@@ -101,8 +101,8 @@
     },
     "yearOfFormation": {
       "label": "Year of Formation",
-      "placeholder": "Enter year of formation",
-      "description": "",
+      "placeholder": "YYYY",
+      "description": "Please use the format YYYY, e.g. 2020",
       "validation": {
         "format": "Invalid year of formation",
         "min": "Year of formation cannot be before 1800",
