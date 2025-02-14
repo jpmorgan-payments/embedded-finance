@@ -392,7 +392,6 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="jobTitle"
             type="select"
-            required
             options={[
               { value: 'CEO', label: 'CEO' },
               { value: 'CFO', label: 'CFO' },
@@ -456,7 +455,6 @@ export const IndividualStepForm = () => {
                   control={form.control}
                   name={`individualAddresses.${index}.addressType`}
                   type="select"
-                  required
                   options={[
                     {
                       value: 'MAILING_ADDRESS',
@@ -474,7 +472,6 @@ export const IndividualStepForm = () => {
                   name={`individualAddresses.${index}.addressLines.0`}
                   label="Address Line 1"
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -488,7 +485,6 @@ export const IndividualStepForm = () => {
                   control={form.control}
                   name={`individualAddresses.${index}.city`}
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -496,14 +492,12 @@ export const IndividualStepForm = () => {
                   name={`individualAddresses.${index}.state`}
                   type="select"
                   options={stateOptions}
-                  required
                 />
 
                 <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.postalCode`}
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -521,7 +515,6 @@ export const IndividualStepForm = () => {
                       </span>
                     ),
                   }))}
-                  required
                 />
 
                 {addressFields.length >
@@ -600,7 +593,6 @@ export const IndividualStepForm = () => {
                       { value: 'SSN', label: 'SSN' },
                       { value: 'ITIN', label: 'ITIN' },
                     ]}
-                    required
                   />
 
                   <OnboardingFormField
@@ -611,7 +603,6 @@ export const IndividualStepForm = () => {
                     label={getValueLabel(idType)}
                     maskFormat={getMaskFormat(idType)}
                     maskChar="_"
-                    required
                   />
 
                   <OnboardingFormField
@@ -629,7 +620,6 @@ export const IndividualStepForm = () => {
                         </span>
                       ),
                     }))}
-                    required
                   />
 
                   <OnboardingFormField

@@ -491,12 +491,15 @@ export const BeneficialOwnerStepForm = () => {
         <form>
           <OnboardingFormField
             control={controllerForm.control}
-            disableFieldRule
-            disabled={
-              isFormDisabled ||
-              (activeOwners.length >= 4 &&
-                controllerForm.watch('controllerIsOwner') === 'no')
-            }
+            disableFieldRuleMapping
+            fieldRuleOverride={{
+              visibility:
+                isFormDisabled ||
+                (activeOwners.length >= 4 &&
+                  controllerForm.watch('controllerIsOwner') === 'no')
+                  ? 'disabled'
+                  : 'visible',
+            }}
             type="radio-group"
             name="controllerIsOwner"
             label="Do you, the controller, own 25% or more of the business?"
@@ -774,7 +777,12 @@ export const BeneficialOwnerStepForm = () => {
                     control={ownerForm.control}
                     name="jobTitleDescription"
                     type="text"
-                    disabled={ownerForm.watch('jobTitle') !== 'Other'}
+                    fieldRuleOverride={{
+                      visibility:
+                        ownerForm.watch('jobTitle') === 'Other'
+                          ? 'visible'
+                          : 'disabled',
+                    }}
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
@@ -834,7 +842,6 @@ export const BeneficialOwnerStepForm = () => {
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.addressType`}
                           type="select"
-                          required
                           options={[
                             {
                               value: 'MAILING_ADDRESS',
@@ -852,7 +859,6 @@ export const BeneficialOwnerStepForm = () => {
                           name={`individualAddresses.${index}.addressLines.0`}
                           label="Address Line 1"
                           type="text"
-                          required
                         />
 
                         <OnboardingFormField
@@ -866,7 +872,6 @@ export const BeneficialOwnerStepForm = () => {
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.city`}
                           type="text"
-                          required
                         />
 
                         <OnboardingFormField
@@ -874,14 +879,12 @@ export const BeneficialOwnerStepForm = () => {
                           name={`individualAddresses.${index}.state`}
                           type="select"
                           options={stateOptions}
-                          required
                         />
 
                         <OnboardingFormField
                           control={ownerForm.control}
                           name={`individualAddresses.${index}.postalCode`}
                           type="text"
-                          required
                         />
 
                         <OnboardingFormField
@@ -899,7 +902,6 @@ export const BeneficialOwnerStepForm = () => {
                               </span>
                             ),
                           }))}
-                          required
                         />
 
                         {addresses.length >
@@ -982,7 +984,6 @@ export const BeneficialOwnerStepForm = () => {
                               { value: 'SSN', label: 'SSN' },
                               { value: 'ITIN', label: 'ITIN' },
                             ]}
-                            required
                           />
 
                           <OnboardingFormField
@@ -993,7 +994,6 @@ export const BeneficialOwnerStepForm = () => {
                             label={getValueLabel(idType)}
                             maskFormat={getMaskFormat(idType)}
                             maskChar="_"
-                            required
                           />
 
                           <OnboardingFormField
@@ -1013,7 +1013,6 @@ export const BeneficialOwnerStepForm = () => {
                                 </span>
                               ),
                             }))}
-                            required
                           />
 
                           <OnboardingFormField

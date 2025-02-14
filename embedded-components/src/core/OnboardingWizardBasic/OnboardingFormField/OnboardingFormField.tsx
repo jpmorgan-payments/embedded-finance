@@ -63,16 +63,18 @@ type FieldType =
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
+> extends Omit<
+    ControllerProps<TFieldValues, TName>,
+    'render' | 'disabled' | 'required'
+  > {
   type?: FieldType;
   label?: string | JSX.Element;
   placeholder?: string;
   description?: string;
   tooltip?: string;
-  required?: boolean;
-  visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
+  disableFieldRuleMapping?: boolean;
+  fieldRuleOverride?: FieldRule;
   inputProps?: React.ComponentProps<typeof Input>;
-  disableFieldRule?: boolean;
   form?: UseFormReturn<TFieldValues>; // TODO: remove when IndustrySelect refactored
   maskFormat?: string;
   maskChar?: string;
@@ -98,22 +100,20 @@ type OnboardingFormFieldProps<T extends FieldValues> =
   | OtherFieldProps<T, FieldPath<T>>;
 
 export function OnboardingFormField<T extends FieldValues>({
-  disableFieldRule,
-  form,
   control,
   name,
   type = 'text',
+  options,
   label,
   placeholder,
   description,
   tooltip,
-  required,
-  visibility,
-  options,
+  disableFieldRuleMapping,
+  fieldRuleOverride = {},
+  inputProps,
+  form,
   maskFormat,
   maskChar,
-  inputProps,
-  disabled,
 }: OnboardingFormFieldProps<T>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -123,7 +123,7 @@ export function OnboardingFormField<T extends FieldValues>({
 
   let fieldRule: FieldRule;
 
-  if (disableFieldRule) {
+  if (disableFieldRuleMapping) {
     fieldRule = { visibility: 'visible', required: true };
   } else {
     fieldRule = getFieldRule(
@@ -133,7 +133,13 @@ export function OnboardingFormField<T extends FieldValues>({
     ).fieldRule;
   }
 
-  const fieldVisibility = visibility ?? fieldRule.visibility ?? 'visible';
+  // Apply overrides if provided
+  fieldRule = {
+    ...fieldRule,
+    ...fieldRuleOverride,
+  };
+
+  const fieldVisibility = fieldRule.visibility ?? 'visible';
 
   if (fieldVisibility === 'hidden') {
     return null;
@@ -161,7 +167,7 @@ export function OnboardingFormField<T extends FieldValues>({
         t([`fields.${tName}.label`, ''] as unknown as TemplateStringsArray, {
           index,
         })}
-      {(required ?? fieldRule.required) ? (
+      {fieldRule.required ? (
         ''
       ) : (
         <span className="eb-font-normal eb-text-muted-foreground">
@@ -188,13 +194,13 @@ export function OnboardingFormField<T extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      disabled={fieldVisibility === 'disabled' || disabled}
+      disabled={fieldVisibility === 'disabled'}
       render={({ field }) => (
         <FormItem>
           {type !== 'checkbox' ? (
             <>
               <div className="eb-flex eb-items-center eb-space-x-2">
-                <FormLabel asterisk={required ?? fieldRule.required}>
+                <FormLabel asterisk={fieldRule.required}>
                   {fieldLabel}
                 </FormLabel>
                 <InfoPopover>{fieldTooltip}</InfoPopover>
@@ -357,7 +363,7 @@ export function OnboardingFormField<T extends FieldValues>({
                       </FormControl>
                       <div className="eb-space-y-1 eb-leading-none">
                         <div className="eb-flex eb-items-center eb-space-x-2">
-                          <FormLabel asterisk={required ?? fieldRule.required}>
+                          <FormLabel asterisk={fieldRule.required}>
                             {fieldLabel}
                           </FormLabel>
                           <InfoPopover>{fieldTooltip}</InfoPopover>

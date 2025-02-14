@@ -630,7 +630,6 @@ export const OrganizationStepForm = () => {
                         label: 'Business Registration Number',
                       },
                     ]}
-                    required
                   />
 
                   <OnboardingFormField
@@ -641,7 +640,6 @@ export const OrganizationStepForm = () => {
                     label={getValueLabel(idType)}
                     maskFormat={getMaskFormat(idType)}
                     maskChar="_"
-                    required
                   />
 
                   <OnboardingFormField
@@ -659,7 +657,6 @@ export const OrganizationStepForm = () => {
                         </span>
                       ),
                     }))}
-                    required
                   />
                   <OnboardingFormField
                     control={form.control}

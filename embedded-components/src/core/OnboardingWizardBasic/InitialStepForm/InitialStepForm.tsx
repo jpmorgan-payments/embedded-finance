@@ -276,7 +276,6 @@ export const InitialStepForm = () => {
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
           <fieldset className="eb-space-y-6" disabled={isFormDisabled}>
             <OnboardingFormField
-              disableFieldRule
               control={form.control}
               name="product"
               type="select"
@@ -284,15 +283,14 @@ export const InitialStepForm = () => {
                 value: product,
                 label: t(`clientProducts.${product}`),
               }))}
-              visibility={defaultProduct || clientId ? 'readonly' : 'visible'}
+              fieldRuleOverride={{
+                visibility: defaultProduct || clientId ? 'readonly' : 'visible',
+              }}
             />
 
             <OnboardingFormField
               control={form.control}
               name="jurisdiction"
-              visibility={
-                availableJurisdictions?.length === 1 ? 'readonly' : 'visible'
-              }
               type="select"
               options={availableJurisdictions.map((jurisdiction) => ({
                 value: jurisdiction,
@@ -300,6 +298,10 @@ export const InitialStepForm = () => {
                   jurisdiction
                 })`,
               }))}
+              fieldRuleOverride={{
+                visibility:
+                  availableJurisdictions?.length === 1 ? 'readonly' : 'visible',
+              }}
             />
 
             <OnboardingFormField
