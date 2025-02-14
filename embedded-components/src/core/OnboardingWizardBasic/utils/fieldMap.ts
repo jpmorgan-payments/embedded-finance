@@ -49,13 +49,19 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.organizationDescription',
     baseRule: { visibility: 'visible', required: true },
   },
-  industryCategory: {
-    path: 'organizationDetails.industryCategory',
+  industry: {
+    path: 'organizationDetails.industry',
     baseRule: { visibility: 'visible', required: true },
-  },
-  industryType: {
-    path: 'organizationDetails.industryType',
-    baseRule: { visibility: 'visible', required: true },
+    fromResponseFn: (val) => ({
+      code: val.code!,
+      codeType: val.codeType!,
+    }),
+    toRequestFn: (val) => {
+      return {
+        codeType: 'NAICS',
+        code: val.code,
+      };
+    },
   },
   mcc: {
     path: 'organizationDetails.mcc',

@@ -108,12 +108,16 @@ export const IndustryTypeSelect = ({
             {field.value ? (
               <div className="eb-flex eb-w-[calc(100%-1rem)]">
                 <span className="eb-overflow-hidden eb-text-ellipsis">
-                  [{form.getValues('industryCategory')}] {field.value}
+                  [{form.getValues('industry.code')}]{' '}
+                  {
+                    naicsCodes.find((code) => code.id === field.value)
+                      ?.sectorDescription
+                  }
                 </span>
                 <span className="eb-pl-2 eb-text-muted-foreground">
                   {
-                    naicsCodes.find((code) => code.description === field.value)
-                      ?.id
+                    naicsCodes.find((code) => code.id === field.value)
+                      ?.description
                   }
                 </span>
               </div>
@@ -172,8 +176,7 @@ export const IndustryTypeSelect = ({
                       key={item.id}
                       value={`${item.category} ${item.description} ${item.code}`}
                       onSelect={() => {
-                        onChange(item.description);
-                        form.setValue('industryCategory', item.category);
+                        onChange(item.code);
                         onBlur();
                         setOpen(false);
                       }}
