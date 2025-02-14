@@ -121,18 +121,20 @@ export function OnboardingFormField<T extends FieldValues>({
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  let fieldRule: FieldRule;
-
+  let fieldRule: FieldRule = {};
   if (disableFieldRuleMapping) {
     fieldRule = { visibility: 'visible', required: true };
   } else {
-    fieldRule = getFieldRule(
+    const fieldRuleConfig = getFieldRule(
       name as
         | keyof OnboardingWizardFormValues
         | `${keyof OnboardingWizardFormValues}.${string}`
-    ).fieldRule;
+    );
+    if (fieldRuleConfig.ruleType !== 'single') {
+      throw new Error(`Field ${name} is not configured as a single field.`);
+    }
+    fieldRule = fieldRuleConfig.fieldRule;
   }
-
   // Apply overrides if provided
   fieldRule = {
     ...fieldRule,

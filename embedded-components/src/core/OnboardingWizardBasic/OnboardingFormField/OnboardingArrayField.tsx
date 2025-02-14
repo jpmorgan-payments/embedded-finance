@@ -14,7 +14,10 @@ import { Button } from '@/components/ui/button';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
-import { OnboardingWizardArrayFieldNames } from '../utils/types';
+import {
+  ArrayFieldRule,
+  OnboardingWizardArrayFieldNames,
+} from '../utils/types';
 
 interface OnboardingArrayFieldProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -22,7 +25,6 @@ interface OnboardingArrayFieldProps<
     FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
 > extends UseFieldArrayProps<TFieldValues, TFieldArrayName> {
   className?: string;
-  disabled?: boolean;
   removeButtonClassName?: string;
   appendButtonClassName?: string;
   defaultAppendValue: FieldArray<TFieldValues, TFieldArrayName>;
@@ -39,6 +41,8 @@ interface OnboardingArrayFieldProps<
     index: number;
     label: string;
   }) => React.ReactNode;
+  disableFieldRuleMapping?: boolean;
+  fieldRuleOverride?: ArrayFieldRule;
 }
 
 export function OnboardingArrayField<
@@ -53,7 +57,8 @@ export function OnboardingArrayField<
   defaultAppendValue,
   renderItem,
   renderReadOnlyItem = (field) => JSON.stringify(field),
-  disabled,
+  disableFieldRuleMapping,
+  fieldRuleOverride = {},
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -61,16 +66,29 @@ export function OnboardingArrayField<
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  const { fieldRule, ruleType } = getFieldRule(
-    name as OnboardingWizardArrayFieldNames
-  );
-
-  if (ruleType !== 'array') {
-    throw new Error(`Field ${name} is not configured as an array field.`);
+  let fieldRule: ArrayFieldRule = {};
+  if (disableFieldRuleMapping) {
+    fieldRule = {
+      minItems: 0,
+      maxItems: Infinity,
+      requiredItems: 0,
+    };
+  } else {
+    const fieldRuleConfig = getFieldRule(
+      name as OnboardingWizardArrayFieldNames
+    );
+    if (fieldRuleConfig.ruleType !== 'array') {
+      throw new Error(`Field ${name} is not configured as an array field.`);
+    }
+    fieldRule = fieldRuleConfig.fieldRule;
   }
+  // Apply overrides if provided
+  fieldRule = {
+    ...fieldRule,
+    ...fieldRuleOverride,
+  };
 
   const fieldVisibility = fieldRule.visibility ?? 'visible';
-  const fieldDisabled = disabled ?? fieldVisibility === 'disabled';
 
   if (fieldVisibility === 'hidden') {
     return null;
@@ -105,7 +123,7 @@ export function OnboardingArrayField<
         size="icon"
         className={cn('eb-mt-2', removeButtonClassName)}
         onClick={() => remove(index)}
-        disabled={fieldDisabled}
+        disabled={fieldVisibility === 'disabled'}
       >
         {getContentToken('removeLabel', index)}
       </Button>
@@ -125,7 +143,7 @@ export function OnboardingArrayField<
         size="sm"
         className={cn('eb-mt-2', appendButtonClassName)}
         onClick={() => append(defaultAppendValue)}
-        disabled={fieldDisabled}
+        disabled={fieldVisibility === 'disabled'}
       >
         {getContentToken('appendLabel')}
       </Button>
@@ -147,7 +165,7 @@ export function OnboardingArrayField<
           index,
           label: getFieldLabel(index),
           required: index < (fieldRule.requiredItems ?? 0),
-          disabled: fieldDisabled,
+          disabled: fieldVisibility === 'disabled',
           renderRemoveButton: () => renderRemoveButton(index),
         });
       })}
