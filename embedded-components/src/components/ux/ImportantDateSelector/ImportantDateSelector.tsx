@@ -223,7 +223,7 @@ export function ImportantDateSelector({
 
       case 'M':
         return (
-          <div className="eb-flex eb-flex-1 eb-shrink-0 eb-flex-col eb-gap-1">
+          <div className="eb-flex eb-w-28 eb-shrink-0 eb-flex-col eb-gap-1">
             <label htmlFor="birth-month" className="eb-text-xs">
               Month
             </label>
