@@ -542,9 +542,7 @@ export function modifyDefaultValuesByClientContext(
   const filteredDefaultValues: Partial<OnboardingWizardFormValues> = {};
 
   objectEntries(defaultValues).forEach(([key, value]) => {
-    const fieldConfig = getPartyFieldConfig(key);
-    // TODO: should potentially be using getFieldRule instead of fieldConfig
-    const fieldRule = evaluateFieldRules(fieldConfig, clientContext);
+    const { fieldRule } = getFieldRuleByClientContext(key, clientContext);
     if (fieldRule.visibility !== 'hidden') {
       filteredDefaultValues[key] = value as any;
     }
