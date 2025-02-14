@@ -96,10 +96,9 @@ export interface ArrayFieldConfiguration<
     condition: FieldRuleCondition;
     rule: Partial<ArrayFieldRule>;
   }>;
-  subFields?: Record<
-    // TODO: maybe derive this somehow
-    string,
-    Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'> | undefined
+  subFields: Record<
+    keyof OnboardingWizardFormValues[K][number],
+    Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'>
   >;
 }
 

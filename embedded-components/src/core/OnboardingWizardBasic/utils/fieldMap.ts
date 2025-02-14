@@ -82,8 +82,23 @@ export const partyFieldMap: PartyFieldMap = {
       },
     ],
     subFields: {
+      addressType: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      addressLines: {
+        baseRule: { visibility: 'visible', required: true },
+      },
       city: {
-        baseRule: { visibility: 'visible', required: false },
+        baseRule: { visibility: 'visible', required: true },
+      },
+      state: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      postalCode: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      country: {
+        baseRule: { visibility: 'visible', required: true },
       },
     },
   },
@@ -94,6 +109,11 @@ export const partyFieldMap: PartyFieldMap = {
       minItems: 0,
       maxItems: 100,
       requiredItems: 0,
+    },
+    subFields: {
+      country: {
+        baseRule: { visibility: 'visible', required: true },
+      },
     },
   },
   jurisdiction: {
@@ -107,6 +127,23 @@ export const partyFieldMap: PartyFieldMap = {
       maxItems: 1,
       minItems: 0,
       requiredItems: 0,
+    },
+    subFields: {
+      idType: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      issuer: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      value: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      description: {
+        baseRule: { visibility: 'visible', required: false },
+      },
+      expiryDate: {
+        baseRule: { visibility: 'visible', required: false },
+      },
     },
   },
   organizationPhone: {
@@ -144,6 +181,11 @@ export const partyFieldMap: PartyFieldMap = {
       minItems: 0,
       maxItems: 50,
       requiredItems: 0,
+    },
+    subFields: {
+      mcc: {
+        baseRule: { visibility: 'visible', required: true },
+      },
     },
   },
   birthDate: {
@@ -196,6 +238,23 @@ export const partyFieldMap: PartyFieldMap = {
         rule: { visibility: 'hidden' },
       },
     ],
+    subFields: {
+      idType: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      issuer: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      value: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      description: {
+        baseRule: { visibility: 'visible', required: false },
+      },
+      expiryDate: {
+        baseRule: { visibility: 'visible', required: false },
+      },
+    },
   },
   jobTitle: {
     path: 'individualDetails.jobTitle',
@@ -247,6 +306,26 @@ export const partyFieldMap: PartyFieldMap = {
         rule: { maxItems: 3 },
       },
     ],
+    subFields: {
+      addressType: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      addressLines: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      city: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      state: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      postalCode: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+      country: {
+        baseRule: { visibility: 'visible', required: true },
+      },
+    },
   },
   individualPhone: {
     path: 'individualDetails.phone',
