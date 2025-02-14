@@ -30,6 +30,7 @@ import {
   FieldConfiguration,
   FieldRule,
   isArrayFieldRule,
+  OnboardingWizardArrayFieldNames,
   OnboardingWizardFormValues,
 } from './types';
 
@@ -452,7 +453,8 @@ export function getFieldRuleByClientContext(
     !Number.isNaN(Number(fieldNameParts[1])) &&
     fieldNameParts[2] !== undefined
   ) {
-    const subFieldName = fieldNameParts[2];
+    const subFieldName =
+      fieldNameParts[2] as keyof OnboardingWizardFormValues[OnboardingWizardArrayFieldNames][number];
     const subFieldConfig = baseFieldConfig.subFields[subFieldName];
 
     // If the subfield is not mapped, return parent rule
@@ -471,7 +473,7 @@ export function getFieldRuleByClientContext(
 
   return {
     fieldRule,
-    ruleType: isArrayFieldRule(baseFieldRule) ? 'array' : 'single',
+    ruleType: isArrayFieldRule(fieldRule) ? 'array' : 'single',
   };
 }
 
