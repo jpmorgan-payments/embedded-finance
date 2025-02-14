@@ -5,7 +5,8 @@ import { PhoneSmbdo } from '@/api/generated/smbdo.schemas';
 import { PartyFieldMap } from './types';
 
 // Source of truth for mapping form fields to API fields
-// Used for handling server errors and creating request bodies
+// path is used for handling server errors and mapping values from/to the API
+// rules are used for configuring field visibility, required, etc.
 export const partyFieldMap: PartyFieldMap = {
   product: {
     excludeFromMapping: true,
