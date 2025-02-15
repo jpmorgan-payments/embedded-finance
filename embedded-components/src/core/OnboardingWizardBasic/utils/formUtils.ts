@@ -24,10 +24,10 @@ import { useStepper } from '@/components/ui/stepper';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { partyFieldMap } from './fieldMap';
 import {
+  AnyFieldConfiguration,
   ArrayFieldRule,
   ClientContext,
   CombinedFieldConfiguration,
-  FieldConfiguration,
   FieldRule,
   isArrayFieldRule,
   OnboardingTopLevelArrayFieldNames,
@@ -325,7 +325,7 @@ export function convertClientResponseToFormValues(
  * @returns Field rule determining visibility and validation
  */
 function evaluateFieldRules(
-  fieldConfig: Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'>,
+  fieldConfig: AnyFieldConfiguration,
   clientContext: ClientContext
 ): FieldRule | ArrayFieldRule {
   const { baseRule, conditionalRules } = fieldConfig;

@@ -38,8 +38,7 @@ export type ArrayFieldRule = {
   visibility?: FieldVisibility;
   minItems?: number;
   maxItems?: number;
-  // requiredItems should always be less than or equal to minItems
-  requiredItems?: number;
+  requiredItems?: number; // requiredItems should always be less than or equal to minItems
 };
 
 export function isArrayFieldRule(
@@ -64,7 +63,7 @@ type BaseFieldConfiguration = {
   baseRule: FieldRule;
   conditionalRules?: Array<{
     condition: FieldRuleCondition;
-    rule: Partial<FieldRule>;
+    rule: FieldRule;
   }>;
   excludeFromMapping?: boolean;
 };
@@ -95,7 +94,7 @@ interface ArrayFieldConfigurationGeneric<
   baseRule: ArrayFieldRule;
   conditionalRules?: Array<{
     condition: FieldRuleCondition;
-    rule: Partial<ArrayFieldRule>;
+    rule: ArrayFieldRule;
   }>;
   subFields: {
     [P in Extract<
@@ -109,6 +108,10 @@ interface ArrayFieldConfigurationGeneric<
         >;
   };
 }
+
+export type AnyFieldConfiguration =
+  | FieldConfigurationGeneric<any, any>
+  | ArrayFieldConfigurationGeneric<any, any>;
 
 type CombinedFieldConfigurationFor<T, K extends string> = [T] extends [boolean]
   ? FieldConfigurationGeneric<K, boolean>
