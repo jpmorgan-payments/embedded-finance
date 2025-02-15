@@ -11,10 +11,6 @@ import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepFo
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
-export type Entries<T> = {
-  [K in keyof T]-?: [K, T[K]];
-}[keyof T][];
-
 // TODO: add more form schemas here
 export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
   z.infer<typeof OrganizationStepFormSchema> &
@@ -29,21 +25,23 @@ export type Jurisdiction = 'US' | 'CA';
 
 export type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
 
-export type FieldRule = {
+export type FieldRule<T> = {
   visibility?: FieldVisibility;
   required?: boolean;
+  defaultValue?: T;
 };
 
-export type ArrayFieldRule = {
+export type ArrayFieldRule<T> = {
   visibility?: FieldVisibility;
   minItems?: number;
   maxItems?: number;
   requiredItems?: number; // requiredItems should always be less than or equal to minItems
+  defaultAppendValue?: T;
 };
 
-export function isArrayFieldRule(
-  rule: FieldRule | ArrayFieldRule
-): rule is ArrayFieldRule {
+export function isArrayFieldRule<T>(
+  rule: FieldRule<T> | ArrayFieldRule<T>
+): rule is ArrayFieldRule<T> {
   return 'minItems' in rule || 'maxItems' in rule || 'requiredItems' in rule;
 }
 
@@ -59,11 +57,11 @@ export type FieldRuleCondition = {
   entityType?: OrganizationType[];
 };
 
-type BaseFieldConfiguration = {
-  baseRule: FieldRule;
+type BaseFieldConfiguration<T> = {
+  baseRule: FieldRule<T>;
   conditionalRules?: Array<{
     condition: FieldRuleCondition;
-    rule: FieldRule;
+    rule: FieldRule<T>;
   }>;
   excludeFromMapping?: boolean;
 };
@@ -75,14 +73,14 @@ type FieldConfigurationGeneric<K extends string, T> =
       path: string;
       fromResponseFn?: (val: any) => T;
       toRequestFn?: (val: T) => any;
-    } & BaseFieldConfiguration)
+    } & BaseFieldConfiguration<T>)
   | ({
       key?: K; // phantom property
       excludeFromMapping: true;
       path?: never;
       fromResponseFn?: never;
       toRequestFn?: never;
-    } & BaseFieldConfiguration);
+    } & BaseFieldConfiguration<T>);
 
 interface ArrayFieldConfigurationGeneric<
   K extends string,
@@ -91,10 +89,10 @@ interface ArrayFieldConfigurationGeneric<
     FieldConfigurationGeneric<K, T>,
     'baseRule' | 'conditionalRules'
   > {
-  baseRule: ArrayFieldRule;
+  baseRule: ArrayFieldRule<T>;
   conditionalRules?: Array<{
     condition: FieldRuleCondition;
-    rule: ArrayFieldRule;
+    rule: ArrayFieldRule<T>;
   }>;
   subFields: {
     [P in Extract<

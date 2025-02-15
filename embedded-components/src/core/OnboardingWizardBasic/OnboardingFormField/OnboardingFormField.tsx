@@ -73,7 +73,7 @@ interface BaseProps<
   description?: string;
   tooltip?: string;
   disableFieldRuleMapping?: boolean;
-  fieldRuleOverride?: FieldRule;
+  fieldRuleOverride?: FieldRule<TFieldValues[keyof TFieldValues]>;
   inputProps?: React.ComponentProps<typeof Input>;
   form?: UseFormReturn<TFieldValues>; // TODO: remove when IndustrySelect refactored
   maskFormat?: string;
@@ -99,7 +99,7 @@ type OnboardingFormFieldProps<T extends FieldValues> =
   | SelectOrRadioGroupProps<T, FieldPath<T>>
   | OtherFieldProps<T, FieldPath<T>>;
 
-export function OnboardingFormField<T extends FieldValues>({
+export function OnboardingFormField<TFieldValues extends FieldValues>({
   control,
   name,
   type = 'text',
@@ -115,14 +115,14 @@ export function OnboardingFormField<T extends FieldValues>({
   maskFormat,
   maskChar,
   shouldUnregister,
-}: OnboardingFormFieldProps<T>) {
+}: OnboardingFormFieldProps<TFieldValues>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  let fieldRule: FieldRule = {};
+  let fieldRule: FieldRule<TFieldValues[keyof TFieldValues]> = {};
   if (disableFieldRuleMapping) {
     fieldRule = { visibility: 'visible', required: true };
   } else {

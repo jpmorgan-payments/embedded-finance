@@ -2,6 +2,7 @@ import {
   FieldArray,
   FieldArrayPath,
   FieldArrayWithId,
+  FieldValue,
   FieldValues,
   useFieldArray,
   UseFieldArrayProps,
@@ -42,7 +43,7 @@ interface OnboardingArrayFieldProps<
     label: string;
   }) => React.ReactNode;
   disableFieldRuleMapping?: boolean;
-  fieldRuleOverride?: ArrayFieldRule;
+  fieldRuleOverride?: ArrayFieldRule<FieldValue<TFieldValues>>;
 }
 
 export function OnboardingArrayField<
@@ -67,7 +68,7 @@ export function OnboardingArrayField<
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  let fieldRule: ArrayFieldRule = {};
+  let fieldRule: ArrayFieldRule<FieldValue<TFieldValues>> = {};
   if (disableFieldRuleMapping) {
     fieldRule = {
       minItems: 0,
