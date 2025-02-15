@@ -65,7 +65,7 @@ interface BaseProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends Omit<
     ControllerProps<TFieldValues, TName>,
-    'render' | 'disabled' | 'required'
+    'render' | 'disabled' | 'required' | 'rules' | 'defaultValue'
   > {
   type?: FieldType;
   label?: string | JSX.Element;
@@ -114,6 +114,7 @@ export function OnboardingFormField<T extends FieldValues>({
   form,
   maskFormat,
   maskChar,
+  shouldUnregister,
 }: OnboardingFormFieldProps<T>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -197,6 +198,7 @@ export function OnboardingFormField<T extends FieldValues>({
       control={control}
       name={name}
       disabled={fieldVisibility === 'disabled'}
+      shouldUnregister={shouldUnregister}
       render={({ field }) => (
         <FormItem>
           {type !== 'checkbox' ? (

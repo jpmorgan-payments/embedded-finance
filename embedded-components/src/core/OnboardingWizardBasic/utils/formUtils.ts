@@ -30,7 +30,7 @@ import {
   FieldConfiguration,
   FieldRule,
   isArrayFieldRule,
-  OnboardingWizardArrayFieldNames,
+  OnboardingTopLevelArrayFieldNames,
   OnboardingWizardFormValues,
 } from './types';
 
@@ -454,7 +454,7 @@ export function getFieldRuleByClientContext(
     fieldNameParts[2] !== undefined
   ) {
     const subFieldName =
-      fieldNameParts[2] as keyof OnboardingWizardFormValues[OnboardingWizardArrayFieldNames][number];
+      fieldNameParts[2] as keyof OnboardingWizardFormValues[OnboardingTopLevelArrayFieldNames][number];
     const subFieldConfig = baseFieldConfig.subFields[subFieldName];
 
     // If the subfield is not mapped, return parent rule

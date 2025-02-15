@@ -20,8 +20,10 @@ export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
   z.infer<typeof OrganizationStepFormSchema> &
   z.infer<typeof IndividualStepFormSchema>;
 
-export type OnboardingWizardArrayFieldNames =
-  FieldArrayPath<OnboardingWizardFormValues>;
+export type OnboardingTopLevelArrayFieldNames = Extract<
+  FieldArrayPath<OnboardingWizardFormValues>,
+  keyof OnboardingWizardFormValues
+>;
 
 export type Jurisdiction = 'US' | 'CA';
 
@@ -89,7 +91,7 @@ export type FieldConfiguration<K extends keyof OnboardingWizardFormValues> =
   | FieldConfigurationNoMapping;
 
 export interface ArrayFieldConfiguration<
-  K extends OnboardingWizardArrayFieldNames,
+  K extends OnboardingTopLevelArrayFieldNames,
 > extends Omit<FieldConfiguration<K>, 'baseRule' | 'conditionalRules'> {
   baseRule: ArrayFieldRule;
   conditionalRules?: Array<{
@@ -104,7 +106,7 @@ export interface ArrayFieldConfiguration<
 
 export type CombinedFieldConfiguration<
   K extends keyof OnboardingWizardFormValues,
-> = K extends OnboardingWizardArrayFieldNames
+> = K extends OnboardingTopLevelArrayFieldNames
   ? ArrayFieldConfiguration<K>
   : FieldConfiguration<K>;
 

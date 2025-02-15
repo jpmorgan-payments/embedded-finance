@@ -16,14 +16,14 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   ArrayFieldRule,
-  OnboardingWizardArrayFieldNames,
+  OnboardingTopLevelArrayFieldNames,
 } from '../utils/types';
 
 interface OnboardingArrayFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TFieldArrayName extends
     FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
-> extends UseFieldArrayProps<TFieldValues, TFieldArrayName> {
+> extends Omit<UseFieldArrayProps<TFieldValues, TFieldArrayName>, 'rules'> {
   className?: string;
   removeButtonClassName?: string;
   appendButtonClassName?: string;
@@ -59,6 +59,7 @@ export function OnboardingArrayField<
   renderReadOnlyItem = (field) => JSON.stringify(field),
   disableFieldRuleMapping,
   fieldRuleOverride = {},
+  ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -75,7 +76,7 @@ export function OnboardingArrayField<
     };
   } else {
     const fieldRuleConfig = getFieldRule(
-      name as OnboardingWizardArrayFieldNames
+      name as OnboardingTopLevelArrayFieldNames
     );
     if (fieldRuleConfig.ruleType !== 'array') {
       throw new Error(`Field ${name} is not configured as an array field.`);
@@ -97,6 +98,7 @@ export function OnboardingArrayField<
   const { fields, append, remove } = useFieldArray({
     control,
     name,
+    ...props,
   });
 
   // TODO: handle no content token found

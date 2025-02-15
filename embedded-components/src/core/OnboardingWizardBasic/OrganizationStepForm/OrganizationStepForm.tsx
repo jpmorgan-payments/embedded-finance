@@ -475,7 +475,7 @@ export const OrganizationStepForm = () => {
           name="addresses"
           defaultAppendValue={{
             addressType: 'BUSINESS_ADDRESS',
-            addressLines: [''],
+            addressLines: [{ value: '' }],
             city: '',
             state: '',
             postalCode: '',
@@ -523,6 +523,19 @@ export const OrganizationStepForm = () => {
                 control={form.control}
                 name={`addresses.${index}.addressLines.1`}
                 type="text"
+              />
+
+              <OnboardingArrayField
+                control={form.control}
+                name="addresses.0.addressLines"
+                defaultAppendValue={{ value: '' }}
+                renderItem={({ index: lineIndex }) => (
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`addresses.${index}.addressLines.${lineIndex}`}
+                    type="text"
+                  />
+                )}
               />
 
               <OnboardingFormField
@@ -600,98 +613,88 @@ export const OrganizationStepForm = () => {
                   </div>
                 </div>
               )}
-            {organizationIdFields.map((fieldItem, index) => {
-              const idType = form.watch(`organizationIds.${index}.idType`);
-              return (
-                <fieldset
-                  key={`organization-id-${index}`}
-                  className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-                >
-                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Business Identification{' '}
-                    {Number(getArrayFieldRule('organizationIds')?.maxItems) > 1
-                      ? index + 1
-                      : ''}
-                  </legend>
-
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`organizationIds.${index}.idType`}
-                    type="select"
-                    options={[
-                      { value: 'EIN', label: 'EIN' },
-                      {
-                        value: 'BUSINESS_REGISTRATION_ID',
-                        label: 'Business Registration ID',
-                      },
-                      { value: 'BUSINESS_NUMBER', label: 'Business Number' },
-                      {
-                        value: 'BUSINESS_REGISTRATION_NUMBER',
-                        label: 'Business Registration Number',
-                      },
-                    ]}
-                  />
-
-                  <OnboardingFormField
-                    key={`organization-id-value-${index}-${idType}`}
-                    control={form.control}
-                    name={`organizationIds.${index}.value`}
-                    type="text"
-                    label={getValueLabel(idType)}
-                    maskFormat={getMaskFormat(idType)}
-                    maskChar="_"
-                  />
-
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`organizationIds.${index}.issuer`}
-                    type="combobox"
-                    options={COUNTRIES_OF_FORMATION.map((code) => ({
-                      value: code,
-                      label: (
-                        <span>
-                          <span className="eb-font-medium">[{code}]</span>{' '}
-                          {t([
-                            `common:countries.${code}`,
-                          ] as unknown as TemplateStringsArray)}
-                        </span>
-                      ),
-                    }))}
-                  />
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`organizationIds.${index}.expiryDate`}
-                    type="date"
-                  />
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`organizationIds.${index}.description`}
-                    type="text"
-                  />
-
-                  {organizationIdFields.length >
-                    Number(getArrayFieldRule('organizationIds')?.minItems) && (
-                    <div className="eb-col-span-full">
-                      <Button
-                        type="button"
-                        disabled={
-                          organizationIdFields.length <
-                          (getArrayFieldRule('organizationIds')?.minItems ?? 0)
-                        }
-                        onClick={() => removeOrganizationId(index)}
-                        variant="outline"
-                        size="sm"
-                        className="eb-mt-2"
-                      >
-                        Remove Business Identification
-                      </Button>
-                    </div>
-                  )}
-                </fieldset>
-              );
-            })}
           </>
         )}
+
+        <OnboardingArrayField
+          control={form.control}
+          name="organizationIds"
+          defaultAppendValue={{
+            idType: 'EIN',
+            value: '',
+            issuer: '',
+          }}
+          fieldRuleOverride={{
+            visibility: isFormDisabled ? 'disabled' : 'visible',
+          }}
+          renderItem={({ field, index, label, renderRemoveButton }) => (
+            <fieldset
+              className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              disabled={isFormDisabled}
+            >
+              <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                {label}
+              </legend>
+
+              <OnboardingFormField
+                control={form.control}
+                name={`organizationIds.${index}.idType`}
+                type="select"
+                options={[
+                  { value: 'EIN', label: 'EIN' },
+                  {
+                    value: 'BUSINESS_REGISTRATION_ID',
+                    label: 'Business Registration ID',
+                  },
+                  { value: 'BUSINESS_NUMBER', label: 'Business Number' },
+                  {
+                    value: 'BUSINESS_REGISTRATION_NUMBER',
+                    label: 'Business Registration Number',
+                  },
+                ]}
+              />
+
+              <OnboardingFormField
+                key={`organization-id-value-${index}-${field.idType}`}
+                control={form.control}
+                name={`organizationIds.${index}.value`}
+                type="text"
+                label={getValueLabel(field.idType)}
+                maskFormat={getMaskFormat(field.idType)}
+                maskChar="_"
+              />
+
+              <OnboardingFormField
+                control={form.control}
+                name={`organizationIds.${index}.issuer`}
+                type="combobox"
+                options={COUNTRIES_OF_FORMATION.map((code) => ({
+                  value: code,
+                  label: (
+                    <span>
+                      <span className="eb-font-medium">[{code}]</span>{' '}
+                      {t([
+                        `common:countries.${code}`,
+                      ] as unknown as TemplateStringsArray)}
+                    </span>
+                  ),
+                }))}
+              />
+              <OnboardingFormField
+                control={form.control}
+                name={`organizationIds.${index}.expiryDate`}
+                type="date"
+              />
+              <OnboardingFormField
+                control={form.control}
+                name={`organizationIds.${index}.description`}
+                type="text"
+              />
+
+              {renderRemoveButton()}
+            </fieldset>
+          )}
+        />
         {Number(getArrayFieldRule('organizationIds')?.maxItems) >
           organizationIdFields.length && (
           <Button
