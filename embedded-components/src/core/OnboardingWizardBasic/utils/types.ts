@@ -54,7 +54,7 @@ export type ClientContext = {
   entityType?: OrganizationType;
 };
 
-type FieldRuleCondition = {
+export type FieldRuleCondition = {
   product?: ClientProduct[];
   jurisdiction?: CountryCodeIsoAlpha2[];
   entityType?: OrganizationType[];
@@ -69,46 +69,56 @@ type BaseFieldConfiguration = {
   excludeFromMapping?: boolean;
 };
 
-export interface FieldConfigurationWithMapping<
-  K extends keyof OnboardingWizardFormValues,
-  T extends OnboardingWizardFormValues[K] = OnboardingWizardFormValues[K],
-> extends BaseFieldConfiguration {
-  excludeFromMapping?: false;
-  path: string;
-  fromResponseFn?: (val: any) => T;
-  toRequestFn?: (val: T) => any;
-}
+type FieldConfigurationGeneric<K extends string, T> =
+  | ({
+      key?: K; // phantom property
+      excludeFromMapping?: false;
+      path: string;
+      fromResponseFn?: (val: any) => T;
+      toRequestFn?: (val: T) => any;
+    } & BaseFieldConfiguration)
+  | ({
+      key?: K; // phantom property
+      excludeFromMapping: true;
+      path?: never;
+      fromResponseFn?: never;
+      toRequestFn?: never;
+    } & BaseFieldConfiguration);
 
-export interface FieldConfigurationNoMapping extends BaseFieldConfiguration {
-  excludeFromMapping: true;
-  path?: never;
-  fromResponseFn?: never;
-  toRequestFn?: never;
-}
-
-export type FieldConfiguration<K extends keyof OnboardingWizardFormValues> =
-  | FieldConfigurationWithMapping<K>
-  | FieldConfigurationNoMapping;
-
-export interface ArrayFieldConfiguration<
-  K extends OnboardingTopLevelArrayFieldNames,
-> extends Omit<FieldConfiguration<K>, 'baseRule' | 'conditionalRules'> {
+interface ArrayFieldConfigurationGeneric<
+  K extends string,
+  T extends readonly unknown[],
+> extends Omit<
+    FieldConfigurationGeneric<K, T>,
+    'baseRule' | 'conditionalRules'
+  > {
   baseRule: ArrayFieldRule;
   conditionalRules?: Array<{
     condition: FieldRuleCondition;
     rule: Partial<ArrayFieldRule>;
   }>;
-  subFields: Record<
-    keyof OnboardingWizardFormValues[K][number],
-    Pick<FieldConfiguration<any>, 'baseRule' | 'conditionalRules'>
-  >;
+  subFields: {
+    [P in Extract<
+      keyof T[number],
+      string
+    >]: T[number][P] extends readonly unknown[]
+      ? ArrayFieldConfigurationGeneric<P, T[number][P]>
+      : Pick<
+          FieldConfigurationGeneric<P, T[number][P]>,
+          'baseRule' | 'conditionalRules'
+        >;
+  };
 }
+
+type CombinedFieldConfigurationFor<T, K extends string> = [T] extends [boolean]
+  ? FieldConfigurationGeneric<K, boolean>
+  : T extends readonly unknown[]
+    ? ArrayFieldConfigurationGeneric<K, T>
+    : FieldConfigurationGeneric<K, T>;
 
 export type CombinedFieldConfiguration<
   K extends keyof OnboardingWizardFormValues,
-> = K extends OnboardingTopLevelArrayFieldNames
-  ? ArrayFieldConfiguration<K>
-  : FieldConfiguration<K>;
+> = CombinedFieldConfigurationFor<OnboardingWizardFormValues[K], K & string>;
 
 export type PartyFieldMap = {
   [K in keyof OnboardingWizardFormValues]: CombinedFieldConfiguration<K>;

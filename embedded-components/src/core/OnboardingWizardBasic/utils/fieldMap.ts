@@ -1,6 +1,6 @@
 import { parsePhoneNumber } from 'react-phone-number-input';
 
-import { PhoneSmbdo } from '@/api/generated/smbdo.schemas';
+import { AddressDto, PhoneSmbdo } from '@/api/generated/smbdo.schemas';
 
 import { PartyFieldMap } from './types';
 
@@ -87,7 +87,17 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: { visibility: 'visible', required: true },
       },
       addressLines: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: {
+          visibility: 'visible',
+          minItems: 2,
+          maxItems: 2,
+          requiredItems: 1,
+        },
+        subFields: {
+          value: {
+            baseRule: { visibility: 'visible', required: true },
+          },
+        },
       },
       city: {
         baseRule: { visibility: 'visible', required: true },
@@ -101,6 +111,22 @@ export const partyFieldMap: PartyFieldMap = {
       country: {
         baseRule: { visibility: 'visible', required: true },
       },
+    },
+    fromResponseFn: (addressesFromApi: AddressDto[]) => {
+      return addressesFromApi.map((address) => ({
+        ...address,
+        addressLines: address.addressLines.map((line: any) => ({
+          value: line.value,
+        })),
+        state: address.state ?? '',
+        addressType: address.addressType ?? 'LEGAL_ADDRESS',
+      }));
+    },
+    toRequestFn: (addresses): AddressDto[] => {
+      return addresses.map((address) => ({
+        ...address,
+        addressLines: address.addressLines.map(({ value }) => value),
+      }));
     },
   },
   associatedCountries: {
@@ -154,7 +180,7 @@ export const partyFieldMap: PartyFieldMap = {
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
-    toRequestFn: (val: any): PhoneSmbdo => {
+    toRequestFn: (val): PhoneSmbdo => {
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
@@ -173,7 +199,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.websiteAvailable',
     baseRule: { visibility: 'visible', required: false },
     fromResponseFn: (val: boolean) => !val,
-    toRequestFn: (val: boolean) => !val,
+    toRequestFn: (val): boolean => !val,
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
@@ -312,7 +338,17 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: { visibility: 'visible', required: true },
       },
       addressLines: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: {
+          visibility: 'visible',
+          minItems: 2,
+          maxItems: 2,
+          requiredItems: 1,
+        },
+        subFields: {
+          value: {
+            baseRule: { visibility: 'visible', required: true },
+          },
+        },
       },
       city: {
         baseRule: { visibility: 'visible', required: true },
@@ -327,6 +363,22 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: { visibility: 'visible', required: true },
       },
     },
+    fromResponseFn: (addressesFromApi: AddressDto[]) => {
+      return addressesFromApi.map((address) => ({
+        ...address,
+        addressLines: address.addressLines.map((line: any) => ({
+          value: line.value,
+        })),
+        state: address.state ?? '',
+        addressType: address.addressType ?? 'LEGAL_ADDRESS',
+      }));
+    },
+    toRequestFn: (addresses): AddressDto[] => {
+      return addresses.map((address) => ({
+        ...address,
+        addressLines: address.addressLines.map(({ value }) => value),
+      }));
+    },
   },
   individualPhone: {
     path: 'individualDetails.phone',
@@ -335,7 +387,7 @@ export const partyFieldMap: PartyFieldMap = {
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
     }),
-    toRequestFn: (val: any): PhoneSmbdo => {
+    toRequestFn: (val): PhoneSmbdo => {
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
