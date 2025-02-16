@@ -6,73 +6,146 @@ import { PartyFieldMap } from './types';
 
 // Source of truth for mapping form fields to API fields
 // path is used for handling server errors and mapping values from/to the API
-// rules are used for configuring field visibility, required, etc.
+// rules are used for configuring field display, required, etc.
 export const partyFieldMap: PartyFieldMap = {
   product: {
     excludeFromMapping: true,
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: null,
+    },
+  },
+  jurisdiction: {
+    path: 'organizationDetails.jurisdiction',
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: null,
+    },
   },
   organizationName: {
     path: 'organizationDetails.organizationName',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   organizationType: {
     path: 'organizationDetails.organizationType',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: null,
+    },
   },
   countryOfFormation: {
     path: 'organizationDetails.countryOfFormation',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: 'US',
+    },
   },
-  // These two fields have the same path, but can have different rules and translations
   organizationEmail: {
     path: 'email',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   individualEmail: {
     path: 'email',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
   },
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   dbaName: {
     path: 'organizationDetails.dbaName',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
     conditionalRules: [
       {
         condition: {
           product: ['MERCHANT_SERVICES'],
           jurisdiction: ['CA'],
         },
-        rule: { visibility: 'hidden' },
+        rule: { display: 'hidden' },
       },
     ],
   },
   organizationDescription: {
     path: 'organizationDetails.organizationDescription',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   industryCategory: {
     path: 'organizationDetails.industryCategory',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   industryType: {
     path: 'organizationDetails.industryType',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   mcc: {
     path: 'organizationDetails.mcc',
-    baseRule: { visibility: 'hidden', required: false },
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
   },
   addresses: {
     path: 'organizationDetails.addresses',
     baseRule: {
-      visibility: 'visible',
+      display: 'visible',
       minItems: 1,
       maxItems: 1,
       requiredItems: 1,
+      defaultValue: [
+        {
+          addressType: 'BUSINESS_ADDRESS',
+          addressLines: [{ value: '' }, { value: '' }],
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+      ],
+      defaultAppendValue: {
+        addressType: 'BUSINESS_ADDRESS',
+        addressLines: [{ value: '' }, { value: '' }],
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
+      },
     },
     conditionalRules: [
       {
@@ -84,32 +157,32 @@ export const partyFieldMap: PartyFieldMap = {
     ],
     subFields: {
       addressType: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       addressLines: {
         baseRule: {
-          visibility: 'visible',
+          display: 'visible',
           minItems: 2,
           maxItems: 2,
           requiredItems: 1,
         },
         subFields: {
           value: {
-            baseRule: { visibility: 'visible', required: true },
+            baseRule: { display: 'visible', required: true },
           },
         },
       },
       city: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       state: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       postalCode: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       country: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
     },
     fromResponseFn: (addressesFromApi: AddressDto[]) => {
@@ -132,50 +205,78 @@ export const partyFieldMap: PartyFieldMap = {
   associatedCountries: {
     path: 'organizationDetails.associatedCountries',
     baseRule: {
-      visibility: 'hidden',
+      display: 'hidden',
       minItems: 0,
       maxItems: 100,
       requiredItems: 0,
+      defaultValue: [],
+      defaultAppendValue: {
+        country: '',
+      },
     },
     subFields: {
       country: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
     },
-  },
-  jurisdiction: {
-    path: 'organizationDetails.jurisdiction',
-    baseRule: { visibility: 'visible', required: true },
   },
   organizationIds: {
     path: 'organizationDetails.organizationIds',
     baseRule: {
-      visibility: 'visible',
+      display: 'visible',
+      minItems: 1,
       maxItems: 1,
-      minItems: 0,
-      requiredItems: 0,
+      requiredItems: 1,
+      defaultValue: [
+        {
+          idType: 'EIN',
+          issuer: 'US',
+          value: '',
+        },
+      ],
+      defaultAppendValue: {
+        idType: 'EIN',
+        issuer: '',
+        value: '',
+      },
     },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          minItems: 0,
+          requiredItems: 0,
+          defaultValue: [],
+        },
+      },
+    ],
     subFields: {
       idType: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       issuer: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       value: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       description: {
-        baseRule: { visibility: 'visible', required: false },
+        baseRule: { display: 'visible', required: false },
       },
       expiryDate: {
-        baseRule: { visibility: 'visible', required: false },
+        baseRule: { display: 'visible', required: false },
       },
     },
   },
   organizationPhone: {
     path: 'organizationDetails.phone',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: { phoneType: 'BUSINESS_PHONE', phoneNumber: '' },
+    },
     fromResponseFn: (val: PhoneSmbdo) => ({
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
@@ -193,68 +294,96 @@ export const partyFieldMap: PartyFieldMap = {
   },
   website: {
     path: 'organizationDetails.website',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
   },
   websiteAvailable: {
     path: 'organizationDetails.websiteAvailable',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: false,
+    },
     fromResponseFn: (val: boolean) => !val,
     toRequestFn: (val): boolean => !val,
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
     baseRule: {
-      visibility: 'hidden',
+      display: 'hidden',
       minItems: 0,
       maxItems: 50,
       requiredItems: 0,
+      defaultValue: [],
+      defaultAppendValue: {
+        mcc: '',
+      },
     },
     subFields: {
       mcc: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
     },
   },
   birthDate: {
     path: 'individualDetails.birthDate',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
   },
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: { display: 'visible', required: true, defaultValue: '' },
   },
   firstName: {
     path: 'individualDetails.firstName',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: { display: 'visible', required: true, defaultValue: '' },
   },
   middleName: {
     path: 'individualDetails.middleName',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
   },
   lastName: {
     path: 'individualDetails.lastName',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: { display: 'visible', required: true, defaultValue: '' },
   },
   nameSuffix: {
     path: 'individualDetails.nameSuffix',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {
         condition: {
           product: ['MERCHANT_SERVICES'],
           jurisdiction: ['CA'],
         },
-        rule: { visibility: 'hidden' },
+        rule: { display: 'hidden' },
       },
     ],
   },
   individualIds: {
     path: 'individualDetails.individualIds',
     baseRule: {
-      visibility: 'visible',
+      display: 'visible',
       minItems: 1,
       maxItems: 1,
       requiredItems: 1,
+      defaultValue: [
+        {
+          idType: 'SSN',
+          issuer: 'US',
+          value: '',
+        },
+      ],
+      defaultAppendValue: {
+        idType: 'SSN',
+        issuer: 'US',
+        value: '',
+      },
     },
     conditionalRules: [
       {
@@ -262,68 +391,82 @@ export const partyFieldMap: PartyFieldMap = {
           product: ['MERCHANT_SERVICES'],
           jurisdiction: ['CA'],
         },
-        rule: { visibility: 'hidden' },
+        rule: { display: 'hidden' },
       },
     ],
     subFields: {
       idType: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       issuer: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       value: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       description: {
-        baseRule: { visibility: 'visible', required: false },
+        baseRule: { display: 'visible', required: false },
       },
       expiryDate: {
-        baseRule: { visibility: 'visible', required: false },
+        baseRule: { display: 'visible', required: false },
       },
     },
   },
   jobTitle: {
     path: 'individualDetails.jobTitle',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: { display: 'visible', required: true, defaultValue: '' },
     conditionalRules: [
       {
         condition: {
           product: ['MERCHANT_SERVICES'],
           jurisdiction: ['CA'],
         },
-        rule: { visibility: 'hidden' },
+        rule: { display: 'hidden' },
       },
     ],
   },
   jobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {
         condition: {
           product: ['MERCHANT_SERVICES'],
           jurisdiction: ['CA'],
         },
-        rule: { visibility: 'hidden' },
+        rule: { display: 'hidden' },
       },
     ],
   },
   natureOfOwnership: {
     path: 'individualDetails.natureOfOwnership',
-    baseRule: { visibility: 'visible', required: false },
+    baseRule: { display: 'visible', required: false, defaultValue: null },
   },
-  // soleOwner: {
-  //   path: 'individualDetails.soleOwner',
-  //   baseRule: { visibility: 'visible', required: true },
-  // },
   individualAddresses: {
     path: 'individualDetails.addresses',
     baseRule: {
-      visibility: 'visible',
+      display: 'visible',
       minItems: 1,
       maxItems: 1,
       requiredItems: 1,
+      defaultValue: [
+        {
+          addressType: 'RESIDENTIAL_ADDRESS',
+          addressLines: [{ value: '' }, { value: '' }],
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+      ],
+      defaultAppendValue: {
+        addressType: 'RESIDENTIAL_ADDRESS',
+        addressLines: [{ value: '' }, { value: '' }],
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
+      },
     },
     conditionalRules: [
       {
@@ -335,32 +478,32 @@ export const partyFieldMap: PartyFieldMap = {
     ],
     subFields: {
       addressType: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       addressLines: {
         baseRule: {
-          visibility: 'visible',
+          display: 'visible',
           minItems: 2,
           maxItems: 2,
           requiredItems: 1,
         },
         subFields: {
           value: {
-            baseRule: { visibility: 'visible', required: true },
+            baseRule: { display: 'visible', required: true },
           },
         },
       },
       city: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       state: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       postalCode: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
       country: {
-        baseRule: { visibility: 'visible', required: true },
+        baseRule: { display: 'visible', required: true },
       },
     },
     fromResponseFn: (addressesFromApi: AddressDto[]) => {
@@ -382,7 +525,11 @@ export const partyFieldMap: PartyFieldMap = {
   },
   individualPhone: {
     path: 'individualDetails.phone',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
+    },
     fromResponseFn: (val: PhoneSmbdo) => ({
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,

@@ -2,6 +2,7 @@ import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
+import { nullableInput } from '../utils/zodNullableInput';
 
 // Constants for validation
 const NAME_PATTERN = /^[a-zA-Z0-9()_/\\&+%@#;,.: -?]*$/;
@@ -259,5 +260,8 @@ export const IndividualStepFormSchema = z.object({
       i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
     ),
   individualPhone: PhoneSchema,
-  natureOfOwnership: z.enum(['Direct', 'Indirect']),
+  natureOfOwnership: nullableInput(
+    z.enum(['Direct', 'Indirect']),
+    i18n.t('common:validation.required')
+  ),
 });

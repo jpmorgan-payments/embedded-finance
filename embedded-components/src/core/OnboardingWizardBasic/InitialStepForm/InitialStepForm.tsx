@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import {
   useSmbdoGetClient,
@@ -62,7 +61,7 @@ export const InitialStepForm = () => {
       : undefined;
 
   // Create a form with empty default values
-  const form = useStepFormWithFilters<z.infer<typeof InitialStepFormSchema>>({
+  const form = useStepFormWithFilters({
     clientData,
     schema: InitialStepFormSchema,
     defaultValues: {
@@ -283,9 +282,7 @@ export const InitialStepForm = () => {
                 value: product,
                 label: t(`clientProducts.${product}`),
               }))}
-              fieldRuleOverride={{
-                visibility: defaultProduct || clientId ? 'readonly' : 'visible',
-              }}
+              readonly={Boolean(defaultProduct || clientId)}
             />
 
             <OnboardingFormField
@@ -298,10 +295,7 @@ export const InitialStepForm = () => {
                   jurisdiction
                 })`,
               }))}
-              fieldRuleOverride={{
-                visibility:
-                  availableJurisdictions?.length === 1 ? 'readonly' : 'visible',
-              }}
+              readonly={Boolean(defaultJurisdiction)}
             />
 
             <OnboardingFormField
@@ -363,73 +357,76 @@ export const InitialStepForm = () => {
               <CardDescription>{t('initialStepDescription2')}</CardDescription>
             </CardHeader>
             <CardContent>
-              {form.watch('organizationType') ? (
-                <>
-                  <p className="eb-my-4 eb-text-sm">
-                    <Trans
-                      t={t}
-                      i18nKey={
-                        form.watch('product') && form.watch('jurisdiction')
-                          ? 'initialStepOrganizationTypeInformationFull'
-                          : 'initialStepOrganizationTypeInformationBasic'
-                      }
-                      values={{
-                        organizationType: form.watch('organizationType'),
-                        product: form.watch('product')
-                          ? t(`clientProducts.${form.watch('product')}`)
-                          : '',
-                        jurisdiction: form.watch('jurisdiction')
-                          ? t(
-                              `clientJurisdictions.${form.watch('jurisdiction')}`
-                            )
-                          : '',
-                      }}
-                    />
-                  </p>
-                  {Object.entries(
-                    generateRequiredFieldsList(
-                      form.watch('organizationType'),
-                      form.watch('product'),
-                      form.watch('jurisdiction')
-                    ).fields
-                  ).map(([step, fields]) => (
-                    <div key={step} className="eb-mb-4">
+              {(() => {
+                const organizationType = form.watch('organizationType');
+                const product = form.watch('product');
+                const jurisdiction = form.watch('jurisdiction');
+                return organizationType ? (
+                  <>
+                    <p className="eb-my-4 eb-text-sm">
+                      <Trans
+                        t={t}
+                        i18nKey={
+                          form.watch('product') && form.watch('jurisdiction')
+                            ? 'initialStepOrganizationTypeInformationFull'
+                            : 'initialStepOrganizationTypeInformationBasic'
+                        }
+                        values={{
+                          organizationType: form.watch('organizationType'),
+                          product: product
+                            ? t(`clientProducts.${product}`)
+                            : '',
+                          jurisdiction: jurisdiction
+                            ? t(`clientJurisdictions.${jurisdiction}`)
+                            : '',
+                        }}
+                      />
+                    </p>
+                    {Object.entries(
+                      generateRequiredFieldsList(
+                        organizationType,
+                        product || defaultProduct,
+                        jurisdiction || defaultJurisdiction
+                      ).fields
+                    ).map(([step, fields]) => (
+                      <div key={step} className="eb-mb-4">
+                        <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
+                          {t(`stepLabels.${step}`, {
+                            defaultValue: step,
+                          }).toUpperCase()}
+                        </h4>
+                        <ul>
+                          {fields.map((fieldKey) => (
+                            <li key={fieldKey} className="eb-text-sm">
+                              - {t(fieldKey, { defaultValue: fieldKey })}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                    <div className="eb-mt-6">
                       <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
-                        {t(`stepLabels.${step}`, {
-                          defaultValue: step,
-                        }).toUpperCase()}
+                        {t('initialStepNotes.title')}
                       </h4>
                       <ul>
-                        {fields.map((fieldKey) => (
-                          <li key={fieldKey} className="eb-text-sm">
-                            - {t(fieldKey, { defaultValue: fieldKey })}
+                        {generateRequiredFieldsList(
+                          organizationType,
+                          product || defaultProduct,
+                          jurisdiction || defaultJurisdiction
+                        ).notes.map((noteKey) => (
+                          <li key={noteKey} className="eb-text-sm">
+                            - {t(noteKey, { defaultValue: noteKey })}
                           </li>
                         ))}
                       </ul>
                     </div>
-                  ))}
-                  <div className="eb-mt-6">
-                    <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
-                      {t('initialStepNotes.title')}
-                    </h4>
-                    <ul>
-                      {generateRequiredFieldsList(
-                        form.watch('organizationType'),
-                        form.watch('product'),
-                        form.watch('jurisdiction')
-                      ).notes.map((noteKey) => (
-                        <li key={noteKey} className="eb-text-sm">
-                          - {t(noteKey, { defaultValue: noteKey })}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
-              ) : (
-                <p className="eb-my-4 eb-text-sm">
-                  <Trans t={t} i18nKey="initialStepNoOrganizationType" />
-                </p>
-              )}
+                  </>
+                ) : (
+                  <p className="eb-my-4 eb-text-sm">
+                    <Trans t={t} i18nKey="initialStepNoOrganizationType" />
+                  </p>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>

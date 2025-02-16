@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n/config';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import { z } from 'zod';
 
@@ -21,8 +22,18 @@ export const PhoneSchema = z.object({
 const AddressLineSchema = z.object({
   value: z
     .string()
-    .min(1, 'Address line is required')
-    .max(60, 'Address line must be 60 characters or less'),
+    .min(
+      1,
+      i18n.t(
+        'onboarding:fields.addresses.addressLines.value.validation.required'
+      )
+    )
+    .max(
+      60,
+      i18n.t(
+        'onboarding:fields.addresses.addressLines.value.validation.maxLength'
+      )
+    ),
 });
 
 export const AddressSchema = z.object({

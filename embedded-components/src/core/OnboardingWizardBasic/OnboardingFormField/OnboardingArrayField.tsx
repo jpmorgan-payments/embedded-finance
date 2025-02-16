@@ -18,6 +18,7 @@ import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   ArrayFieldRule,
   OnboardingTopLevelArrayFieldNames,
+  OptionalDefaults,
 } from '../utils/types';
 
 interface OnboardingArrayFieldProps<
@@ -25,10 +26,14 @@ interface OnboardingArrayFieldProps<
   TFieldArrayName extends
     FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
 > extends Omit<UseFieldArrayProps<TFieldValues, TFieldArrayName>, 'rules'> {
-  className?: string;
   removeButtonClassName?: string;
   appendButtonClassName?: string;
-  defaultAppendValue: FieldArray<TFieldValues, TFieldArrayName>;
+  minItems?: number;
+  maxItems?: number;
+  requiredItems?: number;
+  appendValue?: FieldArray<TFieldValues, TFieldArrayName>;
+  disabled?: boolean;
+  readonly?: boolean;
   renderItem: (props: {
     field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
     index: number;
@@ -43,7 +48,6 @@ interface OnboardingArrayFieldProps<
     label: string;
   }) => React.ReactNode;
   disableFieldRuleMapping?: boolean;
-  fieldRuleOverride?: ArrayFieldRule<FieldValue<TFieldValues>>;
 }
 
 export function OnboardingArrayField<
@@ -52,14 +56,14 @@ export function OnboardingArrayField<
 >({
   control,
   name,
-  className,
   removeButtonClassName,
   appendButtonClassName,
-  defaultAppendValue,
+  appendValue,
+  disabled,
+  readonly,
   renderItem,
   renderReadOnlyItem = (field) => JSON.stringify(field),
   disableFieldRuleMapping,
-  fieldRuleOverride = {},
   ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
   const { clientId } = useOnboardingContext();
@@ -68,14 +72,10 @@ export function OnboardingArrayField<
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  let fieldRule: ArrayFieldRule<FieldValue<TFieldValues>> = {};
-  if (disableFieldRuleMapping) {
-    fieldRule = {
-      minItems: 0,
-      maxItems: Infinity,
-      requiredItems: 0,
-    };
-  } else {
+  let fieldRule: OptionalDefaults<ArrayFieldRule<FieldValue<TFieldValues>>> =
+    {};
+
+  if (!disableFieldRuleMapping) {
     const fieldRuleConfig = getFieldRule(
       name as OnboardingTopLevelArrayFieldNames
     );
@@ -84,15 +84,19 @@ export function OnboardingArrayField<
     }
     fieldRule = fieldRuleConfig.fieldRule;
   }
-  // Apply overrides if provided
-  fieldRule = {
-    ...fieldRule,
-    ...fieldRuleOverride,
-  };
 
-  const fieldVisibility = fieldRule.visibility ?? 'visible';
-
-  if (fieldVisibility === 'hidden') {
+  const fieldDisplay = fieldRule.display ?? 'visible';
+  const fieldInteraction =
+    readonly || fieldRule.interaction === 'readonly'
+      ? 'readonly'
+      : disabled || fieldRule.interaction === 'disabled'
+        ? 'disabled'
+        : (fieldRule.interaction ?? 'enabled');
+  const fieldAppendValue =
+    appendValue ??
+    fieldRule.defaultAppendValue ??
+    ({} as FieldValue<TFieldValues>);
+  if (fieldDisplay === 'hidden') {
     return null;
   }
 
@@ -102,9 +106,14 @@ export function OnboardingArrayField<
     ...props,
   });
 
+  const nameNoIndex = name
+    .split('.')
+    .filter((segment) => !/^\d+$/.test(segment))
+    .join('.');
+
   // TODO: handle no content token found
   const getContentToken = (id: string, number?: number) =>
-    t([`fields.${name}.${id}`, ''] as unknown as TemplateStringsArray, {
+    t([`fields.${nameNoIndex}.${id}`, ''] as unknown as TemplateStringsArray, {
       number,
     });
 
@@ -114,7 +123,7 @@ export function OnboardingArrayField<
       : getContentToken('labelNumbered', index + 1);
 
   const renderRemoveButton = (index: number) => {
-    if (fieldVisibility === 'readonly') {
+    if (fieldInteraction === 'readonly') {
       return null;
     }
     if (fields.length <= (fieldRule.minItems ?? 0)) {
@@ -126,7 +135,7 @@ export function OnboardingArrayField<
         size="icon"
         className={cn('eb-mt-2', removeButtonClassName)}
         onClick={() => remove(index)}
-        disabled={fieldVisibility === 'disabled'}
+        disabled={fieldInteraction === 'disabled'}
       >
         {getContentToken('removeLabel', index)}
       </Button>
@@ -134,7 +143,7 @@ export function OnboardingArrayField<
   };
 
   const renderAppendButton = () => {
-    if (fieldVisibility === 'readonly') {
+    if (fieldInteraction === 'readonly') {
       return null;
     }
     if (fields.length >= (fieldRule.maxItems ?? Infinity)) {
@@ -145,8 +154,8 @@ export function OnboardingArrayField<
         variant="outline"
         size="sm"
         className={cn('eb-mt-2', appendButtonClassName)}
-        onClick={() => append(defaultAppendValue)}
-        disabled={fieldVisibility === 'disabled'}
+        onClick={() => append(fieldAppendValue)}
+        disabled={fieldInteraction === 'disabled'}
       >
         {getContentToken('appendLabel')}
       </Button>
@@ -154,9 +163,9 @@ export function OnboardingArrayField<
   };
 
   return (
-    <div className={className}>
+    <>
       {fields.map((field, index) => {
-        if (fieldVisibility === 'readonly') {
+        if (fieldInteraction === 'readonly') {
           return renderReadOnlyItem?.({
             field,
             index,
@@ -168,12 +177,12 @@ export function OnboardingArrayField<
           index,
           label: getFieldLabel(index),
           required: index < (fieldRule.requiredItems ?? 0),
-          disabled: fieldVisibility === 'disabled',
+          disabled: fieldInteraction === 'disabled',
           renderRemoveButton: () => renderRemoveButton(index),
         });
       })}
 
       {renderAppendButton()}
-    </div>
+    </>
   );
 }

@@ -199,11 +199,23 @@
       "appendLabel": "Add another address",
       "removeLabel": "Remove address",
       "addressLines": {
-        "label": "Address line {{index}}",
-        "placeholder": "Enter address line {{index}}",
-        "description": "Address line {{index}} of your business address",
+        "appendLabel": "Add another line",
+        "removeLabel": "Remove line",
+        "value": {
+          "label": "Address line {{index}}",
+          "placeholder": "Enter address line {{index}}",
+          "description": "Address line {{index}} of your business address",
+          "validation": {
+            "required": "Address line {{index}} is required",
+            "maxLength": "Address line must be 60 characters or less",
+            "pattern": "Address can only contain letters, numbers, and basic punctuation"
+          }
+        },
         "validation": {
-          "required": "Address line {{index}} is required"
+          "minLines_one": "At least one address line is required",
+          "minLines_other": "At least {number} address lines are required",
+          "maxLines_one": "Maximum one address line allowed",
+          "maxLines_other": "Maximum {number} address lines allowed"
         }
       },
       "city": {

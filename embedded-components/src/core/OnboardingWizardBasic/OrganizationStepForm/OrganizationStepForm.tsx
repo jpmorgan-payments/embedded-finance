@@ -50,10 +50,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import {
   useSmbdoGetClient,
@@ -121,64 +119,11 @@ export const OrganizationStepForm = () => {
     getArrayFieldRule,
   } = useFormUtilsWithClientContext(clientData);
 
-  const form = useStepFormWithFilters<
-    z.infer<typeof OrganizationStepFormSchema>
-  >({
+  const form = useStepFormWithFilters({
     clientData,
     schema: OrganizationStepFormSchema,
     refineSchemaFn: refineOrganizationStepFormSchema,
-    defaultValues: {
-      addresses: [
-        {
-          addressType: 'BUSINESS_ADDRESS',
-          city: '',
-          state: '',
-          postalCode: '',
-          country: '',
-          // addressLines: [''],
-        },
-      ],
-      ...(legalEntityType !== 'SOLE_PROPRIETORSHIP' && {
-        organizationIds: [
-          {
-            value: '',
-            idType: 'EIN',
-            issuer: '',
-          },
-        ],
-      }),
-      organizationPhone: {
-        phoneType: 'BUSINESS_PHONE',
-        phoneNumber: '',
-      },
-    },
-  });
-
-  const {
-    fields: organizationIdFields,
-    append: appendOrganizationId,
-    remove: removeOrganizationId,
-  } = useFieldArray({
-    control: form.control,
-    name: 'organizationIds',
-  });
-
-  const {
-    fields: associatedCountriesFields,
-    append: appendAssociatedCountry,
-    remove: removeAssociatedCountry,
-  } = useFieldArray({
-    control: form.control,
-    name: 'associatedCountries',
-  });
-
-  const {
-    fields: secondaryMccFields,
-    append: appendSecondaryMcc,
-    remove: removeSecondaryMcc,
-  } = useFieldArray({
-    control: form.control,
-    name: 'secondaryMccList',
+    defaultValues: {},
   });
 
   // Get organization's party
@@ -473,17 +418,9 @@ export const OrganizationStepForm = () => {
         <OnboardingArrayField
           control={form.control}
           name="addresses"
-          defaultAppendValue={{
-            addressType: 'BUSINESS_ADDRESS',
-            addressLines: [{ value: '' }],
-            city: '',
-            state: '',
-            postalCode: '',
-            country: '',
-          }}
-          renderItem={({ index, label }) => (
+          renderItem={({ label, index, field }) => (
             <fieldset
-              key={`address-${index}`}
+              key={field.id}
               className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               disabled={isFormDisabled}
             >
@@ -514,25 +451,14 @@ export const OrganizationStepForm = () => {
                 ]}
               />
 
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.addressLines.0`}
-                type="text"
-              />
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.addressLines.1`}
-                type="text"
-              />
-
               <OnboardingArrayField
                 control={form.control}
-                name="addresses.0.addressLines"
-                defaultAppendValue={{ value: '' }}
-                renderItem={({ index: lineIndex }) => (
+                name={`addresses.${index}.addressLines`}
+                renderItem={({ index: lineIndex, field: lineField }) => (
                   <OnboardingFormField
+                    key={lineField.id}
                     control={form.control}
-                    name={`addresses.${index}.addressLines.${lineIndex}`}
+                    name={`addresses.${index}.addressLines.${lineIndex}.value`}
                     type="text"
                   />
                 )}
@@ -585,7 +511,7 @@ export const OrganizationStepForm = () => {
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
           <>
-            {organizationIdFields.length === 0 &&
+            {form.watch('organizationIds').length === 0 &&
               legalEntityType === 'SOLE_PROPRIETORSHIP' && (
                 <div className="eb-rounded-md eb-bg-blue-50 eb-p-4">
                   <div className="eb-flex">
@@ -619,14 +545,7 @@ export const OrganizationStepForm = () => {
         <OnboardingArrayField
           control={form.control}
           name="organizationIds"
-          defaultAppendValue={{
-            idType: 'EIN',
-            value: '',
-            issuer: '',
-          }}
-          fieldRuleOverride={{
-            visibility: isFormDisabled ? 'disabled' : 'visible',
-          }}
+          disabled={isFormDisabled}
           renderItem={({ field, index, label, renderRemoveButton }) => (
             <fieldset
               className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
@@ -695,29 +614,6 @@ export const OrganizationStepForm = () => {
             </fieldset>
           )}
         />
-        {Number(getArrayFieldRule('organizationIds')?.maxItems) >
-          organizationIdFields.length && (
-          <Button
-            type="button"
-            disabled={
-              organizationIdFields.length >=
-              (getArrayFieldRule('organizationIds')?.maxItems ?? 6)
-            }
-            onClick={() =>
-              appendOrganizationId(
-                { idType: 'EIN', value: '', issuer: '' },
-                {
-                  shouldFocus: true,
-                  focusName: `organizationIds.${organizationIdFields.length}.value`,
-                }
-              )
-            }
-            variant="outline"
-            size="sm"
-          >
-            Add Business Identification
-          </Button>
-        )}
 
         <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">

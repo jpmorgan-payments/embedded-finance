@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DefaultValues,
   FieldErrors,
+  FieldPath,
   FieldValues,
   useForm,
   UseFormProps,
@@ -29,20 +30,23 @@ import {
   ClientContext,
   CombinedFieldConfiguration,
   FieldRule,
+  isArrayFieldConfiguration,
   isArrayFieldRule,
+  OnboardingFormValuesInitial,
+  OnboardingFormValuesSubmit,
   OnboardingTopLevelArrayFieldNames,
-  OnboardingWizardFormValues,
+  OptionalDefaults,
 } from './types';
 
 type FormError = {
   field?:
-    | keyof OnboardingWizardFormValues
-    | `${keyof OnboardingWizardFormValues}${string}`;
+    | keyof OnboardingFormValuesSubmit
+    | `${keyof OnboardingFormValuesSubmit}${string}`;
   message: string;
   path?: string;
 };
 
-export function getPartyFieldConfig<K extends keyof OnboardingWizardFormValues>(
+export function getPartyFieldConfig<K extends keyof OnboardingFormValuesSubmit>(
   fieldName: K
 ): CombinedFieldConfiguration<K> {
   const fieldConfig = partyFieldMap[fieldName];
@@ -161,7 +165,7 @@ export function mapPartyApiErrorsToFormErrors(
  * Focuses the first field with an error
  */
 export function setApiFormErrors(
-  form: UseFormReturn<any>,
+  form: UseFormReturn<any, any, any>,
   apiFormErrors: FormError[]
 ) {
   let unhandledErrorString = '';
@@ -217,7 +221,7 @@ function setValueByPath(obj: any, path: string, value: any) {
  * Applies field transformations using toRequestFn if specified
  */
 export function generateClientRequestBody(
-  formValues: Partial<OnboardingWizardFormValues>,
+  formValues: Partial<OnboardingFormValuesSubmit>,
   partyIndex: number,
   arrayName: 'parties' | 'addParties',
   obj: Partial<CreateClientRequestSmbdo> | Partial<UpdateClientRequestSmbdo>
@@ -249,7 +253,7 @@ export function generateClientRequestBody(
  * Similar to generateRequestBody but specifically for party updates
  */
 export function generatePartyRequestBody(
-  formValues: Partial<OnboardingWizardFormValues>,
+  formValues: Partial<OnboardingFormValuesSubmit>,
   obj: Partial<UpdatePartyRequest>
 ) {
   objectEntries(formValues).forEach(([key, value]) => {
@@ -295,8 +299,8 @@ export function getValueByPath(obj: any, pathTemplate: string): any {
 export function convertClientResponseToFormValues(
   response: ClientResponse,
   partyId?: string
-): Partial<OnboardingWizardFormValues> {
-  const formValues: Partial<OnboardingWizardFormValues> = {};
+): Partial<OnboardingFormValuesSubmit> {
+  const formValues: Partial<OnboardingFormValuesSubmit> = {};
   const partyIndex =
     response.parties?.findIndex((party) => party?.id === partyId) ?? -1;
 
@@ -311,7 +315,7 @@ export function convertClientResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingWizardFormValues] = modifiedValue;
+      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
     }
   });
 
@@ -327,7 +331,11 @@ export function convertClientResponseToFormValues(
 function evaluateFieldRules(
   fieldConfig: AnyFieldConfiguration,
   clientContext: ClientContext
-): FieldRule | ArrayFieldRule {
+):
+  | FieldRule
+  | ArrayFieldRule
+  | OptionalDefaults<FieldRule>
+  | OptionalDefaults<ArrayFieldRule> {
   const { baseRule, conditionalRules } = fieldConfig;
   let rule = { ...baseRule };
   conditionalRules?.forEach(({ condition, rule: conditionalRule }) => {
@@ -378,36 +386,33 @@ export function useFormUtilsWithClientContext(
   }
 
   function modifyDefaultValues(
-    defaultValues: Partial<OnboardingWizardFormValues>
+    defaultValues: Partial<OnboardingFormValuesSubmit>
   ) {
     return modifyDefaultValuesByClientContext(defaultValues, clientContext);
   }
 
-  function getFieldRule(
-    fieldName:
-      | keyof OnboardingWizardFormValues
-      | `${keyof OnboardingWizardFormValues}.${string}`
-  ) {
+  function getFieldRule(fieldName: FieldPath<OnboardingFormValuesSubmit>) {
     return getFieldRuleByClientContext(fieldName, clientContext);
   }
 
   // TODO: remove these functions when all fields are using OnboardingFormField
   // Use for fields that don't use OnboardingFormField
-  function isFieldVisible(fieldName: keyof OnboardingWizardFormValues) {
+  function isFieldVisible(fieldName: keyof OnboardingFormValuesSubmit) {
     const { fieldRule } = getFieldRule(fieldName);
-    return fieldRule.visibility !== 'hidden';
+    return fieldRule.display !== 'hidden';
   }
-  function isFieldDisabled(fieldName: keyof OnboardingWizardFormValues) {
+  function isFieldDisabled(fieldName: keyof OnboardingFormValuesSubmit) {
     const { fieldRule } = getFieldRule(fieldName);
     return (
-      fieldRule.visibility === 'disabled' || fieldRule.visibility === 'readonly'
+      fieldRule.interaction === 'disabled' ||
+      fieldRule.interaction === 'readonly'
     );
   }
-  function isFieldRequired(fieldName: keyof OnboardingWizardFormValues) {
+  function isFieldRequired(fieldName: keyof OnboardingFormValuesSubmit) {
     const { fieldRule, ruleType } = getFieldRule(fieldName);
     return ruleType === 'single' && fieldRule.required;
   }
-  function getArrayFieldRule(fieldName: keyof OnboardingWizardFormValues) {
+  function getArrayFieldRule(fieldName: keyof OnboardingFormValuesSubmit) {
     const { fieldRule, ruleType } = getFieldRule(fieldName);
     return ruleType === 'array' ? fieldRule : undefined;
   }
@@ -431,49 +436,98 @@ export function useFormUtilsWithClientContext(
  * @returns Field rule determining field behavior
  */
 export function getFieldRuleByClientContext(
-  fieldName:
-    | keyof OnboardingWizardFormValues
-    | `${keyof OnboardingWizardFormValues}.${string}`,
+  fieldName: FieldPath<OnboardingFormValuesSubmit>,
   clientContext: ClientContext
 ):
-  | { fieldRule: FieldRule; ruleType: 'single' }
-  | { fieldRule: ArrayFieldRule; ruleType: 'array' } {
+  | { fieldRule: OptionalDefaults<FieldRule>; ruleType: 'single' }
+  | { fieldRule: OptionalDefaults<ArrayFieldRule>; ruleType: 'array' } {
   const fieldNameParts = fieldName.split('.');
-  const baseFieldName = fieldNameParts[0] as keyof OnboardingWizardFormValues;
-  const baseFieldConfig = getPartyFieldConfig(baseFieldName);
+  const baseFieldName = fieldNameParts[0] as keyof OnboardingFormValuesSubmit;
 
-  const baseFieldRule = evaluateFieldRules(baseFieldConfig, clientContext);
+  let currentConfig = getPartyFieldConfig(baseFieldName);
+  let currentFieldRule = evaluateFieldRules(currentConfig, clientContext);
 
-  let fieldRule = baseFieldRule;
-  // If the fieldName is a subfield (e.g., "fieldName[0].subFieldName")
-  if (
-    'subFields' in baseFieldConfig &&
-    baseFieldConfig.subFields &&
-    fieldNameParts.length > 1 &&
-    !Number.isNaN(Number(fieldNameParts[1])) &&
-    fieldNameParts[2] !== undefined
-  ) {
-    const subFieldName =
-      fieldNameParts[2] as keyof OnboardingWizardFormValues[OnboardingTopLevelArrayFieldNames][number];
-    const subFieldConfig = baseFieldConfig.subFields[subFieldName];
+  // Drill down into subfields for the remaining segments
+  for (let i = 1; i < fieldNameParts.length; i += 1) {
+    const segment = fieldNameParts[i];
 
-    // If the subfield is not mapped, return parent rule
-    if (!subFieldConfig) {
-      fieldRule = {
-        visibility: baseFieldRule.visibility,
-      };
-    } else {
+    if (
+      isArrayFieldConfiguration(currentConfig) &&
+      isArrayFieldRule(currentFieldRule)
+    ) {
+      // If it's a numeric index (e.g. "0", "1"), skip it
+      if (/^\d+$/.test(segment)) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      // Otherwise, it's a subfield name
+      const subFieldName =
+        segment as keyof OnboardingFormValuesSubmit[OnboardingTopLevelArrayFieldNames][number];
+      const subFieldConfig = currentConfig.subFields[subFieldName];
+      if (!subFieldConfig) {
+        throw new Error(
+          `Subfield "${subFieldName}" is not defined under "${fieldNameParts
+            .slice(0, i)
+            .join('.')}" in fieldMap.`
+        );
+      }
+
       const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
-      fieldRule = {
-        visibility: baseFieldRule.visibility,
+
+      currentConfig = subFieldConfig;
+      currentFieldRule = {
+        display: currentFieldRule.display,
+        interaction: currentFieldRule.interaction,
+        defaultValue: currentFieldRule.defaultAppendValue?.[subFieldName],
         ...subFieldRule,
       };
+    } else {
+      // We don't expect more segments if it's not an array config
+      break;
     }
   }
 
+  // Build the defaultAppendValue for the given array field configuration,
+  // letting subfields' defaultValue (if defined) override the values in defaultAppendValue
+  if (
+    isArrayFieldConfiguration(currentConfig) &&
+    isArrayFieldRule(currentFieldRule)
+  ) {
+    let newAppendValue: Record<string, unknown> = {};
+    // Start with the array config's own defaultAppendValue as a base object
+    if (
+      typeof currentFieldRule.defaultAppendValue === 'object' &&
+      currentFieldRule.defaultAppendValue !== null
+    ) {
+      newAppendValue = { ...currentFieldRule.defaultAppendValue };
+    }
+
+    // Merge each subfield's default, letting subfields override
+    for (const subFieldName of objectKeys(currentConfig.subFields)) {
+      const subFieldConfig = currentConfig.subFields[subFieldName];
+      const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
+
+      // If the subfield has a default, override the parent's property
+      if (subFieldRule.defaultValue !== undefined) {
+        newAppendValue[subFieldName] = subFieldRule.defaultValue;
+      }
+    }
+    currentFieldRule = {
+      ...currentFieldRule,
+      defaultAppendValue: newAppendValue,
+    };
+  }
+
+  if (isArrayFieldRule(currentFieldRule)) {
+    return {
+      fieldRule: currentFieldRule,
+      ruleType: 'array',
+    };
+  }
   return {
-    fieldRule,
-    ruleType: isArrayFieldRule(fieldRule) ? 'array' : 'single',
+    fieldRule: currentFieldRule,
+    ruleType: 'single',
   };
 }
 
@@ -498,13 +552,13 @@ export function modifySchemaByClientContext(
   const filteredSchema: Record<string, z.ZodType<any>> = {};
   objectEntries(shape).forEach(([key, value]) => {
     const { fieldRule, ruleType } = getFieldRuleByClientContext(
-      key as keyof OnboardingWizardFormValues,
+      key as keyof OnboardingFormValuesSubmit,
       clientContext
     );
 
     // Modify the field schema based on the field rule
     let fieldSchema = value;
-    if (fieldRule.visibility !== 'hidden') {
+    if (fieldRule.display !== 'hidden') {
       return;
     }
     if (ruleType === 'array') {
@@ -538,23 +592,27 @@ export function modifySchemaByClientContext(
  * @returns Modified default values appropriate for the context
  */
 export function modifyDefaultValuesByClientContext(
-  defaultValues: Partial<OnboardingWizardFormValues>,
+  defaultValues: Partial<OnboardingFormValuesSubmit>,
   clientContext: ClientContext
-): Partial<OnboardingWizardFormValues> {
-  const filteredDefaultValues: Partial<OnboardingWizardFormValues> = {};
+): Partial<OnboardingFormValuesSubmit> {
+  const filteredDefaultValues: Partial<OnboardingFormValuesSubmit> = {};
 
   objectEntries(defaultValues).forEach(([key, value]) => {
     const { fieldRule } = getFieldRuleByClientContext(key, clientContext);
-    if (fieldRule.visibility !== 'hidden') {
-      filteredDefaultValues[key] = value as any;
+    if (fieldRule.display !== 'hidden') {
+      filteredDefaultValues[key] = fieldRule.defaultValue ?? value;
     }
   });
   return filteredDefaultValues;
 }
 
-export function useStepForm<T extends FieldValues>(
-  props: UseFormProps<T>
-): UseFormReturn<T> {
+export function useStepForm<
+  TFieldValues extends FieldValues = FieldValues,
+  TContext = any,
+  TTransformedValues extends FieldValues | undefined = undefined,
+>(
+  props: UseFormProps<TFieldValues>
+): UseFormReturn<TFieldValues, TContext, TTransformedValues> {
   const { activeStep } = useStepper();
   const { currentForm, setCurrentForm, currentStepIndex, setCurrentStepIndex } =
     useOnboardingContext();
@@ -584,11 +642,11 @@ export function useStepForm<T extends FieldValues>(
       ? ({
           ...props.errors,
           ...currentForm?.formState.errors,
-        } as FieldErrors<T>)
+        } as FieldErrors<TFieldValues>)
       : props.errors;
   }, [props.errors, isNewStep, currentForm]);
 
-  const form = useForm<T>({
+  const form = useForm<TFieldValues, TContext, TTransformedValues>({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     ...props,
@@ -606,40 +664,43 @@ export function useStepForm<T extends FieldValues>(
   return form;
 }
 
-export function useStepFormWithFilters<T extends FieldValues>(
-  props: Omit<UseFormProps<T>, 'resolver'> & {
+export function useStepFormWithFilters<
+  TSchema extends z.ZodObject<Record<string, z.ZodType<any>>>,
+>(
+  props: Omit<UseFormProps<z.input<TSchema>>, 'resolver'> & {
     clientData: ClientResponse | undefined;
-    schema: z.ZodObject<Record<string, z.ZodType<any>>>;
+    schema: TSchema;
     refineSchemaFn?: (
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
   }
-): UseFormReturn<T> {
+): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
     props.clientData
   );
 
-  const form = useStepForm<T>({
+  const form = useStepForm<z.input<TSchema>, any, z.output<TSchema>>({
     ...props,
     resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
     defaultValues: modifyDefaultValues(
       shapeFormValuesBySchema(
-        props.defaultValues as Partial<OnboardingWizardFormValues>,
+        props.defaultValues as Partial<OnboardingFormValuesSubmit>,
         props.schema
       )
-    ) as DefaultValues<T>,
+    ) as DefaultValues<z.input<TSchema>>,
   });
 
   return form;
 }
 
+// Modifies the form values to match the schema shape
 export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
-  formValues: Partial<OnboardingWizardFormValues>,
+  formValues: Partial<OnboardingFormValuesInitial>,
   schema: z.ZodObject<T>
-): Partial<OnboardingWizardFormValues> {
+): Partial<OnboardingFormValuesSubmit> {
   const schemaShape = schema.shape;
   const schemaKeys = Object.keys(schemaShape) as Array<
-    keyof OnboardingWizardFormValues
+    keyof OnboardingFormValuesSubmit
   >;
 
   return schemaKeys.reduce(
@@ -647,12 +708,8 @@ export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
       // If the key exists in formValues, use its value
       if (key in formValues) {
         acc[key] = formValues[key];
-      }
-      // Otherwise set empty string, or empty array
-      else if (schemaShape[key] instanceof z.ZodArray) {
-        acc[key] = [];
       } else {
-        acc[key] = '';
+        acc[key] = undefined;
       }
       return acc;
     },

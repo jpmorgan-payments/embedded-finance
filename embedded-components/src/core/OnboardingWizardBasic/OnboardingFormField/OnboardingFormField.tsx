@@ -45,7 +45,11 @@ import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
-import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
+import {
+  FieldRule,
+  OnboardingFormValuesSubmit,
+  OptionalDefaults,
+} from '../utils/types';
 
 type FieldType =
   | 'text'
@@ -65,17 +69,18 @@ interface BaseProps<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends Omit<
     ControllerProps<TFieldValues, TName>,
-    'render' | 'disabled' | 'required' | 'rules' | 'defaultValue'
+    'render' | 'rules' | 'defaultValue'
   > {
   type?: FieldType;
   label?: string | JSX.Element;
   placeholder?: string;
   description?: string;
   tooltip?: string;
+  required?: boolean;
+  readonly?: boolean;
   disableFieldRuleMapping?: boolean;
-  fieldRuleOverride?: FieldRule<TFieldValues[keyof TFieldValues]>;
   inputProps?: React.ComponentProps<typeof Input>;
-  form?: UseFormReturn<TFieldValues>; // TODO: remove when IndustrySelect refactored
+  form?: UseFormReturn<TFieldValues, any, any>; // TODO: remove when IndustrySelect refactored
   maskFormat?: string;
   maskChar?: string;
 }
@@ -108,8 +113,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   placeholder,
   description,
   tooltip,
+  required,
+  disabled,
+  readonly,
   disableFieldRuleMapping,
-  fieldRuleOverride = {},
   inputProps,
   form,
   maskFormat,
@@ -122,29 +129,27 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  let fieldRule: FieldRule<TFieldValues[keyof TFieldValues]> = {};
-  if (disableFieldRuleMapping) {
-    fieldRule = { visibility: 'visible', required: true };
-  } else {
+  let fieldRule: OptionalDefaults<FieldRule> = {};
+  if (!disableFieldRuleMapping) {
     const fieldRuleConfig = getFieldRule(
-      name as
-        | keyof OnboardingWizardFormValues
-        | `${keyof OnboardingWizardFormValues}.${string}`
+      name as FieldPath<OnboardingFormValuesSubmit>
     );
     if (fieldRuleConfig.ruleType !== 'single') {
       throw new Error(`Field ${name} is not configured as a single field.`);
     }
     fieldRule = fieldRuleConfig.fieldRule;
   }
-  // Apply overrides if provided
-  fieldRule = {
-    ...fieldRule,
-    ...fieldRuleOverride,
-  };
 
-  const fieldVisibility = fieldRule.visibility ?? 'visible';
+  const fieldRequired = required ?? fieldRule.required ?? false;
+  const fieldDisplay = fieldRule.display ?? 'visible';
+  const fieldInteraction =
+    readonly || fieldRule.interaction === 'readonly'
+      ? 'readonly'
+      : disabled || fieldRule.interaction === 'disabled'
+        ? 'disabled'
+        : (fieldRule.interaction ?? 'enabled');
 
-  if (fieldVisibility === 'hidden') {
+  if (fieldDisplay === 'hidden') {
     return null;
   }
 
@@ -170,7 +175,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         t([`fields.${tName}.label`, ''] as unknown as TemplateStringsArray, {
           index,
         })}
-      {fieldRule.required ? (
+      {fieldRequired ? (
         ''
       ) : (
         <span className="eb-font-normal eb-text-muted-foreground">
@@ -197,16 +202,14 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      disabled={fieldVisibility === 'disabled'}
+      disabled={fieldInteraction === 'disabled'}
       shouldUnregister={shouldUnregister}
       render={({ field }) => (
         <FormItem>
           {type !== 'checkbox' ? (
             <>
               <div className="eb-flex eb-items-center eb-space-x-2">
-                <FormLabel asterisk={fieldRule.required}>
-                  {fieldLabel}
-                </FormLabel>
+                <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
                 <InfoPopover>{fieldTooltip}</InfoPopover>
               </div>
 
@@ -216,7 +219,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             </>
           ) : null}
 
-          {fieldVisibility === 'readonly' ? (
+          {fieldInteraction === 'readonly' ? (
             <p className="eb-font-bold">
               {(options
                 ? options.find(({ value }) => value === field.value)?.label
@@ -367,7 +370,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       </FormControl>
                       <div className="eb-space-y-1 eb-leading-none">
                         <div className="eb-flex eb-items-center eb-space-x-2">
-                          <FormLabel asterisk={fieldRule.required}>
+                          <FormLabel asterisk={fieldRequired}>
                             {fieldLabel}
                           </FormLabel>
                           <InfoPopover>{fieldTooltip}</InfoPopover>
