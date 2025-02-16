@@ -40,7 +40,7 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
-  useFilterFunctionsByClientContext,
+  useFormUtilsWithClientContext,
 } from '../utils/formUtils';
 
 type DecisionMaker = z.infer<typeof IndividualStepFormSchema>;
@@ -60,7 +60,7 @@ export const DecisionMakerStepForm = () => {
     refetch: refetchClientData,
   } = useSmbdoGetClient(clientId ?? '');
 
-  const { clientContext } = useFilterFunctionsByClientContext(clientData);
+  const { clientContext } = useFormUtilsWithClientContext(clientData);
 
   const form = useForm<DecisionMaker>({
     resolver: zodResolver(IndividualStepFormSchema),

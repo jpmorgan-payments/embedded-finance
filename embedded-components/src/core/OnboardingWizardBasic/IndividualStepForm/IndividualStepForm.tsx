@@ -72,13 +72,13 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
-  translateClientApiErrorsToFormErrors,
-  translatePartyApiErrorsToFormErrors,
-  useFilterFunctionsByClientContext,
+  useFormUtilsWithClientContext,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
@@ -99,8 +99,8 @@ export const IndividualStepForm = () => {
     clientId ?? ''
   );
 
-  const { getFieldRule, isFieldVisible } =
-    useFilterFunctionsByClientContext(clientData);
+  const { isFieldVisible, getArrayFieldRule } =
+    useFormUtilsWithClientContext(clientData);
 
   const form = useStepFormWithFilters<z.infer<typeof IndividualStepFormSchema>>(
     {
@@ -224,8 +224,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors =
-                  translatePartyApiErrorsToFormErrors(context);
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
@@ -234,14 +233,19 @@ export const IndividualStepForm = () => {
       }
       // Create party if it doesn't exist
       else {
-        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'INDIVIDUAL',
-              roles: ['CONTROLLER'],
-            },
-          ],
-        });
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'INDIVIDUAL',
+                roles: ['CONTROLLER'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -260,7 +264,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateClientApiErrorsToFormErrors(
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -388,7 +392,6 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="jobTitle"
             type="select"
-            required
             options={[
               { value: 'CEO', label: 'CEO' },
               { value: 'CFO', label: 'CFO' },
@@ -443,7 +446,8 @@ export const IndividualStepForm = () => {
               >
                 <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                   Individual Address{' '}
-                  {Number(getFieldRule('individualAddresses')?.maxItems) > 1
+                  {Number(getArrayFieldRule('individualAddresses')?.maxItems) >
+                  1
                     ? index + 1
                     : ''}
                 </legend>
@@ -451,7 +455,6 @@ export const IndividualStepForm = () => {
                   control={form.control}
                   name={`individualAddresses.${index}.addressType`}
                   type="select"
-                  required
                   options={[
                     {
                       value: 'MAILING_ADDRESS',
@@ -469,7 +472,6 @@ export const IndividualStepForm = () => {
                   name={`individualAddresses.${index}.addressLines.0`}
                   label="Address Line 1"
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -483,7 +485,6 @@ export const IndividualStepForm = () => {
                   control={form.control}
                   name={`individualAddresses.${index}.city`}
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -491,14 +492,12 @@ export const IndividualStepForm = () => {
                   name={`individualAddresses.${index}.state`}
                   type="select"
                   options={stateOptions}
-                  required
                 />
 
                 <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.postalCode`}
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -516,11 +515,12 @@ export const IndividualStepForm = () => {
                       </span>
                     ),
                   }))}
-                  required
                 />
 
                 {addressFields.length >
-                  Number(getFieldRule('individualAddresses')?.minItems) && (
+                  Number(
+                    getArrayFieldRule('individualAddresses')?.minItems
+                  ) && (
                   <div className="eb-col-span-full">
                     <Button
                       type="button"
@@ -530,7 +530,8 @@ export const IndividualStepForm = () => {
                       className="eb-mt-2"
                       disabled={
                         addressFields.length <=
-                        (getFieldRule('individualAddresses').minItems ?? 1)
+                        (getArrayFieldRule('individualAddresses')?.minItems ??
+                          1)
                       }
                     >
                       Remove Address
@@ -560,7 +561,7 @@ export const IndividualStepForm = () => {
           }
           disabled={
             idFields.length >=
-            (getFieldRule('individualAddresses').maxItems ?? 50)
+            (getArrayFieldRule('individualAddresses')?.maxItems ?? 50)
           }
           variant="outline"
           size="sm"
@@ -580,7 +581,7 @@ export const IndividualStepForm = () => {
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                     Individual Identification Document{' '}
-                    {Number(getFieldRule('individualIds')?.maxItems) > 1
+                    {Number(getArrayFieldRule('individualIds')?.maxItems) > 1
                       ? index + 1
                       : ''}
                   </legend>
@@ -592,7 +593,6 @@ export const IndividualStepForm = () => {
                       { value: 'SSN', label: 'SSN' },
                       { value: 'ITIN', label: 'ITIN' },
                     ]}
-                    required
                   />
 
                   <OnboardingFormField
@@ -603,7 +603,6 @@ export const IndividualStepForm = () => {
                     label={getValueLabel(idType)}
                     maskFormat={getMaskFormat(idType)}
                     maskChar="_"
-                    required
                   />
 
                   <OnboardingFormField
@@ -621,7 +620,6 @@ export const IndividualStepForm = () => {
                         </span>
                       ),
                     }))}
-                    required
                   />
 
                   <OnboardingFormField
@@ -638,13 +636,13 @@ export const IndividualStepForm = () => {
                   />
 
                   {idFields.length >
-                    Number(getFieldRule('individualIds')?.minItems) && (
+                    Number(getArrayFieldRule('individualIds')?.minItems) && (
                     <div className="eb-col-span-full">
                       <Button
                         type="button"
                         disabled={
                           idFields.length <=
-                          (getFieldRule('individualIds').minItems ?? 0)
+                          (getArrayFieldRule('individualIds')?.minItems ?? 0)
                         }
                         onClick={() => removeId(index)}
                         variant="outline"
@@ -660,7 +658,8 @@ export const IndividualStepForm = () => {
             })}
           </>
         )}
-        {Number(getFieldRule('individualIds')?.maxItems) > idFields.length && (
+        {Number(getArrayFieldRule('individualIds')?.maxItems) >
+          idFields.length && (
           <Button
             type="button"
             onClick={() =>
@@ -671,7 +670,8 @@ export const IndividualStepForm = () => {
               })
             }
             disabled={
-              idFields.length >= (getFieldRule('individualIds').maxItems ?? 50)
+              idFields.length >=
+              (getArrayFieldRule('individualIds')?.maxItems ?? 50)
             }
             variant="outline"
             size="sm"

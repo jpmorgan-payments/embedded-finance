@@ -39,8 +39,8 @@ type OnboardingContextType = OnboardingProps & {
   clientId: string;
   setClientId: (clientId: string) => Promise<void>;
   wasClientIdCreated: boolean;
-  currentForm?: UseFormReturn<any>;
-  setCurrentForm: (form: UseFormReturn<any> | undefined) => void;
+  currentForm?: UseFormReturn<any, any, any>;
+  setCurrentForm: (form: UseFormReturn<any, any, any> | undefined) => void;
   currentStepIndex?: number;
   setCurrentStepIndex: (index: number) => void;
 };
@@ -69,7 +69,7 @@ export const OnboardingContextProvider: FC<
   };
 
   const [currentForm, setCurrentForm] = useState<
-    UseFormReturn<any> | undefined
+    UseFormReturn<any, any, any> | undefined
   >(undefined);
 
   const [currentStepIndex, setCurrentStepIndex] = useState<number | undefined>(
