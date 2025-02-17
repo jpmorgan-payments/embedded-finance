@@ -6,10 +6,59 @@ import {
   ReactPortal,
   useState,
 } from 'react';
-import { X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 
-import { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { _get, isValueEmpty } from '@/lib/utils';
+import { useSmbdoListQuestions } from '@/api/generated/smbdo';
+import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+
+import {
+  individualFields,
+  organizationFields,
+} from '../ReviewAndAttestStepForm/partyFields';
+
+const renderParty = (
+  party: PartyResponse,
+  fields: { label: any; path: any; transformFunc?: any }[]
+) => (
+  <div
+    key={(party?.id ?? '') + (party?.partyType ?? '')}
+    className="eb-mb-4 eb-p-4"
+  >
+    <div className="eb-mb-2 eb-font-medium">{party?.partyType}</div>
+    <dl className="eb-ml-2 eb-space-y-2">
+      {fields.map(({ label, path, transformFunc }) => {
+        const value = _get(party, path);
+        if (!isValueEmpty(value)) {
+          return (
+            <div
+              key={path}
+              className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between"
+            >
+              <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">{label}:</dt>
+              <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
+                {transformFunc
+                  ? transformFunc(value)
+                  : typeof value === 'boolean'
+                    ? value.toString()
+                    : Array.isArray(value)
+                      ? value.join(', ')
+                      : value}
+              </dd>
+            </div>
+          );
+        }
+        return null;
+      })}
+    </dl>
+  </div>
+);
 
 export const MissingInfoAlert = ({
   clientData,
@@ -17,6 +66,12 @@ export const MissingInfoAlert = ({
   clientData: ClientResponse;
 }) => {
   const [isDismissed, setIsDismissed] = useState(false);
+
+  const { data: questionsDetails } = useSmbdoListQuestions({
+    questionIds: clientData?.questionResponses
+      ?.map((r) => r.questionId)
+      .join(','),
+  });
 
   const getMissingFields = () => {
     const missing: string[] = [];
@@ -88,7 +143,7 @@ export const MissingInfoAlert = ({
         <X className="eb-h-4 eb-w-4" />
       </Button>
       <div className="eb-mb-2 eb-font-medium">Missing Information:</div>
-      <div className="eb-space-y-2">
+      <div className="eb-ml-2 eb-space-y-2">
         {missingFields.length > 0 && (
           <div className="eb-flex eb-flex-wrap eb-gap-2">
             {missingFields.map((field, index) => (
@@ -139,6 +194,53 @@ export const MissingInfoAlert = ({
           );
         })}
       </div>
+      <Collapsible>
+        <CollapsibleTrigger className="eb-group eb-mb-2 eb-mt-4 eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-justify-between eb-text-left eb-font-medium">
+          <div className="eb-flex-1">Client Profile Existing Information:</div>
+          <ChevronDown className="eb-group-data-[state=open]:rotate-180 eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform" />
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="eb-ml-2 eb-space-y-2">
+            <div className="eb-w-xl eb-px-4">
+              {clientData?.parties?.map((party) =>
+                party?.partyType === 'ORGANIZATION'
+                  ? renderParty(party, organizationFields)
+                  : renderParty(party, individualFields)
+              )}
+            </div>
+
+            {!!clientData?.questionResponses?.length && (
+              <div className="eb-w-xl eb-px-4">
+                <div className="eb-mb-2 eb-font-medium">
+                  Questions Responses
+                </div>
+                {clientData?.questionResponses?.map((questionResponse) => (
+                  <>
+                    {!!questionResponse?.values?.length && (
+                      <div key={questionResponse.questionId} className="eb-p-4">
+                        <dl className="eb-ml-2">
+                          <dt className="">
+                            {
+                              questionsDetails?.questions?.find(
+                                (q) => q.id === questionResponse.questionId
+                              )?.description
+                            }
+                          </dt>
+                          <dd className="">
+                            <b>Response:</b>{' '}
+                            {questionResponse?.values?.join(', ')}
+                          </dd>
+                        </dl>
+                      </div>
+                    )}
+                  </>
+                ))}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };
