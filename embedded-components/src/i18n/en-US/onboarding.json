@@ -202,6 +202,7 @@
         "label": "Address line 1",
         "placeholder": "Enter address line 1",
         "description": "Address line 1 of your business address",
+        "tooltip": "Must not be a PO Box and must begin with a number.",
         "validation": {
           "required": "Address line 1 is required",
           "maxLength": "Address line must be 60 characters or less",
