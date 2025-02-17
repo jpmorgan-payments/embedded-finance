@@ -283,6 +283,7 @@ export const InitialStepForm = () => {
                 label: t(`clientProducts.${product}`),
               }))}
               readonly={Boolean(defaultProduct || clientId)}
+              disabled={isFormDisabled}
             />
 
             <OnboardingFormField
@@ -296,6 +297,7 @@ export const InitialStepForm = () => {
                 })`,
               }))}
               readonly={Boolean(defaultJurisdiction)}
+              disabled={isFormDisabled}
             />
 
             <OnboardingFormField
@@ -308,6 +310,7 @@ export const InitialStepForm = () => {
                 value: type,
                 label: t(`organizationTypes.${type}`),
               }))}
+              disabled={isFormDisabled}
             />
 
             <OnboardingFormField

@@ -291,9 +291,9 @@ export const OrganizationStepForm = () => {
     clientUpdateStatus === 'pending' ||
     (usePartyResource && partyUpdateStatus === 'pending');
 
-  const isPopulatingForm = existingOrgParty && !isFormPopulated;
+  const isFormPopulating = existingOrgParty && !isFormPopulated;
 
-  const isFormDisabled = isFormSubmitting || isPopulatingForm;
+  const isFormDisabled = isFormSubmitting || isFormPopulating;
 
   return (
     <Form {...form}>
@@ -526,7 +526,7 @@ export const OrganizationStepForm = () => {
                   }))}
                 />
               </div>
-              <div className="eb-flex eb-justify-end">
+              <div className="eb-mt-4 eb-flex eb-justify-start">
                 {renderRemoveButton()}
               </div>
             </fieldset>
@@ -568,11 +568,17 @@ export const OrganizationStepForm = () => {
               </div>
             )
           }
-          renderItem={({ field, index, itemLabel, renderRemoveButton }) => (
+          renderItem={({
+            field,
+            index,
+            disabled,
+            itemLabel,
+            renderRemoveButton,
+          }) => (
             <fieldset
               key={field.id}
               className="eb-rounded-lg eb-border eb-p-4"
-              disabled={isFormDisabled}
+              disabled={disabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                 {itemLabel}
@@ -595,6 +601,7 @@ export const OrganizationStepForm = () => {
                       label: 'Business Registration Number',
                     },
                   ]}
+                  disabled={disabled}
                 />
 
                 <OnboardingFormField

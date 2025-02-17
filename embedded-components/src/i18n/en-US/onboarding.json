@@ -433,8 +433,8 @@
       }
     },
     "individualAddresses": {
-      "itemLabel": "Business Address",
-      "itemLabelNumbered": "Business Address {{number}}",
+      "itemLabel": "Individual Address",
+      "itemLabelNumbered": "Individual Address {{number}}",
       "appendLabel": "Add an address",
       "removeLabel": "Remove address",
       "validation": {
@@ -447,7 +447,7 @@
       "primaryAddressLine": {
         "label": "Address line 1",
         "placeholder": "Enter address line 1",
-        "description": "Address line 1 of your business address",
+        "description": "Address line 1 of your individual address",
         "tooltip": "Must not be a PO Box and must begin with a number.",
         "validation": {
           "required": "Address line 1 is required",
@@ -461,7 +461,7 @@
         "value": {
           "label": "Address line {{number, inc}}",
           "placeholder": "Enter address line {{number, inc}}",
-          "description": "Address line {{number, inc}} of your business address",
+          "description": "Address line {{number, inc}} of your individual address",
           "tooltip": ""
         },
         "validation": {

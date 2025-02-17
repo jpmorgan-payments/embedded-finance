@@ -518,14 +518,6 @@ export const partyFieldMap: PartyFieldMap = {
         country: '',
       },
     },
-    conditionalRules: [
-      {
-        condition: {
-          product: ['EMBEDDED_PAYMENTS'],
-        },
-        rule: { maxItems: 3 },
-      },
-    ],
     subFields: {
       addressType: {
         baseRule: { display: 'visible', required: true },
