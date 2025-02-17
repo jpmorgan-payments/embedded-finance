@@ -27,7 +27,7 @@ type BaseRenderProps<
     FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
 > = {
   fields: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>[];
-  renderAppendButton: () => React.ReactNode;
+  renderAppendButton: (className?: string) => React.ReactNode;
 };
 
 interface RenderItemProps<
@@ -38,7 +38,7 @@ interface RenderItemProps<
   index: number;
   itemLabel: string;
   disabled: boolean;
-  renderRemoveButton: () => React.ReactNode;
+  renderRemoveButton: (className?: string) => React.ReactNode;
 }
 
 interface OnboardingArrayFieldProps<
@@ -74,8 +74,6 @@ export function OnboardingArrayField<
 >({
   control,
   name,
-  removeButtonClassName,
-  appendButtonClassName,
   appendValue,
   disabled,
   readonly,
@@ -147,7 +145,7 @@ export function OnboardingArrayField<
       ? getContentToken('itemLabel')
       : getContentToken('itemLabelNumbered', index + 1);
 
-  const renderRemoveButton = (index: number) => {
+  const renderRemoveButton = (index: number, className?: string) => {
     if (fieldInteraction === 'readonly') {
       return null;
     }
@@ -162,7 +160,7 @@ export function OnboardingArrayField<
         type="button"
         variant="destructive"
         size="icon"
-        className={cn('eb-mt-2', removeButtonClassName)}
+        className={cn('eb-mt-2', className)}
         onClick={() => remove(index)}
         disabled={
           fieldInteraction === 'disabled' ||
@@ -174,7 +172,7 @@ export function OnboardingArrayField<
     );
   };
 
-  const renderAppendButton = () => {
+  const renderAppendButton = (className?: string) => {
     if (fieldInteraction === 'readonly') {
       return null;
     }
@@ -189,7 +187,7 @@ export function OnboardingArrayField<
         type="button"
         variant="outline"
         size="sm"
-        className={cn('eb-mt-2', appendButtonClassName)}
+        className={cn('eb-mt-2', className)}
         onClick={() => append(fieldAppendValue)}
         disabled={
           fieldInteraction === 'disabled' ||
@@ -223,7 +221,8 @@ export function OnboardingArrayField<
           index,
           itemLabel: getItemLabel(index),
           disabled: fieldInteraction === 'disabled',
-          renderRemoveButton: () => renderRemoveButton(index),
+          renderRemoveButton: (className?: string) =>
+            renderRemoveButton(index, className),
         };
 
         return renderContent(renderItemProps);
