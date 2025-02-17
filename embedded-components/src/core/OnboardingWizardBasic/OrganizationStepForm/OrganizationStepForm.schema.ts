@@ -283,15 +283,15 @@ export const OrganizationStepFormSchema = z.object({
       const code = parseInt(value, 10);
       return code >= 1 && code <= 9999;
     }, i18n.t('onboarding:fields.mcc.validation.range')),
-  secondaryMccList: z
-    .array(secondaryMccSchema)
-    .max(50, i18n.t('onboarding:fields.secondaryMccList.validation.maxMcc')),
+  secondaryMccList: z.array(secondaryMccSchema),
+  // .max(50, i18n.t('onboarding:fields.secondaryMccList.validation.maxMcc')),
 });
 
 export const refineOrganizationStepFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
+    console.log(values);
     if (!values.websiteAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,

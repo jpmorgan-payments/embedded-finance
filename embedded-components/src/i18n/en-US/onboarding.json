@@ -264,8 +264,19 @@
       "group": "address"
     },
     "associatedCountries": {
+      "label": "Associated country",
+      "labelNumbered": "Associated country {{number}}",
+      "appendLabel": "Add associated country",
+      "removeLabel": "Remove associated country",
       "validation": {
         "maxCountries": "Maximum 100 associated countries allowed"
+      },
+      "country": {
+        "label": "Associated country {{index}}",
+        "placeholder": "Select country",
+        "validation": {
+          "required": "Country is required"
+        }
       }
     },
     "industryCategory": {
@@ -293,7 +304,10 @@
       }
     },
     "organizationIds": {
-      "label": "Business Identification Documents",
+      "label": "Business Identification Document",
+      "labelNumbered": "Business Identification Document {{number}}",
+      "appendLabel": "Add another ID",
+      "removeLabel": "Remove ID",
       "validation": {
         "minIds": "At least one organization ID is required",
         "maxIds": "Maximum 6 organization IDs allowed",
@@ -377,6 +391,11 @@
       }
     },
     "secondaryMccList": {
+      "label": "Secondary MCCs",
+      "labelNumbered": "Secondary MCC {{number}}",
+      "appendLabel": "Add another MCC",
+      "removeLabel": "Remove MCC",
+      "description": "List of secondary MCCs for your business. These are optional and can be added later.",
       "validation": {
         "maxMcc": "Maximum 50 secondary MCCs allowed"
       },

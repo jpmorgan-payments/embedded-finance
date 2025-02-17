@@ -557,26 +557,40 @@ export function modifySchemaByClientContext(
     );
 
     // Modify the field schema based on the field rule
-    let fieldSchema = value;
-    if (fieldRule.display !== 'hidden') {
+    let modifiedSchema = value;
+    if (fieldRule.display === 'hidden') {
       return;
     }
     if (ruleType === 'array') {
-      if (!(value instanceof z.ZodArray)) {
-        throw new Error('Expected ZodArray for array field');
+      const min = fieldRule.requiredItems ?? 0;
+      const max = fieldRule.maxItems ?? Infinity;
+      if (modifiedSchema instanceof z.ZodEffects) {
+        const inner = modifiedSchema._def.schema;
+        if (inner instanceof z.ZodArray) {
+          // Apply min and max to the underlying array
+          const modifiedInner = inner.min(min).max(max);
+          // Rebuild the ZodEffects with the modified inner schema
+          modifiedSchema = new z.ZodEffects({
+            schema: modifiedInner,
+            effect: modifiedSchema._def.effect,
+            typeName: modifiedSchema._def.typeName,
+          });
+        }
+      } else if (modifiedSchema instanceof z.ZodArray) {
+        // TODO: add validation messages
+        modifiedSchema = modifiedSchema.min(min).max(max);
+      } else {
+        // Unexpected schema type
+        throw new Error(
+          `Unexpected schema type for array field "${key}": ${modifiedSchema}`
+        );
       }
-      // TODO: add validation messages
-      if (fieldRule.minItems) {
-        fieldSchema = z.array(value.element).min(fieldRule.minItems);
-      }
-      if (fieldRule.maxItems) {
-        fieldSchema = z.array(value.element).max(fieldRule.maxItems);
-      }
-      // TODO: do something with requiredItems
     } else if (ruleType === 'single') {
-      fieldSchema = value.or(z.literal('')).or(z.undefined());
+      if (!fieldRule.required) {
+        modifiedSchema = value.or(z.literal('')).or(z.undefined());
+      }
     }
-    filteredSchema[key] = fieldSchema;
+    filteredSchema[key] = modifiedSchema;
   });
 
   if (refineFn) {
@@ -600,7 +614,7 @@ export function modifyDefaultValuesByClientContext(
   objectEntries(defaultValues).forEach(([key, value]) => {
     const { fieldRule } = getFieldRuleByClientContext(key, clientContext);
     if (fieldRule.display !== 'hidden') {
-      filteredDefaultValues[key] = fieldRule.defaultValue ?? value;
+      filteredDefaultValues[key] = value ?? fieldRule.defaultValue ?? '';
     }
   });
   return filteredDefaultValues;
@@ -679,15 +693,17 @@ export function useStepFormWithFilters<
     props.clientData
   );
 
+  const defaultValues = modifyDefaultValues(
+    shapeFormValuesBySchema(
+      props.defaultValues as Partial<OnboardingFormValuesSubmit>,
+      props.schema
+    )
+  ) as DefaultValues<z.input<TSchema>>;
+
   const form = useStepForm<z.input<TSchema>, any, z.output<TSchema>>({
     ...props,
     resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
-    defaultValues: modifyDefaultValues(
-      shapeFormValuesBySchema(
-        props.defaultValues as Partial<OnboardingFormValuesSubmit>,
-        props.schema
-      )
-    ) as DefaultValues<z.input<TSchema>>,
+    defaultValues,
   });
 
   return form;

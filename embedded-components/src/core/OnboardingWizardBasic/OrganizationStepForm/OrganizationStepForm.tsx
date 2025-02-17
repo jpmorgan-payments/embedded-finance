@@ -68,9 +68,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useStepper } from '@/components/ui/stepper';
-import { Button } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
+import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
@@ -101,7 +101,7 @@ export const OrganizationStepForm = () => {
     onPostPartyResponse,
     usePartyResource,
   } = useOnboardingContext();
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation(['onboarding', 'common']);
 
   // Fetch client data
   const { data: clientData, status: clientDataGetStatus } = useSmbdoGetClient(
@@ -112,12 +112,8 @@ export const OrganizationStepForm = () => {
     (p) => p.partyType === 'ORGANIZATION'
   )?.organizationDetails?.organizationType;
 
-  const {
-    isFieldDisabled,
-    isFieldRequired,
-    isFieldVisible,
-    getArrayFieldRule,
-  } = useFormUtilsWithClientContext(clientData);
+  const { isFieldDisabled, isFieldRequired, isFieldVisible } =
+    useFormUtilsWithClientContext(clientData);
 
   const form = useStepFormWithFilters({
     clientData,
@@ -299,6 +295,10 @@ export const OrganizationStepForm = () => {
 
   const isFormDisabled = isFormSubmitting || isPopulatingForm;
 
+  if (isPopulatingForm) {
+    return <FormLoadingState message={t('common:loading')} />;
+  }
+
   return (
     <Form {...form}>
       <form
@@ -418,95 +418,116 @@ export const OrganizationStepForm = () => {
         <OnboardingArrayField
           control={form.control}
           name="addresses"
-          renderItem={({ label, index, field }) => (
+          disabled={isFormDisabled}
+          renderItem={({
+            label,
+            index,
+            field,
+            disabled,
+            renderRemoveButton,
+          }) => (
             <fieldset
               key={field.id}
-              className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-              disabled={isFormDisabled}
+              className="eb-rounded-lg eb-border eb-p-4"
+              disabled={disabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                 {label}
               </legend>
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.addressType`}
-                type="select"
-                options={[
-                  {
-                    value: 'LEGAL_ADDRESS',
-                    label: t('addressTypes.LEGAL_ADDRESS'),
-                  },
-                  {
-                    value: 'MAILING_ADDRESS',
-                    label: t('addressTypes.MAILING_ADDRESS'),
-                  },
-                  {
-                    value: 'BUSINESS_ADDRESS',
-                    label: t('addressTypes.BUSINESS_ADDRESS'),
-                  },
-                  {
-                    value: 'RESIDENTIAL_ADDRESS',
-                    label: t('addressTypes.RESIDENTIAL_ADDRESS'),
-                  },
-                ]}
-              />
+              <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <OnboardingFormField
+                  control={form.control}
+                  name={`addresses.${index}.addressType`}
+                  type="select"
+                  // Dropdown fields need to be explicitly passed whether it's disabled rather than relying on the fieldset
+                  disabled={disabled}
+                  options={[
+                    {
+                      value: 'LEGAL_ADDRESS',
+                      label: t('addressTypes.LEGAL_ADDRESS'),
+                    },
+                    {
+                      value: 'MAILING_ADDRESS',
+                      label: t('addressTypes.MAILING_ADDRESS'),
+                    },
+                    {
+                      value: 'BUSINESS_ADDRESS',
+                      label: t('addressTypes.BUSINESS_ADDRESS'),
+                    },
+                    {
+                      value: 'RESIDENTIAL_ADDRESS',
+                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                    },
+                  ]}
+                />
 
-              <OnboardingArrayField
-                control={form.control}
-                name={`addresses.${index}.addressLines`}
-                renderItem={({ index: lineIndex, field: lineField }) => (
-                  <OnboardingFormField
-                    key={lineField.id}
-                    control={form.control}
-                    name={`addresses.${index}.addressLines.${lineIndex}.value`}
-                    type="text"
-                  />
-                )}
-              />
+                <OnboardingArrayField
+                  control={form.control}
+                  name={`addresses.${index}.addressLines`}
+                  renderItem={({
+                    index: lineIndex,
+                    field: lineField,
+                    required: lineRequired,
+                  }) => (
+                    <OnboardingFormField
+                      key={lineField.id}
+                      control={form.control}
+                      name={`addresses.${index}.addressLines.${lineIndex}.value`}
+                      type="text"
+                      required={lineRequired}
+                    />
+                  )}
+                />
 
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.city`}
-                type="text"
-              />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`addresses.${index}.city`}
+                  type="text"
+                />
 
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.state`}
-                type="select"
-                options={stateOptions}
-              />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`addresses.${index}.state`}
+                  type="select"
+                  options={stateOptions}
+                />
 
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.postalCode`}
-                type="text"
-                inputProps={{
-                  pattern: '[0-9]{5}',
-                  maxLength: 5,
-                  inputMode: 'numeric',
-                }}
-              />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`addresses.${index}.postalCode`}
+                  type="text"
+                  inputProps={{
+                    pattern: '[0-9]{5}',
+                    maxLength: 5,
+                    inputMode: 'numeric',
+                  }}
+                />
 
-              <OnboardingFormField
-                control={form.control}
-                name={`addresses.${index}.country`}
-                type="combobox"
-                options={COUNTRIES_OF_FORMATION.map((code) => ({
-                  value: code,
-                  label: (
-                    <span>
-                      <span className="eb-font-medium">[{code}]</span>{' '}
-                      {t([
-                        `common:countries.${code}`,
-                      ] as unknown as TemplateStringsArray)}
-                    </span>
-                  ),
-                }))}
-              />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`addresses.${index}.country`}
+                  type="combobox"
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
+                />
+              </div>
+              <div className="eb-flex eb-justify-end">
+                {renderRemoveButton()}
+              </div>
             </fieldset>
           )}
         />
+
+        {JSON.stringify(form.formState.errors, null, 2)}
 
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
@@ -620,114 +641,44 @@ export const OrganizationStepForm = () => {
             Additional Fields
           </legend>
           {/* Associated Countries */}
-          {isFieldVisible('associatedCountries') && (
-            <div className="eb-space-y-4">
-              <h3 className="eb-text-lg eb-font-medium">
-                Associated Countries
-              </h3>
-              {associatedCountriesFields.map((fieldItem, index) => (
-                <div
-                  key={`associated-country-${index}`}
-                  className="eb-flex eb-items-center eb-space-x-2"
-                >
-                  <FormField
-                    control={form.control}
-                    name={`associatedCountries.${index}.country`}
-                    render={({ field }) => (
-                      <FormItem className="eb-grow">
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={2}
-                            placeholder="Country code (e.g., US)"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    disabled={
-                      associatedCountriesFields.length <=
-                      (getArrayFieldRule('associatedCountries')?.minItems ?? 0)
-                    }
-                    onClick={() => removeAssociatedCountry(index)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                disabled={
-                  associatedCountriesFields.length >=
-                  (getArrayFieldRule('associatedCountries')?.maxItems ?? 100)
-                }
-                onClick={() => appendAssociatedCountry({ country: '' })}
-                variant="outline"
-                size="sm"
+          <OnboardingArrayField
+            control={form.control}
+            name="associatedCountries"
+            renderItem={({ field, index, label, renderRemoveButton }) => (
+              <div
+                key={field.id}
+                className="eb-flex eb-items-center eb-space-x-2"
               >
-                Add Associated Country
-              </Button>
-            </div>
-          )}
+                <OnboardingFormField
+                  control={form.control}
+                  name={`associatedCountries.${index}.country`}
+                  type="text"
+                  label={label}
+                />
+                {renderRemoveButton()}
+              </div>
+            )}
+          />
 
           {/* Secondary MCC */}
-          {isFieldVisible('secondaryMccList') && (
-            <div className="eb-space-y-4">
-              <h3 className="eb-text-lg eb-font-medium">Secondary MCC</h3>
-              {secondaryMccFields.map((fieldItem, index) => (
-                <div
-                  key={`secondary-mcc-${index}`}
-                  className="eb-flex eb-items-center eb-space-x-2"
-                >
-                  <FormField
-                    control={form.control}
-                    name={`secondaryMccList.${index}.mcc`}
-                    render={({ field }) => (
-                      <FormItem className="eb-grow">
-                        <FormControl>
-                          <Input
-                            {...field}
-                            maxLength={4}
-                            placeholder="Secondary MCC"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    disabled={
-                      secondaryMccFields.length <=
-                      (getArrayFieldRule('secondaryMccList')?.minItems ?? 0)
-                    }
-                    onClick={() => removeSecondaryMcc(index)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                disabled={
-                  secondaryMccFields.length >=
-                  (getArrayFieldRule('secondaryMccList')?.maxItems ?? 50)
-                }
-                onClick={() => appendSecondaryMcc({ mcc: '' })}
-                variant="outline"
-                size="sm"
+          <OnboardingArrayField
+            control={form.control}
+            name="secondaryMccList"
+            renderItem={({ field, index, label, renderRemoveButton }) => (
+              <div
+                key={field.id}
+                className="eb-flex eb-items-center eb-space-x-2"
               >
-                Add Secondary MCC
-              </Button>
-            </div>
-          )}
+                <OnboardingFormField
+                  control={form.control}
+                  name={`secondaryMccList.${index}.mcc`}
+                  type="text"
+                  label={label}
+                />
+                {renderRemoveButton()}
+              </div>
+            )}
+          />
 
           {isFieldVisible('website') && (
             <>
@@ -735,8 +686,7 @@ export const OrganizationStepForm = () => {
                 control={form.control}
                 name="website"
                 disabled={
-                  isFieldDisabled('website') ||
-                  form.getValues('websiteAvailable')
+                  isFieldDisabled('website') || form.watch('websiteAvailable')
                 }
                 render={({ field }) => (
                   <FormItem>
@@ -747,9 +697,7 @@ export const OrganizationStepForm = () => {
                       <Input
                         {...field}
                         value={
-                          !form.getValues('websiteAvailable')
-                            ? field.value
-                            : 'N/A'
+                          !form.watch('websiteAvailable') ? field.value : 'N/A'
                         }
                         type="url"
                       />

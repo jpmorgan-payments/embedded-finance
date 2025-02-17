@@ -13,7 +13,7 @@ export const partyFieldMap: PartyFieldMap = {
     baseRule: {
       display: 'visible',
       required: true,
-      defaultValue: null,
+      defaultValue: '',
     },
   },
   jurisdiction: {
@@ -21,7 +21,7 @@ export const partyFieldMap: PartyFieldMap = {
     baseRule: {
       display: 'visible',
       required: true,
-      defaultValue: null,
+      defaultValue: '',
     },
   },
   organizationName: {
@@ -37,7 +37,7 @@ export const partyFieldMap: PartyFieldMap = {
     baseRule: {
       display: 'visible',
       required: true,
-      defaultValue: null,
+      defaultValue: '',
     },
   },
   countryOfFormation: {
@@ -205,7 +205,7 @@ export const partyFieldMap: PartyFieldMap = {
   associatedCountries: {
     path: 'organizationDetails.associatedCountries',
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       minItems: 0,
       maxItems: 100,
       requiredItems: 0,
@@ -313,7 +313,7 @@ export const partyFieldMap: PartyFieldMap = {
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       minItems: 0,
       maxItems: 50,
       requiredItems: 0,
@@ -440,7 +440,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   natureOfOwnership: {
     path: 'individualDetails.natureOfOwnership',
-    baseRule: { display: 'visible', required: false, defaultValue: null },
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
   },
   individualAddresses: {
     path: 'individualDetails.addresses',
