@@ -198,7 +198,7 @@
     "addresses": {
       "itemLabel": "Business Address",
       "itemLabelNumbered": "Business Address {{number}}",
-      "appendLabel": "Add another address",
+      "appendLabel": "Add an address",
       "removeLabel": "Remove address",
       "validation": {
         "minItems_one": "At least one address is required",
@@ -218,7 +218,7 @@
         }
       },
       "additionalAddressLines": {
-        "appendLabel": "Add another line",
+        "appendLabel": "Add line",
         "removeLabel": "Remove line",
         "value": {
           "label": "Address line {{number, inc}}",
@@ -273,8 +273,7 @@
       "group": "address"
     },
     "associatedCountries": {
-      "itemLabel": "Associated country",
-      "itemLabelNumbered": "Associated country {{number}}",
+      "headerLabel": "Associated countries",
       "appendLabel": "Add associated country",
       "removeLabel": "Remove associated country",
       "validation": {
@@ -282,7 +281,9 @@
         "maxItems": "Maximum {{count}} associated countries allowed"
       },
       "country": {
-        "label": "Associated country {{index}}",
+        "label": "Associated country {{number}}",
+        "description": "",
+        "tooltip": "",
         "placeholder": "Select country",
         "validation": {
           "required": "Country is required"
@@ -316,7 +317,7 @@
     "organizationIds": {
       "itemLabel": "Business Identification Document",
       "itemLabelNumbered": "Business Identification Document {{number}}",
-      "appendLabel": "Add another ID",
+      "appendLabel": "Add ID",
       "removeLabel": "Remove ID",
       "validation": {
         "minItems": "At least {{count}} organization ID is required",
@@ -400,9 +401,8 @@
       }
     },
     "secondaryMccList": {
-      "itemLabel": "Secondary MCCs",
-      "itemLabelNumbered": "Secondary MCC {{number}}",
-      "appendLabel": "Add another MCC",
+      "headerLabel": "Secondary MCCs",
+      "appendLabel": "Add MCC",
       "removeLabel": "Remove MCC",
       "description": "List of secondary MCCs for your business. These are optional and can be added later.",
       "validation": {
@@ -410,6 +410,10 @@
         "maxItems": "Maximum {{count}} secondary MCCs allowed"
       },
       "mcc": {
+        "label": "MCC",
+        "placeholder": "Enter MCC",
+        "description": "Merchant Category Code (MCC) for your business",
+        "tooltip": "MCC is a 4-digit number that identifies the type of business you operate. It is used for categorizing businesses based on the goods or services they provide.",
         "validation": {
           "format": "MCC must be exactly 4 digits"
         }
@@ -431,7 +435,7 @@
     "individualAddresses": {
       "itemLabel": "Business Address",
       "itemLabelNumbered": "Business Address {{number}}",
-      "appendLabel": "Add another address",
+      "appendLabel": "Add an address",
       "removeLabel": "Remove address",
       "validation": {
         "minItems_one": "At least one address is required",
@@ -452,7 +456,7 @@
         }
       },
       "additionalAddressLines": {
-        "appendLabel": "Add another line",
+        "appendLabel": "Add line",
         "removeLabel": "Remove line",
         "value": {
           "label": "Address line {{number, inc}}",
@@ -612,6 +616,8 @@
     "organizationPhone.phoneType": {
       "label": "Organization phone type",
       "placeholder": "Select phone type",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone type is required",
         "format": "Invalid phone number format",
@@ -621,6 +627,8 @@
     "organizationPhone.phoneNumber": {
       "label": "Organization phone number",
       "placeholder": "Enter organization phone number",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone number is required",
         "format": "Invalid phone number format",

@@ -189,7 +189,7 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: {
           display: 'visible',
           minItems: 1,
-          maxItems: 4,
+          maxItems: 1,
         },
         subFields: {
           value: {
@@ -237,7 +237,7 @@ export const partyFieldMap: PartyFieldMap = {
   associatedCountries: {
     path: 'organizationDetails.associatedCountries',
     baseRule: {
-      display: 'visible',
+      display: 'hidden',
       minItems: 0,
       maxItems: 100,
       defaultValue: [],
@@ -255,7 +255,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.organizationIds',
     baseRule: {
       display: 'visible',
-      minItems: 1,
+      minItems: 0,
       maxItems: 1,
       defaultValue: [
         {
@@ -342,7 +342,7 @@ export const partyFieldMap: PartyFieldMap = {
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
     baseRule: {
-      display: 'visible',
+      display: 'hidden',
       minItems: 0,
       maxItems: 50,
       defaultValue: [],

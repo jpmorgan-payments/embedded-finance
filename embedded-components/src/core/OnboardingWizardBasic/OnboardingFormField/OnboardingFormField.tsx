@@ -78,6 +78,8 @@ interface BaseProps<
   tooltip?: string;
   required?: boolean;
   readonly?: boolean;
+  className?: string;
+  inputButton?: React.ReactNode;
   disableFieldRuleMapping?: boolean;
   inputProps?: React.ComponentProps<typeof Input>;
   form?: UseFormReturn<TFieldValues, any, any>; // TODO: remove when IndustrySelect refactored
@@ -116,6 +118,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   required,
   disabled,
   readonly,
+  className,
+  inputButton,
   disableFieldRuleMapping,
   inputProps,
   form,
@@ -148,10 +152,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
       : disabled || fieldRule.interaction === 'disabled'
         ? 'disabled'
         : (fieldRule.interaction ?? 'enabled');
-
-  if (fieldDisplay === 'hidden') {
-    return null;
-  }
 
   // Split the name into a name and index for the translation function
   const nameParts = name.split('.');
@@ -194,6 +194,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const fieldDescription = description ?? getContentToken('description');
 
+  if (fieldDisplay === 'hidden') {
+    return null;
+  }
+
   return (
     <FormField
       control={control}
@@ -201,7 +205,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
       disabled={fieldInteraction === 'disabled'}
       shouldUnregister={shouldUnregister}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className={className}>
           {type !== 'checkbox' ? (
             <>
               <div className="eb-flex eb-items-center eb-space-x-2">
@@ -391,26 +395,32 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                 case 'text':
                   return maskFormat ? (
                     <FormControl>
-                      <PatternInput
-                        {...field}
-                        {...inputProps}
-                        format={maskFormat ?? ''}
-                        mask={maskChar}
-                        type={type}
-                        defaultValue={field.value}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
+                      <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                        <PatternInput
+                          {...field}
+                          {...inputProps}
+                          format={maskFormat ?? ''}
+                          mask={maskChar}
+                          type={type}
+                          defaultValue={field.value}
+                          value={field.value}
+                          placeholder={fieldPlaceholder}
+                        />
+                        {inputButton}
+                      </div>
                     </FormControl>
                   ) : (
                     <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type={type}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
+                      <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                        <Input
+                          {...field}
+                          {...inputProps}
+                          type={type}
+                          value={field.value}
+                          placeholder={fieldPlaceholder}
+                        />
+                        {inputButton}
+                      </div>
                     </FormControl>
                   );
                 case 'email':
@@ -418,13 +428,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                 default:
                   return (
                     <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type={type}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
+                      <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                        <Input
+                          {...field}
+                          {...inputProps}
+                          type={type}
+                          value={field.value}
+                          placeholder={fieldPlaceholder}
+                        />
+                        {inputButton}
+                      </div>
                     </FormControl>
                   );
               }

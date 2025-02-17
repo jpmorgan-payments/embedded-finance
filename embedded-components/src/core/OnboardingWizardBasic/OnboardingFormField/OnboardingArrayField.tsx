@@ -1,3 +1,4 @@
+import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
   FieldArray,
   FieldArrayPath,
@@ -9,7 +10,6 @@ import {
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 
@@ -21,13 +21,19 @@ import {
   OptionalDefaults,
 } from '../utils/types';
 
+type ButtonProps = {
+  className?: string;
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  children?: React.ReactNode;
+};
+
 type BaseRenderProps<
   TFieldValues extends FieldValues,
   TFieldArrayName extends
     FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
 > = {
   fields: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>[];
-  renderAppendButton: (className?: string) => React.ReactNode;
+  renderAppendButton: (props?: ButtonProps) => React.ReactNode;
 };
 
 interface RenderItemProps<
@@ -38,7 +44,7 @@ interface RenderItemProps<
   index: number;
   itemLabel: string;
   disabled: boolean;
-  renderRemoveButton: (className?: string) => React.ReactNode;
+  renderRemoveButton: (props?: ButtonProps) => React.ReactNode;
 }
 
 interface OnboardingArrayFieldProps<
@@ -46,8 +52,6 @@ interface OnboardingArrayFieldProps<
   TFieldArrayName extends
     FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
 > extends Omit<UseFieldArrayProps<TFieldValues, TFieldArrayName>, 'rules'> {
-  removeButtonClassName?: string;
-  appendButtonClassName?: string;
   minItems?: number;
   maxItems?: number;
   appendValue?: FieldArray<TFieldValues, TFieldArrayName>;
@@ -65,6 +69,7 @@ interface OnboardingArrayFieldProps<
   renderFooter?: (
     props: BaseRenderProps<TFieldValues, TFieldArrayName>
   ) => React.ReactNode;
+  renderWrapper?: (children: React.ReactNode) => React.ReactNode;
   disableFieldRuleMapping?: boolean;
 }
 
@@ -80,7 +85,8 @@ export function OnboardingArrayField<
   renderItem,
   renderReadOnlyItem = (field) => JSON.stringify(field),
   renderHeader,
-  renderFooter,
+  renderFooter = ({ renderAppendButton }) => renderAppendButton(),
+  renderWrapper = (children) => <>{children}</>,
   disableFieldRuleMapping,
   ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
@@ -114,9 +120,6 @@ export function OnboardingArrayField<
     appendValue ??
     fieldRule.defaultAppendValue ??
     ({} as FieldValue<TFieldValues>);
-  if (fieldDisplay === 'hidden') {
-    return null;
-  }
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -145,34 +148,7 @@ export function OnboardingArrayField<
       ? getContentToken('itemLabel')
       : getContentToken('itemLabelNumbered', index + 1);
 
-  const renderRemoveButton = (index: number, className?: string) => {
-    if (fieldInteraction === 'readonly') {
-      return null;
-    }
-    if (
-      fields.length === fieldRule.minItems &&
-      fields.length === fieldRule.maxItems
-    ) {
-      return null;
-    }
-    return (
-      <Button
-        type="button"
-        variant="destructive"
-        size="icon"
-        className={cn('eb-mt-2', className)}
-        onClick={() => remove(index)}
-        disabled={
-          fieldInteraction === 'disabled' ||
-          fields.length <= (fieldRule.minItems ?? 0)
-        }
-      >
-        {getContentToken('removeLabel', index)}
-      </Button>
-    );
-  };
-
-  const renderAppendButton = (className?: string) => {
+  const renderRemoveButton = (index: number, buttonProps?: ButtonProps) => {
     if (fieldInteraction === 'readonly') {
       return null;
     }
@@ -186,15 +162,53 @@ export function OnboardingArrayField<
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        className={cn('eb-mt-2', className)}
+        size={buttonProps?.size}
+        className={buttonProps?.className}
+        onClick={() => remove(index)}
+        disabled={
+          fieldInteraction === 'disabled' ||
+          fields.length <= (fieldRule.minItems ?? 0)
+        }
+        aria-label={getContentToken('removeLabel', index)}
+      >
+        {buttonProps?.children ?? (
+          <>
+            <TrashIcon />
+            {getContentToken('removeLabel', index)}
+          </>
+        )}
+      </Button>
+    );
+  };
+
+  const renderAppendButton = (buttonProps?: ButtonProps) => {
+    if (fieldInteraction === 'readonly') {
+      return null;
+    }
+    if (
+      fields.length === fieldRule.minItems &&
+      fields.length === fieldRule.maxItems
+    ) {
+      return null;
+    }
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size={buttonProps?.size}
+        className={buttonProps?.className}
         onClick={() => append(fieldAppendValue)}
         disabled={
           fieldInteraction === 'disabled' ||
           fields.length >= (fieldRule.maxItems ?? Infinity)
         }
       >
-        {getContentToken('appendLabel')}
+        {buttonProps?.children ?? (
+          <>
+            <PlusIcon />
+            {getContentToken('appendLabel')}
+          </>
+        )}
       </Button>
     );
   };
@@ -206,27 +220,32 @@ export function OnboardingArrayField<
       ? renderReadOnlyItem(renderItemProps)
       : renderItem(renderItemProps);
 
-  const baseRenderProps = {
+  const baseRenderProps: BaseRenderProps<TFieldValues, TFieldArrayName> = {
     fields,
     renderAppendButton,
   };
 
+  if (fieldDisplay === 'hidden') {
+    return null;
+  }
   return (
     <>
       {renderHeader?.(baseRenderProps)}
-      {fields.map((field, index) => {
-        const renderItemProps = {
-          ...baseRenderProps,
-          field,
-          index,
-          itemLabel: getItemLabel(index),
-          disabled: fieldInteraction === 'disabled',
-          renderRemoveButton: (className?: string) =>
-            renderRemoveButton(index, className),
-        };
+      {renderWrapper(
+        fields.map((field, index) => {
+          const renderItemProps = {
+            ...baseRenderProps,
+            field,
+            index,
+            itemLabel: getItemLabel(index),
+            disabled: fieldInteraction === 'disabled',
+            renderRemoveButton: (buttonProps?: ButtonProps) =>
+              renderRemoveButton(index, buttonProps),
+          };
 
-        return renderContent(renderItemProps);
-      })}
+          return renderContent(renderItemProps);
+        })
+      )}
       {renderFooter?.(baseRenderProps)}
     </>
   );

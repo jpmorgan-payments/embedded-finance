@@ -50,6 +50,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -465,12 +466,20 @@ export const OrganizationStepForm = () => {
                   <OnboardingArrayField
                     control={form.control}
                     name={`addresses.${index}.additionalAddressLines`}
-                    renderItem={({ index: lineIndex, field: lineField }) => (
+                    renderItem={({
+                      index: lineIndex,
+                      field: lineField,
+                      renderRemoveButton: renderLineRemoveButton,
+                    }) => (
                       <OnboardingFormField
                         key={lineField.id}
                         control={form.control}
                         name={`addresses.${index}.additionalAddressLines.${lineIndex}.value`}
                         type="text"
+                        inputButton={renderLineRemoveButton({
+                          className: 'eb-align-end',
+                          children: <XIcon />,
+                        })}
                       />
                     )}
                   />
@@ -525,188 +534,210 @@ export const OrganizationStepForm = () => {
         />
 
         {/* Organization IDs */}
-        {isFieldVisible('organizationIds') && (
-          <>
-            {form.watch('organizationIds').length === 0 &&
-              legalEntityType === 'SOLE_PROPRIETORSHIP' && (
-                <div className="eb-rounded-md eb-bg-blue-50 eb-p-4">
-                  <div className="eb-flex">
-                    <div className="eb-shrink-0">
-                      <svg
-                        className="eb-h-5 eb-w-5 eb-text-blue-400"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="eb-ml-3">
-                      <p className="eb-text-sm eb-text-blue-700">
-                        As a sole proprietor, an EIN is optional unless you have
-                        employees or file certain tax returns. However, having
-                        an EIN can help establish business credit and simplify
-                        tax filing.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-          </>
-        )}
-
         <OnboardingArrayField
           control={form.control}
           name="organizationIds"
           disabled={isFormDisabled}
+          renderHeader={({ fields }) =>
+            fields.length === 0 &&
+            legalEntityType === 'SOLE_PROPRIETORSHIP' && (
+              <div className="eb-rounded-md eb-bg-blue-50 eb-p-4">
+                <div className="eb-flex">
+                  <div className="eb-shrink-0">
+                    <svg
+                      className="eb-h-5 eb-w-5 eb-text-blue-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="eb-ml-3">
+                    <p className="eb-text-sm eb-text-blue-700">
+                      As a sole proprietor, an EIN is optional unless you have
+                      employees or file certain tax returns. However, having an
+                      EIN can help establish business credit and simplify tax
+                      filing.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )
+          }
           renderItem={({ field, index, itemLabel, renderRemoveButton }) => (
             <fieldset
               key={field.id}
-              className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              className="eb-rounded-lg eb-border eb-p-4"
               disabled={isFormDisabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                 {itemLabel}
               </legend>
 
-              <OnboardingFormField
-                control={form.control}
-                name={`organizationIds.${index}.idType`}
-                type="select"
-                options={[
-                  { value: 'EIN', label: 'EIN' },
-                  {
-                    value: 'BUSINESS_REGISTRATION_ID',
-                    label: 'Business Registration ID',
-                  },
-                  { value: 'BUSINESS_NUMBER', label: 'Business Number' },
-                  {
-                    value: 'BUSINESS_REGISTRATION_NUMBER',
-                    label: 'Business Registration Number',
-                  },
-                ]}
-              />
+              <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <OnboardingFormField
+                  control={form.control}
+                  name={`organizationIds.${index}.idType`}
+                  type="select"
+                  options={[
+                    { value: 'EIN', label: 'EIN' },
+                    {
+                      value: 'BUSINESS_REGISTRATION_ID',
+                      label: 'Business Registration ID',
+                    },
+                    { value: 'BUSINESS_NUMBER', label: 'Business Number' },
+                    {
+                      value: 'BUSINESS_REGISTRATION_NUMBER',
+                      label: 'Business Registration Number',
+                    },
+                  ]}
+                />
 
-              <OnboardingFormField
-                key={`organization-id-value-${index}-${field.idType}`}
-                control={form.control}
-                name={`organizationIds.${index}.value`}
-                type="text"
-                label={getValueLabel(field.idType)}
-                maskFormat={getMaskFormat(field.idType)}
-                maskChar="_"
-              />
+                <OnboardingFormField
+                  key={`organization-id-value-${index}-${field.idType}`}
+                  control={form.control}
+                  name={`organizationIds.${index}.value`}
+                  type="text"
+                  label={getValueLabel(field.idType)}
+                  maskFormat={getMaskFormat(field.idType)}
+                  maskChar="_"
+                />
 
-              <OnboardingFormField
-                control={form.control}
-                name={`organizationIds.${index}.issuer`}
-                type="combobox"
-                options={COUNTRIES_OF_FORMATION.map((code) => ({
-                  value: code,
-                  label: (
-                    <span>
-                      <span className="eb-font-medium">[{code}]</span>{' '}
-                      {t([
-                        `common:countries.${code}`,
-                      ] as unknown as TemplateStringsArray)}
-                    </span>
-                  ),
-                }))}
-              />
-              <OnboardingFormField
-                control={form.control}
-                name={`organizationIds.${index}.expiryDate`}
-                type="date"
-              />
-              <OnboardingFormField
-                control={form.control}
-                name={`organizationIds.${index}.description`}
-                type="text"
-              />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`organizationIds.${index}.issuer`}
+                  type="combobox"
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
+                />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`organizationIds.${index}.expiryDate`}
+                  type="date"
+                />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`organizationIds.${index}.description`}
+                  type="text"
+                />
+              </div>
 
-              {renderRemoveButton()}
+              <div className="eb-mt-4 eb-flex eb-justify-start">
+                {renderRemoveButton()}
+              </div>
             </fieldset>
           )}
         />
 
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+        <fieldset className="eb-grid eb-gap-4 eb-rounded-lg eb-border eb-p-4">
+          <legend className="eb-text-md eb-m-1 eb-px-1 eb-font-medium">
             Additional Fields
           </legend>
+
           {/* Associated Countries */}
-          <OnboardingArrayField
-            control={form.control}
-            name="associatedCountries"
-            renderItem={({ field, index, renderRemoveButton }) => (
-              <div
-                key={field.id}
-                className="eb-flex eb-items-center eb-space-x-2"
-              >
+          <div>
+            <div className="eb-text-md eb-font-medium">
+              {t('onboarding:fields.associatedCountries.headerLabel')}
+            </div>
+            <OnboardingArrayField
+              control={form.control}
+              name="associatedCountries"
+              renderWrapper={(children) => (
+                <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                  {children}
+                </div>
+              )}
+              renderItem={({ field, index, renderRemoveButton }) => (
                 <OnboardingFormField
+                  key={field.id}
                   control={form.control}
                   name={`associatedCountries.${index}.country`}
                   type="text"
+                  inputButton={renderRemoveButton({
+                    children: <XIcon />,
+                  })}
                 />
-                {renderRemoveButton()}
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
 
           {/* Secondary MCC */}
-          <OnboardingArrayField
-            control={form.control}
-            name="secondaryMccList"
-            renderItem={({ field, index, renderRemoveButton }) => (
-              <div
-                key={field.id}
-                className="eb-flex eb-items-center eb-space-x-2"
-              >
+          <div>
+            <div className="eb-text-md eb-font-medium">
+              {t('onboarding:fields.secondaryMccList.headerLabel')}
+            </div>
+            <OnboardingArrayField
+              control={form.control}
+              name="secondaryMccList"
+              renderWrapper={(children) => (
+                <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                  {children}
+                </div>
+              )}
+              renderItem={({ field, index, renderRemoveButton }) => (
                 <OnboardingFormField
+                  key={field.id}
                   control={form.control}
                   name={`secondaryMccList.${index}.mcc`}
                   type="text"
+                  inputButton={renderRemoveButton({
+                    children: <XIcon />,
+                  })}
                 />
-                {renderRemoveButton()}
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
 
-          {isFieldVisible('website') && (
-            <>
-              <FormField
-                control={form.control}
-                name="website"
-                disabled={
-                  isFieldDisabled('website') || form.watch('websiteAvailable')
-                }
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel asterisk={isFieldRequired('website')}>
-                      Website
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={
-                          !form.watch('websiteAvailable') ? field.value : 'N/A'
-                        }
-                        type="url"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <OnboardingFormField
-                control={form.control}
-                name="websiteAvailable"
-                type="checkbox"
-              />
-            </>
-          )}
+          <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+            {isFieldVisible('website') && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="website"
+                  disabled={
+                    isFieldDisabled('website') || form.watch('websiteAvailable')
+                  }
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel asterisk={isFieldRequired('website')}>
+                        Website
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={
+                            !form.watch('websiteAvailable')
+                              ? field.value
+                              : 'N/A'
+                          }
+                          type="url"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <OnboardingFormField
+                  control={form.control}
+                  name="websiteAvailable"
+                  type="checkbox"
+                />
+              </>
+            )}
+          </div>
         </fieldset>
         <ServerErrorAlert
           error={usePartyResource ? partyUpdateError : clientUpdateError}
