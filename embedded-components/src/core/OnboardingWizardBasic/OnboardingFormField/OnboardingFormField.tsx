@@ -181,7 +181,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const fieldPlaceholder = placeholder ?? getContentToken('placeholder');
 
   const fieldLabel = (
-    <span>
+    <>
       {label ?? getContentToken('label')}
       {fieldRequired || noOptionalLabel ? (
         ''
@@ -191,7 +191,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
           ({t('common:optional')})
         </span>
       )}
-    </span>
+    </>
   );
 
   const fieldTooltip = tooltip ?? getContentToken('tooltip');
