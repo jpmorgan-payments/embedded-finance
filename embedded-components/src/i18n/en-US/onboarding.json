@@ -185,6 +185,7 @@
       "label": "Job title description",
       "placeholder": "Enter job title description",
       "description": "Brief description of your role and responsibilities",
+      "tooltip": "",
       "validation": {
         "maxLength": "Description must be at most 50 characters",
         "pattern": "Description can only contain letters, numbers, and basic punctuation",
@@ -232,6 +233,7 @@
         "label": "City",
         "placeholder": "Enter city",
         "description": "City of your business address",
+        "tooltip": "",
         "validation": {
           "required": "City is required"
         }
@@ -240,6 +242,7 @@
         "label": "State",
         "placeholder": "Select state",
         "description": "State of your business address",
+        "tooltip": "",
         "validation": {
           "required": "State is required"
         }
@@ -248,6 +251,7 @@
         "label": "Postal Code",
         "placeholder": "Enter postal code",
         "description": "5-digit ZIP code",
+        "tooltip": "",
         "validation": {
           "required": "Postal code is required",
           "pattern": "Postal code must be exactly 5 digits"
@@ -257,6 +261,7 @@
         "label": "Country",
         "placeholder": "Select country",
         "description": "Country of your business address",
+        "tooltip": "",
         "validation": {
           "required": "Country is required"
         }
@@ -476,6 +481,7 @@
         "label": "City",
         "placeholder": "Enter city",
         "description": "City of your individual address",
+        "tooltip": "",
         "validation": {
           "maxLength": "City name must be 34 characters or less"
         }
@@ -484,6 +490,7 @@
         "label": "State",
         "placeholder": "Select state",
         "description": "State of your individual address",
+        "tooltip": "",
         "validation": {
           "maxLength": "State name must be 30 characters or less"
         }
@@ -492,6 +499,7 @@
         "label": "Postal Code",
         "placeholder": "Enter postal code",
         "description": "5-digit ZIP code",
+        "tooltip": "",
         "validation": {
           "maxLength": "Postal code must be 10 characters or less"
         }
@@ -500,6 +508,7 @@
         "label": "Country",
         "placeholder": "Select country",
         "description": "Country of your individual address",
+        "tooltip": "",
         "validation": {
           "exactlyTwoChars": "Country code must be exactly 2 characters"
         }
@@ -570,6 +579,7 @@
     "birthDate": {
       "label": "Date of birth",
       "description": "Date of birth as it appears on government ID",
+      "tooltip": "",
       "validation": {
         "required": "Date of birth is required",
         "format": "Please enter a valid date in MM/DD/YYYY format",
@@ -638,6 +648,8 @@
     "individualPhone.phoneType": {
       "label": "Individual phone type",
       "placeholder": "Select phone type",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone type is required",
         "format": "Invalid phone number format",
@@ -647,6 +659,8 @@
     "individualPhone.phoneNumber": {
       "label": "Individual phone number",
       "placeholder": "Enter organization phone number",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone number is required",
         "format": "Invalid phone number format",
