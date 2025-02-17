@@ -149,7 +149,6 @@ export function mapPartyApiErrorsToFormErrors(
       if (modifyErrorField) {
         remainingPath = modifyErrorField(remainingPath);
       }
-      console.log(remainingPath);
       acc.push({
         field: `${matchedKey}${remainingPath}`,
         message: error.message,
