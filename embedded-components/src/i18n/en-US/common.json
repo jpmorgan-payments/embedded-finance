@@ -1,5 +1,5 @@
 {
-  "noTokenFallback": "NO CONTENT TOKEN FOUND FOR {{key}}",
+  "noTokenFallback": "NO CONTENT TOKEN FOUND: {{key}}",
   "next": "Next",
   "previous": "Previous",
   "submit": "Submit",
