@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -586,6 +587,30 @@ export function modifySchemaByClientContext(
     if (ruleType === 'array') {
       const min = fieldRule.minItems ?? 0;
       const max = fieldRule.maxItems ?? Infinity;
+      const nameParts = fullKey.split('.');
+      const tName = nameParts
+        .filter((part) => Number.isNaN(Number(part)))
+        .join('.');
+
+      const minMessage = i18n.t(
+        [
+          `onboarding:fields.${tName}.validation.minItems`,
+          'common:validation.minItems',
+        ],
+        {
+          count: min,
+        }
+      );
+
+      const maxMessage = i18n.t(
+        [
+          `onboarding:fields.${tName}.validation.maxItems`,
+          'common:validation.maxItems',
+        ],
+        {
+          count: max,
+        }
+      );
 
       // Handle arrays wrapped in ZodEffects
       if (modifiedSchema instanceof z.ZodEffects) {
@@ -604,7 +629,10 @@ export function modifySchemaByClientContext(
             );
           }
           // Apply min and max to the underlying array
-          const modifiedInner = z.array(newElementSchema).min(min).max(max);
+          const modifiedInner = z
+            .array(newElementSchema)
+            .min(min, minMessage)
+            .max(max, maxMessage);
           // Rebuild the ZodEffects with the modified inner schema
           modifiedSchema = new z.ZodEffects({
             schema: modifiedInner,
@@ -628,7 +656,10 @@ export function modifySchemaByClientContext(
           );
         }
         // TODO: add validation messages
-        modifiedSchema = z.array(newElementSchema).min(min).max(max);
+        modifiedSchema = z
+          .array(newElementSchema)
+          .min(min, minMessage)
+          .max(max, maxMessage);
       } else {
         // Unexpected schema type
         throw new Error(

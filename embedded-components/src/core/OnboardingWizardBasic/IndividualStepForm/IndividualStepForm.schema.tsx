@@ -103,17 +103,10 @@ const individualIdSchema = z
   );
 
 export const IndividualStepFormSchema = z.object({
-  individualAddresses: z
-    .array(AddressSchema)
-    .min(1, i18n.t('onboarding:fields.individualAddresses.validation.required'))
-    .max(
-      5,
-      i18n.t('onboarding:fields.individualAddresses.validation.maxAddresses')
-    )
-    .refine((addresses) => {
-      const types = addresses.map((addr) => addr.addressType);
-      return new Set(types).size === types.length;
-    }, i18n.t('onboarding:fields.individualAddresses.validation.uniqueTypes')),
+  individualAddresses: z.array(AddressSchema).refine((addresses) => {
+    const types = addresses.map((addr) => addr.addressType);
+    return new Set(types).size === types.length;
+  }, i18n.t('onboarding:fields.individualAddresses.validation.uniqueTypes')),
   birthDate: z
     .string()
     .regex(
@@ -209,14 +202,10 @@ export const IndividualStepFormSchema = z.object({
       SUFFIX_PATTERN,
       i18n.t('onboarding:fields.nameSuffix.validation.pattern')
     ),
-  individualIds: z
-    .array(individualIdSchema)
-    .min(1, i18n.t('onboarding:fields.individualIds.validation.required'))
-    .max(16, i18n.t('onboarding:fields.individualIds.validation.maxIds'))
-    .refine((ids) => {
-      const types = ids.map((id) => id.idType);
-      return new Set(types).size === types.length;
-    }, i18n.t('onboarding:fields.individualIds.validation.uniqueTypes')),
+  individualIds: z.array(individualIdSchema).refine((ids) => {
+    const types = ids.map((id) => id.idType);
+    return new Set(types).size === types.length;
+  }, i18n.t('onboarding:fields.individualIds.validation.uniqueTypes')),
   jobTitle: z
     .string()
     .min(2, i18n.t('onboarding:fields.jobTitle.validation.minLength'))

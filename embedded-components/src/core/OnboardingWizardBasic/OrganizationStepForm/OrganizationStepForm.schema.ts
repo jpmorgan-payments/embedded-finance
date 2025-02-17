@@ -227,12 +227,7 @@ export const OrganizationStepFormSchema = z.object({
     .array(AddressSchema)
     .min(1, i18n.t('onboarding:fields.addresses.validation.minAddresses'))
     .max(5, i18n.t('onboarding:fields.addresses.validation.maxAddresses')),
-  associatedCountries: z
-    .array(associatedCountrySchema)
-    .max(
-      100,
-      i18n.t('onboarding:fields.associatedCountries.validation.maxCountries')
-    ),
+  associatedCountries: z.array(associatedCountrySchema),
   industryCategory: z
     .string()
     .min(3, i18n.t('onboarding:fields.industryCategory.validation.minLength'))

@@ -10,7 +10,9 @@
   "yes": "Yes",
   "no": "No",
   "validation": {
-    "required": "This field is required"
+    "required": "This field is required",
+    "minItems": "Minimum {{count}} items required",
+    "maxItems": "Maximum {{count}} items allowed"
   },
   "countries": {
     "AE": "United Arab Emirates",
