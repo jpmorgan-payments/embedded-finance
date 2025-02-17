@@ -295,10 +295,6 @@ export const OrganizationStepForm = () => {
 
   const isFormDisabled = isFormSubmitting || isPopulatingForm;
 
-  if (isPopulatingForm) {
-    return <FormLoadingState message={t('common:loading')} />;
-  }
-
   return (
     <Form {...form}>
       <form
@@ -460,24 +456,26 @@ export const OrganizationStepForm = () => {
                     },
                   ]}
                 />
+                <div className="eb-col-span-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`addresses.${index}.primaryAddressLine`}
+                    type="text"
+                  />
 
-                <OnboardingArrayField
-                  control={form.control}
-                  name={`addresses.${index}.addressLines`}
-                  renderItem={({
-                    index: lineIndex,
-                    field: lineField,
-                    required: lineRequired,
-                  }) => (
-                    <OnboardingFormField
-                      key={lineField.id}
-                      control={form.control}
-                      name={`addresses.${index}.addressLines.${lineIndex}.value`}
-                      type="text"
-                      required={lineRequired}
-                    />
-                  )}
-                />
+                  <OnboardingArrayField
+                    control={form.control}
+                    name={`addresses.${index}.additionalAddressLines`}
+                    renderItem={({ index: lineIndex, field: lineField }) => (
+                      <OnboardingFormField
+                        key={lineField.id}
+                        control={form.control}
+                        name={`addresses.${index}.additionalAddressLines.${lineIndex}.value`}
+                        type="text"
+                      />
+                    )}
+                  />
+                </div>
 
                 <OnboardingFormField
                   control={form.control}
@@ -569,6 +567,7 @@ export const OrganizationStepForm = () => {
           disabled={isFormDisabled}
           renderItem={({ field, index, label, renderRemoveButton }) => (
             <fieldset
+              key={field.id}
               className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               disabled={isFormDisabled}
             >

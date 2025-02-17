@@ -123,15 +123,37 @@ export const partyFieldMap: PartyFieldMap = {
   },
   addresses: {
     path: 'organizationDetails.addresses',
+    modifyErrorField: (field) => {
+      const parts = field.split('.');
+      const lastPart = parts[parts.length - 1];
+      const secondToLastPart = parts[parts.length - 2];
+      if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
+        if (lastPart === '0') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'primaryAddressLine',
+          ].join('.');
+        }
+
+        return [
+          ...parts.slice(0, parts.length - 2),
+          'additionalAddressLines',
+          Number(lastPart) - 1,
+          'value',
+        ].join('.');
+      }
+
+      return field;
+    },
     baseRule: {
       display: 'visible',
       minItems: 1,
       maxItems: 1,
-      requiredItems: 1,
       defaultValue: [
         {
           addressType: 'BUSINESS_ADDRESS',
-          addressLines: [{ value: '' }, { value: '' }],
+          primaryAddressLine: '',
+          additionalAddressLines: [{ value: '' }],
           city: '',
           state: '',
           postalCode: '',
@@ -140,7 +162,8 @@ export const partyFieldMap: PartyFieldMap = {
       ],
       defaultAppendValue: {
         addressType: 'BUSINESS_ADDRESS',
-        addressLines: [{ value: '' }, { value: '' }],
+        primaryAddressLine: '',
+        additionalAddressLines: [{ value: '' }],
         city: '',
         state: '',
         postalCode: '',
@@ -159,16 +182,18 @@ export const partyFieldMap: PartyFieldMap = {
       addressType: {
         baseRule: { display: 'visible', required: true },
       },
-      addressLines: {
+      primaryAddressLine: {
+        baseRule: { display: 'visible', required: true },
+      },
+      additionalAddressLines: {
         baseRule: {
           display: 'visible',
-          minItems: 2,
-          maxItems: 2,
-          requiredItems: 1,
+          minItems: 1,
+          maxItems: 4,
         },
         subFields: {
           value: {
-            baseRule: { display: 'visible', required: true },
+            baseRule: { display: 'visible', required: false },
           },
         },
       },
@@ -188,9 +213,13 @@ export const partyFieldMap: PartyFieldMap = {
     fromResponseFn: (addressesFromApi: AddressDto[]) => {
       return addressesFromApi.map((address) => ({
         ...address,
-        addressLines: address.addressLines.map((line: any) => ({
-          value: line.value,
-        })),
+        primaryAddressLine: address?.addressLines?.[0] ?? '',
+        additionalAddressLines:
+          address?.addressLines?.length > 1
+            ? address.addressLines?.slice(1).map((line: any) => ({
+                value: line.value,
+              }))
+            : [{ value: '' }],
         state: address.state ?? '',
         addressType: address.addressType ?? 'LEGAL_ADDRESS',
       }));
@@ -198,7 +227,10 @@ export const partyFieldMap: PartyFieldMap = {
     toRequestFn: (addresses): AddressDto[] => {
       return addresses.map((address) => ({
         ...address,
-        addressLines: address.addressLines.map(({ value }) => value),
+        addressLines: [
+          address.primaryAddressLine,
+          ...address.additionalAddressLines.map(({ value }) => value),
+        ],
       }));
     },
   },
@@ -208,7 +240,6 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       minItems: 0,
       maxItems: 100,
-      requiredItems: 0,
       defaultValue: [],
       defaultAppendValue: {
         country: '',
@@ -226,7 +257,6 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       minItems: 1,
       maxItems: 1,
-      requiredItems: 1,
       defaultValue: [
         {
           idType: 'EIN',
@@ -247,7 +277,6 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: {
           minItems: 0,
-          requiredItems: 0,
           defaultValue: [],
         },
       },
@@ -316,7 +345,6 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       minItems: 0,
       maxItems: 50,
-      requiredItems: 0,
       defaultValue: [],
       defaultAppendValue: {
         mcc: '',
@@ -371,7 +399,6 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       minItems: 1,
       maxItems: 1,
-      requiredItems: 1,
       defaultValue: [
         {
           idType: 'SSN',
@@ -444,15 +471,37 @@ export const partyFieldMap: PartyFieldMap = {
   },
   individualAddresses: {
     path: 'individualDetails.addresses',
+    modifyErrorField: (field) => {
+      const parts = field.split('.');
+      const lastPart = parts[parts.length - 1];
+      const secondToLastPart = parts[parts.length - 2];
+      if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
+        if (lastPart === '0') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'primaryAddressLine',
+          ].join('.');
+        }
+
+        return [
+          ...parts.slice(0, parts.length - 2),
+          'additionalAddressLines',
+          Number(lastPart) - 1,
+          'value',
+        ].join('.');
+      }
+
+      return field;
+    },
     baseRule: {
       display: 'visible',
       minItems: 1,
       maxItems: 1,
-      requiredItems: 1,
       defaultValue: [
         {
           addressType: 'RESIDENTIAL_ADDRESS',
-          addressLines: [{ value: '' }, { value: '' }],
+          primaryAddressLine: '',
+          additionalAddressLines: [{ value: '' }],
           city: '',
           state: '',
           postalCode: '',
@@ -461,7 +510,8 @@ export const partyFieldMap: PartyFieldMap = {
       ],
       defaultAppendValue: {
         addressType: 'RESIDENTIAL_ADDRESS',
-        addressLines: [{ value: '' }, { value: '' }],
+        primaryAddressLine: '',
+        additionalAddressLines: [{ value: '' }],
         city: '',
         state: '',
         postalCode: '',
@@ -480,16 +530,18 @@ export const partyFieldMap: PartyFieldMap = {
       addressType: {
         baseRule: { display: 'visible', required: true },
       },
-      addressLines: {
+      primaryAddressLine: {
+        baseRule: { display: 'visible', required: true },
+      },
+      additionalAddressLines: {
         baseRule: {
           display: 'visible',
-          minItems: 2,
-          maxItems: 2,
-          requiredItems: 1,
+          minItems: 1,
+          maxItems: 1,
         },
         subFields: {
           value: {
-            baseRule: { display: 'visible', required: true },
+            baseRule: { display: 'visible', required: false },
           },
         },
       },
@@ -509,9 +561,13 @@ export const partyFieldMap: PartyFieldMap = {
     fromResponseFn: (addressesFromApi: AddressDto[]) => {
       return addressesFromApi.map((address) => ({
         ...address,
-        addressLines: address.addressLines.map((line: any) => ({
-          value: line.value,
-        })),
+        primaryAddressLine: address?.addressLines?.[0] ?? '',
+        additionalAddressLines:
+          address?.addressLines?.length > 1
+            ? address.addressLines?.slice(1).map((line: any) => ({
+                value: line.value,
+              }))
+            : [{ value: '' }],
         state: address.state ?? '',
         addressType: address.addressType ?? 'LEGAL_ADDRESS',
       }));
@@ -519,7 +575,10 @@ export const partyFieldMap: PartyFieldMap = {
     toRequestFn: (addresses): AddressDto[] => {
       return addresses.map((address) => ({
         ...address,
-        addressLines: address.addressLines.map(({ value }) => value),
+        addressLines: [
+          address.primaryAddressLine,
+          ...address.additionalAddressLines.map(({ value }) => value),
+        ],
       }));
     },
   },

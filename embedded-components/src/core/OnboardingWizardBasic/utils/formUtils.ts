@@ -114,18 +114,24 @@ export function mapPartyApiErrorsToFormErrors(
   const fieldMapKeys = objectKeys(partyFieldMap);
   return errors.reduce((acc, error) => {
     let remainingPath = '';
+    let modifyErrorField: AnyFieldConfiguration['modifyErrorField'];
+
     const matchedKey = fieldMapKeys.find((key) => {
       const path = partyFieldMap[key]?.path;
       if (path && error.field && error.field.startsWith(`$.${path}`)) {
         remainingPath = error.field.substring(`$.${path}`.length);
+        modifyErrorField = partyFieldMap[key]?.modifyErrorField;
         return true;
       }
       if (path && error.field && error.field.startsWith(`$.party.${path}`)) {
         remainingPath = error.field.substring(`$.party.${path}`.length);
+        modifyErrorField = partyFieldMap[key]?.modifyErrorField;
         return true;
       }
       return false;
     });
+
+    // Handle edge case where the error field is in the field map but not matched
     if (!matchedKey && error.field && error.field in partyFieldMap) {
       acc.push({
         field: error.field as keyof typeof partyFieldMap,
@@ -133,14 +139,22 @@ export function mapPartyApiErrorsToFormErrors(
         path: error.field,
       });
     }
+
     // Server error path sometimes does not include the index for array fields,
     // so we assume it's the first index (0) and add it manually.
     if (matchedKey && remainingPath) {
+      // Convert remainingPath to dot notation
+      remainingPath = remainingPath.replace(/\[(\w+)\]/g, '.$1');
+      if (modifyErrorField) {
+        remainingPath = modifyErrorField(remainingPath);
+      }
+      console.log(remainingPath);
       acc.push({
         field: `${matchedKey}${remainingPath}`,
         message: error.message,
         path: error.field,
       });
+      // TODO: remove this when the server returns the correct path
       acc.push({
         field: `${matchedKey}.0.${remainingPath}`,
         message: error.message,
@@ -543,7 +557,8 @@ export function modifySchemaByClientContext(
   clientContext: ClientContext,
   refineFn?: (
     schema: z.ZodObject<Record<string, z.ZodType<any>>>
-  ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>
+  ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>,
+  parentKey: string = '' // used to track full key path
 ):
   | z.ZodObject<Record<string, z.ZodType<any>>>
   | z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>> {
@@ -551,24 +566,45 @@ export function modifySchemaByClientContext(
 
   const filteredSchema: Record<string, z.ZodType<any>> = {};
   objectEntries(shape).forEach(([key, value]) => {
+    const fullKey = parentKey ? `${parentKey}.${key}` : key;
+
     const { fieldRule, ruleType } = getFieldRuleByClientContext(
-      key as keyof OnboardingFormValuesSubmit,
+      fullKey as FieldPath<OnboardingFormValuesSubmit>,
       clientContext
     );
 
-    // Modify the field schema based on the field rule
-    let modifiedSchema = value;
+    getFieldRuleByClientContext('addresses.0', clientContext);
+
+    // Skip hidden fields
     if (fieldRule.display === 'hidden') {
       return;
     }
+
+    // Modify the field schema based on the field rule
+    let modifiedSchema = value;
+
     if (ruleType === 'array') {
-      const min = fieldRule.requiredItems ?? 0;
+      const min = fieldRule.minItems ?? 0;
       const max = fieldRule.maxItems ?? Infinity;
+
+      // Handle arrays wrapped in ZodEffects
       if (modifiedSchema instanceof z.ZodEffects) {
         const inner = modifiedSchema._def.schema;
         if (inner instanceof z.ZodArray) {
+          const elementSchema = inner._def.type;
+          let newElementSchema = elementSchema;
+          // If the element is an object, recursively modify it.
+          if (elementSchema instanceof z.ZodObject) {
+            // For array elements, we add a placeholder index (0) to the key
+            newElementSchema = modifySchemaByClientContext(
+              elementSchema,
+              clientContext,
+              undefined,
+              `${fullKey}.0`
+            );
+          }
           // Apply min and max to the underlying array
-          const modifiedInner = inner.min(min).max(max);
+          const modifiedInner = z.array(newElementSchema).min(min).max(max);
           // Rebuild the ZodEffects with the modified inner schema
           modifiedSchema = new z.ZodEffects({
             schema: modifiedInner,
@@ -576,9 +612,23 @@ export function modifySchemaByClientContext(
             typeName: modifiedSchema._def.typeName,
           });
         }
-      } else if (modifiedSchema instanceof z.ZodArray) {
+      }
+      // Handle direct ZodArray
+      else if (modifiedSchema instanceof z.ZodArray) {
+        const elementSchema = modifiedSchema._def.type;
+        let newElementSchema = elementSchema;
+        // If the element is an object, recursively modify it.
+        if (elementSchema instanceof z.ZodObject) {
+          // For array elements, we add a placeholder index (0) to the key
+          newElementSchema = modifySchemaByClientContext(
+            elementSchema,
+            clientContext,
+            undefined,
+            `${fullKey}.0`
+          );
+        }
         // TODO: add validation messages
-        modifiedSchema = modifiedSchema.min(min).max(max);
+        modifiedSchema = z.array(newElementSchema).min(min).max(max);
       } else {
         // Unexpected schema type
         throw new Error(

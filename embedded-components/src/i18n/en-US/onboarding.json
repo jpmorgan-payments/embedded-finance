@@ -194,22 +194,28 @@
       }
     },
     "addresses": {
-      "label": "Business Address",
-      "labelNumbered": "Business Address {{number}}",
+      "itemLabel": "Business Address",
+      "itemLabelNumbered": "Business Address {{number}}",
       "appendLabel": "Add another address",
       "removeLabel": "Remove address",
-      "addressLines": {
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "Address line 1 of your business address",
+        "validation": {
+          "required": "Address line 1 is required",
+          "maxLength": "Address line must be 60 characters or less",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "additionalAddressLines": {
         "appendLabel": "Add another line",
         "removeLabel": "Remove line",
         "value": {
-          "label": "Address line {{index}}",
-          "placeholder": "Enter address line {{index}}",
-          "description": "Address line {{index}} of your business address",
-          "validation": {
-            "required": "Address line {{index}} is required",
-            "maxLength": "Address line must be 60 characters or less",
-            "pattern": "Address can only contain letters, numbers, and basic punctuation"
-          }
+          "label": "Address line {{number, inc}}",
+          "placeholder": "Enter address line {{number, inc}}",
+          "description": "Address line {{number, inc}} of your business address",
+          "tooltip": ""
         },
         "validation": {
           "minLines_one": "At least one address line is required",
@@ -258,7 +264,7 @@
       "addressType": {
         "label": "Address type",
         "placeholder": "Select address type",
-        "description": "",
+        "description": "Type of address for your business address",
         "tooltip": ""
       },
       "group": "address"

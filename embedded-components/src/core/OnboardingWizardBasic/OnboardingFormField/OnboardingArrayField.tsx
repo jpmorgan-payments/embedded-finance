@@ -30,22 +30,20 @@ interface OnboardingArrayFieldProps<
   appendButtonClassName?: string;
   minItems?: number;
   maxItems?: number;
-  requiredItems?: number;
   appendValue?: FieldArray<TFieldValues, TFieldArrayName>;
   disabled?: boolean;
   readonly?: boolean;
   renderItem: (props: {
     field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
     index: number;
-    label: string;
-    required: boolean | undefined; // whether it's required according to requiredItems
+    itemLabel: string;
     disabled: boolean;
     renderRemoveButton: () => React.ReactNode;
   }) => React.ReactNode;
   renderReadOnlyItem?: (props: {
     field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
     index: number;
-    label: string;
+    itemLabel: string;
   }) => React.ReactNode;
   disableFieldRuleMapping?: boolean;
 }
@@ -111,31 +109,43 @@ export function OnboardingArrayField<
     .filter((segment) => !/^\d+$/.test(segment))
     .join('.');
 
-  // TODO: handle no content token found
-  const getContentToken = (id: string, number?: number) =>
-    t([`fields.${nameNoIndex}.${id}`, ''] as unknown as TemplateStringsArray, {
-      number,
-    });
+  const getContentToken = (id: string, number?: number) => {
+    const key = `fields.${nameNoIndex}.${id}`;
+    return t(
+      [key, 'common:noTokenFallback'] as unknown as TemplateStringsArray,
+      {
+        number,
+        key,
+      }
+    );
+  };
 
-  const getFieldLabel = (index: number) =>
+  const getItemLabel = (index: number) =>
     fieldRule.minItems === 1 && fieldRule.maxItems === 1 && fields.length === 1
-      ? getContentToken('label')
-      : getContentToken('labelNumbered', index + 1);
+      ? getContentToken('itemLabel')
+      : getContentToken('itemLabelNumbered', index + 1);
 
   const renderRemoveButton = (index: number) => {
     if (fieldInteraction === 'readonly') {
       return null;
     }
-    if (fields.length <= (fieldRule.minItems ?? 0)) {
+    if (
+      fields.length === fieldRule.minItems &&
+      fields.length === fieldRule.maxItems
+    ) {
       return null;
     }
     return (
       <Button
+        type="button"
         variant="destructive"
         size="icon"
         className={cn('eb-mt-2', removeButtonClassName)}
         onClick={() => remove(index)}
-        disabled={fieldInteraction === 'disabled'}
+        disabled={
+          fieldInteraction === 'disabled' ||
+          fields.length <= (fieldRule.minItems ?? 0)
+        }
       >
         {getContentToken('removeLabel', index)}
       </Button>
@@ -146,16 +156,23 @@ export function OnboardingArrayField<
     if (fieldInteraction === 'readonly') {
       return null;
     }
-    if (fields.length >= (fieldRule.maxItems ?? Infinity)) {
+    if (
+      fields.length === fieldRule.minItems &&
+      fields.length === fieldRule.maxItems
+    ) {
       return null;
     }
     return (
       <Button
+        type="button"
         variant="outline"
         size="sm"
         className={cn('eb-mt-2', appendButtonClassName)}
         onClick={() => append(fieldAppendValue)}
-        disabled={fieldInteraction === 'disabled'}
+        disabled={
+          fieldInteraction === 'disabled' ||
+          fields.length >= (fieldRule.maxItems ?? Infinity)
+        }
       >
         {getContentToken('appendLabel')}
       </Button>
@@ -169,14 +186,13 @@ export function OnboardingArrayField<
           return renderReadOnlyItem?.({
             field,
             index,
-            label: getFieldLabel(index),
+            itemLabel: getItemLabel(index),
           });
         }
         return renderItem({
           field,
           index,
-          label: getFieldLabel(index),
-          required: index < (fieldRule.requiredItems ?? 0),
+          itemLabel: getItemLabel(index),
           disabled: fieldInteraction === 'disabled',
           renderRemoveButton: () => renderRemoveButton(index),
         });

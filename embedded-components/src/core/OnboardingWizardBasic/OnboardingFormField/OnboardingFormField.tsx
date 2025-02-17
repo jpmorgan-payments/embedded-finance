@@ -161,20 +161,24 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const lastIndex = nameParts
     .reverse()
     .find((part) => !Number.isNaN(Number(part)));
-  const index = lastIndex ? Number(lastIndex) + 1 : undefined;
+  const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
-  const fieldPlaceholder =
-    placeholder ??
-    t([`fields.${tName}.placeholder`, ''] as unknown as TemplateStringsArray, {
-      index,
-    });
+  const getContentToken = (id: string) => {
+    const key = `fields.${tName}.${id}`;
+    return t(
+      [key, 'common:noTokenFallback'] as unknown as TemplateStringsArray,
+      {
+        number,
+        key,
+      }
+    );
+  };
+
+  const fieldPlaceholder = placeholder ?? getContentToken('placeholder');
 
   const fieldLabel = (
     <span>
-      {label ??
-        t([`fields.${tName}.label`, ''] as unknown as TemplateStringsArray, {
-          index,
-        })}
+      {label ?? getContentToken('label')}
       {fieldRequired ? (
         ''
       ) : (
@@ -186,17 +190,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     </span>
   );
 
-  const fieldTooltip =
-    tooltip ??
-    t([`fields.${tName}.tooltip`, ''] as unknown as TemplateStringsArray, {
-      index,
-    });
+  const fieldTooltip = tooltip ?? getContentToken('tooltip');
 
-  const fieldDescription =
-    description ??
-    t([`fields.${tName}.description`, ''] as unknown as TemplateStringsArray, {
-      index,
-    });
+  const fieldDescription = description ?? getContentToken('description');
 
   return (
     <FormField

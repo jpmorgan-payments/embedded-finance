@@ -46,7 +46,6 @@ export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   interaction?: FieldInteractionConfig;
   minItems?: number;
   maxItems?: number;
-  requiredItems?: number; // requiredItems should always be less than or equal to minItems
   defaultValue: T;
   defaultAppendValue: T[number];
 };
@@ -58,7 +57,7 @@ export function isArrayFieldRule<T extends readonly unknown[]>(
     | OptionalDefaults<ArrayFieldRule<T>>
     | OptionalDefaults<FieldRule<T>>
 ): rule is ArrayFieldRule<T> {
-  return 'minItems' in rule || 'maxItems' in rule || 'requiredItems' in rule;
+  return 'minItems' in rule || 'maxItems' in rule;
 }
 
 export type ClientContext = {
@@ -80,7 +79,7 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     condition: FieldRuleCondition;
     rule: OptionalDefaults<FieldRule<T>, true>;
   }>;
-  excludeFromMapping?: boolean;
+  modifyErrorField?: (field: string) => string;
 };
 
 type DefaultKeys<Rule> = Extract<
@@ -133,7 +132,10 @@ interface ArrayFieldConfigurationGeneric<
       keyof T[number],
       string
     >]: T[number][P] extends readonly unknown[]
-      ? ArrayFieldConfigurationGeneric<P, T[number][P], true>
+      ? Pick<
+          ArrayFieldConfigurationGeneric<P, T[number][P], true>,
+          'baseRule' | 'conditionalRules' | 'subFields'
+        >
       : Pick<
           FieldConfigurationGeneric<P, T[number][P], true>,
           'baseRule' | 'conditionalRules'

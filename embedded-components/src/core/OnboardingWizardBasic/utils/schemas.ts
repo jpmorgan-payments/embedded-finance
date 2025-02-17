@@ -19,22 +19,18 @@ export const PhoneSchema = z.object({
   phoneNumber: PhoneNumberSchema,
 });
 
-const AddressLineSchema = z.object({
-  value: z
-    .string()
-    .min(
-      1,
-      i18n.t(
-        'onboarding:fields.addresses.addressLines.value.validation.required'
-      )
+const AddressLineSchema = z
+  .string()
+  .min(
+    1,
+    i18n.t('onboarding:fields.addresses.primaryAddressLine.validation.required')
+  )
+  .max(
+    60,
+    i18n.t(
+      'onboarding:fields.addresses.primaryAddressLine.validation.maxLength'
     )
-    .max(
-      60,
-      i18n.t(
-        'onboarding:fields.addresses.addressLines.value.validation.maxLength'
-      )
-    ),
-});
+  );
 
 export const AddressSchema = z.object({
   addressType: z.enum([
@@ -44,8 +40,8 @@ export const AddressSchema = z.object({
     'RESIDENTIAL_ADDRESS',
   ]),
 
-  // addressLines: z.tuple([AddressLineSchema]).rest(OptionalAddressLineSchema),
-  addressLines: z.array(AddressLineSchema),
+  primaryAddressLine: AddressLineSchema,
+  additionalAddressLines: z.array(z.object({ value: AddressLineSchema })),
 
   city: z
     .string()
