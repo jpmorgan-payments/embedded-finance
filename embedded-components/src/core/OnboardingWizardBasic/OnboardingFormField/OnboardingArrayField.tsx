@@ -21,6 +21,26 @@ import {
   OptionalDefaults,
 } from '../utils/types';
 
+type BaseRenderProps<
+  TFieldValues extends FieldValues,
+  TFieldArrayName extends
+    FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>,
+> = {
+  fields: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>[];
+  renderAppendButton: () => React.ReactNode;
+};
+
+interface RenderItemProps<
+  TFieldValues extends FieldValues,
+  TFieldArrayName extends FieldArrayPath<TFieldValues>,
+> extends BaseRenderProps<TFieldValues, TFieldArrayName> {
+  field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
+  index: number;
+  itemLabel: string;
+  disabled: boolean;
+  renderRemoveButton: () => React.ReactNode;
+}
+
 interface OnboardingArrayFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TFieldArrayName extends
@@ -33,18 +53,18 @@ interface OnboardingArrayFieldProps<
   appendValue?: FieldArray<TFieldValues, TFieldArrayName>;
   disabled?: boolean;
   readonly?: boolean;
-  renderItem: (props: {
-    field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
-    index: number;
-    itemLabel: string;
-    disabled: boolean;
-    renderRemoveButton: () => React.ReactNode;
-  }) => React.ReactNode;
-  renderReadOnlyItem?: (props: {
-    field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
-    index: number;
-    itemLabel: string;
-  }) => React.ReactNode;
+  renderItem: (
+    props: RenderItemProps<TFieldValues, TFieldArrayName>
+  ) => React.ReactNode;
+  renderReadOnlyItem?: (
+    props: RenderItemProps<TFieldValues, TFieldArrayName>
+  ) => React.ReactNode;
+  renderHeader?: (
+    props: BaseRenderProps<TFieldValues, TFieldArrayName>
+  ) => React.ReactNode;
+  renderFooter?: (
+    props: BaseRenderProps<TFieldValues, TFieldArrayName>
+  ) => React.ReactNode;
   disableFieldRuleMapping?: boolean;
 }
 
@@ -61,6 +81,8 @@ export function OnboardingArrayField<
   readonly,
   renderItem,
   renderReadOnlyItem = (field) => JSON.stringify(field),
+  renderHeader,
+  renderFooter,
   disableFieldRuleMapping,
   ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
@@ -179,26 +201,34 @@ export function OnboardingArrayField<
     );
   };
 
+  const renderContent = (
+    renderItemProps: RenderItemProps<TFieldValues, TFieldArrayName>
+  ) =>
+    fieldInteraction === 'readonly'
+      ? renderReadOnlyItem(renderItemProps)
+      : renderItem(renderItemProps);
+
+  const baseRenderProps = {
+    fields,
+    renderAppendButton,
+  };
+
   return (
     <>
+      {renderHeader?.(baseRenderProps)}
       {fields.map((field, index) => {
-        if (fieldInteraction === 'readonly') {
-          return renderReadOnlyItem?.({
-            field,
-            index,
-            itemLabel: getItemLabel(index),
-          });
-        }
-        return renderItem({
+        const renderItemProps = {
+          ...baseRenderProps,
           field,
           index,
           itemLabel: getItemLabel(index),
           disabled: fieldInteraction === 'disabled',
           renderRemoveButton: () => renderRemoveButton(index),
-        });
-      })}
+        };
 
-      {renderAppendButton()}
+        return renderContent(renderItemProps);
+      })}
+      {renderFooter?.(baseRenderProps)}
     </>
   );
 }
