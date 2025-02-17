@@ -70,7 +70,6 @@ import { Input } from '@/components/ui/input';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
-import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
@@ -416,7 +415,7 @@ export const OrganizationStepForm = () => {
           name="addresses"
           disabled={isFormDisabled}
           renderItem={({
-            label,
+            itemLabel,
             index,
             field,
             disabled,
@@ -428,7 +427,7 @@ export const OrganizationStepForm = () => {
               disabled={disabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                {label}
+                {itemLabel}
               </legend>
               <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                 <OnboardingFormField
@@ -565,14 +564,14 @@ export const OrganizationStepForm = () => {
           control={form.control}
           name="organizationIds"
           disabled={isFormDisabled}
-          renderItem={({ field, index, label, renderRemoveButton }) => (
+          renderItem={({ field, index, itemLabel, renderRemoveButton }) => (
             <fieldset
               key={field.id}
               className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               disabled={isFormDisabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                {label}
+                {itemLabel}
               </legend>
 
               <OnboardingFormField
@@ -643,7 +642,7 @@ export const OrganizationStepForm = () => {
           <OnboardingArrayField
             control={form.control}
             name="associatedCountries"
-            renderItem={({ field, index, label, renderRemoveButton }) => (
+            renderItem={({ field, index, renderRemoveButton }) => (
               <div
                 key={field.id}
                 className="eb-flex eb-items-center eb-space-x-2"
@@ -652,7 +651,6 @@ export const OrganizationStepForm = () => {
                   control={form.control}
                   name={`associatedCountries.${index}.country`}
                   type="text"
-                  label={label}
                 />
                 {renderRemoveButton()}
               </div>
@@ -663,7 +661,7 @@ export const OrganizationStepForm = () => {
           <OnboardingArrayField
             control={form.control}
             name="secondaryMccList"
-            renderItem={({ field, index, label, renderRemoveButton }) => (
+            renderItem={({ field, index, renderRemoveButton }) => (
               <div
                 key={field.id}
                 className="eb-flex eb-items-center eb-space-x-2"
@@ -672,7 +670,6 @@ export const OrganizationStepForm = () => {
                   control={form.control}
                   name={`secondaryMccList.${index}.mcc`}
                   type="text"
-                  label={label}
                 />
                 {renderRemoveButton()}
               </div>
