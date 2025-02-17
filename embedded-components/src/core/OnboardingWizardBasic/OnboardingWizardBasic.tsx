@@ -17,7 +17,6 @@ import { useContentTokens } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
 import { BeneficialOwnerStepForm } from './BeneficialOwnerStepForm/BeneficialOwnerStepForm';
 import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnboardingStateView';
-import { DecisionMakerStepForm } from './DecisionMakerStepForm/DecisionMakerStepForm';
 import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadStepForm';
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
 import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
@@ -169,14 +168,14 @@ const OnboardingWizardBasicComponent: FC<
       label: t('stepLabels.individualDetails'),
       children: <IndividualStepForm />,
     },
-    {
-      label: t('stepLabels.decisionMakers'),
-      children: <DecisionMakerStepForm />,
-      onlyVisibleFor: {
-        organizationType: ['LIMITED_LIABILITY_COMPANY'],
-        product: ['MERCHANT_SERVICES'],
-      },
-    },
+    // {
+    //   label: t('stepLabels.decisionMakers'),
+    //   children: <DecisionMakerStepForm />,
+    //   onlyVisibleFor: {
+    //     organizationType: ['LIMITED_LIABILITY_COMPANY'],
+    //     product: ['MERCHANT_SERVICES'],
+    //   },
+    // },
     {
       label: t('stepLabels.businessOwners'),
       children: <BeneficialOwnerStepForm />,
