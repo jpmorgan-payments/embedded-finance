@@ -459,6 +459,7 @@ export const BeneficialOwnerStepForm = () => {
               { value: 'yes', label: t('common:yes') },
               { value: 'no', label: t('common:no') },
             ]}
+            required
           />
           {activeOwners.length >= 4 &&
             controllerForm.watch('controllerIsOwner') === 'no' &&

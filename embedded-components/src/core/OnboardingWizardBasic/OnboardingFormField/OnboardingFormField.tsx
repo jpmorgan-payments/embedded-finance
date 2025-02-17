@@ -80,6 +80,7 @@ interface BaseProps<
   readonly?: boolean;
   className?: string;
   inputButton?: React.ReactNode;
+  noOptionalLabel?: boolean;
   disableFieldRuleMapping?: boolean;
   inputProps?: React.ComponentProps<typeof Input>;
   form?: UseFormReturn<TFieldValues, any, any>; // TODO: remove when IndustrySelect refactored
@@ -120,6 +121,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   readonly,
   className,
   inputButton,
+  noOptionalLabel,
   disableFieldRuleMapping,
   inputProps,
   form,
@@ -179,7 +181,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const fieldLabel = (
     <span>
       {label ?? getContentToken('label')}
-      {fieldRequired ? (
+      {fieldRequired || noOptionalLabel ? (
         ''
       ) : (
         <span className="eb-font-normal eb-text-muted-foreground">
