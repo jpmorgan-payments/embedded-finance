@@ -524,8 +524,6 @@ export const OrganizationStepForm = () => {
           )}
         />
 
-        {JSON.stringify(form.formState.errors, null, 2)}
-
         {/* Organization IDs */}
         {isFieldVisible('organizationIds') && (
           <>

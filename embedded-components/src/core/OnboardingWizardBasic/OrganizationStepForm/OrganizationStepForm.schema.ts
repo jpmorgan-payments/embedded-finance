@@ -291,7 +291,6 @@ export const refineOrganizationStepFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
-    console.log(values);
     if (!values.websiteAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
