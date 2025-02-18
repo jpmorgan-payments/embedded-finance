@@ -32,6 +32,7 @@ export const efClientCorpEBMock: ClientResponse = {
           code: '459910',
           codeType: 'NAICS',
         },
+        jurisdiction: 'US',
         countryOfFormation: 'US',
         yearOfFormation: '1989',
         entitiesInOwnership: false,
