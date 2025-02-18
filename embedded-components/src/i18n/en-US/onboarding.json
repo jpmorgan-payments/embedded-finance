@@ -94,6 +94,8 @@
     "countryOfFormation": {
       "label": "Country of Formation",
       "placeholder": "Select country of formation",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       },
@@ -608,6 +610,7 @@
     "websiteAvailable": {
       "label": "Business doesn't have a website",
       "description": "Whether your business has a website",
+      "tooltip": "",
       "validation": {
         "required": "Please specify if you have a website"
       }
