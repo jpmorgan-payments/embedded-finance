@@ -231,7 +231,9 @@ export const partyFieldMap: PartyFieldMap = {
         ...address,
         addressLines: [
           address.primaryAddressLine,
-          ...address.additionalAddressLines.map(({ value }) => value),
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
         ],
       }));
     },
@@ -619,7 +621,9 @@ export const partyFieldMap: PartyFieldMap = {
         ...address,
         addressLines: [
           address.primaryAddressLine,
-          ...address.additionalAddressLines.map(({ value }) => value),
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
         ],
       }));
     },
