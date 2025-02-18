@@ -438,13 +438,20 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             ? new Date(`${field.value}T12:00:00Z`)
                             : undefined
                         }
-                        onChange={(date) => {
-                          field.onChange(date?.toISOString().split('T')[0]);
+                        onChange={async (date, errorMsg) => {
+                          if (errorMsg && form) {
+                            field.onChange('');
+                            form.setError(field.name, {
+                              type: 'manual',
+                              message: errorMsg,
+                            });
+                            await form.trigger(field.name);
+                          } else {
+                            form?.clearErrors(field.name);
+                            field.onChange(date?.toISOString().split('T')[0]);
+                          }
                           field.onBlur();
                         }}
-                        setErrorMsg={(errorMsg) =>
-                          form?.setError(field.name, { message: errorMsg })
-                        }
                       />
                     </FormControl>
                   );

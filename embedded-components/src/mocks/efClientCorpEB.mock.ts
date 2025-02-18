@@ -27,7 +27,12 @@ export const efClientCorpEBMock: ClientResponse = {
         organizationDescription: 'Step into a world of stories and imagination',
         industryCategory:
           'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
-        industryType: 'Book Retailers and News Dealers',
+        industryType: 'Pet and Pet Supplies Retailers',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
+        jurisdiction: 'US',
         countryOfFormation: 'US',
         yearOfFormation: '1989',
         entitiesInOwnership: false,

@@ -101,8 +101,8 @@
     },
     "yearOfFormation": {
       "label": "Year of Formation",
-      "placeholder": "Enter year of formation",
-      "description": "",
+      "placeholder": "YYYY",
+      "description": "Please use the format YYYY, e.g. 2020",
       "validation": {
         "format": "Invalid year of formation",
         "min": "Year of formation cannot be before 1800",
@@ -292,19 +292,8 @@
         }
       }
     },
-    "industryCategory": {
-      "label": "Industry type",
-      "placeholder": "Select industry type",
-      "description": "Your business industry - search for the relevant industry type or the NAICS code.",
-      "tooltip": "should match your business registration documents NAICS code",
-      "validation": {
-        "maxLength": "Industry category must be 100 characters or less",
-        "required": "Industry category is required",
-        "format": "Industry category can only contain letters, numbers, and basic punctuation",
-        "minLength": "Industry category must be at least 3 characters"
-      }
-    },
-    "industryType": {
+
+    "industry.code": {
       "label": "Industry Classification",
       "placeholder": "Select industry type",
       "description": "Your business industry - search for the relevant industry type/category or the NAICS code.",

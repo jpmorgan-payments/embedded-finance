@@ -97,20 +97,22 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: '',
     },
   },
-  industryCategory: {
-    path: 'organizationDetails.industryCategory',
+  industry: {
+    path: 'organizationDetails.industry',
     baseRule: {
       display: 'visible',
       required: true,
-      defaultValue: '',
+      defaultValue: { code: '', codeType: 'NAICS' },
     },
-  },
-  industryType: {
-    path: 'organizationDetails.industryType',
-    baseRule: {
-      display: 'visible',
-      required: true,
-      defaultValue: '',
+    fromResponseFn: (val) => ({
+      code: val.code!,
+      codeType: val.codeType!,
+    }),
+    toRequestFn: (val) => {
+      return {
+        codeType: 'NAICS',
+        code: val.code,
+      };
     },
   },
   mcc: {
@@ -229,7 +231,9 @@ export const partyFieldMap: PartyFieldMap = {
         ...address,
         addressLines: [
           address.primaryAddressLine,
-          ...address.additionalAddressLines.map(({ value }) => value),
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
         ],
       }));
     },
@@ -287,15 +291,39 @@ export const partyFieldMap: PartyFieldMap = {
       },
       issuer: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { interaction: 'disabled', defaultValue: 'US' },
+          },
+        ],
       },
       value: {
         baseRule: { display: 'visible', required: true },
       },
       description: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
       expiryDate: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
     },
   },
@@ -412,30 +440,54 @@ export const partyFieldMap: PartyFieldMap = {
         value: '',
       },
     },
-    conditionalRules: [
-      {
-        condition: {
-          product: ['MERCHANT_SERVICES'],
-          jurisdiction: ['CA'],
-        },
-        rule: { display: 'hidden' },
-      },
-    ],
+
     subFields: {
       idType: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { interaction: 'disabled' },
+          },
+        ],
       },
       issuer: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { interaction: 'disabled', defaultValue: 'US' },
+          },
+        ],
       },
       value: {
         baseRule: { display: 'visible', required: true },
       },
       description: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
       expiryDate: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
     },
   },
@@ -569,7 +621,9 @@ export const partyFieldMap: PartyFieldMap = {
         ...address,
         addressLines: [
           address.primaryAddressLine,
-          ...address.additionalAddressLines.map(({ value }) => value),
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
         ],
       }));
     },

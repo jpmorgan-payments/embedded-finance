@@ -10,7 +10,6 @@ const CURRENT_YEAR = new Date().getFullYear();
 // Regex pattern from OAS for organization and DBA names
 const NAME_PATTERN = /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/;
 const SPECIAL_CHARS_PATTERN = /[()_/&+%@#;,.: -?]/;
-const INDUSTRY_CATEGORY_PATTERN = /^[a-zA-Z0-9\s,.&-]+$/;
 
 export const OrganizationIdSchema = z
   .object({
@@ -227,19 +226,16 @@ export const OrganizationStepFormSchema = z.object({
     .array(AddressSchema)
     .min(1, i18n.t('onboarding:fields.addresses.validation.minAddresses'))
     .max(5, i18n.t('onboarding:fields.addresses.validation.maxAddresses')),
-  associatedCountries: z.array(associatedCountrySchema),
-  industryCategory: z
-    .string()
-    .min(3, i18n.t('onboarding:fields.industryCategory.validation.minLength'))
-    .max(100, i18n.t('onboarding:fields.industryCategory.validation.maxLength'))
-    .regex(
-      INDUSTRY_CATEGORY_PATTERN,
-      i18n.t('onboarding:fields.industryCategory.validation.format')
+  associatedCountries: z
+    .array(associatedCountrySchema)
+    .max(
+      100,
+      i18n.t('onboarding:fields.associatedCountries.validation.maxCountries')
     ),
-  industryType: z
-    .string()
-    .min(3, i18n.t('onboarding:fields.industryType.validation.minLength'))
-    .max(100, i18n.t('onboarding:fields.industryType.validation.maxLength')),
+  industry: z.object({
+    code: z.string(),
+    codeType: z.enum(['NAICS', 'SIC']),
+  }),
   organizationDescription: z
     .string()
     .min(10)

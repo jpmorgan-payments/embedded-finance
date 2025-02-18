@@ -320,6 +320,7 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="birthDate"
             type="importantDate"
+            form={form}
           />
 
           <OnboardingFormField
@@ -587,7 +588,7 @@ export const IndividualStepForm = () => {
         <ServerErrorAlert
           error={usePartyResource ? partyUpdateError : clientUpdateError}
         />
-        <FormActions />
+        <FormActions disabled={isFormDisabled} isLoading={isFormSubmitting} />
       </form>
     </Form>
   );
