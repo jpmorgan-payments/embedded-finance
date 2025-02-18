@@ -656,12 +656,14 @@ export const OrganizationStepForm = () => {
 
           {/* Associated Countries */}
           <div>
-            <div className="eb-text-md eb-font-medium">
-              {t('onboarding:fields.associatedCountries.headerLabel')}
-            </div>
             <OnboardingArrayField
               control={form.control}
               name="associatedCountries"
+              renderHeader={() => (
+                <div className="eb-text-md eb-font-medium">
+                  {t('onboarding:fields.associatedCountries.headerLabel')}
+                </div>
+              )}
               renderWrapper={(children) => (
                 <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                   {children}
@@ -683,12 +685,14 @@ export const OrganizationStepForm = () => {
 
           {/* Secondary MCC */}
           <div>
-            <div className="eb-text-md eb-font-medium">
-              {t('onboarding:fields.secondaryMccList.headerLabel')}
-            </div>
             <OnboardingArrayField
               control={form.control}
               name="secondaryMccList"
+              renderHeader={() => (
+                <div className="eb-text-md eb-font-medium">
+                  {t('onboarding:fields.secondaryMccList.headerLabel')}
+                </div>
+              )}
               renderWrapper={(children) => (
                 <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                   {children}
