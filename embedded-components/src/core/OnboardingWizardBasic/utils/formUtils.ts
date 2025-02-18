@@ -325,7 +325,7 @@ export function convertClientResponseToFormValues(
     }
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
     const value = getValueByPath(response, pathTemplate);
-    if (value !== undefined) {
+    if (value !== undefined && (!Array.isArray(value) || value.length > 0)) {
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;

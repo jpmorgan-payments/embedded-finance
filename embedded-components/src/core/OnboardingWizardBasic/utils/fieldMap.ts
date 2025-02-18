@@ -231,7 +231,9 @@ export const partyFieldMap: PartyFieldMap = {
         ...address,
         addressLines: [
           address.primaryAddressLine,
-          ...address.additionalAddressLines.map(({ value }) => value),
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
         ],
       }));
     },
@@ -293,7 +295,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { interaction: 'disabled', defaultValue: 'US' },
           },
@@ -308,7 +309,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { display: 'hidden' },
           },
@@ -320,7 +320,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { display: 'hidden' },
           },
@@ -449,7 +448,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { interaction: 'disabled' },
           },
@@ -461,7 +459,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { interaction: 'disabled', defaultValue: 'US' },
           },
@@ -476,7 +473,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { display: 'hidden' },
           },
@@ -488,7 +484,6 @@ export const partyFieldMap: PartyFieldMap = {
           {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
-              jurisdiction: ['US'],
             },
             rule: { display: 'hidden' },
           },
@@ -626,7 +621,9 @@ export const partyFieldMap: PartyFieldMap = {
         ...address,
         addressLines: [
           address.primaryAddressLine,
-          ...address.additionalAddressLines.map(({ value }) => value),
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
         ],
       }));
     },

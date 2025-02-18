@@ -588,7 +588,7 @@ export const IndividualStepForm = () => {
         <ServerErrorAlert
           error={usePartyResource ? partyUpdateError : clientUpdateError}
         />
-        <FormActions />
+        <FormActions disabled={isFormDisabled} isLoading={isFormSubmitting} />
       </form>
     </Form>
   );
