@@ -50,35 +50,32 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useFieldArray } from 'react-hook-form';
+import { XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
-import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
-  translateClientApiErrorsToFormErrors,
-  translatePartyApiErrorsToFormErrors,
-  useFilterFunctionsByClientContext,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
@@ -99,55 +96,10 @@ export const IndividualStepForm = () => {
     clientId ?? ''
   );
 
-  const { getFieldRule, isFieldVisible } =
-    useFilterFunctionsByClientContext(clientData);
-
-  const form = useStepFormWithFilters<z.infer<typeof IndividualStepFormSchema>>(
-    {
-      clientData,
-      schema: IndividualStepFormSchema,
-      defaultValues: {
-        individualAddresses: [
-          {
-            addressType: 'RESIDENTIAL_ADDRESS',
-            addressLines: [''],
-            state: '',
-            city: '',
-            postalCode: '',
-            country: '',
-          },
-        ],
-        individualIds: [
-          {
-            idType: 'SSN',
-            value: '',
-            issuer: '',
-          },
-        ],
-        individualPhone: {
-          phoneType: 'MOBILE_PHONE',
-          phoneNumber: '',
-        },
-      },
-    }
-  );
-
-  const {
-    fields: addressFields,
-    append: appendAddress,
-    remove: removeAddress,
-  } = useFieldArray({
-    control: form.control,
-    name: 'individualAddresses',
-  });
-
-  const {
-    fields: idFields,
-    append: appendId,
-    remove: removeId,
-  } = useFieldArray({
-    control: form.control,
-    name: 'individualIds',
+  const form = useStepFormWithFilters({
+    clientData,
+    schema: IndividualStepFormSchema,
+    defaultValues: {},
   });
 
   // Get INDIVIDUAL's partyId
@@ -190,14 +142,14 @@ export const IndividualStepForm = () => {
 
   const {
     mutate: updateClient,
-    error: updateClientError,
-    status: updateClientStatus,
+    error: clientUpdateError,
+    status: clientUpdateStatus,
   } = useSmbdoUpdateClient();
 
   const {
     mutate: updateParty,
-    error: updatePartyError,
-    status: updatePartyStatus,
+    error: partyUpdateError,
+    status: partyUpdateStatus,
   } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
@@ -224,8 +176,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors =
-                  translatePartyApiErrorsToFormErrors(context);
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
@@ -234,14 +185,19 @@ export const IndividualStepForm = () => {
       }
       // Create party if it doesn't exist
       else {
-        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'INDIVIDUAL',
-              roles: ['CONTROLLER'],
-            },
-          ],
-        });
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'INDIVIDUAL',
+                roles: ['CONTROLLER'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -260,7 +216,7 @@ export const IndividualStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateClientApiErrorsToFormErrors(
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -312,25 +268,24 @@ export const IndividualStepForm = () => {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  if (existingIndividualParty && !isFormPopulated) {
-    return <FormLoadingState message="Loading..." />;
-  }
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' ||
+    (usePartyResource && partyUpdateStatus === 'pending');
+  const isFormPopulating = existingIndividualParty && !isFormPopulated;
 
-  if (updateClientStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
-
-  if (usePartyResource && updatePartyStatus === 'pending') {
-    return <FormLoadingState message="Submitting..." />;
-  }
+  const isFormDisabled = isFormSubmitting || isFormPopulating;
 
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-space-y-6">
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset
+          disabled={isFormDisabled}
+          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+        >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             General
           </legend>
+
           <OnboardingFormField
             control={form.control}
             name="firstName"
@@ -388,7 +343,6 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="jobTitle"
             type="select"
-            required
             options={[
               { value: 'CEO', label: 'CEO' },
               { value: 'CFO', label: 'CFO' },
@@ -411,7 +365,10 @@ export const IndividualStepForm = () => {
         </fieldset>
 
         {/* Phone Information */}
-        <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+        <fieldset
+          disabled={isFormDisabled}
+          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+        >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Individual Phone Information
           </legend>
@@ -424,6 +381,7 @@ export const IndividualStepForm = () => {
               { value: 'MOBILE_PHONE', label: 'Mobile Phone' },
               { value: 'ALTERNATE_PHONE', label: 'Alternate Phone' },
             ]}
+            disabled={isFormDisabled}
           />
 
           <OnboardingFormField
@@ -434,24 +392,32 @@ export const IndividualStepForm = () => {
         </fieldset>
 
         {/* Addresses */}
-        {isFieldVisible('individualAddresses') && (
-          <>
-            {addressFields.map((fieldName, index) => (
-              <fieldset
-                key={fieldName.id}
-                className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-              >
-                <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                  Individual Address{' '}
-                  {Number(getFieldRule('individualAddresses')?.maxItems) > 1
-                    ? index + 1
-                    : ''}
-                </legend>
+        <OnboardingArrayField
+          control={form.control}
+          name="individualAddresses"
+          disabled={isFormDisabled}
+          renderItem={({
+            itemLabel,
+            index,
+            field,
+            disabled,
+            renderRemoveButton,
+          }) => (
+            <fieldset
+              key={field.id}
+              className="eb-rounded-lg eb-border eb-p-4"
+              disabled={disabled}
+            >
+              <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                {itemLabel}
+              </legend>
+              <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                 <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.addressType`}
                   type="select"
-                  required
+                  // Dropdown fields need to be explicitly passed whether it's disabled rather than relying on the fieldset
+                  disabled={disabled}
                   options={[
                     {
                       value: 'MAILING_ADDRESS',
@@ -463,27 +429,39 @@ export const IndividualStepForm = () => {
                     },
                   ]}
                 />
+                <div className="eb-col-span-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
+                  <OnboardingFormField
+                    control={form.control}
+                    name={`individualAddresses.${index}.primaryAddressLine`}
+                    type="text"
+                  />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`individualAddresses.${index}.addressLines.0`}
-                  label="Address Line 1"
-                  type="text"
-                  required
-                />
-
-                <OnboardingFormField
-                  control={form.control}
-                  label="Address Line 2"
-                  name={`individualAddresses.${index}.addressLines.1`}
-                  type="text"
-                />
+                  <OnboardingArrayField
+                    control={form.control}
+                    name={`individualAddresses.${index}.additionalAddressLines`}
+                    renderItem={({
+                      index: lineIndex,
+                      field: lineField,
+                      renderRemoveButton: renderLineRemoveButton,
+                    }) => (
+                      <OnboardingFormField
+                        key={lineField.id}
+                        control={form.control}
+                        name={`individualAddresses.${index}.additionalAddressLines.${lineIndex}.value`}
+                        type="text"
+                        inputButton={renderLineRemoveButton({
+                          className: 'eb-align-end',
+                          children: <XIcon />,
+                        })}
+                      />
+                    )}
+                  />
+                </div>
 
                 <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.city`}
                   type="text"
-                  required
                 />
 
                 <OnboardingFormField
@@ -491,14 +469,17 @@ export const IndividualStepForm = () => {
                   name={`individualAddresses.${index}.state`}
                   type="select"
                   options={stateOptions}
-                  required
                 />
 
                 <OnboardingFormField
                   control={form.control}
                   name={`individualAddresses.${index}.postalCode`}
                   type="text"
-                  required
+                  inputProps={{
+                    pattern: '[0-9]{5}',
+                    maxLength: 5,
+                    inputMode: 'numeric',
+                  }}
                 />
 
                 <OnboardingFormField
@@ -516,172 +497,95 @@ export const IndividualStepForm = () => {
                       </span>
                     ),
                   }))}
-                  required
                 />
-
-                {addressFields.length >
-                  Number(getFieldRule('individualAddresses')?.minItems) && (
-                  <div className="eb-col-span-full">
-                    <Button
-                      type="button"
-                      onClick={() => removeAddress(index)}
-                      variant="outline"
-                      size="sm"
-                      className="eb-mt-2"
-                      disabled={
-                        addressFields.length <=
-                        (getFieldRule('individualAddresses').minItems ?? 1)
-                      }
-                    >
-                      Remove Address
-                    </Button>
-                  </div>
-                )}
-              </fieldset>
-            ))}
-          </>
-        )}
-        <Button
-          type="button"
-          onClick={() =>
-            appendAddress(
-              {
-                addressType: 'RESIDENTIAL_ADDRESS',
-                addressLines: [''],
-                state: '',
-                city: '',
-                postalCode: '',
-                country: '',
-              },
-              {
-                focusName: `individualAddresses.${addressFields.length}.addressLines.0`,
-              }
-            )
-          }
-          disabled={
-            idFields.length >=
-            (getFieldRule('individualAddresses').maxItems ?? 50)
-          }
-          variant="outline"
-          size="sm"
-        >
-          Add Address
-        </Button>
+              </div>
+              <div className="eb-mt-4 eb-flex eb-justify-start">
+                {renderRemoveButton()}
+              </div>
+            </fieldset>
+          )}
+        />
 
         {/* Individual IDs */}
-        {isFieldVisible('individualIds') && (
-          <>
-            {idFields.map((fieldItem, index) => {
-              const idType = form.watch(`individualIds.${index}.idType`);
-              return (
-                <fieldset
-                  key={fieldItem.id}
-                  className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
-                >
-                  <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Individual Identification Document{' '}
-                    {Number(getFieldRule('individualIds')?.maxItems) > 1
-                      ? index + 1
-                      : ''}
-                  </legend>
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`individualIds.${index}.idType`}
-                    type="select"
-                    options={[
-                      { value: 'SSN', label: 'SSN' },
-                      { value: 'ITIN', label: 'ITIN' },
-                    ]}
-                    required
-                  />
+        <OnboardingArrayField
+          control={form.control}
+          name="individualIds"
+          disabled={isFormDisabled}
+          renderItem={({
+            field,
+            index,
+            disabled,
+            itemLabel,
+            renderRemoveButton,
+          }) => (
+            <fieldset
+              key={field.id}
+              className="eb-rounded-lg eb-border eb-p-4"
+              disabled={disabled}
+            >
+              <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                {itemLabel}
+              </legend>
 
-                  <OnboardingFormField
-                    key={`individual-id-value-${index}-${idType}`}
-                    control={form.control}
-                    name={`individualIds.${index}.value`}
-                    type="text"
-                    label={getValueLabel(idType)}
-                    maskFormat={getMaskFormat(idType)}
-                    maskChar="_"
-                    required
-                  />
+              <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                <OnboardingFormField
+                  control={form.control}
+                  name={`individualIds.${index}.idType`}
+                  type="select"
+                  options={[
+                    { value: 'SSN', label: 'SSN' },
+                    { value: 'ITIN', label: 'ITIN' },
+                  ]}
+                  disabled={disabled}
+                />
 
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`individualIds.${index}.issuer`}
-                    type="combobox"
-                    options={COUNTRIES_OF_FORMATION.map((code) => ({
-                      value: code,
-                      label: (
-                        <span>
-                          <span className="eb-font-medium">[{code}]</span>{' '}
-                          {t([
-                            `common:countries.${code}`,
-                          ] as unknown as TemplateStringsArray)}
-                        </span>
-                      ),
-                    }))}
-                    required
-                  />
+                <OnboardingFormField
+                  key={`individual-id-value-${index}-${field.idType}`}
+                  control={form.control}
+                  name={`individualIds.${index}.value`}
+                  type="text"
+                  label={getValueLabel(field.idType)}
+                  maskFormat={getMaskFormat(field.idType)}
+                  maskChar="_"
+                />
 
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`individualIds.${index}.expiryDate`}
-                    type="date"
-                    label="Expiry Date"
-                  />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`individualIds.${index}.issuer`}
+                  type="combobox"
+                  options={COUNTRIES_OF_FORMATION.map((code) => ({
+                    value: code,
+                    label: (
+                      <span>
+                        <span className="eb-font-medium">[{code}]</span>{' '}
+                        {t([
+                          `common:countries.${code}`,
+                        ] as unknown as TemplateStringsArray)}
+                      </span>
+                    ),
+                  }))}
+                />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`individualIds.${index}.expiryDate`}
+                  type="date"
+                />
+                <OnboardingFormField
+                  control={form.control}
+                  name={`individualIds.${index}.description`}
+                  type="text"
+                />
+              </div>
 
-                  <OnboardingFormField
-                    control={form.control}
-                    name={`individualIds.${index}.description`}
-                    type="textarea"
-                  />
-
-                  {idFields.length >
-                    Number(getFieldRule('individualIds')?.minItems) && (
-                    <div className="eb-col-span-full">
-                      <Button
-                        type="button"
-                        disabled={
-                          idFields.length <=
-                          (getFieldRule('individualIds').minItems ?? 0)
-                        }
-                        onClick={() => removeId(index)}
-                        variant="outline"
-                        size="sm"
-                        className="eb-mt-2"
-                      >
-                        Remove Individual Identification Document
-                      </Button>
-                    </div>
-                  )}
-                </fieldset>
-              );
-            })}
-          </>
-        )}
-        {Number(getFieldRule('individualIds')?.maxItems) > idFields.length && (
-          <Button
-            type="button"
-            onClick={() =>
-              appendId({
-                idType: 'SSN',
-                value: '',
-                issuer: '',
-              })
-            }
-            disabled={
-              idFields.length >= (getFieldRule('individualIds').maxItems ?? 50)
-            }
-            variant="outline"
-            size="sm"
-          >
-            Add Individual Identification Document
-          </Button>
-        )}
+              <div className="eb-mt-4 eb-flex eb-justify-start">
+                {renderRemoveButton()}
+              </div>
+            </fieldset>
+          )}
+        />
 
         <ServerErrorAlert
-          error={usePartyResource ? updatePartyError : updateClientError}
+          error={usePartyResource ? partyUpdateError : clientUpdateError}
         />
         <FormActions />
       </form>

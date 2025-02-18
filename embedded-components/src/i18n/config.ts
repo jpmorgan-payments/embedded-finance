@@ -32,6 +32,18 @@ i18n.use(initReactI18next).init({
   fallbackLng: 'enUS',
   ns: ['common', 'onboarding'],
   resources,
+  interpolation: {
+    escapeValue: false,
+    format: (value, format) => {
+      if (format === 'inc') {
+        if (!Number.isNaN(Number(value))) {
+          return Number(value) + 1;
+        }
+      }
+
+      return value;
+    },
+  },
 });
 
 z.setErrorMap(zodI18nMap);

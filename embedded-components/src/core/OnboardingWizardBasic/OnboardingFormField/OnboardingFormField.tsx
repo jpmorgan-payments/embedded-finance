@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
-  Control,
   ControllerProps,
   FieldPath,
   FieldValues,
@@ -46,8 +45,12 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useFilterFunctionsByClientContext } from '../utils/formUtils';
-import { FieldRule, OnboardingWizardFormValues } from '../utils/types';
+import { useFormUtilsWithClientContext } from '../utils/formUtils';
+import {
+  FieldRule,
+  OnboardingFormValuesSubmit,
+  OptionalDefaults,
+} from '../utils/types';
 
 type FieldType =
   | 'text'
@@ -66,18 +69,23 @@ type FieldType =
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> extends Omit<ControllerProps<TFieldValues, TName>, 'render'> {
-  control: Control<TFieldValues>;
+> extends Omit<
+    ControllerProps<TFieldValues, TName>,
+    'render' | 'rules' | 'defaultValue'
+  > {
   type?: FieldType;
   label?: string | JSX.Element;
   placeholder?: string;
   description?: string;
   tooltip?: string;
   required?: boolean;
-  visibility?: 'visible' | 'hidden' | 'disabled' | 'readonly';
+  readonly?: boolean;
+  className?: string;
+  inputButton?: React.ReactNode;
+  noOptionalLabel?: boolean;
+  disableFieldRuleMapping?: boolean;
   inputProps?: React.ComponentProps<typeof Input>;
-  disableMapping?: boolean;
-  form?: UseFormReturn<TFieldValues>;
+  form?: UseFormReturn<TFieldValues, any, any>; // TODO: remove when IndustrySelect refactored
   maskFormat?: string;
   maskChar?: string;
 }
@@ -101,40 +109,53 @@ type OnboardingFormFieldProps<T extends FieldValues> =
   | SelectOrRadioGroupProps<T, FieldPath<T>>
   | OtherFieldProps<T, FieldPath<T>>;
 
-export function OnboardingFormField<T extends FieldValues>({
-  disableMapping,
-  form,
+export function OnboardingFormField<TFieldValues extends FieldValues>({
   control,
   name,
   type = 'text',
+  options,
   label,
   placeholder,
   description,
   tooltip,
   required,
-  visibility,
-  options,
+  disabled,
+  readonly,
+  className,
+  inputButton,
+  noOptionalLabel,
+  disableFieldRuleMapping,
+  inputProps,
+  form,
   maskFormat,
   maskChar,
-  inputProps,
-  disabled,
-}: OnboardingFormFieldProps<T>) {
+  shouldUnregister,
+}: OnboardingFormFieldProps<TFieldValues>) {
   const { clientId } = useOnboardingContext();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
-  const { getFieldRule } = useFilterFunctionsByClientContext(clientData);
+  const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'common']);
 
-  const fieldRule: FieldRule =
-    name === 'product' || disableMapping
-      ? { visibility: 'visible', required: true }
-      : getFieldRule(name.split('.')[0] as keyof OnboardingWizardFormValues);
-
-  const fieldVisibility = visibility ?? fieldRule.visibility;
-
-  if (fieldVisibility === 'hidden') {
-    return null;
+  let fieldRule: OptionalDefaults<FieldRule> = {};
+  if (!disableFieldRuleMapping) {
+    const fieldRuleConfig = getFieldRule(
+      name as FieldPath<OnboardingFormValuesSubmit>
+    );
+    if (fieldRuleConfig.ruleType !== 'single') {
+      throw new Error(`Field ${name} is not configured as a single field.`);
+    }
+    fieldRule = fieldRuleConfig.fieldRule;
   }
+
+  const fieldRequired = required ?? fieldRule.required ?? false;
+  const fieldDisplay = fieldRule.display ?? 'visible';
+  const fieldInteraction =
+    readonly || fieldRule.interaction === 'readonly'
+      ? 'readonly'
+      : disabled || fieldRule.interaction === 'disabled'
+        ? 'disabled'
+        : (fieldRule.interaction ?? 'enabled');
 
   // Split the name into a name and index for the translation function
   const nameParts = name.split('.');
@@ -144,20 +165,25 @@ export function OnboardingFormField<T extends FieldValues>({
   const lastIndex = nameParts
     .reverse()
     .find((part) => !Number.isNaN(Number(part)));
+  const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
-  const fieldPlaceholder =
-    placeholder ??
-    t([`fields.${tName}.placeholder`, ''] as unknown as TemplateStringsArray, {
-      index: lastIndex,
-    });
+  const getContentToken = (id: string) => {
+    const key = `fields.${tName}.${id}`;
+    return t(
+      [key, 'common:noTokenFallback'] as unknown as TemplateStringsArray,
+      {
+        number,
+        key,
+      }
+    );
+  };
+
+  const fieldPlaceholder = placeholder ?? getContentToken('placeholder');
 
   const fieldLabel = (
-    <span>
-      {label ??
-        t([`fields.${tName}.label`, ''] as unknown as TemplateStringsArray, {
-          index: lastIndex,
-        })}
-      {(required ?? fieldRule.required) ? (
+    <>
+      {label ?? getContentToken('label')}
+      {fieldRequired || noOptionalLabel ? (
         ''
       ) : (
         <span className="eb-font-normal eb-text-muted-foreground">
@@ -165,48 +191,39 @@ export function OnboardingFormField<T extends FieldValues>({
           ({t('common:optional')})
         </span>
       )}
-    </span>
+    </>
   );
+
+  const fieldTooltip = tooltip ?? getContentToken('tooltip');
+
+  const fieldDescription = description ?? getContentToken('description');
+
+  if (fieldDisplay === 'hidden') {
+    return null;
+  }
 
   return (
     <FormField
       control={control}
       name={name}
-      disabled={fieldVisibility === 'disabled' || disabled}
+      disabled={fieldInteraction === 'disabled'}
+      shouldUnregister={shouldUnregister}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className={className}>
           {type !== 'checkbox' ? (
             <>
               <div className="eb-flex eb-items-center eb-space-x-2">
-                <FormLabel asterisk={required ?? fieldRule.required}>
-                  {fieldLabel}
-                </FormLabel>
-                <InfoPopover>
-                  {tooltip ??
-                    t(
-                      [
-                        `fields.${tName}.tooltip`,
-                        '',
-                      ] as unknown as TemplateStringsArray,
-                      { index: lastIndex }
-                    )}
-                </InfoPopover>
+                <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
+                <InfoPopover>{fieldTooltip}</InfoPopover>
               </div>
 
               <FormDescription className="eb-text-xs eb-text-gray-500">
-                {description ??
-                  t(
-                    [
-                      `fields.${tName}.description`,
-                      '',
-                    ] as unknown as TemplateStringsArray,
-                    { index: lastIndex }
-                  )}
+                {fieldDescription}
               </FormDescription>
             </>
           ) : null}
 
-          {fieldVisibility === 'readonly' ? (
+          {fieldInteraction === 'readonly' ? (
             <p className="eb-font-bold">
               {(options
                 ? options.find(({ value }) => value === field.value)?.label
@@ -357,29 +374,13 @@ export function OnboardingFormField<T extends FieldValues>({
                       </FormControl>
                       <div className="eb-space-y-1 eb-leading-none">
                         <div className="eb-flex eb-items-center eb-space-x-2">
-                          <FormLabel asterisk={required ?? fieldRule.required}>
+                          <FormLabel asterisk={fieldRequired}>
                             {fieldLabel}
                           </FormLabel>
-                          <InfoPopover>
-                            {tooltip ??
-                              t(
-                                [
-                                  `fields.${tName}.tooltip`,
-                                  '',
-                                ] as unknown as TemplateStringsArray,
-                                { index: lastIndex }
-                              )}
-                          </InfoPopover>
+                          <InfoPopover>{fieldTooltip}</InfoPopover>
                         </div>
                         <FormDescription className="eb-text-xs eb-text-gray-500">
-                          {description ??
-                            t(
-                              [
-                                `fields.${tName}.description`,
-                                '',
-                              ] as unknown as TemplateStringsArray,
-                              { index: lastIndex }
-                            )}
+                          {fieldDescription}
                         </FormDescription>
                       </div>
                     </div>
@@ -397,28 +398,34 @@ export function OnboardingFormField<T extends FieldValues>({
                   );
                 case 'text':
                   return maskFormat ? (
-                    <FormControl>
-                      <PatternInput
-                        {...field}
-                        {...inputProps}
-                        format={maskFormat ?? ''}
-                        mask={maskChar}
-                        type={type}
-                        defaultValue={field.value}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
-                    </FormControl>
+                    <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                      <FormControl>
+                        <PatternInput
+                          {...field}
+                          {...inputProps}
+                          format={maskFormat ?? ''}
+                          mask={maskChar}
+                          type={type}
+                          defaultValue={field.value}
+                          value={field.value}
+                          placeholder={fieldPlaceholder}
+                        />
+                      </FormControl>
+                      {inputButton}
+                    </div>
                   ) : (
-                    <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type={type}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
-                    </FormControl>
+                    <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          {...inputProps}
+                          type={type}
+                          value={field.value}
+                          placeholder={fieldPlaceholder}
+                        />
+                      </FormControl>
+                      {inputButton}
+                    </div>
                   );
                 case 'importantDate':
                   return (
@@ -446,13 +453,16 @@ export function OnboardingFormField<T extends FieldValues>({
                 default:
                   return (
                     <FormControl>
-                      <Input
-                        {...field}
-                        {...inputProps}
-                        type={type}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                      />
+                      <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                        <Input
+                          {...field}
+                          {...inputProps}
+                          type={type}
+                          value={field.value}
+                          placeholder={fieldPlaceholder}
+                        />
+                        {inputButton}
+                      </div>
                     </FormControl>
                   );
               }

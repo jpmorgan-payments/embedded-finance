@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import {
   useSmbdoGetClient,
@@ -25,12 +24,12 @@ import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
+  generateClientRequestBody,
   generatePartyRequestBody,
-  generateRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
-  translateClientApiErrorsToFormErrors,
-  translatePartyApiErrorsToFormErrors,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
@@ -62,7 +61,7 @@ export const InitialStepForm = () => {
       : undefined;
 
   // Create a form with empty default values
-  const form = useStepFormWithFilters<z.infer<typeof InitialStepFormSchema>>({
+  const form = useStepFormWithFilters({
     clientData,
     schema: InitialStepFormSchema,
     defaultValues: {
@@ -162,8 +161,7 @@ export const InitialStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors =
-                  translatePartyApiErrorsToFormErrors(context);
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
                 setApiFormErrors(form, apiFormErrors);
               }
             },
@@ -172,14 +170,19 @@ export const InitialStepForm = () => {
       }
       // Create party if it doesn't exist
       else {
-        const clientRequestBody = generateRequestBody(values, 0, 'addParties', {
-          addParties: [
-            {
-              partyType: 'ORGANIZATION',
-              roles: ['CLIENT'],
-            },
-          ],
-        });
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'ORGANIZATION',
+                roles: ['CLIENT'],
+              },
+            ],
+          }
+        );
         updateClient(
           {
             id: clientId,
@@ -198,7 +201,7 @@ export const InitialStepForm = () => {
             onError: (error) => {
               if (error.response?.data?.context) {
                 const { context } = error.response.data;
-                const apiFormErrors = translateClientApiErrorsToFormErrors(
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
                   context,
                   0,
                   'addParties'
@@ -213,7 +216,7 @@ export const InitialStepForm = () => {
 
     // Create client if clientId does not exist
     else {
-      const requestBody = generateRequestBody(values, 0, 'parties', {
+      const requestBody = generateClientRequestBody(values, 0, 'parties', {
         parties: [
           {
             partyType: 'ORGANIZATION',
@@ -244,7 +247,7 @@ export const InitialStepForm = () => {
           onError: (error) => {
             if (error.response?.data?.context) {
               const { context } = error.response.data;
-              const apiFormErrors = translateClientApiErrorsToFormErrors(
+              const apiFormErrors = mapClientApiErrorsToFormErrors(
                 context,
                 0,
                 'parties'
@@ -279,15 +282,13 @@ export const InitialStepForm = () => {
                 value: product,
                 label: t(`clientProducts.${product}`),
               }))}
-              visibility={defaultProduct || clientId ? 'readonly' : 'visible'}
+              readonly={Boolean(defaultProduct || clientId)}
+              disabled={isFormDisabled}
             />
 
             <OnboardingFormField
               control={form.control}
               name="jurisdiction"
-              visibility={
-                availableJurisdictions?.length === 1 ? 'readonly' : 'visible'
-              }
               type="select"
               options={availableJurisdictions.map((jurisdiction) => ({
                 value: jurisdiction,
@@ -295,6 +296,8 @@ export const InitialStepForm = () => {
                   jurisdiction
                 })`,
               }))}
+              readonly={Boolean(defaultJurisdiction)}
+              disabled={isFormDisabled}
             />
 
             <OnboardingFormField
@@ -307,6 +310,7 @@ export const InitialStepForm = () => {
                 value: type,
                 label: t(`organizationTypes.${type}`),
               }))}
+              disabled={isFormDisabled}
             />
 
             <OnboardingFormField
@@ -356,73 +360,76 @@ export const InitialStepForm = () => {
               <CardDescription>{t('initialStepDescription2')}</CardDescription>
             </CardHeader>
             <CardContent>
-              {form.watch('organizationType') ? (
-                <>
-                  <p className="eb-my-4 eb-text-sm">
-                    <Trans
-                      t={t}
-                      i18nKey={
-                        form.watch('product') && form.watch('jurisdiction')
-                          ? 'initialStepOrganizationTypeInformationFull'
-                          : 'initialStepOrganizationTypeInformationBasic'
-                      }
-                      values={{
-                        organizationType: form.watch('organizationType'),
-                        product: form.watch('product')
-                          ? t(`clientProducts.${form.watch('product')}`)
-                          : '',
-                        jurisdiction: form.watch('jurisdiction')
-                          ? t(
-                              `clientJurisdictions.${form.watch('jurisdiction')}`
-                            )
-                          : '',
-                      }}
-                    />
-                  </p>
-                  {Object.entries(
-                    generateRequiredFieldsList(
-                      form.watch('organizationType'),
-                      form.watch('product'),
-                      form.watch('jurisdiction')
-                    ).fields
-                  ).map(([step, fields]) => (
-                    <div key={step} className="eb-mb-4">
+              {(() => {
+                const organizationType = form.watch('organizationType');
+                const product = form.watch('product');
+                const jurisdiction = form.watch('jurisdiction');
+                return organizationType ? (
+                  <>
+                    <p className="eb-my-4 eb-text-sm">
+                      <Trans
+                        t={t}
+                        i18nKey={
+                          form.watch('product') && form.watch('jurisdiction')
+                            ? 'initialStepOrganizationTypeInformationFull'
+                            : 'initialStepOrganizationTypeInformationBasic'
+                        }
+                        values={{
+                          organizationType: form.watch('organizationType'),
+                          product: product
+                            ? t(`clientProducts.${product}`)
+                            : '',
+                          jurisdiction: jurisdiction
+                            ? t(`clientJurisdictions.${jurisdiction}`)
+                            : '',
+                        }}
+                      />
+                    </p>
+                    {Object.entries(
+                      generateRequiredFieldsList(
+                        organizationType,
+                        product || defaultProduct,
+                        jurisdiction || defaultJurisdiction
+                      ).fields
+                    ).map(([step, fields]) => (
+                      <div key={step} className="eb-mb-4">
+                        <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
+                          {t(`stepLabels.${step}`, {
+                            defaultValue: step,
+                          }).toUpperCase()}
+                        </h4>
+                        <ul>
+                          {fields.map((fieldKey) => (
+                            <li key={fieldKey} className="eb-text-sm">
+                              - {t(fieldKey, { defaultValue: fieldKey })}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                    <div className="eb-mt-6">
                       <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
-                        {t(`stepLabels.${step}`, {
-                          defaultValue: step,
-                        }).toUpperCase()}
+                        {t('initialStepNotes.title')}
                       </h4>
                       <ul>
-                        {fields.map((fieldKey) => (
-                          <li key={fieldKey} className="eb-text-sm">
-                            - {t(fieldKey, { defaultValue: fieldKey })}
+                        {generateRequiredFieldsList(
+                          organizationType,
+                          product || defaultProduct,
+                          jurisdiction || defaultJurisdiction
+                        ).notes.map((noteKey) => (
+                          <li key={noteKey} className="eb-text-sm">
+                            - {t(noteKey, { defaultValue: noteKey })}
                           </li>
                         ))}
                       </ul>
                     </div>
-                  ))}
-                  <div className="eb-mt-6">
-                    <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
-                      {t('initialStepNotes.title')}
-                    </h4>
-                    <ul>
-                      {generateRequiredFieldsList(
-                        form.watch('organizationType'),
-                        form.watch('product'),
-                        form.watch('jurisdiction')
-                      ).notes.map((noteKey) => (
-                        <li key={noteKey} className="eb-text-sm">
-                          - {t(noteKey, { defaultValue: noteKey })}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
-              ) : (
-                <p className="eb-my-4 eb-text-sm">
-                  <Trans t={t} i18nKey="initialStepNoOrganizationType" />
-                </p>
-              )}
+                  </>
+                ) : (
+                  <p className="eb-my-4 eb-text-sm">
+                    <Trans t={t} i18nKey="initialStepNoOrganizationType" />
+                  </p>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
