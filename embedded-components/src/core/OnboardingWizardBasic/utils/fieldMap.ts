@@ -99,7 +99,11 @@ export const partyFieldMap: PartyFieldMap = {
   },
   industry: {
     path: 'organizationDetails.industry',
-    baseRule: { visibility: 'visible', required: true },
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: { code: '', codeType: 'NAICS' },
+    },
     fromResponseFn: (val) => ({
       code: val.code!,
       codeType: val.codeType!,
@@ -285,15 +289,42 @@ export const partyFieldMap: PartyFieldMap = {
       },
       issuer: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { interaction: 'disabled', defaultValue: 'US' },
+          },
+        ],
       },
       value: {
         baseRule: { display: 'visible', required: true },
       },
       description: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
       expiryDate: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
     },
   },
@@ -410,30 +441,58 @@ export const partyFieldMap: PartyFieldMap = {
         value: '',
       },
     },
-    conditionalRules: [
-      {
-        condition: {
-          product: ['MERCHANT_SERVICES'],
-          jurisdiction: ['CA'],
-        },
-        rule: { display: 'hidden' },
-      },
-    ],
+
     subFields: {
       idType: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { interaction: 'disabled' },
+          },
+        ],
       },
       issuer: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { interaction: 'disabled', defaultValue: 'US' },
+          },
+        ],
       },
       value: {
         baseRule: { display: 'visible', required: true },
       },
       description: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
       expiryDate: {
         baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+              jurisdiction: ['US'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
       },
     },
   },
