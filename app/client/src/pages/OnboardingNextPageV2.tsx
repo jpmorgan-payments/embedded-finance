@@ -2,23 +2,16 @@ import {
   EBComponentsProvider,
   OnboardingWizardBasic,
 } from '@jpmorgan-payments/embedded-finance-components';
-import {
-  Badge,
-  Divider,
-  Grid,
-  Group,
-  Select,
-  SimpleGrid,
-  Text,
-} from '@mantine/core';
+import { Badge, Divider, Grid, Select, Text, NumberInput } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
 import { onboardingScenarios } from 'data/onboardingScenarios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
-import { IconMaximize } from '@tabler/icons-react';
+import { IconMaximize } from '@tabler/icons';
+import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {
   if (!theme) return {};
@@ -33,8 +26,47 @@ const mapToEBTheme = (theme?: ThemeConfig) => {
   };
 };
 
+// Add URL validation helper
+const isValidApiUrl = (url: string | null): boolean => {
+  if (!url) return false;
+  try {
+    const urlObj = new URL(url);
+    // Only allow specific domains - adjust these based on your requirements
+    const allowedDomains = [
+      'payments.jpmorgan.com',
+      'jpmchase.net',
+      'localhost',
+    ];
+
+    return allowedDomains.some((domain) => urlObj.hostname.endsWith(domain));
+  } catch {
+    return false;
+  }
+};
+
+// Add header parsing helper
+const parseHeadersFromParams = (
+  searchParams: URLSearchParams,
+): Record<string, string> => {
+  const headers: Record<string, string> = {};
+
+  // Get all params that start with 'headers.'
+  for (const [key, value] of searchParams.entries()) {
+    if (key.startsWith('headers.')) {
+      const headerKey = key.replace('headers.', '');
+      headers[headerKey] = value;
+    }
+  }
+
+  return headers;
+};
+
 export const OnboardingNextPageV2 = () => {
   const [params, setParams] = useSearchParams();
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const apiBaseUrlFromParams = params.get('apiBaseUrl');
+  const clientIdFromParams = params.get('clientId');
 
   const fullScreen = params.get('fullScreen') === 'true';
 
@@ -50,6 +82,39 @@ export const OnboardingNextPageV2 = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const initialStepId = params.get('initialStep');
+  const [initialStep, setInitialStep] = useState<number>(
+    initialStepId ? parseInt(initialStepId) : 1,
+  );
+
+  const sanitizedApiBaseUrl = useMemo(() => {
+    if (!apiBaseUrlFromParams) return scenario?.baseURL ?? '';
+
+    if (!isValidApiUrl(apiBaseUrlFromParams)) {
+      setValidationError('Invalid API URL provided');
+      return scenario?.baseURL ?? '';
+    }
+
+    setValidationError(null);
+
+    return apiBaseUrlFromParams;
+  }, [apiBaseUrlFromParams, scenario?.baseURL]);
+
+  // Get headers from URL params
+  const urlHeaders = useMemo(() => parseHeadersFromParams(params), [params]);
+
+  const [packageVersion, setPackageVersion] = useState<string>('');
+
+  useEffect(() => {
+    import('../../package.json').then((pkg) => {
+      setPackageVersion(
+        pkg.dependencies[
+          '@jpmorgan-payments/embedded-finance-components'
+        ].replace('^', ''),
+      );
+    });
+  }, []);
 
   useEffect(() => {
     if (!scenarioId || !onboardingScenarios.find((s) => s.id === scenarioId)) {
@@ -96,6 +161,10 @@ export const OnboardingNextPageV2 = () => {
     setSelectedLocale(locale);
   }
 
+  function handleStepChange(value: number) {
+    setInitialStep(value || 0);
+  }
+
   const code = `
 <EBComponentsProvider
   apiBaseUrl="${scenario?.baseURL ?? ''}"
@@ -106,7 +175,7 @@ export const OnboardingNextPageV2 = () => {
 >
   <OnboardingWizardBasic
     title="Onboarding Wizard"
-    clientId="${scenario?.clientId}"
+    initialClientId="${scenario?.clientId}"
     availableProducts={[${scenario?.availableProducts.map((product) => `"${product}"`).join(', ')}]}
     availableJurisdictions={[${scenario?.availableJurisdictions.map((jurisdiction) => `"${jurisdiction}"`).join(',')}]}
   />
@@ -134,12 +203,28 @@ export const OnboardingNextPageV2 = () => {
           <IconMaximize size={20} />
         </div>
       )}
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 4,
+          right: 35,
+          zIndex: 10,
+          cursor: 'pointer',
+        }}
+      >
+        <Badge size="sm" variant="light">
+          v{packageVersion}
+        </Badge>
+      </div>
       <EBComponentsProvider
-        key={`provider-${scenario?.clientId}-${selectedThemeId}`}
-        apiBaseUrl={scenario?.baseURL ?? ''}
+        key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
+        apiBaseUrl={sanitizedApiBaseUrl}
         headers={{
-          api_gateway_client_id: scenario?.gatewayID ?? '',
+          // Merge default headers with URL headers
           Accept: 'application/json',
+          api_gateway_client_id: scenario?.gatewayID ?? '',
+          ...urlHeaders,
         }}
         theme={mapToEBTheme(
           listThemes()?.find((t) => t.id === selectedThemeId),
@@ -159,8 +244,16 @@ export const OnboardingNextPageV2 = () => {
             availableProducts={scenario?.availableProducts ?? []}
             // @ts-ignore
             availableJurisdictions={scenario?.availableJurisdictions ?? []}
+            // @ts-ignore
+            availableOrganizationTypes={
+              scenario?.availableOrganizationTypes ?? [
+                'SOLE_PROPRIETORSHIP',
+                'LIMITED_LIABILITY_COMPANY',
+              ]
+            }
             title="Onboarding Wizard"
-            clientId={scenario?.clientId}
+            initialClientId={clientIdFromParams ?? scenario?.clientId}
+            initialStep={initialStep - 1}
             onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
@@ -185,6 +278,13 @@ export const OnboardingNextPageV2 = () => {
       apiEndpoint="@jpmorgan-payments/embedded-finance-components "
       githubLink={`${GITHUB_REPO}/tree/main/embedded-components`}
     >
+      <DevelopmentNotice />
+      {validationError && (
+        <div role="alert" className="text-red-600 mb-4">
+          {validationError}
+        </div>
+      )}
+
       <div>
         <Text>
           Use the <Badge color="dark">POST /clients</Badge> call to begin the
@@ -200,7 +300,7 @@ export const OnboardingNextPageV2 = () => {
       </div>
 
       <Grid>
-        <Grid.Col span={6}>
+        <Grid.Col span={12} lg={6}>
           <Select
             name="scenario"
             label="Demo Scenarios"
@@ -214,7 +314,18 @@ export const OnboardingNextPageV2 = () => {
           />
         </Grid.Col>
 
-        <Grid.Col span={3}>
+        <Grid.Col span={4} lg={2}>
+          <NumberInput
+            label="Initial Step"
+            placeholder="Step"
+            min={1}
+            max={7}
+            value={initialStep}
+            onChange={handleStepChange}
+          />
+        </Grid.Col>
+
+        <Grid.Col span={4} lg={2}>
           <Select
             name="locale"
             label="Locale"
@@ -229,7 +340,7 @@ export const OnboardingNextPageV2 = () => {
         </Grid.Col>
 
         {listThemes()?.length > 0 && (
-          <Grid.Col span={3}>
+          <Grid.Col span={4} lg={2}>
             <Select
               clearable
               name="theme"

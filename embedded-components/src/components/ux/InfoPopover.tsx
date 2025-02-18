@@ -20,10 +20,12 @@ export const InfoPopover = ({ children }: InfoPopoverProps) => {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" type="button">
-          <InfoIcon className="eb-h-4 eb-w-4 eb-stroke-primary" />
+          <InfoIcon className="eb-stroke-blue-500" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="top">{children}</PopoverContent>
+      <PopoverContent side="top" className="eb-text-sm">
+        {children}
+      </PopoverContent>
     </Popover>
   );
 };

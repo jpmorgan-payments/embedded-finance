@@ -1,54 +1,632 @@
 {
   "fields": {
-    "organizationName": {
-      "label": "Nom de l'organisation",
-      "placeholder": "Entrez le nom de l'organisation",
+    "product": {
+      "label": "Produit",
+      "placeholder": "Sélectionner un produit",
       "description": "",
       "tooltip": ""
+    },
+    "jurisdiction": {
+      "label": "Juridiction",
+      "placeholder": "Sélectionner le pays de juridiction",
+      "description": "",
+      "tooltip": ""
+    },
+    "organizationName": {
+      "label": "Dénomination sociale légale",
+      "placeholder": "Entrer la dénomination sociale",
+      "description": "La dénomination sociale légale de l'entreprise telle qu'elle apparaît sur les formulaires gouvernementaux et les documents commerciaux",
+      "tooltip": "Doit correspondre exactement à vos documents d'enregistrement d'entreprise",
+      "validation": {
+        "required": "La dénomination sociale est requise",
+        "format": "La dénomination sociale ne peut contenir que des lettres, des chiffres et les caractères spéciaux suivants : ()_/&+%@#;,.: -?",
+        "pattern": "Format de dénomination sociale invalide. Veuillez utiliser uniquement les caractères autorisés",
+        "minLength": "La dénomination sociale doit comporter au moins 2 caractères",
+        "maxLength": "La dénomination sociale doit comporter au maximum 100 caractères",
+        "noLeadingSpace": "La dénomination sociale ne peut pas commencer par un espace",
+        "noTrailingSpace": "La dénomination sociale ne peut pas se terminer par un espace",
+        "noConsecutiveSpaces": "La dénomination sociale ne peut pas contenir d'espaces consécutifs",
+        "noSpecialAtStart": "La dénomination sociale ne peut pas commencer par un caractère spécial",
+        "noSpecialAtEnd": "La dénomination sociale ne peut pas se terminer par un caractère spécial"
+      },
+      "group": "organisation"
+    },
+    "organizationDescription": {
+      "label": "Description de l'entreprise",
+      "placeholder": "Entrer la description de l'entreprise",
+      "description": "",
+      "tooltip": "La dénomination sociale légale de l'entreprise. Il s'agit du nom officiel de la personne ou de l'entité qui possède une entreprise. Doit être le nom utilisé sur les formulaires gouvernementaux et les documents commerciaux de la partie légale.",
+      "validation": {
+        "maxLength": "La description de l'entreprise doit comporter 500 caractères ou moins",
+        "minLength": "La description de l'entreprise doit comporter au moins 10 caractères",
+        "noHtml": "La description de l'entreprise ne peut pas contenir de balises HTML",
+        "noUrls": "La description de l'entreprise ne peut pas contenir d'URL"
+      }
+    },
+    "dbaName": {
+      "label": "Nom commercial (facultatif)",
+      "placeholder": "Entrer le nom commercial",
+      "description": "Un autre nom sous lequel l'entreprise exerce ses activités.  Indiquez-le si votre entreprise est enregistrée sous un alias.",
+      "tooltip": "Le nom commercial doit correspondre à vos documents d'enregistrement d'entreprise.",
+      "validation": {
+        "maxLength": "Le nom commercial doit comporter 100 caractères ou moins",
+        "format": "Le nom commercial ne peut contenir que des lettres, des chiffres et les caractères spéciaux suivants : ()_/&+%@#;,.: -?",
+        "pattern": "Format de nom commercial invalide. Veuillez utiliser uniquement les caractères autorisés",
+        "noLeadingSpace": "Le nom commercial ne peut pas commencer par un espace",
+        "noTrailingSpace": "Le nom commercial ne peut pas se terminer par un espace",
+        "noConsecutiveSpaces": "Le nom commercial ne peut pas contenir d'espaces consécutifs",
+        "minLength": "Le nom commercial doit comporter au moins 2 caractères"
+      }
+    },
+    "organizationType": {
+      "label": "Type d'entreprise",
+      "placeholder": "Sélectionner le type d'entreprise",
+      "description": "Veuillez sélectionner le code SCIAN le plus approprié, en vous assurant qu'il représente fidèlement votre activité commerciale et en évitant les codes similaires mais moins pertinents.",
+      "tooltip": "",
+      "group": "organisation"
     },
     "organizationEmail": {
-      "label": "Email de l'organisation",
-      "placeholder": "Entrez l'email de l'organisation",
-      "description": "Description d'exemple",
-      "tooltip": ""
-    },
-    "addresses.addressType": {
-      "label": "Type d'adresse",
-      "placeholder": "Sélectionnez le type d'adresse",
+      "label": "Courriel de l'entreprise",
+      "placeholder": "Entrer le courriel de l'organisation",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "invalid": "Adresse courriel invalide",
+        "format": "Le courriel doit être dans un format de courriel d'entreprise valide",
+        "maxLength": "Le courriel doit comporter au maximum 100 caractères",
+        "noPersonal": "Veuillez utiliser une adresse courriel d'entreprise (pas de gmail.com, yahoo.com, etc.)"
+      },
+      "group": "contact"
+    },
+    "individualEmail": {
+      "label": "Courriel",
+      "placeholder": "Entrer le courriel",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "invalid": "Adresse courriel invalide",
+        "format": "Le courriel doit être dans un format de courriel d'entreprise valide",
+        "maxLength": "Le courriel doit comporter au maximum 100 caractères",
+        "noPersonal": "Veuillez utiliser une adresse courriel d'entreprise (pas de gmail.com, yahoo.com, etc.)"
+      },
+      "group": "contact"
+    },
+    "countryOfFormation": {
+      "label": "Pays de constitution",
+      "placeholder": "Sélectionner le pays de constitution",
+      "description": "",
+      "tooltip": "Code de pays au format ISO alpha-2",
+      "validation": {
+        "exactlyTwoChars": "Le code de pays doit comporter exactement 2 caractères"
+      },
+      "group": "organisation"
+    },
+    "yearOfFormation": {
+      "label": "Année de constitution",
+      "placeholder": "Entrer l'année de constitution",
+      "description": "",
+      "tooltip": "Année de constitution de l'entreprise (p. ex. 2000)",
+      "validation": {
+        "format": "Année de constitution invalide",
+        "min": "L'année de constitution ne peut pas être antérieure à 1800",
+        "max": "L'année de constitution ne peut pas être dans le futur",
+        "invalid": "Veuillez entrer une année valide entre 1800 et l'année en cours"
+      }
+    },
+    "individualIds": {
+      "label": "Pièces d'identité individuelles",
+      "validation": {
+        "required": "Au moins une pièce d'identité gouvernementale est requise",
+        "maxIds": "Maximum de 16 pièces d'identité autorisé",
+        "uniqueTypes": "Chaque type de pièce d'identité doit être unique"
+      },
+      "idType": {
+        "label": "Type de pièce d'identité",
+        "placeholder": "Sélectionner le type de pièce d'identité",
+        "description": "Type de pièce d'identité individuelle",
+        "tooltip": "doit correspondre à votre type de pièce d'identité individuelle",
+        "validation": {
+          "required": "Le type de pièce d'identité est requis"
+        }
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Entrer la description",
+        "description": "Description de la pièce d'identité",
+        "tooltip": "doit correspondre à la description de la pièce d'identité de vos documents d'enregistrement d'entreprise",
+        "validation": {
+          "maxLength": "La description doit comporter 100 caractères ou moins"
+        }
+      },
+      "value": {
+        "label": "Valeur de la pièce d'identité",
+        "placeholder": "Entrer la valeur de la pièce d'identité",
+        "description": "Valeur de la pièce d'identité",
+        "tooltip": "doit correspondre à votre numéro de pièce d'identité individuelle",
+        "validation": {
+          "required": "La valeur de la pièce d'identité est requise",
+          "format": "Format de pièce d'identité invalide",
+          "ssnFormat": "Le NAS doit comporter exactement 9 chiffres",
+          "itinFormat": "Le numéro d'identification fiscale individuelle (ITIN) doit comporter exactement 9 chiffres et commencer par 9",
+          "noSpaces": "La valeur de la pièce d'identité ne peut pas contenir d'espaces"
+        }
+      },
+      "expiryDate": {
+        "label": "Date d'expiration",
+        "placeholder": "AAAA-MM-JJ",
+        "description": "Date d'expiration de la pièce d'identité individuelle",
+        "tooltip": "Date d'expiration de la pièce d'identité individuelle",
+        "validation": {
+          "format": "La date d'expiration doit être au format « AAAA-MM-JJ »",
+          "invalid": "Date invalide",
+          "past": "La date d'expiration ne peut pas être dans le passé",
+          "tooFar": "La date d'expiration ne peut pas être supérieure à 10 ans dans le futur"
+        }
+      },
+      "issuer": {
+        "label": "Émetteur",
+        "placeholder": "Entrer l'émetteur",
+        "description": "Émetteur de la pièce d'identité de l'organisation",
+        "tooltip": "doit correspondre à l'émetteur de la pièce d'identité de vos documents d'enregistrement d'entreprise",
+        "validation": {
+          "exactlyTwoChars": "L'émetteur doit être un code de pays à 2 lettres"
+        }
+      },
+      "group": "identification"
+    },
+    "countryOfResidence": {
+      "label": "Pays de résidence",
+      "placeholder": "Sélectionner le pays de résidence",
+      "description": "Le pays où réside cette personne",
+      "validation": {
+        "exactlyTwoChars": "Le code de pays doit comporter exactement 2 caractères"
+      }
+    },
+    "jobTitleDescription": {
+      "label": "Description du titre du poste",
+      "placeholder": "Entrer la description du titre du poste",
+      "description": "Brève description de votre rôle et de vos responsabilités",
+      "validation": {
+        "maxLength": "La description doit comporter au maximum 50 caractères",
+        "pattern": "La description ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+        "noHtml": "La description ne peut pas contenir de code HTML",
+        "noUrls": "La description ne peut pas contenir d'URL"
+      }
+    },
+    "addresses": {
+      "label": "Adresses de l'entreprise",
+      "addressLines": {
+        "label": "Lignes d'adresse",
+        "placeholder": "Entrer les lignes d'adresse",
+        "description": "Lignes d'adresse de votre adresse professionnelle",
+        "validation": {
+          "required": "Les lignes d'adresse sont requises"
+        }
+      },
+      "city": {
+        "label": "Ville",
+        "placeholder": "Entrer la ville",
+        "description": "Ville de votre adresse professionnelle",
+        "validation": {
+          "required": "La ville est requise"
+        }
+      },
+      "state": {
+        "label": "Province/État",
+        "placeholder": "Sélectionner la province/l'état",
+        "description": "Province/État de votre adresse professionnelle",
+        "validation": {
+          "required": "La province/l'état est requis"
+        }
+      },
+      "postalCode": {
+        "label": "Code postal",
+        "placeholder": "Entrer le code postal",
+        "description": "Code postal à 5 chiffres (États-Unis) ou code postal alphanumérique (Canada)",
+        "validation": {
+          "required": "Le code postal est requis",
+          "pattern": "Le code postal doit comporter exactement 5 chiffres (États-Unis) ou être au format A1A 1A1 (Canada)"
+        }
+      },
+      "country": {
+        "label": "Pays",
+        "placeholder": "Sélectionner le pays",
+        "description": "Pays de votre adresse professionnelle",
+        "validation": {
+          "required": "Le pays est requis"
+        }
+      },
+      "validation": {
+        "minAddresses": "Au moins une adresse est requise",
+        "maxAddresses": "Maximum de 5 adresses autorisé"
+      },
+      "addressType": {
+        "label": "Type d'adresse",
+        "placeholder": "Sélectionner le type d'adresse",
+        "description": "",
+        "tooltip": ""
+      },
+      "group": "adresse"
+    },
+    "associatedCountries": {
+      "validation": {
+        "maxCountries": "Maximum de 100 pays associés autorisé"
+      }
+    },
+    "industryCategory": {
+      "label": "Type d'industrie",
+      "placeholder": "Sélectionner le type d'industrie",
+      "description": "Le secteur d'activité de votre entreprise - recherchez le type d'industrie pertinent ou le code SCIAN.",
+      "tooltip": "doit correspondre au code SCIAN de vos documents d'enregistrement d'entreprise",
+      "validation": {
+        "maxLength": "La catégorie d'industrie doit comporter 100 caractères ou moins",
+        "required": "La catégorie d'industrie est requise",
+        "format": "La catégorie d'industrie ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+        "minLength": "La catégorie d'industrie doit comporter au moins 3 caractères"
+      }
+    },
+    "industryType": {
+      "label": "Type d'industrie",
+      "placeholder": "Sélectionner le type d'industrie",
+      "description": "Le secteur d'activité de votre entreprise - recherchez le type d'industrie pertinent ou le code SCIAN.",
+      "tooltip": "doit correspondre au code SCIAN de vos documents d'enregistrement d'entreprise",
+      "validation": {
+        "maxLength": "Le type d'industrie doit comporter 100 caractères ou moins",
+        "required": "Le type d'industrie est requis",
+        "format": "Le type d'industrie ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+        "minLength": "Le type d'industrie doit comporter au moins 3 caractères"
+      }
+    },
+    "organizationIds": {
+      "label": "Pièces d'identité de l'entreprise",
+      "validation": {
+        "minIds": "Au moins une pièce d'identité d'organisation est requise",
+        "maxIds": "Maximum de 6 pièces d'identité d'organisation autorisé",
+        "uniqueTypes": "Chaque type de pièce d'identité d'organisation doit être unique",
+        "required": "La pièce d'identité de l'organisation est requise"
+      },
+      "idType": {
+        "label": "Type de pièce d'identité",
+        "placeholder": "Sélectionner le type de pièce d'identité",
+        "description": "Type de pièce d'identité de l'organisation",
+        "tooltip": "doit correspondre au type de pièce d'identité de vos documents d'enregistrement d'entreprise",
+        "validation": {
+          "required": "Le type de pièce d'identité est requis"
+        }
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Entrer la description",
+        "description": "Description de la pièce d'identité de l'organisation",
+        "tooltip": "doit correspondre à la description de la pièce d'identité de vos documents d'enregistrement d'entreprise",
+        "validation": {
+          "maxLength": "La description doit comporter 100 caractères ou moins"
+        }
+      },
+      "value": {
+        "label": "Valeur de la pièce d'identité",
+        "placeholder": "Entrer la valeur de la pièce d'identité",
+        "description": "Valeur de la pièce d'identité de l'organisation",
+        "tooltip": "doit correspondre à la valeur de la pièce d'identité de vos documents d'enregistrement d'entreprise",
+        "validation": {
+          "required": "La valeur de la pièce d'identité est requise",
+          "maxLength": "La valeur de la pièce d'identité doit comporter 100 caractères ou moins",
+          "format": "La valeur de la pièce d'identité ne peut contenir que des lettres, des chiffres et des traits d'union",
+          "noSpaces": "La valeur de la pièce d'identité ne peut pas contenir d'espaces",
+          "einFormat": "Le NE doit comporter exactement 9 chiffres",
+          "business_registration_idFormat": "L'identifiant d'enregistrement d'entreprise doit comporter de 5 à 15 caractères alphanumériques",
+          "business_numberFormat": "Le numéro d'entreprise doit comporter de 9 à 12 chiffres",
+          "business_registration_numberFormat": "Le numéro d'enregistrement d'entreprise doit comporter de 6 à 15 caractères alphanumériques avec des tirets facultatifs"
+        }
+      },
+      "issuer": {
+        "label": "Émetteur",
+        "placeholder": "Entrer l'émetteur",
+        "description": "Émetteur de la pièce d'identité de l'organisation",
+        "tooltip": "doit correspondre à l'émetteur de la pièce d'identité de vos documents d'enregistrement d'entreprise",
+        "validation": {
+          "required": "L'émetteur est requis",
+          "maxLength": "L'émetteur doit comporter 500 caractères ou moins"
+        }
+      },
+      "expiryDate": {
+        "label": "Date d'expiration",
+        "placeholder": "AAAA-MM-JJ",
+        "description": "Date d'expiration de la pièce d'identité de l'organisation",
+        "tooltip": "Date d'expiration de la pièce d'identité de l'organisation",
+        "validation": {
+          "format": "La date d'expiration doit être au format « AAAA-MM-JJ »",
+          "invalid": "Date invalide",
+          "future": "La date d'expiration doit être dans le futur",
+          "maxYears": "La date d'expiration doit être inférieure à 10 ans dans le futur"
+        }
+      },
+      "group": "identification"
+    },
+    "website": {
+      "validation": {
+        "invalid": "URL invalide",
+        "maxLength": "L'URL du site Web doit comporter 500 caractères ou moins",
+        "required": "L'URL du site Web est requise",
+        "httpsRequired": "L'URL du site Web doit commencer par https://",
+        "format": "Le site Web doit être une URL valide (p. ex., https://www.example.com)",
+        "noIp": "L'URL du site Web ne peut pas être une adresse IP"
+      }
+    },
+    "mcc": {
+      "validation": {
+        "format": "Le MCC doit être vide ou comporter exactement 4 chiffres",
+        "invalid": "Code MCC invalide",
+        "required": "Le code MCC est requis pour ce type d'entreprise",
+        "range": "Le MCC doit être un code valide entre 0001 et 9999"
+      }
+    },
+    "secondaryMccList": {
+      "validation": {
+        "maxMcc": "Maximum de 50 MCC secondaires autorisé"
+      },
+      "mcc": {
+        "validation": {
+          "format": "Le MCC doit comporter exactement 4 chiffres"
+        }
+      }
+    },
+    "individualName": {
+      "validation": {
+        "pattern": "Le nom ne peut contenir que des lettres, des traits d'union, des apostrophes et des espaces",
+        "noNumbers": "Le nom ne peut pas contenir de chiffres",
+        "noSpecialChars": "Le nom ne peut pas contenir de caractères spéciaux, sauf les traits d'union et les apostrophes",
+        "noConsecutiveSpaces": "Le nom ne peut pas contenir d'espaces consécutifs",
+        "noConsecutiveHyphens": "Le nom ne peut pas contenir de traits d'union consécutifs",
+        "noLeadingSpace": "Le nom ne peut pas commencer par un espace",
+        "noTrailingSpace": "Le nom ne peut pas se terminer par un espace",
+        "noLeadingHyphen": "Le nom ne peut pas commencer par un trait d'union",
+        "noTrailingHyphen": "Le nom ne peut pas se terminer par un trait d'union"
+      }
+    },
+    "individualAddresses": {
+      "label": "Adresses individuelles",
+      "validation": {
+        "required": "Au moins une adresse est requise",
+        "maxAddresses": "Maximum de 5 adresses autorisé",
+        "uniqueTypes": "Chaque type d'adresse doit être unique"
+      },
+      "addressType": {
+        "label": "Type d'adresse",
+        "placeholder": "Sélectionner le type d'adresse",
+        "description": "",
+        "tooltip": ""
+      },
+      "addressLines": {
+        "validation": {
+          "required": "La ligne d'adresse est requise",
+          "maxLength": "La ligne d'adresse doit comporter 60 caractères ou moins",
+          "minLines": "Au moins une ligne d'adresse est requise",
+          "maxLines": "Maximum de 5 lignes d'adresse autorisé",
+          "firstLine": "La première ligne ne doit pas être une boîte postale et doit commencer par un numéro",
+          "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+          "noHtml": "L'adresse ne peut pas contenir de code HTML",
+          "noUrls": "L'adresse ne peut pas contenir d'URL"
+        }
+      },
+      "city": {
+        "label": "Ville",
+        "placeholder": "Entrer la ville",
+        "description": "Ville de votre adresse individuelle",
+        "validation": {
+          "maxLength": "Le nom de la ville doit comporter 34 caractères ou moins"
+        }
+      },
+      "state": {
+        "label": "Province/État",
+        "placeholder": "Sélectionner la province/l'état",
+        "description": "Province/État de votre adresse individuelle",
+        "validation": {
+          "maxLength": "Le nom de la province/de l'état doit comporter 30 caractères ou moins"
+        }
+      },
+      "postalCode": {
+        "label": "Code postal",
+        "placeholder": "Entrer le code postal",
+        "description": "Code postal à 5 chiffres (États-Unis) ou code postal alphanumérique (Canada)",
+        "validation": {
+          "maxLength": "Le code postal doit comporter 10 caractères ou moins"
+        }
+      },
+      "country": {
+        "label": "Pays",
+        "placeholder": "Sélectionner le pays",
+        "description": "Pays de votre adresse individuelle",
+        "validation": {
+          "exactlyTwoChars": "Le code de pays doit comporter exactement 2 caractères"
+        }
+      }
+    },
+    "jobTitle": {
+      "label": "Titre du poste",
+      "placeholder": "Entrer le titre du poste",
+      "description": "Votre poste actuel dans l'organisation",
+      "tooltip": "Doit correspondre au titre du poste indiqué dans vos documents d'enregistrement d'entreprise",
+      "validation": {
+        "required": "Le titre du poste est requis",
+        "minLength": "Le titre du poste doit comporter au moins 2 caractères",
+        "maxLength": "Le titre du poste doit comporter au maximum 50 caractères",
+        "pattern": "Le titre du poste ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+        "noLeadingSpace": "Le titre du poste ne peut pas commencer par un espace",
+        "noTrailingSpace": "Le titre du poste ne peut pas se terminer par un espace"
+      },
+      "group": "dirigeant"
+    },
+    "firstName": {
+      "label": "Prénom légal",
+      "placeholder": "Entrer le prénom",
+      "description": "Prénom légal tel qu'il apparaît sur la pièce d'identité gouvernementale",
+      "tooltip": "Doit correspondre à votre pièce d'identité émise par le gouvernement",
+      "validation": {
+        "required": "Le prénom est requis",
+        "minLength": "Le prénom doit comporter au moins 2 caractères",
+        "maxLength": "Le prénom doit comporter au maximum 30 caractères",
+        "pattern": "Le prénom ne peut contenir que des lettres, des traits d'union, des apostrophes et des espaces"
+      },
+      "group": "dirigeant"
+    },
+    "middleName": {
+      "label": "Deuxième prénom légal (facultatif)",
+      "placeholder": "Entrer le deuxième prénom",
+      "description": "Deuxième prénom légal tel qu'il apparaît sur la pièce d'identité gouvernementale",
+      "tooltip": "Doit correspondre à votre pièce d'identité émise par le gouvernement",
+      "validation": {
+        "maxLength": "Le deuxième prénom doit comporter au maximum 30 caractères",
+        "pattern": "Le deuxième prénom ne peut contenir que des lettres, des traits d'union, des apostrophes et des espaces"
+      }
+    },
+    "lastName": {
+      "label": "Nom de famille légal",
+      "placeholder": "Entrer le nom de famille",
+      "description": "Nom de famille légal tel qu'il apparaît sur la pièce d'identité gouvernementale",
+      "tooltip": "Doit correspondre à votre pièce d'identité émise par le gouvernement",
+      "validation": {
+        "required": "Le nom de famille est requis",
+        "minLength": "Le nom de famille doit comporter au moins 2 caractères",
+        "maxLength": "Le nom de famille doit comporter au maximum 30 caractères",
+        "pattern": "Le nom de famille ne peut contenir que des lettres, des traits d'union, des apostrophes et des espaces"
+      },
+      "group": "dirigeant"
+    },
+    "nameSuffix": {
+      "label": "Suffixe (facultatif)",
+      "placeholder": "Entrer le suffixe du nom",
+      "description": "Suffixe du nom légal tel qu'il apparaît sur la pièce d'identité gouvernementale (p. ex., fils, père, III)",
+      "tooltip": "Suffixes courants : fils, père, II, III, IV",
+      "validation": {
+        "minLength": "Le suffixe doit comporter au moins 1 caractère",
+        "maxLength": "Le suffixe doit comporter au maximum 5 caractères",
+        "pattern": "Le suffixe ne peut contenir que des lettres, des points et des chiffres romains"
+      }
+    },
+    "birthDate": {
+      "label": "Date de naissance",
+      "description": "Date de naissance telle qu'elle apparaît sur la pièce d'identité gouvernementale",
+      "validation": {
+        "required": "La date de naissance est requise",
+        "format": "La date doit être au format « AAAA-MM-JJ »",
+        "invalid": "Date invalide",
+        "future": "La date de naissance ne peut pas être dans le futur",
+        "tooOld": "La date de naissance indique un âge supérieur à 120 ans",
+        "tooYoung": "Doit avoir au moins 18 ans"
+      },
+      "group": "dirigeant"
+    },
+    "natureOfOwnership": {
+      "label": "Nature de la propriété",
+      "placeholder": "Sélectionner la nature de la propriété",
+      "description": "Comment vous détenez ou contrôlez l'organisation",
+      "validation": {
+        "required": "La nature de la propriété est requise"
+      }
+    },
+    "soleOwner": {
+      "label": "Propriétaire unique",
+      "description": "Indiquez si vous êtes le propriétaire unique de l'organisation",
+      "validation": {
+        "required": "Veuillez préciser si vous êtes le propriétaire unique"
+      }
+    },
+    "entitiesInOwnership": {
+      "label": "Entités propriétaires",
+      "placeholder": "Sélectionner oui/non",
+      "description": "Indiquez s'il y a d'autres entités impliquées dans la propriété",
+      "validation": {
+        "required": "Veuillez préciser s'il y a des entités propriétaires"
+      }
+    },
+    "websiteAvailable": {
+      "label": "Site Web disponible",
+      "description": "Indiquez si votre entreprise a un site Web",
+      "validation": {
+        "required": "Veuillez préciser si vous avez un site Web"
+      }
+    },
+    "organizationPhone": {
+      "label": "Téléphone de l'organisation",
+      "placeholder": "Entrer le numéro de téléphone de l'organisation",
+      "description": "Numéro de téléphone principal de l'entreprise",
+      "validation": {
+        "required": "Le téléphone de l'organisation est requis",
+        "format": "Format de numéro de téléphone invalide",
+        "pattern": "Utiliser le format : +[indicatif régional][numéro] (p. ex., +1234567890)"
+      },
+      "group": "contact"
+    },
+    "individualPhone.phoneType": {
+      "label": "Type de téléphone",
+      "placeholder": "Sélectionner le type de téléphone",
+      "validation": {
+        "required": "Le type de téléphone est requis",
+        "format": "Format de numéro de téléphone invalide",
+        "pattern": "Utiliser le format : +[indicatif régional][numéro] (p. ex., +1234567890)"
+      }
+    },
+    "individualPhone.phoneNumber": {
+      "label": "Numéro de téléphone",
+      "placeholder": "Entrer le numéro de téléphone de l'organisation",
+      "validation": {
+        "required": "Le numéro de téléphone est requis",
+        "format": "Format de numéro de téléphone invalide",
+        "pattern": "Utiliser le format : +[indicatif régional][numéro] (p. ex., +1234567890)"
+      }
+    },
+    "additionalQuestions": {
+      "validation": {
+        "dateFormat": "Format de date invalide",
+        "required": "Requis",
+        "invalidFormat": "Format invalide",
+        "numberFormat": "Doit être un nombre",
+        "maxItems": "Ne peut pas dépasser {{maxItems}} éléments"
+      }
     }
   },
   "title": "Intégration du client",
-  "fetchingClientData": "Récupération des données du client...",
-  "initialDetails": "Détails initiaux",
-  "organizationDetails": "Détails de l'organisation",
-  "individualDetails": "Détails individuels",
-  "additionalQuestions": "Questions supplémentaires",
-  "uploadDocuments": "Télécharger des documents",
-  "reviewAndAttest": "Revoir et attester",
-  "initialStepDescription1": "Les informations que nous vous demandons nous aideront à finaliser la configuration de votre compte.",
-  "initialStepDescription2": "Veuillez revoir et mettre à jour toute information nécessitant une confirmation ; et fournir toute information supplémentaire demandée.",
-  "initialStepNoOrganizationType": "Veuillez sélectionner votre <strong>type d'organisation</strong> pour prévisualiser les informations que vous devrez confirmer ou fournir.",
-  "initialStepOrganizationTypeInformation": "En tant que <strong>{{organizationType}}</strong>, vous devrez confirmer ou fournir les informations suivantes :",
-  "product": "Produit",
-  "jurisdiction": "Juridiction",
-  "organizationType": "Type d'organisation",
-  "organizationName": "Nom de l'organisation",
-  "organizationNameDescription": "Le nom légal de l'organisation. C'est le nom officiel de la personne ou de l'entité qui possède une entreprise. Doit être le nom utilisé sur les formulaires gouvernementaux et les documents commerciaux de la partie légale.",
-  "organizationEmail": "Email de l'organisation",
-  "countryOfFormation": "Pays de formation",
-  "postalCode": "Code postal",
-  "city": "Ville",
-  "state": "État / Province",
-  "country": "Pays",
-  "firstName": "Prénom",
-  "lastName": "Nom de famille",
-  "email": "Email",
-  "phone": "Téléphone",
+  "stepLabels": {
+    "initialDetails": "Détails initiaux",
+    "organizationDetails": "Renseignements sur l'entreprise",
+    "individualDetails": "Renseignements sur le dirigeant",
+    "decisionMakers": "Décideurs",
+    "businessOwners": "Propriétaires bénéficiaires",
+    "additionalQuestions": "Questions de diligence raisonnable",
+    "uploadDocuments": "Documents supplémentaires",
+    "reviewAndAttest": "Examiner et attester"
+  },
+  "idValueLabels": {
+    "placeholder": "Entrer la valeur de la pièce d'identité",
+    "individual": {
+      "SSN": "Numéro de sécurité sociale",
+      "ITIN": "Numéro d'identification fiscale individuelle",
+      "NATIONAL_ID": "Numéro d'identification national",
+      "DRIVERS_LICENSE": "Permis de conduire",
+      "PASSPORT": "Passeport",
+      "SOCIAL_INSURANCE_NUMBER": "Numéro d'assurance sociale",
+      "OTHER_GOVERNMENT_ID": "Autre pièce d'identité gouvernementale"
+    },
+    "organization": {
+      "EIN": "Numéro d'identification de l'employeur",
+      "BUSINESS_REGISTRATION_ID": "Identifiant d'enregistrement d'entreprise",
+      "BUSINESS_NUMBER": "Numéro d'entreprise",
+      "BUSINESS_REGISTRATION_NUMBER": "Numéro d'enregistrement d'entreprise"
+    }
+  },
+  "fetchingClientData": "Récupération des données client...",
+  "initialStepDescription1": "Les renseignements que nous vous demandons nous aideront à terminer la configuration de votre compte.",
+  "initialStepDescription2": "Veuillez examiner et mettre à jour tout renseignement qui doit être confirmé et fournir tout renseignement supplémentaire demandé.",
+  "initialStepNoOrganizationType": "Veuillez sélectionner votre <strong>type d'organisation</strong> pour afficher un aperçu des renseignements que vous devrez confirmer ou fournir.",
+  "initialStepOrganizationTypeInformation": "En tant que <strong>$t(organizationTypes.{{organizationType}})</strong> utilisant <strong>{{product}}</strong> dans <strong>{{jurisdiction}}</strong>, vous devrez confirmer ou fournir les renseignements suivants :",
+  "initialStepOrganizationTypeInformationBasic": "En tant que <strong>$t(organizationTypes.{{organizationType}})</strong>, vous devrez confirmer ou fournir les renseignements suivants :",
+  "initialStepOrganizationTypeInformationFull": "En tant que <strong>$t(organizationTypes.{{organizationType}})</strong> utilisant <strong>{{product}}</strong> dans <strong>{{jurisdiction}}</strong>, vous devrez confirmer ou fournir les renseignements suivants :",
+  "beneficialOwnerDialogDescriptionEdit": "Apportez des modifications aux renseignements sur le propriétaire bénéficiaire ici. Cliquez sur Enregistrer lorsque vous avez terminé.",
+  "beneficialOwnerDialogDescriptionAdd": "Remplissez les renseignements pour le nouveau propriétaire bénéficiaire ici. Cliquez sur Enregistrer lorsque vous avez terminé.",
   "clientProducts": {
     "EMBEDDED_PAYMENTS": "Paiements intégrés",
-    "MERCHANT_SERVICES": "Services marchands"
+    "MERCHANT_SERVICES": "Services aux commerçants"
   },
   "clientJurisdictions": {
     "US": "États-Unis",
@@ -56,17 +634,17 @@
   },
   "organizationTypes": {
     "LIMITED_LIABILITY_COMPANY": "Société à responsabilité limitée",
-    "LIMITED_LIABILITY_PARTNERSHIP": "Partenariat à responsabilité limitée",
-    "GENERAL_PARTNERSHIP": "Partenariat général",
-    "LIMITED_PARTNERSHIP": "Partenariat limité",
-    "C_CORPORATION": "Société C",
-    "S_CORPORATION": "Société S",
-    "PARTNERSHIP": "Partenariat",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Société en commandite à responsabilité limitée",
+    "GENERAL_PARTNERSHIP": "Société en nom collectif",
+    "LIMITED_PARTNERSHIP": "Société en commandite",
+    "C_CORPORATION": "Société C",
+    "S_CORPORATION": "Société S",
+    "PARTNERSHIP": "Société de personnes",
     "PUBLICLY_TRADED_COMPANY": "Société cotée en bourse",
-    "NON_PROFIT_CORPORATION": "Corporation à but non lucratif",
+    "NON_PROFIT_CORPORATION": "Organisme sans but lucratif",
     "GOVERNMENT_ENTITY": "Entité gouvernementale",
     "SOLE_PROPRIETORSHIP": "Entreprise individuelle",
-    "UNINCORPORATED_ASSOCIATION": "Association non constituée"
+    "UNINCORPORATED_ASSOCIATION": "Association non constituée en société"
   },
   "addressTypes": {
     "LEGAL_ADDRESS": "Adresse légale",
@@ -74,8 +652,38 @@
     "BUSINESS_ADDRESS": "Adresse professionnelle",
     "RESIDENTIAL_ADDRESS": "Adresse résidentielle"
   },
+  "jobTitles": {
+    "CEO": "Président-directeur général",
+    "CFO": "Directeur financier",
+    "COO": "Directeur de l'exploitation",
+    "President": "Président",
+    "Chairman": "Président du conseil d'administration",
+    "Senior Branch Manager": "Directeur principal de succursale",
+    "Other": "Autre"
+  },
+  "phoneTypes": {
+    "BUSINESS_PHONE": "Téléphone professionnel",
+    "MOBILE_PHONE": "Téléphone mobile",
+    "ALTERNATE_PHONE": "Autre téléphone"
+  },
   "errorMessages": {
-    "default": "Une erreur s'est produite lors de la récupération des données du client. Veuillez réessayer.",
-    "clientNotFound": "Client non trouvé. Veuillez réessayer ou contacter le support."
+    "default": "Une erreur s'est produite lors de la récupération des données client. Veuillez réessayer.",
+    "clientNotFound": "Client non trouvé. Veuillez réessayer ou communiquer avec le soutien technique."
+  },
+  "fieldGroups": {
+    "organization": "Renseignements sur l'organisation",
+    "controller": "Renseignements sur le dirigeant",
+    "address": "Renseignements sur l'adresse",
+    "contact": "Coordonnées",
+    "identification": "Pièces d'identité",
+    "other": "Renseignements supplémentaires"
+  },
+  "initialStepNotes": {
+    "title": "Remarques importantes",
+    "additionalQuestions": "Des questions supplémentaires pourraient être requises en fonction des renseignements fournis",
+    "llcOwners": "En tant que société à responsabilité limitée, vous pourrez ajouter d'autres propriétaires bénéficiaires",
+    "attestation": "Vous devrez examiner et attester l'exactitude de tous les renseignements fournis",
+    "kycProcess": "Un processus de vérification d'identité (KYC) sera requis pour toutes les parties dirigeantes",
+    "termsAndConditions": "Vous devrez examiner et accepter les conditions générales"
   }
 }

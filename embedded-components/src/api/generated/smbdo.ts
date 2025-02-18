@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Embedded Finance Digital Onboarding API
  * Embedded Finance & Solutions APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.7
+ * OpenAPI spec version: 1.0.10
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
@@ -2323,7 +2323,7 @@ export function useSmbdoDownloadDocument<
 
 /**
  * Retrieves a list of parties.
- * @summary List Parties
+ * @summary List parties
  */
 export const getAllParties = (
   params?: GetAllPartiesParams,
@@ -2460,7 +2460,7 @@ export function useGetAllParties<
   }
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey };
 /**
- * @summary List Parties
+ * @summary List parties
  */
 
 export function useGetAllParties<
@@ -2495,7 +2495,7 @@ export function useGetAllParties<
 
 /**
  * Creates a new party.
- * @summary Create Party
+ * @summary Create party
  */
 export const postParty = (
   createPartyRequest: BodyType<CreatePartyRequest>,
@@ -2564,7 +2564,7 @@ export type PostPartyMutationError = ErrorType<
 >;
 
 /**
- * @summary Create Party
+ * @summary Create party
  */
 export const usePostParty = <
   TError = ErrorType<
@@ -2730,7 +2730,7 @@ export function useGetParty<
 
 /**
  * Updates a party.
- * @summary Update Party
+ * @summary Update party
  */
 export const updateParty = (
   partyId: string,
@@ -2800,7 +2800,7 @@ export type UpdatePartyMutationError = ErrorType<
 >;
 
 /**
- * @summary Update Party
+ * @summary Update party
  */
 export const useUpdateParty = <
   TError = ErrorType<
@@ -2833,7 +2833,7 @@ export const useUpdateParty = <
 
 /**
  * Start validation for a Party.
- * @summary Start Party Validation
+ * @summary Start party validation
  */
 export const postPartyValidations = (
   partyId: string,
@@ -2899,7 +2899,7 @@ export type PostPartyValidationsMutationError = ErrorType<
 >;
 
 /**
- * @summary Start Party Validation
+ * @summary Start party validation
  */
 export const usePostPartyValidations = <
   TError = ErrorType<

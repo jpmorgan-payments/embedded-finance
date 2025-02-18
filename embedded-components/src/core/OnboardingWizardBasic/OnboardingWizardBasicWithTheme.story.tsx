@@ -3,7 +3,7 @@ import type { Meta } from '@storybook/react';
 import OnboardingWizardBasicMeta, {
   Default,
   OnboardingWizardBasicWithProviderProps,
-} from './OnboardingWizardBasic.story';
+} from './OnboardingWizardBasicSP.story';
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
@@ -15,9 +15,9 @@ export const DefaultTheme = Default.bind({});
 DefaultTheme.storyName = 'Default Theme / Appearance';
 DefaultTheme.args = Default.args;
 
-export const PepperTheme = Default.bind({});
-PepperTheme.storyName = 'Pepper Theme (Coming Soon)';
-PepperTheme.args = {
+export const CustomTheme = Default.bind({});
+CustomTheme.storyName = 'Custom Theme (Coming Soon)';
+CustomTheme.args = {
   ...Default.args,
   theme: {
     variables: {},

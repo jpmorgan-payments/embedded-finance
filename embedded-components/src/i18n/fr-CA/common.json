@@ -3,5 +3,11 @@
   "previous": "Précédent",
   "submit": "Soumettre",
   "loading": "Chargement...",
-  "submitting": "Soumission..."
+  "submitting": "Soumission...",
+  "noOptionFound": "Aucune option trouvée.",
+  "yes": "Oui",
+  "no": "Non",
+  "validation": {
+    "required": "Ce champ est requis"
+  }
 }

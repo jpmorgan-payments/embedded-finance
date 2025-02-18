@@ -11,7 +11,7 @@ export const partyWithMissingfields: PartyResponse = {
   parentExternalId: 'TCU1234',
   profileStatus: 'APPROVED',
   roles: ['BENEFICIAL_OWNER', 'CONTROLLER'],
-  status: 'ACTIVE',
+  active: true,
   individualDetails: {
     addresses: [
       {

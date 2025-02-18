@@ -1,0 +1,413 @@
+# Embedded Finance Components Cursor Rules
+
+## Repository Structure
+
+This is a monorepo containing multiple packages:
+
+```
+/
+├── app/                    # Showcase web application (not active)
+│   ├── client/            # Frontend React application
+│   └── server/            # Backend server
+├── embedded-components/    # Main UI component library (active)
+│   ├── src/               # Source code
+│   ├── .storybook/        # Storybook configuration
+│   ├── dist/              # Built files (not in repo)
+│   └── public/            # Static assets and MSW worker
+└── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
+```
+
+> **Note**: Currently, active development is focused on the `embedded-components` package. Other packages are planned for future development.
+
+## Active Package: embedded-components
+
+The `embedded-components` package is our primary UI component library for embedded finance solutions.
+
+## Technology Stack Reference
+
+- React 18.x with TypeScript
+- Radix UI primitives
+- Tailwind CSS
+- Vite & TypeScript
+- Storybook 8.x
+- MSW for API mocking
+- Tanstack React Query v5
+- Zod validation
+
+## Component Creation Guidelines
+
+### 1. Component Planning Phase
+
+1. Carefully analyze the component's purpose and requirements
+2. Review existing components in:
+   - `src/core/`
+   - `src/components/`
+3. Check if similar functionality exists in Radix UI primitives
+
+### 2. Component Structure Requirements
+
+1. Location: Place new components in `src/core/` or appropriate subdirectory
+2. File Structure:
+   ```
+   ComponentName/
+   ├── ComponentName.tsx          # Main component
+   ├── ComponentName.test.tsx     # Tests
+   ├── ComponentName.story.tsx    # Storybook
+   ├── ComponentName.schema.ts    # Validation schema (if needed)
+   └── index.ts                   # Exports
+   ```
+
+### 3. Component Implementation Rules
+
+1. Use TypeScript with strict mode
+2. Implement as functional components with hooks
+3. Follow React 18 best practices:
+   - Use proper error boundaries
+   - Implement React Query for data fetching
+   - Use Orval generated types and react-query hooks
+4. Styling:
+
+   - Use Tailwind CSS for styling
+   - Prefix custom Tailwind classes with `eb-` for embedded components
+   - Example:
+
+     ```typescript
+     // In your component
+     <div className="eb-custom-class">
+
+     // In tailwind.config.js
+     module.exports = {
+       theme: {
+         extend: {
+           // Custom classes should be prefixed
+           '.eb-custom-class': {
+             // styles
+           }
+         }
+       }
+     }
+     ```
+
+   - Follow project color scheme and design tokens
+   - Ensure responsive design
+
+5. Props:
+   - Define clear prop interfaces
+   - Use proper TypeScript types
+   - Document all props in JSDoc format
+
+### 4. Testing Requirements
+
+1. **Test Setup and Utilities**:
+
+   ```typescript
+   import { render, screen, waitFor } from "@testing-library/react";
+   import { userEvent } from "@test-utils";
+   import { http, HttpResponse } from "msw";
+   import { server } from "@/msw/server";
+   import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+   // Setup QueryClient for tests
+   const queryClient = new QueryClient();
+
+   // Mock data setup
+   const mockData = {
+     // Component-specific mock data
+   };
+
+   // Mock context if needed
+   const mockContext = {
+     // Context-specific mock data
+   };
+   ```
+
+2. **Component Rendering Helper**:
+
+   ```typescript
+   const renderComponent = () => {
+     // Reset MSW handlers before each render
+     server.resetHandlers();
+
+     // Setup explicit API mock handlers
+     server.use(
+       http.get("/api/endpoint", () => {
+         return HttpResponse.json(mockData);
+       })
+     );
+
+     return render(
+       <EBComponentsProvider
+         apiBaseUrl="/"
+         headers={{}}
+         contentTokens={{
+           name: "enUS",
+         }}
+       >
+         <QueryClientProvider client={queryClient}>
+           <ComponentName />
+         </QueryClientProvider>
+       </EBComponentsProvider>
+     );
+   };
+   ```
+
+3. **Test Structure**:
+
+   ```typescript
+   describe("ComponentName", () => {
+     // Mock external dependencies
+     vi.mock("@/components/ui/someComponent", () => ({
+       useSomeHook: () => ({ someFunction: vi.fn() }),
+     }));
+
+     test("renders correctly with initial data", async () => {
+       renderComponent();
+
+       // Wait for async operations
+       await waitFor(() => {
+         expect(screen.getByText(/expected text/i)).toBeInTheDocument();
+       });
+     });
+
+     test("handles user interactions", async () => {
+       renderComponent();
+
+       // Simulate user actions
+       await userEvent.click(screen.getByRole("button", { name: /action/i }));
+
+       // Verify state changes
+       expect(screen.getByText(/new state/i)).toBeInTheDocument();
+     });
+
+     test("handles API interactions", async () => {
+       // Setup specific API mock for this test
+       server.use(
+         http.post("/api/endpoint", () => {
+           return HttpResponse.json({ success: true });
+         })
+       );
+
+       renderComponent();
+
+       // Trigger API call
+       await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+
+       // Verify API interaction results
+       await waitFor(() => {
+         expect(screen.getByText(/success/i)).toBeInTheDocument();
+       });
+     });
+   });
+   ```
+
+4. **MSW API Mocking Patterns**:
+
+   ```typescript
+   // Setup mock handlers
+   server.use(
+     // GET requests
+     http.get("/api/resource/:id", ({ params }) => {
+       return HttpResponse.json(mockData[params.id]);
+     }),
+
+     // POST requests with response validation
+     http.post("/api/resource", async ({ request }) => {
+       const body = await request.json();
+       if (!isValidData(body)) {
+         return HttpResponse.json({ error: "Invalid data" }, { status: 400 });
+       }
+       return HttpResponse.json({ success: true });
+     }),
+
+     // Error scenarios
+     http.get("/api/error-case", () => {
+       return HttpResponse.json(
+         { error: "Something went wrong" },
+         { status: 500 }
+       );
+     })
+   );
+   ```
+
+5. **Context and Provider Testing**:
+
+   ```typescript
+   // For components using multiple contexts
+   const renderWithProviders = (ui: React.ReactElement) => {
+     return render(
+       <EBComponentsProvider apiBaseUrl="/" headers={{}}>
+         <FeatureContextProvider value={mockFeatureContext}>
+           <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+         </FeatureContextProvider>
+       </EBComponentsProvider>
+     );
+   };
+
+   // Testing context updates
+   test("responds to context changes", async () => {
+     const { rerender } = renderWithProviders(<ComponentName />);
+
+     // Verify initial state
+     expect(screen.getByText(/initial/i)).toBeInTheDocument();
+
+     // Rerender with new context
+     rerender(
+       <FeatureContextProvider value={newMockContext}>
+         <ComponentName />
+       </FeatureContextProvider>
+     );
+
+     // Verify updated state
+     expect(screen.getByText(/updated/i)).toBeInTheDocument();
+   });
+   ```
+
+6. **Testing Best Practices**:
+
+   - Test component rendering with different prop combinations
+   - Verify user interactions and their effects
+   - Test error states and loading states
+   - Ensure proper API interaction handling
+   - Test accessibility features
+   - Cover edge cases and validation scenarios
+
+7. **Test Coverage Requirements**:
+   - Minimum 80% line coverage
+   - Cover all user interaction paths
+   - Test all API integration points
+   - Verify error handling and edge cases
+   - Test accessibility features
+   - Include integration tests for complex flows
+
+### 5. Documentation Standards
+
+1. Add comprehensive JSDoc comments
+2. Include Storybook stories with:
+   - Default usage
+   - All major variants
+   - Edge cases
+3. Update README if adding new features
+4. Document props and variants
+
+### 6. Code Quality Checks
+
+Before committing:
+
+1. Run `yarn typecheck`
+2. Run `yarn lint`
+3. Run `yarn prettier`
+4. Run `yarn test`
+5. Verify Storybook stories
+
+## Component Generation Template
+
+When generating a new component, use this template:
+
+```typescript
+// ComponentName.tsx
+import { FC } from 'react';
+import { z } from 'zod';
+
+export interface ComponentNameProps {
+  // Props definition
+}
+
+export const ComponentName: FC<ComponentNameProps> = ({
+  // Props destructuring
+}) => {
+  return (
+    // Component JSX
+  );
+};
+
+// ComponentName.schema.ts
+export const componentNameSchema = z.object({
+  // Zod schema definition
+});
+
+// ComponentName.story.tsx
+import type { Meta, StoryObj } from '@storybook/react';
+import { ComponentName } from './ComponentName';
+
+const meta: Meta<typeof ComponentName> = {
+  component: ComponentName,
+  // Storybook configuration
+};
+
+export default meta;
+type Story = StoryObj<typeof ComponentName>;
+
+export const Default: Story = {
+  // Story implementation
+};
+```
+
+## EBComponentsProvider Requirements
+
+All components must be wrapped in EBComponentsProvider with:
+
+1. Valid apiBaseUrl
+2. Proper theme configuration
+3. Required headers
+
+## Theming Guidelines
+
+Use theme tokens from the provider:
+
+1. Access via theme context
+2. Use design tokens for:
+   - Colors
+   - Typography
+   - Spacing
+   - Border radius
+   - Shadows
+
+## API Integration Rules
+
+1. Use React Query for data fetching
+2. Implement proper error handling
+3. Use MSW for development mocking
+4. Follow API documentation patterns
+
+## Accessibility Requirements
+
+1. Follow WCAG 2.1 guidelines
+2. Implement proper ARIA attributes
+3. Ensure keyboard navigation
+4. Test with screen readers
+5. Maintain color contrast ratios
+
+## Performance Guidelines
+
+1. Implement proper memoization
+2. Use React.lazy for code splitting
+3. Optimize re-renders
+4. Monitor bundle size impact
+
+## Git Usage
+
+Commit Message Prefixes:
+
+- "fix:" for bug fixes
+- "feat:" for new features
+- "perf:" for performance improvements
+- "docs:" for documentation changes
+- "style:" for formatting changes
+- "refactor:" for code refactoring
+- "test:" for adding missing tests
+- "chore:" for maintenance tasks
+
+Rules:
+
+- Use lowercase for commit messages
+- Keep the summary line concise
+- Include description for non-obvious changes
+- Reference issue numbers when applicable
+
+## Documentation
+
+- Maintain clear README with setup instructions
+- Document API interactions and data flows
+- Keep manifest.json well-documented
+- Don't include comments unless it's for complex logic
+- Document permission requirements

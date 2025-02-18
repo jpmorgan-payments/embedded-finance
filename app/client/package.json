@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@forgerock/javascript-sdk": "^4.2.0",
-    "@jpmorgan-payments/embedded-finance-components": "^0.5.65",
+    "@jpmorgan-payments/embedded-finance-components": "^0.5.83",
     "@mantine/core": "^6.0.4",
     "@mantine/dates": "^6.0.4",
     "@mantine/form": "^6.0.4",
@@ -24,7 +24,7 @@
     "jsdom": "^21.1.0",
     "jwt-decode": "^3.1.2",
     "mermaid": "10.9.3",
-    "msw": "^2.6.5",
+    "msw": "^2.7.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-error-boundary": "^4.0.12",
@@ -37,7 +37,7 @@
     "yup": "^0.32.11"
   },
   "scripts": {
-    "start": " cross-env VITE_API_URL='' vite --port 3000",
+    "start": " cross-env VITE_API_URL='' vite --port 3010",
     "build": "node_modules/typescript/bin/tsc && vite build",
     "serve": "vite preview",
     "test": "vitest watch",
@@ -76,7 +76,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "rimraf": "^5.0.10",
     "string.prototype.replaceall": "^1.0.6",
-    "vite": "^4.5.5",
+    "vite": "^4.5.6",
     "vite-plugin-svgr": "^2.4.0",
     "vite-tsconfig-paths": "^4.0.5",
     "vitest": "^0.28.2"

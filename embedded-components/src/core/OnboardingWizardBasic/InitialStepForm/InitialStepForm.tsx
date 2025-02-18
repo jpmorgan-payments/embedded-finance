@@ -1,58 +1,40 @@
-import { useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 import {
   useSmbdoGetClient,
   useSmbdoPostClients,
   useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import {
-  CreateClientRequestSmbdo,
-  OrganizationType,
-  UpdateClientRequestSmbdo,
-} from '@/api/generated/smbdo.schemas';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Form } from '@/components/ui/form';
 import { useStepper } from '@/components/ui/stepper';
-import { Separator } from '@/components/ui';
 
-import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
+import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
-  generateRequestBody,
+  generateClientRequestBody,
+  generatePartyRequestBody,
+  mapClientApiErrorsToFormErrors,
+  mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
-  translateApiErrorsToFormErrors,
+  shapeFormValuesBySchema,
+  useStepFormWithFilters,
 } from '../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
+import { generateRequiredFieldsList } from './requiredFields';
 
 export const InitialStepForm = () => {
   const { nextStep } = useStepper();
@@ -62,8 +44,14 @@ export const InitialStepForm = () => {
     setClientId,
     availableProducts,
     availableJurisdictions,
+    availableOrganizationTypes,
+    usePartyResource,
+    onPostPartyResponse,
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
+
+  // Fetch client data
+  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
   const defaultProduct =
     availableProducts?.length === 1 ? availableProducts[0] : undefined;
@@ -73,16 +61,12 @@ export const InitialStepForm = () => {
       : undefined;
 
   // Create a form with empty default values
-  const form = useForm<z.infer<typeof InitialStepFormSchema>>({
-    mode: 'onBlur',
-    resolver: zodResolver(InitialStepFormSchema),
+  const form = useStepFormWithFilters({
+    clientData,
+    schema: InitialStepFormSchema,
     defaultValues: {
       jurisdiction: defaultJurisdiction,
       product: defaultProduct,
-      organizationName: '',
-      organizationType: undefined,
-      email: '',
-      countryOfFormation: '',
     },
   });
 
@@ -99,101 +83,161 @@ export const InitialStepForm = () => {
     }
   }, [defaultJurisdiction]);
 
-  // Fetch client data
-  const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
-    clientId ?? ''
+  // Get organization's party
+  const existingOrgParty = clientData?.parties?.find(
+    (party) => party?.partyType === 'ORGANIZATION'
   );
 
-  // Get organization's partyId
-  const partyId = clientData?.parties?.find(
-    (party) => party?.partyType === 'ORGANIZATION'
-  )?.id;
+  const [isFormPopulated, setIsFormPopulated] = useState(false);
 
   // If clientId exists, populate form with client data
   useEffect(() => {
-    if (clientData && getClientStatus === 'success' && partyId) {
-      const formValues = convertClientResponseToFormValues(clientData, partyId);
-      const productFromResponse = clientData.products?.[0];
-      if (productFromResponse) {
-        formValues.product = productFromResponse;
-      }
-      form.reset(formValues);
+    if (clientData && existingOrgParty?.id && !isFormPopulated) {
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        existingOrgParty.id
+      );
+
+      // Get product from response since it's not in the party object
+      formValues.product = clientData.products?.[0] ?? defaultProduct;
+      formValues.jurisdiction = formValues.jurisdiction ?? defaultJurisdiction;
+
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          InitialStepFormSchema
+        )
+      );
+      setIsFormPopulated(true);
     }
-  }, [clientData, getClientStatus, form.reset, partyId]);
+  }, [
+    clientData,
+    form.reset,
+    existingOrgParty?.id,
+    isFormPopulated,
+    defaultProduct,
+    defaultJurisdiction,
+  ]);
 
   const {
     mutate: postClient,
-    error: postClientError,
-    status: postClientStatus,
+    error: clientPostError,
+    status: clientPostStatus,
   } = useSmbdoPostClients();
 
   const {
     mutate: updateClient,
-    error: updateClientError,
-    status: updateClientStatus,
+    error: clientUpdateError,
+    status: clientUpdateStatus,
   } = useSmbdoUpdateClient();
+
+  const {
+    mutate: updateParty,
+    error: partyUpdateError,
+    status: partyUpdateStatus,
+  } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
     // Update client if clientId exists
     if (clientId) {
-      const requestBody = generateRequestBody(values, 0, 'addParties', {
-        addParties: [
+      // Update party if it exists
+      if (usePartyResource && existingOrgParty?.id) {
+        const partyRequestBody = generatePartyRequestBody(values, {});
+        updateParty(
           {
-            ...(partyId ? { id: partyId } : {}),
+            partyId: existingOrgParty.id,
+            data: partyRequestBody,
           },
-        ],
-      }) as UpdateClientRequestSmbdo;
-
-      updateClient(
-        {
-          id: clientId,
-          data: requestBody,
-        },
-        {
-          onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
-          },
-          onSuccess: () => {
-            nextStep();
-            toast.success("Client's organization details updated successfully");
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = translateApiErrorsToFormErrors(
-                context,
-                0,
-                'addParties'
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
               );
-              setApiFormErrors(form, apiFormErrors);
-            }
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [
+              {
+                partyType: 'ORGANIZATION',
+                roles: ['CLIENT'],
+              },
+            ],
+          }
+        );
+        updateClient(
+          {
+            id: clientId,
+            data: clientRequestBody,
           },
-        }
-      );
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: () => {
+              nextStep();
+              toast.success(
+                "Client's organization details updated successfully"
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = mapClientApiErrorsToFormErrors(
+                  context,
+                  0,
+                  'addParties'
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
     }
 
     // Create client if clientId does not exist
     else {
-      const requestBody = generateRequestBody(values, 0, 'parties', {
-        products: values.product ? [values.product] : [],
+      const requestBody = generateClientRequestBody(values, 0, 'parties', {
         parties: [
           {
             partyType: 'ORGANIZATION',
             roles: ['CLIENT'],
           },
         ],
-      }) as CreateClientRequestSmbdo;
+      });
 
       postClient(
         {
-          data: requestBody,
+          data: {
+            products: values.product ? [values.product] : [],
+            ...requestBody,
+          },
         },
         {
           onSettled: (data, error) => {
             onPostClientResponse?.(data, error?.response?.data);
           },
-          onSuccess: (response) => {
-            setClientId?.(response.id);
+          onSuccess: async (response) => {
+            await setClientId?.(response.id);
             toast.success(
               `Client created successfully with ID: ${response.id}`,
               {}
@@ -203,7 +247,7 @@ export const InitialStepForm = () => {
           onError: (error) => {
             if (error.response?.data?.context) {
               const { context } = error.response.data;
-              const apiFormErrors = translateApiErrorsToFormErrors(
+              const apiFormErrors = mapClientApiErrorsToFormErrors(
                 context,
                 0,
                 'parties'
@@ -216,216 +260,176 @@ export const InitialStepForm = () => {
     }
   });
 
-  if (postClientStatus === 'pending' || updateClientStatus === 'pending') {
-    return <FormLoadingState message={t('common:submitting')} />;
-  }
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' ||
+    clientPostStatus === 'pending' ||
+    (usePartyResource && partyUpdateStatus === 'pending');
 
-  function generateRequiredFieldsList(type?: OrganizationType) {
-    if (!type) return [];
+  const isPopulatingForm = existingOrgParty && !isFormPopulated;
 
-    const requiredFields = [
-      'Organization Name',
-      'Organization Type',
-      'Country of Formation',
-      'Email',
-    ];
-
-    // Add more fields based on the data if necessary
-    // Example: if (data.someCondition) requiredFields.push('Some Other Field');
-
-    return requiredFields;
-  }
+  const isFormDisabled = isFormSubmitting || isPopulatingForm;
 
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
         <div className="eb-grid eb-grid-cols-1 eb-gap-8 md:eb-grid-cols-2">
-          <div className="eb-space-y-6">
-            <FormField
+          <fieldset className="eb-space-y-6" disabled={isFormDisabled}>
+            <OnboardingFormField
               control={form.control}
               name="product"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('product')}</FormLabel>
-                  {defaultProduct || clientId ? (
-                    <>
-                      {defaultProduct && defaultProduct !== field.value && (
-                        <FormDescription>
-                          DEV WARNING: The client response has a different
-                          product than the wizard&apos;s configured default of{' '}
-                          <b>{t(`clientProducts.${defaultProduct}`)}</b>.
-                        </FormDescription>
-                      )}
-
-                      <p className="eb-font-bold">
-                        {t(`clientProducts.${field.value}`)}
-                      </p>
-                    </>
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger ref={field.ref}>
-                          <SelectValue placeholder="Select product" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableProducts?.map((product) => (
-                          <SelectItem key={product} value={product}>
-                            {t(`clientProducts.${product}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormItem>
-              )}
+              type="select"
+              options={availableProducts.map((product) => ({
+                value: product,
+                label: t(`clientProducts.${product}`),
+              }))}
+              readonly={Boolean(defaultProduct || clientId)}
+              disabled={isFormDisabled}
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="jurisdiction"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('jurisdiction')}</FormLabel>
-                  {availableJurisdictions?.length === 1 ? (
-                    <p className="eb-font-bold">
-                      {t(`clientJurisdictions.${field.value}`)} ({field.value})
-                    </p>
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger ref={field.ref}>
-                          <SelectValue placeholder="Select country of jurisdiction" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableJurisdictions?.map((jurisdiction) => (
-                          <SelectItem key={jurisdiction} value={jurisdiction}>
-                            {t(`clientJurisdictions.${jurisdiction}`)} (
-                            {jurisdiction})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormItem>
-              )}
+              type="select"
+              options={availableJurisdictions.map((jurisdiction) => ({
+                value: jurisdiction,
+                label: `${t(`clientJurisdictions.${jurisdiction}`)} (${
+                  jurisdiction
+                })`,
+              }))}
+              readonly={Boolean(defaultJurisdiction)}
+              disabled={isFormDisabled}
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="organizationType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('organizationType')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger ref={field.ref}>
-                        <SelectValue placeholder="Select organization type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ORGANIZATION_TYPE_LIST.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {t(`organizationTypes.${type}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="select"
+              options={(
+                availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST
+              ).map((type) => ({
+                value: type,
+                label: t(`organizationTypes.${type}`),
+              }))}
+              disabled={isFormDisabled}
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="organizationName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('organizationName')}</FormLabel>
-                  <FormDescription>
-                    {t('organizationNameDescription')}
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="text"
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('organizationEmail')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="organizationEmail"
+              type="email"
             />
 
-            <FormField
+            <OnboardingFormField
               control={form.control}
               name="countryOfFormation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel asterisk>{t('countryOfFormation')}</FormLabel>
-                  <FormDescription>
-                    Country code in alpha-2 format
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="combobox"
+              options={COUNTRIES_OF_FORMATION.map((code) => ({
+                value: code,
+                label: (
+                  <span>
+                    <span className="eb-font-medium">[{code}]</span>{' '}
+                    {t([
+                      `common:countries.${code}`,
+                    ] as unknown as TemplateStringsArray)}
+                  </span>
+                ),
+              }))}
             />
 
-            <ServerErrorAlert error={postClientError || updateClientError} />
+            <ServerErrorAlert
+              error={
+                (usePartyResource ? partyUpdateError : clientUpdateError) ||
+                clientPostError
+              }
+            />
 
-            <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
-              <Button>{t('common:next')}</Button>
-            </div>
-          </div>
+            <FormActions
+              disabled={isFormDisabled}
+              isLoading={isFormSubmitting}
+            />
+          </fieldset>
           <Card className="eb-hidden md:eb-block">
-            <CardHeader>
+            <CardHeader className="eb-border-l-2 eb-bg-gray-100">
               <CardDescription>{t('initialStepDescription1')}</CardDescription>
               <CardDescription>{t('initialStepDescription2')}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Separator className="eb-mb-4" />
-              {form.getValues('organizationType') ? (
-                <>
-                  <p className="eb-text-sm">
-                    <Trans
-                      t={t}
-                      i18nKey="initialStepOrganizationTypeInformation"
-                      values={{
-                        organizationType: t(
-                          `organizationTypes.${form.getValues('organizationType')}`
-                        ),
-                      }}
-                    />
-                  </p>
-                  <ul>
-                    {generateRequiredFieldsList(
-                      form.getValues('organizationType')
-                    ).map((field) => (
-                      <li key={field} className="eb-text-sm">
-                        - {field}
-                      </li>
+              {(() => {
+                const organizationType = form.watch('organizationType');
+                const product = form.watch('product');
+                const jurisdiction = form.watch('jurisdiction');
+                return organizationType ? (
+                  <>
+                    <p className="eb-my-4 eb-text-sm">
+                      <Trans
+                        t={t}
+                        i18nKey={
+                          form.watch('product') && form.watch('jurisdiction')
+                            ? 'initialStepOrganizationTypeInformationFull'
+                            : 'initialStepOrganizationTypeInformationBasic'
+                        }
+                        values={{
+                          organizationType: form.watch('organizationType'),
+                          product: product
+                            ? t(`clientProducts.${product}`)
+                            : '',
+                          jurisdiction: jurisdiction
+                            ? t(`clientJurisdictions.${jurisdiction}`)
+                            : '',
+                        }}
+                      />
+                    </p>
+                    {Object.entries(
+                      generateRequiredFieldsList(
+                        organizationType,
+                        product || defaultProduct,
+                        jurisdiction || defaultJurisdiction
+                      ).fields
+                    ).map(([step, fields]) => (
+                      <div key={step} className="eb-mb-4">
+                        <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
+                          {t(`stepLabels.${step}`, {
+                            defaultValue: step,
+                          }).toUpperCase()}
+                        </h4>
+                        <ul>
+                          {fields.map((fieldKey) => (
+                            <li key={fieldKey} className="eb-text-sm">
+                              - {t(fieldKey, { defaultValue: fieldKey })}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                  </ul>
-                </>
-              ) : (
-                <p className="eb-text-sm">
-                  <Trans t={t} i18nKey="initialStepNoOrganizationType" />
-                </p>
-              )}
+                    <div className="eb-mt-6">
+                      <h4 className="eb-mb-2 eb-text-sm eb-font-medium">
+                        {t('initialStepNotes.title')}
+                      </h4>
+                      <ul>
+                        {generateRequiredFieldsList(
+                          organizationType,
+                          product || defaultProduct,
+                          jurisdiction || defaultJurisdiction
+                        ).notes.map((noteKey) => (
+                          <li key={noteKey} className="eb-text-sm">
+                            - {t(noteKey, { defaultValue: noteKey })}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                ) : (
+                  <p className="eb-my-4 eb-text-sm">
+                    <Trans t={t} i18nKey="initialStepNoOrganizationType" />
+                  </p>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>

@@ -16,9 +16,20 @@ export { RadioGroup, RadioGroupItem } from './radio-group';
 export { ScrollArea, ScrollBar } from './scroll-area';
 export * from './select';
 export { Separator } from './separator';
+export { Skeleton } from './skeleton';
 export { Stack } from './stack';
 export * from './table';
 export { Text } from './text';
-export { TextArea } from './textarea';
+export { Textarea } from './textarea';
 export { Title } from './title';
 export { Box } from './box';
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+} from './command';

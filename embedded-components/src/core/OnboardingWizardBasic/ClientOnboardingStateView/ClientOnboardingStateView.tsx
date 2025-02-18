@@ -12,7 +12,9 @@ import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
+import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
@@ -47,19 +49,71 @@ const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
     },
   };
 
-export const ClientOnboardingStateView = () => {
+const statusMessages: Record<ClientStatus, string> = {
+  NEW: 'A new client application has been submitted and is awaiting review.',
+  REVIEW_IN_PROGRESS: 'The client application is currently under review.',
+  INFORMATION_REQUESTED:
+    'Additional information has been requested from the client.',
+  APPROVED: 'The client application has been approved.',
+  DECLINED: 'The client application has been declined.',
+  SUSPENDED: 'The client account has been temporarily suspended.',
+  TERMINATED: 'The client account has been terminated.',
+};
+
+interface DetailRowProps {
+  label: string;
+  value: string;
+}
+
+const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
+  <div className="eb-flex eb-items-center eb-justify-between">
+    <span className="eb-text-sm eb-font-medium eb-text-gray-500">{label}:</span>
+    <span className="eb-text-sm eb-font-bold">{value}</span>
+  </div>
+);
+
+const LoadingState: React.FC = () => (
+  <Card className="eb-w-full">
+    <CardHeader>
+      <Skeleton className="eb-h-6 eb-w-48" />
+    </CardHeader>
+    <CardContent>
+      <div className="eb-space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="eb-h-4 eb-w-full" />
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+export const ClientOnboardingStateView: React.FC = () => {
   const { clientId } = useOnboardingContext();
-  const { data: clientData, isLoading } = useSmbdoGetClient(clientId ?? '');
+  const {
+    data: clientData,
+    isLoading,
+    error,
+  } = useSmbdoGetClient(clientId ?? '');
 
   if (isLoading) {
-    return <div>Loading client information...</div>;
+    return <LoadingState />;
   }
 
-  if (!clientData) {
-    return <div>No client data available.</div>;
+  if (error || !clientData) {
+    return (
+      <Card className="eb-w-full">
+        <CardContent className="eb-p-6">
+          <div className="eb-text-center eb-text-red-600">
+            {error
+              ? 'Error loading client information'
+              : 'No client data available'}
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
-  const businessDetails = clientData?.parties?.find(
+  const businessDetails = clientData.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   );
 
@@ -84,56 +138,26 @@ export const ClientOnboardingStateView = () => {
               {status}
             </Badge>
           </div>
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <span className="eb-text-sm eb-font-medium eb-text-gray-500">
-              Client ID:
-            </span>
-            <span className="eb-text-sm eb-font-bold">{clientData.id}</span>
-          </div>
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <span className="eb-text-sm eb-font-medium eb-text-gray-500">
-              Organization:
-            </span>
-            <span className="eb-text-sm eb-font-bold">
-              {businessDetails?.organizationDetails?.organizationName || 'N/A'}
-            </span>
-          </div>
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <span className="eb-text-sm eb-font-medium eb-text-gray-500">
-              Organization Type:
-            </span>
-            <span className="eb-text-sm eb-font-bold">
-              {businessDetails?.organizationDetails?.organizationType || 'N/A'}
-            </span>
-          </div>
+
+          <DetailRow label="Client ID" value={clientData.id} />
+          <DetailRow
+            label="Organization"
+            value={
+              businessDetails?.organizationDetails?.organizationName || 'N/A'
+            }
+          />
+          <DetailRow
+            label="Organization Type"
+            value={
+              businessDetails?.organizationDetails?.organizationType || 'N/A'
+            }
+          />
 
           <div className="eb-mt-4 eb-text-sm eb-text-gray-500">
-            {status === 'NEW' && (
-              <p>
-                A new client application has been submitted and is awaiting
-                review.
-              </p>
-            )}
-            {status === 'REVIEW_IN_PROGRESS' && (
-              <p>The client application is currently under review.</p>
-            )}
-            {status === 'INFORMATION_REQUESTED' && (
-              <p>Additional information has been requested from the client.</p>
-            )}
-            {status === 'APPROVED' && (
-              <p>The client application has been approved.</p>
-            )}
-            {status === 'DECLINED' && (
-              <p>The client application has been declined.</p>
-            )}
-            {status === 'SUSPENDED' && (
-              <p>The client account has been temporarily suspended.</p>
-            )}
-            {status === 'TERMINATED' && (
-              <p>The client account has been terminated.</p>
-            )}
+            <p>{statusMessages[status]}</p>
           </div>
         </div>
+        <DocumentUploadStepForm standalone />
       </CardContent>
     </Card>
   );

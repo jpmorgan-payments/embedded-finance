@@ -41,6 +41,7 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
           flagComponent={FlagComponent}
           countrySelectComponent={CountrySelect}
           inputComponent={InputComponent}
+          smartCaret={false}
           /**
            * Handles the onChange event.
            *
@@ -161,7 +162,7 @@ const FlagComponent = ({ country, countryName }: RPNInput.FlagProps) => {
   const Flag = flags[country];
 
   return (
-    <span className="eb-flex eb-h-4 eb-w-6 eb-overflow-hidden eb-rounded-sm eb-bg-foreground/20">
+    <span className="eb-flex eb-h-4 eb-w-6 eb-overflow-hidden eb-rounded-sm eb-bg-foreground/20 [&_svg]:eb-size-full">
       {Flag && <Flag title={countryName} />}
     </span>
   );

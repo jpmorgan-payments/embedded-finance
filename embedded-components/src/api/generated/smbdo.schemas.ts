@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Embedded Finance Digital Onboarding API
  * Embedded Finance & Solutions APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.7
+ * OpenAPI spec version: 1.0.10
  */
 export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
 
@@ -131,6 +131,11 @@ export type N500Response = SchemasApiError;
 export type N422Response = SchemasApiError;
 
 /**
+ * Request could not be processed because of conflict
+ */
+export type N409Response = SchemasApiError;
+
+/**
  * No data found for the criteria specified
  */
 export type N404Response = SchemasApiError;
@@ -150,15 +155,11 @@ export type N401Response = SchemasApiError;
  */
 export type N400Response = SchemasApiError;
 
-/**
- * Request was accepted
- */
 export type N202Response = {
   acceptedAt: string;
 };
 
 export interface UpdatePartyRequest {
-  /** @deprecated */
   access?: AccessList;
   active?: Active;
   email?: Email;
@@ -171,12 +172,10 @@ export interface UpdatePartyRequest {
    * @maxItems 10
    */
   roles?: Role[];
-  /** @deprecated */
   status?: PartyStatus;
 }
 
 export interface CreatePartyRequest {
-  /** @deprecated */
   access?: AccessList;
   email?: Email;
   externalId?: ExternalId;
@@ -218,7 +217,6 @@ export interface PartySummaryResponse {
    * @maxItems 10
    */
   roles?: Role[];
-  /** @deprecated */
   status?: PartyStatus;
 }
 
@@ -234,41 +232,53 @@ export interface ListPartyResponse {
   parties?: PartySummaryResponse[];
 }
 
+/**
+ * Document upload response.
+ */
 export interface DocumentUploadAccepted {
+  /** The user-generated unique request ID. */
   requestId?: string;
+  /** The unique document identifier. */
   traceId?: string;
 }
 
+/**
+ * Document metadata.
+ */
 export type PostUploadDocumentDocumentMetadata = {
   /** @maxLength 32 */
   author?: string;
   creationDate?: string;
+  /** The ID of the document request this document is uploaded for. */
   documentRequestId: string;
   lastModifiedDate?: string;
 };
 
 /**
+ * A user-generated unique request ID.
  * @minLength 2
  * @maxLength 32
  */
 export type RequestId = string;
 
+/**
+ * Document upload request.
+ */
 export interface PostUploadDocument {
+  /** The base64 encoded string of the file data. The maximum allowed file size is 2MB. Use the base64 content itself and omit headers like `data:image/png;base64`.
+   */
   documentContent: string;
+  /** Document metadata. */
   documentMetadata: PostUploadDocumentDocumentMetadata;
+  /** The document filename including file extension. */
   documentName: string;
-  /** @maxLength 100 */
+  /**
+   * The document type. If the document is uploaded for a document request, it should match one of the requested document types.
+
+   * @maxLength 100
+   */
   documentType: string;
   requestId?: RequestId;
-}
-
-export interface ListDocumentsResponse {
-  /**
-   * @minItems 0
-   * @maxItems 100
-   */
-  documentDetails?: DocumentResponse[];
-  metadata?: PageMetaData;
 }
 
 export type DocumentMetadataKeyEnum =
@@ -300,17 +310,24 @@ export interface DocumentResponse {
   metadata: DocumentMetadataSmbdo[];
 }
 
-/**
- * Number of days from the day of its creation that this request will expire.
- * @minimum 1
- * @maximum 180
- */
-export type ValidForDays = number;
+export interface ListDocumentsResponse {
+  /**
+   * @minItems 0
+   * @maxItems 100
+   */
+  documentDetails?: DocumentResponse[];
+  metadata?: PageMetaData;
+}
 
 export interface DocumentRequestResponse {
   clientId?: ClientId;
-  /** @deprecated */
-  country?: CountryCodeIsoAlpha2;
+  /**
+   * Country code in ISO alpha-2 format. Deprecated for document requests.
+   * @deprecated
+   * @minLength 2
+   * @maxLength 2
+   */
+  country?: string;
   createdAt?: string;
   /** Provides an accurate detailing of which documents and how many are being requested. A plain English description that will fulfill the document-request. */
   description?: string;
@@ -338,6 +355,13 @@ export interface DocumentRequestListResponse {
   documentRequests: DocumentRequestResponse[];
   metadata: PageMetaData;
 }
+
+/**
+ * Number of days from the day of its creation that this request will expire.
+ * @minimum 1
+ * @maximum 180
+ */
+export type ValidForDays = number;
 
 export type DocumentRequestStatus =
   (typeof DocumentRequestStatus)[keyof typeof DocumentRequestStatus];
@@ -383,6 +407,7 @@ export const DocumentTypeSmbdo = {
   BULK_PARTY: 'BULK_PARTY',
   BUSINESS_LICENSE: 'BUSINESS_LICENSE',
   BUSINESS_REGISTRATION_CERT: 'BUSINESS_REGISTRATION_CERT',
+  CERTIFICATE_OF_GOOD_STANDING: 'CERTIFICATE_OF_GOOD_STANDING',
   CERTIFICATE_OF_STATUS: 'CERTIFICATE_OF_STATUS',
   COMMERCIAL_REGISTRY: 'COMMERCIAL_REGISTRY',
   CONSTITUTIONAL_DOCUMENT: 'CONSTITUTIONAL_DOCUMENT',
@@ -408,6 +433,7 @@ export const DocumentTypeSmbdo = {
   OFFERING_MEMO: 'OFFERING_MEMO',
   OPERATING_AGREEMENT: 'OPERATING_AGREEMENT',
   OTHER_GOV_REGISTRATION_DOCS: 'OTHER_GOV_REGISTRATION_DOCS',
+  OWNERSHIP_ATTESTATION: 'OWNERSHIP_ATTESTATION',
   PARTNERSHIP_AGREEMENT: 'PARTNERSHIP_AGREEMENT',
   PASSPORT: 'PASSPORT',
   SEC_FILINGS_10K: 'SEC_FILINGS_10K',
@@ -477,15 +503,9 @@ export const ResponseSchemaType = {
 } as const;
 
 /**
- * A subset of JSON Schema used to validate the response values.
- */
-export interface ResponseSchema {
-  items?: ResponseSchemaItem;
-  maxItems?: number;
-  minItems?: number;
-  type?: ResponseSchemaType;
-}
+ * The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
 
+ */
 export type ResponseSchemaItemType =
   (typeof ResponseSchemaItemType)[keyof typeof ResponseSchemaItemType];
 
@@ -517,6 +537,12 @@ export const ResponseSchemaItemFormat = {
  * A limited subset of JSON Schema used to validate the response value items.
  */
 export interface ResponseSchemaItem {
+  /**
+   * A list of options if the answer is restricted to a fixed set of values.
+   * @minItems 1
+   * @maxItems 100
+   */
+  enum?: string[];
   exclusiveMaximum?: boolean;
   exclusiveMinimum?: boolean;
   /** Only applicable to string, number, and integer. */
@@ -527,7 +553,19 @@ export interface ResponseSchemaItem {
   minLength?: number;
   /** Only applicable to string. */
   pattern?: string;
-  type?: ResponseSchemaItemType;
+  /** The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
+   */
+  type: ResponseSchemaItemType;
+}
+
+/**
+ * A subset of JSON Schema used to validate the response values.
+ */
+export interface ResponseSchema {
+  items?: ResponseSchemaItem;
+  maxItems?: number;
+  minItems?: number;
+  type?: ResponseSchemaType;
 }
 
 /**
@@ -679,7 +717,6 @@ export interface ClientQuestionResponse {
 }
 
 export interface PartyResponse {
-  /** @deprecated */
   access?: AccessList;
   active?: Active;
   createdAt?: string;
@@ -698,7 +735,6 @@ export interface PartyResponse {
    * @maxItems 10
    */
   roles?: Role[];
-  /** @deprecated */
   status?: PartyStatus;
   validationResponse?: ValidationResponse;
 }
@@ -874,12 +910,21 @@ export interface PartyField {
   type?: string;
 }
 
+/**
+ * The type of validation process.
+| Type | Description |
+| -- | -- |
+| ENTITY_VALIDATION | Validation of the party identity. |
+| LIVENESS_CHECK | Validation of the liveliness of an individual party. This validation can be completed with a LIVENESS_CHECK-type party session. |
+
+ */
 export type ValidationType =
   (typeof ValidationType)[keyof typeof ValidationType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ValidationType = {
   ENTITY_VALIDATION: 'ENTITY_VALIDATION',
+  LIVENESS_CHECK: 'LIVENESS_CHECK',
 } as const;
 
 /**
@@ -926,6 +971,9 @@ export type ValidationResponseItem = {
  */
 export type Active = boolean;
 
+/**
+ * @deprecated
+ */
 export type PartyStatus = (typeof PartyStatus)[keyof typeof PartyStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -947,17 +995,6 @@ export const ProfileStatus = {
   TERMINATED: 'TERMINATED',
 } as const;
 
-/**
- * The party type
- */
-export type PartyType = (typeof PartyType)[keyof typeof PartyType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const PartyType = {
-  INDIVIDUAL: 'INDIVIDUAL',
-  ORGANIZATION: 'ORGANIZATION',
-} as const;
-
 export type OrganizationDetailsRequired = OrganizationDetails;
 
 /**
@@ -970,7 +1007,7 @@ export interface CreatePartyRequestInline {
   individualDetails?: IndividualDetailsRequired;
   organizationDetails?: OrganizationDetailsRequired;
   parentPartyId?: ParentPartyId;
-  partyType?: PartyTypeSmbdo;
+  partyType?: PartyType;
   /**
    * @minItems 1
    * @maxItems 10
@@ -1076,14 +1113,13 @@ export const OrganizationType = {
 } as const;
 
 /**
- * The organization?s description.
-
+ * The organization's description.
  * @minLength 0
  */
 export type OrganizationDescription = string;
 
 /**
- * The organization?s legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork
+ * The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork
 
  * @minLength 1
  */
@@ -1135,6 +1171,8 @@ export type OrganizationIndustryCategory = string;
 export type EntitiesInOwnership = boolean;
 
 /**
+ * An alternate name that the business is doing business under. Provide this if your business is registered with an alias. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+
  * @minLength 1
  * @maxLength 100
  */
@@ -1173,7 +1211,7 @@ export interface SocialMedia {
  */
   profilePlatform: SocialMediaProfilePlatform;
   /**
-   * The username of the social media profile.
+   * The social media username. This field should contain only alphanumeric characters and underscores.
    * @minLength 1
    * @maxLength 50
    */
@@ -1205,13 +1243,14 @@ export const PhoneSmbdoPhoneType = {
 } as const;
 
 /**
- * Phone Number Information of the account
-
+ * Phone number information of the party.
  */
 export interface PhoneSmbdo {
+  /** The phone number dialing code prefix for the country. */
   countryCode: string;
+  /** The phone number value. */
   phoneNumber: string;
-  phoneType: PhoneSmbdoPhoneType;
+  phoneType?: PhoneSmbdoPhoneType;
 }
 
 /**
@@ -1286,6 +1325,7 @@ export interface IndividualDetails {
   countryOfResidence?: CountryCodeIsoAlpha2;
   firstName?: FirstName;
   /**
+   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
    * @minItems 0
    * @maxItems 16
    */
@@ -1320,7 +1360,7 @@ export const IndividualIdentityIdType = {
 } as const;
 
 /**
- * An individual's identification.
+ * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
  */
 export interface IndividualIdentity {
   /** Description of the ID. */
@@ -1347,7 +1387,7 @@ export interface IndividualIdentity {
 export type NameSuffix = string;
 
 /**
- * Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers.
+ * Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
 
  * @minLength 2
  * @maxLength 30
@@ -1355,7 +1395,7 @@ export type NameSuffix = string;
 export type LastName = string;
 
 /**
- * Middle name of the individual in case of party type being an individual.
+ * Middle name of the individual in case of party type being an individual. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
 
  * @minLength 0
  * @maxLength 30
@@ -1363,7 +1403,7 @@ export type LastName = string;
 export type MiddleName = string;
 
 /**
- * First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers.
+ * First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `'^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$'`.
 
  * @minLength 2
  * @maxLength 30
@@ -1384,7 +1424,7 @@ export type CountryCodeIsoAlpha2 = string;
 export type BirthDate = string;
 
 /**
- * Type of address.
+ * Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`.
  */
 export type AddressDtoAddressType =
   (typeof AddressDtoAddressType)[keyof typeof AddressDtoAddressType];
@@ -1407,7 +1447,7 @@ export interface AddressDto {
    * @maxItems 5
    */
   addressLines: string[];
-  /** Type of address. */
+  /** Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`. */
   addressType?: AddressDtoAddressType;
   /**
    * city has a maximum of 30 characters.
@@ -1432,11 +1472,10 @@ export interface AddressDto {
 /**
  * The party type
  */
-export type PartyTypeSmbdo =
-  (typeof PartyTypeSmbdo)[keyof typeof PartyTypeSmbdo];
+export type PartyType = (typeof PartyType)[keyof typeof PartyType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const PartyTypeSmbdo = {
+export const PartyType = {
   INDIVIDUAL: 'INDIVIDUAL',
   ORGANIZATION: 'ORGANIZATION',
 } as const;
@@ -1452,7 +1491,7 @@ export type ParentPartyId = string;
 /**
  * Id in external system.
  * @minLength 1
- * @maxLength 20
+ * @maxLength 50
  */
 export type ExternalId = string;
 
@@ -1681,9 +1720,9 @@ export type ClientSummaryResponseOutstanding = {
  * Client Product Table:
 
 | Product | Description |
-|-----|-----|-------|
+| -- | -- |
 | EMBEDDED_PAYMENTS | Create and manage embedded bank accounts |
-| MERCHANT_SERVICES | Manage online payments |
+| MERCHANT_SERVICES | JPMorgan solution for online or point-of-sale payment processing |
 
  */
 export type ClientProduct = (typeof ClientProduct)[keyof typeof ClientProduct];

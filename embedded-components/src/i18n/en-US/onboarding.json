@@ -1,51 +1,783 @@
 {
   "fields": {
-    "organizationName": {
-      "label": "Organization name",
-      "placeholder": "Enter organization name",
+    "product": {
+      "label": "Product",
+      "placeholder": "Select product",
       "description": "",
       "tooltip": ""
+    },
+    "jurisdiction": {
+      "label": "Jurisdiction",
+      "placeholder": "Select country of jurisdiction",
+      "description": "",
+      "tooltip": ""
+    },
+    "organizationName": {
+      "label": "Legal Business Name",
+      "placeholder": "Enter business name",
+      "description": "The business's legal name as it appears on government forms and business paperwork",
+      "tooltip": "Must match exactly with your business registration documents",
+      "validation": {
+        "required": "Business name is required",
+        "format": "Business name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "pattern": "Invalid business name format. Please use only allowed characters",
+        "minLength": "Business name must be at least 2 characters",
+        "maxLength": "Business name must be at most 100 characters",
+        "noLeadingSpace": "Business name cannot start with a space",
+        "noTrailingSpace": "Business name cannot end with a space",
+        "noConsecutiveSpaces": "Business name cannot contain consecutive spaces",
+        "noSpecialAtStart": "Business name cannot start with a special character",
+        "noSpecialAtEnd": "Business name cannot end with a special character"
+      },
+      "group": "organization"
+    },
+    "organizationDescription": {
+      "label": "Business Description",
+      "placeholder": "Enter business description",
+      "description": "",
+      "tooltip": "A brief description of your business and its activities",
+      "validation": {
+        "maxLength": "Business description must be 500 characters or less",
+        "minLength": "Business description must be at least 10 characters",
+        "noHtml": "Business description cannot contain HTML tags",
+        "noUrls": "Business description cannot contain URLs"
+      }
+    },
+    "dbaName": {
+      "label": "Doing Business As (DBA) Name",
+      "placeholder": "Enter DBA name",
+      "description": "An alternate name that the business is doing business under. Provide this if your business is registered with an alias.",
+      "tooltip": "The DBA name must match your business registration documents.",
+      "validation": {
+        "maxLength": "DBA name must be 100 characters or less",
+        "format": "DBA name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "pattern": "Invalid DBA name format. Please use only allowed characters",
+        "noLeadingSpace": "DBA name cannot start with a space",
+        "noTrailingSpace": "DBA name cannot end with a space",
+        "noConsecutiveSpaces": "DBA name cannot contain consecutive spaces",
+        "minLength": "DBA name must be at least 2 characters"
+      }
+    },
+    "organizationType": {
+      "label": "Business Type",
+      "placeholder": "Select business type",
+      "description": "Please select the most appropriate NAICS code, ensuring it accurately represents your business activity and avoiding similar but less relevant codes.",
+      "tooltip": "",
+      "group": "organization"
     },
     "organizationEmail": {
-      "label": "Organization email",
+      "label": "Business Email",
       "placeholder": "Enter organization email",
-      "description": "Sample description",
-      "tooltip": ""
-    },
-    "addresses.addressType": {
-      "label": "Address type",
-      "placeholder": "Select address type",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "invalid": "Invalid email address",
+        "format": "Email must be in a valid business email format",
+        "maxLength": "Email must be at most 100 characters",
+        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
+      },
+      "group": "contact"
+    },
+    "individualEmail": {
+      "label": "Email",
+      "placeholder": "Enter email",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "invalid": "Invalid email address",
+        "format": "Email must be in a valid business email format",
+        "maxLength": "Email must be at most 100 characters",
+        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
+      },
+      "group": "contact"
+    },
+    "countryOfFormation": {
+      "label": "Country of Formation",
+      "placeholder": "Select country of formation",
+      "validation": {
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      },
+      "group": "organization"
+    },
+    "yearOfFormation": {
+      "label": "Year of Formation",
+      "placeholder": "YYYY",
+      "description": "Please use the format YYYY, e.g. 2020",
+      "validation": {
+        "format": "Invalid year of formation",
+        "min": "Year of formation cannot be before 1800",
+        "max": "Year of formation cannot be in the future",
+        "invalid": "Please enter a valid year between 1800 and current year"
+      }
+    },
+    "individualIds": {
+      "itemLabel": "Individual Identification",
+      "itemLabelNumbered": "Individual Identification {{number}}",
+      "validation": {
+        "required": "At least one government ID is required",
+        "minItems": "Minimum {{count}} IDs required",
+        "maxItems": "Maximum {{count}} IDs allowed",
+        "uniqueTypes": "Each ID type must be unique"
+      },
+      "idType": {
+        "label": "ID type",
+        "placeholder": "Select ID type",
+        "description": "Type of individual ID",
+        "tooltip": "should match your individual ID type",
+        "validation": {
+          "required": "ID type is required"
+        }
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description",
+        "description": "Description of the ID",
+        "tooltip": "should match your business registration documents ID description",
+        "validation": {
+          "maxLength": "Description must be 100 characters or less"
+        }
+      },
+      "value": {
+        "label": "ID value",
+        "placeholder": "Enter ID value",
+        "description": "ID value",
+        "tooltip": "should match your individual ID number",
+        "validation": {
+          "required": "ID value is required",
+          "format": "Invalid ID format",
+          "ssnFormat": "SSN must be exactly 9 digits",
+          "itinFormat": "ITIN must be exactly 9 digits and start with 9",
+          "noSpaces": "ID value cannot contain spaces"
+        }
+      },
+      "expiryDate": {
+        "label": "Expiry date",
+        "placeholder": "YYYY-MM-DD",
+        "description": "Date when the individual ID expires",
+        "tooltip": "Date when the individual ID expires",
+        "validation": {
+          "format": "Expiry date must be in 'YYYY-MM-DD' format",
+          "invalid": "Invalid date",
+          "past": "Expiry date cannot be in the past",
+          "tooFar": "Expiry date cannot be more than 10 years in the future"
+        }
+      },
+      "issuer": {
+        "label": "Issuer",
+        "placeholder": "Enter issuer",
+        "description": "Organization ID issuer",
+        "tooltip": "should match your business registration documents ID issuer",
+        "validation": {
+          "exactlyTwoChars": "Issuer must be a 2-letter country code"
+        }
+      },
+      "group": "identification"
+    },
+    "countryOfResidence": {
+      "label": "Country of residence",
+      "placeholder": "Select country of residence",
+      "description": "The country where this individual resides",
+      "validation": {
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
+    },
+    "jobTitleDescription": {
+      "label": "Job title description",
+      "placeholder": "Enter job title description",
+      "description": "Brief description of your role and responsibilities",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "Description must be at most 50 characters",
+        "pattern": "Description can only contain letters, numbers, and basic punctuation",
+        "noHtml": "Description cannot contain HTML",
+        "noUrls": "Description cannot contain URLs"
+      }
+    },
+    "addresses": {
+      "itemLabel": "Business Address",
+      "itemLabelNumbered": "Business Address {{number}}",
+      "appendLabel": "Add an address",
+      "removeLabel": "Remove address",
+      "validation": {
+        "minItems_one": "At least one address is required",
+        "minItems_other": "At least {{count}} addresses are required",
+        "maxItems_one": "Maximum {{count}} address allowed",
+        "maxItems_other": "Maximum {{count}} addresses allowed"
+      },
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "Address line 1 of your business address",
+        "tooltip": "Must not be a PO Box and must begin with a number.",
+        "validation": {
+          "required": "Address line 1 is required",
+          "maxLength": "Address line must be 60 characters or less",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "additionalAddressLines": {
+        "appendLabel": "Add line",
+        "removeLabel": "Remove line",
+        "value": {
+          "label": "Address line {{number, inc}}",
+          "placeholder": "Enter address line {{number, inc}}",
+          "description": "Address line {{number, inc}} of your business address",
+          "tooltip": ""
+        },
+        "validation": {
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
+        }
+      },
+      "city": {
+        "label": "City",
+        "placeholder": "Enter city",
+        "description": "City of your business address",
+        "tooltip": "",
+        "validation": {
+          "required": "City is required"
+        }
+      },
+      "state": {
+        "label": "State",
+        "placeholder": "Select state",
+        "description": "State of your business address",
+        "tooltip": "",
+        "validation": {
+          "required": "State is required"
+        }
+      },
+      "postalCode": {
+        "label": "Postal Code",
+        "placeholder": "Enter postal code",
+        "description": "5-digit ZIP code",
+        "tooltip": "",
+        "validation": {
+          "required": "Postal code is required",
+          "pattern": "Postal code must be exactly 5 digits"
+        }
+      },
+      "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "description": "Country of your business address",
+        "tooltip": "",
+        "validation": {
+          "required": "Country is required"
+        }
+      },
+      "addressType": {
+        "label": "Address type",
+        "placeholder": "Select address type",
+        "description": "Type of address for your business address",
+        "tooltip": ""
+      },
+      "group": "address"
+    },
+    "associatedCountries": {
+      "headerLabel": "Associated countries",
+      "appendLabel": "Add associated country",
+      "removeLabel": "Remove associated country",
+      "validation": {
+        "minItems": "At least {{count}} associated country is required",
+        "maxItems": "Maximum {{count}} associated countries allowed"
+      },
+      "country": {
+        "label": "Associated country {{number}}",
+        "description": "",
+        "tooltip": "",
+        "placeholder": "Select country",
+        "validation": {
+          "required": "Country is required"
+        }
+      }
+    },
+
+    "industry.code": {
+      "label": "Industry Classification",
+      "placeholder": "Select industry type",
+      "description": "Your business industry - search for the relevant industry type/category or the NAICS code.",
+      "tooltip": "should match your business registration documents NAICS code",
+      "validation": {
+        "maxLength": "Industry type must be 100 characters or less",
+        "required": "Industry type is required",
+        "format": "Industry type can only contain letters, numbers, and basic punctuation",
+        "minLength": "Industry type must be at least 3 characters"
+      }
+    },
+    "organizationIds": {
+      "itemLabel": "Business Identification",
+      "itemLabelNumbered": "Business Identification {{number}}",
+      "appendLabel": "Add ID",
+      "removeLabel": "Remove ID",
+      "validation": {
+        "minItems": "At least {{count}} organization ID is required",
+        "maxItems": "Maximum 6 organization IDs allowed",
+        "uniqueTypes": "Each organization ID type must be unique"
+      },
+      "idType": {
+        "label": "ID type",
+        "placeholder": "Select ID type",
+        "description": "Type of organization ID",
+        "tooltip": "should match your business registration documents ID type",
+        "validation": {
+          "required": "ID type is required"
+        }
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description",
+        "description": "Description of the organization ID",
+        "tooltip": "should match your business registration documents ID description",
+        "validation": {
+          "maxLength": "Description must be 100 characters or less"
+        }
+      },
+      "value": {
+        "label": "ID value",
+        "placeholder": "Enter ID value",
+        "description": "Organization ID value",
+        "tooltip": "should match your business registration documents ID value",
+        "validation": {
+          "required": "ID value is required",
+          "maxLength": "ID value must be 100 characters or less",
+          "format": "ID value can only contain letters, numbers, and hyphens",
+          "noSpaces": "ID value cannot contain spaces",
+          "einFormat": "EIN must be exactly 9 digits",
+          "business_registration_idFormat": "Business Registration ID must be 5-15 alphanumeric characters",
+          "business_numberFormat": "Business Number must be 9-12 digits",
+          "business_registration_numberFormat": "Business Registration Number must be 6-15 alphanumeric characters with optional dashes"
+        }
+      },
+      "issuer": {
+        "label": "Issuer",
+        "placeholder": "Enter issuer",
+        "description": "Organization ID issuer",
+        "tooltip": "should match your business registration documents ID issuer",
+        "validation": {
+          "required": "Issuer is required",
+          "maxLength": "Issuer must be 500 characters or less"
+        }
+      },
+      "expiryDate": {
+        "label": "Expiry date",
+        "placeholder": "YYYY-MM-DD",
+        "description": "Date when the organization ID expires",
+        "tooltip": "Date when the organization ID expires",
+        "validation": {
+          "format": "Expiry date must be in 'YYYY-MM-DD' format",
+          "invalid": "Invalid date",
+          "future": "Expiry date must be in the future",
+          "maxYears": "Expiry date must be less than 10 years in the future"
+        }
+      },
+      "group": "identification"
+    },
+    "website": {
+      "validation": {
+        "invalid": "Invalid URL",
+        "maxLength": "Website URL must be 500 characters or less",
+        "required": "Website URL is required",
+        "httpsRequired": "Website URL must start with https://",
+        "format": "Website must be a valid URL (e.g., https://www.example.com)",
+        "noIp": "Website URL cannot be an IP address"
+      }
+    },
+    "mcc": {
+      "validation": {
+        "format": "MCC must be empty or exactly 4 digits",
+        "invalid": "Invalid MCC code",
+        "required": "MCC code is required for this business type",
+        "range": "MCC must be a valid code between 0001 and 9999"
+      }
+    },
+    "secondaryMccList": {
+      "headerLabel": "Secondary MCCs",
+      "appendLabel": "Add MCC",
+      "removeLabel": "Remove MCC",
+      "description": "List of secondary MCCs for your business. These are optional and can be added later.",
+      "validation": {
+        "minItems": "At least {{count}} secondary MCC is required",
+        "maxItems": "Maximum {{count}} secondary MCCs allowed"
+      },
+      "mcc": {
+        "label": "MCC",
+        "placeholder": "Enter MCC",
+        "description": "Merchant Category Code (MCC) for your business",
+        "tooltip": "MCC is a 4-digit number that identifies the type of business you operate. It is used for categorizing businesses based on the goods or services they provide.",
+        "validation": {
+          "format": "MCC must be exactly 4 digits"
+        }
+      }
+    },
+    "individualName": {
+      "validation": {
+        "pattern": "Name can only contain letters, hyphens, apostrophes, and spaces",
+        "noNumbers": "Name cannot contain numbers",
+        "noSpecialChars": "Name cannot contain special characters except hyphens and apostrophes",
+        "noConsecutiveSpaces": "Name cannot contain consecutive spaces",
+        "noConsecutiveHyphens": "Name cannot contain consecutive hyphens",
+        "noLeadingSpace": "Name cannot start with a space",
+        "noTrailingSpace": "Name cannot end with a space",
+        "noLeadingHyphen": "Name cannot start with a hyphen",
+        "noTrailingHyphen": "Name cannot end with a hyphen"
+      }
+    },
+    "individualAddresses": {
+      "itemLabel": "Individual Address",
+      "itemLabelNumbered": "Individual Address {{number}}",
+      "appendLabel": "Add an address",
+      "removeLabel": "Remove address",
+      "validation": {
+        "minItems_one": "At least one address is required",
+        "minItems_other": "At least {{count}} addresses are required",
+        "maxItems_one": "Maximum {{count}} address allowed",
+        "maxItems_other": "Maximum {{count}} addresses allowed",
+        "uniqueTypes": "Each address type must be unique"
+      },
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "Address line 1 of your individual address",
+        "tooltip": "Must not be a PO Box and must begin with a number.",
+        "validation": {
+          "required": "Address line 1 is required",
+          "maxLength": "Address line must be 60 characters or less",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "additionalAddressLines": {
+        "appendLabel": "Add line",
+        "removeLabel": "Remove line",
+        "value": {
+          "label": "Address line {{number, inc}}",
+          "placeholder": "Enter address line {{number, inc}}",
+          "description": "Address line {{number, inc}} of your individual address",
+          "tooltip": ""
+        },
+        "validation": {
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
+        }
+      },
+      "addressType": {
+        "label": "Address type",
+        "placeholder": "Select address type",
+        "description": "",
+        "tooltip": ""
+      },
+      "city": {
+        "label": "City",
+        "placeholder": "Enter city",
+        "description": "City of your individual address",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "City name must be 34 characters or less"
+        }
+      },
+      "state": {
+        "label": "State",
+        "placeholder": "Select state",
+        "description": "State of your individual address",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "State name must be 30 characters or less"
+        }
+      },
+      "postalCode": {
+        "label": "Postal Code",
+        "placeholder": "Enter postal code",
+        "description": "5-digit ZIP code",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "Postal code must be 10 characters or less"
+        }
+      },
+      "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "description": "Country of your individual address",
+        "tooltip": "",
+        "validation": {
+          "exactlyTwoChars": "Country code must be exactly 2 characters"
+        }
+      }
+    },
+    "jobTitle": {
+      "label": "Job title",
+      "placeholder": "Enter job title",
+      "description": "Your current position in the organization",
+      "tooltip": "Should match your business registration documents job title",
+      "validation": {
+        "required": "Job title is required",
+        "minLength": "Job title must be at least 2 characters",
+        "maxLength": "Job title must be at most 50 characters",
+        "pattern": "Job title can only contain letters, numbers, and basic punctuation",
+        "noLeadingSpace": "Job title cannot start with a space",
+        "noTrailingSpace": "Job title cannot end with a space"
+      },
+      "group": "controller"
+    },
+    "firstName": {
+      "label": "Legal First name",
+      "placeholder": "Enter first name",
+      "description": "Legal first name as it appears on government ID",
+      "tooltip": "Must match your government-issued identification",
+      "validation": {
+        "required": "First name is required",
+        "minLength": "First name must be at least 2 characters",
+        "maxLength": "First name must be at most 30 characters",
+        "pattern": "First name can only contain letters, hyphens, apostrophes, and spaces"
+      },
+      "group": "controller"
+    },
+    "middleName": {
+      "label": "Legal Middle name",
+      "placeholder": "Enter middle name",
+      "description": "Legal middle name as it appears on government ID",
+      "tooltip": "Must match your government-issued identification",
+      "validation": {
+        "maxLength": "Middle name must be at most 30 characters",
+        "pattern": "Middle name can only contain letters, hyphens, apostrophes, and spaces"
+      }
+    },
+    "lastName": {
+      "label": "Legal Last name",
+      "placeholder": "Enter last name",
+      "description": "Legal last name as it appears on government ID",
+      "tooltip": "Must match your government-issued identification",
+      "validation": {
+        "required": "Last name is required",
+        "minLength": "Last name must be at least 2 characters",
+        "maxLength": "Last name must be at most 30 characters",
+        "pattern": "Last name can only contain letters, hyphens, apostrophes, and spaces"
+      },
+      "group": "controller"
+    },
+    "nameSuffix": {
+      "label": "Suffix",
+      "placeholder": "Enter name suffix",
+      "description": "Legal name suffix as it appears on government ID (e.g., Jr., Sr., III)",
+      "tooltip": "Common suffixes: Jr., Sr., II, III, IV",
+      "validation": {
+        "minLength": "Suffix must be at least 1 character",
+        "maxLength": "Suffix must be at most 5 characters",
+        "pattern": "Suffix can only contain letters, periods, and roman numerals"
+      }
+    },
+    "birthDate": {
+      "label": "Date of birth",
+      "description": "Date of birth as it appears on government ID",
+      "tooltip": "",
+      "validation": {
+        "required": "Date of birth is required",
+        "format": "Please enter a valid date in MM/DD/YYYY format",
+        "invalid": "Please enter a valid date",
+        "future": "Date of birth cannot be in the future",
+        "tooOld": "The date suggests an age of over 120 years. Please double-check the date",
+        "tooYoung": "Must be at least 18 years old to proceed",
+        "dayRange": "Day must be between 1 and 31",
+        "monthRange": "Month must be between 1 and 12",
+        "yearRange": "Year must be between 1000 and 9999"
+      },
+      "group": "controller"
+    },
+    "natureOfOwnership": {
+      "label": "Nature of ownership",
+      "placeholder": "Select nature of ownership",
+      "description": "How you own or control the organization",
+      "validation": {
+        "required": "Nature of ownership is required"
+      }
+    },
+    "soleOwner": {
+      "label": "Sole owner",
+      "description": "Whether you are the sole owner of the organization",
+      "validation": {
+        "required": "Please specify if you are the sole owner"
+      }
+    },
+    "entitiesInOwnership": {
+      "label": "Entities in ownership",
+      "placeholder": "Select yes/no",
+      "description": "Whether there are other entities involved in ownership",
+      "validation": {
+        "required": "Please specify if there are entities in ownership"
+      }
+    },
+    "websiteAvailable": {
+      "label": "Business doesn't have a website",
+      "description": "Whether your business has a website",
+      "validation": {
+        "required": "Please specify if you have a website"
+      }
+    },
+    "organizationPhone.phoneType": {
+      "label": "Organization phone type",
+      "placeholder": "Select phone type",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Phone type is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
+    },
+    "organizationPhone.phoneNumber": {
+      "label": "Organization phone number",
+      "placeholder": "Enter organization phone number",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Phone number is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
+    },
+    "individualPhone.phoneType": {
+      "label": "Individual phone type",
+      "placeholder": "Select phone type",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Phone type is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
+    },
+    "individualPhone.phoneNumber": {
+      "label": "Individual phone number",
+      "placeholder": "Enter organization phone number",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Phone number is required",
+        "format": "Invalid phone number format",
+        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+      }
+    },
+    "additionalQuestions": {
+      "validation": {
+        "dateFormat": "Invalid date format",
+        "required": "Required",
+        "invalidFormat": "Invalid format",
+        "numberFormat": "Must be a number",
+        "maxItems": "Cannot exceed {{maxItems}} items"
+      }
+    },
+    "solePropBusinessInfo": {
+      "label": "Business Information",
+      "usePersonalAddress": {
+        "label": "Use personal address as business address",
+        "description": "Check if your business address is the same as your personal address"
+      },
+      "usePersonalPhone": {
+        "label": "Use personal phone as business phone",
+        "description": "Check if your business phone is the same as your personal phone"
+      }
+    },
+    "solePropOrganizationName": {
+      "label": "Business Name",
+      "placeholder": "Enter your business name",
+      "description": "Your business's legal name as it appears on government forms",
+      "tooltip": "Must match exactly with your business registration documents",
+      "validation": {
+        "required": "Business name is required",
+        "format": "Business name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
+        "minLength": "Business name must be at least 2 characters",
+        "maxLength": "Business name must be at most 100 characters"
+      }
+    },
+    "solePropDbaName": {
+      "label": "Doing Business As (DBA) Name",
+      "placeholder": "Enter DBA name if different from business name",
+      "description": "The name under which you conduct business, if different from your legal business name",
+      "validation": {
+        "maxLength": "DBA name must be 100 characters or less"
+      }
+    },
+    "solePropBusinessDescription": {
+      "label": "Business Description",
+      "placeholder": "Describe your business activities",
+      "description": "Brief description of your business operations and services",
+      "validation": {
+        "required": "Business description is required",
+        "maxLength": "Description must be 500 characters or less",
+        "minLength": "Description must be at least 10 characters"
+      }
+    },
+    "solePropBusinessEmail": {
+      "label": "Business Email",
+      "placeholder": "Enter business email",
+      "description": "Email address used for business communications",
+      "validation": {
+        "format": "Must be a valid email address",
+        "maxLength": "Email must be at most 100 characters"
+      }
+    },
+    "solePropYearStarted": {
+      "label": "Year Business Started",
+      "placeholder": "YYYY",
+      "description": "Year when you started your business operations",
+      "validation": {
+        "format": "Must be a valid year",
+        "min": "Year cannot be before 1800",
+        "max": "Year cannot be in the future"
+      }
+    },
+    "solePropEin": {
+      "label": "Employer Identification Number (EIN)",
+      "placeholder": "XX-XXXXXXX",
+      "description": "Your business tax ID number (if you have one)",
+      "tooltip": "EIN is optional for sole proprietors unless you have employees",
+      "validation": {
+        "format": "EIN must be in XX-XXXXXXX format",
+        "pattern": "Must be 9 digits"
+      }
+    },
+    "solePropPersonalInfo": {
+      "label": "Personal Information",
+      "description": "Your personal information as the business owner"
     }
   },
   "title": "Client Onboarding",
+  "stepLabels": {
+    "initialDetails": "Initial Details",
+    "organizationDetails": "Business Information",
+    "individualDetails": "Controller Information",
+    "decisionMakers": "Decision Makers",
+    "businessOwners": "Beneficial Owners",
+    "additionalQuestions": "Due Diligence Questions",
+    "uploadDocuments": "Additional Documents",
+    "reviewAndAttest": "Review and Attest"
+  },
+  "idValueLabels": {
+    "placeholder": "Enter ID value",
+    "individual": {
+      "SSN": "Social Security Number",
+      "ITIN": "Individual Taxpayer Identification Number",
+      "NATIONAL_ID": "National ID",
+      "DRIVERS_LICENSE": "Driver's License",
+      "PASSPORT": "Passport",
+      "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number",
+      "OTHER_GOVERNMENT_ID": "Other Government ID"
+    },
+    "organization": {
+      "EIN": "Employer Identification Number",
+      "BUSINESS_REGISTRATION_ID": "Business Registration ID",
+      "BUSINESS_NUMBER": "Business Number",
+      "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+    }
+  },
   "fetchingClientData": "Fetching client data...",
-  "initialDetails": "Initial details",
-  "organizationDetails": "Organization details",
-  "individualDetails": "Individual details",
-  "additionalQuestions": "Additional questions",
-  "uploadDocuments": "Upload documents",
-  "reviewAndAttest": "Review and attest",
   "initialStepDescription1": "The information we request from you will help us complete setting up your account.",
   "initialStepDescription2": "Please review and update any information that needs confirmation; and provide any additional information requested.",
   "initialStepNoOrganizationType": "Please select your <strong>organization type</strong> to preview the information you will need to confirm or provide.",
-  "initialStepOrganizationTypeInformation": "As a <strong>{{organizationType}}</strong>, you will need to confirm or provide the following information:",
-  "product": "Product",
-  "jurisdiction": "Jurisdiction",
-  "organizationType": "Organization type",
-  "organizationName": "Organization name",
-  "organizationNameDescription": "The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork.",
-  "organizationEmail": "Organization email",
-  "countryOfFormation": "Country of formation",
-  "postalCode": "ZIP / Postal code",
-  "city": "City",
-  "state": "State / Province",
-  "country": "Country",
-  "firstName": "First name",
-  "lastName": "Last name",
-  "email": "Email",
-  "phone": "Phone",
+  "initialStepOrganizationTypeInformation": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
+  "initialStepOrganizationTypeInformationBasic": "As a <strong>$t(organizationTypes.{{organizationType}})</strong>, you will need to confirm or provide the following information:",
+  "initialStepOrganizationTypeInformationFull": "As a <strong>$t(organizationTypes.{{organizationType}})</strong> using <strong>{{product}}</strong> in <strong>{{jurisdiction}}</strong>, you will need to confirm or provide the following information:",
+  "beneficialOwnerDialogDescriptionEdit": "Make changes to beneficial owner information here. Click save when you're done.",
+  "beneficialOwnerDialogDescriptionAdd": "Fill out the information for the new beneficial owner here. Click save when you're done.",
   "clientProducts": {
     "EMBEDDED_PAYMENTS": "Embedded Payments",
     "MERCHANT_SERVICES": "Merchant Services"
@@ -74,8 +806,38 @@
     "BUSINESS_ADDRESS": "Business address",
     "RESIDENTIAL_ADDRESS": "Residential address"
   },
+  "jobTitles": {
+    "CEO": "CEO",
+    "CFO": "CFO",
+    "COO": "COO",
+    "President": "President",
+    "Chairman": "Chairman",
+    "Senior Branch Manager": "Senior Branch Manager",
+    "Other": "Other"
+  },
+  "phoneTypes": {
+    "BUSINESS_PHONE": "Business Phone",
+    "MOBILE_PHONE": "Mobile Phone",
+    "ALTERNATE_PHONE": "Alternate Phone"
+  },
   "errorMessages": {
     "default": "An error occurred while fetching client data. Please try again.",
     "clientNotFound": "Client not found. Please try again or contact support."
+  },
+  "fieldGroups": {
+    "organization": "Organization Information",
+    "controller": "Controller Information",
+    "address": "Address Information",
+    "contact": "Contact Information",
+    "identification": "Identification Documents",
+    "other": "Additional Information"
+  },
+  "initialStepNotes": {
+    "title": "Important Notes",
+    "additionalQuestions": "Additional questions may be required based on your provided information",
+    "llcOwners": "As an LLC, you will be able to add additional beneficial owners",
+    "attestation": "You will need to review and attest to the accuracy of all provided information",
+    "kycProcess": "Identity verification (KYC) process will be required for all controlling parties",
+    "termsAndConditions": "You will need to review and accept the Terms & Conditions"
   }
 }

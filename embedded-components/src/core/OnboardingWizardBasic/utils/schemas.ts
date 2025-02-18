@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n/config';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import { z } from 'zod';
 
@@ -20,8 +21,16 @@ export const PhoneSchema = z.object({
 
 const AddressLineSchema = z
   .string()
-  .min(1, 'Address line is required')
-  .max(60, 'Address line must be 60 characters or less');
+  .min(
+    1,
+    i18n.t('onboarding:fields.addresses.primaryAddressLine.validation.required')
+  )
+  .max(
+    60,
+    i18n.t(
+      'onboarding:fields.addresses.primaryAddressLine.validation.maxLength'
+    )
+  );
 
 export const AddressSchema = z.object({
   addressType: z.enum([
@@ -30,12 +39,29 @@ export const AddressSchema = z.object({
     'BUSINESS_ADDRESS',
     'RESIDENTIAL_ADDRESS',
   ]),
-  addressLines: z.array(AddressLineSchema).min(1).max(5),
-  city: z.string().max(34, 'City name must be 34 characters or less'),
+
+  primaryAddressLine: AddressLineSchema,
+  additionalAddressLines: z.array(z.object({ value: AddressLineSchema })),
+
+  city: z
+    .string()
+    .min(1, 'City name is required')
+    .max(34, 'City name must be 34 characters or less'),
+
   state: z
     .string()
-    .max(30, 'State name must be 30 characters or less')
-    .optional(),
-  postalCode: z.string().max(10, 'Postal code must be 10 characters or less'),
+    .min(2, 'State name is required')
+    .regex(
+      /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/,
+      'Invalid US state'
+    ),
+
+  postalCode: z
+    .string()
+    .min(1, 'Postal code is required')
+    .max(10, 'Postal code must be 10 characters or less')
+    .refine((val) => /^\d{5}(-\d{4})?$/.test(val), {
+      message: 'Invalid US postal code format',
+    }),
   country: z.string().length(2, 'Country code must be exactly 2 characters'),
 });

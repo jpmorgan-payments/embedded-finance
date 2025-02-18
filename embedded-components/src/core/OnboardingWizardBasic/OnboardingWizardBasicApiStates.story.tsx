@@ -6,7 +6,7 @@ import { delay, http, HttpResponse } from 'msw';
 import OnboardingWizardBasicMeta, {
   Default,
   OnboardingWizardBasicWithProviderProps,
-} from './OnboardingWizardBasic.story';
+} from './OnboardingWizardBasicSP.story';
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
@@ -18,7 +18,7 @@ export const DefaultOK = Default.bind({});
 DefaultOK.storyName = 'Default 200 OK';
 DefaultOK.args = {
   ...Default.args,
-  clientId: '0030000130',
+  initialClientId: '0030000130',
 };
 DefaultOK.parameters = {
   msw: {

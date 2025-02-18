@@ -48,4 +48,5 @@ export type EBConfig = {
     name?: keyof typeof defaultResources;
     tokens?: DeepPartial<(typeof defaultResources)['enUS']>;
   };
+  queryParams?: Record<string, string>;
 };

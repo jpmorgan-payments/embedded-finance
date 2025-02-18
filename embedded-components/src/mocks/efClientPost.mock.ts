@@ -11,7 +11,7 @@ export const efClientPost: ClientResponse = {
       email: 'monica@cpgetaways.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:02:15.499Z',
       organizationDetails: {
         organizationType: 'SOLE_PROPRIETORSHIP',
@@ -29,7 +29,7 @@ export const efClientPost: ClientResponse = {
       email: 'monicagellar@gmail.com',
       roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
       profileStatus: 'NEW',
-      status: 'ACTIVE',
+      active: true,
       createdAt: '2023-10-31T00:02:15.499Z',
     },
   ],
