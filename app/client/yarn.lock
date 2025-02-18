@@ -576,10 +576,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@jpmorgan-payments/embedded-finance-components@^0.5.80":
-  version "0.5.80"
-  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.80.tgz#3e96d3b134aaedfbef03be2099a0cb8c7367da93"
-  integrity sha512-jjjZ8jzYj/SJSFbGYUKZjEFV/w4ih4reudPoY90lNCHaWm/dakGecN1HU/OyDeVCeeom14Yep/h8i+hQS79QKA==
+"@jpmorgan-payments/embedded-finance-components@^0.5.83":
+  version "0.5.83"
+  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.83.tgz#e1300f63431c44f10d293ffe3825428f98cb9a24"
+  integrity sha512-jl6CSlBOsqH5yG6ONsLH3CgD2uLrUcNoKaOVdW2R4gfe9Chac9BUwRDVUkhWTAbCSjoyx5pLfnw+SInV+UIHxA==
   dependencies:
     "@hookform/resolvers" "^3.6.0"
     "@radix-ui/react-accordion" "^1.2.0"
@@ -609,6 +609,7 @@
     dompurify "^3.2.3"
     geist "^1.3.1"
     i18next "^24.2.1"
+    input-otp "^1.4.2"
     json-diff-ts "^4.0.1"
     libphonenumber-js "^1.11.5"
     lucide-react "^0.418.0"
@@ -617,7 +618,7 @@
     react-day-picker "^8.10.1"
     react-dropzone "^14.2.3"
     react-error-boundary "^5.0.0"
-    react-hook-form "^7.52.1"
+    react-hook-form "^7.54.2"
     react-i18next "^15.1.1"
     react-number-format "^5.4.0"
     react-phone-number-input "^3.4.5"
@@ -3516,6 +3517,11 @@ input-format@^0.3.10:
   dependencies:
     prop-types "^15.8.1"
 
+input-otp@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/input-otp/-/input-otp-1.4.2.tgz#f4d3d587d0f641729e55029b3b8c4870847f4f07"
+  integrity sha512-l3jWwYNvrEa6NTCt7BECfCm48GvwuZzkoeG3gBL2w4CHeOXW3eKFmf9UNYkNfYc3mxMrthMnxjIE07MT0zLBQA==
+
 internal-slot@^1.0.4, internal-slot@^1.0.7:
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.0.7.tgz#c06dcca3ed874249881007b0a5523b172a190802"
@@ -4733,10 +4739,10 @@ react-error-boundary@^5.0.0:
   dependencies:
     "@babel/runtime" "^7.12.5"
 
-react-hook-form@^7.52.1:
-  version "7.52.2"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.52.2.tgz#ff40f4776250b86ddfcde6be68d34aa82b1c60fe"
-  integrity sha512-pqfPEbERnxxiNMPd0bzmt1tuaPcVccywFDpyk2uV5xCIBphHV5T8SVnX9/o3kplPE1zzKt77+YIoq+EMwJp56A==
+react-hook-form@^7.54.2:
+  version "7.54.2"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.54.2.tgz#8c26ed54c71628dff57ccd3c074b1dd377cfb211"
+  integrity sha512-eHpAUgUjWbZocoQYUHposymRb4ZP6d0uwUnooL2uOybA9/3tPUvoAKqEWK1WaSiTxxOfTpffNZP7QwlnM3/gEg==
 
 react-i18next@^15.1.1:
   version "15.1.3"
