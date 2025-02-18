@@ -1,3 +1,4 @@
+import { FieldArrayPath } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
@@ -11,20 +12,53 @@ import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
 // TODO: add more form schemas here
-export type OnboardingWizardFormValues = z.infer<typeof InitialStepFormSchema> &
-  z.infer<typeof OrganizationStepFormSchema> &
-  z.infer<typeof IndividualStepFormSchema>;
+export type OnboardingFormValuesSubmit = z.output<
+  typeof InitialStepFormSchema
+> &
+  z.output<typeof OrganizationStepFormSchema> &
+  z.output<typeof IndividualStepFormSchema>;
+
+export type OnboardingFormValuesInitial = z.input<
+  typeof InitialStepFormSchema
+> &
+  z.input<typeof OrganizationStepFormSchema> &
+  z.input<typeof IndividualStepFormSchema>;
+
+export type OnboardingTopLevelArrayFieldNames = Extract<
+  FieldArrayPath<OnboardingFormValuesSubmit>,
+  keyof OnboardingFormValuesSubmit
+>;
 
 export type Jurisdiction = 'US' | 'CA';
 
-export type FieldVisibility = 'visible' | 'hidden' | 'disabled' | 'readonly';
+export type FieldDisplayConfig = 'visible' | 'hidden';
+export type FieldInteractionConfig = 'enabled' | 'disabled' | 'readonly';
 
-export type FieldRule = {
-  visibility: FieldVisibility;
+export type FieldRule<T = any> = {
+  display?: FieldDisplayConfig;
+  interaction?: FieldInteractionConfig;
   required?: boolean;
+  defaultValue: T;
+};
+
+export type ArrayFieldRule<T extends readonly unknown[] = any> = {
+  display?: FieldDisplayConfig;
+  interaction?: FieldInteractionConfig;
   minItems?: number;
   maxItems?: number;
+  defaultValue: T;
+  defaultAppendValue: T[number];
 };
+
+export function isArrayFieldRule<T extends readonly unknown[]>(
+  rule:
+    | ArrayFieldRule<T>
+    | FieldRule<T>
+    | OptionalDefaults<ArrayFieldRule<T>>
+    | OptionalDefaults<FieldRule<T>>
+): rule is ArrayFieldRule<T> {
+  return 'minItems' in rule || 'maxItems' in rule;
+}
 
 export type ClientContext = {
   product?: ClientProduct;
@@ -32,23 +66,103 @@ export type ClientContext = {
   entityType?: OrganizationType;
 };
 
-type FieldRuleCondition = {
+export type FieldRuleCondition = {
   product?: ClientProduct[];
   jurisdiction?: CountryCodeIsoAlpha2[];
   entityType?: OrganizationType[];
 };
 
-export type FieldConfiguration<K extends keyof OnboardingWizardFormValues> = {
-  path: string;
-  baseRule: FieldRule;
+//  Base configuration for all fields
+type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
+  baseRule: OptionalDefaults<FieldRule<T>, IsSubField>;
   conditionalRules?: Array<{
     condition: FieldRuleCondition;
-    rule: Partial<FieldRule>;
+    rule: OptionalDefaults<FieldRule<T>, true>;
   }>;
-  fromResponseFn?: (val: any) => OnboardingWizardFormValues[K];
-  toRequestFn?: (val: OnboardingWizardFormValues[K]) => any;
+  modifyErrorField?: (field: string) => string;
 };
 
+type DefaultKeys<Rule> = Extract<
+  'defaultValue' | 'defaultAppendValue',
+  keyof Rule
+>;
+
+export type OptionalDefaults<
+  Rule,
+  IsOptional extends boolean = true,
+> = IsOptional extends true
+  ? Omit<Rule, DefaultKeys<Rule>> & Partial<Pick<Rule, DefaultKeys<Rule>>>
+  : Rule;
+
+type FieldConfigurationGeneric<
+  K extends string,
+  T,
+  IsSubfield extends boolean = false,
+> =
+  | ({
+      key?: K; // phantom property
+      excludeFromMapping?: false;
+      path: string;
+      fromResponseFn?: (val: any) => T;
+      toRequestFn?: (val: T) => any;
+    } & BaseFieldConfiguration<T, IsSubfield>)
+  | ({
+      key?: K; // phantom property
+      excludeFromMapping: true;
+      path?: never;
+      fromResponseFn?: never;
+      toRequestFn?: never;
+    } & BaseFieldConfiguration<T, IsSubfield>);
+
+interface ArrayFieldConfigurationGeneric<
+  K extends string,
+  T extends readonly unknown[],
+  IsSubfield extends boolean = false,
+> extends Omit<
+    FieldConfigurationGeneric<K, T>,
+    'baseRule' | 'conditionalRules'
+  > {
+  baseRule: OptionalDefaults<ArrayFieldRule<T>, IsSubfield>;
+  conditionalRules?: Array<{
+    condition: FieldRuleCondition;
+    rule: OptionalDefaults<ArrayFieldRule<T>, true>;
+  }>;
+  subFields: {
+    [P in Extract<
+      keyof T[number],
+      string
+    >]: T[number][P] extends readonly unknown[]
+      ? Pick<
+          ArrayFieldConfigurationGeneric<P, T[number][P], true>,
+          'baseRule' | 'conditionalRules' | 'subFields'
+        >
+      : Pick<
+          FieldConfigurationGeneric<P, T[number][P], true>,
+          'baseRule' | 'conditionalRules'
+        >;
+  };
+}
+
+export function isArrayFieldConfiguration<T extends readonly unknown[]>(
+  config: AnyFieldConfiguration
+): config is ArrayFieldConfigurationGeneric<string, T> {
+  return 'subFields' in config;
+}
+
+export type AnyFieldConfiguration =
+  | FieldConfigurationGeneric<any, any>
+  | ArrayFieldConfigurationGeneric<any, any>;
+
+type CombinedFieldConfigurationFor<T, K extends string> = [T] extends [boolean]
+  ? FieldConfigurationGeneric<K, boolean>
+  : T extends readonly unknown[]
+    ? ArrayFieldConfigurationGeneric<K, T>
+    : FieldConfigurationGeneric<K, T>;
+
+export type CombinedFieldConfiguration<
+  K extends keyof OnboardingFormValuesInitial,
+> = CombinedFieldConfigurationFor<OnboardingFormValuesInitial[K], K & string>;
+
 export type PartyFieldMap = {
-  [K in keyof OnboardingWizardFormValues]?: FieldConfiguration<K>;
+  [K in keyof OnboardingFormValuesInitial]: CombinedFieldConfiguration<K>;
 };

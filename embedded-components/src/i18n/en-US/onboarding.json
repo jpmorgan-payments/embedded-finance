@@ -111,10 +111,12 @@
       }
     },
     "individualIds": {
-      "label": "Individual Identification",
+      "itemLabel": "Individual Identification",
+      "itemLabelNumbered": "Individual Identification {{number}}",
       "validation": {
         "required": "At least one government ID is required",
-        "maxIds": "Maximum 16 IDs allowed",
+        "minItems": "Minimum {{count}} IDs required",
+        "maxItems": "Maximum {{count}} IDs allowed",
         "uniqueTypes": "Each ID type must be unique"
       },
       "idType": {
@@ -183,6 +185,7 @@
       "label": "Job title description",
       "placeholder": "Enter job title description",
       "description": "Brief description of your role and responsibilities",
+      "tooltip": "",
       "validation": {
         "maxLength": "Description must be at most 50 characters",
         "pattern": "Description can only contain letters, numbers, and basic punctuation",
@@ -191,19 +194,46 @@
       }
     },
     "addresses": {
-      "label": "Business Addresses",
-      "addressLines": {
-        "label": "Address lines",
-        "placeholder": "Enter address lines",
-        "description": "Address lines of your business address",
+      "itemLabel": "Business Address",
+      "itemLabelNumbered": "Business Address {{number}}",
+      "appendLabel": "Add an address",
+      "removeLabel": "Remove address",
+      "validation": {
+        "minItems_one": "At least one address is required",
+        "minItems_other": "At least {{count}} addresses are required",
+        "maxItems_one": "Maximum {{count}} address allowed",
+        "maxItems_other": "Maximum {{count}} addresses allowed"
+      },
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "Address line 1 of your business address",
+        "tooltip": "Must not be a PO Box and must begin with a number.",
         "validation": {
-          "required": "Address lines are required"
+          "required": "Address line 1 is required",
+          "maxLength": "Address line must be 60 characters or less",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "additionalAddressLines": {
+        "appendLabel": "Add line",
+        "removeLabel": "Remove line",
+        "value": {
+          "label": "Address line {{number, inc}}",
+          "placeholder": "Enter address line {{number, inc}}",
+          "description": "Address line {{number, inc}} of your business address",
+          "tooltip": ""
+        },
+        "validation": {
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
         }
       },
       "city": {
         "label": "City",
         "placeholder": "Enter city",
         "description": "City of your business address",
+        "tooltip": "",
         "validation": {
           "required": "City is required"
         }
@@ -212,6 +242,7 @@
         "label": "State",
         "placeholder": "Select state",
         "description": "State of your business address",
+        "tooltip": "",
         "validation": {
           "required": "State is required"
         }
@@ -220,6 +251,7 @@
         "label": "Postal Code",
         "placeholder": "Enter postal code",
         "description": "5-digit ZIP code",
+        "tooltip": "",
         "validation": {
           "required": "Postal code is required",
           "pattern": "Postal code must be exactly 5 digits"
@@ -229,25 +261,35 @@
         "label": "Country",
         "placeholder": "Select country",
         "description": "Country of your business address",
+        "tooltip": "",
         "validation": {
           "required": "Country is required"
         }
       },
-      "validation": {
-        "minAddresses": "At least one address is required",
-        "maxAddresses": "Maximum 5 addresses allowed"
-      },
       "addressType": {
         "label": "Address type",
         "placeholder": "Select address type",
-        "description": "",
+        "description": "Type of address for your business address",
         "tooltip": ""
       },
       "group": "address"
     },
     "associatedCountries": {
+      "headerLabel": "Associated countries",
+      "appendLabel": "Add associated country",
+      "removeLabel": "Remove associated country",
       "validation": {
-        "maxCountries": "Maximum 100 associated countries allowed"
+        "minItems": "At least {{count}} associated country is required",
+        "maxItems": "Maximum {{count}} associated countries allowed"
+      },
+      "country": {
+        "label": "Associated country {{number}}",
+        "description": "",
+        "tooltip": "",
+        "placeholder": "Select country",
+        "validation": {
+          "required": "Country is required"
+        }
       }
     },
 
@@ -264,12 +306,14 @@
       }
     },
     "organizationIds": {
-      "label": "Business Identification",
+      "itemLabel": "Business Identification",
+      "itemLabelNumbered": "Business Identification {{number}}",
+      "appendLabel": "Add ID",
+      "removeLabel": "Remove ID",
       "validation": {
-        "minIds": "At least one organization ID is required",
-        "maxIds": "Maximum 6 organization IDs allowed",
-        "uniqueTypes": "Each organization ID type must be unique",
-        "required": "Organization ID is required"
+        "minItems": "At least {{count}} organization ID is required",
+        "maxItems": "Maximum 6 organization IDs allowed",
+        "uniqueTypes": "Each organization ID type must be unique"
       },
       "idType": {
         "label": "ID type",
@@ -348,10 +392,19 @@
       }
     },
     "secondaryMccList": {
+      "headerLabel": "Secondary MCCs",
+      "appendLabel": "Add MCC",
+      "removeLabel": "Remove MCC",
+      "description": "List of secondary MCCs for your business. These are optional and can be added later.",
       "validation": {
-        "maxMcc": "Maximum 50 secondary MCCs allowed"
+        "minItems": "At least {{count}} secondary MCC is required",
+        "maxItems": "Maximum {{count}} secondary MCCs allowed"
       },
       "mcc": {
+        "label": "MCC",
+        "placeholder": "Enter MCC",
+        "description": "Merchant Category Code (MCC) for your business",
+        "tooltip": "MCC is a 4-digit number that identifies the type of business you operate. It is used for categorizing businesses based on the goods or services they provide.",
         "validation": {
           "format": "MCC must be exactly 4 digits"
         }
@@ -371,11 +424,41 @@
       }
     },
     "individualAddresses": {
-      "label": "Individual Addresses",
+      "itemLabel": "Individual Address",
+      "itemLabelNumbered": "Individual Address {{number}}",
+      "appendLabel": "Add an address",
+      "removeLabel": "Remove address",
       "validation": {
-        "required": "At least one address is required",
-        "maxAddresses": "Maximum 5 addresses allowed",
+        "minItems_one": "At least one address is required",
+        "minItems_other": "At least {{count}} addresses are required",
+        "maxItems_one": "Maximum {{count}} address allowed",
+        "maxItems_other": "Maximum {{count}} addresses allowed",
         "uniqueTypes": "Each address type must be unique"
+      },
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "Address line 1 of your individual address",
+        "tooltip": "Must not be a PO Box and must begin with a number.",
+        "validation": {
+          "required": "Address line 1 is required",
+          "maxLength": "Address line must be 60 characters or less",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "additionalAddressLines": {
+        "appendLabel": "Add line",
+        "removeLabel": "Remove line",
+        "value": {
+          "label": "Address line {{number, inc}}",
+          "placeholder": "Enter address line {{number, inc}}",
+          "description": "Address line {{number, inc}} of your individual address",
+          "tooltip": ""
+        },
+        "validation": {
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
+        }
       },
       "addressType": {
         "label": "Address type",
@@ -383,22 +466,11 @@
         "description": "",
         "tooltip": ""
       },
-      "addressLines": {
-        "validation": {
-          "required": "Address line is required",
-          "maxLength": "Address line must be 60 characters or less",
-          "minLines": "At least one address line is required",
-          "maxLines": "Maximum 5 address lines allowed",
-          "firstLine": "First line must not be a PO Box and must begin with a number",
-          "pattern": "Address can only contain letters, numbers, and basic punctuation",
-          "noHtml": "Address cannot contain HTML",
-          "noUrls": "Address cannot contain URLs"
-        }
-      },
       "city": {
         "label": "City",
         "placeholder": "Enter city",
         "description": "City of your individual address",
+        "tooltip": "",
         "validation": {
           "maxLength": "City name must be 34 characters or less"
         }
@@ -407,6 +479,7 @@
         "label": "State",
         "placeholder": "Select state",
         "description": "State of your individual address",
+        "tooltip": "",
         "validation": {
           "maxLength": "State name must be 30 characters or less"
         }
@@ -415,6 +488,7 @@
         "label": "Postal Code",
         "placeholder": "Enter postal code",
         "description": "5-digit ZIP code",
+        "tooltip": "",
         "validation": {
           "maxLength": "Postal code must be 10 characters or less"
         }
@@ -423,6 +497,7 @@
         "label": "Country",
         "placeholder": "Select country",
         "description": "Country of your individual address",
+        "tooltip": "",
         "validation": {
           "exactlyTwoChars": "Country code must be exactly 2 characters"
         }
@@ -493,6 +568,7 @@
     "birthDate": {
       "label": "Date of birth",
       "description": "Date of birth as it appears on government ID",
+      "tooltip": "",
       "validation": {
         "required": "Date of birth is required",
         "format": "Please enter a valid date in MM/DD/YYYY format",
@@ -539,6 +615,8 @@
     "organizationPhone.phoneType": {
       "label": "Organization phone type",
       "placeholder": "Select phone type",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone type is required",
         "format": "Invalid phone number format",
@@ -548,6 +626,8 @@
     "organizationPhone.phoneNumber": {
       "label": "Organization phone number",
       "placeholder": "Enter organization phone number",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone number is required",
         "format": "Invalid phone number format",
@@ -557,6 +637,8 @@
     "individualPhone.phoneType": {
       "label": "Individual phone type",
       "placeholder": "Select phone type",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone type is required",
         "format": "Invalid phone number format",
@@ -566,6 +648,8 @@
     "individualPhone.phoneNumber": {
       "label": "Individual phone number",
       "placeholder": "Enter organization phone number",
+      "description": "",
+      "tooltip": "",
       "validation": {
         "required": "Phone number is required",
         "format": "Invalid phone number format",

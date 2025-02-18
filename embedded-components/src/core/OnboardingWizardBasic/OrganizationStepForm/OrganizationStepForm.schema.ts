@@ -178,8 +178,7 @@ export const OrganizationStepFormSchema = z.object({
     .refine(
       (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
       i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
-    )
-    .transform((val) => val.trim()),
+    ),
   dbaName: z
     .string()
     .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
@@ -191,9 +190,7 @@ export const OrganizationStepFormSchema = z.object({
     .refine(
       (val) => !val || val.length >= 2,
       i18n.t('onboarding:fields.dbaName.validation.minLength')
-    )
-    .transform((val) => val.trim())
-    .optional(),
+    ),
   countryOfFormation: z
     .string()
     .length(
@@ -210,8 +207,7 @@ export const OrganizationStepFormSchema = z.object({
     .max(
       100,
       i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
-    )
-    .transform((val) => val.trim()),
+    ),
   yearOfFormation: z
     .string()
     .regex(
@@ -278,9 +274,8 @@ export const OrganizationStepFormSchema = z.object({
       const code = parseInt(value, 10);
       return code >= 1 && code <= 9999;
     }, i18n.t('onboarding:fields.mcc.validation.range')),
-  secondaryMccList: z
-    .array(secondaryMccSchema)
-    .max(50, i18n.t('onboarding:fields.secondaryMccList.validation.maxMcc')),
+  secondaryMccList: z.array(secondaryMccSchema),
+  // .max(50, i18n.t('onboarding:fields.secondaryMccList.validation.maxMcc')),
 });
 
 export const refineOrganizationStepFormSchema = (
