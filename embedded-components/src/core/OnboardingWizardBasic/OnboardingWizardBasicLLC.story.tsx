@@ -108,10 +108,9 @@ export const Default = Template.bind({});
 Default.storyName = '1a. Initial step without clientId';
 Default.args = {
   initialClientId: '',
-  apiBaseUrl:
-    'https://eb-hosted-app-demo.apps.dev.na-4z.gap.jpmchase.net/api/uat/ef/do/v1/',
+  apiBaseUrl: '/',
   headers: {
-    api_gateway_client_id: 'EBCLIENT22',
+    api_gateway_client_id: 'test',
   },
   availableProducts: ['EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['US'],
