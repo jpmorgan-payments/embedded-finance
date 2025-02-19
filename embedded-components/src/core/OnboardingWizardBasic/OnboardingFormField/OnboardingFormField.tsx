@@ -216,10 +216,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                 <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
                 <InfoPopover>{fieldTooltip}</InfoPopover>
               </div>
-
-              <FormDescription className="eb-text-xs eb-text-gray-500">
-                {fieldDescription}
-              </FormDescription>
+              {fieldDescription && (
+                <FormDescription className="eb-text-xs eb-text-gray-500">
+                  {fieldDescription}
+                </FormDescription>
+              )}
             </>
           ) : null}
 
@@ -398,7 +399,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                   );
                 case 'text':
                   return maskFormat ? (
-                    <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                    <div className="eb-full eb-flex eb-items-center eb-space-x-2">
                       <FormControl>
                         <PatternInput
                           {...field}
@@ -414,7 +415,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       {inputButton}
                     </div>
                   ) : (
-                    <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                    <div className="eb-full eb-flex eb-items-center eb-space-x-2">
                       <FormControl>
                         <Input
                           {...field}
@@ -459,8 +460,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                 case 'date':
                 default:
                   return (
-                    <FormControl>
-                      <div className="eb-full eb-flex eb-max-w-sm eb-items-center eb-space-x-2">
+                    <div className="eb-full eb-flex eb-items-center eb-space-x-2">
+                      <FormControl>
                         <Input
                           {...field}
                           {...inputProps}
@@ -468,9 +469,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           value={field.value}
                           placeholder={fieldPlaceholder}
                         />
-                        {inputButton}
-                      </div>
-                    </FormControl>
+                      </FormControl>
+                      {inputButton}
+                    </div>
                   );
               }
             })()

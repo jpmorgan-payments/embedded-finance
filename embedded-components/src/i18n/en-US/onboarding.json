@@ -95,6 +95,7 @@
       "label": "Country of Formation",
       "description": "",
       "placeholder": "Select country of formation",
+      "tooltip": "",
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       },
@@ -598,17 +599,10 @@
         "required": "Please specify if you are the sole owner"
       }
     },
-    "entitiesInOwnership": {
-      "label": "Entities in ownership",
-      "placeholder": "Select yes/no",
-      "description": "Whether there are other entities involved in ownership",
-      "validation": {
-        "required": "Please specify if there are entities in ownership"
-      }
-    },
     "websiteAvailable": {
       "label": "Business doesn't have a website",
       "description": "Whether your business has a website",
+      "tooltip": "",
       "validation": {
         "required": "Please specify if you have a website"
       }

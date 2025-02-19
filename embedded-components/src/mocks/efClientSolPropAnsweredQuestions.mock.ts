@@ -30,8 +30,6 @@ export const efClientSolPropAnsweredQuestions: ClientResponse = {
         industryType: 'All Other Traveler Accommodation',
         countryOfFormation: 'US',
         yearOfFormation: '1990',
-        // significantOwnership: true,
-        entitiesInOwnership: false,
         addresses: [
           {
             addressType: 'BUSINESS_ADDRESS',

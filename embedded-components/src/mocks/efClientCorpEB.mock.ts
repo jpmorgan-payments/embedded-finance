@@ -35,7 +35,6 @@ export const efClientCorpEBMock: ClientResponse = {
         jurisdiction: 'US',
         countryOfFormation: 'US',
         yearOfFormation: '1989',
-        entitiesInOwnership: false,
         addresses: [
           {
             addressType: 'BUSINESS_ADDRESS',

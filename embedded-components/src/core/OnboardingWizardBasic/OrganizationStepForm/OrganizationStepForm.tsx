@@ -642,62 +642,58 @@ export const OrganizationStepForm = () => {
           </legend>
 
           {/* Associated Countries */}
-          <div>
-            <OnboardingArrayField
-              control={form.control}
-              name="associatedCountries"
-              renderHeader={() => (
-                <div className="eb-text-md eb-font-medium">
-                  {t('onboarding:fields.associatedCountries.headerLabel')}
-                </div>
-              )}
-              renderWrapper={(children) => (
-                <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                  {children}
-                </div>
-              )}
-              renderItem={({ field, index, renderRemoveButton }) => (
-                <OnboardingFormField
-                  key={field.id}
-                  control={form.control}
-                  name={`associatedCountries.${index}.country`}
-                  type="text"
-                  inputButton={renderRemoveButton({
-                    children: <XIcon />,
-                  })}
-                />
-              )}
-            />
-          </div>
+          <OnboardingArrayField
+            control={form.control}
+            name="associatedCountries"
+            renderHeader={() => (
+              <div className="eb-text-md eb-font-medium">
+                {t('onboarding:fields.associatedCountries.headerLabel')}
+              </div>
+            )}
+            renderWrapper={(children) => (
+              <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                {children}
+              </div>
+            )}
+            renderItem={({ field, index, renderRemoveButton }) => (
+              <OnboardingFormField
+                key={field.id}
+                control={form.control}
+                name={`associatedCountries.${index}.country`}
+                type="text"
+                inputButton={renderRemoveButton({
+                  children: <XIcon />,
+                })}
+              />
+            )}
+          />
 
           {/* Secondary MCC */}
-          <div>
-            <OnboardingArrayField
-              control={form.control}
-              name="secondaryMccList"
-              renderHeader={() => (
-                <div className="eb-text-md eb-font-medium">
-                  {t('onboarding:fields.secondaryMccList.headerLabel')}
-                </div>
-              )}
-              renderWrapper={(children) => (
-                <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                  {children}
-                </div>
-              )}
-              renderItem={({ field, index, renderRemoveButton }) => (
-                <OnboardingFormField
-                  key={field.id}
-                  control={form.control}
-                  name={`secondaryMccList.${index}.mcc`}
-                  type="text"
-                  inputButton={renderRemoveButton({
-                    children: <XIcon />,
-                  })}
-                />
-              )}
-            />
-          </div>
+          <OnboardingArrayField
+            control={form.control}
+            name="secondaryMccList"
+            renderHeader={() => (
+              <div className="eb-text-md eb-font-medium">
+                {t('onboarding:fields.secondaryMccList.headerLabel')}
+              </div>
+            )}
+            renderWrapper={(children) => (
+              <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                {children}
+              </div>
+            )}
+            renderItem={({ field, index, renderRemoveButton }) => (
+              <OnboardingFormField
+                key={field.id}
+                control={form.control}
+                name={`secondaryMccList.${index}.mcc`}
+                type="text"
+                inputButton={renderRemoveButton({
+                  children: <XIcon />,
+                })}
+              />
+            )}
+          />
 
           <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
             {isFieldVisible('website') && (
@@ -732,6 +728,7 @@ export const OrganizationStepForm = () => {
                   control={form.control}
                   name="websiteAvailable"
                   type="checkbox"
+                  noOptionalLabel
                 />
               </>
             )}
