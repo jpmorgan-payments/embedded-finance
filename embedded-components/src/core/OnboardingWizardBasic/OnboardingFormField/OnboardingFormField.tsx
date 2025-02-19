@@ -216,10 +216,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                 <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
                 <InfoPopover>{fieldTooltip}</InfoPopover>
               </div>
-
-              <FormDescription className="eb-text-xs eb-text-gray-500">
-                {fieldDescription}
-              </FormDescription>
+              {fieldDescription && (
+                <FormDescription className="eb-text-xs eb-text-gray-500">
+                  {fieldDescription}
+                </FormDescription>
+              )}
             </>
           ) : null}
 
