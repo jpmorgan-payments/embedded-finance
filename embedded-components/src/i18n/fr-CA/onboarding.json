@@ -532,14 +532,6 @@
         "required": "Veuillez préciser si vous êtes le propriétaire unique"
       }
     },
-    "entitiesInOwnership": {
-      "label": "Entités propriétaires",
-      "placeholder": "Sélectionner oui/non",
-      "description": "Indiquez s'il y a d'autres entités impliquées dans la propriété",
-      "validation": {
-        "required": "Veuillez préciser s'il y a des entités propriétaires"
-      }
-    },
     "websiteAvailable": {
       "label": "Site Web disponible",
       "description": "Indiquez si votre entreprise a un site Web",

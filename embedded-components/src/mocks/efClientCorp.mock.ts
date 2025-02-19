@@ -30,7 +30,6 @@ export const efClientCorpMock: ClientResponse = {
         industryType: 'Book Retailers and News Dealers',
         countryOfFormation: 'US',
         yearOfFormation: '1989',
-        entitiesInOwnership: false,
         addresses: [
           {
             addressType: 'BUSINESS_ADDRESS',

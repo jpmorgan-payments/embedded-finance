@@ -17,7 +17,6 @@ export const efClientPost: ClientResponse = {
         organizationType: 'SOLE_PROPRIETORSHIP',
         organizationName: 'Central Park Getaways',
         countryOfFormation: 'US',
-        entitiesInOwnership: false,
       },
     },
     {
