@@ -123,6 +123,7 @@ export function ImportantDateSelector({
     value ? (value.getMonth() + 1).toString().padStart(2, '0') : ''
   );
   const [year, setYear] = useState(() => value?.getFullYear().toString() ?? '');
+
   const [isValid, setIsValid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
 
@@ -162,6 +163,23 @@ export function ImportantDateSelector({
       isTouched && onChange?.(null);
     }
   }, [day, month, year, isTouched]);
+
+  useEffect(() => {
+    if (!value) {
+      setDay('');
+      setMonth('');
+      setYear('');
+      return;
+    }
+
+    const newYear = value.getFullYear().toString();
+    const newMonth = (value.getMonth() + 1).toString().padStart(2, '0');
+    const newDay = value.getDate().toString();
+
+    if (year !== newYear) setYear(newYear);
+    if (month !== newMonth) setMonth(newMonth);
+    if (day !== newDay) setDay(newDay);
+  }, [value]);
 
   const handleDayChange = (inputValue: string) => {
     const dayNum = Number.parseInt(inputValue, 10);

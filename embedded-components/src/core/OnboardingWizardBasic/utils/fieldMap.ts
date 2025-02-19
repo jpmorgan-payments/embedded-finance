@@ -47,6 +47,16 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: 'US',
     },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['EMBEDDED_PAYMENTS'],
+        },
+        rule: {
+          interaction: 'disabled',
+        },
+      },
+    ],
   },
   organizationEmail: {
     path: 'email',
