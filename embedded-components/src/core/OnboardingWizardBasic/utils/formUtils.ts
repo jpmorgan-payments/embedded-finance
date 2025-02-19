@@ -8,6 +8,7 @@ import {
   FieldPath,
   FieldValues,
   useForm,
+  useFormContext,
   UseFormProps,
   UseFormReturn,
 } from 'react-hook-form';
@@ -384,10 +385,17 @@ export function useFormUtilsWithClientContext(
   const organizationParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
   );
+
+  const formContext = useFormContext();
+
   const clientContext: ClientContext = {
-    product: clientData?.products?.[0],
-    jurisdiction: organizationParty?.organizationDetails?.jurisdiction,
-    entityType: organizationParty?.organizationDetails?.organizationType,
+    product: formContext?.getValues('product') ?? clientData?.products?.[0],
+    jurisdiction:
+      formContext?.getValues('jurisdiction') ??
+      organizationParty?.organizationDetails?.jurisdiction,
+    entityType:
+      formContext?.getValues('organizationType') ??
+      organizationParty?.organizationDetails?.organizationType,
   };
 
   function modifySchema(
