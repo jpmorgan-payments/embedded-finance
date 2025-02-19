@@ -50,7 +50,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { XIcon } from 'lucide-react';
+import { InfoIcon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -544,24 +544,11 @@ export const OrganizationStepForm = () => {
               <div className="eb-rounded-md eb-bg-blue-50 eb-p-4">
                 <div className="eb-flex">
                   <div className="eb-shrink-0">
-                    <svg
-                      className="eb-h-5 eb-w-5 eb-text-blue-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <InfoIcon className="eb-h-5 eb-w-5 eb-text-blue-400" />
                   </div>
                   <div className="eb-ml-3">
                     <p className="eb-text-sm eb-text-blue-700">
-                      As a sole proprietor, an EIN is optional unless you have
-                      employees or file certain tax returns. However, having an
-                      EIN can help establish business credit and simplify tax
-                      filing.
+                      {t('onboarding:messages.solePropEinOptional')}
                     </p>
                   </div>
                 </div>

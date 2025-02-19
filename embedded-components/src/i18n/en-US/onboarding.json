@@ -839,5 +839,8 @@
     "attestation": "You will need to review and attest to the accuracy of all provided information",
     "kycProcess": "Identity verification (KYC) process will be required for all controlling parties",
     "termsAndConditions": "You will need to review and accept the Terms & Conditions"
+  },
+  "messages": {
+    "solePropEinOptional": "As a sole proprietor, an EIN is optional unless you have employees or file certain tax returns."
   }
 }
