@@ -208,278 +208,278 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
       name={name}
       disabled={fieldInteraction === 'disabled'}
       shouldUnregister={shouldUnregister}
-      render={({ field }) => (
-        <FormItem className={className}>
-          {type !== 'checkbox' ? (
-            <>
-              <div className="eb-flex eb-items-center eb-space-x-2">
-                <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
-                <InfoPopover>{fieldTooltip}</InfoPopover>
-              </div>
-              {fieldDescription && (
-                <FormDescription className="eb-text-xs eb-text-gray-500">
-                  {fieldDescription}
-                </FormDescription>
-              )}
-            </>
-          ) : null}
+      render={({ field }) => {
+        const { onBlur, onChange, ...fieldWithoutBlur } = field;
+        const [open, setOpen] = useState(false);
 
-          {fieldInteraction === 'readonly' ? (
-            <p className="eb-font-bold">
-              {(options
-                ? options.find(({ value }) => value === field.value)?.label
-                : field.value) ?? 'N/A'}
-            </p>
-          ) : (
-            (() => {
-              switch (type) {
-                case 'phone':
-                  return (
-                    <FormControl>
-                      <PhoneInput
-                        {...field}
-                        countries={['US']}
-                        placeholder="Enter phone number"
-                        international={false}
-                        defaultCountry="US"
-                      />
-                    </FormControl>
-                  );
-                case 'industrySelect':
-                  return <IndustryTypeSelect field={field} form={form} />;
-                case 'combobox': {
-                  const { onBlur, onChange, ...fieldWithoutBlur } = field;
-                  const [open, setOpen] = useState(false);
-                  return (
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={open}
-                            className="eb-w-full eb-justify-between eb-font-normal"
-                            {...fieldWithoutBlur}
-                          >
-                            {field.value
-                              ? options?.find(
-                                  (option) => option.value === field.value
-                                )?.label
-                              : fieldPlaceholder}
-                            <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                        <Command>
-                          <CommandInput placeholder={fieldPlaceholder} />
-                          <CommandList>
-                            <CommandEmpty>
-                              {t('common:noOptionFound')}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {options?.map((option) => (
-                                <CommandItem
-                                  key={`combobox-option-${option.value}`}
-                                  value={option.value}
-                                  onSelect={(currentValue) => {
-                                    onChange(
-                                      currentValue === field.value
-                                        ? ''
-                                        : currentValue
-                                    );
-                                    onBlur();
-                                    setOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'eb-mr-2 eb-h-4 eb-w-4',
-                                      field.value === option.value
-                                        ? 'eb-opacity-100'
-                                        : 'eb-opacity-0'
-                                    )}
-                                  />
-                                  {option.label}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  );
-                }
-                case 'select': {
-                  const { onBlur, onChange, ...fieldWithoutBlur } = field;
-                  return (
-                    <Select
-                      onValueChange={(value) => {
-                        onChange(value);
-                        onBlur();
-                      }}
-                      value={field.value}
-                    >
-                      <FormControl {...fieldWithoutBlur}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={fieldPlaceholder} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {options?.map((option) => (
-                          <SelectItem
-                            key={`select-option-${option.value}`}
-                            value={option.value}
-                          >
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  );
-                }
-                case 'radio-group':
-                  return (
-                    <FormControl>
-                      <RadioGroup
-                        {...field}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="eb-flex eb-flex-col eb-space-y-1"
-                      >
-                        {options?.map((option) => (
-                          <FormItem
-                            className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0"
-                            key={`radio-group-option-${option.value}`}
-                          >
-                            <FormControl>
-                              <RadioGroupItem value={option.value} />
-                            </FormControl>
-                            <FormLabel className="eb-font-normal">
-                              {option.label}
-                            </FormLabel>
-                          </FormItem>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                  );
-                case 'checkbox':
-                  return (
-                    <div className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
+        return (
+          <FormItem className={className}>
+            {type !== 'checkbox' ? (
+              <>
+                <div className="eb-flex eb-items-center eb-space-x-2">
+                  <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
+                  <InfoPopover>{fieldTooltip}</InfoPopover>
+                </div>
+                {fieldDescription && (
+                  <FormDescription className="eb-text-xs eb-text-gray-500">
+                    {fieldDescription}
+                  </FormDescription>
+                )}
+              </>
+            ) : null}
+
+            {fieldInteraction === 'readonly' ? (
+              <p className="eb-font-bold">
+                {(options
+                  ? options.find(({ value }) => value === field.value)?.label
+                  : field.value) ?? 'N/A'}
+              </p>
+            ) : (
+              (() => {
+                switch (type) {
+                  case 'phone':
+                    return (
                       <FormControl>
-                        <Checkbox
+                        <PhoneInput
                           {...field}
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                          countries={['US']}
+                          placeholder="Enter phone number"
+                          international={false}
+                          defaultCountry="US"
                         />
                       </FormControl>
-                      <div className="eb-space-y-1 eb-leading-none">
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <FormLabel asterisk={fieldRequired}>
-                            {fieldLabel}
-                          </FormLabel>
-                          <InfoPopover>{fieldTooltip}</InfoPopover>
-                        </div>
-                        <FormDescription className="eb-text-xs eb-text-gray-500">
-                          {fieldDescription}
-                        </FormDescription>
-                      </div>
-                    </div>
-                  );
-                case 'textarea':
-                  return (
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        value={field.value}
-                        placeholder={fieldPlaceholder}
-                        onChange={(e) => field.onChange(e)}
-                      />
-                    </FormControl>
-                  );
-                case 'text':
-                  return maskFormat ? (
-                    <div className="eb-full eb-flex eb-items-center eb-space-x-2">
-                      <FormControl>
-                        <PatternInput
-                          {...field}
-                          {...inputProps}
-                          format={maskFormat ?? ''}
-                          mask={maskChar}
-                          type={type}
-                          defaultValue={field.value}
-                          value={field.value}
-                          placeholder={fieldPlaceholder}
-                        />
-                      </FormControl>
-                      {inputButton}
-                    </div>
-                  ) : (
-                    <div className="eb-full eb-flex eb-items-center eb-space-x-2">
-                      <FormControl>
-                        <Input
-                          {...field}
-                          {...inputProps}
-                          type={type}
-                          value={field.value}
-                          placeholder={fieldPlaceholder}
-                        />
-                      </FormControl>
-                      {inputButton}
-                    </div>
-                  );
-                case 'importantDate':
-                  return (
-                    <FormControl>
-                      <ImportantDateSelector
-                        {...field}
-                        format="MDY"
-                        value={
-                          field.value
-                            ? new Date(`${field.value}T12:00:00Z`)
-                            : undefined
-                        }
-                        onChange={async (date, errorMsg) => {
-                          if (errorMsg && form) {
-                            field.onChange('');
-                            form.setError(field.name, {
-                              type: 'manual',
-                              message: errorMsg,
-                            });
-                            await form.trigger(field.name);
-                          } else {
-                            form?.clearErrors(field.name);
-                            field.onChange(date?.toISOString().split('T')[0]);
-                          }
-                          field.onBlur();
+                    );
+                  case 'industrySelect':
+                    return <IndustryTypeSelect field={field} form={form} />;
+                  case 'combobox':
+                    return (
+                      <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={open}
+                              className="eb-w-full eb-justify-between eb-font-normal"
+                              {...fieldWithoutBlur}
+                            >
+                              {field.value
+                                ? options?.find(
+                                    (option) => option.value === field.value
+                                  )?.label
+                                : fieldPlaceholder}
+                              <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
+                          <Command>
+                            <CommandInput placeholder={fieldPlaceholder} />
+                            <CommandList>
+                              <CommandEmpty>
+                                {t('common:noOptionFound')}
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {options?.map((option) => (
+                                  <CommandItem
+                                    key={`combobox-option-${option.value}`}
+                                    value={option.value}
+                                    onSelect={(currentValue) => {
+                                      onChange(
+                                        currentValue === field.value
+                                          ? ''
+                                          : currentValue
+                                      );
+                                      onBlur();
+                                      setOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'eb-mr-2 eb-h-4 eb-w-4',
+                                        field.value === option.value
+                                          ? 'eb-opacity-100'
+                                          : 'eb-opacity-0'
+                                      )}
+                                    />
+                                    {option.label}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    );
+                  case 'select':
+                    return (
+                      <Select
+                        onValueChange={(value) => {
+                          onChange(value);
+                          onBlur();
                         }}
-                      />
-                    </FormControl>
-                  );
-                case 'email':
-                case 'date':
-                default:
-                  return (
-                    <div className="eb-full eb-flex eb-items-center eb-space-x-2">
+                        value={field.value}
+                      >
+                        <FormControl {...fieldWithoutBlur}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={fieldPlaceholder} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {options?.map((option) => (
+                            <SelectItem
+                              key={`select-option-${option.value}`}
+                              value={option.value}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  case 'radio-group':
+                    return (
                       <FormControl>
-                        <Input
+                        <RadioGroup
                           {...field}
-                          {...inputProps}
-                          type={type}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="eb-flex eb-flex-col eb-space-y-1"
+                        >
+                          {options?.map((option) => (
+                            <FormItem
+                              className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0"
+                              key={`radio-group-option-${option.value}`}
+                            >
+                              <FormControl>
+                                <RadioGroupItem value={option.value} />
+                              </FormControl>
+                              <FormLabel className="eb-font-normal">
+                                {option.label}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                    );
+                  case 'checkbox':
+                    return (
+                      <div className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
+                        <FormControl>
+                          <Checkbox
+                            {...field}
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="eb-space-y-1 eb-leading-none">
+                          <div className="eb-flex eb-items-center eb-space-x-2">
+                            <FormLabel asterisk={fieldRequired}>
+                              {fieldLabel}
+                            </FormLabel>
+                            <InfoPopover>{fieldTooltip}</InfoPopover>
+                          </div>
+                          <FormDescription className="eb-text-xs eb-text-gray-500">
+                            {fieldDescription}
+                          </FormDescription>
+                        </div>
+                      </div>
+                    );
+                  case 'textarea':
+                    return (
+                      <FormControl>
+                        <Textarea
+                          {...field}
                           value={field.value}
                           placeholder={fieldPlaceholder}
+                          onChange={(e) => field.onChange(e)}
                         />
                       </FormControl>
-                      {inputButton}
-                    </div>
-                  );
-              }
-            })()
-          )}
+                    );
+                  case 'text':
+                    return maskFormat ? (
+                      <div className="eb-full eb-flex eb-items-center eb-space-x-2">
+                        <FormControl>
+                          <PatternInput
+                            {...field}
+                            {...inputProps}
+                            format={maskFormat ?? ''}
+                            mask={maskChar}
+                            type={type}
+                            defaultValue={field.value}
+                            value={field.value}
+                            placeholder={fieldPlaceholder}
+                          />
+                        </FormControl>
+                        {inputButton}
+                      </div>
+                    ) : (
+                      <div className="eb-full eb-flex eb-items-center eb-space-x-2">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            {...inputProps}
+                            type={type}
+                            value={field.value}
+                            placeholder={fieldPlaceholder}
+                          />
+                        </FormControl>
+                        {inputButton}
+                      </div>
+                    );
+                  case 'importantDate':
+                    return (
+                      <FormControl>
+                        <ImportantDateSelector
+                          {...field}
+                          format="MDY"
+                          value={
+                            field.value
+                              ? new Date(`${field.value}T12:00:00Z`)
+                              : undefined
+                          }
+                          onChange={async (date, errorMsg) => {
+                            if (errorMsg && form) {
+                              field.onChange('');
+                              form.setError(field.name, {
+                                type: 'manual',
+                                message: errorMsg,
+                              });
+                              await form.trigger(field.name);
+                            } else {
+                              form?.clearErrors(field.name);
+                              field.onChange(date?.toISOString().split('T')[0]);
+                            }
+                            field.onBlur();
+                          }}
+                        />
+                      </FormControl>
+                    );
+                  case 'email':
+                  case 'date':
+                  default:
+                    return (
+                      <div className="eb-full eb-flex eb-items-center eb-space-x-2">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            {...inputProps}
+                            type={type}
+                            value={field.value}
+                            placeholder={fieldPlaceholder}
+                          />
+                        </FormControl>
+                        {inputButton}
+                      </div>
+                    );
+                }
+              })()
+            )}
 
-          <FormMessage />
-        </FormItem>
-      )}
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }
