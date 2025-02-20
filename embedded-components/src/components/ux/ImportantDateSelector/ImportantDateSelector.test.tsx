@@ -3,10 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useForm } from 'react-hook-form';
 import { vi } from 'vitest';
 
-
-
 import { ImportantDateSelector } from './ImportantDateSelector';
-
 
 // Test wrapper component to simulate form context
 function TestWrapper({
