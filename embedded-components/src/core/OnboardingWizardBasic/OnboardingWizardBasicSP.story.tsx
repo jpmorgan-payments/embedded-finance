@@ -15,6 +15,7 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
+import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -139,7 +140,7 @@ WithClientId.parameters = {
         });
       }),
       http.get('/clients/0030000133', () => {
-        return HttpResponse.json(efClientSolPropNew);
+        return HttpResponse.json(efClientSolPropWithMoreData);
       }),
       http.post('/clients/0030000133', () => {
         return HttpResponse.json(efClientSolPropNew);

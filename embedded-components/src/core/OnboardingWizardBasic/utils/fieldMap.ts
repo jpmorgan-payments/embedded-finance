@@ -53,7 +53,7 @@ export const partyFieldMap: PartyFieldMap = {
           product: ['EMBEDDED_PAYMENTS'],
         },
         rule: {
-          interaction: 'disabled',
+          interaction: 'readonly',
         },
       },
     ],
@@ -306,7 +306,7 @@ export const partyFieldMap: PartyFieldMap = {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
             },
-            rule: { interaction: 'disabled', defaultValue: 'US' },
+            rule: { interaction: 'readonly', defaultValue: 'US' },
           },
         ],
       },
@@ -459,7 +459,7 @@ export const partyFieldMap: PartyFieldMap = {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
             },
-            rule: { interaction: 'disabled' },
+            rule: { interaction: 'readonly' },
           },
         ],
       },
@@ -470,7 +470,7 @@ export const partyFieldMap: PartyFieldMap = {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
             },
-            rule: { interaction: 'disabled', defaultValue: 'US' },
+            rule: { interaction: 'readonly', defaultValue: 'US' },
           },
         ],
       },

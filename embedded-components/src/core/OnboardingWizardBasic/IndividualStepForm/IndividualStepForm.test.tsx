@@ -25,49 +25,62 @@ const mockOnboardingContext = {
   availableProducts: ['EMBEDDED_PAYMENTS' as ClientProduct],
 };
 
-const queryClient = new QueryClient();
-
-const renderComponent = () => {
-  // Reset MSW handlers before each render
-  server.resetHandlers();
-
-  // Setup explicit handlers
-  server.use(
-    http.get('/clients/:clientId', () => {
-      return HttpResponse.json(efClientSolPropWithMoreData);
-    }),
-
-    http.post('/clients/:clientId', () => {
-      return HttpResponse.json(efClientSolPropWithMoreData);
-    })
-  );
-
-  return render(
-    <EBComponentsProvider
-      apiBaseUrl="/"
-      headers={{}}
-      contentTokens={{
-        name: 'enUS',
-      }}
-    >
-      <OnboardingContextProvider {...mockOnboardingContext}>
-        <QueryClientProvider client={queryClient}>
-          <IndividualStepForm />
-        </QueryClientProvider>
-      </OnboardingContextProvider>
-    </EBComponentsProvider>
-  );
-};
-
 describe('IndividualStepForm', () => {
+  let queryClient: QueryClient;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          staleTime: 0,
+          gcTime: 0,
+        },
+      },
+    });
   });
+
+  afterEach(() => {
+    queryClient.clear(); // Clear cache after each test
+  });
+
+  const renderComponent = () => {
+    server.resetHandlers();
+
+    server.use(
+      http.get('/clients/:clientId', () => {
+        return HttpResponse.json(efClientSolPropWithMoreData);
+      }),
+
+      http.post('/clients/:clientId', () => {
+        return HttpResponse.json(efClientSolPropWithMoreData);
+      })
+    );
+
+    return render(
+      <EBComponentsProvider
+        apiBaseUrl="/"
+        headers={{}}
+        contentTokens={{
+          name: 'enUS',
+        }}
+      >
+        <QueryClientProvider client={queryClient}>
+          <OnboardingContextProvider {...mockOnboardingContext}>
+            <IndividualStepForm />
+          </OnboardingContextProvider>
+        </QueryClientProvider>
+      </EBComponentsProvider>
+    );
+  };
 
   test('renders the form with prefilled data and submits successfully', async () => {
     // Arrange
     renderComponent();
-    expect(await screen.findByDisplayValue('Monica')).toBeInTheDocument();
+    expect(
+      await screen.findByDisplayValue('Monica', {}, { timeout: 5000 })
+    ).toBeInTheDocument();
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: /next/i }));

@@ -537,16 +537,6 @@ export const IndividualStepForm = () => {
                 />
 
                 <OnboardingFormField
-                  key={`individual-id-value-${index}-${field.idType}`}
-                  control={form.control}
-                  name={`individualIds.${index}.value`}
-                  type="text"
-                  label={getValueLabel(field.idType)}
-                  maskFormat={getMaskFormat(field.idType)}
-                  maskChar="_"
-                />
-
-                <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.issuer`}
                   type="combobox"
@@ -562,6 +552,17 @@ export const IndividualStepForm = () => {
                     ),
                   }))}
                 />
+
+                <OnboardingFormField
+                  key={`individual-id-value-${index}-${field.idType}`}
+                  control={form.control}
+                  name={`individualIds.${index}.value`}
+                  type="text"
+                  label={getValueLabel(field.idType)}
+                  maskFormat={getMaskFormat(field.idType)}
+                  maskChar="_"
+                />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`individualIds.${index}.expiryDate`}

@@ -588,16 +588,6 @@ export const OrganizationStepForm = () => {
                 />
 
                 <OnboardingFormField
-                  key={`organization-id-value-${index}-${field.idType}`}
-                  control={form.control}
-                  name={`organizationIds.${index}.value`}
-                  type="text"
-                  label={getValueLabel(field.idType)}
-                  maskFormat={getMaskFormat(field.idType)}
-                  maskChar="_"
-                />
-
-                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.issuer`}
                   type="combobox"
@@ -613,6 +603,17 @@ export const OrganizationStepForm = () => {
                     ),
                   }))}
                 />
+
+                <OnboardingFormField
+                  key={`organization-id-value-${index}-${field.idType}`}
+                  control={form.control}
+                  name={`organizationIds.${index}.value`}
+                  type="text"
+                  label={getValueLabel(field.idType)}
+                  maskFormat={getMaskFormat(field.idType)}
+                  maskChar="_"
+                />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.expiryDate`}
