@@ -424,108 +424,104 @@ export const OrganizationStepForm = () => {
           }) => (
             <fieldset
               key={field.id}
-              className="eb-rounded-lg eb-border eb-p-4"
+              className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
               disabled={disabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                 {itemLabel}
               </legend>
-              <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.addressType`}
-                  type="select"
-                  // Dropdown fields need to be explicitly passed whether it's disabled rather than relying on the fieldset
-                  disabled={disabled}
-                  options={[
-                    {
-                      value: 'LEGAL_ADDRESS',
-                      label: t('addressTypes.LEGAL_ADDRESS'),
-                    },
-                    {
-                      value: 'MAILING_ADDRESS',
-                      label: t('addressTypes.MAILING_ADDRESS'),
-                    },
-                    {
-                      value: 'BUSINESS_ADDRESS',
-                      label: t('addressTypes.BUSINESS_ADDRESS'),
-                    },
-                    {
-                      value: 'RESIDENTIAL_ADDRESS',
-                      label: t('addressTypes.RESIDENTIAL_ADDRESS'),
-                    },
-                  ]}
-                />
-                <div className="eb-col-span-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.addressType`}
+                type="select"
+                // Dropdown fields need to be explicitly passed whether it's disabled rather than relying on the fieldset
+                disabled={disabled}
+                options={[
+                  {
+                    value: 'LEGAL_ADDRESS',
+                    label: t('addressTypes.LEGAL_ADDRESS'),
+                  },
+                  {
+                    value: 'MAILING_ADDRESS',
+                    label: t('addressTypes.MAILING_ADDRESS'),
+                  },
+                  {
+                    value: 'BUSINESS_ADDRESS',
+                    label: t('addressTypes.BUSINESS_ADDRESS'),
+                  },
+                  {
+                    value: 'RESIDENTIAL_ADDRESS',
+                    label: t('addressTypes.RESIDENTIAL_ADDRESS'),
+                  },
+                ]}
+              />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.primaryAddressLine`}
+                type="text"
+              />
+
+              <OnboardingArrayField
+                control={form.control}
+                name={`addresses.${index}.additionalAddressLines`}
+                renderItem={({
+                  index: lineIndex,
+                  field: lineField,
+                  renderRemoveButton: renderLineRemoveButton,
+                }) => (
                   <OnboardingFormField
+                    key={lineField.id}
                     control={form.control}
-                    name={`addresses.${index}.primaryAddressLine`}
+                    name={`addresses.${index}.additionalAddressLines.${lineIndex}.value`}
                     type="text"
+                    inputButton={renderLineRemoveButton({
+                      className: 'eb-align-end',
+                      children: <XIcon />,
+                    })}
                   />
+                )}
+              />
 
-                  <OnboardingArrayField
-                    control={form.control}
-                    name={`addresses.${index}.additionalAddressLines`}
-                    renderItem={({
-                      index: lineIndex,
-                      field: lineField,
-                      renderRemoveButton: renderLineRemoveButton,
-                    }) => (
-                      <OnboardingFormField
-                        key={lineField.id}
-                        control={form.control}
-                        name={`addresses.${index}.additionalAddressLines.${lineIndex}.value`}
-                        type="text"
-                        inputButton={renderLineRemoveButton({
-                          className: 'eb-align-end',
-                          children: <XIcon />,
-                        })}
-                      />
-                    )}
-                  />
-                </div>
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.city`}
+                type="text"
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.city`}
-                  type="text"
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.state`}
+                type="select"
+                options={stateOptions}
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.state`}
-                  type="select"
-                  options={stateOptions}
-                />
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.postalCode`}
+                type="text"
+                inputProps={{
+                  pattern: '[0-9]{5}',
+                  maxLength: 5,
+                  inputMode: 'numeric',
+                }}
+              />
 
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.postalCode`}
-                  type="text"
-                  inputProps={{
-                    pattern: '[0-9]{5}',
-                    maxLength: 5,
-                    inputMode: 'numeric',
-                  }}
-                />
-
-                <OnboardingFormField
-                  control={form.control}
-                  name={`addresses.${index}.country`}
-                  type="combobox"
-                  options={COUNTRIES_OF_FORMATION.map((code) => ({
-                    value: code,
-                    label: (
-                      <span>
-                        <span className="eb-font-medium">[{code}]</span>{' '}
-                        {t([
-                          `common:countries.${code}`,
-                        ] as unknown as TemplateStringsArray)}
-                      </span>
-                    ),
-                  }))}
-                />
-              </div>
+              <OnboardingFormField
+                control={form.control}
+                name={`addresses.${index}.country`}
+                type="combobox"
+                options={COUNTRIES_OF_FORMATION.map((code) => ({
+                  value: code,
+                  label: (
+                    <span>
+                      <span className="eb-font-medium">[{code}]</span>{' '}
+                      {t([
+                        `common:countries.${code}`,
+                      ] as unknown as TemplateStringsArray)}
+                    </span>
+                  ),
+                }))}
+              />
               <div className="eb-mt-4 eb-flex eb-justify-start">
                 {renderRemoveButton()}
               </div>
@@ -592,16 +588,6 @@ export const OrganizationStepForm = () => {
                 />
 
                 <OnboardingFormField
-                  key={`organization-id-value-${index}-${field.idType}`}
-                  control={form.control}
-                  name={`organizationIds.${index}.value`}
-                  type="text"
-                  label={getValueLabel(field.idType)}
-                  maskFormat={getMaskFormat(field.idType)}
-                  maskChar="_"
-                />
-
-                <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.issuer`}
                   type="combobox"
@@ -617,6 +603,17 @@ export const OrganizationStepForm = () => {
                     ),
                   }))}
                 />
+
+                <OnboardingFormField
+                  key={`organization-id-value-${index}-${field.idType}`}
+                  control={form.control}
+                  name={`organizationIds.${index}.value`}
+                  type="text"
+                  label={getValueLabel(field.idType)}
+                  maskFormat={getMaskFormat(field.idType)}
+                  maskChar="_"
+                />
+
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.expiryDate`}
@@ -642,58 +639,62 @@ export const OrganizationStepForm = () => {
           </legend>
 
           {/* Associated Countries */}
-          <OnboardingArrayField
-            control={form.control}
-            name="associatedCountries"
-            renderHeader={() => (
-              <div className="eb-text-md eb-font-medium">
-                {t('onboarding:fields.associatedCountries.headerLabel')}
-              </div>
-            )}
-            renderWrapper={(children) => (
-              <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                {children}
-              </div>
-            )}
-            renderItem={({ field, index, renderRemoveButton }) => (
-              <OnboardingFormField
-                key={field.id}
-                control={form.control}
-                name={`associatedCountries.${index}.country`}
-                type="text"
-                inputButton={renderRemoveButton({
-                  children: <XIcon />,
-                })}
-              />
-            )}
-          />
+          <div>
+            <OnboardingArrayField
+              control={form.control}
+              name="associatedCountries"
+              renderHeader={() => (
+                <div className="eb-text-md eb-font-medium">
+                  {t('onboarding:fields.associatedCountries.headerLabel')}
+                </div>
+              )}
+              renderWrapper={(children) => (
+                <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                  {children}
+                </div>
+              )}
+              renderItem={({ field, index, renderRemoveButton }) => (
+                <OnboardingFormField
+                  key={field.id}
+                  control={form.control}
+                  name={`associatedCountries.${index}.country`}
+                  type="text"
+                  inputButton={renderRemoveButton({
+                    children: <XIcon />,
+                  })}
+                />
+              )}
+            />
+          </div>
 
           {/* Secondary MCC */}
-          <OnboardingArrayField
-            control={form.control}
-            name="secondaryMccList"
-            renderHeader={() => (
-              <div className="eb-text-md eb-font-medium">
-                {t('onboarding:fields.secondaryMccList.headerLabel')}
-              </div>
-            )}
-            renderWrapper={(children) => (
-              <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
-                {children}
-              </div>
-            )}
-            renderItem={({ field, index, renderRemoveButton }) => (
-              <OnboardingFormField
-                key={field.id}
-                control={form.control}
-                name={`secondaryMccList.${index}.mcc`}
-                type="text"
-                inputButton={renderRemoveButton({
-                  children: <XIcon />,
-                })}
-              />
-            )}
-          />
+          <div>
+            <OnboardingArrayField
+              control={form.control}
+              name="secondaryMccList"
+              renderHeader={() => (
+                <div className="eb-text-md eb-font-medium">
+                  {t('onboarding:fields.secondaryMccList.headerLabel')}
+                </div>
+              )}
+              renderWrapper={(children) => (
+                <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+                  {children}
+                </div>
+              )}
+              renderItem={({ field, index, renderRemoveButton }) => (
+                <OnboardingFormField
+                  key={field.id}
+                  control={form.control}
+                  name={`secondaryMccList.${index}.mcc`}
+                  type="text"
+                  inputButton={renderRemoveButton({
+                    children: <XIcon />,
+                  })}
+                />
+              )}
+            />
+          </div>
 
           <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
             {isFieldVisible('website') && (
@@ -728,7 +729,6 @@ export const OrganizationStepForm = () => {
                   control={form.control}
                   name="websiteAvailable"
                   type="checkbox"
-                  noOptionalLabel
                 />
               </>
             )}

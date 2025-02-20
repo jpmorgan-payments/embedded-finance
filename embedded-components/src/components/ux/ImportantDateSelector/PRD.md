@@ -39,23 +39,6 @@ For further reading and design guidance, please refer to the following resources
 - [GOV.UK Design System – Dates Pattern](https://design-system.service.gov.uk/patterns/dates/) - *The comprehensive dates pattern from the GOV.UK Design System, a leading example of accessible and user-centered design.*
 - [Gov.uk Tech Blog – Changing the input type for numbers](https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/) - *Explains the rationale behind using `<input type="text" inputmode="numeric">` for number inputs in the GOV.UK Design System.*
 
-**Additional Accessibility Resources:**
-- [W3C - WCAG (Web Content Accessibility Guidelines)](https://www.w3.org/WAI/standards-guidelines/wcag/) - *The foundational guidelines for web accessibility. Refer to Success Criteria related to forms, labels, and keyboard navigation.*
-- [W3C - ARIA Authoring Practices Guide (APG) - Date Picker Pattern (When Applicable)](https://www.w3.org/WAI/ARIA/apg/patterns/datepicker/) - *While our component uses separate fields and not a full calendar datepicker, the ARIA APG provides valuable insights into accessible date input patterns and considerations. Review for general principles related to labels and keyboard interaction.*
-- [WebAIM - Forms Tutorial](https://webaim.org/techniques/forms/) - *A comprehensive tutorial from WebAIM on creating accessible web forms, including input fields and labels, directly relevant to date pickers.*
-- [Deque University - Date Picker Accessibility](https://dequeuniversity.com/rules/axe/4.8/date-picker-label) - *A specific rule from Deque's axe accessibility testing tool related to date picker labeling, highlighting common accessibility issues.*
-
-**Component Library & Design System Examples (Prior Art):**
-- [Radix UI - Date Picker](https://www.radix-ui.com/primitives/docs/components/date-picker) - *Documentation for the Date Picker component in Radix UI, another popular accessible component library. Can offer insights into API design and implementation approaches.*
-- [Material UI - Date/Time Pickers](https://mui.com/components/date-pickers/) - *Documentation for Date/Time Picker components in Material UI.  While Material UI's default pickers can be complex, examining their API and variations can be informative.*
-- [Atlassian Design System - Date Picker](https://atlassian.design/components/date-picker/examples) - *Examples and documentation of the Date Picker component in the Atlassian Design System. Provides a practical example from a large product ecosystem.*
-- [Lightning Design System (Salesforce) - Datepicker](https://www.lightningdesignsystem.com/components/datepicker/) - *Documentation for the Datepicker component in Salesforce's Lightning Design System. Another example from a major enterprise design system.*
-
-**UX Design Articles & Blog Posts:**
-- [Nielsen Norman Group - Date and Time Pickers: Best Practices](https://www.nngroup.com/articles/date-time-pickers/) - *Article from the Nielsen Norman Group discussing best practices for date and time pickers, covering usability considerations.*
-- [Baymard Institute - 7 Date Input Field Usability Mistakes](https://baymard.com/blog/date-input-field-usability) - *Article from Baymard Institute outlining common usability mistakes in date input fields, providing valuable insights into what to avoid.*
-
-
 ---
 
 ## 2. Functional Requirements
