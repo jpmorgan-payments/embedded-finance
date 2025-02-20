@@ -284,8 +284,6 @@ describe('IndividualStepForm', () => {
     await userEvent.clear(yearInput);
     await userEvent.type(dayInput, '01');
 
-    // Instead of interacting with the Select component directly,
-    // find its hidden input and set the value
     const monthSelect = screen.getByRole('combobox', { name: /month/i });
     await userEvent.type(monthSelect, '01');
     await userEvent.type(yearInput, '2030');
