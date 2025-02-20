@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@forgerock/javascript-sdk": "^4.2.0",
-    "@jpmorgan-payments/embedded-finance-components": "^0.5.84",
+    "@jpmorgan-payments/embedded-finance-components": "^0.5.85",
     "@mantine/core": "^6.0.4",
     "@mantine/dates": "^6.0.4",
     "@mantine/form": "^6.0.4",
