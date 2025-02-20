@@ -3,6 +3,7 @@ import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropAdditionalDocuments } from '@/mocks/efClientSolPropAdditionalDocuments.mock';
 import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnsweredQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
+import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
@@ -15,7 +16,6 @@ import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
-import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
