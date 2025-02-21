@@ -5,6 +5,7 @@ import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 
 // Define question IDs that should use a datepicker
 export const DATE_QUESTION_IDS = ['30071', '30073']; // Add more IDs as needed
+export const MONEY_INPUT_QUESTION_IDS = ['30005']; // Add more IDs as needed
 
 export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
   const schemaFields: Record<string, z.ZodTypeAny> = {};
