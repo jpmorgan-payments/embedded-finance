@@ -113,6 +113,7 @@
       }
     },
     "individualIds": {
+      "label": "Individual Identification",
       "itemLabel": "Individual Identification",
       "itemLabelNumbered": "Individual Identification {{number}}",
       "validation": {
@@ -196,6 +197,7 @@
       }
     },
     "addresses": {
+      "label": "Business Address",
       "itemLabel": "Business Address",
       "itemLabelNumbered": "Business Address {{number}}",
       "appendLabel": "Add an address",
@@ -308,6 +310,7 @@
       }
     },
     "organizationIds": {
+      "label": "Business Identification",
       "itemLabel": "Business Identification",
       "itemLabelNumbered": "Business Identification {{number}}",
       "appendLabel": "Add ID",
