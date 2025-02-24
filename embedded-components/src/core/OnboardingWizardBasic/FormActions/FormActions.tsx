@@ -25,12 +25,17 @@ export const FormActions: FC<FormActionsProps> = ({
           variant="secondary"
           onClick={prevStep}
           type="button"
+          data-dtrum-tracking={t('previous')}
         >
           {t('previous')}
         </Button>
       ) : null}
 
-      <Button type="submit" disabled={isLoading || disabled}>
+      <Button
+        type="submit"
+        disabled={isLoading || disabled}
+        data-dtrum-tracking={isLastStep ? t('submit') : t('next')}
+      >
         {isLoading ? <Loader2 className="eb-animate-spin" /> : null}
         {isLastStep ? t('submit') : t('next')}
       </Button>

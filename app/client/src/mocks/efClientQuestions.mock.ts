@@ -1,5 +1,5 @@
 export const efClientQuestionsMock = {
-  metadata: { page: 0, total: 8 },
+  metadata: { page: 0, total: 1 },
   questions: [
     {
       content: [
