@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 import { usePaymentForm } from './usePaymentForm';
 
@@ -118,32 +119,30 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         </DialogHeader>
 
         {!isSuccess && showAd && (
-          <Alert
-            variant="default"
-            className="eb-mb-4 eb-border-blue-200 eb-bg-blue-50"
-          >
-            <Info className="eb-mt-2 eb-h-4 eb-w-4 eb-text-blue-500" />
-            <AlertDescription className="eb-flex eb-items-center eb-justify-between eb-text-blue-700">
+          <Alert variant="default" className="eb-mb-4">
+            <Info className="eb-mt-0.5 eb-h-4 eb-w-4" />
+            <AlertDescription className="eb-flex eb-items-center eb-justify-between">
               <span>{t('alerts.newPayoutCapability')}</span>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setShowAd(false)}
-                className="eb-text-blue-700 hover:eb-text-blue-900"
+                className="eb-h-6 eb-w-6 eb-p-0"
               >
                 <X className="eb-h-4 eb-w-4" />
+                <span className="eb-sr-only">Close</span>
               </Button>
             </AlertDescription>
           </Alert>
         )}
 
         {isSuccess ? (
-          <div className="eb-rounded-lg eb-bg-gray-200 eb-p-6 eb-text-center">
-            <h2 className="eb-mb-4 eb-text-2xl eb-font-bold eb-text-gray-700">
+          <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-4 eb-rounded-lg eb-bg-muted eb-p-6 eb-text-center">
+            <h2 className="eb-text-xl eb-font-semibold">
               {t('success.title')}
             </h2>
-            <p className="eb-text-gray-600">{t('success.message')}</p>
-            <Button className="eb-mt-4" onClick={handleMakeAnotherPayment}>
+            <p className="eb-text-muted-foreground">{t('success.message')}</p>
+            <Button onClick={handleMakeAnotherPayment}>
               {t('buttons.makeAnotherPayment')}
             </Button>
           </div>
@@ -216,7 +215,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                     <FormLabel>{t('fields.amount.label')}</FormLabel>
                     <FormControl>
                       <div className="eb-relative">
-                        <span className="eb-absolute eb-left-3 eb-mt-2.5 eb-text-gray-500">
+                        <span className="eb-absolute eb-left-3 eb-top-2.5 eb-text-muted-foreground">
                           $
                         </span>
                         <Input
@@ -234,7 +233,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 control={form.control}
                 name="method"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="eb-space-y-3">
                     <FormLabel>{t('fields.method.label')}</FormLabel>
                     <FormControl>
                       <RadioGroup
@@ -244,15 +243,19 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       >
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <RadioGroupItem value="ACH" id="ach" />
-                          <Label htmlFor="ach">{t('paymentMethods.ACH')}</Label>
+                          <Label htmlFor="ach" className="eb-cursor-pointer">
+                            {t('paymentMethods.ACH')}
+                          </Label>
                         </div>
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <RadioGroupItem value="RTP" id="rtp" />
-                          <Label htmlFor="rtp">{t('paymentMethods.RTP')}</Label>
+                          <Label htmlFor="rtp" className="eb-cursor-pointer">
+                            {t('paymentMethods.RTP')}
+                          </Label>
                         </div>
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <RadioGroupItem value="WIRE" id="wire" />
-                          <Label htmlFor="wire">
+                          <Label htmlFor="wire" className="eb-cursor-pointer">
                             {t('paymentMethods.WIRE')}
                           </Label>
                         </div>
@@ -262,53 +265,61 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                   </FormItem>
                 )}
               />
+
               {isFormFilled && (
-                <Collapsible
-                  open={isOpen}
-                  onOpenChange={setIsOpen}
-                  className="eb-w-full eb-space-y-2"
-                >
-                  <div className="eb-flex eb-items-center eb-justify-between eb-space-x-4 eb-px-4">
-                    <h4 className="eb-text-sm eb-font-semibold">
-                      {t('transferFee.label', { amount: fee.toFixed(2) })}
-                    </h4>
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="eb-w-9 eb-p-0"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        {isOpen ? (
-                          <ChevronUp className="eb-h-4 eb-w-4" />
-                        ) : (
-                          <ChevronDown className="eb-h-4 eb-w-4" />
-                        )}
-                        <span className="eb-sr-only">
-                          {t('transferFee.toggle')}
-                        </span>
-                      </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <CollapsibleContent className="eb-space-y-2">
-                    <div className="eb-font-mono eb-rounded-md eb-border eb-px-4 eb-py-3 eb-text-sm">
-                      {method === 'WIRE' && t('feeDescriptions.WIRE')}
-                      {method === 'ACH' && t('feeDescriptions.ACH')}
-                      {method === 'RTP' && t('feeDescriptions.RTP')}
+                <>
+                  <Separator className="eb-my-2" />
+                  <div className="eb-space-y-3">
+                    <Collapsible
+                      open={isOpen}
+                      onOpenChange={setIsOpen}
+                      className="eb-w-full eb-rounded-md eb-border eb-border-input eb-px-3 eb-py-2"
+                    >
+                      <div className="eb-flex eb-items-center eb-justify-between eb-space-x-4">
+                        <h4 className="eb-text-sm eb-font-medium">
+                          {t('transferFee.label', { amount: fee.toFixed(2) })}
+                        </h4>
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="eb-h-8 eb-w-8 eb-p-0"
+                          >
+                            {isOpen ? (
+                              <ChevronUp className="eb-h-4 eb-w-4" />
+                            ) : (
+                              <ChevronDown className="eb-h-4 eb-w-4" />
+                            )}
+                            <span className="eb-sr-only">
+                              {t('transferFee.toggle')}
+                            </span>
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
+                      <CollapsibleContent className="eb-mt-2">
+                        <div className="eb-rounded-md eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-text-muted-foreground">
+                          {method === 'WIRE' && t('feeDescriptions.WIRE')}
+                          {method === 'ACH' && t('feeDescriptions.ACH')}
+                          {method === 'RTP' && t('feeDescriptions.RTP')}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    <div className="eb-text-sm eb-font-medium">
+                      {t('recipientGets', {
+                        amount: (amount - fee).toFixed(2),
+                      })}
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                </>
               )}
-              {isFormFilled && (
-                <div className="eb-text-sm eb-font-medium">
-                  {t('recipientGets', { amount: (amount - fee).toFixed(2) })}
-                </div>
-              )}
+
               {!isAmountValid && amount > 0 && (
-                <div className="eb-text-sm eb-text-red-500">
+                <div className="eb-text-sm eb-text-destructive">
                   {t('fields.amount.validation.greaterThanFee')}
                 </div>
               )}
+
               <Button
                 type="submit"
                 className="eb-w-full"
