@@ -837,5 +837,6 @@
   },
   "messages": {
     "solePropEinOptional": "As a sole proprietor, an EIN is optional unless you have employees or file certain tax returns."
-  }
+  },
+  "copyBusinessAddressLabel": "Controller's personal address is the same as the business address"
 }

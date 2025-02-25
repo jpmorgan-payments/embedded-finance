@@ -69,7 +69,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useStepper } from '@/components/ui/stepper';
-import { Checkbox } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
@@ -410,30 +409,6 @@ export const OrganizationStepForm = () => {
             }}
           />
         </fieldset>
-
-        <div className="items-top flex space-x-2">
-          <Checkbox
-            onSelect={(value) => {
-              const individualParty = clientData?.parties?.find(
-                (party) => party.partyType === 'INDIVIDUAL'
-              );
-              console.log('individualParty', individualParty);
-              form.setValue(
-                'addresses.0.additionalAddressLines.0.value',
-                individualParty?.individualDetails?.addresses?.[0]
-                  ?.addressLines[0].value
-              );
-            }}
-          />
-          <div className="grid gap-1.5 leading-none">
-            <label
-              htmlFor="terms1"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              My personal address is the same as the business address
-            </label>
-          </div>
-        </div>
 
         {/* ADDRESSES */}
         <OnboardingArrayField

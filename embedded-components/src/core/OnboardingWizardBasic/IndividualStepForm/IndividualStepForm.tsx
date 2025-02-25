@@ -59,7 +59,9 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -95,6 +97,15 @@ export const IndividualStepForm = () => {
   const { data: clientData, status: getClientStatus } = useSmbdoGetClient(
     clientId ?? ''
   );
+
+  // Get organization's party
+  const existingOrgParty = clientData?.parties?.find(
+    (party) =>
+      party?.partyType === 'ORGANIZATION' &&
+      (party.active || party.status === 'ACTIVE')
+  );
+
+  console.log('existingOrgParty', existingOrgParty);
 
   const form = useStepFormWithFilters({
     clientData,
@@ -412,6 +423,81 @@ export const IndividualStepForm = () => {
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
                 {itemLabel}
               </legend>
+
+              {/* Address Copy Checkbox */}
+              {existingOrgParty?.organizationDetails?.organizationType ===
+                'SOLE_PROPRIETORSHIP' && (
+                <div className="eb-flex eb-items-center eb-space-x-2 eb-py-4 md:eb-col-span-2 lg:eb-col-span-3">
+                  <Checkbox
+                    id="copy-business-address"
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        // Find business address from organization
+                        const businessAddress = clientData?.parties
+                          ?.find((party) => party.partyType === 'ORGANIZATION')
+                          ?.organizationDetails?.addresses?.find(
+                            (addr) =>
+                              addr.addressType === 'BUSINESS_ADDRESS' ||
+                              addr.addressType === 'LEGAL_ADDRESS'
+                          );
+
+                        if (businessAddress) {
+                          // Create a complete address object with all necessary fields
+                          const newAddress = {
+                            addressType: 'RESIDENTIAL_ADDRESS' as const,
+                            primaryAddressLine:
+                              businessAddress.addressLines?.[0] || '',
+                            city: businessAddress.city || '',
+                            state: businessAddress.state || '',
+                            postalCode: businessAddress.postalCode || '',
+                            country: businessAddress.country || '',
+                            additionalAddressLines:
+                              businessAddress.addressLines?.length > 1
+                                ? businessAddress.addressLines
+                                    .slice(1)
+                                    .map((line) => ({ value: line }))
+                                : [],
+                          };
+
+                          // Update form with the new address in a single operation
+                          const currentAddresses =
+                            form.getValues('individualAddresses') || [];
+                          if (currentAddresses.length === 0) {
+                            form.setValue('individualAddresses', [newAddress]);
+                          } else {
+                            form.setValue('individualAddresses.0', newAddress);
+                          }
+                        }
+                      } else {
+                        // Clear address fields in a single operation if unchecked
+                        const emptyAddress = {
+                          addressType: 'RESIDENTIAL_ADDRESS' as const,
+                          primaryAddressLine: '',
+                          city: '',
+                          state: '',
+                          postalCode: '',
+                          country: '',
+                          additionalAddressLines: [],
+                        };
+
+                        const currentAddresses = form.getValues(
+                          'individualAddresses'
+                        );
+                        if (currentAddresses?.length > 0) {
+                          form.setValue('individualAddresses.0', emptyAddress);
+                        }
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="copy-business-address"
+                    className="eb-w-full eb-cursor-pointer eb-text-sm eb-font-medium eb-leading-none"
+                  >
+                    {t('copyBusinessAddressLabel')}
+                  </Label>
+                </div>
+              )}
+
               <OnboardingFormField
                 control={form.control}
                 name={`individualAddresses.${index}.addressType`}
