@@ -512,6 +512,13 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: { display: 'hidden' },
       },
+      {
+        condition: {
+          product: ['EMBEDDED_PAYMENTS'],
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: { defaultValue: 'CEO' },
+      },
     ],
   },
   jobTitleDescription: {
@@ -524,6 +531,13 @@ export const partyFieldMap: PartyFieldMap = {
           jurisdiction: ['CA'],
         },
         rule: { display: 'hidden' },
+      },
+      {
+        condition: {
+          product: ['EMBEDDED_PAYMENTS'],
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: { interaction: 'disabled' },
       },
     ],
   },
