@@ -22,7 +22,7 @@ export interface ActionEnterListener {
     actionId: number,
     starttime: number,
     isRootAction: boolean,
-    element?: EventTarget | string,
+    element?: EventTarget | string
   ): void;
 }
 
@@ -194,7 +194,7 @@ export interface DtrumApi {
   markXHRFailed(
     responseCode: number,
     message: string,
-    parentActionId?: number,
+    parentActionId?: number
   ): boolean;
   /**
    * Forces beacon sending to make sure actions aren't lost.
@@ -208,7 +208,7 @@ export interface DtrumApi {
   sendBeacon(
     forceSync: boolean,
     sendPreview: boolean,
-    killUnfinished: boolean,
+    killUnfinished: boolean
   ): void;
   /**
    * Enters a new custom action. Use to set the load start event for a new custom action.
@@ -225,7 +225,7 @@ export interface DtrumApi {
     actionName: string,
     actionType?: string,
     startTime?: number,
-    sourceUrl?: string,
+    sourceUrl?: string
   ): number;
   /**
    * Attaches a listener that gets called while entering an action <br />
@@ -302,7 +302,7 @@ export interface DtrumApi {
     javaLong?: PropertyMap<number>,
     date?: PropertyMap<Date>,
     shortString?: PropertyMap<string>,
-    javaDouble?: PropertyMap<number>,
+    javaDouble?: PropertyMap<number>
   ): void;
   /**
    * Reports an error object to Dynatrace. Use when you catch errors in your own application code
@@ -349,7 +349,7 @@ export interface DtrumApi {
     domNode: HTMLElement | string,
     type: string,
     addInfo?: string,
-    validTime?: number,
+    validTime?: number
   ): DtRumUserInput;
   /**
    * Ends a user input.
@@ -463,7 +463,7 @@ export interface DtrumApi {
    * @param listener The listener to add
    */
   addVisitTimeoutListener(
-    listener: (visitId: string, newVisitAfterTimeout: boolean) => void,
+    listener: (visitId: string, newVisitAfterTimeout: boolean) => void
   ): void;
   /**
    * Enables session replay
@@ -539,7 +539,7 @@ export interface DtrumApi {
     javaLongOrObject?: PropertyMap<number> | PropertyObject,
     date?: PropertyMap<Date>,
     shortString?: PropertyMap<string>,
-    javaDouble?: PropertyMap<number>,
+    javaDouble?: PropertyMap<number>
   ): PropertiesSendingReport | undefined;
   /**
    * Report your own{@link https://www.dynatrace.com/support/help/shortlink/configure-application-errors#configure-custom-errors | custom errors}.
@@ -557,7 +557,7 @@ export interface DtrumApi {
     key: string,
     value: string,
     hint?: string,
-    parentingInfo?: number | boolean,
+    parentingInfo?: number | boolean
   ): void;
 
   /**

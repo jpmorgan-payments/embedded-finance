@@ -4,15 +4,15 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-
-
 import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { ClientProduct, ClientResponse, OrganizationType } from '@/api/generated/smbdo.schemas';
+import {
+  ClientProduct,
+  ClientResponse,
+  OrganizationType,
+} from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Step, StepItem, Stepper, StepProps } from '@/components/ui/stepper';
-
-
 
 import { useContentTokens } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
@@ -22,13 +22,16 @@ import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadS
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
 import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
 import { InitialStepForm } from './InitialStepForm/InitialStepForm';
-import { OnboardingContextProvider, OnboardingProps, useOnboardingContext } from './OnboardingContextProvider/OnboardingContextProvider';
+import {
+  OnboardingContextProvider,
+  OnboardingProps,
+  useOnboardingContext,
+} from './OnboardingContextProvider/OnboardingContextProvider';
 import { OrganizationStepForm } from './OrganizationStepForm/OrganizationStepForm';
 import { ReviewAndAttestStepForm } from './ReviewAndAttestStepForm/ReviewAndAttestStepForm';
 import { ServerErrorAlert } from './ServerErrorAlert/ServerErrorAlert';
 import { MissingInfoAlert } from './utils/MissingInfoAlert';
 import { Jurisdiction } from './utils/types';
-
 
 type OnboardingStep = StepProps &
   StepItem & {
@@ -244,7 +247,7 @@ const OnboardingWizardBasicComponent: FC<
   });
 
   return (
-    <Card className="eb-component" id='embedded-component-layout'>
+    <Card className="eb-component" id="embedded-component-layout">
       <CardHeader>
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
