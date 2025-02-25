@@ -6,8 +6,10 @@ import en_zod from 'zod-i18n-map/locales/en/zod.json';
 import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
 import enUS_common from './en-US/common.json';
+import enUS_makePayment from './en-US/make-payment.json';
 import enUS_onboarding from './en-US/onboarding.json';
 import frCA_common from './fr-CA/common.json';
+import frCA_makePayment from './fr-CA/make-payment.json';
 import frCA_onboarding from './fr-CA/onboarding.json';
 
 export const defaultResources = {
@@ -15,12 +17,14 @@ export const defaultResources = {
     locale: 'en-US',
     common: enUS_common,
     onboarding: enUS_onboarding,
+    'make-payment': enUS_makePayment,
     zod: en_zod,
   },
   frCA: {
     locale: 'fr-CA',
     common: frCA_common,
     onboarding: frCA_onboarding,
+    'make-payment': frCA_makePayment,
     zod: fr_zod,
   },
 };
@@ -30,7 +34,7 @@ export const resources = JSON.parse(JSON.stringify(defaultResources));
 i18n.use(initReactI18next).init({
   lng: 'enUS',
   fallbackLng: 'enUS',
-  ns: ['common', 'onboarding'],
+  ns: ['common', 'onboarding', 'make-payment'],
   resources,
   interpolation: {
     escapeValue: false,

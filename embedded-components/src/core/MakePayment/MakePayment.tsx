@@ -3,6 +3,7 @@
 import type React from 'react';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Info, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,7 @@ interface PaymentComponentProps {
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
 }) => {
+  const { t } = useTranslation(['make-payment']);
   const {
     form,
     onSubmit,
@@ -104,15 +106,15 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         {triggerButton || (
-          <Button onClick={() => setDialogOpen(true)}>Make a Payment</Button>
+          <Button onClick={() => setDialogOpen(true)}>
+            {t('buttons.makePayment')}
+          </Button>
         )}
       </DialogTrigger>
       <DialogContent className="eb-sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Make a Payment</DialogTitle>
-          <DialogDescription>
-            Enter the payment details below.
-          </DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         {!isSuccess && showAd && (
@@ -122,9 +124,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           >
             <Info className="eb-mt-2 eb-h-4 eb-w-4 eb-text-blue-500" />
             <AlertDescription className="eb-flex eb-items-center eb-justify-between eb-text-blue-700">
-              <span>
-                Try our new payout capability for faster transactions!
-              </span>
+              <span>{t('alerts.newPayoutCapability')}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -140,13 +140,11 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         {isSuccess ? (
           <div className="eb-rounded-lg eb-bg-gray-200 eb-p-6 eb-text-center">
             <h2 className="eb-mb-4 eb-text-2xl eb-font-bold eb-text-gray-700">
-              Payment Successful!
+              {t('success.title')}
             </h2>
-            <p className="eb-text-gray-600">
-              Your payment has been processed successfully.
-            </p>
+            <p className="eb-text-gray-600">{t('success.message')}</p>
             <Button className="eb-mt-4" onClick={handleMakeAnotherPayment}>
-              Make Another Payment
+              {t('buttons.makeAnotherPayment')}
             </Button>
           </div>
         ) : (
@@ -157,14 +155,16 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="from"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>From Account</FormLabel>
+                    <FormLabel>{t('fields.from.label')}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select account" />
+                          <SelectValue
+                            placeholder={t('fields.from.placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -184,14 +184,16 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="to"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>To Recipient</FormLabel>
+                    <FormLabel>{t('fields.to.label')}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select recipient" />
+                          <SelectValue
+                            placeholder={t('fields.to.placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -211,7 +213,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount (USD)</FormLabel>
+                    <FormLabel>{t('fields.amount.label')}</FormLabel>
                     <FormControl>
                       <div className="eb-relative">
                         <span className="eb-absolute eb-left-3 eb-mt-2.5 eb-text-gray-500">
@@ -220,7 +222,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                         <Input
                           {...field}
                           className="eb-pl-7"
-                          placeholder="0.00"
+                          placeholder={t('fields.amount.placeholder')}
                         />
                       </div>
                     </FormControl>
@@ -233,7 +235,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="method"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
+                    <FormLabel>{t('fields.method.label')}</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -242,15 +244,17 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       >
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <RadioGroupItem value="ACH" id="ach" />
-                          <Label htmlFor="ach">ACH</Label>
+                          <Label htmlFor="ach">{t('paymentMethods.ACH')}</Label>
                         </div>
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <RadioGroupItem value="RTP" id="rtp" />
-                          <Label htmlFor="rtp">RTP</Label>
+                          <Label htmlFor="rtp">{t('paymentMethods.RTP')}</Label>
                         </div>
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <RadioGroupItem value="WIRE" id="wire" />
-                          <Label htmlFor="wire">WIRE</Label>
+                          <Label htmlFor="wire">
+                            {t('paymentMethods.WIRE')}
+                          </Label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -266,7 +270,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 >
                   <div className="eb-flex eb-items-center eb-justify-between eb-space-x-4 eb-px-4">
                     <h4 className="eb-text-sm eb-font-semibold">
-                      Transfer fee: ${fee.toFixed(2)}
+                      {t('transferFee.label', { amount: fee.toFixed(2) })}
                     </h4>
                     <CollapsibleTrigger asChild>
                       <Button
@@ -280,28 +284,29 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                         ) : (
                           <ChevronDown className="eb-h-4 eb-w-4" />
                         )}
-                        <span className="eb-sr-only">Toggle</span>
+                        <span className="eb-sr-only">
+                          {t('transferFee.toggle')}
+                        </span>
                       </Button>
                     </CollapsibleTrigger>
                   </div>
                   <CollapsibleContent className="eb-space-y-2">
                     <div className="eb-font-mono eb-rounded-md eb-border eb-px-4 eb-py-3 eb-text-sm">
-                      {method === 'WIRE' &&
-                        'Domestic wire transfer (outgoing): $25.00'}
-                      {method === 'ACH' && 'ACH transfer fee: $2.50'}
-                      {method === 'RTP' && 'Real-time payment (RTP) fee: $1.00'}
+                      {method === 'WIRE' && t('feeDescriptions.WIRE')}
+                      {method === 'ACH' && t('feeDescriptions.ACH')}
+                      {method === 'RTP' && t('feeDescriptions.RTP')}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
               )}
               {isFormFilled && (
                 <div className="eb-text-sm eb-font-medium">
-                  Recipient gets: ${(amount - fee).toFixed(2)}
+                  {t('recipientGets', { amount: (amount - fee).toFixed(2) })}
                 </div>
               )}
               {!isAmountValid && amount > 0 && (
                 <div className="eb-text-sm eb-text-red-500">
-                  The amount must be greater than the transfer fee.
+                  {t('fields.amount.validation.greaterThanFee')}
                 </div>
               )}
               <Button
@@ -309,7 +314,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 className="eb-w-full"
                 disabled={isLoading || !isFormFilled || !isAmountValid}
               >
-                {isLoading ? 'Processing...' : 'Confirm Payment'}
+                {isLoading
+                  ? t('buttons.processing')
+                  : t('buttons.confirmPayment')}
               </Button>
             </form>
           </Form>
