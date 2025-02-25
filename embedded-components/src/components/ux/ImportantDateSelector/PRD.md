@@ -277,7 +277,9 @@ Citations:
 [4] https://forum.adalo.com/t/date-picker-always-with-errors/26721
 [5] https://community.glideapps.com/t/need-help-with-date-picker-issue/27383
 [6] https://forum.katalon.com/t/date-picker-showing-errors/58863
+<!-- markdown-link-check-disable -->
 [7] https://www.reddit.com/r/UXDesign/comments/16ctze5/are_datepickers_bad_ux_design/
+<!-- markdown-link-check-enable -->
 [8] https://uxdesign.cc/rethinking-the-date-picker-ui-99b9dcb303ad?gi=a02bd8575964
 [9] https://stackoverflow.com/questions/75923936/inconsistent-error-behaviour-with-mui-datetimepicker-and-react-hook-form
 [10] https://ux.stackexchange.com/questions/7915/what-is-the-best-way-to-display-date-validation-errors
