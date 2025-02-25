@@ -138,11 +138,11 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         )}
 
         {isSuccess ? (
-          <div className="eb-rounded-lg eb-bg-green-50 eb-p-6 eb-text-center">
-            <h2 className="eb-mb-4 eb-text-2xl eb-font-bold eb-text-green-700">
+          <div className="eb-rounded-lg eb-bg-gray-200 eb-p-6 eb-text-center">
+            <h2 className="eb-mb-4 eb-text-2xl eb-font-bold eb-text-gray-700">
               Payment Successful!
             </h2>
-            <p className="eb-text-green-600">
+            <p className="eb-text-gray-600">
               Your payment has been processed successfully.
             </p>
             <Button className="eb-mt-4" onClick={handleMakeAnotherPayment}>
@@ -214,7 +214,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                     <FormLabel>Amount (USD)</FormLabel>
                     <FormControl>
                       <div className="eb-relative">
-                        <span className="eb-absolute eb-left-3 eb-top-1/2 eb-translate-y-1/2 eb-transform eb-text-gray-500">
+                        <span className="eb-absolute eb-left-3 eb-mt-2.5 eb-text-gray-500">
                           $
                         </span>
                         <Input
