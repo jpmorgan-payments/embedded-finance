@@ -120,7 +120,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
             variant="default"
             className="eb-mb-4 eb-border-blue-200 eb-bg-blue-50"
           >
-            <Info className="eb-h-4 eb-w-4 eb-mt-2 eb-text-blue-500" />
+            <Info className="eb-mt-2 eb-h-4 eb-w-4 eb-text-blue-500" />
             <AlertDescription className="eb-flex eb-items-center eb-justify-between eb-text-blue-700">
               <span>
                 Try our new payout capability for faster transactions!
