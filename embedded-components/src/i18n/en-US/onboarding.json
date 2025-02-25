@@ -113,6 +113,7 @@
       }
     },
     "individualIds": {
+      "label": "Individual Identification",
       "itemLabel": "Individual Identification",
       "itemLabelNumbered": "Individual Identification {{number}}",
       "validation": {
@@ -196,6 +197,7 @@
       }
     },
     "addresses": {
+      "label": "Business Address",
       "itemLabel": "Business Address",
       "itemLabelNumbered": "Business Address {{number}}",
       "appendLabel": "Add an address",
@@ -296,18 +298,16 @@
     },
 
     "industry.code": {
-      "label": "Industry Classification",
-      "placeholder": "Select industry type",
+      "label": "Industry classification",
+      "placeholder": "Select industry classification",
       "description": "Your business industry - search for the relevant industry type/category or the NAICS code.",
       "tooltip": "should match your business registration documents NAICS code",
       "validation": {
-        "maxLength": "Industry type must be 100 characters or less",
-        "required": "Industry type is required",
-        "format": "Industry type can only contain letters, numbers, and basic punctuation",
-        "minLength": "Industry type must be at least 3 characters"
+        "required": "Industry classification is required"
       }
     },
     "organizationIds": {
+      "label": "Business Identification",
       "itemLabel": "Business Identification",
       "itemLabelNumbered": "Business Identification {{number}}",
       "appendLabel": "Add ID",
@@ -837,5 +837,6 @@
   },
   "messages": {
     "solePropEinOptional": "As a sole proprietor, an EIN is optional unless you have employees or file certain tax returns."
-  }
+  },
+  "copyBusinessAddressLabel": "Controller's personal address is the same as the business address"
 }

@@ -1,0 +1,1 @@
+export { MakePayment } from './MakePayment';

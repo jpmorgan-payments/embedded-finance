@@ -38,10 +38,10 @@ export const efClientCorpEBMock: ClientResponse = {
         addresses: [
           {
             addressType: 'BUSINESS_ADDRESS',
-            addressLines: ['2029 Century Park E'],
-            city: 'Los Angeles',
+            addressLines: ['2030 Century Park E'],
+            city: 'San Francisco',
             state: 'CA',
-            postalCode: '90067',
+            postalCode: '90068',
             country: 'US',
           },
         ],

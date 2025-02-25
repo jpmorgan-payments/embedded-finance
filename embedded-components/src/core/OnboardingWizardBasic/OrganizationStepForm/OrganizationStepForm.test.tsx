@@ -134,7 +134,7 @@ describe('OrganizationStepForm', () => {
   test('validates postal code format', async () => {
     // Arrange
     renderComponent();
-    const postalCodeInput = await screen.findByDisplayValue('90067');
+    const postalCodeInput = await screen.findByDisplayValue('90068');
 
     // Act
     await userEvent.clear(postalCodeInput);

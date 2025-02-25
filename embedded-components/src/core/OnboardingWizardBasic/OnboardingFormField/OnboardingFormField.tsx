@@ -246,11 +246,18 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           placeholder="Enter phone number"
                           international={false}
                           defaultCountry="US"
+                          data-dtrum-tracking={field.name}
                         />
                       </FormControl>
                     );
                   case 'industrySelect':
-                    return <IndustryTypeSelect field={field} form={form} />;
+                    return (
+                      <IndustryTypeSelect
+                        field={field}
+                        form={form}
+                        data-dtrum-tracking={field.name}
+                      />
+                    );
                   case 'combobox':
                     return (
                       <Popover open={open} onOpenChange={setOpen}>
@@ -319,6 +326,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           onBlur();
                         }}
                         value={field.value}
+                        data-dtrum-tracking={field.name}
                       >
                         <FormControl {...fieldWithoutBlur}>
                           <SelectTrigger>
@@ -345,6 +353,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           value={field.value}
                           onValueChange={field.onChange}
                           className="eb-flex eb-flex-col eb-space-y-1"
+                          data-dtrum-tracking={field.name}
                         >
                           {options?.map((option) => (
                             <FormItem
@@ -370,6 +379,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             {...field}
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            data-dtrum-tracking={field.name}
                           />
                         </FormControl>
                         <div className="eb-space-y-1 eb-leading-none">
@@ -422,6 +432,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             type={type}
                             value={field.value}
                             placeholder={fieldPlaceholder}
+                            data-dtrum-tracking={field.name}
                           />
                         </FormControl>
                         {inputButton}
@@ -452,6 +463,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             }
                             field.onBlur();
                           }}
+                          data-dtrum-tracking={field.name}
                         />
                       </FormControl>
                     );
@@ -467,6 +479,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             type={type}
                             value={field.value}
                             placeholder={fieldPlaceholder}
+                            data-dtrum-tracking={field.name}
                           />
                         </FormControl>
                         {inputButton}

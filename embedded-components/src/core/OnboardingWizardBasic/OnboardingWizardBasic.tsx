@@ -1,5 +1,6 @@
 import { FC, useCallback, useEffect, useMemo } from 'react';
 import { defaultResources } from '@/i18n/config';
+import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -239,8 +240,14 @@ const OnboardingWizardBasicComponent: FC<
     organizationDetailsFromResponse?.organizationType,
   ]);
 
+  useEnableDTRUMTracking({
+    userEmail: 'test@test.com',
+    DOMElementToTrack: 'embedded-component-layout',
+    eventsToTrack: ['click', 'blur'],
+  });
+
   return (
-    <Card className="eb-component">
+    <Card className="eb-component" id="embedded-component-layout">
       <CardHeader>
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>

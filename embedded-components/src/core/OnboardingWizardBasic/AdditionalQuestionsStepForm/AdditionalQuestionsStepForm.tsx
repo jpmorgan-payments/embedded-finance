@@ -38,6 +38,7 @@ import { useStepForm } from '../utils/formUtils';
 import {
   createDynamicZodSchema,
   DATE_QUESTION_IDS,
+  MONEY_INPUT_QUESTION_IDS,
 } from './AdditionalQuestionsStepForm.schema';
 
 export const AdditionalQuestionsStepForm = () => {
@@ -119,6 +120,48 @@ export const AdditionalQuestionsStepForm = () => {
                   type="date"
                   onChange={(e) => field.onChange([e.target.value])}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      );
+    }
+
+    if (question.id && MONEY_INPUT_QUESTION_IDS.includes(question.id)) {
+      return (
+        <FormField
+          control={form.control}
+          name={fieldName}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel asterisk>{question.description}</FormLabel>
+              <FormControl>
+                <div className="eb-relative">
+                  <span className="eb-absolute eb-left-3 eb-translate-y-2 eb-text-gray-500">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={10000000000}
+                    step={0.01}
+                    placeholder="0.00"
+                    className="eb-pl-7"
+                    {...field}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      if (value >= 0 && value <= 10000000000) {
+                        field.onChange([e.target.value]);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = parseFloat(e.target.value);
+                      if (value < 0) field.onChange(['0']);
+                      if (value > 10000000000) field.onChange(['10000000000']);
+                    }}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

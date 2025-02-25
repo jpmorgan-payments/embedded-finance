@@ -27,7 +27,7 @@ export const REQUIRED_FIELDS_BY_TYPE: Record<string, string[]> = {
     'fields.yearOfFormation.label',
     'fields.countryOfFormation.label',
     'fields.organizationIds.label',
-    'fields.industryType.label',
+    'fields.industry.code.label',
   ],
 };
 
