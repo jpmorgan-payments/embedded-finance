@@ -13,21 +13,10 @@ export const paymentSchema = z.object({
     .string()
     .min(1, 'Amount is required')
     .regex(/^\d+(\.\d{1,2})?$/, 'Invalid amount format'),
-  method: z.enum(['ACH', 'RTP', 'WIRE']),
+  method: z.string().min(1, 'Payment method is required'),
 });
 
 type PaymentFormData = z.infer<typeof paymentSchema>;
-
-// Mock data for accounts and recipients
-const mockAccounts = [
-  { id: '1', name: 'Main Account' },
-  { id: '2', name: 'Savings Account' },
-];
-
-const mockRecipients = [
-  { id: '1', name: 'John Doe', accountNumber: '**** 1234' },
-  { id: '2', name: 'Jane Smith', accountNumber: '**** 5678' },
-];
 
 // Mock API call
 const mockPostTransaction = async (
@@ -79,8 +68,6 @@ export const usePaymentForm = () => {
     onSubmit,
     isLoading,
     isSuccess,
-    accounts: mockAccounts,
-    recipients: mockRecipients,
     resetForm,
   };
 };

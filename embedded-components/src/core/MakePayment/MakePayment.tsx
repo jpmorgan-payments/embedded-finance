@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -53,26 +53,56 @@ interface Recipient {
   accountNumber: string;
 }
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  fee: number;
+  description?: string;
+}
+
 interface PaymentComponentProps {
   triggerButton?: React.ReactNode;
+  accounts?: Account[];
+  recipients?: Recipient[];
+  paymentMethods?: PaymentMethod[];
 }
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
+  accounts = [{ id: 'account1', name: 'Main Account' }],
+  recipients = [
+    {
+      id: 'linkedAccount',
+      name: 'Linked Account John Doe',
+      accountNumber: '****1234',
+    },
+  ],
+  paymentMethods = [
+    { id: 'ACH', name: 'ACH', fee: 2.5 },
+    { id: 'RTP', name: 'RTP', fee: 1 },
+    { id: 'WIRE', name: 'WIRE', fee: 25 },
+  ],
 }) => {
   const { t } = useTranslation(['make-payment']);
-  const {
-    form,
-    onSubmit,
-    isLoading,
-    isSuccess,
-    accounts,
-    recipients,
-    resetForm,
-  } = usePaymentForm();
+  const { form, onSubmit, isLoading, isSuccess, resetForm } = usePaymentForm();
   const [showAd, setShowAd] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Preselect values when there's only a single option available
+  useEffect(() => {
+    if (accounts.length === 1) {
+      form.setValue('from', accounts[0].id);
+    }
+
+    if (recipients.length === 1) {
+      form.setValue('to', recipients[0].id);
+    }
+
+    if (paymentMethods.length === 1) {
+      form.setValue('method', paymentMethods[0].id);
+    }
+  }, [accounts, recipients, paymentMethods, form]);
 
   const handleConfirm = form.handleSubmit(onSubmit);
 
@@ -82,17 +112,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   const method = form.watch('method');
   const isFormFilled = amount > 0 && from && to && method;
 
-  const getFee = (paymentMethod: string) => {
-    switch (paymentMethod) {
-      case 'WIRE':
-        return 25;
-      case 'ACH':
-        return 2.5;
-      case 'RTP':
-        return 1;
-      default:
-        return 0;
-    }
+  const getFee = (paymentMethodId: string) => {
+    const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId);
+    return selectedMethod?.fee || 0;
   };
 
   const fee = getFee(method);
@@ -158,6 +180,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -187,6 +210,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -239,26 +263,28 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                         className="eb-flex eb-flex-col eb-space-y-1"
                       >
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <RadioGroupItem value="ACH" id="ach" />
-                          <Label htmlFor="ach" className="eb-cursor-pointer">
-                            {t('paymentMethods.ACH')}
-                          </Label>
-                        </div>
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <RadioGroupItem value="RTP" id="rtp" />
-                          <Label htmlFor="rtp" className="eb-cursor-pointer">
-                            {t('paymentMethods.RTP')}
-                          </Label>
-                        </div>
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <RadioGroupItem value="WIRE" id="wire" />
-                          <Label htmlFor="wire" className="eb-cursor-pointer">
-                            {t('paymentMethods.WIRE')}
-                          </Label>
-                        </div>
+                        {paymentMethods.map((paymentMethod) => (
+                          <div
+                            key={paymentMethod.id}
+                            className="eb-flex eb-items-center eb-space-x-2"
+                          >
+                            <RadioGroupItem
+                              value={paymentMethod.id}
+                              id={paymentMethod.id.toLowerCase()}
+                            />
+                            <Label
+                              htmlFor={paymentMethod.id.toLowerCase()}
+                              className="eb-cursor-pointer"
+                            >
+                              {t(`paymentMethods.${paymentMethod.id}`, {
+                                defaultValue: paymentMethod.name,
+                              })}
+                            </Label>
+                          </div>
+                        ))}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
@@ -298,9 +324,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       </div>
                       <CollapsibleContent className="eb-mt-2">
                         <div className="eb-rounded-md eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-text-muted-foreground">
-                          {method === 'WIRE' && t('feeDescriptions.WIRE')}
-                          {method === 'ACH' && t('feeDescriptions.ACH')}
-                          {method === 'RTP' && t('feeDescriptions.RTP')}
+                          {method &&
+                            t(`feeDescriptions.${method}`, {
+                              defaultValue:
+                                paymentMethods.find((m) => m.id === method)
+                                  ?.description || '',
+                            })}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
