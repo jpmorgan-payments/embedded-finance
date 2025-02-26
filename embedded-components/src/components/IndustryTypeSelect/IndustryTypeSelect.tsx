@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { ControllerRenderProps } from 'react-hook-form';
 import { VariableSizeList as List } from 'react-window';
 
 import { cn } from '@/lib/utils';
@@ -27,17 +28,31 @@ export interface NAICSCode {
 }
 
 interface IndustryTypeSelectProps {
-  field: any; // TODO: Replace with proper form field type
-  form: any; // TODO: Replace with proper form type
+  field: ControllerRenderProps<any, string>;
 }
 
-export const IndustryTypeSelect = ({
-  field,
-  form,
-}: IndustryTypeSelectProps) => {
+export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { onBlur, onChange, ...fieldWithoutBlur } = field;
+
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      });
+      observer.observe(containerRef.current);
+      return () => {
+        observer.disconnect();
+      };
+    }
+    return () => {};
+  }, []);
 
   // Memoize the filtered NAICS codes
   const filteredCodes = useMemo(() => {
@@ -93,121 +108,136 @@ export const IndustryTypeSelect = ({
   }, [filteredCodes]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <FormControl>
-          <Button
-            variant="outline"
-            role="combobox"
-            className={cn(
-              'eb-w-full eb-justify-between eb-font-normal',
-              !field.value && 'eb-text-muted-foreground'
-            )}
-            {...fieldWithoutBlur}
-          >
-            {field.value ? (
-              <div className="eb-flex eb-w-[calc(100%-1rem)]">
-                <span className="eb-overflow-hidden eb-text-ellipsis">
-                  [{form.getValues('industry.code')}]{' '}
-                  {
-                    naicsCodes.find((code) => code.id === field.value)
-                      ?.sectorDescription
-                  }
-                </span>
-                <span className="eb-pl-2 eb-text-muted-foreground">
-                  {
-                    naicsCodes.find((code) => code.id === field.value)
-                      ?.description
-                  }
-                </span>
-              </div>
-            ) : (
-              'Select industry type'
-            )}
-            <CaretSortIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
-          </Button>
-        </FormControl>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={4}
-        className="eb-w-[var(--radix-popover-trigger-width)] eb-p-0"
-      >
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="Search industry type..."
-            className="eb-h-9"
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
-          <CommandList className="eb-max-h-[300px]">
-            <CommandEmpty>No results found</CommandEmpty>
-            <div className="eb-relative" style={{ height: 300 }}>
-              <List
-                height={300}
-                itemCount={items.length}
-                itemSize={(index: number) => {
-                  return items[index].type === 'header' ? 36 : 60;
-                }}
-                width="100%"
-                className="eb-scrollbar-none eb-overflow-y-auto"
-              >
-                {({ index, style }) => {
-                  const item = items[index];
+    <div ref={containerRef} className="eb-w-full">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <FormControl>
+            <Button
+              variant="outline"
+              role="combobox"
+              className={cn(
+                'eb-w-full eb-justify-between eb-font-normal',
+                !field.value && 'eb-text-muted-foreground'
+              )}
+              {...fieldWithoutBlur}
+            >
+              {field.value ? (
+                <div className="eb-flex eb-w-[calc(100%-1rem)]">
+                  <span>[{field.value}]</span>
+                  <span className="eb-overflow-hidden eb-text-ellipsis eb-pl-1 eb-text-muted-foreground">
+                    {
+                      naicsCodes.find((code) => code.id === field.value)
+                        ?.sectorDescription
+                    }
+                  </span>
+                  <span className="eb-pl-2">
+                    {
+                      naicsCodes.find((code) => code.id === field.value)
+                        ?.description
+                    }
+                  </span>
+                </div>
+              ) : (
+                'Select industry type'
+              )}
+              <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+            </Button>
+          </FormControl>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          sideOffset={4}
+          className="eb-w-[var(--radix-popover-trigger-width)] eb-p-0"
+        >
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Search industry type..."
+              className="eb-h-9"
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
+            <CommandList className="eb-max-h-[300px]">
+              <CommandEmpty>No results found</CommandEmpty>
+              <div className="eb-relative" style={{ height: 300 }}>
+                <List
+                  key={searchQuery}
+                  height={300}
+                  itemCount={items.length}
+                  itemSize={(index: number) => {
+                    const lineHeight = 32;
+                    const additionalHeight = 18;
+                    if (containerWidth === 0) return lineHeight;
+                    const charsPerLine =
+                      Math.floor((containerWidth - 70) / 7) -
+                      (items[index].code?.length ?? 0);
+                    const numLines = Math.ceil(
+                      ((items[index].description?.length ?? 0) +
+                        items[index].category.length) /
+                        charsPerLine
+                    );
+                    return items[index].type === 'header'
+                      ? 36
+                      : lineHeight + (numLines - 1) * additionalHeight;
+                  }}
+                  width="100%"
+                  className="eb-scrollbar-none eb-overflow-y-auto"
+                >
+                  {({ index, style }) => {
+                    const item = items[index];
 
-                  if (item.type === 'header') {
+                    if (item.type === 'header') {
+                      return (
+                        <div
+                          key={item.id}
+                          style={{
+                            ...style,
+                            padding: '8px',
+                          }}
+                          className="eb-text-xs eb-font-semibold eb-text-muted-foreground"
+                        >
+                          {item.category}
+                        </div>
+                      );
+                    }
+
                     return (
-                      <div
+                      <CommandItem
                         key={item.id}
+                        value={item.code}
+                        onSelect={(value) => {
+                          onChange(value);
+                          onBlur();
+                          setOpen(false);
+                        }}
+                        className="eb-cursor-pointer eb-text-sm"
                         style={{
                           ...style,
                           padding: '8px',
-                          backgroundColor: 'rgb(243 244 246)',
                         }}
-                        className="eb-text-sm eb-font-medium eb-text-muted-foreground"
                       >
-                        {item.category}
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <CommandItem
-                      key={item.id}
-                      value={`${item.category} ${item.description} ${item.code}`}
-                      onSelect={() => {
-                        onChange(item.code);
-                        onBlur();
-                        setOpen(false);
-                      }}
-                      className="eb-text-sm"
-                      style={{
-                        ...style,
-                        padding: '8px',
-                      }}
-                    >
-                      <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                        [{item.category}] {item.description}
-                        <span className="eb-pl-2 eb-text-muted-foreground">
-                          {item.code}
+                        <Check
+                          className={cn(
+                            'eb-mr-2 eb-h-4 eb-w-4',
+                            field.value === item.code
+                              ? 'eb-opacity-100'
+                              : 'eb-opacity-0'
+                          )}
+                        />
+                        <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                          [{item.category}] {item.description}
+                          <span className="eb-pl-2 eb-text-muted-foreground">
+                            {item.code}
+                          </span>
                         </span>
-                      </span>
-                      <CheckIcon
-                        className={cn(
-                          'eb-ml-2 eb-h-4 eb-w-4',
-                          field.value === item.description
-                            ? 'eb-opacity-100'
-                            : 'eb-opacity-0'
-                        )}
-                      />
-                    </CommandItem>
-                  );
-                }}
-              </List>
-            </div>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                      </CommandItem>
+                    );
+                  }}
+                </List>
+              </div>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
