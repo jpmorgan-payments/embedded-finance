@@ -130,7 +130,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
                         ?.sectorDescription
                     }
                   </span>
-                  <span className="eb-pl-2">
+                  <span className="eb-overflow-hidden eb-text-ellipsis eb-pl-2">
                     {
                       naicsCodes.find((code) => code.id === field.value)
                         ?.description
