@@ -394,8 +394,9 @@ export const OrganizationStepForm = () => {
           <OnboardingFormField
             form={form}
             control={form.control}
-            name="industry.code"
+            name="industry"
             type="industrySelect"
+            className="eb-col-span-1 lg:eb-col-span-2"
           />
 
           <OnboardingFormField

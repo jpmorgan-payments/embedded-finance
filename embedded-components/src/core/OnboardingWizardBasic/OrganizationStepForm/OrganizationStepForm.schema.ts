@@ -233,11 +233,8 @@ export const OrganizationStepFormSchema = z.object({
       i18n.t('onboarding:fields.associatedCountries.validation.maxCountries')
     ),
   industry: z
-    .object({
-      code: z.string(),
-      codeType: z.enum(['NAICS', 'SIC']),
-    })
-    .required(i18n.t('onboarding:fields.industry.validation.required')),
+    .string()
+    .min(1, i18n.t('onboarding:fields.industry.validation.required')),
   organizationDescription: z
     .string()
     .min(10)

@@ -85,7 +85,7 @@ interface BaseProps<
   noOptionalLabel?: boolean;
   disableFieldRuleMapping?: boolean;
   inputProps?: React.ComponentProps<typeof Input>;
-  form?: UseFormReturn<TFieldValues, any, any>; // TODO: remove when IndustrySelect refactored
+  form?: UseFormReturn<TFieldValues, any, any>;
   maskFormat?: string;
   maskChar?: string;
 }
@@ -254,7 +254,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                     return (
                       <IndustryTypeSelect
                         field={field}
-                        form={form}
                         data-dtrum-tracking={field.name}
                       />
                     );
@@ -300,6 +299,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                       onBlur();
                                       setOpen(false);
                                     }}
+                                    className="eb-cursor-pointer"
                                   >
                                     <Check
                                       className={cn(
