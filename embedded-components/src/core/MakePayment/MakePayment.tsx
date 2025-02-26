@@ -1,8 +1,9 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Info, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 import { usePaymentForm } from './usePaymentForm';
 
@@ -51,25 +53,56 @@ interface Recipient {
   accountNumber: string;
 }
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  fee: number;
+  description?: string;
+}
+
 interface PaymentComponentProps {
   triggerButton?: React.ReactNode;
+  accounts?: Account[];
+  recipients?: Recipient[];
+  paymentMethods?: PaymentMethod[];
 }
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
+  accounts = [{ id: 'account1', name: 'Main Account' }],
+  recipients = [
+    {
+      id: 'linkedAccount',
+      name: 'Linked Account John Doe',
+      accountNumber: '****1234',
+    },
+  ],
+  paymentMethods = [
+    { id: 'ACH', name: 'ACH', fee: 2.5 },
+    { id: 'RTP', name: 'RTP', fee: 1 },
+    { id: 'WIRE', name: 'WIRE', fee: 25 },
+  ],
 }) => {
-  const {
-    form,
-    onSubmit,
-    isLoading,
-    isSuccess,
-    accounts,
-    recipients,
-    resetForm,
-  } = usePaymentForm();
+  const { t } = useTranslation(['make-payment']);
+  const { form, onSubmit, isLoading, isSuccess, resetForm } = usePaymentForm();
   const [showAd, setShowAd] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Preselect values when there's only a single option available
+  useEffect(() => {
+    if (accounts.length === 1) {
+      form.setValue('from', accounts[0].id);
+    }
+
+    if (recipients.length === 1) {
+      form.setValue('to', recipients[0].id);
+    }
+
+    if (paymentMethods.length === 1) {
+      form.setValue('method', paymentMethods[0].id);
+    }
+  }, [accounts, recipients, paymentMethods, form]);
 
   const handleConfirm = form.handleSubmit(onSubmit);
 
@@ -79,17 +112,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   const method = form.watch('method');
   const isFormFilled = amount > 0 && from && to && method;
 
-  const getFee = (paymentMethod: string) => {
-    switch (paymentMethod) {
-      case 'WIRE':
-        return 25;
-      case 'ACH':
-        return 2.5;
-      case 'RTP':
-        return 1;
-      default:
-        return 0;
-    }
+  const getFee = (paymentMethodId: string) => {
+    const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId);
+    return selectedMethod?.fee || 0;
   };
 
   const fee = getFee(method);
@@ -104,49 +129,43 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         {triggerButton || (
-          <Button onClick={() => setDialogOpen(true)}>Make a Payment</Button>
+          <Button onClick={() => setDialogOpen(true)}>
+            {t('buttons.makePayment')}
+          </Button>
         )}
       </DialogTrigger>
       <DialogContent className="eb-sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Make a Payment</DialogTitle>
-          <DialogDescription>
-            Enter the payment details below.
-          </DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         {!isSuccess && showAd && (
-          <Alert
-            variant="default"
-            className="eb-mb-4 eb-border-blue-200 eb-bg-blue-50"
-          >
-            <Info className="eb-mt-2 eb-h-4 eb-w-4 eb-text-blue-500" />
-            <AlertDescription className="eb-flex eb-items-center eb-justify-between eb-text-blue-700">
-              <span>
-                Try our new payout capability for faster transactions!
-              </span>
+          <Alert variant="default" className="eb-mb-4">
+            <Info className="eb-mt-0.5 eb-h-4 eb-w-4" />
+            <AlertDescription className="eb-flex eb-items-center eb-justify-between">
+              <span>{t('alerts.newPayoutCapability')}</span>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setShowAd(false)}
-                className="eb-text-blue-700 hover:eb-text-blue-900"
+                className="eb-h-6 eb-w-6 eb-p-0"
               >
                 <X className="eb-h-4 eb-w-4" />
+                <span className="eb-sr-only">Close</span>
               </Button>
             </AlertDescription>
           </Alert>
         )}
 
         {isSuccess ? (
-          <div className="eb-rounded-lg eb-bg-gray-200 eb-p-6 eb-text-center">
-            <h2 className="eb-mb-4 eb-text-2xl eb-font-bold eb-text-gray-700">
-              Payment Successful!
+          <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-4 eb-rounded-lg eb-bg-muted eb-p-6 eb-text-center">
+            <h2 className="eb-text-xl eb-font-semibold">
+              {t('success.title')}
             </h2>
-            <p className="eb-text-gray-600">
-              Your payment has been processed successfully.
-            </p>
-            <Button className="eb-mt-4" onClick={handleMakeAnotherPayment}>
-              Make Another Payment
+            <p className="eb-text-muted-foreground">{t('success.message')}</p>
+            <Button onClick={handleMakeAnotherPayment}>
+              {t('buttons.makeAnotherPayment')}
             </Button>
           </div>
         ) : (
@@ -157,14 +176,17 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="from"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>From Account</FormLabel>
+                    <FormLabel>{t('fields.from.label')}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select account" />
+                          <SelectValue
+                            placeholder={t('fields.from.placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -184,14 +206,17 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="to"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>To Recipient</FormLabel>
+                    <FormLabel>{t('fields.to.label')}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select recipient" />
+                          <SelectValue
+                            placeholder={t('fields.to.placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -211,16 +236,16 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount (USD)</FormLabel>
+                    <FormLabel>{t('fields.amount.label')}</FormLabel>
                     <FormControl>
                       <div className="eb-relative">
-                        <span className="eb-absolute eb-left-3 eb-mt-2.5 eb-text-gray-500">
+                        <span className="eb-absolute eb-left-3 eb-top-2.5 eb-text-muted-foreground">
                           $
                         </span>
                         <Input
                           {...field}
                           className="eb-pl-7"
-                          placeholder="0.00"
+                          placeholder={t('fields.amount.placeholder')}
                         />
                       </div>
                     </FormControl>
@@ -232,84 +257,106 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                 control={form.control}
                 name="method"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
+                  <FormItem className="eb-space-y-3">
+                    <FormLabel>{t('fields.method.label')}</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                         className="eb-flex eb-flex-col eb-space-y-1"
                       >
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <RadioGroupItem value="ACH" id="ach" />
-                          <Label htmlFor="ach">ACH</Label>
-                        </div>
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <RadioGroupItem value="RTP" id="rtp" />
-                          <Label htmlFor="rtp">RTP</Label>
-                        </div>
-                        <div className="eb-flex eb-items-center eb-space-x-2">
-                          <RadioGroupItem value="WIRE" id="wire" />
-                          <Label htmlFor="wire">WIRE</Label>
-                        </div>
+                        {paymentMethods.map((paymentMethod) => (
+                          <div
+                            key={paymentMethod.id}
+                            className="eb-flex eb-items-center eb-space-x-2"
+                          >
+                            <RadioGroupItem
+                              value={paymentMethod.id}
+                              id={paymentMethod.id.toLowerCase()}
+                            />
+                            <Label
+                              htmlFor={paymentMethod.id.toLowerCase()}
+                              className="eb-cursor-pointer"
+                            >
+                              {t(`paymentMethods.${paymentMethod.id}`, {
+                                defaultValue: paymentMethod.name,
+                              })}
+                            </Label>
+                          </div>
+                        ))}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               {isFormFilled && (
-                <Collapsible
-                  open={isOpen}
-                  onOpenChange={setIsOpen}
-                  className="eb-w-full eb-space-y-2"
-                >
-                  <div className="eb-flex eb-items-center eb-justify-between eb-space-x-4 eb-px-4">
-                    <h4 className="eb-text-sm eb-font-semibold">
-                      Transfer fee: ${fee.toFixed(2)}
-                    </h4>
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="eb-w-9 eb-p-0"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        {isOpen ? (
-                          <ChevronUp className="eb-h-4 eb-w-4" />
-                        ) : (
-                          <ChevronDown className="eb-h-4 eb-w-4" />
-                        )}
-                        <span className="eb-sr-only">Toggle</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <CollapsibleContent className="eb-space-y-2">
-                    <div className="eb-font-mono eb-rounded-md eb-border eb-px-4 eb-py-3 eb-text-sm">
-                      {method === 'WIRE' &&
-                        'Domestic wire transfer (outgoing): $25.00'}
-                      {method === 'ACH' && 'ACH transfer fee: $2.50'}
-                      {method === 'RTP' && 'Real-time payment (RTP) fee: $1.00'}
+                <>
+                  <Separator className="eb-my-2" />
+                  <div className="eb-space-y-3">
+                    <Collapsible
+                      open={isOpen}
+                      onOpenChange={setIsOpen}
+                      className="eb-w-full eb-rounded-md eb-border eb-border-input eb-px-3 eb-py-2"
+                    >
+                      <div className="eb-flex eb-items-center eb-justify-between eb-space-x-4">
+                        <h4 className="eb-text-sm eb-font-medium">
+                          {t('transferFee.label', { amount: fee.toFixed(2) })}
+                        </h4>
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="eb-h-8 eb-w-8 eb-p-0"
+                          >
+                            {isOpen ? (
+                              <ChevronUp className="eb-h-4 eb-w-4" />
+                            ) : (
+                              <ChevronDown className="eb-h-4 eb-w-4" />
+                            )}
+                            <span className="eb-sr-only">
+                              {t('transferFee.toggle')}
+                            </span>
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
+                      <CollapsibleContent className="eb-mt-2">
+                        <div className="eb-rounded-md eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-text-muted-foreground">
+                          {method &&
+                            t(`feeDescriptions.${method}`, {
+                              defaultValue:
+                                paymentMethods.find((m) => m.id === method)
+                                  ?.description || '',
+                            })}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    <div className="eb-text-sm eb-font-medium">
+                      {t('recipientGets', {
+                        amount: (amount - fee).toFixed(2),
+                      })}
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                </>
               )}
-              {isFormFilled && (
-                <div className="eb-text-sm eb-font-medium">
-                  Recipient gets: ${(amount - fee).toFixed(2)}
-                </div>
-              )}
+
               {!isAmountValid && amount > 0 && (
-                <div className="eb-text-sm eb-text-red-500">
-                  The amount must be greater than the transfer fee.
+                <div className="eb-text-sm eb-text-destructive">
+                  {t('fields.amount.validation.greaterThanFee')}
                 </div>
               )}
+
               <Button
                 type="submit"
                 className="eb-w-full"
                 disabled={isLoading || !isFormFilled || !isAmountValid}
               >
-                {isLoading ? 'Processing...' : 'Confirm Payment'}
+                {isLoading
+                  ? t('buttons.processing')
+                  : t('buttons.confirmPayment')}
               </Button>
             </form>
           </Form>

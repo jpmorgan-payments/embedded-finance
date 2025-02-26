@@ -1,0 +1,63 @@
+{
+  "title": "Send Money",
+  "description": "Enter the payment details below.",
+  "fields": {
+    "from": {
+      "label": "From Account",
+      "placeholder": "Select account",
+      "description": "",
+      "tooltip": ""
+    },
+    "to": {
+      "label": "To Recipient",
+      "placeholder": "Select recipient",
+      "description": "",
+      "tooltip": ""
+    },
+    "amount": {
+      "label": "Amount (USD)",
+      "placeholder": "0.00",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Amount is required",
+        "min": "Amount must be greater than 0",
+        "greaterThanFee": "The amount must be greater than the transfer fee"
+      }
+    },
+    "method": {
+      "label": "Payment Method",
+      "placeholder": "",
+      "description": "",
+      "tooltip": ""
+    }
+  },
+  "paymentMethods": {
+    "ACH": "ACH",
+    "RTP": "RTP",
+    "WIRE": "WIRE"
+  },
+  "feeDescriptions": {
+    "WIRE": "Domestic wire transfer (outgoing): $25.00",
+    "ACH": "ACH transfer fee: $2.50",
+    "RTP": "Real-time payment (RTP) fee: $1.00"
+  },
+  "buttons": {
+    "makePayment": "Send Money",
+    "confirmPayment": "Confirm Payment",
+    "makeAnotherPayment": "Make Another Payment",
+    "processing": "Processing..."
+  },
+  "alerts": {
+    "newPayoutCapability": "Try our new payout capability for faster transactions!"
+  },
+  "success": {
+    "title": "Payment Successful!",
+    "message": "Your payment has been processed successfully."
+  },
+  "transferFee": {
+    "label": "Transfer fee: ${{amount}}",
+    "toggle": "Toggle"
+  },
+  "recipientGets": "Recipient gets: ${{amount}}"
+}

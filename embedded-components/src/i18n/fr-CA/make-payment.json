@@ -1,0 +1,63 @@
+{
+  "title": "Effectuer un paiement",
+  "description": "Entrez les détails du paiement ci-dessous.",
+  "fields": {
+    "from": {
+      "label": "Compte d'origine",
+      "placeholder": "Sélectionner un compte",
+      "description": "",
+      "tooltip": ""
+    },
+    "to": {
+      "label": "Destinataire",
+      "placeholder": "Sélectionner un destinataire",
+      "description": "",
+      "tooltip": ""
+    },
+    "amount": {
+      "label": "Montant (USD)",
+      "placeholder": "0.00",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Le montant est requis",
+        "min": "Le montant doit être supérieur à 0",
+        "greaterThanFee": "Le montant doit être supérieur aux frais de transfert"
+      }
+    },
+    "method": {
+      "label": "Méthode de paiement",
+      "placeholder": "",
+      "description": "",
+      "tooltip": ""
+    }
+  },
+  "paymentMethods": {
+    "ACH": "ACH",
+    "RTP": "RTP",
+    "WIRE": "VIREMENT"
+  },
+  "feeDescriptions": {
+    "WIRE": "Virement bancaire national (sortant): 25,00 $",
+    "ACH": "Frais de transfert ACH: 2,50 $",
+    "RTP": "Frais de paiement en temps réel (RTP): 1,00 $"
+  },
+  "buttons": {
+    "makePayment": "Effectuer un paiement",
+    "confirmPayment": "Confirmer le paiement",
+    "makeAnotherPayment": "Effectuer un autre paiement",
+    "processing": "Traitement en cours..."
+  },
+  "alerts": {
+    "newPayoutCapability": "Essayez notre nouvelle fonctionnalité de paiement pour des transactions plus rapides!"
+  },
+  "success": {
+    "title": "Paiement réussi!",
+    "message": "Votre paiement a été traité avec succès."
+  },
+  "transferFee": {
+    "label": "Frais de transfert: {{amount}} $",
+    "toggle": "Basculer"
+  },
+  "recipientGets": "Le destinataire reçoit: {{amount}} $"
+}
