@@ -112,16 +112,13 @@ export const partyFieldMap: PartyFieldMap = {
     baseRule: {
       display: 'visible',
       required: true,
-      defaultValue: { code: '', codeType: 'NAICS' },
+      defaultValue: '',
     },
-    fromResponseFn: (val) => ({
-      code: val.code!,
-      codeType: val.codeType!,
-    }),
+    fromResponseFn: (val) => val.code,
     toRequestFn: (val) => {
       return {
         codeType: 'NAICS',
-        code: val.code,
+        code: val,
       };
     },
   },

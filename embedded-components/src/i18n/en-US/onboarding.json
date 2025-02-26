@@ -297,7 +297,7 @@
       }
     },
 
-    "industry.code": {
+    "industry": {
       "label": "Industry classification",
       "placeholder": "Select industry classification",
       "description": "Your business industry - search for the relevant industry type/category or the NAICS code.",

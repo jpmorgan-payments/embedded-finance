@@ -248,10 +248,10 @@ const OnboardingWizardBasicComponent: FC<
 
   return (
     <Card className="eb-component" id="embedded-component-layout">
-      <CardHeader>
+      <CardHeader className="eb-p-4">
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
-      <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4">
+      <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4 eb-p-4">
         {clientData && <MissingInfoAlert clientData={clientData} />}
         {clientData?.status === 'NEW' ||
         !clientId ||
