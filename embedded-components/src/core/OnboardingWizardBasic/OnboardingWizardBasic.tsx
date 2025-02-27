@@ -261,7 +261,6 @@ const OnboardingWizardBasicComponent: FC<
             steps={steps}
             variant={variant}
             mobileBreakpoint="1279px"
-        
           >
             {steps.map((stepProps, index) => {
               const { children, ...rest } = stepProps;
