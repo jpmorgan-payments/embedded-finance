@@ -3,6 +3,7 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Info, X } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -65,6 +66,7 @@ interface PaymentComponentProps {
   accounts?: Account[];
   recipients?: Recipient[];
   paymentMethods?: PaymentMethod[];
+  icon?: string;
 }
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
@@ -82,6 +84,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     { id: 'RTP', name: 'RTP', fee: 1 },
     { id: 'WIRE', name: 'WIRE', fee: 25 },
   ],
+  icon = 'CirclePlus',
 }) => {
   const { t } = useTranslation(['make-payment']);
   const { form, onSubmit, isLoading, isSuccess, resetForm } = usePaymentForm();
@@ -125,11 +128,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     setDialogOpen(true);
   };
 
+  // Get the icon component if it exists in Lucide
+  const IconComponent =
+    icon &&
+    (LucideIcons[icon as keyof typeof LucideIcons] as
+      | React.FC<React.SVGProps<SVGSVGElement>>
+      | undefined);
+
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         {triggerButton || (
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button
+            onClick={() => setDialogOpen(true)}
+            className="eb-flex eb-items-center eb-gap-2"
+          >
+            {IconComponent && <IconComponent className="eb-h-4 eb-w-4" />}
             {t('buttons.makePayment')}
           </Button>
         )}

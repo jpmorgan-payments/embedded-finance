@@ -209,7 +209,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
                           onBlur();
                           setOpen(false);
                         }}
-                        className="eb-cursor-pointer eb-text-sm"
+                        className="eb-cursor-pointer eb-text-xs sm:eb-text-sm"
                         style={{
                           ...style,
                           padding: '8px',
