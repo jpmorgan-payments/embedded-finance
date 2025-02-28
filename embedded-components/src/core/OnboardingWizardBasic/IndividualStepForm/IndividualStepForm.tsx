@@ -81,7 +81,10 @@ import {
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
-import { IndividualStepFormSchema } from './IndividualStepForm.schema';
+import {
+  IndividualStepFormSchema,
+  refineIndividualStepFormSchema,
+} from './IndividualStepForm.schema';
 
 export const IndividualStepForm = () => {
   const { nextStep } = useStepper();
@@ -105,11 +108,10 @@ export const IndividualStepForm = () => {
       (party.active || party.status === 'ACTIVE')
   );
 
-  console.log('existingOrgParty', existingOrgParty);
-
   const form = useStepFormWithFilters({
     clientData,
     schema: IndividualStepFormSchema,
+    refineSchemaFn: refineIndividualStepFormSchema,
     defaultValues: {},
   });
 
@@ -373,6 +375,7 @@ export const IndividualStepForm = () => {
             control={form.control}
             name="jobTitleDescription"
             type="text"
+            required={form.watch('jobTitle') === 'Other'}
           />
         </fieldset>
 

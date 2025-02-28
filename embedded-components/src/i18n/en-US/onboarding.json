@@ -193,7 +193,8 @@
         "maxLength": "Description must be at most 50 characters",
         "pattern": "Description can only contain letters, numbers, and basic punctuation",
         "noHtml": "Description cannot contain HTML",
-        "noUrls": "Description cannot contain URLs"
+        "noUrls": "Description cannot contain URLs",
+        "required": "Description is required when job title is Other."
       }
     },
     "addresses": {

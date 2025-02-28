@@ -148,14 +148,6 @@ export const IndividualStepFormSchema = z.object({
       i18n.t('onboarding:fields.firstName.validation.pattern')
     )
     .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noTrailingSpace')
-    )
-    .refine(
       (val) => !/\s\s/.test(val),
       i18n.t('onboarding:fields.individualName.validation.noConsecutiveSpaces')
     )
@@ -179,14 +171,6 @@ export const IndividualStepFormSchema = z.object({
       i18n.t('onboarding:fields.lastName.validation.pattern')
     )
     .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noTrailingSpace')
-    )
-    .refine(
       (val) => !/\s\s/.test(val),
       i18n.t('onboarding:fields.individualName.validation.noConsecutiveSpaces')
     )
@@ -207,21 +191,21 @@ export const IndividualStepFormSchema = z.object({
     return new Set(types).size === types.length;
   }, i18n.t('onboarding:fields.individualIds.validation.uniqueTypes')),
   jobTitle: z
-    .string()
-    .min(2, i18n.t('onboarding:fields.jobTitle.validation.minLength'))
-    .max(50, i18n.t('onboarding:fields.jobTitle.validation.maxLength'))
-    .regex(
-      /^[a-zA-Z0-9\s,.&-]+$/,
-      i18n.t('onboarding:fields.jobTitle.validation.pattern')
-    )
-    .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.jobTitle.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.jobTitle.validation.noTrailingSpace')
-    ),
+    .union([
+      z.enum([
+        'CEO',
+        'CFO',
+        'COO',
+        'President',
+        'Chairman',
+        'Senior Branch Manager',
+        'Other',
+      ]),
+      z.literal(''),
+    ])
+    .refine((val) => val !== '', {
+      message: i18n.t('common:validation.required'),
+    }),
   jobTitleDescription: z
     .string()
     .max(
@@ -254,3 +238,19 @@ export const IndividualStepFormSchema = z.object({
       message: i18n.t('common:validation.required'),
     }),
 });
+
+export const refineIndividualStepFormSchema = (
+  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+) => {
+  return schema.superRefine((values, context) => {
+    if (values.jobTitle === 'Other' && !values.jobTitleDescription) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: i18n.t(
+          'onboarding:fields.jobTitleDescription.validation.required'
+        ),
+        path: ['jobTitleDescription'],
+      });
+    }
+  });
+};
