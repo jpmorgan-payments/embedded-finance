@@ -1,0 +1,255 @@
+---
+description: while creating tests, updating tests
+globs: *.test.tsx
+alwaysApply: false
+---
+# Test Creation Rules for Embedded Finance Components
+
+## Test File Structure
+
+### 1. File Organization
+- Place test files adjacent to component files with `.test.tsx` extension
+- Follow naming pattern: `ComponentName.test.tsx`
+- Group related test files in `__tests__` directory for complex components
+
+### 2. Required Imports
+```typescript
+import { render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@test-utils';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/msw/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsProvider';
+```
+
+### 3. Test Setup Structure
+```typescript
+// 1. Mock external dependencies
+vi.mock('@/path/to/dependency', () => ({
+  useHook: () => ({ mockFunction: vi.fn() })
+}));
+
+// 2. Setup test data
+const mockData = {
+  // Component-specific mock data
+};
+
+// 3. Setup context mocks if needed
+const mockContext = {
+  // Context-specific mock data
+};
+
+// 4. Setup QueryClient
+const queryClient = new QueryClient();
+
+// 5. Component render helper
+const renderComponent = () => {
+  // Reset MSW handlers
+  server.resetHandlers();
+
+  // Setup API mocks
+  server.use(
+    http.get('/api/endpoint', () => {
+      return HttpResponse.json(mockData);
+    })
+  );
+
+  return render(
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{
+        name: 'enUS'
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ComponentName />
+      </QueryClientProvider>
+    </EBComponentsProvider>
+  );
+};
+```
+
+## Test Organization
+
+### 1. Test Suite Structure
+```typescript
+describe('ComponentName', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Group related tests
+  describe('rendering', () => {
+    test('renders component with initial state', async () => {
+      // Arrange
+      renderComponent();
+      
+      // Act (if needed)
+      
+      // Assert
+      expect(await screen.findByText(/expected text/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('interactions', () => {
+    test('handles user input correctly', async () => {
+      // Arrange
+      renderComponent();
+      
+      // Act
+      await userEvent.click(screen.getByRole('button', { name: /action/i }));
+      
+      // Assert
+      expect(screen.getByText(/updated state/i)).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### 2. Test Categories to Include
+1. Initial Rendering
+2. User Interactions
+3. Form Validation
+4. API Integration
+5. Error Handling
+6. Loading States
+7. Edge Cases
+8. Accessibility
+
+## Testing Patterns
+
+### 1. API Integration Testing
+```typescript
+test('handles API interactions', async () => {
+  // Setup specific API mock
+  server.use(
+    http.post('/api/endpoint', () => {
+      return HttpResponse.json({ success: true });
+    })
+  );
+
+  renderComponent();
+  
+  await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+  
+  await waitFor(() => {
+    expect(screen.getByText(/success/i)).toBeInTheDocument();
+  });
+});
+```
+
+### 2. Form Validation Testing
+```typescript
+test('validates form inputs', async () => {
+  renderComponent();
+  
+  const input = screen.getByLabelText(/field name/i);
+  await userEvent.type(input, 'invalid');
+  await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+  
+  expect(await screen.findByText(/error message/i)).toBeInTheDocument();
+});
+```
+
+### 3. Loading State Testing
+```typescript
+test('displays loading state', async () => {
+  server.use(
+    http.get('/api/endpoint', async () => {
+      await delay(1000);
+      return HttpResponse.json(mockData);
+    })
+  );
+
+  renderComponent();
+  
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  await waitFor(() => {
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+});
+```
+
+## Best Practices
+
+### 1. Query Methods Priority
+1. `getByRole` - Preferred for interactive elements
+2. `getByLabelText` - For form inputs
+3. `getByText` - For non-interactive elements
+4. `getByTestId` - Last resort, use sparingly
+
+### 2. Async Testing
+- Use `findBy` queries for elements that appear asynchronously
+- Use `waitFor` for complex async operations
+- Always await user events
+- Handle loading states appropriately
+
+### 3. Error Handling
+```typescript
+test('handles error states', async () => {
+  server.use(
+    http.get('/api/endpoint', () => {
+      return HttpResponse.json(
+        { error: 'Error message' },
+        { status: 400 }
+      );
+    })
+  );
+
+  renderComponent();
+  
+  expect(await screen.findByText(/error message/i)).toBeInTheDocument();
+});
+```
+
+### 4. Accessibility Testing
+```typescript
+test('meets accessibility requirements', async () => {
+  const { container } = renderComponent();
+  
+  expect(container).toHaveNoViolations();
+  
+  // Test keyboard navigation
+  const button = screen.getByRole('button');
+  button.focus();
+  expect(document.activeElement).toBe(button);
+});
+```
+
+## Test Coverage Requirements
+
+1. Minimum Coverage Thresholds:
+   - Statements: 80%
+   - Branches: 80%
+   - Functions: 80%
+   - Lines: 80%
+
+2. Required Test Scenarios:
+   - Initial render state
+   - All user interactions
+   - All API integrations
+   - Error states
+   - Loading states
+   - Form validation
+   - Accessibility compliance
+
+## Documentation Requirements
+
+1. Test Description:
+   - Clear test names describing the scenario
+   - Comments for complex test setup
+   - Documentation for mock data structure
+
+2. Test Organization:
+   - Group related tests in describe blocks
+   - Use consistent naming conventions
+   - Document test dependencies
+
+## Maintenance Guidelines
+
+1. Keep tests focused and atomic
+2. Update tests when component behavior changes
+3. Regularly review and refactor test code
+4. Maintain mock data separately
+5. Document complex test scenarios
