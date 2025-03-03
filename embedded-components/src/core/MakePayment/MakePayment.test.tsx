@@ -4,40 +4,6 @@ import { vi } from 'vitest';
 
 import { MakePayment } from './MakePayment';
 
-// Mock dependencies
-vi.mock('react-i18next', () => ({
-  // Use actual values from make-payment.json
-  useTranslation: () => ({
-    t: (key: string, options?: any) => {
-      const translations: Record<string, string> = {
-        title: 'Send Money',
-        description: 'Enter the payment details below.',
-        'buttons.makePayment': 'Send Money',
-        'buttons.confirmPayment': 'Confirm Payment',
-        'buttons.makeAnotherPayment': 'Make Another Payment',
-        'buttons.processing': 'Processing...',
-        'success.title': 'Payment Successful!',
-        'success.message': 'Your payment has been processed successfully.',
-      };
-
-      // Handle dynamic values with interpolation
-      if (key === 'transferFee.label' && options?.amount) {
-        return `Transfer fee: $${options.amount}`;
-      }
-
-      if (key === 'recipientGets' && options?.amount) {
-        return `Recipient gets: $${options.amount}`;
-      }
-
-      return translations[key] || key;
-    },
-  }),
-  initReactI18next: {
-    type: '3rdParty',
-    init: vi.fn(),
-  },
-}));
-
 // Create a mock for usePaymentForm
 const mockSetValue = vi.fn();
 const mockWatch = vi.fn();

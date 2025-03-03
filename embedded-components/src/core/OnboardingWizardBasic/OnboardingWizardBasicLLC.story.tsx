@@ -236,7 +236,42 @@ AdditionalDocumentsRequested.parameters = {
       http.get('/clients/0030000133', () => {
         return HttpResponse.json({
           ...efClientCorpEBMock,
-          status: 'ADDITIONAL_DOCUMENTS_REQUESTED',
+          status: 'INFORMATION_REQUESTED',
+        });
+      }),
+      http.get('/document-requests/68805', () => {
+        return HttpResponse.json(efDocumentRequestDetails);
+      }),
+      http.get('/document-requests/68804', () => {
+        return HttpResponse.json(efDocumentRequestDetails);
+      }),
+      http.post('/documents', () => {
+        return HttpResponse.json({
+          requestId: Math.random().toString(36).substring(7),
+          traceId: `doc-${Math.random().toString(36).substring(7)}`,
+        });
+      }),
+    ],
+  },
+};
+
+export const ClientStatusChangeSimulation = Default.bind({});
+ClientStatusChangeSimulation.storyName = '8. Client Status Change Simulation';
+ClientStatusChangeSimulation.args = {
+  ...WithClientId.args,
+  blockPostVerification: true,
+};
+let requestCount = 0;
+ClientStatusChangeSimulation.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000133', () => {
+        requestCount += 1;
+        const status =
+          requestCount > 3 ? 'INFORMATION_REQUESTED' : 'REVIEW_IN_PROGRESS';
+        return HttpResponse.json({
+          ...efClientCorpEBMock,
+          status,
         });
       }),
       http.get('/document-requests/68805', () => {

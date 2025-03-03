@@ -274,7 +274,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.organizationIds',
     baseRule: {
       display: 'visible',
-      minItems: 0,
+      minItems: 1,
       maxItems: 1,
       defaultValue: [
         {
