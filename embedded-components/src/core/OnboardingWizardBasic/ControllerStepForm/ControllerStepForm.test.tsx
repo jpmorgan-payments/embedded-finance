@@ -10,7 +10,7 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsPr
 
 import { OnboardingContextProvider } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { Jurisdiction } from '../utils/types';
-import { IndividualStepForm } from './IndividualStepForm';
+import { ControllerStepForm } from './ControllerStepForm';
 
 // Mock the useStepper hook
 vi.mock('@/components/ui/stepper', () => ({
@@ -52,7 +52,7 @@ const renderComponent = () => {
     >
       <OnboardingContextProvider {...mockOnboardingContext}>
         <QueryClientProvider client={queryClient}>
-          <IndividualStepForm />
+          <ControllerStepForm />
         </QueryClientProvider>
       </OnboardingContextProvider>
     </EBComponentsProvider>

@@ -88,7 +88,6 @@ import { useStepper } from '@/components/ui/stepper';
 import { Badge } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
-import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
@@ -105,6 +104,10 @@ import {
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
+import {
+  BeneficialOwnerStepFormSchema,
+  refineOwnerStepFormSchema,
+} from './BeneficialOwnerStepForm.schema';
 
 export const BeneficialOwnerStepForm = () => {
   const { nextStep } = useStepper();
@@ -125,7 +128,8 @@ export const BeneficialOwnerStepForm = () => {
 
   const ownerForm = useStepFormWithFilters({
     clientData,
-    schema: IndividualStepFormSchema,
+    schema: BeneficialOwnerStepFormSchema,
+    refineSchemaFn: refineOwnerStepFormSchema,
     defaultValues: {},
   });
 
@@ -236,7 +240,7 @@ export const BeneficialOwnerStepForm = () => {
         beneficialOwnerId
       );
       ownerForm.reset(
-        shapeFormValuesBySchema(formValues, IndividualStepFormSchema)
+        shapeFormValuesBySchema(formValues, BeneficialOwnerStepFormSchema)
       );
       setIsDialogOpen(true);
     }
@@ -244,7 +248,7 @@ export const BeneficialOwnerStepForm = () => {
 
   const handleAddBeneficialOwner = () => {
     setCurrentBeneficialOwnerId('');
-    ownerForm.reset(shapeFormValuesBySchema({}, IndividualStepFormSchema));
+    ownerForm.reset(shapeFormValuesBySchema({}, BeneficialOwnerStepFormSchema));
     setIsDialogOpen(true);
   };
 
@@ -410,9 +414,9 @@ export const BeneficialOwnerStepForm = () => {
   // Reset value of ID value field when ID type changes
   useEffect(() => {
     const subscription = ownerForm.watch((_, { name }) => {
-      if (name?.startsWith('individualIds') && name.endsWith('idType')) {
+      if (name?.startsWith('ownerIds') && name.endsWith('idType')) {
         const index = parseInt(name.split('.')[1], 10);
-        ownerForm.setValue(`individualIds.${index}.value`, '');
+        ownerForm.setValue(`ownerIds.${index}.value`, '');
       }
     });
     return () => subscription.unsubscribe();
@@ -681,19 +685,26 @@ export const BeneficialOwnerStepForm = () => {
                   </legend>
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="firstName"
+                    name="ownerFirstName"
                     type="text"
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="middleName"
+                    name="ownerMiddleName"
                     type="text"
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="lastName"
+                    name="ownerLastName"
                     type="text"
                   />
+
+                  <OnboardingFormField
+                    control={ownerForm.control}
+                    name="ownerNameSuffix"
+                    type="text"
+                  />
+
                   <OnboardingFormField
                     control={ownerForm.control}
                     name="birthDate"
@@ -717,7 +728,7 @@ export const BeneficialOwnerStepForm = () => {
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="jobTitle"
+                    name="ownerJobTitle"
                     type="select"
                     options={[
                       { value: 'CEO', label: t('jobTitles.CEO') },
@@ -734,13 +745,13 @@ export const BeneficialOwnerStepForm = () => {
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="jobTitleDescription"
+                    name="ownerJobTitleDescription"
                     type="text"
-                    disabled={ownerForm.watch('jobTitle') === 'Other'}
+                    required={ownerForm.watch('ownerJobTitle') === 'Other'}
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="individualEmail"
+                    name="ownerEmail"
                     type="email"
                   />
                 </fieldset>
@@ -755,7 +766,7 @@ export const BeneficialOwnerStepForm = () => {
                   </legend>
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="individualPhone.phoneType"
+                    name="ownerPhone.phoneType"
                     type="select"
                     options={[
                       {
@@ -774,7 +785,7 @@ export const BeneficialOwnerStepForm = () => {
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
-                    name="individualPhone.phoneNumber"
+                    name="ownerPhone.phoneNumber"
                     type="phone"
                   />
                 </fieldset>
@@ -782,7 +793,7 @@ export const BeneficialOwnerStepForm = () => {
                 {/* Addresses */}
                 <OnboardingArrayField
                   control={ownerForm.control}
-                  name="individualAddresses"
+                  name="ownerAddresses"
                   disabled={isOwnerFormSubmitting}
                   renderItem={({
                     itemLabel,
@@ -802,7 +813,7 @@ export const BeneficialOwnerStepForm = () => {
                       <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualAddresses.${index}.addressType`}
+                          name={`ownerAddresses.${index}.addressType`}
                           type="select"
                           // Dropdown fields need to be explicitly passed whether it's disabled rather than relying on the fieldset
                           disabled={disabled}
@@ -820,13 +831,13 @@ export const BeneficialOwnerStepForm = () => {
                         <div className="eb-col-span-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2">
                           <OnboardingFormField
                             control={ownerForm.control}
-                            name={`individualAddresses.${index}.primaryAddressLine`}
+                            name={`ownerAddresses.${index}.primaryAddressLine`}
                             type="text"
                           />
 
                           <OnboardingArrayField
                             control={ownerForm.control}
-                            name={`individualAddresses.${index}.additionalAddressLines`}
+                            name={`ownerAddresses.${index}.additionalAddressLines`}
                             renderItem={({
                               index: lineIndex,
                               field: lineField,
@@ -835,7 +846,7 @@ export const BeneficialOwnerStepForm = () => {
                               <OnboardingFormField
                                 key={lineField.id}
                                 control={ownerForm.control}
-                                name={`individualAddresses.${index}.additionalAddressLines.${lineIndex}.value`}
+                                name={`ownerAddresses.${index}.additionalAddressLines.${lineIndex}.value`}
                                 type="text"
                                 inputButton={renderLineRemoveButton({
                                   className: 'eb-align-end',
@@ -848,20 +859,20 @@ export const BeneficialOwnerStepForm = () => {
 
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualAddresses.${index}.city`}
+                          name={`ownerAddresses.${index}.city`}
                           type="text"
                         />
 
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualAddresses.${index}.state`}
+                          name={`ownerAddresses.${index}.state`}
                           type="select"
                           options={stateOptions}
                         />
 
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualAddresses.${index}.postalCode`}
+                          name={`ownerAddresses.${index}.postalCode`}
                           type="text"
                           inputProps={{
                             pattern: '[0-9]{5}',
@@ -872,7 +883,7 @@ export const BeneficialOwnerStepForm = () => {
 
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualAddresses.${index}.country`}
+                          name={`ownerAddresses.${index}.country`}
                           type="combobox"
                           options={COUNTRIES_OF_FORMATION.map((code) => ({
                             value: code,
@@ -894,10 +905,10 @@ export const BeneficialOwnerStepForm = () => {
                   )}
                 />
 
-                {/* Individual IDs */}
+                {/* Owner IDs */}
                 <OnboardingArrayField
                   control={ownerForm.control}
-                  name="individualIds"
+                  name="ownerIds"
                   disabled={isOwnerFormSubmitting}
                   renderItem={({
                     field,
@@ -918,7 +929,7 @@ export const BeneficialOwnerStepForm = () => {
                       <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualIds.${index}.idType`}
+                          name={`ownerIds.${index}.idType`}
                           type="select"
                           options={[
                             { value: 'SSN', label: 'SSN' },
@@ -928,9 +939,9 @@ export const BeneficialOwnerStepForm = () => {
                         />
 
                         <OnboardingFormField
-                          key={`individual-id-value-${index}-${field.idType}`}
+                          key={`owner-id-value-${index}-${field.idType}`}
                           control={ownerForm.control}
-                          name={`individualIds.${index}.value`}
+                          name={`ownerIds.${index}.value`}
                           type="text"
                           label={getValueLabel(field.idType)}
                           maskFormat={getMaskFormat(field.idType)}
@@ -939,7 +950,7 @@ export const BeneficialOwnerStepForm = () => {
 
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualIds.${index}.issuer`}
+                          name={`ownerIds.${index}.issuer`}
                           type="combobox"
                           options={COUNTRIES_OF_FORMATION.map((code) => ({
                             value: code,
@@ -955,12 +966,12 @@ export const BeneficialOwnerStepForm = () => {
                         />
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualIds.${index}.expiryDate`}
+                          name={`ownerIds.${index}.expiryDate`}
                           type="date"
                         />
                         <OnboardingFormField
                           control={ownerForm.control}
-                          name={`individualIds.${index}.description`}
+                          name={`ownerIds.${index}.description`}
                           type="text"
                         />
                       </div>

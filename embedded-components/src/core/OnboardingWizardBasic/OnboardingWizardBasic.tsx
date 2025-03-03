@@ -18,9 +18,9 @@ import { useContentTokens } from '../EBComponentsProvider/EBComponentsProvider';
 import { AdditionalQuestionsStepForm } from './AdditionalQuestionsStepForm/AdditionalQuestionsStepForm';
 import { BeneficialOwnerStepForm } from './BeneficialOwnerStepForm/BeneficialOwnerStepForm';
 import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnboardingStateView';
+import { ControllerStepForm } from './ControllerStepForm/ControllerStepForm';
 import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadStepForm';
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
-import { IndividualStepForm } from './IndividualStepForm/IndividualStepForm';
 import { InitialStepForm } from './InitialStepForm/InitialStepForm';
 import {
   OnboardingContextProvider,
@@ -167,7 +167,7 @@ const OnboardingWizardBasicComponent: FC<
     },
     {
       label: t('stepLabels.individualDetails'),
-      children: <IndividualStepForm />,
+      children: <ControllerStepForm />,
     },
     // {
     //   label: t('stepLabels.decisionMakers'),

@@ -9,19 +9,19 @@ const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
-const individualIdSchema = z
+const controllerIdSchema = z
   .object({
     description: z.string().optional(),
     expiryDate: z
       .string()
       .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
         message: i18n.t(
-          'onboarding:fields.individualIds.expiryDate.validation.format'
+          'onboarding:fields.controllerIds.expiryDate.validation.format'
         ),
       })
       .refine((val) => !Number.isNaN(new Date(val).getTime()), {
         message: i18n.t(
-          'onboarding:fields.individualIds.expiryDate.validation.invalid'
+          'onboarding:fields.controllerIds.expiryDate.validation.invalid'
         ),
       })
       .refine(
@@ -32,7 +32,7 @@ const individualIdSchema = z
         },
         {
           message: i18n.t(
-            'onboarding:fields.individualIds.expiryDate.validation.past'
+            'onboarding:fields.controllerIds.expiryDate.validation.past'
           ),
         }
       )
@@ -47,7 +47,7 @@ const individualIdSchema = z
         },
         {
           message: i18n.t(
-            'onboarding:fields.individualIds.expiryDate.validation.tooFar'
+            'onboarding:fields.controllerIds.expiryDate.validation.tooFar'
           ),
         }
       )
@@ -66,18 +66,18 @@ const individualIdSchema = z
       .length(
         2,
         i18n.t(
-          'onboarding:fields.individualIds.issuer.validation.exactlyTwoChars'
+          'onboarding:fields.controllerIds.issuer.validation.exactlyTwoChars'
         )
       ),
     value: z
       .string()
       .min(
         1,
-        i18n.t('onboarding:fields.individualIds.value.validation.required')
+        i18n.t('onboarding:fields.controllerIds.value.validation.required')
       )
       .refine((val: string) => !/\s/.test(val), {
         message: i18n.t(
-          'onboarding:fields.individualIds.value.validation.noSpaces'
+          'onboarding:fields.controllerIds.value.validation.noSpaces'
         ),
       }),
   })
@@ -96,17 +96,17 @@ const individualIdSchema = z
     },
     (data) => ({
       message: i18n.t(
-        `onboarding:fields.individualIds.value.validation.${data.idType.toLowerCase()}Format`
+        `onboarding:fields.controllerIds.value.validation.${data.idType.toLowerCase()}Format`
       ),
       path: ['value'],
     })
   );
 
-export const IndividualStepFormSchema = z.object({
-  individualAddresses: z.array(AddressSchema).refine((addresses) => {
+export const ControllerStepFormSchema = z.object({
+  controllerAddresses: z.array(AddressSchema).refine((addresses) => {
     const types = addresses.map((addr) => addr.addressType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.individualAddresses.validation.uniqueTypes')),
+  }, i18n.t('onboarding:fields.controllerAddresses.validation.uniqueTypes')),
   birthDate: z
     .string()
     .regex(
@@ -139,7 +139,7 @@ export const IndividualStepFormSchema = z.object({
       2,
       i18n.t('onboarding:fields.countryOfResidence.validation.exactlyTwoChars')
     ),
-  firstName: z
+  controllerFirstName: z
     .string()
     .min(2, i18n.t('onboarding:fields.firstName.validation.minLength'))
     .max(30, i18n.t('onboarding:fields.firstName.validation.maxLength'))
@@ -149,20 +149,20 @@ export const IndividualStepFormSchema = z.object({
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveSpaces')
+      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveSpaces')
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveHyphens')
+      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveHyphens')
     ),
-  middleName: z
+  controllerMiddleName: z
     .string()
     .max(30, i18n.t('onboarding:fields.middleName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
       i18n.t('onboarding:fields.middleName.validation.pattern')
     ),
-  lastName: z
+  controllerLastName: z
     .string()
     .min(2, i18n.t('onboarding:fields.lastName.validation.minLength'))
     .max(30, i18n.t('onboarding:fields.lastName.validation.maxLength'))
@@ -172,13 +172,13 @@ export const IndividualStepFormSchema = z.object({
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveSpaces')
+      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveSpaces')
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveHyphens')
+      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveHyphens')
     ),
-  nameSuffix: z
+  controllerNameSuffix: z
     .string()
     .min(1, i18n.t('onboarding:fields.nameSuffix.validation.minLength'))
     .max(5, i18n.t('onboarding:fields.nameSuffix.validation.maxLength'))
@@ -186,11 +186,11 @@ export const IndividualStepFormSchema = z.object({
       SUFFIX_PATTERN,
       i18n.t('onboarding:fields.nameSuffix.validation.pattern')
     ),
-  individualIds: z.array(individualIdSchema).refine((ids) => {
+  controllerIds: z.array(controllerIdSchema).refine((ids) => {
     const types = ids.map((id) => id.idType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.individualIds.validation.uniqueTypes')),
-  jobTitle: z
+  }, i18n.t('onboarding:fields.controllerIds.validation.uniqueTypes')),
+  controllerJobTitle: z
     .union([
       z.enum([
         'CEO',
@@ -206,7 +206,7 @@ export const IndividualStepFormSchema = z.object({
     .refine((val) => val !== '', {
       message: i18n.t('common:validation.required'),
     }),
-  jobTitleDescription: z
+  controllerJobTitleDescription: z
     .string()
     .max(
       50,
@@ -224,14 +224,14 @@ export const IndividualStepFormSchema = z.object({
       (val) => !/https?:\/\/[^\s]+/.test(val),
       i18n.t('onboarding:fields.jobTitleDescription.validation.noUrls')
     ),
-  individualEmail: z
+  controllerEmail: z
     .string()
     .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
     .max(
       100,
       i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
     ),
-  individualPhone: PhoneSchema,
+  controllerPhone: PhoneSchema,
   natureOfOwnership: z
     .union([z.enum(['Direct', 'Indirect']), z.literal('')])
     .refine((val) => val !== '', {
@@ -239,17 +239,20 @@ export const IndividualStepFormSchema = z.object({
     }),
 });
 
-export const refineIndividualStepFormSchema = (
+export const refineControllerStepFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
-    if (values.jobTitle === 'Other' && !values.jobTitleDescription) {
+    if (
+      values.controllerJobTitle === 'Other' &&
+      !values.controllerJobTitleDescription
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: i18n.t(
-          'onboarding:fields.jobTitleDescription.validation.required'
+          'onboarding:fields.controllerJobTitleDescription.validation.required'
         ),
-        path: ['jobTitleDescription'],
+        path: ['controllerJobTitleDescription'],
       });
     }
   });

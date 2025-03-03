@@ -66,7 +66,15 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: '',
     },
   },
-  individualEmail: {
+  controllerEmail: {
+    path: 'email',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  ownerEmail: {
     path: 'email',
     baseRule: {
       display: 'visible',
@@ -403,19 +411,19 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.countryOfResidence',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
   },
-  firstName: {
+  controllerFirstName: {
     path: 'individualDetails.firstName',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
   },
-  middleName: {
+  controllerMiddleName: {
     path: 'individualDetails.middleName',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
   },
-  lastName: {
+  controllerLastName: {
     path: 'individualDetails.lastName',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
   },
-  nameSuffix: {
+  controllerNameSuffix: {
     path: 'individualDetails.nameSuffix',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
@@ -428,7 +436,32 @@ export const partyFieldMap: PartyFieldMap = {
       },
     ],
   },
-  individualIds: {
+  ownerFirstName: {
+    path: 'individualDetails.firstName',
+    baseRule: { display: 'visible', required: true, defaultValue: '' },
+  },
+  ownerMiddleName: {
+    path: 'individualDetails.middleName',
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
+  },
+  ownerLastName: {
+    path: 'individualDetails.lastName',
+    baseRule: { display: 'visible', required: true, defaultValue: '' },
+  },
+  ownerNameSuffix: {
+    path: 'individualDetails.nameSuffix',
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['MERCHANT_SERVICES'],
+          jurisdiction: ['CA'],
+        },
+        rule: { display: 'hidden' },
+      },
+    ],
+  },
+  controllerIds: {
     path: 'individualDetails.individualIds',
     baseRule: {
       display: 'visible',
@@ -447,7 +480,6 @@ export const partyFieldMap: PartyFieldMap = {
         value: '',
       },
     },
-
     subFields: {
       idType: {
         baseRule: { display: 'visible', required: true },
@@ -498,9 +530,104 @@ export const partyFieldMap: PartyFieldMap = {
       },
     },
   },
-  jobTitle: {
+  ownerIds: {
+    path: 'individualDetails.individualIds',
+    baseRule: {
+      display: 'visible',
+      minItems: 1,
+      maxItems: 1,
+      defaultValue: [
+        {
+          idType: 'SSN',
+          issuer: 'US',
+          value: '',
+        },
+      ],
+      defaultAppendValue: {
+        idType: 'SSN',
+        issuer: 'US',
+        value: '',
+      },
+    },
+    subFields: {
+      idType: {
+        baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { interaction: 'disabled' },
+          },
+        ],
+      },
+      issuer: {
+        baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { interaction: 'disabled', defaultValue: 'US' },
+          },
+        ],
+      },
+      value: {
+        baseRule: { display: 'visible', required: true },
+      },
+      description: {
+        baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
+      },
+      expiryDate: {
+        baseRule: { display: 'visible', required: false },
+        conditionalRules: [
+          {
+            condition: {
+              product: ['EMBEDDED_PAYMENTS'],
+            },
+            rule: { display: 'hidden' },
+          },
+        ],
+      },
+    },
+  },
+  controllerJobTitle: {
     path: 'individualDetails.jobTitle',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['MERCHANT_SERVICES'],
+          jurisdiction: ['CA'],
+        },
+        rule: { display: 'hidden' },
+      },
+    ],
+  },
+  ownerJobTitle: {
+    path: 'individualDetails.jobTitle',
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          product: ['MERCHANT_SERVICES'],
+          jurisdiction: ['CA'],
+        },
+        rule: { display: 'hidden' },
+      },
+    ],
+  },
+  controllerJobTitleDescription: {
+    path: 'individualDetails.jobTitleDescription',
+    baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {
         condition: {
@@ -514,11 +641,11 @@ export const partyFieldMap: PartyFieldMap = {
           product: ['EMBEDDED_PAYMENTS'],
           entityType: ['SOLE_PROPRIETORSHIP'],
         },
-        rule: { defaultValue: 'CEO' },
+        rule: { interaction: 'disabled' },
       },
     ],
   },
-  jobTitleDescription: {
+  ownerJobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
@@ -542,7 +669,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.natureOfOwnership',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
   },
-  individualAddresses: {
+  controllerAddresses: {
     path: 'individualDetails.addresses',
     modifyErrorField: (field) => {
       const parts = field.split('.');
@@ -649,7 +776,136 @@ export const partyFieldMap: PartyFieldMap = {
       }));
     },
   },
-  individualPhone: {
+  ownerAddresses: {
+    path: 'individualDetails.addresses',
+    modifyErrorField: (field) => {
+      const parts = field.split('.');
+      const lastPart = parts[parts.length - 1];
+      const secondToLastPart = parts[parts.length - 2];
+      if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
+        if (lastPart === '0') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'primaryAddressLine',
+          ].join('.');
+        }
+
+        return [
+          ...parts.slice(0, parts.length - 2),
+          'additionalAddressLines',
+          Number(lastPart) - 1,
+          'value',
+        ].join('.');
+      }
+
+      return field;
+    },
+    baseRule: {
+      display: 'visible',
+      minItems: 1,
+      maxItems: 1,
+      defaultValue: [
+        {
+          addressType: 'RESIDENTIAL_ADDRESS',
+          primaryAddressLine: '',
+          additionalAddressLines: [{ value: '' }],
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+      ],
+      defaultAppendValue: {
+        addressType: 'RESIDENTIAL_ADDRESS',
+        primaryAddressLine: '',
+        additionalAddressLines: [{ value: '' }],
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
+      },
+    },
+    subFields: {
+      addressType: {
+        baseRule: { display: 'visible', required: true },
+      },
+      primaryAddressLine: {
+        baseRule: { display: 'visible', required: true },
+      },
+      additionalAddressLines: {
+        baseRule: {
+          display: 'visible',
+          minItems: 1,
+          maxItems: 1,
+        },
+        subFields: {
+          value: {
+            baseRule: { display: 'visible', required: false },
+          },
+        },
+      },
+      city: {
+        baseRule: { display: 'visible', required: true },
+      },
+      state: {
+        baseRule: { display: 'visible', required: true },
+      },
+      postalCode: {
+        baseRule: { display: 'visible', required: true },
+      },
+      country: {
+        baseRule: { display: 'visible', required: true },
+      },
+    },
+    fromResponseFn: (addressesFromApi: AddressDto[]) => {
+      return addressesFromApi.map((address) => ({
+        ...address,
+        primaryAddressLine: address?.addressLines?.[0] ?? '',
+        additionalAddressLines:
+          address?.addressLines?.length > 1
+            ? address.addressLines?.slice(1).map((line: any) => ({
+                value: line.value,
+              }))
+            : [{ value: '' }],
+        state: address.state ?? '',
+        addressType: address.addressType ?? 'LEGAL_ADDRESS',
+      }));
+    },
+    toRequestFn: (addresses): AddressDto[] => {
+      return addresses.map((address) => ({
+        ...address,
+        addressLines: [
+          address.primaryAddressLine,
+          ...address.additionalAddressLines
+            .filter((line) => line.value)
+            .map((line) => line.value),
+        ],
+      }));
+    },
+  },
+  controllerPhone: {
+    path: 'individualDetails.phone',
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
+    },
+    fromResponseFn: (val: PhoneSmbdo) => ({
+      phoneType: val.phoneType!,
+      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+    }),
+    toRequestFn: (val): PhoneSmbdo => {
+      const phone = parsePhoneNumber(val.phoneNumber);
+      return {
+        phoneType: val.phoneType,
+        countryCode: phone?.countryCallingCode
+          ? `+${phone.countryCallingCode}`
+          : '',
+        phoneNumber: phone?.nationalNumber ?? '',
+      };
+    },
+  },
+  ownerPhone: {
     path: 'individualDetails.phone',
     baseRule: {
       display: 'visible',
