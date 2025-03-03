@@ -10,7 +10,6 @@ import {
   XCircleIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ClientStatus } from '@/api/generated/smbdo.schemas';
@@ -22,6 +21,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { NotificationService } from './NotificationService';
+import { usePageVisibility } from './usePageVisibility';
+import { useClientStatusMonitor } from './useStatusMonitor';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
@@ -91,6 +93,26 @@ export const ClientOnboardingStateView: React.FC = () => {
   } = useSmbdoGetClient(clientId ?? '');
   const { t } = useTranslation(['onboarding', 'common']);
 
+  const isVisible = usePageVisibility();
+
+  const handleStatusChange = (
+    oldStatus: ClientStatus,
+    newStatus: ClientStatus
+  ) => {
+    // If tab is not visible, show a notification
+    if (!isVisible) {
+      NotificationService.showNotification('Status Changed', {
+        body: `Status changed from ${oldStatus} to ${newStatus}`,
+        icon: '/path/to/icon.png',
+      });
+    }
+
+    // You can also implement additional logic here
+    console.log(`Status changed from ${oldStatus} to ${newStatus}`);
+  };
+
+  useClientStatusMonitor(clientId, handleStatusChange);
+
   const statusMessages: Record<ClientStatus, string> = {
     NEW: t('clientOnboardingStatus.statusMessages.NEW'),
     REVIEW_IN_PROGRESS: t(
@@ -106,7 +128,7 @@ export const ClientOnboardingStateView: React.FC = () => {
   };
 
   const handleNotificationSignup = () => {
-    toast.success(t('clientOnboardingStatus.notification.toast.title'));
+    NotificationService.requestPermission();
   };
 
   if (isLoading) {
@@ -151,17 +173,37 @@ export const ClientOnboardingStateView: React.FC = () => {
               'Your client KYC process is currently being reviewed. Please check back regularly for updates on the verification status.'
             )}
           </p>
-          <Button
-            variant="outline"
-            className="eb-border-blue-200 eb-bg-white eb-text-blue-700 hover:eb-bg-blue-50"
-            onClick={handleNotificationSignup}
-          >
-            <BellIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-            {t(
-              'clientOnboardingStatus.notification.cta',
-              'Get notification updates'
-            )}
-          </Button>
+          {NotificationService.getStatus() === 'default' ? (
+            <Button
+              variant="outline"
+              className="eb-border-blue-200 eb-bg-white eb-text-blue-700 hover:eb-bg-blue-50"
+              onClick={handleNotificationSignup}
+            >
+              <BellIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {t(
+                'clientOnboardingStatus.notification.cta',
+                'Get notification updates'
+              )}
+            </Button>
+          ) : (
+            <div className="eb-flex eb-items-center eb-text-sm eb-text-gray-600">
+              <BellIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {NotificationService.getStatus() === 'granted'
+                ? t(
+                    'clientOnboardingStatus.notification.enabled',
+                    'Notifications enabled'
+                  )
+                : NotificationService.getStatus() === 'denied'
+                  ? t(
+                      'clientOnboardingStatus.notification.denied',
+                      'Notifications blocked'
+                    )
+                  : t(
+                      'clientOnboardingStatus.notification.unsupported',
+                      'Notifications not supported'
+                    )}
+            </div>
+          )}
         </AlertDescription>
       </Alert>
 
