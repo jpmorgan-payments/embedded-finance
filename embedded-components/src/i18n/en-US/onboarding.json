@@ -61,7 +61,7 @@
     "organizationType": {
       "label": "Business Type",
       "placeholder": "Select business type",
-      "description": "Please select the most appropriate NAICS code, ensuring it accurately represents your business activity and avoiding similar but less relevant codes.",
+      "description": "Please select the most appropriate business type",
       "tooltip": "",
       "group": "organization"
     },
