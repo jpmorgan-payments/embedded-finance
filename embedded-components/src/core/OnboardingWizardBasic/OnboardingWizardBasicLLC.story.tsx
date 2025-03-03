@@ -236,7 +236,7 @@ AdditionalDocumentsRequested.parameters = {
       http.get('/clients/0030000133', () => {
         return HttpResponse.json({
           ...efClientCorpEBMock,
-          status: 'ADDITIONAL_DOCUMENTS_REQUESTED',
+          status: 'INFORMATION_REQUESTED',
         });
       }),
       http.get('/document-requests/68805', () => {

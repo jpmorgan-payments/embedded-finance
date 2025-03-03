@@ -1,16 +1,22 @@
 import React from 'react';
 import {
   AlertCircleIcon,
+  BellIcon,
   CheckCircleIcon,
   CircleIcon,
   ClockIcon,
+  InfoIcon,
   PauseCircleIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ClientStatus } from '@/api/generated/smbdo.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -49,17 +55,6 @@ const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
     },
   };
 
-const statusMessages: Record<ClientStatus, string> = {
-  NEW: 'A new client application has been submitted and is awaiting review.',
-  REVIEW_IN_PROGRESS: 'The client application is currently under review.',
-  INFORMATION_REQUESTED:
-    'Additional information has been requested from the client.',
-  APPROVED: 'The client application has been approved.',
-  DECLINED: 'The client application has been declined.',
-  SUSPENDED: 'The client account has been temporarily suspended.',
-  TERMINATED: 'The client account has been terminated.',
-};
-
 interface DetailRowProps {
   label: string;
   value: string;
@@ -94,6 +89,25 @@ export const ClientOnboardingStateView: React.FC = () => {
     isLoading,
     error,
   } = useSmbdoGetClient(clientId ?? '');
+  const { t } = useTranslation(['onboarding', 'common']);
+
+  const statusMessages: Record<ClientStatus, string> = {
+    NEW: t('clientOnboardingStatus.statusMessages.NEW'),
+    REVIEW_IN_PROGRESS: t(
+      'clientOnboardingStatus.statusMessages.REVIEW_IN_PROGRESS'
+    ),
+    INFORMATION_REQUESTED: t(
+      'clientOnboardingStatus.statusMessages.INFORMATION_REQUESTED'
+    ),
+    APPROVED: t('clientOnboardingStatus.statusMessages.APPROVED'),
+    DECLINED: t('clientOnboardingStatus.statusMessages.DECLINED'),
+    SUSPENDED: t('clientOnboardingStatus.statusMessages.SUSPENDED'),
+    TERMINATED: t('clientOnboardingStatus.statusMessages.TERMINATED'),
+  };
+
+  const handleNotificationSignup = () => {
+    toast.success(t('clientOnboardingStatus.notification.toast.title'));
+  };
 
   if (isLoading) {
     return <LoadingState />;
@@ -105,8 +119,8 @@ export const ClientOnboardingStateView: React.FC = () => {
         <CardContent className="eb-p-6">
           <div className="eb-text-center eb-text-red-600">
             {error
-              ? 'Error loading client information'
-              : 'No client data available'}
+              ? t('clientOnboardingStatus.errors.loadingError')
+              : t('clientOnboardingStatus.errors.noData')}
           </div>
         </CardContent>
       </Card>
@@ -121,44 +135,90 @@ export const ClientOnboardingStateView: React.FC = () => {
   const { icon, color } = statusConfig[status] || statusConfig.NEW;
 
   return (
-    <Card className="eb-w-full">
-      <CardHeader>
-        <CardTitle className="eb-text-xl eb-font-bold">
-          Client Onboarding Status
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="eb-space-y-4">
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <span className="eb-text-sm eb-font-medium eb-text-gray-500">
-              Status:
-            </span>
-            <Badge className={`eb-flex eb-items-center eb-gap-1 ${color}`}>
-              {icon}
-              {status}
-            </Badge>
+    <div className="eb-space-y-6">
+      <Alert className="eb-border-blue-200 eb-bg-blue-50">
+        <InfoIcon className="eb-h-5 eb-w-5 eb-text-blue-600" />
+        <AlertTitle className="eb-text-blue-800">
+          {t(
+            'clientOnboardingStatus.notification.title',
+            'KYC Process in Progress'
+          )}
+        </AlertTitle>
+        <AlertDescription className="eb-mt-2 eb-text-blue-700">
+          <p className="eb-mb-3">
+            {t(
+              'clientOnboardingStatus.notification.description',
+              'Your client KYC process is currently being reviewed. Please check back regularly for updates on the verification status.'
+            )}
+          </p>
+          <Button
+            variant="outline"
+            className="eb-border-blue-200 eb-bg-white eb-text-blue-700 hover:eb-bg-blue-50"
+            onClick={handleNotificationSignup}
+          >
+            <BellIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+            {t(
+              'clientOnboardingStatus.notification.cta',
+              'Get notification updates'
+            )}
+          </Button>
+        </AlertDescription>
+      </Alert>
+
+      <Card className="eb-w-full eb-shadow-md">
+        <CardHeader className="eb-border-b eb-bg-gray-50">
+          <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
+            {t('clientOnboardingStatus.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="eb-p-6">
+          <div className="eb-space-y-6">
+            <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
+              <span className="eb-text-sm eb-font-medium eb-text-gray-600">
+                {t('clientOnboardingStatus.labels.status')}:
+              </span>
+              <Badge
+                className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
+              >
+                {icon}
+                {t(`clientOnboardingStatus.statusLabels.${status}`)}
+              </Badge>
+            </div>
+
+            <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
+              <DetailRow
+                label={t('clientOnboardingStatus.labels.clientId')}
+                value={clientData.id}
+              />
+              <DetailRow
+                label={t('clientOnboardingStatus.labels.organization')}
+                value={
+                  businessDetails?.organizationDetails?.organizationName ||
+                  'N/A'
+                }
+              />
+              <DetailRow
+                label={t('clientOnboardingStatus.labels.organizationType')}
+                value={
+                  businessDetails?.organizationDetails?.organizationType
+                    ? t(
+                        `organizationTypes.${businessDetails.organizationDetails.organizationType}`
+                      )
+                    : 'N/A'
+                }
+              />
+            </div>
+
+            <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
+              <p>{statusMessages[status]}</p>
+            </div>
           </div>
 
-          <DetailRow label="Client ID" value={clientData.id} />
-          <DetailRow
-            label="Organization"
-            value={
-              businessDetails?.organizationDetails?.organizationName || 'N/A'
-            }
-          />
-          <DetailRow
-            label="Organization Type"
-            value={
-              businessDetails?.organizationDetails?.organizationType || 'N/A'
-            }
-          />
-
-          <div className="eb-mt-4 eb-text-sm eb-text-gray-500">
-            <p>{statusMessages[status]}</p>
+          <div className="eb-mt-8">
+            <DocumentUploadStepForm standalone />
           </div>
-        </div>
-        <DocumentUploadStepForm standalone />
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
