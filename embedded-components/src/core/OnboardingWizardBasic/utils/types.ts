@@ -7,7 +7,8 @@ import {
   OrganizationType,
 } from '@/api/generated/smbdo.schemas';
 
-import { IndividualStepFormSchema } from '../IndividualStepForm/IndividualStepForm.schema';
+import { BeneficialOwnerStepFormSchema } from '../BeneficialOwnerStepForm/BeneficialOwnerStepForm.schema';
+import { ControllerStepFormSchema } from '../ControllerStepForm/ControllerStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
@@ -16,13 +17,15 @@ export type OnboardingFormValuesSubmit = z.output<
   typeof InitialStepFormSchema
 > &
   z.output<typeof OrganizationStepFormSchema> &
-  z.output<typeof IndividualStepFormSchema>;
+  z.output<typeof ControllerStepFormSchema> &
+  z.output<typeof BeneficialOwnerStepFormSchema>;
 
 export type OnboardingFormValuesInitial = z.input<
   typeof InitialStepFormSchema
 > &
   z.input<typeof OrganizationStepFormSchema> &
-  z.input<typeof IndividualStepFormSchema>;
+  z.input<typeof ControllerStepFormSchema> &
+  z.input<typeof BeneficialOwnerStepFormSchema>;
 
 export type OnboardingTopLevelArrayFieldNames = Extract<
   FieldArrayPath<OnboardingFormValuesSubmit>,

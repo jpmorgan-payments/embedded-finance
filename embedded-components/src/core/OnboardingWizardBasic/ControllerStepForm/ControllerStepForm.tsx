@@ -1,7 +1,7 @@
 /**
- * IndividualStepForm Component
+ * ControllerStepForm Component
  * ===========================
- * Form component for collecting individual's information during onboarding.
+ * Form component for collecting controller's information during onboarding.
  *
  * Table of Contents:
  * -----------------
@@ -45,7 +45,7 @@
  * @component
  * @example
  * return (
- *   <IndividualStepForm />
+ *   <ControllerStepForm />
  * )
  */
 
@@ -81,9 +81,12 @@ import {
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
-import { IndividualStepFormSchema } from './IndividualStepForm.schema';
+import {
+  ControllerStepFormSchema,
+  refineControllerStepFormSchema,
+} from './ControllerStepForm.schema';
 
-export const IndividualStepForm = () => {
+export const ControllerStepForm = () => {
   const { nextStep } = useStepper();
   const {
     clientId,
@@ -105,16 +108,15 @@ export const IndividualStepForm = () => {
       (party.active || party.status === 'ACTIVE')
   );
 
-  console.log('existingOrgParty', existingOrgParty);
-
   const form = useStepFormWithFilters({
     clientData,
-    schema: IndividualStepFormSchema,
+    schema: ControllerStepFormSchema,
+    refineSchemaFn: refineControllerStepFormSchema,
     defaultValues: {},
   });
 
-  // Get INDIVIDUAL's partyId
-  const existingIndividualParty = clientData?.parties?.find(
+  // Get CONTROLLER's partyId
+  const existingControllerParty = clientData?.parties?.find(
     (party) =>
       party?.partyType === 'INDIVIDUAL' &&
       party?.roles?.includes('CONTROLLER') &&
@@ -128,17 +130,17 @@ export const IndividualStepForm = () => {
     if (
       getClientStatus === 'success' &&
       clientData &&
-      existingIndividualParty?.id &&
+      existingControllerParty?.id &&
       !isFormPopulated
     ) {
       const formValues = convertClientResponseToFormValues(
         clientData,
-        existingIndividualParty.id
+        existingControllerParty.id
       );
       form.reset(
         shapeFormValuesBySchema(
           { ...form.getValues(), ...formValues },
-          IndividualStepFormSchema
+          ControllerStepFormSchema
         )
       );
       setIsFormPopulated(true);
@@ -147,7 +149,7 @@ export const IndividualStepForm = () => {
     clientData,
     getClientStatus,
     form.reset,
-    existingIndividualParty?.id,
+    existingControllerParty?.id,
     isFormPopulated,
   ]);
 
@@ -166,12 +168,12 @@ export const IndividualStepForm = () => {
   const onSubmit = form.handleSubmit((values) => {
     if (clientId) {
       // Update party if it exists
-      if (usePartyResource && existingIndividualParty?.id) {
+      if (usePartyResource && existingControllerParty?.id) {
         const partyRequestBody = generatePartyRequestBody(values, {});
 
         updateParty(
           {
-            partyId: existingIndividualParty?.id,
+            partyId: existingControllerParty?.id,
             data: partyRequestBody,
           },
           {
@@ -271,9 +273,9 @@ export const IndividualStepForm = () => {
   // Reset value of ID value field when ID type changes
   useEffect(() => {
     const subscription = form.watch((_, { name }) => {
-      if (name?.startsWith('individualIds') && name.endsWith('idType')) {
+      if (name?.startsWith('controllerIds') && name.endsWith('idType')) {
         const index = parseInt(name.split('.')[1], 10);
-        form.setValue(`individualIds.${index}.value`, '');
+        form.setValue(`controllerIds.${index}.value`, '');
       }
     });
     return () => subscription.unsubscribe();
@@ -282,7 +284,7 @@ export const IndividualStepForm = () => {
   const isFormSubmitting =
     clientUpdateStatus === 'pending' ||
     (usePartyResource && partyUpdateStatus === 'pending');
-  const isFormPopulating = existingIndividualParty && !isFormPopulated;
+  const isFormPopulating = existingControllerParty && !isFormPopulated;
 
   const isFormDisabled = isFormSubmitting || isFormPopulating;
 
@@ -299,31 +301,31 @@ export const IndividualStepForm = () => {
 
           <OnboardingFormField
             control={form.control}
-            name="firstName"
+            name="controllerFirstName"
             type="text"
           />
 
           <OnboardingFormField
             control={form.control}
-            name="middleName"
+            name="controllerMiddleName"
             type="text"
           />
 
           <OnboardingFormField
             control={form.control}
-            name="lastName"
+            name="controllerLastName"
             type="text"
           />
 
           <OnboardingFormField
             control={form.control}
-            name="nameSuffix"
+            name="controllerNameSuffix"
             type="text"
           />
 
           <OnboardingFormField
             control={form.control}
-            name="individualEmail"
+            name="controllerEmail"
             type="email"
           />
 
@@ -353,7 +355,7 @@ export const IndividualStepForm = () => {
 
           <OnboardingFormField
             control={form.control}
-            name="jobTitle"
+            name="controllerJobTitle"
             type="select"
             options={[
               { value: 'CEO', label: 'CEO' },
@@ -371,8 +373,9 @@ export const IndividualStepForm = () => {
 
           <OnboardingFormField
             control={form.control}
-            name="jobTitleDescription"
+            name="controllerJobTitleDescription"
             type="text"
+            required={form.watch('controllerJobTitle') === 'Other'}
           />
         </fieldset>
 
@@ -382,11 +385,11 @@ export const IndividualStepForm = () => {
           className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
         >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-            Individual Phone Information
+            Controller Phone Information
           </legend>
           <OnboardingFormField
             control={form.control}
-            name="individualPhone.phoneType"
+            name="controllerPhone.phoneType"
             type="select"
             options={[
               { value: 'BUSINESS_PHONE', label: 'Business Phone' },
@@ -398,7 +401,7 @@ export const IndividualStepForm = () => {
 
           <OnboardingFormField
             control={form.control}
-            name="individualPhone.phoneNumber"
+            name="controllerPhone.phoneNumber"
             type="phone"
           />
         </fieldset>
@@ -406,7 +409,7 @@ export const IndividualStepForm = () => {
         {/* Addresses */}
         <OnboardingArrayField
           control={form.control}
-          name="individualAddresses"
+          name="controllerAddresses"
           disabled={isFormDisabled}
           renderItem={({
             itemLabel,
@@ -461,11 +464,11 @@ export const IndividualStepForm = () => {
 
                           // Update form with the new address in a single operation
                           const currentAddresses =
-                            form.getValues('individualAddresses') || [];
+                            form.getValues('controllerAddresses') || [];
                           if (currentAddresses.length === 0) {
-                            form.setValue('individualAddresses', [newAddress]);
+                            form.setValue('controllerAddresses', [newAddress]);
                           } else {
-                            form.setValue('individualAddresses.0', newAddress);
+                            form.setValue('controllerAddresses.0', newAddress);
                           }
                         }
                       } else {
@@ -481,10 +484,10 @@ export const IndividualStepForm = () => {
                         };
 
                         const currentAddresses = form.getValues(
-                          'individualAddresses'
+                          'controllerAddresses'
                         );
                         if (currentAddresses?.length > 0) {
-                          form.setValue('individualAddresses.0', emptyAddress);
+                          form.setValue('controllerAddresses.0', emptyAddress);
                         }
                       }
                     }}
@@ -500,7 +503,7 @@ export const IndividualStepForm = () => {
 
               <OnboardingFormField
                 control={form.control}
-                name={`individualAddresses.${index}.addressType`}
+                name={`controllerAddresses.${index}.addressType`}
                 type="select"
                 // Dropdown fields need to be explicitly passed whether it's disabled rather than relying on the fieldset
                 disabled={disabled}
@@ -517,13 +520,13 @@ export const IndividualStepForm = () => {
               />
               <OnboardingFormField
                 control={form.control}
-                name={`individualAddresses.${index}.primaryAddressLine`}
+                name={`controllerAddresses.${index}.primaryAddressLine`}
                 type="text"
               />
 
               <OnboardingArrayField
                 control={form.control}
-                name={`individualAddresses.${index}.additionalAddressLines`}
+                name={`controllerAddresses.${index}.additionalAddressLines`}
                 renderItem={({
                   index: lineIndex,
                   field: lineField,
@@ -532,7 +535,7 @@ export const IndividualStepForm = () => {
                   <OnboardingFormField
                     key={lineField.id}
                     control={form.control}
-                    name={`individualAddresses.${index}.additionalAddressLines.${lineIndex}.value`}
+                    name={`controllerAddresses.${index}.additionalAddressLines.${lineIndex}.value`}
                     type="text"
                     inputButton={renderLineRemoveButton({
                       className: 'eb-align-end',
@@ -544,20 +547,20 @@ export const IndividualStepForm = () => {
 
               <OnboardingFormField
                 control={form.control}
-                name={`individualAddresses.${index}.city`}
+                name={`controllerAddresses.${index}.city`}
                 type="text"
               />
 
               <OnboardingFormField
                 control={form.control}
-                name={`individualAddresses.${index}.state`}
+                name={`controllerAddresses.${index}.state`}
                 type="select"
                 options={stateOptions}
               />
 
               <OnboardingFormField
                 control={form.control}
-                name={`individualAddresses.${index}.postalCode`}
+                name={`controllerAddresses.${index}.postalCode`}
                 type="text"
                 inputProps={{
                   pattern: '[0-9]{5}',
@@ -568,7 +571,7 @@ export const IndividualStepForm = () => {
 
               <OnboardingFormField
                 control={form.control}
-                name={`individualAddresses.${index}.country`}
+                name={`controllerAddresses.${index}.country`}
                 type="combobox"
                 options={COUNTRIES_OF_FORMATION.map((code) => ({
                   value: code,
@@ -589,10 +592,10 @@ export const IndividualStepForm = () => {
           )}
         />
 
-        {/* Individual IDs */}
+        {/* Controller IDs */}
         <OnboardingArrayField
           control={form.control}
-          name="individualIds"
+          name="controllerIds"
           disabled={isFormDisabled}
           renderItem={({
             field,
@@ -613,7 +616,7 @@ export const IndividualStepForm = () => {
               <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                 <OnboardingFormField
                   control={form.control}
-                  name={`individualIds.${index}.idType`}
+                  name={`controllerIds.${index}.idType`}
                   type="select"
                   options={[
                     { value: 'SSN', label: 'SSN' },
@@ -624,7 +627,7 @@ export const IndividualStepForm = () => {
 
                 <OnboardingFormField
                   control={form.control}
-                  name={`individualIds.${index}.issuer`}
+                  name={`controllerIds.${index}.issuer`}
                   type="combobox"
                   options={COUNTRIES_OF_FORMATION.map((code) => ({
                     value: code,
@@ -640,9 +643,9 @@ export const IndividualStepForm = () => {
                 />
 
                 <OnboardingFormField
-                  key={`individual-id-value-${index}-${field.idType}`}
+                  key={`controller-id-value-${index}-${field.idType}`}
                   control={form.control}
-                  name={`individualIds.${index}.value`}
+                  name={`controllerIds.${index}.value`}
                   type="text"
                   label={getValueLabel(field.idType)}
                   maskFormat={getMaskFormat(field.idType)}
@@ -651,12 +654,12 @@ export const IndividualStepForm = () => {
 
                 <OnboardingFormField
                   control={form.control}
-                  name={`individualIds.${index}.expiryDate`}
+                  name={`controllerIds.${index}.expiryDate`}
                   type="date"
                 />
                 <OnboardingFormField
                   control={form.control}
-                  name={`individualIds.${index}.description`}
+                  name={`controllerIds.${index}.description`}
                   type="text"
                 />
               </div>

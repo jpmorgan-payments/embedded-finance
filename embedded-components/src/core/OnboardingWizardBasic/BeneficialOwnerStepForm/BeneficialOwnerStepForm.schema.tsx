@@ -9,19 +9,19 @@ const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
-const individualIdSchema = z
+const ownerIdSchema = z
   .object({
     description: z.string().optional(),
     expiryDate: z
       .string()
       .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
         message: i18n.t(
-          'onboarding:fields.individualIds.expiryDate.validation.format'
+          'onboarding:fields.ownerIds.expiryDate.validation.format'
         ),
       })
       .refine((val) => !Number.isNaN(new Date(val).getTime()), {
         message: i18n.t(
-          'onboarding:fields.individualIds.expiryDate.validation.invalid'
+          'onboarding:fields.ownerIds.expiryDate.validation.invalid'
         ),
       })
       .refine(
@@ -32,7 +32,7 @@ const individualIdSchema = z
         },
         {
           message: i18n.t(
-            'onboarding:fields.individualIds.expiryDate.validation.past'
+            'onboarding:fields.ownerIds.expiryDate.validation.past'
           ),
         }
       )
@@ -47,7 +47,7 @@ const individualIdSchema = z
         },
         {
           message: i18n.t(
-            'onboarding:fields.individualIds.expiryDate.validation.tooFar'
+            'onboarding:fields.ownerIds.expiryDate.validation.tooFar'
           ),
         }
       )
@@ -65,20 +65,13 @@ const individualIdSchema = z
       .string()
       .length(
         2,
-        i18n.t(
-          'onboarding:fields.individualIds.issuer.validation.exactlyTwoChars'
-        )
+        i18n.t('onboarding:fields.ownerIds.issuer.validation.exactlyTwoChars')
       ),
     value: z
       .string()
-      .min(
-        1,
-        i18n.t('onboarding:fields.individualIds.value.validation.required')
-      )
+      .min(1, i18n.t('onboarding:fields.ownerIds.value.validation.required'))
       .refine((val: string) => !/\s/.test(val), {
-        message: i18n.t(
-          'onboarding:fields.individualIds.value.validation.noSpaces'
-        ),
+        message: i18n.t('onboarding:fields.ownerIds.value.validation.noSpaces'),
       }),
   })
   .refine(
@@ -96,17 +89,17 @@ const individualIdSchema = z
     },
     (data) => ({
       message: i18n.t(
-        `onboarding:fields.individualIds.value.validation.${data.idType.toLowerCase()}Format`
+        `onboarding:fields.ownerIds.value.validation.${data.idType.toLowerCase()}Format`
       ),
       path: ['value'],
     })
   );
 
-export const IndividualStepFormSchema = z.object({
-  individualAddresses: z.array(AddressSchema).refine((addresses) => {
+export const BeneficialOwnerStepFormSchema = z.object({
+  ownerAddresses: z.array(AddressSchema).refine((addresses) => {
     const types = addresses.map((addr) => addr.addressType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.individualAddresses.validation.uniqueTypes')),
+  }, i18n.t('onboarding:fields.ownerAddresses.validation.uniqueTypes')),
   birthDate: z
     .string()
     .regex(
@@ -139,118 +132,118 @@ export const IndividualStepFormSchema = z.object({
       2,
       i18n.t('onboarding:fields.countryOfResidence.validation.exactlyTwoChars')
     ),
-  firstName: z
+  ownerFirstName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.firstName.validation.minLength'))
-    .max(30, i18n.t('onboarding:fields.firstName.validation.maxLength'))
+    .min(2, i18n.t('onboarding:fields.ownerFirstName.validation.minLength'))
+    .max(30, i18n.t('onboarding:fields.ownerFirstName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.firstName.validation.pattern')
-    )
-    .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noTrailingSpace')
+      i18n.t('onboarding:fields.ownerFirstName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveSpaces')
+      i18n.t('onboarding:fields.ownerName.validation.noConsecutiveSpaces')
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveHyphens')
+      i18n.t('onboarding:fields.ownerName.validation.noConsecutiveHyphens')
     ),
-  middleName: z
+  ownerMiddleName: z
     .string()
-    .max(30, i18n.t('onboarding:fields.middleName.validation.maxLength'))
+    .max(30, i18n.t('onboarding:fields.ownerMiddleName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.middleName.validation.pattern')
+      i18n.t('onboarding:fields.ownerMiddleName.validation.pattern')
     ),
-  lastName: z
+  ownerLastName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.lastName.validation.minLength'))
-    .max(30, i18n.t('onboarding:fields.lastName.validation.maxLength'))
+    .min(2, i18n.t('onboarding:fields.ownerLastName.validation.minLength'))
+    .max(30, i18n.t('onboarding:fields.ownerLastName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.lastName.validation.pattern')
-    )
-    .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.individualName.validation.noTrailingSpace')
+      i18n.t('onboarding:fields.ownerLastName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveSpaces')
+      i18n.t('onboarding:fields.ownerName.validation.noConsecutiveSpaces')
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.individualName.validation.noConsecutiveHyphens')
+      i18n.t('onboarding:fields.ownerName.validation.noConsecutiveHyphens')
     ),
-  nameSuffix: z
+  ownerNameSuffix: z
     .string()
-    .min(1, i18n.t('onboarding:fields.nameSuffix.validation.minLength'))
-    .max(5, i18n.t('onboarding:fields.nameSuffix.validation.maxLength'))
+    .min(1, i18n.t('onboarding:fields.ownerNameSuffix.validation.minLength'))
+    .max(5, i18n.t('onboarding:fields.ownerNameSuffix.validation.maxLength'))
     .regex(
       SUFFIX_PATTERN,
-      i18n.t('onboarding:fields.nameSuffix.validation.pattern')
+      i18n.t('onboarding:fields.ownerNameSuffix.validation.pattern')
     ),
-  individualIds: z.array(individualIdSchema).refine((ids) => {
+  ownerIds: z.array(ownerIdSchema).refine((ids) => {
     const types = ids.map((id) => id.idType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.individualIds.validation.uniqueTypes')),
-  jobTitle: z
-    .string()
-    .min(2, i18n.t('onboarding:fields.jobTitle.validation.minLength'))
-    .max(50, i18n.t('onboarding:fields.jobTitle.validation.maxLength'))
-    .regex(
-      /^[a-zA-Z0-9\s,.&-]+$/,
-      i18n.t('onboarding:fields.jobTitle.validation.pattern')
-    )
-    .refine(
-      (val) => !val.startsWith(' '),
-      i18n.t('onboarding:fields.jobTitle.validation.noLeadingSpace')
-    )
-    .refine(
-      (val) => !val.endsWith(' '),
-      i18n.t('onboarding:fields.jobTitle.validation.noTrailingSpace')
-    ),
-  jobTitleDescription: z
+  }, i18n.t('onboarding:fields.ownerIds.validation.uniqueTypes')),
+  ownerJobTitle: z
+    .union([
+      z.enum([
+        'CEO',
+        'CFO',
+        'COO',
+        'President',
+        'Chairman',
+        'Senior Branch Manager',
+        'Other',
+      ]),
+      z.literal(''),
+    ])
+    .refine((val) => val !== '', {
+      message: i18n.t('common:validation.required'),
+    }),
+  ownerJobTitleDescription: z
     .string()
     .max(
       50,
-      i18n.t('onboarding:fields.jobTitleDescription.validation.maxLength')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.maxLength')
     )
     .regex(
       /^[a-zA-Z0-9\s,.&-]+$/,
-      i18n.t('onboarding:fields.jobTitleDescription.validation.pattern')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.pattern')
     )
     .refine(
       (val) => !/(<[^>]*>)/.test(val),
-      i18n.t('onboarding:fields.jobTitleDescription.validation.noHtml')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.noHtml')
     )
     .refine(
       (val) => !/https?:\/\/[^\s]+/.test(val),
-      i18n.t('onboarding:fields.jobTitleDescription.validation.noUrls')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.noUrls')
     ),
-  individualEmail: z
+  ownerEmail: z
     .string()
     .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
     .max(
       100,
       i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
     ),
-  individualPhone: PhoneSchema,
+  ownerPhone: PhoneSchema,
   natureOfOwnership: z
     .union([z.enum(['Direct', 'Indirect']), z.literal('')])
     .refine((val) => val !== '', {
       message: i18n.t('common:validation.required'),
     }),
 });
+
+export const refineOwnerStepFormSchema = (
+  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+) => {
+  return schema.superRefine((values, context) => {
+    if (values.ownerJobTitle === 'Other' && !values.ownerJobTitleDescription) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: i18n.t(
+          'onboarding:fields.ownerJobTitleDescription.validation.required'
+        ),
+        path: ['ownerJobTitleDescription'],
+      });
+    }
+  });
+};
