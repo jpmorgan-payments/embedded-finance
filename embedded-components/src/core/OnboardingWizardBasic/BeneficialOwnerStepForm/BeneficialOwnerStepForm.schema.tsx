@@ -134,11 +134,11 @@ export const BeneficialOwnerStepFormSchema = z.object({
     ),
   ownerFirstName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.firstName.validation.minLength'))
-    .max(30, i18n.t('onboarding:fields.firstName.validation.maxLength'))
+    .min(2, i18n.t('onboarding:fields.ownerFirstName.validation.minLength'))
+    .max(30, i18n.t('onboarding:fields.ownerFirstName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.firstName.validation.pattern')
+      i18n.t('onboarding:fields.ownerFirstName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
@@ -150,18 +150,18 @@ export const BeneficialOwnerStepFormSchema = z.object({
     ),
   ownerMiddleName: z
     .string()
-    .max(30, i18n.t('onboarding:fields.middleName.validation.maxLength'))
+    .max(30, i18n.t('onboarding:fields.ownerMiddleName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.middleName.validation.pattern')
+      i18n.t('onboarding:fields.ownerMiddleName.validation.pattern')
     ),
   ownerLastName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.lastName.validation.minLength'))
-    .max(30, i18n.t('onboarding:fields.lastName.validation.maxLength'))
+    .min(2, i18n.t('onboarding:fields.ownerLastName.validation.minLength'))
+    .max(30, i18n.t('onboarding:fields.ownerLastName.validation.maxLength'))
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.lastName.validation.pattern')
+      i18n.t('onboarding:fields.ownerLastName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
@@ -173,11 +173,11 @@ export const BeneficialOwnerStepFormSchema = z.object({
     ),
   ownerNameSuffix: z
     .string()
-    .min(1, i18n.t('onboarding:fields.nameSuffix.validation.minLength'))
-    .max(5, i18n.t('onboarding:fields.nameSuffix.validation.maxLength'))
+    .min(1, i18n.t('onboarding:fields.ownerNameSuffix.validation.minLength'))
+    .max(5, i18n.t('onboarding:fields.ownerNameSuffix.validation.maxLength'))
     .regex(
       SUFFIX_PATTERN,
-      i18n.t('onboarding:fields.nameSuffix.validation.pattern')
+      i18n.t('onboarding:fields.ownerNameSuffix.validation.pattern')
     ),
   ownerIds: z.array(ownerIdSchema).refine((ids) => {
     const types = ids.map((id) => id.idType);
@@ -203,19 +203,19 @@ export const BeneficialOwnerStepFormSchema = z.object({
     .string()
     .max(
       50,
-      i18n.t('onboarding:fields.jobTitleDescription.validation.maxLength')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.maxLength')
     )
     .regex(
       /^[a-zA-Z0-9\s,.&-]+$/,
-      i18n.t('onboarding:fields.jobTitleDescription.validation.pattern')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.pattern')
     )
     .refine(
       (val) => !/(<[^>]*>)/.test(val),
-      i18n.t('onboarding:fields.jobTitleDescription.validation.noHtml')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.noHtml')
     )
     .refine(
       (val) => !/https?:\/\/[^\s]+/.test(val),
-      i18n.t('onboarding:fields.jobTitleDescription.validation.noUrls')
+      i18n.t('onboarding:fields.ownerJobTitleDescription.validation.noUrls')
     ),
   ownerEmail: z
     .string()

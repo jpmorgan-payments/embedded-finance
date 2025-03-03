@@ -141,8 +141,14 @@ export const ControllerStepFormSchema = z.object({
     ),
   controllerFirstName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.firstName.validation.minLength'))
-    .max(30, i18n.t('onboarding:fields.firstName.validation.maxLength'))
+    .min(
+      2,
+      i18n.t('onboarding:fields.controllerFirstName.validation.minLength')
+    )
+    .max(
+      30,
+      i18n.t('onboarding:fields.controllerFirstName.validation.maxLength')
+    )
     .regex(
       NAME_PATTERN,
       i18n.t('onboarding:fields.firstName.validation.pattern')
@@ -157,18 +163,24 @@ export const ControllerStepFormSchema = z.object({
     ),
   controllerMiddleName: z
     .string()
-    .max(30, i18n.t('onboarding:fields.middleName.validation.maxLength'))
+    .max(
+      30,
+      i18n.t('onboarding:fields.controllerMiddleName.validation.maxLength')
+    )
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.middleName.validation.pattern')
+      i18n.t('onboarding:fields.controllerMiddleName.validation.pattern')
     ),
   controllerLastName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.lastName.validation.minLength'))
-    .max(30, i18n.t('onboarding:fields.lastName.validation.maxLength'))
+    .min(2, i18n.t('onboarding:fields.controllerLastName.validation.minLength'))
+    .max(
+      30,
+      i18n.t('onboarding:fields.controllerLastName.validation.maxLength')
+    )
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.lastName.validation.pattern')
+      i18n.t('onboarding:fields.controllerLastName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
@@ -180,11 +192,17 @@ export const ControllerStepFormSchema = z.object({
     ),
   controllerNameSuffix: z
     .string()
-    .min(1, i18n.t('onboarding:fields.nameSuffix.validation.minLength'))
-    .max(5, i18n.t('onboarding:fields.nameSuffix.validation.maxLength'))
+    .min(
+      1,
+      i18n.t('onboarding:fields.controllerNameSuffix.validation.minLength')
+    )
+    .max(
+      5,
+      i18n.t('onboarding:fields.controllerNameSuffix.validation.maxLength')
+    )
     .regex(
       SUFFIX_PATTERN,
-      i18n.t('onboarding:fields.nameSuffix.validation.pattern')
+      i18n.t('onboarding:fields.controllerNameSuffix.validation.pattern')
     ),
   controllerIds: z.array(controllerIdSchema).refine((ids) => {
     const types = ids.map((id) => id.idType);
@@ -210,19 +228,27 @@ export const ControllerStepFormSchema = z.object({
     .string()
     .max(
       50,
-      i18n.t('onboarding:fields.jobTitleDescription.validation.maxLength')
+      i18n.t(
+        'onboarding:fields.controllerJobTitleDescription.validation.maxLength'
+      )
     )
     .regex(
       /^[a-zA-Z0-9\s,.&-]+$/,
-      i18n.t('onboarding:fields.jobTitleDescription.validation.pattern')
+      i18n.t(
+        'onboarding:fields.controllerJobTitleDescription.validation.pattern'
+      )
     )
     .refine(
       (val) => !/(<[^>]*>)/.test(val),
-      i18n.t('onboarding:fields.jobTitleDescription.validation.noHtml')
+      i18n.t(
+        'onboarding:fields.controllerJobTitleDescription.validation.noHtml'
+      )
     )
     .refine(
       (val) => !/https?:\/\/[^\s]+/.test(val),
-      i18n.t('onboarding:fields.jobTitleDescription.validation.noUrls')
+      i18n.t(
+        'onboarding:fields.controllerJobTitleDescription.validation.noUrls'
+      )
     ),
   controllerEmail: z
     .string()
