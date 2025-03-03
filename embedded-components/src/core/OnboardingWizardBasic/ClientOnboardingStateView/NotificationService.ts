@@ -1,12 +1,6 @@
 import i18next from 'i18next';
 
-
-
 import { toast } from '@/components/ui/use-toast';
-
-
-
-
 
 export type NotificationStatus =
   | 'granted'
