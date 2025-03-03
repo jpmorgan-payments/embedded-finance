@@ -22,7 +22,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { NotificationService } from './NotificationService';
-import { usePageVisibility } from './usePageVisibility';
 import { useClientStatusMonitor } from './useStatusMonitor';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
@@ -93,19 +92,15 @@ export const ClientOnboardingStateView: React.FC = () => {
   } = useSmbdoGetClient(clientId ?? '');
   const { t } = useTranslation(['onboarding', 'common']);
 
-  const isVisible = usePageVisibility();
-
   const handleStatusChange = (
     oldStatus: ClientStatus,
     newStatus: ClientStatus
   ) => {
     // If tab is not visible, show a notification
-    if (!isVisible) {
-      NotificationService.showNotification('Status Changed', {
-        body: `Status changed from ${oldStatus} to ${newStatus}`,
-        icon: '/path/to/icon.png',
-      });
-    }
+    NotificationService.showNotification('Status Changed', {
+      body: `Status changed from ${oldStatus} to ${newStatus}`,
+      icon: '/path/to/icon.png',
+    });
 
     // You can also implement additional logic here
     console.log(`Status changed from ${oldStatus} to ${newStatus}`);
@@ -257,7 +252,9 @@ export const ClientOnboardingStateView: React.FC = () => {
           </div>
 
           <div className="eb-mt-8">
-            <DocumentUploadStepForm standalone />
+            {clientData?.status === ClientStatus.INFORMATION_REQUESTED && (
+              <DocumentUploadStepForm standalone />
+            )}
           </div>
         </CardContent>
       </Card>

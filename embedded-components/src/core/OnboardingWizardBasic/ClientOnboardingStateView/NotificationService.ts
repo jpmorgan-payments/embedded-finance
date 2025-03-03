@@ -1,5 +1,12 @@
 import i18next from 'i18next';
-import { toast } from 'sonner';
+
+
+
+import { toast } from '@/components/ui/use-toast';
+
+
+
+
 
 export type NotificationStatus =
   | 'granted'
@@ -22,9 +29,10 @@ export const NotificationService = {
     }
 
     if (Notification.permission === 'granted') {
-      toast.success(
-        i18next.t('clientOnboardingStatus.notification.toast.title')
-      );
+      toast({
+        title: i18next.t('clientOnboardingStatus.notification.toast.title'),
+        variant: 'default',
+      });
       return 'granted' as NotificationStatus;
     }
 
@@ -32,19 +40,37 @@ export const NotificationService = {
     return permission as NotificationStatus;
   },
 
-  showNotification(title: string, options = {}) {
-    if (Notification.permission !== 'granted') {
-      console.warn('Notification permission not granted');
-      return;
-    }
+  async showNotification(title: string, options?: NotificationOptions) {
+    try {
+      if (!window.isSecureContext) {
+        throw new Error('Secure context required');
+      }
 
-    // Only show notification if tab is not visible
-    if (document.visibilityState !== 'visible') {
-      const notification = new Notification(title, options);
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Permission not granted');
+      }
+
+      if (document.visibilityState !== 'visible') {
+        const notification = new Notification(title, options);
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      } else {
+        toast({
+          title,
+          description: options?.body,
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      // Fallback to toast notification
+      toast({
+        title,
+        description: options?.body,
+        duration: 5000,
+      });
     }
   },
 };
