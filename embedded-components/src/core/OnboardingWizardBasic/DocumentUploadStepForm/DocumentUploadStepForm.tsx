@@ -14,6 +14,7 @@ import {
 } from '@/api/generated/smbdo';
 import {
   DocumentRequestResponse,
+  DocumentTypeSmbdo,
   PostUploadDocument,
 } from '@/api/generated/smbdo.schemas';
 import Dropzone from '@/components/ui/dropzone';
@@ -173,7 +174,7 @@ export const DocumentUploadStepForm = ({
         onSubmit={onSubmit}
         className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
       >
-        {documentRequestsQueries?.data?.map((documentRequest) => {
+        {documentRequestsQueries?.data?.map((documentRequest, index) => {
           const partyDetails = clientData?.parties?.find(
             (p) => p.id === documentRequest?.partyId
           );
@@ -182,7 +183,7 @@ export const DocumentUploadStepForm = ({
               ? `${partyDetails?.individualDetails?.firstName} ${partyDetails?.individualDetails?.lastName}`
               : partyDetails?.organizationDetails?.organizationName;
           return (
-            <Fragment key={documentRequest?.id}>
+            <Fragment key={`${documentRequest?.id}-${index}`}>
               {documentRequest?.partyId && (
                 <h2 className="eb-mt-4 eb-text-lg eb-font-semibold">{`Document request for ${partyName}`}</h2>
               )}
@@ -194,70 +195,76 @@ export const DocumentUploadStepForm = ({
                 ))}
               </div>
               <Separator />
-              {documentRequest?.requirements?.map((requirement, index) => {
-                const documentType = requirement.documentTypes[0];
-                return (
-                  <FormField
-                    key={index}
-                    control={form.control}
-                    name={`${documentRequest?.id}.${documentType}`}
-                    render={({ field: { onChange, ...fieldProps } }) => {
-                      return (
-                        <>
-                          <FormItem>
-                            <FormLabel asterisk>
-                              {DOCUMENT_TYPE_MAPPING[documentType].label}
-                            </FormLabel>
-                            <FormDescription>
-                              {DOCUMENT_TYPE_MAPPING[documentType].description}
-                            </FormDescription>
-                            <FormControl>
-                              <Dropzone
-                                containerClassName="eb-max-w-xl"
-                                {...fieldProps}
-                                multiple={(requirement.minRequired ?? 0) > 1}
-                                accept={{
-                                  'application/pdf': ['.pdf'],
-                                  'image/jpeg': ['.jpeg', '.jpg'],
-                                  'image/png': ['.png'],
-                                  'image/gif': ['.gif'],
-                                  'image/bmp': ['.bmp'],
-                                  'image/tiff': ['.tiff', '.tif'],
-                                  'image/webp': ['.webp'],
-                                }}
-                                onChange={(files) => {
-                                  const maxSize = 2 * 1024 * 1024; // 2 MB
-                                  const validFiles = files.filter((file) => {
-                                    if (file.size > maxSize) {
-                                      form.setError(
-                                        `${documentRequest?.id}.${documentType}`,
-                                        {
-                                          message:
-                                            'Each file must be less than 2MB',
-                                        }
+              {documentRequest?.requirements?.map(
+                (requirement, requirementIndex) => {
+                  const documentType = requirement
+                    .documentTypes[0] as DocumentTypeSmbdo;
+                  return (
+                    <FormField
+                      key={`${requirement?.documentTypes[0]}-${requirementIndex}`}
+                      control={form.control}
+                      name={`${documentRequest?.id}.${documentType}`}
+                      render={({ field: { onChange, ...fieldProps } }) => {
+                        return (
+                          <>
+                            <FormItem>
+                              <FormLabel asterisk>
+                                {DOCUMENT_TYPE_MAPPING[documentType].label}
+                              </FormLabel>
+                              <FormDescription>
+                                {
+                                  DOCUMENT_TYPE_MAPPING[documentType]
+                                    .description
+                                }
+                              </FormDescription>
+                              <FormControl>
+                                <Dropzone
+                                  containerClassName="eb-max-w-xl"
+                                  {...fieldProps}
+                                  multiple={(requirement.minRequired ?? 0) > 1}
+                                  accept={{
+                                    'application/pdf': ['.pdf'],
+                                    'image/jpeg': ['.jpeg', '.jpg'],
+                                    'image/png': ['.png'],
+                                    'image/gif': ['.gif'],
+                                    'image/bmp': ['.bmp'],
+                                    'image/tiff': ['.tiff', '.tif'],
+                                    'image/webp': ['.webp'],
+                                  }}
+                                  onChange={(files) => {
+                                    const maxSize = 2 * 1024 * 1024; // 2 MB
+                                    const validFiles = files.filter((file) => {
+                                      if (file.size > maxSize) {
+                                        form.setError(
+                                          `${documentRequest?.id}.${documentType}`,
+                                          {
+                                            message:
+                                              'Each file must be less than 2MB',
+                                          }
+                                        );
+                                        return false;
+                                      }
+                                      form.clearErrors(
+                                        `${documentRequest?.id}.${documentType}`
                                       );
-                                      return false;
-                                    }
-                                    form.clearErrors(
-                                      `${documentRequest?.id}.${documentType}`
-                                    );
 
-                                    return true;
-                                  });
-                                  onChange(validFiles);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                                      return true;
+                                    });
+                                    onChange(validFiles);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
 
-                          <Separator />
-                        </>
-                      );
-                    }}
-                  />
-                );
-              })}
+                            <Separator />
+                          </>
+                        );
+                      }}
+                    />
+                  );
+                }
+              )}
             </Fragment>
           );
         })}

@@ -61,7 +61,7 @@
     "organizationType": {
       "label": "Business Type",
       "placeholder": "Select business type",
-      "description": "Please select the most appropriate NAICS code, ensuring it accurately represents your business activity and avoiding similar but less relevant codes.",
+      "description": "Please select the most appropriate business type",
       "tooltip": "",
       "group": "organization"
     },
@@ -836,7 +836,50 @@
     "termsAndConditions": "You will need to review and accept the Terms & Conditions"
   },
   "messages": {
-    "solePropEinOptional": "As a sole proprietor, an EIN is optional unless you have employees or file certain tax returns."
+    "solePropEinOptional": "As a sole proprietor, an EIN is optional unless you have employees or file certain tax returns.",
+    "success": "Success",
+    "clientUpdated": "Client's organization details updated successfully",
+    "clientCreated": "Client created successfully with ID: {{id}}"
   },
-  "copyBusinessAddressLabel": "Controller's personal address is the same as the business address"
+  "copyBusinessAddressLabel": "Controller's personal address is the same as the business address",
+  "clientOnboardingStatus": {
+    "title": "Client Onboarding Status",
+    "labels": {
+      "status": "Status",
+      "clientId": "Client ID",
+      "organization": "Organization",
+      "organizationType": "Organization Type"
+    },
+    "errors": {
+      "loadingError": "Error loading client information",
+      "noData": "No client data available"
+    },
+    "statusMessages": {
+      "NEW": "A new client application has been submitted and is awaiting review.",
+      "REVIEW_IN_PROGRESS": "The client application is currently under review.",
+      "INFORMATION_REQUESTED": "Additional information has been requested from the client.",
+      "APPROVED": "The client application has been approved.",
+      "DECLINED": "The client application has been declined.",
+      "SUSPENDED": "The client account has been temporarily suspended.",
+      "TERMINATED": "The client account has been terminated."
+    },
+    "notification": {
+      "title": "KYC Process in Progress",
+      "description": "Your client KYC process is currently being reviewed. Please check back regularly for updates on the verification status.",
+      "cta": "Get notification updates",
+      "toast": {
+        "title": "Notifications Enabled",
+        "description": "You will receive updates about your KYC process status."
+      }
+    },
+    "statusLabels": {
+      "APPROVED": "Approved",
+      "DECLINED": "Declined",
+      "INFORMATION_REQUESTED": "Information Requested",
+      "NEW": "New",
+      "REVIEW_IN_PROGRESS": "Review in Progress",
+      "SUSPENDED": "Suspended",
+      "TERMINATED": "Terminated"
+    }
+  }
 }
