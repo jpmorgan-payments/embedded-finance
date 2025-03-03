@@ -252,7 +252,7 @@ const OnboardingWizardBasicComponent: FC<
         <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4 eb-p-4">
-        {clientData && <MissingInfoAlert clientData={clientData} />}
+        {clientData?.status === 'NEW' && <MissingInfoAlert clientData={clientData} />}
         {clientData?.status === 'NEW' ||
         !clientId ||
         clientGetStatus === 'pending' ? (
