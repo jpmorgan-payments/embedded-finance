@@ -119,7 +119,7 @@ export const efClientSolProp: ClientResponse = {
     documentRequestIds: [],
     partyIds: ['2000000112'],
     partyRoles: [],
-    questionIds: ['30005', '30026', '30027'],
+    questionIds: ['30005'],
   },
   questionResponses: [],
   status: 'APPROVED',

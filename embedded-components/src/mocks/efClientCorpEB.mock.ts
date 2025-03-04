@@ -171,13 +171,6 @@ export const efClientCorpEBMock: ClientResponse = {
     partyRoles: [],
     questionIds: [
       '30005',
-      '30026',
-      '30027',
-      '30069',
-      '30070',
-      '30071',
-      '30072',
-      '30073',
     ],
   },
   questionResponses: [],
