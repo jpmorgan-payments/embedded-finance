@@ -254,7 +254,7 @@ ReviewIsInProgress.parameters = {
 
 export const AdditionalDocumentsRequested = Default.bind({});
 AdditionalDocumentsRequested.storyName =
-  '7.1. Additional Documents requested step';
+  '7.2. Additional Documents requested step';
 AdditionalDocumentsRequested.args = {
   ...WithClientId.args,
   blockPostVerification: true,

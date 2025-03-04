@@ -287,7 +287,7 @@ export const ControllerStepForm = () => {
   const isFormPopulating = existingControllerParty && !isFormPopulated;
 
   const isFormDisabled = isFormSubmitting || isFormPopulating;
-  
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-space-y-6">
