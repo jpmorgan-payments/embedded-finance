@@ -23,8 +23,8 @@ import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUpload
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
 import { NotificationService } from './NotificationService';
-import { useClientStatusMonitor } from './useStatusMonitor';
 import { ReviewInProgressLoadingState } from './ReviewInProgressLoadingState';
+import { useClientStatusMonitor } from './useStatusMonitor';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
@@ -213,8 +213,8 @@ export const ClientOnboardingStateView: React.FC = () => {
         <CardContent className="eb-p-6">
           {status === ClientStatus.REVIEW_IN_PROGRESS ? (
             <AdvancedReviewInProgressLoadingState />
-            // <ReviewInProgressLoadingState />
           ) : (
+            // <ReviewInProgressLoadingState />
             <div className="eb-space-y-6">
               <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
                 <span className="eb-text-sm eb-font-medium eb-text-gray-600">
