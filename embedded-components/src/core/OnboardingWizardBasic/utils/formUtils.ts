@@ -592,7 +592,7 @@ export function modifySchemaByClientContext(
     let modifiedSchema = value;
 
     if (ruleType === 'array') {
-      const min = fieldRule.minItems ?? 0;
+      const min = fieldRule.requiredItems ?? fieldRule.minItems ?? 0;
       const max = fieldRule.maxItems ?? Infinity;
       const nameParts = fullKey.split('.');
       const tName = nameParts

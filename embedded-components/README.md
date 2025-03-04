@@ -135,7 +135,7 @@ graph TB
 
 ### 1. OnboardingWizardBasic
 
-The `OnboardingWizardBasic` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/onboard).
+The `OnboardingWizardBasic` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client).
 
 #### Main Features:
 
@@ -192,7 +192,7 @@ Similarly, `availableJurisdictions` is an array of country codes that are select
 
 ### 2. LinkedAccountWidget
 
-The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/add-linked-account).
+The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account).
 
 #### Main Features:
 

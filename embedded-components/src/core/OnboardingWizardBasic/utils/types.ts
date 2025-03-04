@@ -48,6 +48,7 @@ export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
   minItems?: number;
+  requiredItems?: number;
   maxItems?: number;
   defaultValue: T;
   defaultAppendValue: T[number];
