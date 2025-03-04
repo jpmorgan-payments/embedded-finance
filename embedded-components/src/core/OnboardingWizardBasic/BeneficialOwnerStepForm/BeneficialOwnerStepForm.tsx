@@ -101,6 +101,7 @@ import {
   mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
+  useFormUtilsWithClientContext,
   useStepFormWithFilters,
 } from '../utils/formUtils';
 import { stateOptions } from '../utils/stateOptions';
@@ -123,6 +124,8 @@ export const BeneficialOwnerStepForm = () => {
   const { data: clientData, refetch: refetchClientData } = useSmbdoGetClient(
     clientId ?? ''
   );
+
+  const { modifyDefaultValues } = useFormUtilsWithClientContext(clientData);
 
   const [isClientDataRefetching, setIsClientDataRefetching] = useState(false);
 
@@ -240,7 +243,9 @@ export const BeneficialOwnerStepForm = () => {
         beneficialOwnerId
       );
       ownerForm.reset(
-        shapeFormValuesBySchema(formValues, BeneficialOwnerStepFormSchema)
+        modifyDefaultValues(
+          shapeFormValuesBySchema(formValues, BeneficialOwnerStepFormSchema)
+        )
       );
       setIsDialogOpen(true);
     }
@@ -248,7 +253,11 @@ export const BeneficialOwnerStepForm = () => {
 
   const handleAddBeneficialOwner = () => {
     setCurrentBeneficialOwnerId('');
-    ownerForm.reset(shapeFormValuesBySchema({}, BeneficialOwnerStepFormSchema));
+    ownerForm.reset(
+      modifyDefaultValues(
+        shapeFormValuesBySchema({}, BeneficialOwnerStepFormSchema)
+      )
+    );
     setIsDialogOpen(true);
   };
 
