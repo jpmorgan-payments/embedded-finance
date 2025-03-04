@@ -150,9 +150,7 @@ export const efClientCorpMock: ClientResponse = {
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
-    questionIds: [
-      '30005',
-    ],
+    questionIds: ['30005'],
   },
   questionResponses: [],
   status: 'NEW',

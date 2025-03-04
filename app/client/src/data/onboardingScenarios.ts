@@ -33,7 +33,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario3',
-    name: 'LLC (US/Embedded Payments outstanding documents)',
+    name: 'LLC (US/Embedded Payments) - Outstanding Documents',
     clientId: '0030000133',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -43,6 +43,16 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario4',
+    name: 'LLC (US/Embedded Payments) - review in progress',
+    clientId: '0030000134',
+    availableJurisdictions: ['US'],
+    availableProducts: ['EMBEDDED_PAYMENTS'],
+    baseURL: '/ef/do/v1/',
+    gatewayID: '',
+    availableOrganizationTypes,
+  },
+  {
+    id: 'scenario5',
     name: 'New Client (US/Embedded Payments, no mocked data)',
     clientId: undefined,
     availableJurisdictions: ['US'],

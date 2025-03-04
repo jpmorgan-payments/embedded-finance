@@ -104,9 +104,7 @@ export const efClientSolPropWithMoreData: ClientResponse = {
     documentRequestIds: [],
     partyIds: ['2000000112'],
     partyRoles: [],
-    questionIds: [
-      '30005',
-    ],
+    questionIds: ['30005'],
   },
   questionResponses: [],
   status: 'NEW',
