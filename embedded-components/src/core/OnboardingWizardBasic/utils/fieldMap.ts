@@ -206,6 +206,7 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: {
           display: 'visible',
           minItems: 1,
+          requiredItems: 0,
           maxItems: 1,
         },
         subFields: {
@@ -836,6 +837,7 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: {
           display: 'visible',
           minItems: 1,
+          requiredItems: 0,
           maxItems: 1,
         },
         subFields: {
