@@ -677,5 +677,49 @@
     "attestation": "Vous devrez examiner et attester l'exactitude de tous les renseignements fournis",
     "kycProcess": "Un processus de vérification d'identité (KYC) sera requis pour toutes les parties dirigeantes",
     "termsAndConditions": "Vous devrez examiner et accepter les conditions générales"
+  },
+  "clientOnboardingStatus": {
+    "title": "État d'intégration du client",
+    "labels": {
+      "status": "État",
+      "clientId": "ID client",
+      "organization": "Organisation",
+      "organizationType": "Type d'organisation"
+    },
+    "errors": {
+      "loadingError": "Erreur lors du chargement des informations client",
+      "noData": "Aucune donnée client disponible"
+    },
+    "statusMessages": {
+      "NEW": "Une nouvelle demande client a été soumise et est en attente d'examen.",
+      "REVIEW_IN_PROGRESS": "La demande client est actuellement en cours d'examen.",
+      "INFORMATION_REQUESTED": "Des informations supplémentaires ont été demandées au client.",
+      "APPROVED": "La demande client a été approuvée.",
+      "DECLINED": "La demande client a été refusée.",
+      "SUSPENDED": "Le compte client a été temporairement suspendu.",
+      "TERMINATED": "Le compte client a été résilié."
+    },
+    "notification": {
+      "title": "Processus KYC en cours",
+      "description": "Votre processus KYC client est actuellement en cours d'examen. Veuillez vérifier régulièrement pour obtenir des mises à jour sur l'état de la vérification.",
+      "cta": "Obtenir des mises à jour par notification",
+      "toast": {
+        "title": "Notifications activées",
+        "description": "Vous recevrez des mises à jour sur l'état de votre processus KYC."
+      }
+    },
+    "statusLabels": {
+      "APPROVED": "Approuvé",
+      "DECLINED": "Refusé",
+      "INFORMATION_REQUESTED": "Informations demandées",
+      "NEW": "Nouveau",
+      "REVIEW_IN_PROGRESS": "Examen en cours",
+      "SUSPENDED": "Suspendu",
+      "TERMINATED": "Résilié"
+    }
+  },
+  "linkedAccount": {
+    "title": "Comptes liés",
+    "disclaimer": "Pendant que votre intégration est en cours de traitement, vous pouvez commencer à ajouter des comptes liés à votre profil."
   }
 }

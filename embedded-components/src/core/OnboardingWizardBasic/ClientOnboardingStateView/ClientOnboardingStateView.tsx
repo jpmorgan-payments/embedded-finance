@@ -18,13 +18,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LinkedAccountWidget } from '@/core/LinkedAccountWidget/LinkedAccountWidget';
 
 import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
 import { NotificationService } from './NotificationService';
-import { ReviewInProgressLoadingState } from './ReviewInProgressLoadingState';
 import { useClientStatusMonitor } from './useStatusMonitor';
+
+interface ClientOnboardingStateViewProps {
+  showLinkedAccountPanel?: boolean;
+}
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
@@ -85,8 +89,10 @@ const LoadingState: React.FC = () => (
   </Card>
 );
 
-export const ClientOnboardingStateView: React.FC = () => {
-  const { clientId } = useOnboardingContext();
+export const ClientOnboardingStateView: React.FC<
+  ClientOnboardingStateViewProps
+> = () => {
+  const { clientId, showLinkedAccountPanel } = useOnboardingContext();
   const {
     data: clientData,
     isLoading,
@@ -211,10 +217,23 @@ export const ClientOnboardingStateView: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="eb-p-6">
+          {showLinkedAccountPanel && (
+            <div className="eb-rounded-lg eb-border eb-p-4">
+              <h3 className="eb-mb-4 eb-text-lg eb-font-semibold">
+                {t('linkedAccount.title', 'Linked Accounts')}
+              </h3>
+              <p className="eb-mb-4 eb-text-sm eb-text-gray-600">
+                {t(
+                  'linkedAccount.disclaimer',
+                  'While your onboarding is being processed, you can start adding linked accounts to your profile.'
+                )}
+              </p>
+              <LinkedAccountWidget variant="singleAccount" />
+            </div>
+          )}
           {status === ClientStatus.REVIEW_IN_PROGRESS ? (
             <AdvancedReviewInProgressLoadingState />
           ) : (
-            // <ReviewInProgressLoadingState />
             <div className="eb-space-y-6">
               <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
                 <span className="eb-text-sm eb-font-medium eb-text-gray-600">

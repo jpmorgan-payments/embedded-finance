@@ -1149,5 +1149,8 @@
       "SUSPENDED": "Suspended",
       "TERMINATED": "Terminated"
     }
+  },
+  "linkedAccount": {
+    "title": "Linked Accounts"
   }
 }

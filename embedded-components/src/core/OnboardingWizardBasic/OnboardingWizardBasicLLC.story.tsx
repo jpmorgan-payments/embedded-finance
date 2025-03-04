@@ -4,6 +4,7 @@ import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
+import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -238,6 +239,7 @@ ReviewIsInProgress.storyName = '7.1. Review is in progress';
 ReviewIsInProgress.args = {
   ...WithClientId.args,
   blockPostVerification: true,
+  showLinkedAccountPanel: true,
 };
 ReviewIsInProgress.parameters = {
   msw: {
@@ -246,6 +248,13 @@ ReviewIsInProgress.parameters = {
         return HttpResponse.json({
           ...efClientCorpEBMock,
           status: 'REVIEW_IN_PROGRESS',
+        });
+      }),
+      // Mock empty linked accounts response
+      http.get('/recipients', () => {
+        return HttpResponse.json({
+          ...linkedAccountListMock,
+          recipients: [],
         });
       }),
     ],

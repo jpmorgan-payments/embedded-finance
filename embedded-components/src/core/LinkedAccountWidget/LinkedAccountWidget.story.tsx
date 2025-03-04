@@ -55,6 +55,25 @@ export const Primary: Story = {
   },
 };
 
+export const WithNoRecipients: Story = {
+  name: 'With no recipients',
+  args: {
+    apiBaseUrl: '/',
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/recipients', () => {
+          return HttpResponse.json({
+            ...linkedAccountListMock,
+            recipients: [],
+          });
+        }),
+      ],
+    },
+  },
+};
+
 export const WithTheme: Story = {
   name: 'With Custom Theme',
   ...Primary,
