@@ -170,7 +170,7 @@ export const AdvancedReviewInProgressLoadingState: React.FC = () => {
       >
         {/* Icon container - simplified and centered */}
         <div className="eb-mb-6 eb-flex eb-justify-center">
-          <div className="animate-subtle-pulse eb-relative eb-flex eb-h-20 eb-w-20 eb-items-center eb-justify-center eb-rounded-full eb-bg-gray-100 eb-shadow-lg">
+          <div className="eb-relative eb-flex eb-h-20 eb-w-20 eb-items-center eb-justify-center eb-rounded-full eb-bg-gray-100 eb-shadow-lg">
             {currentStageData.icon}
           </div>
         </div>
