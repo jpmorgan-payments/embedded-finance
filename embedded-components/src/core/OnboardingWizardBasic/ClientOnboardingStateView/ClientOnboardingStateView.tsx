@@ -83,6 +83,35 @@ const LoadingState: React.FC = () => (
   </Card>
 );
 
+const ReviewInProgressLoadingState: React.FC = () => {
+  const { t } = useTranslation(['onboarding', 'common']);
+
+  return (
+    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-4 eb-p-8">
+      <div className="eb-relative eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center">
+        <div className="eb-absolute eb-inset-0 eb-animate-ping eb-rounded-full eb-bg-yellow-400 eb-opacity-75" />
+        <div className="eb-relative eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-yellow-500">
+          <ClockIcon className="eb-h-6 eb-w-6 eb-text-white" />
+        </div>
+      </div>
+      <div className="eb-text-center">
+        <h3 className="eb-mb-2 eb-text-lg eb-font-semibold eb-text-gray-900">
+          {t(
+            'clientOnboardingStatus.reviewInProgress.title',
+            'Review in Progress'
+          )}
+        </h3>
+        <p className="eb-text-sm eb-text-gray-600">
+          {t(
+            'clientOnboardingStatus.reviewInProgress.description',
+            'Our team is carefully reviewing your application. This may take a few minutes.'
+          )}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export const ClientOnboardingStateView: React.FC = () => {
   const { clientId } = useOnboardingContext();
   const {
@@ -209,47 +238,51 @@ export const ClientOnboardingStateView: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="eb-p-6">
-          <div className="eb-space-y-6">
-            <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
-              <span className="eb-text-sm eb-font-medium eb-text-gray-600">
-                {t('clientOnboardingStatus.labels.status')}:
-              </span>
-              <Badge
-                className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
-              >
-                {icon}
-                {t(`clientOnboardingStatus.statusLabels.${status}`)}
-              </Badge>
-            </div>
+          {status === ClientStatus.REVIEW_IN_PROGRESS ? (
+            <ReviewInProgressLoadingState />
+          ) : (
+            <div className="eb-space-y-6">
+              <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
+                <span className="eb-text-sm eb-font-medium eb-text-gray-600">
+                  {t('clientOnboardingStatus.labels.status')}:
+                </span>
+                <Badge
+                  className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
+                >
+                  {icon}
+                  {t(`clientOnboardingStatus.statusLabels.${status}`)}
+                </Badge>
+              </div>
 
-            <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-              <DetailRow
-                label={t('clientOnboardingStatus.labels.clientId')}
-                value={clientData.id}
-              />
-              <DetailRow
-                label={t('clientOnboardingStatus.labels.organization')}
-                value={
-                  businessDetails?.organizationDetails?.organizationName ||
-                  'N/A'
-                }
-              />
-              <DetailRow
-                label={t('clientOnboardingStatus.labels.organizationType')}
-                value={
-                  businessDetails?.organizationDetails?.organizationType
-                    ? t(
-                        `organizationTypes.${businessDetails.organizationDetails.organizationType}`
-                      )
-                    : 'N/A'
-                }
-              />
-            </div>
+              <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.clientId')}
+                  value={clientData.id}
+                />
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.organization')}
+                  value={
+                    businessDetails?.organizationDetails?.organizationName ||
+                    'N/A'
+                  }
+                />
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.organizationType')}
+                  value={
+                    businessDetails?.organizationDetails?.organizationType
+                      ? t(
+                          `organizationTypes.${businessDetails.organizationDetails.organizationType}`
+                        )
+                      : 'N/A'
+                  }
+                />
+              </div>
 
-            <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
-              <p>{statusMessages[status]}</p>
+              <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
+                <p>{statusMessages[status]}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="eb-mt-8">
             {clientData?.status === ClientStatus.INFORMATION_REQUESTED && (

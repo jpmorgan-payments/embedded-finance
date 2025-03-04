@@ -233,9 +233,28 @@ ReviewAndAttest.parameters = {
   },
 };
 
+export const ReviewIsInProgress = Default.bind({});
+ReviewIsInProgress.storyName = '7.1. Review is in progress';
+ReviewIsInProgress.args = {
+  ...WithClientId.args,
+  blockPostVerification: true,
+};
+ReviewIsInProgress.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000133', () => {
+        return HttpResponse.json({
+          ...efClientCorpEBMock,
+          status: 'REVIEW_IN_PROGRESS',
+        });
+      }),
+    ],
+  },
+};
+
 export const AdditionalDocumentsRequested = Default.bind({});
 AdditionalDocumentsRequested.storyName =
-  '7. Additional Documents requested step';
+  '7.1. Additional Documents requested step';
 AdditionalDocumentsRequested.args = {
   ...WithClientId.args,
   blockPostVerification: true,
