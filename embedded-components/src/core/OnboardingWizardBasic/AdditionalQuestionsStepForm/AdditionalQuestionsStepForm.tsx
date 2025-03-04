@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -44,6 +45,7 @@ import {
 export const AdditionalQuestionsStepForm = () => {
   const { nextStep } = useStepper();
   const { clientId } = useOnboardingContext();
+  const queryClient = useQueryClient();
 
   // Fetch client data to get outstanding question IDs
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -90,12 +92,48 @@ export const AdditionalQuestionsStepForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClient({
     mutation: {
+      onMutate: async (newData) => {
+        // Cancel any outgoing refetches
+        await queryClient.cancelQueries({ queryKey: ['client', clientId] });
+
+        // Snapshot the previous value
+        const previousClientData = queryClient.getQueryData([
+          'client',
+          clientId,
+        ]);
+
+        // Optimistically update to the new value
+        queryClient.setQueryData(['client', clientId], (old: any) => ({
+          ...old,
+          outstanding: {
+            ...old?.outstanding,
+            questionIds:
+              old?.outstanding?.questionIds?.filter(
+                (id: string) =>
+                  !(newData.data.questionResponses ?? []).some(
+                    (response: any) => response.questionId === id
+                  )
+              ) ?? [],
+          },
+          questionResponses: [
+            ...(old?.questionResponses ?? []),
+            ...(newData.data.questionResponses ?? []),
+          ],
+        }));
+
+        // Return a context object with the snapshotted value
+        return { previousClientData };
+      },
+      onError: (err, newData, context) => {
+        // If the mutation fails, use the context returned from onMutate to roll back
+        queryClient.setQueryData(
+          ['client', clientId],
+          context?.previousClientData
+        );
+      },
       onSuccess: () => {
         toast.success('Additional questions submitted successfully');
         nextStep();
-      },
-      onError: () => {
-        toast.error('Failed to submit additional questions');
       },
     },
   });

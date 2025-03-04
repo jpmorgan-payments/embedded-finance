@@ -219,6 +219,16 @@ ReviewAndAttest.parameters = {
       http.get('/questions', () => {
         return HttpResponse.json(efClientQuestionsMock);
       }),
+      http.get('/documents/:documentId/file', () => {
+        return new HttpResponse(
+          new Blob(['Mock PDF content'], { type: 'application/pdf' }),
+          {
+            headers: {
+              'Content-Type': 'application/pdf',
+            },
+          }
+        );
+      }),
     ],
   },
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -66,12 +66,14 @@ export const ReviewAndAttestStepForm = () => {
   const [termsDocumentsOpened, setTermsDocumentsOpened] = useState<{
     [key: string]: boolean;
   }>({});
+
   const [loadingDocuments, setLoadingDocuments] = useState<{
     [key: string]: boolean;
   }>({});
 
   // Fetch client data
-  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
+  const { data: clientData, isLoading: isClientDataLoading } =
+    useSmbdoGetClient(clientId ?? '');
 
   const { data: IPAddress } = useIPAddress();
 
@@ -235,6 +237,28 @@ export const ReviewAndAttestStepForm = () => {
     </div>
   );
 
+  // Add useEffect to initialize termsDocumentsOpened when documents are loaded
+  useEffect(() => {
+    const initialDocumentStates = documentQueries.reduce(
+      (acc, query) => {
+        if (query.data?.id) {
+          acc[query.data.id] = false;
+        }
+        return acc;
+      },
+      {} as { [key: string]: boolean }
+    );
+
+    // Only update if we have new document IDs that aren't already in termsDocumentsOpened
+    const hasNewDocuments = Object.keys(initialDocumentStates).some(
+      (id) => !(id in termsDocumentsOpened)
+    );
+
+    if (hasNewDocuments) {
+      setTermsDocumentsOpened(initialDocumentStates);
+    }
+  }, [documentQueries.map((query) => query.data?.id).filter(Boolean)]);
+
   return (
     <>
       <Stack className="eb-mx-auto eb-w-full eb-max-w-full eb-text-sm md:eb-max-w-3xl lg:eb-max-w-4xl">
@@ -242,14 +266,22 @@ export const ReviewAndAttestStepForm = () => {
           Review
         </Title>
 
-        {!isOutstandingEmpty(clientData?.outstanding) && clientData && (
-          <OutstandingKYCRequirements clientData={clientData} />
-        )}
-
-        {isOutstandingEmpty(clientData?.outstanding) && clientData && (
-          <div className="eb-mb-4 eb-bg-green-100 eb-p-4 eb-text-green-800">
-            All outstanding KYC requirements have been addressed.
+        {isClientDataLoading ? (
+          <div className="eb-mb-4 eb-bg-gray-50 eb-p-4 eb-text-gray-600">
+            Loading review information...
           </div>
+        ) : (
+          <>
+            {!isOutstandingEmpty(clientData?.outstanding) && clientData && (
+              <OutstandingKYCRequirements clientData={clientData} />
+            )}
+
+            {isOutstandingEmpty(clientData?.outstanding) && clientData && (
+              <div className="eb-mb-4 eb-bg-green-100 eb-p-4 eb-text-green-800">
+                All outstanding KYC requirements have been addressed.
+              </div>
+            )}
+          </>
         )}
 
         <div className="eb-w-xl eb-px-4">
@@ -320,6 +352,7 @@ export const ReviewAndAttestStepForm = () => {
                 checked={termsAgreed.termsAndConditions}
                 onCheckedChange={handleTermsChange('termsAndConditions')}
                 className="eb-shrink-0"
+                disabled={!allDocumentsOpened}
               />
               <Label
                 htmlFor="termsAndConditions"
