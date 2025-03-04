@@ -21,8 +21,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
 import { NotificationService } from './NotificationService';
 import { useClientStatusMonitor } from './useStatusMonitor';
+import { ReviewInProgressLoadingState } from './ReviewInProgressLoadingState';
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
@@ -82,35 +84,6 @@ const LoadingState: React.FC = () => (
     </CardContent>
   </Card>
 );
-
-const ReviewInProgressLoadingState: React.FC = () => {
-  const { t } = useTranslation(['onboarding', 'common']);
-
-  return (
-    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-4 eb-p-8">
-      <div className="eb-relative eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center">
-        <div className="eb-absolute eb-inset-0 eb-animate-ping eb-rounded-full eb-bg-yellow-400 eb-opacity-75" />
-        <div className="eb-relative eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-yellow-500">
-          <ClockIcon className="eb-h-6 eb-w-6 eb-text-white" />
-        </div>
-      </div>
-      <div className="eb-text-center">
-        <h3 className="eb-mb-2 eb-text-lg eb-font-semibold eb-text-gray-900">
-          {t(
-            'clientOnboardingStatus.reviewInProgress.title',
-            'Review in Progress'
-          )}
-        </h3>
-        <p className="eb-text-sm eb-text-gray-600">
-          {t(
-            'clientOnboardingStatus.reviewInProgress.description',
-            'Our team is carefully reviewing your application. This may take a few minutes.'
-          )}
-        </p>
-      </div>
-    </div>
-  );
-};
 
 export const ClientOnboardingStateView: React.FC = () => {
   const { clientId } = useOnboardingContext();
@@ -239,7 +212,8 @@ export const ClientOnboardingStateView: React.FC = () => {
         </CardHeader>
         <CardContent className="eb-p-6">
           {status === ClientStatus.REVIEW_IN_PROGRESS ? (
-            <ReviewInProgressLoadingState />
+            <AdvancedReviewInProgressLoadingState />
+            // <ReviewInProgressLoadingState />
           ) : (
             <div className="eb-space-y-6">
               <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
