@@ -51,6 +51,7 @@ export interface OnboardingWizardBasicProps extends OnboardingProps {
   alertOnExit?: boolean;
   userEventsToTrack?: string[];
   userEventsHandler?: ({ actionName }: { actionName: string }) => void;
+  showLinkedAccountPanel?: boolean;
 }
 
 export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
@@ -61,6 +62,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   userEventsToTrack = [],
   userEventsHandler,
   usePartyResource = true,
+  showLinkedAccountPanel = false,
   ...props
 }) => {
   const { tokens: globalContentTokens = {} } = useContentTokens();
@@ -127,7 +129,9 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   }, []);
 
   return (
-    <OnboardingContextProvider {...{ ...props, usePartyResource }}>
+    <OnboardingContextProvider
+      {...{ ...props, usePartyResource, showLinkedAccountPanel }}
+    >
       <OnboardingWizardBasicComponent
         initialStep={initialStep}
         variant={variant}
@@ -290,7 +294,9 @@ const OnboardingWizardBasicComponent: FC<
             })}
           </Stepper>
         ) : (
-          <ClientOnboardingStateView />
+          <div className="eb-space-y-6">
+            <ClientOnboardingStateView />
+          </div>
         )}
       </CardContent>
     </Card>

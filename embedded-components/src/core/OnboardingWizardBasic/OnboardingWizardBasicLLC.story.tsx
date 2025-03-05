@@ -4,6 +4,7 @@ import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
+import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -219,13 +220,50 @@ ReviewAndAttest.parameters = {
       http.get('/questions', () => {
         return HttpResponse.json(efClientQuestionsMock);
       }),
+      http.get('/documents/:documentId/file', () => {
+        return new HttpResponse(
+          new Blob(['Mock PDF content'], { type: 'application/pdf' }),
+          {
+            headers: {
+              'Content-Type': 'application/pdf',
+            },
+          }
+        );
+      }),
+    ],
+  },
+};
+
+export const ReviewIsInProgress = Default.bind({});
+ReviewIsInProgress.storyName = '7.1. Review is in progress';
+ReviewIsInProgress.args = {
+  ...WithClientId.args,
+  blockPostVerification: true,
+  showLinkedAccountPanel: true,
+};
+ReviewIsInProgress.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000133', () => {
+        return HttpResponse.json({
+          ...efClientCorpEBMock,
+          status: 'REVIEW_IN_PROGRESS',
+        });
+      }),
+      // Mock empty linked accounts response
+      http.get('/recipients', () => {
+        return HttpResponse.json({
+          ...linkedAccountListMock,
+          recipients: [],
+        });
+      }),
     ],
   },
 };
 
 export const AdditionalDocumentsRequested = Default.bind({});
 AdditionalDocumentsRequested.storyName =
-  '7. Additional Documents requested step';
+  '7.2. Additional Documents requested step';
 AdditionalDocumentsRequested.args = {
   ...WithClientId.args,
   blockPostVerification: true,

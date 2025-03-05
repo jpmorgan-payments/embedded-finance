@@ -55,7 +55,7 @@ export const efClientSolPropNew: ClientResponse = {
     documentRequestIds: [],
     partyIds: ['2000000111'],
     partyRoles: ['CONTROLLER'],
-    questionIds: ['30005', '30026', '30027'],
+    questionIds: ['30005'],
   },
   questionResponses: [],
   status: 'NEW',

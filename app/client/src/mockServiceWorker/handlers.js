@@ -26,6 +26,7 @@ const clientIdScenarioMap = {
   '0030000131': SoleProprietorExistingClient,
   '0030000132': LLCExistingClient,
   '0030000133': LLCExistingClientOutstandingDocuments,
+  '0030000134': { ...LLCExistingClient, status: 'REVIEW_IN_PROGRESS' },
 };
 
 export const createHandlers = (apiUrl) => [
@@ -75,11 +76,14 @@ export const createHandlers = (apiUrl) => [
 
   http.post(`/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params;
-    return HttpResponse.json(clientIdScenarioMap[clientId] || LLCExistingClient, {
-      headers: {
-        'Content-Type': 'application/json',
+    return HttpResponse.json(
+      clientIdScenarioMap[clientId] || LLCExistingClient,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
   }),
 
   http.post('/ef/do/v1/parties/:partyId', (req) => {

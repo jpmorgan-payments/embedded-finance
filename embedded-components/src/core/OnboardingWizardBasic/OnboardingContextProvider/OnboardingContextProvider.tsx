@@ -43,6 +43,7 @@ type OnboardingContextType = OnboardingProps & {
   setCurrentForm: (form: UseFormReturn<any, any, any> | undefined) => void;
   currentStepIndex?: number;
   setCurrentStepIndex: (index: number) => void;
+  showLinkedAccountPanel?: boolean;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(

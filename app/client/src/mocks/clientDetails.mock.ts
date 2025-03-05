@@ -15,9 +15,10 @@ export const LLCExistingClient = {
         organizationName: 'Neverland Books',
         dbaName: 'FT Books',
         organizationDescription: 'Step into a world of stories and imagination',
-        industryCategory:
-          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
-        industryType: 'Book Retailers and News Dealers',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
         countryOfFormation: 'US',
         yearOfFormation: '1989',
         entitiesInOwnership: false,
@@ -148,30 +149,6 @@ export const LLCExistingClient = {
       questionId: '30005',
       values: ['$10,000'],
     },
-    {
-      questionId: '30026',
-      values: ['No'],
-    },
-    {
-      questionId: '30069',
-      values: ['Licensed'],
-    },
-    {
-      questionId: '30070',
-      values: ['US'],
-    },
-    {
-      questionId: '30071',
-      values: ['09/10/1996'],
-    },
-    {
-      questionId: '30072',
-      values: ['US'],
-    },
-    {
-      questionId: '30073',
-      values: ['09/10/1996'],
-    },
   ],
   results: {
     customerIdentityStatus: 'APPROVED',
@@ -199,8 +176,10 @@ export const SoleProprietorExistingClient = {
         dbaName: '',
         organizationDescription:
           'Relax, unwind and experience the comforting charm of our apartment',
-        industryCategory: 'Accommodation and Food Services',
-        industryType: 'All Other Traveler Accommodation',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
         countryOfFormation: 'US',
         yearOfFormation: '1990',
         // significantOwnership: true,
@@ -288,10 +267,6 @@ export const SoleProprietorExistingClient = {
       questionId: '300005',
       values: ['$10,000'],
     },
-    {
-      questionId: '30026',
-      values: ['false'],
-    },
   ],
   results: {
     customerIdentityStatus: 'NOT_STARTED',
@@ -316,9 +291,10 @@ export const LLCExistingClientOutstandingDocuments = {
         organizationName: 'Neverland Books',
         dbaName: 'FT Books',
         organizationDescription: 'Step into a world of stories and imagination',
-        industryCategory:
-          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
-        industryType: 'Book Retailers and News Dealers',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
         countryOfFormation: 'US',
         yearOfFormation: '1989',
         entitiesInOwnership: false,

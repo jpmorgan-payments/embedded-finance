@@ -120,10 +120,6 @@ export const efClientSolPropAdditionalDocuments: ClientResponse = {
       questionId: '300005',
       values: ['$10,000'],
     },
-    {
-      questionId: '30026',
-      values: ['false'],
-    },
   ],
   status: 'INFORMATION_REQUESTED',
 };

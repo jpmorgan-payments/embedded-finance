@@ -4,7 +4,6 @@ import { getRecipientLabel } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ef-v1';
 import { RecipientStatus } from '@/api/generated/ef-v1.schemas';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge, Separator } from '@/components/ui';
 
 import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
@@ -48,62 +47,55 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       : data?.recipients;
 
   return (
-    <Card className="eb-component">
-      <CardHeader>
-        <CardTitle>Linked Account</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="eb-space-y-4">
-          {status === 'pending' && <p>Loading...</p>}
-          {status === 'error' && (
-            <p>Error: {failureReason?.message ?? 'Unknown error'}</p>
-          )}
+    <div className="eb-component eb-space-y-4">
+      {status === 'pending' && <p>Loading...</p>}
+      {status === 'error' && (
+        <p>Error: {failureReason?.message ?? 'Unknown error'}</p>
+      )}
 
-          {status === 'success' &&
-            modifiedRecipients &&
-            modifiedRecipients.length > 0 &&
-            modifiedRecipients.map((recipient) => (
-              <div key={recipient.id} className="eb-space-y-1">
-                <div className="eb-flex eb-items-center eb-justify-between">
-                  <h4
-                    key={recipient.id}
-                    className="eb-text-sm eb-font-medium eb-leading-none"
-                  >
-                    {getRecipientLabel(recipient)}
-                  </h4>
-                  {recipient.status && (
-                    <StatusBadge status={recipient.status} />
-                  )}
-                </div>
-                <p className="eb-text-sm eb-text-muted-foreground">
-                  {recipient.partyDetails.type.toLocaleUpperCase()}
-                </p>
-                {recipient.status === 'READY_FOR_VALIDATION' && (
-                  <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
-                    <Button size="sm" variant="secondary" className="eb-mt-2">
-                      <PencilLineIcon className="eb-mr-2 eb-h-4 eb-w-4" />{' '}
-                      Verify microdeposits
-                    </Button>
-                  </MicrodepositsFormDialogTrigger>
-                )}
-              </div>
-            ))}
-          {status === 'success' &&
-            modifiedRecipients &&
-            ((variant === 'singleAccount' && modifiedRecipients.length === 0) ||
-              variant === 'default') && (
-              <>
-                <Separator className="eb-my-4" />
-                <LinkAccountFormDialogTrigger>
-                  <Button>
-                    <LinkIcon className="eb-mr-2 eb-h-4 eb-w-4" /> Link A New
-                    Account
-                  </Button>
-                </LinkAccountFormDialogTrigger>
-              </>
+      {status === 'success' &&
+        modifiedRecipients &&
+        modifiedRecipients.length > 0 &&
+        modifiedRecipients.map((recipient) => (
+          <div key={recipient.id} className="eb-space-y-1">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <h4
+                key={recipient.id}
+                className="eb-text-sm eb-font-medium eb-leading-none"
+              >
+                {getRecipientLabel(recipient)}
+              </h4>
+              {recipient.status && <StatusBadge status={recipient.status} />}
+            </div>
+            <p className="eb-text-sm eb-text-muted-foreground">
+              {recipient.partyDetails.type.toLocaleUpperCase()}
+            </p>
+            {recipient.status === 'READY_FOR_VALIDATION' && (
+              <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
+                <Button size="sm" variant="secondary" className="eb-mt-2">
+                  <PencilLineIcon className="eb-mr-2 eb-h-4 eb-w-4" /> Verify
+                  microdeposits
+                </Button>
+              </MicrodepositsFormDialogTrigger>
             )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        ))}
+      {status === 'success' &&
+        modifiedRecipients &&
+        ((variant === 'singleAccount' && modifiedRecipients.length === 0) ||
+          variant === 'default') && (
+          <>
+            {(data?.recipients ?? []).length > 0 && (
+              <Separator className="eb-my-4" />
+            )}
+            <LinkAccountFormDialogTrigger>
+              <Button>
+                <LinkIcon className="eb-mr-2 eb-h-4 eb-w-4" /> Link A New
+                Account
+              </Button>
+            </LinkAccountFormDialogTrigger>
+          </>
+        )}
+    </div>
   );
 };

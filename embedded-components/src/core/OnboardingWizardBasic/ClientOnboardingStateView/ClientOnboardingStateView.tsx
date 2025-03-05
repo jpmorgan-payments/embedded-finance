@@ -18,11 +18,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LinkedAccountWidget } from '@/core/LinkedAccountWidget/LinkedAccountWidget';
 
 import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
 import { NotificationService } from './NotificationService';
 import { useClientStatusMonitor } from './useStatusMonitor';
+
+interface ClientOnboardingStateViewProps {
+  showLinkedAccountPanel?: boolean;
+}
 
 const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
   {
@@ -83,8 +89,10 @@ const LoadingState: React.FC = () => (
   </Card>
 );
 
-export const ClientOnboardingStateView: React.FC = () => {
-  const { clientId } = useOnboardingContext();
+export const ClientOnboardingStateView: React.FC<
+  ClientOnboardingStateViewProps
+> = () => {
+  const { clientId, showLinkedAccountPanel } = useOnboardingContext();
   const {
     data: clientData,
     isLoading,
@@ -209,47 +217,65 @@ export const ClientOnboardingStateView: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="eb-p-6">
-          <div className="eb-space-y-6">
-            <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
-              <span className="eb-text-sm eb-font-medium eb-text-gray-600">
-                {t('clientOnboardingStatus.labels.status')}:
-              </span>
-              <Badge
-                className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
-              >
-                {icon}
-                {t(`clientOnboardingStatus.statusLabels.${status}`)}
-              </Badge>
+          {showLinkedAccountPanel && (
+            <div className="eb-rounded-lg eb-border eb-p-4">
+              <h3 className="eb-mb-4 eb-text-lg eb-font-semibold">
+                {t('linkedAccount.title', 'Linked Accounts')}
+              </h3>
+              <p className="eb-mb-4 eb-text-sm eb-text-gray-600">
+                {t(
+                  'linkedAccount.disclaimer',
+                  'While your onboarding is being processed, you can start adding linked accounts to your profile.'
+                )}
+              </p>
+              <LinkedAccountWidget variant="singleAccount" />
             </div>
+          )}
+          {status === ClientStatus.REVIEW_IN_PROGRESS ? (
+            <AdvancedReviewInProgressLoadingState />
+          ) : (
+            <div className="eb-space-y-6">
+              <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
+                <span className="eb-text-sm eb-font-medium eb-text-gray-600">
+                  {t('clientOnboardingStatus.labels.status')}:
+                </span>
+                <Badge
+                  className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
+                >
+                  {icon}
+                  {t(`clientOnboardingStatus.statusLabels.${status}`)}
+                </Badge>
+              </div>
 
-            <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-              <DetailRow
-                label={t('clientOnboardingStatus.labels.clientId')}
-                value={clientData.id}
-              />
-              <DetailRow
-                label={t('clientOnboardingStatus.labels.organization')}
-                value={
-                  businessDetails?.organizationDetails?.organizationName ||
-                  'N/A'
-                }
-              />
-              <DetailRow
-                label={t('clientOnboardingStatus.labels.organizationType')}
-                value={
-                  businessDetails?.organizationDetails?.organizationType
-                    ? t(
-                        `organizationTypes.${businessDetails.organizationDetails.organizationType}`
-                      )
-                    : 'N/A'
-                }
-              />
-            </div>
+              <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.clientId')}
+                  value={clientData.id}
+                />
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.organization')}
+                  value={
+                    businessDetails?.organizationDetails?.organizationName ||
+                    'N/A'
+                  }
+                />
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.organizationType')}
+                  value={
+                    businessDetails?.organizationDetails?.organizationType
+                      ? t(
+                          `organizationTypes.${businessDetails.organizationDetails.organizationType}`
+                        )
+                      : 'N/A'
+                  }
+                />
+              </div>
 
-            <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
-              <p>{statusMessages[status]}</p>
+              <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
+                <p>{statusMessages[status]}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="eb-mt-8">
             {clientData?.status === ClientStatus.INFORMATION_REQUESTED && (
