@@ -205,16 +205,24 @@ export const ReviewAndAttestStepForm = () => {
   };
 
   const getStepForParty = (party: PartyResponse) => {
+    const isSoleProprietorship =
+      clientData?.parties?.find((p) => p.partyType === 'ORGANIZATION')
+        ?.organizationDetails?.organizationType === 'SOLE_PROPRIETORSHIP';
+
     if (party.partyType === 'ORGANIZATION') {
       return 1; // Organization step
     }
+
     if (party.roles?.includes('CONTROLLER')) {
       return 2; // Controller step
     }
-    if (party.roles?.includes('BENEFICIAL_OWNER')) {
-      return 3; // Beneficial Owner step
+
+    // For Sole Proprietorship, there's no Beneficial Owner step
+    if (party.roles?.includes('BENEFICIAL_OWNER') && !isSoleProprietorship) {
+      return 3; // Beneficial Owner step (only for non-sole-prop)
     }
-    return 0; // Default to initial step
+
+    return isSoleProprietorship ? 3 : 4;
   };
 
   const renderParty = (
