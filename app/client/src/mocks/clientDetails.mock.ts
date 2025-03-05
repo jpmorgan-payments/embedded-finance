@@ -15,9 +15,10 @@ export const LLCExistingClient = {
         organizationName: 'Neverland Books',
         dbaName: 'FT Books',
         organizationDescription: 'Step into a world of stories and imagination',
-        industryCategory:
-          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
-        industryType: 'Book Retailers and News Dealers',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
         countryOfFormation: 'US',
         yearOfFormation: '1989',
         entitiesInOwnership: false,
@@ -175,8 +176,10 @@ export const SoleProprietorExistingClient = {
         dbaName: '',
         organizationDescription:
           'Relax, unwind and experience the comforting charm of our apartment',
-        industryCategory: 'Accommodation and Food Services',
-        industryType: 'All Other Traveler Accommodation',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
         countryOfFormation: 'US',
         yearOfFormation: '1990',
         // significantOwnership: true,
@@ -263,7 +266,7 @@ export const SoleProprietorExistingClient = {
     {
       questionId: '300005',
       values: ['$10,000'],
-    }
+    },
   ],
   results: {
     customerIdentityStatus: 'NOT_STARTED',
@@ -288,9 +291,10 @@ export const LLCExistingClientOutstandingDocuments = {
         organizationName: 'Neverland Books',
         dbaName: 'FT Books',
         organizationDescription: 'Step into a world of stories and imagination',
-        industryCategory:
-          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
-        industryType: 'Book Retailers and News Dealers',
+        industry: {
+          code: '459910',
+          codeType: 'NAICS',
+        },
         countryOfFormation: 'US',
         yearOfFormation: '1989',
         entitiesInOwnership: false,

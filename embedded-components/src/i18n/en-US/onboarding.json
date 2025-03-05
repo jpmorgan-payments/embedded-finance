@@ -401,43 +401,43 @@
       "label": "Business Identification",
       "itemLabel": "Business Identification",
       "itemLabelNumbered": "Business Identification {{number}}",
-      "appendLabel": "Add ID",
-      "removeLabel": "Remove ID",
+      "appendLabel": "Add Business Identification",
+      "removeLabel": "Remove Business Identification",
       "validation": {
-        "minItems": "At least {{count}} organization ID is required",
-        "maxItems": "Maximum 6 organization IDs allowed",
-        "uniqueTypes": "Each organization ID type must be unique"
+        "minItems": "At least {{count}} Business Identification is required",
+        "maxItems": "Maximum 6 Business Identifications allowed",
+        "uniqueTypes": "Each Business Identification type must be unique"
       },
       "idType": {
-        "label": "ID type",
-        "placeholder": "Select ID type",
-        "description": "Type of organization ID",
-        "tooltip": "should match your business registration documents ID type",
+        "label": "Business Identification type",
+        "placeholder": "Select Business Identification type",
+        "description": "Type of Business Identification",
+        "tooltip": "should match your business registration documents type",
         "validation": {
-          "required": "ID type is required"
+          "required": "Business Identification type is required"
         }
       },
       "description": {
         "label": "Description",
         "placeholder": "Enter description",
-        "description": "Description of the organization ID",
-        "tooltip": "should match your business registration documents ID description",
+        "description": "Description of the Business Identification",
+        "tooltip": "should match your business registration documents description",
         "validation": {
           "maxLength": "Description must be 100 characters or less"
         }
       },
       "value": {
-        "label": "ID value",
-        "placeholder": "Enter ID value",
-        "description": "Organization ID value",
-        "tooltip": "should match your business registration documents ID value",
+        "label": "Business Identification value",
+        "placeholder": "Enter Business Identification value",
+        "description": "Business Identification value",
+        "tooltip": "should match your business registration documents  value",
         "validation": {
-          "required": "ID value is required",
-          "maxLength": "ID value must be 100 characters or less",
-          "format": "ID value can only contain letters, numbers, and hyphens",
-          "noSpaces": "ID value cannot contain spaces",
+          "required": "Business Identification value is required",
+          "maxLength": "Business Identification value must be 100 characters or less",
+          "format": "Business Identification value can only contain letters, numbers, and hyphens",
+          "noSpaces": "Business Identification value cannot contain spaces",
           "einFormat": "EIN must be exactly 9 digits",
-          "business_registration_idFormat": "Business Registration ID must be 5-15 alphanumeric characters",
+          "business_registration_idFormat": "Business Registration Identification must be 5-15 alphanumeric characters",
           "business_numberFormat": "Business Number must be 9-12 digits",
           "business_registration_numberFormat": "Business Registration Number must be 6-15 alphanumeric characters with optional dashes"
         }
@@ -445,8 +445,8 @@
       "issuer": {
         "label": "Issuer",
         "placeholder": "Enter issuer",
-        "description": "Organization ID issuer",
-        "tooltip": "should match your business registration documents ID issuer",
+        "description": "Business Identification issuer",
+        "tooltip": "should match your business registration documents issuer",
         "validation": {
           "required": "Issuer is required",
           "maxLength": "Issuer must be 500 characters or less"
@@ -455,8 +455,8 @@
       "expiryDate": {
         "label": "Expiry date",
         "placeholder": "YYYY-MM-DD",
-        "description": "Date when the organization ID expires",
-        "tooltip": "Date when the organization ID expires",
+        "description": "Date when the Business Identification expires",
+        "tooltip": "Date when the Business Identification expires",
         "validation": {
           "format": "Expiry date must be in 'YYYY-MM-DD' format",
           "invalid": "Invalid date",
