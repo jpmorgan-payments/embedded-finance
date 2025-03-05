@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useGetParty, useSmbdoListQuestions } from '@/api/generated/smbdo';
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
@@ -38,78 +39,105 @@ const OutstandingKYCRequirements = ({
   clientData: ClientResponse;
   isAttestationInfoIncluded?: boolean;
 }) => {
+  const { t } = useTranslation();
   const outstanding = clientData?.outstanding;
+  const questionIds = outstanding?.questionIds;
 
-  const { data: questionsDetails } = useSmbdoListQuestions({
-    questionIds: clientData?.outstanding?.questionIds?.join(','),
-  });
+  const { data: questionsDetails } = useSmbdoListQuestions(
+    questionIds?.length
+      ? {
+          questionIds: questionIds.join(','),
+        }
+      : undefined
+  );
 
   return (
-    <Alert variant="destructive" className="eb-max-w-2xl eb-outline-none">
-      <AlertTriangle className="eb-outline-orange eb-h-4 eb-w-4" />
-      <AlertTitle>Outstanding KYC Requirements</AlertTitle>
-      <AlertDescription>
-        <p>Please complete the following before initiating KYC:</p>
+    <Alert variant="default" className="eb-border-yellow-100 eb-bg-yellow-50">
+      <div className="eb-flex eb-items-start eb-gap-3">
+        <AlertTriangle className="eb-mt-0.5 eb-h-5 eb-w-5 eb-text-yellow-500" />
+        <div className="eb-flex eb-flex-1 eb-flex-col">
+          <AlertTitle className="eb-font-semibold eb-text-yellow-800">
+            {t('onboarding:outstandingKYC.title')}
+          </AlertTitle>
+          <AlertDescription className="eb-text-yellow-800">
+            <p>{t('onboarding:outstandingKYC.description')}</p>
 
-        {!!outstanding?.attestationDocumentIds?.length &&
-          !!isAttestationInfoIncluded && (
-            <div className="eb-mt-2">
-              <h4 className="eb-font-semibold">Missing Attestations</h4>
-              <ul className="eb-list-inside eb-list-disc">
-                {outstanding.attestationDocumentIds.map((id) => (
-                  <li key={id}>Attestation Document ID: {id}</li>
+            {!!outstanding?.attestationDocumentIds?.length &&
+              !!isAttestationInfoIncluded && (
+                <div className="eb-mt-2">
+                  <h4 className="eb-font-semibold">
+                    {t('onboarding:outstandingKYC.sections.attestations')}
+                  </h4>
+                  <ul className="eb-list-inside eb-list-disc">
+                    {outstanding.attestationDocumentIds.map((id) => (
+                      <li key={id}>
+                        {t('onboarding:outstandingKYC.attestationId')}: {id}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+            {!!outstanding?.documentRequestIds?.length && (
+              <div className="eb-mt-2">
+                <h4 className="eb-font-semibold">
+                  {t('onboarding:outstandingKYC.sections.documents')}
+                </h4>
+                <ul className="eb-list-inside eb-list-disc">
+                  {outstanding.documentRequestIds.map((id) => (
+                    <li key={id}>
+                      {t('onboarding:outstandingKYC.documentId')}: {id}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {!!outstanding?.questionIds?.length && (
+              <div className="eb-mt-2">
+                <h4 className="eb-font-semibold">
+                  {t('onboarding:outstandingKYC.sections.questions')}
+                </h4>
+                <ul className="eb-list-inside eb-list-disc">
+                  {outstanding.questionIds.map((id) => {
+                    const question = questionsDetails?.questions?.find(
+                      (q) => q.id === id
+                    );
+                    return (
+                      <li key={id}>
+                        {question?.description || `Loading question ${id}...`}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {!!outstanding?.partyIds?.length && (
+              <div className="eb-mt-2">
+                {outstanding.partyIds.map((partyId) => (
+                  <MissingPartyFields partyId={partyId} />
                 ))}
-              </ul>
-            </div>
-          )}
+              </div>
+            )}
 
-        {!!outstanding?.documentRequestIds?.length && (
-          <div className="eb-mt-2">
-            <h4 className="eb-font-semibold">Missing Documents</h4>
-            <ul className="eb-list-inside eb-list-disc">
-              {outstanding.documentRequestIds.map((id) => (
-                <li key={id}>Document Request ID: {id}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {!!outstanding?.questionIds?.length && (
-          <div className="eb-mt-2">
-            <h4 className="eb-font-semibold">Unanswered Questions</h4>
-            <ul className="eb-list-inside eb-list-disc">
-              {outstanding.questionIds.map((id) => (
-                <li key={id}>
-                  Question ({id}):{' '}
-                  {
-                    questionsDetails?.questions?.find((q) => q.id === id)
-                      ?.description
-                  }
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {!!outstanding?.partyIds?.length && (
-          <div className="eb-mt-2">
-            {outstanding.partyIds.map((partyId) => (
-              <MissingPartyFields partyId={partyId} />
-            ))}
-          </div>
-        )}
-
-        {!!outstanding?.partyRoles?.length && (
-          <div className="eb-mt-2">
-            <h4 className="eb-font-semibold">Missing Parties</h4>
-            <ul className="eb-list-inside eb-list-disc">
-              {outstanding.partyRoles.map((role) => (
-                <li key={role}>Missing party with role: {role}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </AlertDescription>
+            {!!outstanding?.partyRoles?.length && (
+              <div className="eb-mt-2">
+                <h4 className="eb-font-semibold">
+                  {t('onboarding:outstandingKYC.sections.parties')}
+                </h4>
+                <ul className="eb-list-inside eb-list-disc">
+                  {outstanding.partyRoles.map((role) => (
+                    <li key={role}>
+                      {t('onboarding:outstandingKYC.partyRole')}: {role}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </AlertDescription>
+        </div>
+      </div>
     </Alert>
   );
 };

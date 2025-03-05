@@ -1162,5 +1162,40 @@
     "AUTHORIZED_USER": "Authorized User",
     "DECISION_MAKER": "Decision Maker",
     "PRIMARY_CONTACT": "Primary Contact"
+  },
+  "reviewAndAttest": {
+    "loading": "Loading review information...",
+    "allRequirementsComplete": "All outstanding KYC requirements have been addressed.",
+    "questionResponses": "Questions Responses",
+    "response": "Response",
+    "termsAndConditions": {
+      "title": "Terms and Conditions",
+      "description": "Please read and attest the below documents by J.P. Morgan to complete the process.",
+      "dataAccuracyCheckbox": "The data I am providing is true, accurate, current and complete to the best of my knowledge.",
+      "termsCheckbox": "I have read and agree to the below attestation documents:",
+      "downloading": "Downloading...",
+      "openDocumentsWarning": "Please open the documents links to enable the terms and conditions checkbox.",
+      "submitDisabled": "Please agree to all terms and review all documents",
+      "outstandingItemsWarning": "Please address all outstanding items",
+      "submit": "Submit"
+    }
+  },
+  "outstandingKYC": {
+    "title": "Outstanding KYC Requirements",
+    "description": "Please complete the following before initiating KYC:",
+    "sections": {
+      "attestations": "Missing Attestations",
+      "documents": "Missing Documents",
+      "questions": "Unanswered Questions",
+      "parties": "Missing Parties"
+    },
+    "attestationId": "Attestation Document ID",
+    "documentId": "Document Request ID",
+    "partyRole": "Missing party with role"
+  },
+  "missingPartyFields": {
+    "title": "Action Required",
+    "description": "Please provide the following missing information:",
+    "partyIdPrefix": "Missing fields for Party ID"
   }
 }

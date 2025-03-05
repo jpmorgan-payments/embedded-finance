@@ -232,10 +232,10 @@ export const ReviewAndAttestStepForm = () => {
   ) => (
     <div
       key={(party?.id ?? '') + (party?.partyType ?? '')}
-      className="eb-mb-4 eb-p-4"
+      className="eb-mb-6 eb-p-4"
     >
-      <div className="eb-mb-4 eb-flex eb-items-center eb-justify-between">
-        <div>
+      <div className="eb-flex eb-w-full eb-flex-col">
+        <div className="eb-mb-4 eb-flex eb-items-center eb-justify-between">
           <h2 className="eb-text-xl eb-font-bold">
             {party?.organizationDetails?.organizationName ||
               `${party?.individualDetails?.firstName} ${party?.individualDetails?.lastName}`}{' '}
@@ -249,25 +249,28 @@ export const ReviewAndAttestStepForm = () => {
               </span>
             )}
           </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCurrentStepIndex(getStepForParty(party))}
+            className="eb-flex eb-items-center eb-gap-2"
+          >
+            <EditIcon className="eb-h-4 eb-w-4" />
+            {t('onboarding:edit')}
+          </Button>
+        </div>
+        <div className="eb-py-4">
           <MissingPartyFields party={party} />
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentStepIndex(getStepForParty(party))}
-        >
-          <EditIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-          {t('onboarding:edit')}
-        </Button>
       </div>
-      <dl className="eb-ml-2 eb-space-y-2">
+      <dl className="eb-ml-2 eb-space-y-4">
         {fields.map(({ label, path, transformFunc }) => {
           const value = _get(party, path);
           if (!isValueEmpty(value)) {
             return (
               <div
                 key={path}
-                className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between"
+                className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 eb-pb-1 sm:eb-flex-row sm:eb-justify-between"
               >
                 <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
                   {label}:
@@ -316,12 +319,12 @@ export const ReviewAndAttestStepForm = () => {
     <>
       <Stack className="eb-mx-auto eb-w-full eb-max-w-full eb-text-sm md:eb-max-w-3xl lg:eb-max-w-4xl">
         <Title as="h2" className="eb-mb-4">
-          Review
+          {t('onboarding:stepLabels.reviewAndAttest')}
         </Title>
 
         {isClientDataLoading ? (
           <div className="eb-mb-4 eb-bg-gray-50 eb-p-4 eb-text-gray-600">
-            Loading review information...
+            {t('onboarding:reviewAndAttest.loading')}
           </div>
         ) : (
           <>
@@ -331,7 +334,7 @@ export const ReviewAndAttestStepForm = () => {
 
             {isOutstandingEmpty(clientData?.outstanding) && clientData && (
               <div className="eb-mb-4 eb-bg-green-100 eb-p-4 eb-text-green-800">
-                All outstanding KYC requirements have been addressed.
+                {t('onboarding:reviewAndAttest.allRequirementsComplete')}
               </div>
             )}
           </>
@@ -348,7 +351,7 @@ export const ReviewAndAttestStepForm = () => {
         {!!clientData?.questionResponses?.length && (
           <div className="eb-w-xl eb-px-4">
             <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
-              Questions Responses
+              {t('onboarding:reviewAndAttest.questionResponses')}
             </h2>
             {clientData?.questionResponses?.map((questionResponse) => (
               <>
@@ -364,7 +367,7 @@ export const ReviewAndAttestStepForm = () => {
                           }
                         </dt>
                         <dd className="">
-                          <b>Response:</b>{' '}
+                          <b>{t('onboarding:reviewAndAttest.response')}:</b>{' '}
                           {questionResponse?.values?.join(', ')}
                         </dd>
                       </dl>
@@ -385,11 +388,10 @@ export const ReviewAndAttestStepForm = () => {
 
         <div className="eb-mt-8 eb-border-t eb-pt-4">
           <Title as="h3" className="eb-mb-4">
-            Terms and Conditions
+            {t('onboarding:reviewAndAttest.termsAndConditions.title')}
           </Title>
           <p className="eb-mb-4">
-            Please read and attest the below documents by J.P. Morgan to
-            complete the process.
+            {t('onboarding:reviewAndAttest.termsAndConditions.description')}
           </p>
 
           <div className="eb-space-y-6">
@@ -404,8 +406,9 @@ export const ReviewAndAttestStepForm = () => {
                 htmlFor="dataAccuracy"
                 className="eb-text-sm eb-leading-normal sm:eb-leading-none"
               >
-                The data I am providing is true, accurate, current and complete
-                to the best of my knowledge.
+                {t(
+                  'onboarding:reviewAndAttest.termsAndConditions.dataAccuracyCheckbox'
+                )}
               </Label>
             </div>
 
@@ -421,7 +424,9 @@ export const ReviewAndAttestStepForm = () => {
                 htmlFor="termsAndConditions"
                 className="eb-text-sm eb-leading-normal"
               >
-                I have read and agree to the below attestation documents:
+                {t(
+                  'onboarding:reviewAndAttest.termsAndConditions.termsCheckbox'
+                )}
                 <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
                   {documentQueries.map((query, index) => (
                     <div key={index}>
@@ -443,7 +448,9 @@ export const ReviewAndAttestStepForm = () => {
                             <span className="eb-h-4 eb-w-4" />
                           )}
                           {query.data?.id && loadingDocuments[query.data.id]
-                            ? 'Downloading...'
+                            ? t(
+                                'onboarding:reviewAndAttest.termsAndConditions.downloading'
+                              )
                             : query.data?.documentType}
                         </span>
                       </Button>
@@ -452,8 +459,9 @@ export const ReviewAndAttestStepForm = () => {
                 </div>
                 {!allDocumentsOpened && (
                   <p className="eb-mt-2 eb-text-sm eb-font-semibold eb-text-red-600">
-                    Please open the documents links to enable the terms and
-                    conditions checkbox.
+                    {t(
+                      'onboarding:reviewAndAttest.termsAndConditions.openDocumentsWarning'
+                    )}
                   </p>
                 )}
               </Label>
@@ -472,7 +480,7 @@ export const ReviewAndAttestStepForm = () => {
             className="eb-w-full sm:eb-w-auto"
             onClick={prevStep}
           >
-            Previous
+            {t('common:previous')}
           </Button>
           <Button
             onClick={onCompleteKYCHandler}
@@ -483,10 +491,14 @@ export const ReviewAndAttestStepForm = () => {
           >
             <span className="eb-block eb-max-w-[200px] eb-truncate sm:eb-max-w-none">
               {!canSubmit
-                ? 'Please agree to all terms and review all documents'
+                ? t(
+                    'onboarding:reviewAndAttest.termsAndConditions.submitDisabled'
+                  )
                 : !isOutstandingEmpty(clientData?.outstanding)
-                  ? 'Please address all outstanding items'
-                  : 'Submit'}
+                  ? t(
+                      'onboarding:reviewAndAttest.termsAndConditions.outstandingItemsWarning'
+                    )
+                  : t('common:submit')}
             </span>
           </Button>
         </div>
