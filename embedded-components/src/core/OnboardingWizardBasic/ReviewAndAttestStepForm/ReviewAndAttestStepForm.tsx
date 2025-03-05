@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, EditIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,6 +24,7 @@ import { Button, Checkbox, Label, Stack, Title } from '@/components/ui';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { useIPAddress } from '../utils/getIPAddress';
+import { MissingPartyFields } from './MissingPartyFields';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';
 
@@ -234,24 +235,28 @@ export const ReviewAndAttestStepForm = () => {
       className="eb-mb-4 eb-p-4"
     >
       <div className="eb-mb-4 eb-flex eb-items-center eb-justify-between">
-        <h2 className="eb-text-xl eb-font-bold">
-          {party?.organizationDetails?.organizationName ||
-            `${party?.individualDetails?.firstName} ${party?.individualDetails?.lastName}`}{' '}
-          {party?.partyType && (
-            <span className="eb-text-gray-600">
-              (
-              {party?.roles
-                ?.map((role) => t(`onboarding:partyRoles.${role}`))
-                .join(', ')}
-              )
-            </span>
-          )}
-        </h2>
+        <div>
+          <h2 className="eb-text-xl eb-font-bold">
+            {party?.organizationDetails?.organizationName ||
+              `${party?.individualDetails?.firstName} ${party?.individualDetails?.lastName}`}{' '}
+            {party?.partyType && (
+              <span className="eb-text-gray-600">
+                (
+                {party?.roles
+                  ?.map((role) => t(`onboarding:partyRoles.${role}`))
+                  .join(', ')}
+                )
+              </span>
+            )}
+          </h2>
+          <MissingPartyFields party={party} />
+        </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setCurrentStepIndex(getStepForParty(party))}
         >
+          <EditIcon className="eb-mr-2 eb-h-4 eb-w-4" />
           {t('onboarding:edit')}
         </Button>
       </div>

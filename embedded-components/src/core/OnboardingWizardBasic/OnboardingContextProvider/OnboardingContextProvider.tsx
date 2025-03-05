@@ -33,6 +33,7 @@ export type OnboardingProps = {
   availableOrganizationTypes?: Array<OrganizationType>;
   usePartyResource?: boolean;
   blockPostVerification?: boolean;
+  showLinkedAccountPanel?: boolean;
 };
 
 type OnboardingContextType = OnboardingProps & {
@@ -43,7 +44,6 @@ type OnboardingContextType = OnboardingProps & {
   setCurrentForm: (form: UseFormReturn<any, any, any> | undefined) => void;
   currentStepIndex?: number;
   setCurrentStepIndex: (index: number) => void;
-  showLinkedAccountPanel?: boolean;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(
