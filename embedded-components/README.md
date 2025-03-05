@@ -146,9 +146,29 @@ The `OnboardingWizardBasic` component implements the client onboarding process a
 - Manage requests for additional documentation
 - Check and display onboarding status
 
-#### Usage:
+#### Props:
 
-@jpmorgan-payments/embedded-finance-components
+| Prop Name                           | Type                                                                | Required | Description                                        |
+| ----------------------------------- | ------------------------------------------------------------------- | -------- | -------------------------------------------------- |
+| `initialClientId`                   | `string`                                                            | No       | Initial client ID for existing client onboarding   |
+| `onSetClientId`                     | `(clientId: string) => Promise<void>`                               | No       | Callback function when client ID is set            |
+| `onPostClientResponse`              | `(response?: ClientResponse, error?: ApiError) => void`             | No       | Callback function for client creation response     |
+| `onPostPartyResponse`               | `(response?: PartyResponse, error?: ApiError) => void`              | No       | Callback function for party creation response      |
+| `onPostClientVerificationsResponse` | `(response?: ClientVerificationResponse, error?: ApiError) => void` | No       | Callback function for client verification response |
+| `availableProducts`                 | `Array<ClientProduct>`                                              | Yes      | List of available products for onboarding          |
+| `availableJurisdictions`            | `Array<Jurisdiction>`                                               | Yes      | List of available jurisdictions for onboarding     |
+| `availableOrganizationTypes`        | `Array<OrganizationType>`                                           | No       | List of available organization types               |
+| `usePartyResource`                  | `boolean`                                                           | No       | Whether to use party resource for onboarding       |
+| `blockPostVerification`             | `boolean`                                                           | No       | Whether to block post-verification steps           |
+| `showLinkedAccountPanel`            | `boolean`                                                           | No       | Whether to show linked account panel               |
+| `initialStep`                       | `number`                                                            | No       | Initial step to start onboarding from              |
+| `variant`                           | `'circle' \| 'circle-alt' \| 'line'`                                | No       | Visual variant of the stepper component            |
+| `onboardingContentTokens`           | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`        | No       | Custom content tokens for onboarding               |
+| `alertOnExit`                       | `boolean`                                                           | No       | Whether to show alert when exiting onboarding      |
+| `userEventsToTrack`                 | `string[]`                                                          | No       | List of user events to track                       |
+| `userEventsHandler`                 | `({ actionName }: { actionName: string }) => void`                  | No       | Handler for user events                            |
+
+#### Usage:
 
 ```jsx
 import {
@@ -170,7 +190,6 @@ const OnboardingSection = () => {
 
   return (
     <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-      {/* you could use https://api-mock.payments.jpmorgan.com/tsapi/ef/do/v1/ from the API mock server, please find more details at https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/onboarding#/ */}
       <OnboardingWizardBasic
         title="Client Onboarding"
         initialClientId={clientId}
@@ -178,17 +197,33 @@ const OnboardingSection = () => {
         onPostClientVerificationResponse={handlePostClientVerificationsResponse}
         availableProducts={['EMBEDDED_PAYMENTS']}
         availableJurisdictions={['US']}
+        variant="circle-alt"
+        initialStep={0}
+        showLinkedAccountPanel={true}
+        userEventsToTrack={['click']}
+        userEventsHandler={({ actionName }) => {
+          // Track user events
+          console.log(`User action: ${actionName}`);
+        }}
       />
     </EBComponentsProvider>
   );
 };
 ```
 
-OnboardingWizard could also accept products and jurisdictions as optional props to customize the onboarding process.
+The OnboardingWizard component accepts various props to customize the onboarding process:
 
-`availableProducts` determines which products are selectable in the initial step of the onboarding process. If only one product is provided, the component will default to that product and the field will become read-only.
-
-Similarly, `availableJurisdictions` is an array of country codes that are selectable. If only one is provided, it will default to that country.
+- `availableProducts` determines which products are selectable in the initial step. If only one product is provided, the component will default to that product and the field will become read-only.
+- `availableJurisdictions` is an array of country codes that are selectable. If only one is provided, it will default to that country.
+- `availableOrganizationTypes` allows customization of the types of organizations that can be onboarded.
+- `usePartyResource` enables using the party resource for onboarding, which may be required for certain integration scenarios.
+- `blockPostVerification` can be used to prevent access to post-verification steps.
+- `showLinkedAccountPanel` controls the visibility of the linked account panel.
+- `initialStep` allows starting the onboarding process from a specific step.
+- `variant` controls the visual style of the stepper component.
+- `onboardingContentTokens` enables customization of text content and labels.
+- `alertOnExit` provides a warning when users attempt to leave the onboarding process.
+- `userEventsToTrack` and `userEventsHandler` enable tracking of user interactions during onboarding.
 
 ### 2. LinkedAccountWidget
 

@@ -1,3 +1,5 @@
+import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuestions.mock';
+import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
 import type { Meta } from '@storybook/react';
@@ -57,6 +59,39 @@ WithLoadingState.parameters = {
       http.post('/clients/0030000130', async () => {
         // You can add a delay here too if needed
         return HttpResponse.json(efClientSolPropWithMoreData);
+      }),
+    ],
+  },
+};
+
+export const WithLoadingStateThenReviewInProgress = DefaultOK.bind({});
+WithLoadingStateThenReviewInProgress.storyName =
+  'Loading state on GET, then REVIEW_IN_PROGRESS';
+WithLoadingStateThenReviewInProgress.args = DefaultOK.args;
+WithLoadingStateThenReviewInProgress.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000130', async () => {
+        // Delay the response by 3 seconds (3000 milliseconds)
+        await delay(5000);
+        return HttpResponse.json({
+          ...efClientCorpEBMock,
+          status: 'REVIEW_IN_PROGRESS',
+        });
+      }),
+    ],
+  },
+};
+
+export const WithNoOutstandingRequirements = DefaultOK.bind({});
+WithNoOutstandingRequirements.storyName =
+  'NEW with no outstanding requirements';
+WithNoOutstandingRequirements.args = DefaultOK.args;
+WithNoOutstandingRequirements.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000130', async () => {
+        return HttpResponse.json(efClientCorpAnsweredQuestions);
       }),
     ],
   },
