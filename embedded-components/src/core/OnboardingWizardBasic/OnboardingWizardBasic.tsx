@@ -142,10 +142,15 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 
 const OnboardingWizardBasicComponent: FC<
   Pick<OnboardingWizardBasicProps, 'initialStep' | 'variant'>
-> = ({ initialStep = 0, variant = 'circle-alt' }) => {
+> = ({ initialStep, variant = 'circle-alt' }) => {
   const { t } = useTranslation('onboarding');
 
-  const { clientId, wasClientIdCreated } = useOnboardingContext();
+  const {
+    clientId,
+    wasClientIdCreated,
+    currentStepIndex,
+    setCurrentStepIndex,
+  } = useOnboardingContext();
 
   const {
     data: clientData,
@@ -250,6 +255,42 @@ const OnboardingWizardBasicComponent: FC<
     eventsToTrack: ['click', 'blur'],
   });
 
+  const hasOutstandingRequirements = useMemo(() => {
+    if (!clientData?.outstanding) return true; // If no data yet, assume there are requirements
+
+    const {
+      documentRequestIds = [],
+      questionIds = [],
+      partyIds = [],
+      partyRoles = [],
+    } = clientData.outstanding;
+
+    // Only check non-attestation requirements
+    return (
+      documentRequestIds.length > 0 ||
+      questionIds.length > 0 ||
+      partyIds.length > 0 ||
+      partyRoles.length > 0
+    );
+  }, [clientData?.outstanding]);
+
+  useEffect(() => {
+    if (initialStep !== currentStepIndex) {
+      setCurrentStepIndex(initialStep ?? (wasClientIdCreated ? 1 : 0));
+    }
+  }, [initialStep]);
+
+  useEffect(() => {
+    if (clientData?.outstanding !== undefined && steps.length > 0) {
+      if (
+        !hasOutstandingRequirements &&
+        currentStepIndex !== steps.length - 1
+      ) {
+        setCurrentStepIndex(steps.length - 1);
+      }
+    }
+  }, [clientData?.outstanding]);
+
   return (
     <Card className="eb-component" id="embedded-component-layout">
       <CardHeader className="eb-p-4">
@@ -263,10 +304,14 @@ const OnboardingWizardBasicComponent: FC<
         !clientId ||
         clientGetStatus === 'pending' ? (
           <Stepper
-            initialStep={wasClientIdCreated && !initialStep ? 1 : initialStep}
+            key={currentStepIndex}
+            initialStep={currentStepIndex ?? 0}
             steps={steps}
             variant={variant}
             mobileBreakpoint="1279px"
+            {...(clientData && {
+              onClickStep: (stepIndex) => setCurrentStepIndex(stepIndex),
+            })}
           >
             {steps.map((stepProps, index) => {
               const { children, ...rest } = stepProps;

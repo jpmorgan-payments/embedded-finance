@@ -721,5 +721,6 @@
   "linkedAccount": {
     "title": "Comptes liés",
     "disclaimer": "Pendant que votre intégration est en cours de traitement, vous pouvez commencer à ajouter des comptes liés à votre profil."
-  }
+  },
+  "edit": "Modifier"
 }

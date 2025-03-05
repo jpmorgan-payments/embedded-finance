@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -51,12 +52,17 @@ const isOutstandingEmpty = (
 };
 
 export const ReviewAndAttestStepForm = () => {
+  const { t } = useTranslation(['onboarding', 'common']);
   // Get QueryClient from the context
   const queryClient = useQueryClient();
 
   const { prevStep, isDisabledStep } = useStepper();
-  const { clientId, onPostClientResponse, blockPostVerification } =
-    useOnboardingContext();
+  const {
+    clientId,
+    onPostClientResponse,
+    blockPostVerification,
+    setCurrentStepIndex,
+  } = useOnboardingContext();
 
   const [termsAgreed, setTermsAgreed] = useState({
     dataAccuracy: false,
@@ -198,6 +204,19 @@ export const ReviewAndAttestStepForm = () => {
     }
   };
 
+  const getStepForParty = (party: PartyResponse) => {
+    if (party.partyType === 'ORGANIZATION') {
+      return 1; // Organization step
+    }
+    if (party.roles?.includes('CONTROLLER')) {
+      return 2; // Controller step
+    }
+    if (party.roles?.includes('BENEFICIAL_OWNER')) {
+      return 3; // Beneficial Owner step
+    }
+    return 0; // Default to initial step
+  };
+
   const renderParty = (
     party: PartyResponse,
     fields: { label: any; path: any; transformFunc?: any }[]
@@ -206,7 +225,28 @@ export const ReviewAndAttestStepForm = () => {
       key={(party?.id ?? '') + (party?.partyType ?? '')}
       className="eb-mb-4 eb-p-4"
     >
-      <h2 className="eb-mb-4 eb-text-xl eb-font-bold">{party?.partyType}</h2>
+      <div className="eb-mb-4 eb-flex eb-items-center eb-justify-between">
+        <h2 className="eb-text-xl eb-font-bold">
+          {party?.organizationDetails?.organizationName ||
+            `${party?.individualDetails?.firstName} ${party?.individualDetails?.lastName}`}{' '}
+          {party?.partyType && (
+            <span className="eb-text-gray-600">
+              (
+              {party?.roles
+                ?.map((role) => t(`onboarding:partyRoles.${role}`))
+                .join(', ')}
+              )
+            </span>
+          )}
+        </h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentStepIndex(getStepForParty(party))}
+        >
+          {t('onboarding:edit')}
+        </Button>
+      </div>
       <dl className="eb-ml-2 eb-space-y-2">
         {fields.map(({ label, path, transformFunc }) => {
           const value = _get(party, path);
@@ -301,18 +341,28 @@ export const ReviewAndAttestStepForm = () => {
               <>
                 {!!questionResponse?.values?.length && (
                   <div key={questionResponse.questionId} className="eb-p-4">
-                    <dl className="eb-ml-2">
-                      <dt className="">
-                        {
-                          questionsDetails?.questions?.find(
-                            (q) => q.id === questionResponse.questionId
-                          )?.description
-                        }
-                      </dt>
-                      <dd className="">
-                        <b>Response:</b> {questionResponse?.values?.join(', ')}
-                      </dd>
-                    </dl>
+                    <div className="eb-mb-2 eb-flex eb-items-start eb-justify-between">
+                      <dl className="eb-ml-2">
+                        <dt className="">
+                          {
+                            questionsDetails?.questions?.find(
+                              (q) => q.id === questionResponse.questionId
+                            )?.description
+                          }
+                        </dt>
+                        <dd className="">
+                          <b>Response:</b>{' '}
+                          {questionResponse?.values?.join(', ')}
+                        </dd>
+                      </dl>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentStepIndex(4)}
+                      >
+                        {t('onboarding:edit')}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </>

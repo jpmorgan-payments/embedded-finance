@@ -1152,5 +1152,15 @@
   },
   "linkedAccount": {
     "title": "Linked Accounts"
+  },
+  "edit": "Edit",
+  "partyRoles": {
+    "CLIENT": "Client",
+    "CONTROLLER": "Controller",
+    "BENEFICIAL_OWNER": "Beneficial Owner",
+    "DIRECTOR": "Director",
+    "AUTHORIZED_USER": "Authorized User",
+    "DECISION_MAKER": "Decision Maker",
+    "PRIMARY_CONTACT": "Primary Contact"
   }
 }
