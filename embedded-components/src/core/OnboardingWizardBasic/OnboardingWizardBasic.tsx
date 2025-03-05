@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { defaultResources } from '@/i18n/config';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
@@ -145,7 +145,8 @@ const OnboardingWizardBasicComponent: FC<
 > = ({ initialStep = 0, variant = 'circle-alt' }) => {
   const { t } = useTranslation('onboarding');
 
-  const { clientId, wasClientIdCreated } = useOnboardingContext();
+  const { clientId, wasClientIdCreated, currentStepIndex } =
+    useOnboardingContext();
 
   const {
     data: clientData,
@@ -250,10 +251,30 @@ const OnboardingWizardBasicComponent: FC<
     eventsToTrack: ['click', 'blur'],
   });
 
+  const hasMounted = useRef(false);
+  const stepRefs = useRef<(HTMLElement | null)[]>([]);
+
+  useEffect(() => {
+    if (currentStepIndex) {
+      if (hasMounted.current) {
+        const currentStepRef = stepRefs.current[currentStepIndex];
+        if (currentStepRef) {
+          window.scrollTo({
+            top:
+              currentStepRef.getBoundingClientRect().top + window.scrollY - 96,
+            behavior: 'smooth',
+          });
+        }
+      } else {
+        hasMounted.current = true;
+      }
+    }
+  }, [currentStepIndex]);
+
   return (
     <Card className="eb-component" id="embedded-component-layout">
       <CardHeader className="eb-p-4">
-        <CardTitle>{t('title')}</CardTitle>
+        <CardTitle className="eb-font-header">{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4 eb-p-4">
         {clientData?.status === 'NEW' && (
@@ -273,7 +294,12 @@ const OnboardingWizardBasicComponent: FC<
               return (
                 <Step key={index} {...rest}>
                   {/* The padding prevents the focus rings from being cut off */}
-                  <div className="eb-px-2">
+                  <div
+                    className="eb-scroll-mt-10 eb-px-2"
+                    ref={(el) => {
+                      stepRefs.current[index] = el;
+                    }}
+                  >
                     {clientId && clientGetStatus === 'pending' ? (
                       <FormLoadingState message={t('fetchingClientData')} />
                     ) : clientGetStatus === 'error' ? (
