@@ -274,7 +274,7 @@ const OnboardingWizardBasicComponent: FC<
   return (
     <Card className="eb-component" id="embedded-component-layout">
       <CardHeader className="eb-p-4">
-        <CardTitle>{t('title')}</CardTitle>
+        <CardTitle className="eb-font-header">{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="eb-flex eb-w-full eb-flex-col eb-gap-4 eb-p-4">
         {clientData?.status === 'NEW' && (

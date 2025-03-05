@@ -6,6 +6,7 @@ export type EBColorScheme = 'dark' | 'light' | 'system';
 
 export type EBThemeVariables = {
   fontFamily?: string;
+  headerFontFamily?: string;
   backgroundColor?: string;
   foregroundColor?: string;
   primaryColor?: string;

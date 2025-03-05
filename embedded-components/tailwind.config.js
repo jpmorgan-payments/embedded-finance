@@ -24,6 +24,7 @@ module.exports = {
     },
     fontFamily: {
       sans: ['var(--eb-font-family)', ...defaultTheme.fontFamily.sans],
+      header: ['var(--eb-header-font-family)', ...defaultTheme.fontFamily.sans],
     },
     extend: {
       height: {
