@@ -139,6 +139,16 @@ LLC_WithMissingAttrs.parameters = {
           )[0]
         );
       }),
+      http.get('/questions', (req) => {
+        const url = new URL(req.request.url);
+        const questionIds = url.searchParams.get('questionIds');
+        return HttpResponse.json({
+          metadata: efClientQuestionsMock.metadata,
+          questions: efClientQuestionsMock?.questions.filter((q) =>
+            questionIds?.includes(q.id)
+          ),
+        });
+      }),
     ],
   },
 };

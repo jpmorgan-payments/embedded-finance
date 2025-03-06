@@ -8,9 +8,14 @@
     },
     "jurisdiction": {
       "label": "Jurisdiction",
-      "placeholder": "Select country of jurisdiction",
-      "description": "",
-      "tooltip": ""
+      "placeholder": "Select jurisdiction",
+      "description": "The legal jurisdiction under which the business operates",
+      "tooltip": "",
+      "validation": {
+        "required": "Jurisdiction is required",
+        "exactlyTwoChars": "Jurisdiction code must be exactly 2 characters"
+      },
+      "group": "organization"
     },
     "organizationName": {
       "label": "Legal Business Name",
@@ -78,6 +83,9 @@
       },
       "group": "contact"
     },
+    "roles": {
+      "label": "Roles"
+    },
     "controllerEmail": {
       "label": "Email",
       "placeholder": "Enter email",
@@ -124,6 +132,9 @@
         "max": "Year of formation cannot be in the future",
         "invalid": "Please enter a valid year between 1800 and current year"
       }
+    },
+    "individualIds": {
+      "label": "Individual Identification"
     },
     "controllerIds": {
       "label": "Individual Identification",
@@ -1001,6 +1012,15 @@
     "solePropPersonalInfo": {
       "label": "Personal Information",
       "description": "Your personal information as the business owner"
+    },
+    "countryOfCitizenship": {
+      "label": "Country of Citizenship",
+      "placeholder": "Select country of citizenship",
+      "description": "The country where you hold citizenship",
+      "validation": {
+        "required": "Country of citizenship is required",
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
     }
   },
   "title": "Client Onboarding",
@@ -1162,5 +1182,106 @@
     "AUTHORIZED_USER": "Authorized User",
     "DECISION_MAKER": "Decision Maker",
     "PRIMARY_CONTACT": "Primary Contact"
+  },
+  "reviewAndAttest": {
+    "loading": "Loading review information...",
+    "allRequirementsComplete": "All outstanding KYC requirements have been addressed.",
+    "questionResponses": "Questions Responses",
+    "response": "Response",
+    "termsAndConditions": {
+      "title": "Terms and Conditions",
+      "description": "Please read and attest the below documents by J.P. Morgan to complete the process.",
+      "dataAccuracyCheckbox": "The data I am providing is true, accurate, current and complete to the best of my knowledge.",
+      "termsCheckbox": "I have read and agree to the below attestation documents:",
+      "downloading": "Downloading...",
+      "openDocumentsWarning": "Please open the documents links to enable the terms and conditions checkbox.",
+      "submitDisabled": "Please agree to all terms and review all documents",
+      "outstandingItemsWarning": "Please address all outstanding items",
+      "submit": "Submit"
+    }
+  },
+  "outstandingKYC": {
+    "title": "Outstanding KYC Requirements",
+    "description": "Please complete the following before initiating KYC:",
+    "sections": {
+      "attestations": "Missing Attestations",
+      "documents": "Missing Documents",
+      "questions": "Unanswered Questions",
+      "parties": "Missing Parties"
+    },
+    "attestationId": "Attestation Document ID",
+    "documentId": "Document Request ID",
+    "partyRole": "Missing party with role"
+  },
+  "missingPartyFields": {
+    "title": "Action Required",
+    "description": "Please provide the following missing information:"
+  },
+  "enums": {
+    "addressType": {
+      "LEGAL_ADDRESS": "Legal Address",
+      "MAILING_ADDRESS": "Mailing Address",
+      "BUSINESS_ADDRESS": "Business Address",
+      "RESIDENTIAL_ADDRESS": "Residential Address"
+    },
+    "phoneType": {
+      "BUSINESS_PHONE": "Business Phone",
+      "MOBILE_PHONE": "Mobile Phone",
+      "ALTERNATE_PHONE": "Alternate Phone"
+    },
+    "partyRole": {
+      "AUTHORIZED_USER": "Authorized User",
+      "BENEFICIAL_OWNER": "Beneficial Owner",
+      "CLIENT": "Client",
+      "CONTROLLER": "Controller",
+      "DECISION_MAKER": "Decision Maker",
+      "PRIMARY_CONTACT": "Primary Contact",
+      "DIRECTOR": "Director"
+    },
+    "organizationType": {
+      "LIMITED_LIABILITY_COMPANY": "Limited Liability Company",
+      "LIMITED_LIABILITY_PARTNERSHIP": "Limited Liability Partnership",
+      "GENERAL_PARTNERSHIP": "General Partnership",
+      "LIMITED_PARTNERSHIP": "Limited Partnership",
+      "C_CORPORATION": "C Corporation",
+      "S_CORPORATION": "S Corporation",
+      "PARTNERSHIP": "Partnership",
+      "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company",
+      "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
+      "GOVERNMENT_ENTITY": "Government Entity",
+      "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
+      "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+    },
+    "socialMediaPlatform": {
+      "FACEBOOK": "Facebook",
+      "INSTAGRAM": "Instagram",
+      "X": "X (Twitter)"
+    },
+    "idType": {
+      "individual": {
+        "SSN": "Social Security Number",
+        "ITIN": "Individual Taxpayer Identification Number",
+        "NATIONAL_ID": "National ID",
+        "DRIVERS_LICENSE": "Driver's License",
+        "PASSPORT": "Passport",
+        "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number",
+        "OTHER_GOVERNMENT_ID": "Other Government ID"
+      },
+      "organization": {
+        "EIN": "Employer Identification Number",
+        "BUSINESS_REGISTRATION_ID": "Business Registration ID",
+        "BUSINESS_NUMBER": "Business Number",
+        "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+      }
+    }
+  },
+  "stepInfo": {
+    "InitialDetails": "**Getting Started:** This step collects basic information about your business. Please have your business registration documents ready.",
+    "OrganizationDetails": "**Business Structure:** You'll need to provide detailed information about your business structure, including registration details and business identifiers.",
+    "IndividualDetails": "**Controller Information:** Information about the primary person controlling the business operations. This should be someone with significant responsibility for managing the business.",
+    "BusinessOwners": "**Ownership Details:** List all individuals who own 25% or more of the business. For each owner, you'll need to provide personal identification and contact details.",
+    "AdditionalQuestions": "**Due Diligence:** These questions help us better understand your business operations and ensure compliance with regulatory requirements.",
+    "DocumentUpload": "**Required Documents:** Upload supporting documentation to verify your business information. Accepted formats include PDF, JPG, and PNG.",
+    "ReviewAndAttest": "**Final Review:** Review all provided information carefully before submitting. You'll need to certify that all information is accurate and complete."
   }
 }

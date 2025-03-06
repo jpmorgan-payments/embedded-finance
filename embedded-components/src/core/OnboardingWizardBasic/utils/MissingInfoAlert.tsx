@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { ChevronDown, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { _get, isValueEmpty } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
@@ -25,7 +26,11 @@ import {
 
 const renderParty = (
   party: PartyResponse,
-  fields: { label: any; path: any; transformFunc?: any }[]
+  fields: Array<{
+    label: string;
+    path: string;
+    transformFunc?: (value: any) => string | string[] | undefined;
+  }>
 ) => (
   <div
     key={(party?.id ?? '') + (party?.partyType ?? '')}
@@ -33,7 +38,7 @@ const renderParty = (
   >
     <div className="eb-mb-2 eb-font-medium">{party?.partyType}</div>
     <dl className="eb-ml-2 eb-space-y-2">
-      {fields.map(({ label, path, transformFunc }) => {
+      {fields?.map(({ label, path, transformFunc }) => {
         const value = _get(party, path);
         if (!isValueEmpty(value)) {
           return (
@@ -66,7 +71,7 @@ export const MissingInfoAlert = ({
   clientData: ClientResponse;
 }) => {
   const [isDismissed, setIsDismissed] = useState(false);
-
+  const { t } = useTranslation();
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: clientData?.questionResponses
       ?.map((r) => r.questionId)
@@ -164,7 +169,18 @@ export const MissingInfoAlert = ({
           return (
             <div key={party.id}>
               <div className="eb-mb-1 eb-text-xs eb-font-medium">
-                {party.partyType} ({party.id}):
+                {party?.organizationDetails?.organizationName ||
+                  `${party?.individualDetails?.firstName} ${party?.individualDetails?.lastName}`}{' '}
+                {party?.partyType && (
+                  <span>
+                    (
+                    {party?.roles
+                      ?.map((role) => t(`onboarding:partyRoles.${role}`))
+                      .join(', ')}
+                    )
+                  </span>
+                )}
+                :
               </div>
               <div className="eb-flex eb-flex-wrap eb-gap-2">
                 {partyMissingFields.map(
@@ -185,7 +201,7 @@ export const MissingInfoAlert = ({
                       key={index}
                       className="eb-rounded-full eb-bg-blue-100 eb-px-2 eb-py-1 eb-text-xs eb-font-medium eb-text-blue-800"
                     >
-                      {field}
+                      {t(`onboarding:fields.${field}.label`)}
                     </span>
                   )
                 )}
@@ -196,8 +212,10 @@ export const MissingInfoAlert = ({
       </div>
       <Collapsible>
         <CollapsibleTrigger className="eb-group eb-mb-2 eb-mt-4 eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-justify-between eb-text-left eb-font-medium">
-          <div className="eb-flex-1">Client Profile Existing Information:</div>
           <ChevronDown className="eb-group-data-[state=open]:rotate-180 eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform" />
+          <div className="eb-flex-1 eb-text-xs">
+            Client Profile Existing Information:
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
@@ -205,8 +223,8 @@ export const MissingInfoAlert = ({
             <div className="eb-w-xl eb-px-4">
               {clientData?.parties?.map((party) =>
                 party?.partyType === 'ORGANIZATION'
-                  ? renderParty(party, organizationFields)
-                  : renderParty(party, individualFields)
+                  ? renderParty(party, organizationFields(t))
+                  : renderParty(party, individualFields(t))
               )}
             </div>
 

@@ -21,6 +21,7 @@ import { ClientOnboardingStateView } from './ClientOnboardingStateView/ClientOnb
 import { ControllerStepForm } from './ControllerStepForm/ControllerStepForm';
 import { DocumentUploadStepForm } from './DocumentUploadStepForm/DocumentUploadStepForm';
 import { FormLoadingState } from './FormLoadingState/FormLoadingState';
+import { InfoStepAlert } from './InfoStepAlert/InfoStepAlert';
 import { InitialStepForm } from './InitialStepForm/InitialStepForm';
 import {
   OnboardingContextProvider,
@@ -68,7 +69,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   const { tokens: globalContentTokens = {} } = useContentTokens();
   const { i18n } = useTranslation('onboarding');
 
-  // Apply content tokens
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [
       globalContentTokens.onboarding,
@@ -169,24 +169,23 @@ const OnboardingWizardBasicComponent: FC<
   )?.organizationDetails;
 
   const initialSteps: OnboardingStep[] = [
-    { label: t('stepLabels.initialDetails'), children: <InitialStepForm /> },
     {
+      id: 'InitialDetails',
+      label: t('stepLabels.initialDetails'),
+      children: <InitialStepForm />,
+    },
+    {
+      id: 'OrganizationDetails',
       label: t('stepLabels.organizationDetails'),
       children: <OrganizationStepForm />,
     },
     {
+      id: 'IndividualDetails',
       label: t('stepLabels.individualDetails'),
       children: <ControllerStepForm />,
     },
-    // {
-    //   label: t('stepLabels.decisionMakers'),
-    //   children: <DecisionMakerStepForm />,
-    //   onlyVisibleFor: {
-    //     organizationType: ['LIMITED_LIABILITY_COMPANY'],
-    //     product: ['MERCHANT_SERVICES'],
-    //   },
-    // },
     {
+      id: 'businessOwners',
       label: t('stepLabels.businessOwners'),
       children: <BeneficialOwnerStepForm />,
       onlyVisibleFor: {
@@ -194,6 +193,7 @@ const OnboardingWizardBasicComponent: FC<
       },
     },
     {
+      id: 'additionalQuestions',
       label: t('stepLabels.additionalQuestions'),
       children: <AdditionalQuestionsStepForm />,
     },
@@ -203,6 +203,7 @@ const OnboardingWizardBasicComponent: FC<
       children: <DocumentUploadStepForm />,
     },
     {
+      id: 'reviewAndAttest',
       label: t('stepLabels.reviewAndAttest'),
       children: <ReviewAndAttestStepForm />,
     },
@@ -334,10 +335,9 @@ const OnboardingWizardBasicComponent: FC<
             })}
           >
             {steps.map((stepProps, index) => {
-              const { children, ...rest } = stepProps;
+              const { children, id, ...rest } = stepProps;
               return (
                 <Step key={index} {...rest}>
-                  {/* The padding prevents the focus rings from being cut off */}
                   <div
                     className="eb-scroll-mt-10 eb-px-2"
                     ref={(el) => {
@@ -356,7 +356,10 @@ const OnboardingWizardBasicComponent: FC<
                         }}
                       />
                     ) : (
-                      children
+                      <>
+                        <InfoStepAlert stepId={id!} />
+                        {children}
+                      </>
                     )}
                   </div>
                 </Step>

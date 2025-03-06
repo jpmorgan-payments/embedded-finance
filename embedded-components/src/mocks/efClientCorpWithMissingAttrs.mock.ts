@@ -45,16 +45,18 @@ export const efClientCorpWithMissingAttrsMock: ClientResponse = {
           countryCode: '+1',
           phoneNumber: '7606810558',
         },
-        organizationIds: [
-          {
-            idType: 'EIN',
-            issuer: 'US',
-            value: '300030003',
-          },
-        ],
-        websiteAvailable: true,
-        website: 'https://www.Neverlandbooks.com',
       },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          fields: [
+            {
+              name: 'organizationDescription',
+              type: 'string',
+            },
+          ],
+        },
+      ],
     },
     {
       id: '2000000112',
@@ -95,12 +97,12 @@ export const efClientCorpWithMissingAttrsMock: ClientResponse = {
           validationStatus: 'NEEDS_INFO',
           fields: [
             {
-              name: 'date_of_birth',
+              name: 'birthDate',
               type: 'date',
             },
             {
-              name: 'ssn',
-              type: 'ssn',
+              name: 'individualIds',
+              type: 'array',
             },
           ],
         },
