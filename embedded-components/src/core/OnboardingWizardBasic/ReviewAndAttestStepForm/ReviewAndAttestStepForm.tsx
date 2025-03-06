@@ -380,6 +380,7 @@ export const ReviewAndAttestStepForm = () => {
                         size="sm"
                         onClick={() => setCurrentStepIndex(4)}
                       >
+                        <EditIcon className="eb-h-4 eb-w-4" />
                         {t('onboarding:edit')}
                       </Button>
                     </div>
