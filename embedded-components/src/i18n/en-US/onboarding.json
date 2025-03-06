@@ -1274,5 +1274,14 @@
         "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
       }
     }
+  },
+  "stepInfo": {
+    "InitialDetails": "**Getting Started:** This step collects basic information about your business. Please have your business registration documents ready.",
+    "OrganizationDetails": "**Business Structure:** You'll need to provide detailed information about your business structure, including registration details and business identifiers.",
+    "IndividualDetails": "**Controller Information:** Information about the primary person controlling the business operations. This should be someone with significant responsibility for managing the business.",
+    "BusinessOwners": "**Ownership Details:** List all individuals who own 25% or more of the business. For each owner, you'll need to provide personal identification and contact details.",
+    "AdditionalQuestions": "**Due Diligence:** These questions help us better understand your business operations and ensure compliance with regulatory requirements.",
+    "DocumentUpload": "**Required Documents:** Upload supporting documentation to verify your business information. Accepted formats include PDF, JPG, and PNG.",
+    "ReviewAndAttest": "**Final Review:** Review all provided information carefully before submitting. You'll need to certify that all information is accurate and complete."
   }
 }
