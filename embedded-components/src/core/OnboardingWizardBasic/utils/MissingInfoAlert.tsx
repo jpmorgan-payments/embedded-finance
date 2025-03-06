@@ -213,7 +213,9 @@ export const MissingInfoAlert = ({
       <Collapsible>
         <CollapsibleTrigger className="eb-group eb-mb-2 eb-mt-4 eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-justify-between eb-text-left eb-font-medium">
           <ChevronDown className="eb-group-data-[state=open]:rotate-180 eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform" />
-          <div className="eb-flex-1 eb-text-xs">Client Profile Existing Information:</div>
+          <div className="eb-flex-1 eb-text-xs">
+            Client Profile Existing Information:
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent>

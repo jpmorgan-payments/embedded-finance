@@ -24,7 +24,7 @@ export const InfoStepAlert: FC<InfoStepAlertProps> = ({ stepId }) => {
       <div className="eb-flex eb-gap-3">
         <InfoCircledIcon className="eb-h-5 eb-w-5 eb-text-blue-500" />
         <AlertDescription className="eb-flex eb-flex-col">
-          <span className="eb-text-blue-800 eb-text-xs">
+          <span className="eb-text-xs eb-text-blue-800">
             <Markdown>{content}</Markdown>
           </span>
         </AlertDescription>

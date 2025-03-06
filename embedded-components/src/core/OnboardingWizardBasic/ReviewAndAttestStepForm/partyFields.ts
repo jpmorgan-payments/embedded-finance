@@ -1,9 +1,5 @@
 import { TFunction } from 'i18next';
 
-
-
-
-
 const maskIdentification = (value: string) => {
   if (!value) return value;
   const lastFourDigits = value.slice(-4);
