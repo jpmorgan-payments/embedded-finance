@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { ChevronDown, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { _get, isValueEmpty } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
@@ -25,7 +26,11 @@ import {
 
 const renderParty = (
   party: PartyResponse,
-  fields: { label: any; path: any; transformFunc?: any }[]
+  fields: Array<{
+    label: string;
+    path: string;
+    transformFunc?: (value: any) => string | undefined;
+  }>
 ) => (
   <div
     key={(party?.id ?? '') + (party?.partyType ?? '')}
@@ -33,7 +38,7 @@ const renderParty = (
   >
     <div className="eb-mb-2 eb-font-medium">{party?.partyType}</div>
     <dl className="eb-ml-2 eb-space-y-2">
-      {fields.map(({ label, path, transformFunc }) => {
+      {fields?.map(({ label, path, transformFunc }) => {
         const value = _get(party, path);
         if (!isValueEmpty(value)) {
           return (
@@ -66,7 +71,7 @@ export const MissingInfoAlert = ({
   clientData: ClientResponse;
 }) => {
   const [isDismissed, setIsDismissed] = useState(false);
-
+  const { t } = useTranslation(['onboarding', 'common']);
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: clientData?.questionResponses
       ?.map((r) => r.questionId)
@@ -205,8 +210,8 @@ export const MissingInfoAlert = ({
             <div className="eb-w-xl eb-px-4">
               {clientData?.parties?.map((party) =>
                 party?.partyType === 'ORGANIZATION'
-                  ? renderParty(party, organizationFields)
-                  : renderParty(party, individualFields)
+                  ? renderParty(party, organizationFields(t))
+                  : renderParty(party, individualFields(t))
               )}
             </div>
 

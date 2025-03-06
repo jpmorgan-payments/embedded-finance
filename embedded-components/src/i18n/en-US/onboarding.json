@@ -8,9 +8,14 @@
     },
     "jurisdiction": {
       "label": "Jurisdiction",
-      "placeholder": "Select country of jurisdiction",
-      "description": "",
-      "tooltip": ""
+      "placeholder": "Select jurisdiction",
+      "description": "The legal jurisdiction under which the business operates",
+      "tooltip": "",
+      "validation": {
+        "required": "Jurisdiction is required",
+        "exactlyTwoChars": "Jurisdiction code must be exactly 2 characters"
+      },
+      "group": "organization"
     },
     "organizationName": {
       "label": "Legal Business Name",
@@ -78,6 +83,9 @@
       },
       "group": "contact"
     },
+    "roles": {
+      "label": "Roles"
+    },
     "controllerEmail": {
       "label": "Email",
       "placeholder": "Enter email",
@@ -124,6 +132,9 @@
         "max": "Year of formation cannot be in the future",
         "invalid": "Please enter a valid year between 1800 and current year"
       }
+    },
+    "individualIds": {
+      "label": "Individual Identification"
     },
     "controllerIds": {
       "label": "Individual Identification",
@@ -1001,6 +1012,15 @@
     "solePropPersonalInfo": {
       "label": "Personal Information",
       "description": "Your personal information as the business owner"
+    },
+    "countryOfCitizenship": {
+      "label": "Country of Citizenship",
+      "placeholder": "Select country of citizenship",
+      "description": "The country where you hold citizenship",
+      "validation": {
+        "required": "Country of citizenship is required",
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
     }
   },
   "title": "Client Onboarding",
@@ -1195,7 +1215,64 @@
   },
   "missingPartyFields": {
     "title": "Action Required",
-    "description": "Please provide the following missing information:",
-    "partyIdPrefix": "Missing fields for Party ID"
+    "description": "Please provide the following missing information:"
+  },
+  "enums": {
+    "addressType": {
+      "LEGAL_ADDRESS": "Legal Address",
+      "MAILING_ADDRESS": "Mailing Address",
+      "BUSINESS_ADDRESS": "Business Address",
+      "RESIDENTIAL_ADDRESS": "Residential Address"
+    },
+    "phoneType": {
+      "BUSINESS_PHONE": "Business Phone",
+      "MOBILE_PHONE": "Mobile Phone",
+      "ALTERNATE_PHONE": "Alternate Phone"
+    },
+    "partyRole": {
+      "AUTHORIZED_USER": "Authorized User",
+      "BENEFICIAL_OWNER": "Beneficial Owner",
+      "CLIENT": "Client",
+      "CONTROLLER": "Controller",
+      "DECISION_MAKER": "Decision Maker",
+      "PRIMARY_CONTACT": "Primary Contact",
+      "DIRECTOR": "Director"
+    },
+    "organizationType": {
+      "LIMITED_LIABILITY_COMPANY": "Limited Liability Company",
+      "LIMITED_LIABILITY_PARTNERSHIP": "Limited Liability Partnership",
+      "GENERAL_PARTNERSHIP": "General Partnership",
+      "LIMITED_PARTNERSHIP": "Limited Partnership",
+      "C_CORPORATION": "C Corporation",
+      "S_CORPORATION": "S Corporation",
+      "PARTNERSHIP": "Partnership",
+      "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company",
+      "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
+      "GOVERNMENT_ENTITY": "Government Entity",
+      "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
+      "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+    },
+    "socialMediaPlatform": {
+      "FACEBOOK": "Facebook",
+      "INSTAGRAM": "Instagram",
+      "X": "X (Twitter)"
+    },
+    "idType": {
+      "individual": {
+        "SSN": "Social Security Number",
+        "ITIN": "Individual Taxpayer Identification Number",
+        "NATIONAL_ID": "National ID",
+        "DRIVERS_LICENSE": "Driver's License",
+        "PASSPORT": "Passport",
+        "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number",
+        "OTHER_GOVERNMENT_ID": "Other Government ID"
+      },
+      "organization": {
+        "EIN": "Employer Identification Number",
+        "BUSINESS_REGISTRATION_ID": "Business Registration ID",
+        "BUSINESS_NUMBER": "Business Number",
+        "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+      }
+    }
   }
 }

@@ -53,7 +53,7 @@ const isOutstandingEmpty = (
 };
 
 export const ReviewAndAttestStepForm = () => {
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation();
   // Get QueryClient from the context
   const queryClient = useQueryClient();
 
@@ -228,7 +228,11 @@ export const ReviewAndAttestStepForm = () => {
 
   const renderParty = (
     party: PartyResponse,
-    fields: { label: any; path: any; transformFunc?: any }[]
+    fields: Array<{
+      label: string;
+      path: string;
+      transformFunc?: (value: any) => string | string[] | undefined;
+    }>
   ) => (
     <div
       key={(party?.id ?? '') + (party?.partyType ?? '')}
@@ -343,8 +347,8 @@ export const ReviewAndAttestStepForm = () => {
         <div className="eb-w-xl eb-px-4">
           {clientData?.parties?.map((party) =>
             party?.partyType === 'ORGANIZATION'
-              ? renderParty(party, organizationFields)
-              : renderParty(party, individualFields)
+              ? renderParty(party, organizationFields(t))
+              : renderParty(party, individualFields(t))
           )}
         </div>
 

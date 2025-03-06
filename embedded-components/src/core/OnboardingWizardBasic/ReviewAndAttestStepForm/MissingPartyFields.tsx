@@ -31,9 +31,8 @@ export const MissingPartyFields = ({ party }: { party: PartyResponse }) => {
             {t('onboarding:missingPartyFields.description')}
             <ul className="eb-mt-1 eb-list-inside eb-list-disc">
               {validationResponseFields.map((field, index) => (
-                <li key={index}>
-                  <span className="eb-font-medium">{field.name}</span>:{' '}
-                  {field.type}
+                <li key={index} className="eb-text-yellow-800">
+                  {t(`onboarding:fields.${field.name}.label`)}
                 </li>
               ))}
             </ul>

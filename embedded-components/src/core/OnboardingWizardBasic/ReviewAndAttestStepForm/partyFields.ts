@@ -1,3 +1,9 @@
+import { TFunction } from 'i18next';
+
+
+
+
+
 const maskIdentification = (value: string) => {
   if (!value) return value;
   const lastFourDigits = value.slice(-4);
@@ -5,124 +11,211 @@ const maskIdentification = (value: string) => {
 };
 
 const formatIdentifications = (
-  ids: Array<{ idType: string; value: string; issuer: string }>
+  ids: Array<{ idType: string; value: string; issuer: string }> | undefined,
+  t: TFunction
 ) => {
-  if (!ids?.length) return [];
+  if (!Array.isArray(ids) || !ids.length) return [];
   return ids.map(
-    (id) => `${id.idType} (${id.issuer}): ${maskIdentification(id.value)}`
+    (id) =>
+      `${t(`idValueLabels.individual.${id.idType}`)} (${id.issuer}): ${maskIdentification(id.value)}`
   );
 };
 
-export const organizationFields = [
+const formatPhoneNumber = (phone: any, t: TFunction) =>
+  phone
+    ? `${t(`phoneTypes.${phone.phoneType}`)}: ${phone.countryCode} ${phone.phoneNumber}`
+    : undefined;
+
+const formatAddresses = (addresses: any[] | undefined, t: TFunction) => {
+  if (!Array.isArray(addresses)) return [];
+  return addresses.map(
+    (address) =>
+      `${t(`addressTypes.${address?.addressType}`)}: ${address?.addressLines?.join(' ') || ''}, ${address?.city || ''}, ${
+        address?.state || ''
+      }, ${address?.country || ''}, ${address?.postalCode || ''}`
+  );
+};
+
+const formatSocialMedia = (socialMedia: any[] | undefined, t: TFunction) => {
+  if (!Array.isArray(socialMedia)) return [];
+  return socialMedia.map(
+    (s) => `${t(`socialMediaPlatform.${s.profilePlatform}`)}: ${s.username}`
+  );
+};
+
+const formatRoles = (roles: string[] | undefined, t: TFunction) => {
+  if (!Array.isArray(roles)) return [];
+  return roles.map((role) => t(`partyRoles.${role}`));
+};
+
+export const organizationFields = (t: TFunction) => [
   {
-    label: 'Legal Business Name',
+    label: t('fields.organizationName.label'),
     path: 'organizationDetails.organizationName',
   },
-  { label: 'Organization Type', path: 'organizationDetails.organizationType' },
   {
-    label: 'Organization Description',
+    label: t('fields.organizationType.label'),
+    path: 'organizationDetails.organizationType',
+    transformFunc: (type: string) =>
+      type ? t(`organizationTypes.${type}`) : undefined,
+  },
+  {
+    label: t('fields.organizationDescription.label'),
     path: 'organizationDetails.organizationDescription',
   },
-  { label: 'DBA Name', path: 'organizationDetails.dbaName' },
-  { label: 'Industry Category', path: 'organizationDetails.industryCategory' },
-  { label: 'Industry Type', path: 'organizationDetails.industryType' },
   {
-    label: 'Industry Code',
+    label: t('fields.dbaName.label'),
+    path: 'organizationDetails.dbaName',
+  },
+  {
+    label: t('fields.industry.label'),
+    path: 'organizationDetails.industryCategory',
+  },
+  {
+    label: t('fields.industry.label'),
+    path: 'organizationDetails.industryType',
+  },
+  {
+    label: t('fields.industry.label'),
     path: 'organizationDetails.industry',
     transformFunc: (industry: any) =>
       industry ? `${industry.codeType}: ${industry.code}` : undefined,
   },
   {
-    label: 'Country of Formation',
+    label: t('fields.countryOfFormation.label'),
     path: 'organizationDetails.countryOfFormation',
   },
   {
-    label: 'Associated Countries',
+    label: t('fields.associatedCountries.headerLabel'),
     path: 'organizationDetails.associatedCountries',
   },
-  { label: 'Year of Formation', path: 'organizationDetails.yearOfFormation' },
-  { label: 'Email', path: 'email' },
   {
-    label: 'Phone',
+    label: t('fields.yearOfFormation.label'),
+    path: 'organizationDetails.yearOfFormation',
+  },
+  {
+    label: t('fields.organizationEmail.label'),
+    path: 'email',
+  },
+  {
+    label: t('fields.organizationPhone.phoneType.label'),
     path: 'organizationDetails.phone',
-    transformFunc: (phone: any) =>
-      phone
-        ? `${phone.phoneType}: +${phone.countryCode} ${phone.phoneNumber}`
-        : undefined,
+    transformFunc: (phone: any) => formatPhoneNumber(phone, t),
   },
-  { label: 'Website', path: 'organizationDetails.website' },
   {
-    label: 'Website Available',
+    label: t('fields.website.label'),
+    path: 'organizationDetails.website',
+  },
+  {
+    label: t('fields.websiteAvailable.label'),
     path: 'organizationDetails.websiteAvailable',
+    transformFunc: (value: boolean) =>
+      value ? t('common:yes') : t('common:no'),
   },
   {
-    label: 'Addresses',
+    label: t('fields.addresses.label'),
     path: 'organizationDetails.addresses',
-    transformFunc: (d: any) =>
-      d?.map(
-        (address: any) =>
-          `${address?.addressType}: ${address?.addressLines?.join(' ')}, ${address?.city}, ${address?.state}, ${address?.country}, ${address?.postalCode}`
-      ),
+    transformFunc: (addresses: any) => formatAddresses(addresses, t),
   },
   {
-    label: 'Business Identifications',
+    label: t('fields.organizationIds.label'),
     path: 'organizationDetails.organizationIds',
-    transformFunc: formatIdentifications,
+    transformFunc: (ids: any) => formatIdentifications(ids, t),
+  },
+  {
+    label: t('fields.jurisdiction.label'),
+    path: 'organizationDetails.jurisdiction',
+  },
+  {
+    label: t('fields.mcc.label'),
+    path: 'organizationDetails.mcc',
+  },
+  {
+    label: t('fields.secondaryMccList.headerLabel'),
+    path: 'organizationDetails.secondaryMccList',
+  },
+  {
+    label: t('missingPartyFields.fields.entitiesInOwnership'),
+    path: 'organizationDetails.entitiesInOwnership',
+    transformFunc: (value: boolean) =>
+      value ? t('common:yes') : t('common:no'),
   },
 ];
 
-export const individualFields = [
-  { label: 'Email', path: 'email' },
-  { label: 'Roles', path: 'roles' },
-  { label: 'First Name', path: 'individualDetails.firstName' },
-  { label: 'Middle Name', path: 'individualDetails.middleName' },
-  { label: 'Last Name', path: 'individualDetails.lastName' },
-  { label: 'Suffix', path: 'individualDetails.nameSuffix' },
+export const individualFields = (t: TFunction) => [
   {
-    label: 'Date of Birth',
+    label: t('fields.controllerEmail.label'),
+    path: 'email',
+  },
+  {
+    label: t('fields.roles.label'),
+    path: 'roles',
+    transformFunc: (roles: string[]) => formatRoles(roles, t),
+  },
+  {
+    label: t('fields.controllerFirstName.label'),
+    path: 'individualDetails.firstName',
+  },
+  {
+    label: t('fields.controllerMiddleName.label'),
+    path: 'individualDetails.middleName',
+  },
+  {
+    label: t('fields.controllerLastName.label'),
+    path: 'individualDetails.lastName',
+  },
+  {
+    label: t('fields.controllerNameSuffix.label'),
+    path: 'individualDetails.nameSuffix',
+  },
+  {
+    label: t('fields.birthDate.label'),
     path: 'individualDetails.birthDate',
   },
   {
-    label: 'Country of Residence',
+    label: t('fields.countryOfResidence.label'),
     path: 'individualDetails.countryOfResidence',
   },
   {
-    label: 'Country of Citizenship',
+    label: t('fields.countryOfCitizenship.label'),
     path: 'individualDetails.countryOfCitizenship',
   },
-  { label: 'Job Title', path: 'individualDetails.jobTitle' },
   {
-    label: 'Job Title Description',
+    label: t('fields.controllerJobTitle.label'),
+    path: 'individualDetails.jobTitle',
+  },
+  {
+    label: t('fields.controllerJobTitleDescription.label'),
     path: 'individualDetails.jobTitleDescription',
   },
-  { label: 'Nature of Ownership', path: 'individualDetails.natureOfOwnership' },
-  { label: 'Sole Owner', path: 'individualDetails.soleOwner' },
   {
-    label: 'Phone',
+    label: t('fields.natureOfOwnership.label'),
+    path: 'individualDetails.natureOfOwnership',
+  },
+  {
+    label: t('fields.soleOwner.label'),
+    path: 'individualDetails.soleOwner',
+    transformFunc: (value: boolean) =>
+      value ? t('common:yes') : t('common:no'),
+  },
+  {
+    label: t('fields.controllerPhone.phoneType.label'),
     path: 'individualDetails.phone',
-    transformFunc: (phone: any) =>
-      phone
-        ? `${phone.phoneType}: +${phone.countryCode} ${phone.phoneNumber}`
-        : undefined,
+    transformFunc: (phone: any) => formatPhoneNumber(phone, t),
   },
   {
-    label: 'Addresses',
+    label: t('fields.addresses.label'),
     path: 'individualDetails.addresses',
-    transformFunc: (d: any) =>
-      d?.map(
-        (address: any) =>
-          `${address?.addressType}: ${address?.addressLines?.join(' ')}, ${address?.city}, ${address?.state}, ${address?.country}, ${address?.postalCode}`
-      ),
+    transformFunc: (addresses: any) => formatAddresses(addresses, t),
   },
   {
-    label: 'Personal Identifications',
+    label: t('fields.controllerIds.label'),
     path: 'individualDetails.individualIds',
-    transformFunc: formatIdentifications,
+    transformFunc: (ids: any) => formatIdentifications(ids, t),
   },
   {
-    label: 'Social Media',
+    label: t('fields.socialMedia.label'),
     path: 'individualDetails.socialMedia',
-    transformFunc: (social: any) =>
-      social?.map((s: any) => `${s.profilePlatform}: ${s.username}`),
+    transformFunc: (social: any) => formatSocialMedia(social, t),
   },
 ];
