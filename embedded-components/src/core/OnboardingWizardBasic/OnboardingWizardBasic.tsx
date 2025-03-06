@@ -69,23 +69,11 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   const { tokens: globalContentTokens = {} } = useContentTokens();
   const { i18n } = useTranslation('onboarding');
 
-  // Debug: Check content tokens
-  console.log('Content tokens:', {
-    global: globalContentTokens.onboarding,
-    provided: onboardingContentTokens,
-  });
-
-  // Apply content tokens
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [
       globalContentTokens.onboarding,
       onboardingContentTokens,
     ]);
-
-    // Debug: Check loaded translations after merge
-    console.log('Loaded translations:', {
-      all: i18n.getResourceBundle(i18n.language, 'onboarding'),
-    });
   }, [
     loadContentTokens,
     JSON.stringify(globalContentTokens.onboarding),
