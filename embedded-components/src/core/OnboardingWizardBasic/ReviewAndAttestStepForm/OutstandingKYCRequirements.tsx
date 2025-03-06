@@ -52,10 +52,13 @@ const OutstandingKYCRequirements = ({
   );
 
   return (
-    <Alert variant="default" className="eb-border-yellow-100 eb-bg-yellow-50">
-      <div className="eb-flex eb-items-start eb-gap-3">
-        <AlertTriangle className="eb-mt-0.5 eb-h-5 eb-w-5 eb-text-yellow-500" />
-        <div className="eb-flex eb-flex-1 eb-flex-col">
+    <Alert
+      variant="default"
+      className="eb-mb-4 eb-w-full eb-border-yellow-100 eb-bg-yellow-50"
+    >
+      <div className="eb-flex eb-gap-3">
+        <AlertTriangle className="eb-h-5 eb-w-5 eb-text-yellow-500" />
+        <div className="eb-flex eb-flex-col">
           <AlertTitle className="eb-font-semibold eb-text-yellow-800">
             {t('onboarding:outstandingKYC.title')}
           </AlertTitle>
