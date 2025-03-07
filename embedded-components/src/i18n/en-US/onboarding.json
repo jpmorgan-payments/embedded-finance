@@ -398,7 +398,9 @@
         }
       }
     },
-
+    "naics": {
+      "label": "Industry classification"
+    },
     "industry": {
       "label": "Industry classification",
       "placeholder": "Select industry classification",
