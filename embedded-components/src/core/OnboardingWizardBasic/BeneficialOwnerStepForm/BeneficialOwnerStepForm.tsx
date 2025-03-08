@@ -279,7 +279,9 @@ export const BeneficialOwnerStepForm = () => {
       },
       {
         onSuccess: () => {
-          toast.success('Beneficial owner removed successfully');
+          toast.success(
+            t('beneficialOwnerStepForm.successMessages.beneficialOwnerRemoved')
+          );
           setIsClientDataRefetching(true);
           refetchClientData().then(() => {
             setIsClientDataRefetching(false);
@@ -300,7 +302,9 @@ export const BeneficialOwnerStepForm = () => {
       },
       {
         onSuccess: () => {
-          toast.success('Beneficial owner restored successfully');
+          toast.success(
+            t('beneficialOwnerStepForm.successMessages.beneficialOwnerRestored')
+          );
           setIsClientDataRefetching(true);
           refetchClientData().then(() => {
             setIsClientDataRefetching(false);
@@ -325,7 +329,11 @@ export const BeneficialOwnerStepForm = () => {
               onPostPartyResponse?.(data, error?.response?.data);
             },
             onSuccess: () => {
-              toast.success('Beneficial owner details updated successfully');
+              toast.success(
+                t(
+                  'beneficialOwnerStepForm.successMessages.beneficialOwnerUpdated'
+                )
+              );
               setIsDialogOpen(false);
               setCurrentBeneficialOwnerId('');
               setIsClientDataRefetching(true);
@@ -361,7 +369,11 @@ export const BeneficialOwnerStepForm = () => {
               onPostClientResponse?.(data, error?.response?.data);
             },
             onSuccess: () => {
-              toast.success('Beneficial owner details updated successfully');
+              toast.success(
+                t(
+                  'beneficialOwnerStepForm.successMessages.beneficialOwnerUpdated'
+                )
+              );
               setIsDialogOpen(false);
               setCurrentBeneficialOwnerId('');
               setIsClientDataRefetching(true);
@@ -437,7 +449,9 @@ export const BeneficialOwnerStepForm = () => {
 
   const handleFormSubmit = form.handleSubmit(() => {
     nextStep();
-    toast.success("Client's beneficial owners updated successfully");
+    toast.success(
+      t('beneficialOwnerStepForm.successMessages.clientBeneficialOwnersUpdated')
+    );
   });
 
   const isFormDisabled =
@@ -465,7 +479,7 @@ export const BeneficialOwnerStepForm = () => {
             }
             type="radio-group"
             name="controllerIsOwner"
-            label="Do you, the controller, own 25% or more of the business?"
+            label={t('beneficialOwnerStepForm.controllerIsOwnerQuestion')}
             description=""
             tooltip=""
             options={[
@@ -478,14 +492,14 @@ export const BeneficialOwnerStepForm = () => {
             controllerForm.watch('controllerIsOwner') === 'no' &&
             controllerUpdateStatus !== 'pending' && (
               <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
-                {'\u24d8'} You cannot set yourself as an owner since you can
-                only add up to 4 beneficial owners.
+                {'\u24d8'}{' '}
+                {t('beneficialOwnerStepForm.controllerCannotBeOwnerWarning')}
               </p>
             )}
           {controllerUpdateStatus === 'pending' && (
             <div className="eb-mt-2 eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
               <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
-              <span>Making changes...</span>
+              <span>{t('beneficialOwnerStepForm.makingChanges')}</span>
             </div>
           )}
         </form>
@@ -493,16 +507,18 @@ export const BeneficialOwnerStepForm = () => {
 
       <fieldset className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
         <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-          Beneficial Owners
+          {t('beneficialOwnerStepForm.beneficialOwnersLegend')}
         </legend>
         {activeOwners.map((owner) => (
           <Card key={owner.id}>
             <CardHeader>
               <CardTitle>{`${owner?.individualDetails?.firstName} ${owner?.individualDetails?.lastName}`}</CardTitle>
               <div className="eb-flex eb-gap-2 eb-pt-2">
-                <Badge variant="secondary">Owner</Badge>
+                <Badge variant="secondary">
+                  {t('beneficialOwnerStepForm.ownerBadge')}
+                </Badge>
                 {owner.roles?.includes('CONTROLLER') ? (
-                  <Badge>Controller</Badge>
+                  <Badge>{t('beneficialOwnerStepForm.controllerBadge')}</Badge>
                 ) : null}
               </div>
             </CardHeader>
@@ -510,7 +526,7 @@ export const BeneficialOwnerStepForm = () => {
               <div>
                 {owner?.individualDetails?.jobTitle ? (
                   <p>
-                    Job title:{' '}
+                    {t('beneficialOwnerStepForm.jobTitleLabel')}{' '}
                     <span className="eb-font-semibold">
                       {owner.individualDetails.jobTitle}
                     </span>
@@ -518,7 +534,7 @@ export const BeneficialOwnerStepForm = () => {
                 ) : null}
                 {owner?.individualDetails?.natureOfOwnership ? (
                   <p>
-                    Nature of ownership:{' '}
+                    {t('beneficialOwnerStepForm.natureOfOwnershipLabel')}{' '}
                     <span className="eb-font-semibold">
                       {owner.individualDetails.natureOfOwnership}
                     </span>
@@ -535,7 +551,7 @@ export const BeneficialOwnerStepForm = () => {
                   }
                 >
                   <EditIcon />
-                  Edit
+                  {t('beneficialOwnerStepForm.editButton')}
                 </Button>
                 {!owner.roles?.includes('CONTROLLER') ? (
                   <Button
@@ -553,7 +569,7 @@ export const BeneficialOwnerStepForm = () => {
                     ) : (
                       <TrashIcon />
                     )}
-                    Remove
+                    {t('beneficialOwnerStepForm.removeButton')}
                   </Button>
                 ) : null}
               </div>
@@ -567,11 +583,11 @@ export const BeneficialOwnerStepForm = () => {
             onClick={handleAddBeneficialOwner}
           >
             <UserPlusIcon />
-            Add Beneficial Owner
+            {t('beneficialOwnerStepForm.addBeneficialOwnerButton')}
           </Button>
           {ownersData.length >= 4 && (
             <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
-              {'\u24d8'} You can only add up to 4 beneficial owners.
+              {'\u24d8'} {t('beneficialOwnerStepForm.maxOwnersWarning')}
             </p>
           )}
         </div>
@@ -584,7 +600,8 @@ export const BeneficialOwnerStepForm = () => {
             className="eb-rounded eb-border"
           >
             <AccordionTrigger className="eb-px-4">
-              Inactive Owners ({inactiveOwners.length})
+              {t('beneficialOwnerStepForm.inactiveOwnersLabel')} (
+              {inactiveOwners.length})
             </AccordionTrigger>
             <AccordionContent className="eb-grid eb-grid-cols-1 eb-gap-6 eb-px-4 md:eb-grid-cols-2 lg:eb-grid-cols-3">
               {ownersData
@@ -598,7 +615,7 @@ export const BeneficialOwnerStepForm = () => {
                       <div>
                         {owner?.individualDetails?.jobTitle ? (
                           <p>
-                            Job title:{' '}
+                            {t('beneficialOwnerStepForm.jobTitleLabel')}{' '}
                             <span className="eb-font-semibold">
                               {owner.individualDetails.jobTitle}
                             </span>
@@ -606,7 +623,9 @@ export const BeneficialOwnerStepForm = () => {
                         ) : null}
                         {owner?.individualDetails?.natureOfOwnership ? (
                           <p>
-                            Nature of ownership:{' '}
+                            {t(
+                              'beneficialOwnerStepForm.natureOfOwnershipLabel'
+                            )}{' '}
                             <span className="eb-font-semibold">
                               {owner.individualDetails.natureOfOwnership}
                             </span>
@@ -629,7 +648,7 @@ export const BeneficialOwnerStepForm = () => {
                           ) : (
                             <ArchiveRestoreIcon />
                           )}
-                          Restore
+                          {t('beneficialOwnerStepForm.restoreButton')}
                         </Button>
                       </div>
                     </CardContent>
@@ -674,8 +693,8 @@ export const BeneficialOwnerStepForm = () => {
               <DialogHeader className="eb-border-b eb-px-6 eb-pb-4">
                 <DialogTitle>
                   {currentBeneficialOwnerId
-                    ? 'Edit Beneficial Owner'
-                    : 'Add Beneficial Owner'}
+                    ? t('beneficialOwnerStepForm.editBeneficialOwnerTitle')
+                    : t('beneficialOwnerStepForm.addBeneficialOwnerTitle')}
                 </DialogTitle>
                 <DialogDescription>
                   {currentBeneficialOwnerId
@@ -690,7 +709,7 @@ export const BeneficialOwnerStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    General
+                    {t('beneficialOwnerStepForm.generalLegend')}
                   </legend>
                   <OnboardingFormField
                     control={ownerForm.control}
@@ -771,7 +790,7 @@ export const BeneficialOwnerStepForm = () => {
                   className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
                 >
                   <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                    Phone Information
+                    {t('beneficialOwnerStepForm.phoneInformationLegend')}
                   </legend>
                   <OnboardingFormField
                     control={ownerForm.control}
@@ -805,7 +824,6 @@ export const BeneficialOwnerStepForm = () => {
                   name="ownerAddresses"
                   disabled={isOwnerFormSubmitting}
                   renderItem={({
-                    itemLabel,
                     index,
                     field,
                     disabled,
@@ -817,7 +835,7 @@ export const BeneficialOwnerStepForm = () => {
                       disabled={disabled}
                     >
                       <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                        {itemLabel}
+                        {t('beneficialOwnerStepForm.addressLegend')}
                       </legend>
                       <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
                         <OnboardingFormField
@@ -923,7 +941,6 @@ export const BeneficialOwnerStepForm = () => {
                     field,
                     index,
                     disabled,
-                    itemLabel,
                     renderRemoveButton,
                   }) => (
                     <fieldset
@@ -932,7 +949,7 @@ export const BeneficialOwnerStepForm = () => {
                       disabled={disabled}
                     >
                       <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
-                        {itemLabel}
+                        {t('beneficialOwnerStepForm.idLegend')}
                       </legend>
 
                       <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
@@ -1007,7 +1024,7 @@ export const BeneficialOwnerStepForm = () => {
                     clientUpdateStatus === 'pending') && (
                     <Loader2Icon className="eb-animate-spin" />
                   )}
-                  Save changes
+                  {t('beneficialOwnerStepForm.saveChangesButton')}
                 </Button>
               </DialogFooter>
             </DialogContent>

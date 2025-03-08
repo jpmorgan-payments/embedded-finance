@@ -1,6 +1,9 @@
 import { ClientProduct, OrganizationType } from '@/api/generated/smbdo.schemas';
 
+
+
 import { Jurisdiction } from '../utils/types';
+
 
 export interface RequiredFieldsList {
   fields: Record<string, string[]>;
@@ -9,6 +12,16 @@ export interface RequiredFieldsList {
 
 export const REQUIRED_FIELDS_BY_TYPE: Record<string, string[]> = {
   SOLE_PROPRIETORSHIP_US_EP: [
+    'fields.organizationName.label',
+    'fields.organizationDescription.label',
+    'fields.organizationEmail.label',
+    'fields.organizationPhone.phoneNumber.label',
+    'fields.addresses.label',
+    'fields.yearOfFormation.label',
+    'fields.countryOfFormation.label',
+    'fields.individualIds.label',
+  ],
+  PUBLIC_CORPORATION_US_EP: [
     'fields.organizationName.label',
     'fields.organizationDescription.label',
     'fields.organizationEmail.label',
@@ -27,7 +40,7 @@ export const REQUIRED_FIELDS_BY_TYPE: Record<string, string[]> = {
     'fields.yearOfFormation.label',
     'fields.countryOfFormation.label',
     'fields.organizationIds.label',
-    'fields.industry.code.label',
+    'fields.industry.label',
   ],
 };
 
