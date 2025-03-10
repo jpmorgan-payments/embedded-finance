@@ -1,9 +1,6 @@
 import { ClientProduct, OrganizationType } from '@/api/generated/smbdo.schemas';
 
-
-
 import { Jurisdiction } from '../utils/types';
-
 
 export interface RequiredFieldsList {
   fields: Record<string, string[]>;

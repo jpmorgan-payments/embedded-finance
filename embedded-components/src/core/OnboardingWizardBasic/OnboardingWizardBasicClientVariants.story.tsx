@@ -1,5 +1,6 @@
 import { efClientCorpMock } from '@/mocks/efClientCorp.mock';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
+import { efClientCorpNew } from '@/mocks/efClientCorpNew.mock';
 import { efClientCorpWithMissingAttrsMock } from '@/mocks/efClientCorpWithMissingAttrs.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
@@ -7,11 +8,10 @@ import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData
 import type { Meta } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 
-
-
-import OnboardingWizardBasicMeta, { Default, OnboardingWizardBasicWithProviderProps } from './OnboardingWizardBasicSP.story';
-import { efClientCorpNew } from '@/mocks/efClientCorpNew.mock';
-
+import OnboardingWizardBasicMeta, {
+  Default,
+  OnboardingWizardBasicWithProviderProps,
+} from './OnboardingWizardBasicSP.story';
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
@@ -116,7 +116,6 @@ LLC_EP.parameters = {
   },
 };
 
-
 export const LLC_EP_NEW = Default.bind({});
 LLC_EP_NEW.storyName = 'Limited Liability Company EP - NEW';
 LLC_EP_NEW.args = {
@@ -135,9 +134,7 @@ LLC_EP_NEW.parameters = {
       }),
       http.post('/parties/2000000111', () => {
         return HttpResponse.json(
-          efClientCorpNew?.parties?.filter(
-            (p) => p.id === '2000000111'
-          )[0]
+          efClientCorpNew?.parties?.filter((p) => p.id === '2000000111')[0]
         );
       }),
       http.get('/questions', (req) => {
