@@ -398,7 +398,9 @@
         }
       }
     },
-
+    "naics": {
+      "label": "Industry classification"
+    },
     "industry": {
       "label": "Industry classification",
       "placeholder": "Select industry classification",
@@ -1021,6 +1023,11 @@
         "required": "Country of citizenship is required",
         "exactlyTwoChars": "Country code must be exactly 2 characters"
       }
+    },
+    "firstName": {
+      "validation": {
+        "pattern": "First name can only contain letters, hyphens, apostrophes, and spaces"
+      }
     }
   },
   "title": "Client Onboarding",
@@ -1283,5 +1290,39 @@
     "AdditionalQuestions": "**Due Diligence:** These questions help us better understand your business operations and ensure compliance with regulatory requirements.",
     "DocumentUpload": "**Required Documents:** Upload supporting documentation to verify your business information. Accepted formats include PDF, JPG, and PNG.",
     "ReviewAndAttest": "**Final Review:** Review all provided information carefully before submitting. You'll need to certify that all information is accurate and complete."
+  },
+  "idMaskFormats": {
+    "SSN": "### - ## - ####",
+    "ITIN": "### - ## - ####"
+  },
+  "beneficialOwnerStepForm": {
+    "controllerIsOwnerQuestion": "Do you, the controller, own 25% or more of the business?",
+    "maxOwnersWarning": "You can only add up to 4 beneficial owners.",
+    "controllerCannotBeOwnerWarning": "You cannot set yourself as an owner since you can only add up to 4 beneficial owners.",
+    "makingChanges": "Making changes...",
+    "beneficialOwnersLegend": "Beneficial Owners",
+    "ownerBadge": "Owner",
+    "controllerBadge": "Controller",
+    "jobTitleLabel": "Job title:",
+    "natureOfOwnershipLabel": "Nature of ownership:",
+    "editButton": "Edit",
+    "removeButton": "Remove",
+    "restoreButton": "Restore",
+    "addBeneficialOwnerButton": "Add Beneficial Owner",
+    "inactiveOwnersLabel": "Inactive Owners",
+    "editBeneficialOwnerTitle": "Edit Beneficial Owner",
+    "addBeneficialOwnerTitle": "Add Beneficial Owner",
+    "generalLegend": "General",
+    "phoneInformationLegend": "Phone Information",
+    "addressLegend": "Address",
+    "idLegend": "Individual Identification",
+    "saveChangesButton": "Save changes",
+    "successMessages": {
+      "beneficialOwnerUpdated": "Beneficial owner details updated successfully",
+      "clientUpdated": "Client's beneficial owners updated successfully",
+      "beneficialOwnerRemoved": "Beneficial owner removed successfully",
+      "beneficialOwnerRestored": "Beneficial owner restored successfully",
+      "clientBeneficialOwnersUpdated": "Client's beneficial owners updated successfully"
+    }
   }
 }

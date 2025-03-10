@@ -1,5 +1,6 @@
 import { efClientCorpMock } from '@/mocks/efClientCorp.mock';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
+import { efClientCorpNew } from '@/mocks/efClientCorpNew.mock';
 import { efClientCorpWithMissingAttrsMock } from '@/mocks/efClientCorpWithMissingAttrs.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
@@ -110,6 +111,41 @@ LLC_EP.parameters = {
         return HttpResponse.json(
           efClientCorpMock?.parties?.filter((p) => p.id === '2000000111')[0]
         );
+      }),
+    ],
+  },
+};
+
+export const LLC_EP_NEW = Default.bind({});
+LLC_EP_NEW.storyName = 'Limited Liability Company EP - NEW';
+LLC_EP_NEW.args = {
+  ...Default.args,
+  initialClientId: '0030000130',
+  availableProducts: ['EMBEDDED_PAYMENTS'],
+};
+LLC_EP_NEW.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000130', async () => {
+        return HttpResponse.json(efClientCorpNew);
+      }),
+      http.post('/clients/0030000130', async () => {
+        return HttpResponse.json(efClientCorpNew);
+      }),
+      http.post('/parties/2000000111', () => {
+        return HttpResponse.json(
+          efClientCorpNew?.parties?.filter((p) => p.id === '2000000111')[0]
+        );
+      }),
+      http.get('/questions', (req) => {
+        const url = new URL(req.request.url);
+        const questionIds = url.searchParams.get('questionIds');
+        return HttpResponse.json({
+          metadata: efClientQuestionsMock.metadata,
+          questions: efClientQuestionsMock?.questions.filter((q) =>
+            questionIds?.includes(q.id)
+          ),
+        });
       }),
     ],
   },
