@@ -54,6 +54,7 @@ import { InfoIcon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
@@ -100,6 +101,7 @@ export const OrganizationStepForm = () => {
     onPostClientResponse,
     onPostPartyResponse,
     usePartyResource,
+    useSingleColumnLayout,
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
@@ -299,10 +301,21 @@ export const OrganizationStepForm = () => {
     <Form {...form}>
       <form
         onSubmit={onSubmit}
-        className="eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto eb-p-1"
+        className={cn(
+          'eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto',
+          {
+            'eb-max-w-2xl': useSingleColumnLayout,
+            'eb-opacity-50': isFormDisabled,
+          }
+        )}
       >
         <fieldset
-          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+          className={cn(
+            'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4',
+            {
+              'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+            }
+          )}
           disabled={isFormDisabled}
         >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
@@ -354,11 +367,19 @@ export const OrganizationStepForm = () => {
             name="yearOfFormation"
             type="text"
             inputProps={{ maxLength: 4 }}
+            className={cn({
+              'eb-max-w-xs': useSingleColumnLayout,
+            })}
           />
         </fieldset>
 
         <fieldset
-          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+          className={cn(
+            'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4',
+            {
+              'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+            }
+          )}
           disabled={isFormDisabled}
         >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
@@ -384,7 +405,12 @@ export const OrganizationStepForm = () => {
         </fieldset>
 
         <fieldset
-          className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 lg:eb-grid-cols-2 xl:eb-grid-cols-3"
+          className={cn(
+            'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4',
+            {
+              'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+            }
+          )}
           disabled={isFormDisabled}
         >
           <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
@@ -425,7 +451,12 @@ export const OrganizationStepForm = () => {
           }) => (
             <fieldset
               key={field.id}
-              className="eb-grid eb-grid-cols-1 eb-gap-6 eb-rounded-lg eb-border eb-p-4 md:eb-grid-cols-2 lg:eb-grid-cols-3"
+              className={cn(
+                'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4',
+                {
+                  'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+                }
+              )}
               disabled={disabled}
             >
               <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
@@ -568,7 +599,11 @@ export const OrganizationStepForm = () => {
                 {itemLabel}
               </legend>
 
-              <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <div
+                className={cn('eb-grid eb-grid-cols-1 eb-gap-6', {
+                  'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+                })}
+              >
                 <OnboardingFormField
                   control={form.control}
                   name={`organizationIds.${index}.idType`}
@@ -649,7 +684,11 @@ export const OrganizationStepForm = () => {
               </div>
             )}
             renderWrapper={(children) => (
-              <div className="eb-my-2 eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+              <div
+                className={cn('eb-grid eb-grid-cols-1 eb-gap-6', {
+                  'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+                })}
+              >
                 {children}
               </div>
             )}
@@ -693,7 +732,11 @@ export const OrganizationStepForm = () => {
             )}
           />
 
-          <div className="eb-grid eb-grid-cols-1 eb-gap-6 md:eb-grid-cols-2 lg:eb-grid-cols-3">
+          <div
+            className={cn('eb-grid eb-grid-cols-1 eb-gap-6', {
+              'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+            })}
+          >
             {isFieldVisible('website') && (
               <>
                 <FormField

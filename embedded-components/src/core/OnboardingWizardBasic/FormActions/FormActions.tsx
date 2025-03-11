@@ -18,7 +18,7 @@ export const FormActions: FC<FormActionsProps> = ({
   const { t } = useTranslation('common');
 
   return (
-    <div className="eb-flex eb-w-full eb-justify-end eb-gap-4">
+    <div className="eb-flex eb-w-full eb-justify-end eb-gap-4 eb-pb-1">
       {activeStep !== 0 ? (
         <Button
           disabled={isDisabledStep || isLoading || disabled}
