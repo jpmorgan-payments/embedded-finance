@@ -736,7 +736,7 @@ export const BeneficialOwnerStepForm = () => {
                   <OnboardingFormField
                     control={ownerForm.control}
                     name="birthDate"
-                    type="date"
+                    type="importantDate"
                   />
                   <OnboardingFormField
                     control={ownerForm.control}
