@@ -144,7 +144,7 @@ export function OnboardingArrayField<
   };
 
   const getItemLabel = (index: number) =>
-    fieldRule.minItems === 1 && fieldRule.maxItems === 1 && fields.length === 1
+    fieldRule.maxItems === 1 && fields.length === 1
       ? getContentToken('itemLabel')
       : getContentToken('itemLabelNumbered', index + 1);
 
@@ -185,10 +185,7 @@ export function OnboardingArrayField<
     if (fieldInteraction === 'readonly') {
       return null;
     }
-    if (
-      fields.length === fieldRule.minItems &&
-      fields.length === fieldRule.maxItems
-    ) {
+    if (fields.length === fieldRule.maxItems) {
       return null;
     }
     return (

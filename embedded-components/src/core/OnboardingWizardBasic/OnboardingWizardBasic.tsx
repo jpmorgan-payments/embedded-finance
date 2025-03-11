@@ -4,7 +4,7 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { loadContentTokens } from '@/lib/utils';
+import { cn, loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
   ClientProduct,
@@ -150,6 +150,7 @@ const OnboardingWizardBasicComponent: FC<
     wasClientIdCreated,
     currentStepIndex,
     setCurrentStepIndex,
+    useSingleColumnLayout,
   } = useOnboardingContext();
 
   const {
@@ -339,7 +340,9 @@ const OnboardingWizardBasicComponent: FC<
               return (
                 <Step key={index} {...rest}>
                   <div
-                    className="eb-scroll-mt-10 eb-px-2"
+                    className={cn(
+                      'eb-flex eb-scroll-mt-10 eb-justify-center eb-px-2'
+                    )}
                     ref={(el) => {
                       stepRefs.current[index] = el;
                     }}
@@ -356,10 +359,14 @@ const OnboardingWizardBasicComponent: FC<
                         }}
                       />
                     ) : (
-                      <>
+                      <div
+                        className={cn({
+                          'eb-w-full eb-max-w-lg': useSingleColumnLayout,
+                        })}
+                      >
                         <InfoStepAlert stepId={id!} />
                         {children}
-                      </>
+                      </div>
                     )}
                   </div>
                 </Step>

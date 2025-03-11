@@ -34,6 +34,7 @@ export type OnboardingProps = {
   usePartyResource?: boolean;
   blockPostVerification?: boolean;
   showLinkedAccountPanel?: boolean;
+  useSingleColumnLayout?: boolean;
 };
 
 type OnboardingContextType = OnboardingProps & {
