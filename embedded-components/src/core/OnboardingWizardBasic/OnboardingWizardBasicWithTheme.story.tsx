@@ -20,7 +20,15 @@ CustomTheme.storyName = 'Custom Theme (Coming Soon)';
 CustomTheme.args = {
   ...Default.args,
   theme: {
-    variables: {},
+    variables: {
+      headerFontFamily: 'Arial',
+      fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+      primaryColor: '#0060f0',
+      primaryHoverColor: '#0a4386',
+      primaryActiveColor: '#0b76da',
+      primaryForegroundColor: '#fff',
+      buttonBorderRadius: '.313em',
+    },
   },
 };
 

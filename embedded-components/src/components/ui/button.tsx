@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/classnames-order */
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -5,18 +6,18 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-whitespace-nowrap eb-rounded-button eb-text-sm eb-font-medium eb-ring-offset-background eb-transition-colors focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 active:eb-translate-y-0.25 disabled:eb-pointer-events-none disabled:eb-opacity-50 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
+  'eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-whitespace-nowrap eb-rounded-button eb-text-sm eb-font-button eb-ring-offset-background eb-transition-colors focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 active:eb-translate-y-0.25 disabled:eb-pointer-events-none disabled:eb-opacity-50 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
   {
     variants: {
       variant: {
         default:
-          'eb-bg-primary eb-text-primary-foreground hover:eb-bg-primary/90 hover:eb-drop-shadow-md',
+          'eb-bg-primary eb-text-primary-foreground hover:eb-bg-primary-hover hover:eb-drop-shadow-md active:eb-bg-primary-active',
         destructive:
-          'eb-bg-destructive eb-text-destructive-foreground hover:eb-bg-destructive/90 hover:eb-drop-shadow-md',
+          'eb-bg-destructive eb-text-destructive-foreground hover:eb-bg-destructive-hover hover:eb-drop-shadow-md active:eb-bg-destructive-active',
         outline:
           'eb-border eb-border-input eb-bg-background eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
         secondary:
-          'eb-bg-secondary eb-text-secondary-foreground hover:eb-bg-secondary/80 hover:eb-drop-shadow-md',
+          'eb-bg-secondary eb-text-secondary-foreground hover:eb-bg-secondary-hover hover:eb-drop-shadow-md active:eb-bg-secondary-active',
         ghost: 'hover:eb-bg-accent hover:eb-text-accent-foreground',
         link: 'eb-text-primary eb-underline-offset-4 hover:eb-underline',
       },
