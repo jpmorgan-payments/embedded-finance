@@ -675,7 +675,7 @@ export const OrganizationStepForm = () => {
         />
 
         <fieldset className="eb-grid eb-gap-4 eb-rounded-lg eb-border eb-p-4">
-          <legend className="eb-text-md eb-m-1 eb-px-1 eb-font-medium">
+          <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
             Additional Fields
           </legend>
 
