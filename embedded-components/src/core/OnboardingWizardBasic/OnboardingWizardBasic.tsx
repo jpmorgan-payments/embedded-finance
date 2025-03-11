@@ -361,7 +361,7 @@ const OnboardingWizardBasicComponent: FC<
                     ) : (
                       <div
                         className={cn({
-                          'eb-w-full eb-max-w-2xl': useSingleColumnLayout,
+                          'eb-w-full eb-max-w-lg': useSingleColumnLayout,
                         })}
                       >
                         <InfoStepAlert stepId={id!} />

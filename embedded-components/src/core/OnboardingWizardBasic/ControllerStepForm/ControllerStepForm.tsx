@@ -585,9 +585,12 @@ export const ControllerStepForm = () => {
                   ),
                 }))}
               />
-              <div className="eb-mt-4 eb-flex eb-justify-start">
-                {renderRemoveButton()}
-              </div>
+
+              {renderRemoveButton() && (
+                <div className="eb-mt-4 eb-flex eb-justify-start">
+                  {renderRemoveButton()}
+                </div>
+              )}
             </fieldset>
           )}
         />
@@ -664,9 +667,11 @@ export const ControllerStepForm = () => {
                 />
               </div>
 
-              <div className="eb-mt-4 eb-flex eb-justify-start">
-                {renderRemoveButton()}
-              </div>
+              {renderRemoveButton() && (
+                <div className="eb-mt-4 eb-flex eb-justify-start">
+                  {renderRemoveButton()}
+                </div>
+              )}
             </fieldset>
           )}
         />
