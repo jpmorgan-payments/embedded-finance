@@ -151,6 +151,7 @@ const OnboardingWizardBasicComponent: FC<
     currentStepIndex,
     setCurrentStepIndex,
     useSingleColumnLayout,
+    setSteps,
   } = useOnboardingContext();
 
   const {
@@ -276,6 +277,10 @@ const OnboardingWizardBasicComponent: FC<
       }
     }
   }, [currentStepIndex]);
+
+  useEffect(() => {
+    setSteps(steps);
+  }, [steps]);
 
   const hasOutstandingRequirements = useMemo(() => {
     if (!clientData?.outstanding) return true; // If no data yet, assume there are requirements

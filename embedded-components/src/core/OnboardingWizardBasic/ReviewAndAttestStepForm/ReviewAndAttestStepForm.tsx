@@ -63,6 +63,7 @@ export const ReviewAndAttestStepForm = () => {
     onPostClientResponse,
     blockPostVerification,
     setCurrentStepIndex,
+    setEditMode,
   } = useOnboardingContext();
 
   const [termsAgreed, setTermsAgreed] = useState({
@@ -256,7 +257,10 @@ export const ReviewAndAttestStepForm = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCurrentStepIndex(getStepForParty(party))}
+            onClick={() => {
+              setEditMode('review');
+              setCurrentStepIndex(getStepForParty(party));
+            }}
             className="eb-flex eb-items-center eb-gap-2"
           >
             <EditIcon className="eb-h-4 eb-w-4" />
@@ -354,9 +358,22 @@ export const ReviewAndAttestStepForm = () => {
 
         {!!clientData?.questionResponses?.length && (
           <div className="eb-w-xl eb-px-4">
-            <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
-              {t('onboarding:reviewAndAttest.questionResponses')}
-            </h2>
+            <div className="eb-mb-4 eb-flex eb-items-center eb-justify-between">
+              <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
+                {t('onboarding:reviewAndAttest.questionResponses')}
+              </h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEditMode('review');
+                  setCurrentStepIndex(4);
+                }}
+              >
+                <EditIcon className="eb-h-4 eb-w-4" />
+                {t('onboarding:edit')}
+              </Button>
+            </div>
             {clientData?.questionResponses?.map((questionResponse) => (
               <>
                 {!!questionResponse?.values?.length && (
@@ -375,14 +392,6 @@ export const ReviewAndAttestStepForm = () => {
                           {questionResponse?.values?.join(', ')}
                         </dd>
                       </dl>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentStepIndex(4)}
-                      >
-                        <EditIcon className="eb-h-4 eb-w-4" />
-                        {t('onboarding:edit')}
-                      </Button>
                     </div>
                   </div>
                 )}

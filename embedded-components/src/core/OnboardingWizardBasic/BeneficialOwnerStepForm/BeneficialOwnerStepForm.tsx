@@ -84,7 +84,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { useStepper } from '@/components/ui/stepper';
 import { Badge } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -111,8 +110,7 @@ import {
 } from './BeneficialOwnerStepForm.schema';
 
 export const BeneficialOwnerStepForm = () => {
-  const { nextStep } = useStepper();
-  const { clientId, onPostClientResponse, onPostPartyResponse } =
+  const { clientId, onPostClientResponse, onPostPartyResponse, processStep } =
     useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
@@ -448,7 +446,7 @@ export const BeneficialOwnerStepForm = () => {
   });
 
   const handleFormSubmit = form.handleSubmit(() => {
-    nextStep();
+    processStep();
     toast.success(
       t('beneficialOwnerStepForm.successMessages.clientBeneficialOwnersUpdated')
     );
@@ -966,17 +964,6 @@ export const BeneficialOwnerStepForm = () => {
                           ]}
                           disabled={disabled}
                         />
-
-                        <OnboardingFormField
-                          key={`owner-id-value-${index}-${field.idType}`}
-                          control={ownerForm.control}
-                          name={`ownerIds.${index}.value`}
-                          type="text"
-                          label={getValueLabel(field.idType)}
-                          maskFormat={getMaskFormat(field.idType)}
-                          maskChar="_"
-                        />
-
                         <OnboardingFormField
                           control={ownerForm.control}
                           name={`ownerIds.${index}.issuer`}
@@ -993,6 +980,17 @@ export const BeneficialOwnerStepForm = () => {
                             ),
                           }))}
                         />
+
+                        <OnboardingFormField
+                          key={`owner-id-value-${index}-${field.idType}`}
+                          control={ownerForm.control}
+                          name={`ownerIds.${index}.value`}
+                          type="text"
+                          label={getValueLabel(field.idType)}
+                          maskFormat={getMaskFormat(field.idType)}
+                          maskChar="_"
+                        />
+
                         <OnboardingFormField
                           control={ownerForm.control}
                           name={`ownerIds.${index}.expiryDate`}

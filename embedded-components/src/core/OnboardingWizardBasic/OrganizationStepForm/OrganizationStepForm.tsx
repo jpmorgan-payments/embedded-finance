@@ -69,7 +69,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
@@ -95,13 +94,13 @@ import {
 } from './OrganizationStepForm.schema';
 
 export const OrganizationStepForm = () => {
-  const { nextStep } = useStepper();
   const {
     clientId,
     onPostClientResponse,
     onPostPartyResponse,
     usePartyResource,
     useSingleColumnLayout,
+    processStep,
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
@@ -194,7 +193,7 @@ export const OrganizationStepForm = () => {
               onPostPartyResponse?.(data, error?.response?.data);
             },
             onSuccess: () => {
-              nextStep();
+              processStep();
               toast.success(
                 "Client's organization details updated successfully"
               );
@@ -234,7 +233,7 @@ export const OrganizationStepForm = () => {
               onPostClientResponse?.(data, error?.response?.data);
             },
             onSuccess: () => {
-              nextStep();
+              processStep();
               toast.success(
                 "Client's organization details updated successfully"
               );

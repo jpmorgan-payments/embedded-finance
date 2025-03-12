@@ -62,7 +62,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
-import { useStepper } from '@/components/ui/stepper';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
@@ -87,12 +86,12 @@ import {
 } from './ControllerStepForm.schema';
 
 export const ControllerStepForm = () => {
-  const { nextStep } = useStepper();
   const {
     clientId,
     onPostClientResponse,
     usePartyResource,
     onPostPartyResponse,
+    processStep,
   } = useOnboardingContext();
   const { t } = useTranslation('onboarding');
 
@@ -181,7 +180,7 @@ export const ControllerStepForm = () => {
               onPostPartyResponse?.(data, error?.response?.data);
             },
             onSuccess: () => {
-              nextStep();
+              processStep();
               toast.success(
                 "Client's organization details updated successfully"
               );
@@ -221,7 +220,7 @@ export const ControllerStepForm = () => {
               onPostClientResponse?.(data, error?.response?.data);
             },
             onSuccess: () => {
-              nextStep();
+              processStep();
               toast.success(
                 "Client's organization details updated successfully"
               );

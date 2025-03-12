@@ -64,11 +64,11 @@ export const organizationFields = (t: TFunction) => [
     path: 'organizationDetails.dbaName',
   },
   {
-    label: t('fields.industry.label'),
+    label: t('fields.industryType.label'),
     path: 'organizationDetails.industryCategory',
   },
   {
-    label: t('fields.industry.label'),
+    label: t('fields.industryCategory.label'),
     path: 'organizationDetails.industryType',
   },
   {

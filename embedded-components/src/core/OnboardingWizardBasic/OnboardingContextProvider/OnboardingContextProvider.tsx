@@ -18,6 +18,7 @@ import {
 } from '@/api/generated/smbdo.schemas';
 
 import { Jurisdiction } from '../utils/types';
+import { StepProps } from '@/components/ui/stepper';
 
 export type OnboardingProps = {
   initialClientId?: string;
@@ -37,6 +38,8 @@ export type OnboardingProps = {
   useSingleColumnLayout?: boolean;
 };
 
+type EditMode = 'stepper' | 'review';
+
 type OnboardingContextType = OnboardingProps & {
   clientId: string;
   setClientId: (clientId: string) => Promise<void>;
@@ -45,6 +48,11 @@ type OnboardingContextType = OnboardingProps & {
   setCurrentForm: (form: UseFormReturn<any, any, any> | undefined) => void;
   currentStepIndex?: number;
   setCurrentStepIndex: (index: number) => void;
+  editMode: EditMode;
+  setEditMode: (editMode: EditMode) => void;
+  processStep: () => void;
+  steps: StepProps[];
+  setSteps: (steps: StepProps[]) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(
@@ -56,9 +64,11 @@ export const OnboardingContextProvider: FC<
 > = ({ children, ...props }) => {
   const [clientId, setClientId] = useState(props.initialClientId ?? '');
   const [wasClientIdCreated, setWasClientIdCreated] = useState(false);
+  const [editMode, setEditMode] = useState<EditMode>('stepper');
+  const [steps, setSteps] = useState<StepProps[]>([]);
 
   useEffect(() => {
-    setClientId(props.initialClientId ?? '');
+    setClientId(props.initialClientId ?? ''); 
     setWasClientIdCreated(false);
   }, [props.initialClientId]);
 
@@ -78,6 +88,17 @@ export const OnboardingContextProvider: FC<
     undefined
   );
 
+  const processStep = () => {
+    // Implementation of processStep
+    if (editMode === 'stepper') {
+      setCurrentStepIndex(currentStepIndex ?? 0 + 1);
+    }
+
+    if (editMode === 'review') {
+      setCurrentStepIndex(steps.length - 1);
+    }
+  };
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -89,6 +110,11 @@ export const OnboardingContextProvider: FC<
         setCurrentForm,
         currentStepIndex,
         setCurrentStepIndex,
+        editMode,
+        setEditMode,
+        processStep,
+        steps,
+        setSteps,
       }}
     >
       {children}
