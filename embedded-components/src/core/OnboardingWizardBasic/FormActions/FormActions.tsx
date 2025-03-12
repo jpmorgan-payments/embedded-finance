@@ -5,7 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useStepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui';
 
-import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import {
+  EditMode,
+  useOnboardingContext,
+} from '../OnboardingContextProvider/OnboardingContextProvider';
 
 type FormActionsProps = {
   isLoading?: boolean;
@@ -26,7 +29,7 @@ export const FormActions: FC<FormActionsProps> = ({
 
   return (
     <div className="eb-flex eb-w-full eb-justify-end eb-gap-4 eb-pb-1">
-      {activeStep !== 0 && editMode === 'stepper' ? (
+      {activeStep !== 0 && editMode === EditMode.Stepper ? (
         <Button
           disabled={isDisabledStep || isLoading || disabled}
           variant="secondary"
@@ -38,7 +41,7 @@ export const FormActions: FC<FormActionsProps> = ({
         </Button>
       ) : null}
 
-      {activeStep !== 0 && editMode === 'review' ? (
+      {activeStep !== 0 && editMode === EditMode.Review ? (
         <Button
           disabled={isDisabledStep || isLoading || disabled}
           variant="secondary"
@@ -56,8 +59,8 @@ export const FormActions: FC<FormActionsProps> = ({
         data-dtrum-tracking={isLastStep ? t('submit') : t('next')}
       >
         {isLoading ? <Loader2 className="eb-animate-spin" /> : null}
-        {editMode === 'stepper' ? t('next') : null}
-        {editMode === 'review' || isLastStep ? t('submit') : null}
+        {editMode === EditMode.Stepper ? t('next') : null}
+        {editMode === EditMode.Review || isLastStep ? t('submit') : null}
       </Button>
     </div>
   );

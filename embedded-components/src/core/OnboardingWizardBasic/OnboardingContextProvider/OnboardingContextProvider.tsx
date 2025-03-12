@@ -38,7 +38,13 @@ export type OnboardingProps = {
   useSingleColumnLayout?: boolean;
 };
 
-type EditMode = 'stepper' | 'review';
+// Option: Const assertion with object (most future-proof)
+export const EditMode = {
+  Stepper: 'stepper',
+  Review: 'review',
+} as const;
+
+export type EditModeType = (typeof EditMode)[keyof typeof EditMode];
 
 type OnboardingContextType = OnboardingProps & {
   clientId: string;
@@ -48,8 +54,8 @@ type OnboardingContextType = OnboardingProps & {
   setCurrentForm: (form: UseFormReturn<any, any, any> | undefined) => void;
   currentStepIndex?: number;
   setCurrentStepIndex: (index: number) => void;
-  editMode: EditMode;
-  setEditMode: (editMode: EditMode) => void;
+  editMode: EditModeType;
+  setEditMode: (editMode: EditModeType) => void;
   processStep: () => void;
   steps: StepProps[];
   setSteps: (steps: StepProps[]) => void;
@@ -64,7 +70,7 @@ export const OnboardingContextProvider: FC<
 > = ({ children, ...props }) => {
   const [clientId, setClientId] = useState(props.initialClientId ?? '');
   const [wasClientIdCreated, setWasClientIdCreated] = useState(false);
-  const [editMode, setEditMode] = useState<EditMode>('stepper');
+  const [editMode, setEditMode] = useState<EditModeType>(EditMode.Stepper);
   const [steps, setSteps] = useState<StepProps[]>([]);
 
   useEffect(() => {
@@ -90,11 +96,11 @@ export const OnboardingContextProvider: FC<
 
   const processStep = () => {
     // Implementation of processStep
-    if (editMode === 'stepper') {
-      setCurrentStepIndex(currentStepIndex ?? 0 + 1);
+    if (editMode === EditMode.Stepper) {
+      setCurrentStepIndex((currentStepIndex ?? 0) + 1);
     }
 
-    if (editMode === 'review') {
+    if (editMode === EditMode.Review) {
       setCurrentStepIndex(steps.length - 1);
     }
   };

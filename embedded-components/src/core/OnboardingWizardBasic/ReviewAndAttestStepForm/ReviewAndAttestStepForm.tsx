@@ -21,7 +21,10 @@ import {
 import { useStepper } from '@/components/ui/stepper';
 import { Button, Checkbox, Label, Stack, Title } from '@/components/ui';
 
-import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import {
+  EditMode,
+  useOnboardingContext,
+} from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { useIPAddress } from '../utils/getIPAddress';
 import { MissingPartyFields } from './MissingPartyFields';
@@ -258,7 +261,7 @@ export const ReviewAndAttestStepForm = () => {
             variant="ghost"
             size="sm"
             onClick={() => {
-              setEditMode('review');
+              setEditMode(EditMode.Review);
               setCurrentStepIndex(getStepForParty(party));
             }}
             className="eb-flex eb-items-center eb-gap-2"
@@ -366,7 +369,7 @@ export const ReviewAndAttestStepForm = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEditMode('review');
+                  setEditMode(EditMode.Review);
                   setCurrentStepIndex(4);
                 }}
               >
