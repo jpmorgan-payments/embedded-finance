@@ -40,19 +40,20 @@ module.exports = {
           DEFAULT: 'hsl(var(--eb-primary))',
           foreground: 'hsl(var(--eb-primary-foreground))',
           hover: 'hsl(var(--eb-primary-hover))',
-          active: 'hsl(var(--eb-primary-active))',
+          active: 'hsl(var(--eb-primary-active, var(--eb-primary-hover)))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--eb-secondary))',
           foreground: 'hsl(var(--eb-secondary-foreground))',
           hover: 'hsl(var(--eb-secondary-hover))',
-          active: 'hsl(var(--eb-secondary-active))',
+          active: 'hsl(var(--eb-secondary-active, var(--eb-secondary-hover)))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--eb-destructive))',
           foreground: 'hsl(var(--eb-destructive-foreground))',
           hover: 'hsl(var(--eb-destructive-hover))',
-          active: 'hsl(var(--eb-destructive-active))',
+          active:
+            'hsl(var(--eb-destructive-active, var(--eb-destructive-hover)))',
         },
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
