@@ -399,7 +399,13 @@
       }
     },
     "naics": {
-      "label": "Industry classification"
+      "label": "Industry classification code"
+    },
+    "industryType": {
+      "label": "Industry type"
+    },
+    "industryCategory": {
+      "label": "Industry category"
     },
     "industry": {
       "label": "Industry classification",

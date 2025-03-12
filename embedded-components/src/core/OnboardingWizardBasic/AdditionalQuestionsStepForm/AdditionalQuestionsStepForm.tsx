@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useStepper } from '@/components/ui/stepper';
 import { Checkbox, Separator } from '@/components/ui';
 
 import { FormActions } from '../FormActions/FormActions';
@@ -43,8 +42,7 @@ import {
 } from './AdditionalQuestionsStepForm.schema';
 
 export const AdditionalQuestionsStepForm = () => {
-  const { nextStep } = useStepper();
-  const { clientId } = useOnboardingContext();
+  const { clientId, processStep } = useOnboardingContext();
   const queryClient = useQueryClient();
 
   // Fetch client data to get outstanding question IDs
@@ -133,7 +131,7 @@ export const AdditionalQuestionsStepForm = () => {
       },
       onSuccess: () => {
         toast.success('Additional questions submitted successfully');
-        nextStep();
+        processStep();
       },
     },
   });

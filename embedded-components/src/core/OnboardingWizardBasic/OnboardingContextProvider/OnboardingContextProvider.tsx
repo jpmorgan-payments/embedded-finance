@@ -16,6 +16,7 @@ import {
   OrganizationType,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
+import { StepProps } from '@/components/ui/stepper';
 
 import { Jurisdiction } from '../utils/types';
 
@@ -37,6 +38,14 @@ export type OnboardingProps = {
   useSingleColumnLayout?: boolean;
 };
 
+// Option: Const assertion with object (most future-proof)
+export const EditMode = {
+  Stepper: 'stepper',
+  Review: 'review',
+} as const;
+
+export type EditModeType = (typeof EditMode)[keyof typeof EditMode];
+
 type OnboardingContextType = OnboardingProps & {
   clientId: string;
   setClientId: (clientId: string) => Promise<void>;
@@ -45,6 +54,11 @@ type OnboardingContextType = OnboardingProps & {
   setCurrentForm: (form: UseFormReturn<any, any, any> | undefined) => void;
   currentStepIndex?: number;
   setCurrentStepIndex: (index: number) => void;
+  editMode: EditModeType;
+  setEditMode: (editMode: EditModeType) => void;
+  processStep: () => void;
+  steps: StepProps[];
+  setSteps: (steps: StepProps[]) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(
@@ -56,6 +70,8 @@ export const OnboardingContextProvider: FC<
 > = ({ children, ...props }) => {
   const [clientId, setClientId] = useState(props.initialClientId ?? '');
   const [wasClientIdCreated, setWasClientIdCreated] = useState(false);
+  const [editMode, setEditMode] = useState<EditModeType>(EditMode.Stepper);
+  const [steps, setSteps] = useState<StepProps[]>([]);
 
   useEffect(() => {
     setClientId(props.initialClientId ?? '');
@@ -78,6 +94,17 @@ export const OnboardingContextProvider: FC<
     undefined
   );
 
+  const processStep = () => {
+    // Implementation of processStep
+    if (editMode === EditMode.Stepper) {
+      setCurrentStepIndex((currentStepIndex ?? 0) + 1);
+    }
+
+    if (editMode === EditMode.Review) {
+      setCurrentStepIndex(steps.length - 1);
+    }
+  };
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -89,6 +116,11 @@ export const OnboardingContextProvider: FC<
         setCurrentForm,
         currentStepIndex,
         setCurrentStepIndex,
+        editMode,
+        setEditMode,
+        processStep,
+        steps,
+        setSteps,
       }}
     >
       {children}
