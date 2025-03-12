@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@mantine/hooks';
-import { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
 export interface ThemeConfig extends EBThemeVariables {
   id: string;
