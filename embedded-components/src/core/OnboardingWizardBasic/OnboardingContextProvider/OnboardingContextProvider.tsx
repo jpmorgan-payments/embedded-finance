@@ -16,9 +16,9 @@ import {
   OrganizationType,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
+import { StepProps } from '@/components/ui/stepper';
 
 import { Jurisdiction } from '../utils/types';
-import { StepProps } from '@/components/ui/stepper';
 
 export type OnboardingProps = {
   initialClientId?: string;
@@ -68,7 +68,7 @@ export const OnboardingContextProvider: FC<
   const [steps, setSteps] = useState<StepProps[]>([]);
 
   useEffect(() => {
-    setClientId(props.initialClientId ?? ''); 
+    setClientId(props.initialClientId ?? '');
     setWasClientIdCreated(false);
   }, [props.initialClientId]);
 
