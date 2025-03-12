@@ -458,18 +458,23 @@ export const AdditionalQuestionsStepForm = () => {
       );
     }
 
-    return questionsData?.questions?.map((question, index) => {
-      if (!isQuestionVisible(question)) {
-        return null;
-      }
-
-      return (
+    return questionsData?.questions
+      ?.filter(isQuestionParent)
+      .filter(isQuestionVisible)
+      .map((question, index) => (
         <Fragment key={question.id}>
-          {isQuestionParent(question) && index !== 0 && <Separator />}
+          {index !== 0 && <Separator />}
           <div className="eb-mb-6">{renderQuestionInput(question)}</div>
+          {questionsData?.questions
+            ?.filter((q) => q.parentQuestionId === question.id)
+            .filter(isQuestionVisible)
+            .map((subQuestion) => (
+              <div key={subQuestion.id} className="eb-mb-6">
+                {renderQuestionInput(subQuestion)}
+              </div>
+            ))}
         </Fragment>
-      );
-    });
+      ));
   };
 
   if (questionsFetchStatus === 'pending') {
