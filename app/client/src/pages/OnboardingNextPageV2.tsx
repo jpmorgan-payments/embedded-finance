@@ -16,7 +16,7 @@ import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotic
 const mapToEBTheme = (theme?: ThemeConfig) => {
   if (!theme) return {};
   return {
-    colorScheme: theme?.colorScheme ?? 'light',
+    // colorScheme: theme?.colorScheme ?? 'light',
     variables: Object.fromEntries(
       Object.entries(theme).filter(
         ([key, value]) =>

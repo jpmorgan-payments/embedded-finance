@@ -8,11 +8,11 @@ export type CSSVariable = `--${string}`;
 
 export type CSSVariables = Record<CSSVariable, string | undefined>;
 
-function colorToHsl(colorString?: string) {
+function colorToHsl(colorString?: string, alpha?: number) {
   if (colorString === undefined) return undefined;
   try {
     const color = new ColorTranslator(colorString);
-    return `${color.H} ${color.S}% ${color.L}%`;
+    return `${color.H} ${color.S}% ${color.L}%${alpha ? ` / ${alpha}` : ''}`;
   } catch {
     return undefined;
   }
@@ -31,14 +31,26 @@ const convertThemeVariablesToCssVariables = (
     '--eb-popover': colorToHsl(variables.popoverColor),
     '--eb-popover-foreground': colorToHsl(variables.popoverForegroundColor),
     '--eb-primary': colorToHsl(variables.primaryColor),
+    '--eb-primary-hover': variables.primaryHoverColor
+      ? colorToHsl(variables.primaryHoverColor)
+      : colorToHsl(variables.primaryColor, 0.9),
+    '--eb-primary-active': colorToHsl(variables.primaryActiveColor),
     '--eb-primary-foreground': colorToHsl(variables.primaryForegroundColor),
     '--eb-secondary': colorToHsl(variables.secondaryColor),
+    '--eb-secondary-hover': variables.secondaryHoverColor
+      ? colorToHsl(variables.secondaryHoverColor)
+      : colorToHsl(variables.secondaryColor, 0.9),
+    '--eb-secondary-active': colorToHsl(variables.secondaryActiveColor),
     '--eb-secondary-foreground': colorToHsl(variables.secondaryForegroundColor),
     '--eb-muted': colorToHsl(variables.mutedColor),
     '--eb-muted-foreground': colorToHsl(variables.mutedForegroundColor),
     '--eb-accent': colorToHsl(variables.accentColor),
     '--eb-accent-foreground': colorToHsl(variables.accentForegroundColor),
     '--eb-destructive': colorToHsl(variables.destructiveColor),
+    '--eb-destructive-hover': variables.destructiveHoverColor
+      ? colorToHsl(variables.destructiveHoverColor)
+      : colorToHsl(variables.destructiveColor, 0.9),
+    '--eb-destructive-active': colorToHsl(variables.destructiveActiveColor),
     '--eb-destructive-foreground': colorToHsl(
       variables.destructiveForegroundColor
     ),

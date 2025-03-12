@@ -10,11 +10,16 @@ export type EBThemeVariables = {
   backgroundColor?: string;
   foregroundColor?: string;
   primaryColor?: string;
-  primaryColorHover?: string;
+  primaryHoverColor?: string;
+  primaryActiveColor?: string;
   primaryForegroundColor?: string;
   secondaryColor?: string;
+  secondaryHoverColor?: string;
+  secondaryActiveColor?: string;
   secondaryForegroundColor?: string;
   destructiveColor?: string;
+  destructiveHoverColor?: string;
+  destructiveActiveColor?: string;
   destructiveForegroundColor?: string;
   mutedColor?: string;
   mutedForegroundColor?: string;

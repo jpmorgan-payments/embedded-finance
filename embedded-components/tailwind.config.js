@@ -39,14 +39,20 @@ module.exports = {
         primary: {
           DEFAULT: 'hsl(var(--eb-primary))',
           foreground: 'hsl(var(--eb-primary-foreground))',
+          hover: 'hsl(var(--eb-primary-hover))',
+          active: 'hsl(var(--eb-primary-active))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--eb-secondary))',
           foreground: 'hsl(var(--eb-secondary-foreground))',
+          hover: 'hsl(var(--eb-secondary-hover))',
+          active: 'hsl(var(--eb-secondary-active))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--eb-destructive))',
           foreground: 'hsl(var(--eb-destructive-foreground))',
+          hover: 'hsl(var(--eb-destructive-hover))',
+          active: 'hsl(var(--eb-destructive-active))',
         },
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
@@ -97,6 +103,9 @@ module.exports = {
           return acc;
         }, {}),
       },
+      fontWeight: {
+        button: 'var(--eb-button-font-weight)',
+      },
     },
   },
   plugins: [
@@ -106,5 +115,12 @@ module.exports = {
         rootStyles: 'add :where',
       }),
     }),
+    ({ addUtilities }) => {
+      addUtilities({
+        '.cta-btn': {
+          padding: 'var(--eb-cta-button-padding)',
+        },
+      });
+    },
   ],
 };
