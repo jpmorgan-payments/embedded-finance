@@ -76,7 +76,6 @@ module.exports = {
         lg: 'calc(var(--eb-radius) + 2px)',
         md: 'var(--eb-radius)',
         sm: 'calc(var(--eb-radius) - 4px)',
-        button: 'var(--eb-button-radius)',
       },
       keyframes: {
         'accordion-down': {
@@ -104,9 +103,6 @@ module.exports = {
           return acc;
         }, {}),
       },
-      fontWeight: {
-        button: 'var(--eb-button-font-weight)',
-      },
     },
   },
   plugins: [
@@ -118,8 +114,23 @@ module.exports = {
     }),
     ({ addUtilities }) => {
       addUtilities({
-        '.cta-btn': {
-          padding: 'var(--eb-cta-button-padding)',
+        '.button-primary': {
+          fontSize: 'var(--eb-button-font-size)',
+          lineHeight: 'var(--eb-button-line-height)',
+          fontWeight: 'var(--eb-button-primary-font-weight)',
+          borderRadius: 'var(--eb-button-radius)',
+        },
+        '.button-secondary': {
+          fontSize: 'var(--eb-button-font-size)',
+          lineHeight: 'var(--eb-button-line-height)',
+          fontWeight: 'var(--eb-button-secondary-font-weight)',
+          borderRadius: 'var(--eb-button-radius)',
+        },
+        '.button-destructive': {
+          fontSize: 'var(--eb-button-font-size)',
+          lineHeight: 'var(--eb-button-line-height)',
+          fontWeight: 'var(--eb-button-destructive-font-weight)',
+          borderRadius: 'var(--eb-button-radius)',
         },
       });
     },

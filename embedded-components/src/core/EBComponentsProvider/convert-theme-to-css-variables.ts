@@ -64,6 +64,14 @@ const convertThemeVariablesToCssVariables = (
     '--eb-z-overlay': variables.zIndexOverlay
       ? String(variables.zIndexOverlay)
       : undefined,
+    '--eb-button-primary-font-weight':
+      variables.primaryButtonFontWeight ?? variables.buttonFontWeight,
+    '--eb-button-secondary-font-weight':
+      variables.secondaryButtonFontWeight ?? variables.buttonFontWeight,
+    '--eb-button-destructive-font-weight':
+      variables.destructiveButtonFontWeight ?? variables.buttonFontWeight,
+    '--eb-button-font-size': variables.buttonFontSize,
+    '--eb-button-line-height': variables.buttonLineHeight,
   };
 
   Object.keys(cssVariablesObject).forEach(

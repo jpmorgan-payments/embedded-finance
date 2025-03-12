@@ -9,6 +9,12 @@ export type EBThemeVariables = {
   headerFontFamily?: string;
   backgroundColor?: string;
   foregroundColor?: string;
+  buttonFontWeight?: string;
+  buttonFontSize?: string;
+  buttonLineHeight?: string;
+  primaryButtonFontWeight?: string;
+  secondaryButtonFontWeight?: string;
+  destructiveButtonFontWeight?: string;
   primaryColor?: string;
   primaryHoverColor?: string;
   primaryActiveColor?: string;

@@ -7,6 +7,9 @@ export const defaultTheme: EBTheme = {
     borderRadius: '0.375rem',
     spacingUnit: '0.25rem',
     zIndexOverlay: 100,
+    buttonFontWeight: '500',
+    buttonFontSize: '0.875rem',
+    buttonLineHeight: '1.25rem',
   },
   light: {
     backgroundColor: 'hsl(0 0% 100%)',
