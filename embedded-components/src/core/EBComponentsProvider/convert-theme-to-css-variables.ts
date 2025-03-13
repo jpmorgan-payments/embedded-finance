@@ -8,11 +8,12 @@ export type CSSVariable = `--${string}`;
 
 export type CSSVariables = Record<CSSVariable, string | undefined>;
 
-function colorToHsl(colorString?: string, alpha?: number) {
+function colorToHsl(colorString?: string, alphaModifier?: number) {
   if (colorString === undefined) return undefined;
   try {
     const color = new ColorTranslator(colorString);
-    return `${color.H} ${color.S}% ${color.L}%${alpha ? ` / ${alpha}` : ''}`;
+    const alpha = color.A * (alphaModifier ?? 1);
+    return `${color.H} ${color.S}% ${color.L}% / ${alpha}`;
   } catch {
     return undefined;
   }
@@ -36,12 +37,24 @@ const convertThemeVariablesToCssVariables = (
       : colorToHsl(variables.primaryColor, 0.9),
     '--eb-primary-active': colorToHsl(variables.primaryActiveColor),
     '--eb-primary-foreground': colorToHsl(variables.primaryForegroundColor),
+    '--eb-primary-foreground-hover': colorToHsl(
+      variables.primaryForegroundHoverColor
+    ),
+    '--eb-primary-foreground-active': colorToHsl(
+      variables.primaryForegroundActiveColor
+    ),
     '--eb-secondary': colorToHsl(variables.secondaryColor),
     '--eb-secondary-hover': variables.secondaryHoverColor
       ? colorToHsl(variables.secondaryHoverColor)
       : colorToHsl(variables.secondaryColor, 0.9),
     '--eb-secondary-active': colorToHsl(variables.secondaryActiveColor),
     '--eb-secondary-foreground': colorToHsl(variables.secondaryForegroundColor),
+    '--eb-secondary-foreground-hover': colorToHsl(
+      variables.secondaryForegroundHoverColor
+    ),
+    '--eb-secondary-foreground-active': colorToHsl(
+      variables.secondaryForegroundActiveColor
+    ),
     '--eb-muted': colorToHsl(variables.mutedColor),
     '--eb-muted-foreground': colorToHsl(variables.mutedForegroundColor),
     '--eb-accent': colorToHsl(variables.accentColor),
@@ -53,6 +66,12 @@ const convertThemeVariablesToCssVariables = (
     '--eb-destructive-active': colorToHsl(variables.destructiveActiveColor),
     '--eb-destructive-foreground': colorToHsl(
       variables.destructiveForegroundColor
+    ),
+    '--eb-destructive-foreground-hover': colorToHsl(
+      variables.destructiveForegroundHoverColor
+    ),
+    '--eb-destructive-foreground-active': colorToHsl(
+      variables.destructiveForegroundActiveColor
     ),
     '--eb-radius': variables.borderRadius,
     '--eb-button-radius':
@@ -73,6 +92,9 @@ const convertThemeVariablesToCssVariables = (
       variables.destructiveButtonFontWeight ?? variables.buttonFontWeight,
     '--eb-button-font-size': variables.buttonFontSize,
     '--eb-button-line-height': variables.buttonLineHeight,
+    '--eb-primary-border-width': variables.primaryBorderWidth,
+    '--eb-secondary-border-width': variables.secondaryBorderWidth,
+    '--eb-destructive-border-width': variables.destructiveBorderWidth,
   };
 
   Object.keys(cssVariablesObject).forEach(

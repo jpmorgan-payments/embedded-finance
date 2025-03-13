@@ -38,22 +38,40 @@ module.exports = {
         foreground: 'hsl(var(--eb-foreground))',
         primary: {
           DEFAULT: 'hsl(var(--eb-primary))',
-          foreground: 'hsl(var(--eb-primary-foreground))',
           hover: 'hsl(var(--eb-primary-hover))',
           active: 'hsl(var(--eb-primary-active, var(--eb-primary-hover)))',
+          foreground: {
+            DEFAULT: 'hsl(var(--eb-primary-foreground))',
+            hover:
+              'hsl(var(--eb-primary-foreground-hover, var(--eb-primary-foreground)))',
+            active:
+              'hsl(var(--eb-primary-foreground-active, var(--eb-primary-foreground)))',
+          },
         },
         secondary: {
           DEFAULT: 'hsl(var(--eb-secondary))',
-          foreground: 'hsl(var(--eb-secondary-foreground))',
           hover: 'hsl(var(--eb-secondary-hover))',
           active: 'hsl(var(--eb-secondary-active, var(--eb-secondary-hover)))',
+          foreground: {
+            DEFAULT: 'hsl(var(--eb-secondary-foreground))',
+            hover:
+              'hsl(var(--eb-secondary-foreground-hover, var(--eb-secondary-foreground)))',
+            active:
+              'hsl(var(--eb-secondary-foreground-active, var(--eb-secondary-foreground)))',
+          },
         },
         destructive: {
           DEFAULT: 'hsl(var(--eb-destructive))',
-          foreground: 'hsl(var(--eb-destructive-foreground))',
           hover: 'hsl(var(--eb-destructive-hover))',
           active:
             'hsl(var(--eb-destructive-active, var(--eb-destructive-hover)))',
+          foreground: {
+            DEFAULT: 'hsl(var(--eb-destructive-foreground))',
+            hover:
+              'hsl(var(--eb-destructive-foreground-hover, var(--eb-destructive-foreground)))',
+            active:
+              'hsl(var(--eb-destructive-foreground-active, var(--eb-destructive-foreground)))',
+          },
         },
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
@@ -112,6 +130,14 @@ module.exports = {
         'button-primary': 'var(--eb-button-primary-font-weight)',
         'button-secondary': 'var(--eb-button-secondary-font-weight)',
         'button-destructive': 'var(--eb-button-destructive-font-weight)',
+      },
+      boxShadow: {
+        'border-primary':
+          'inset 0 0 0 var(--eb-primary-border-width) var(--tw-shadow-color)',
+        'border-secondary':
+          'inset 0 0 0 var(--eb-secondary-border-width) var(--tw-shadow-color)',
+        'border-destructive':
+          'inset 0 0 0 var(--eb-destructive-border-width) var(--tw-shadow-color)',
       },
     },
   },

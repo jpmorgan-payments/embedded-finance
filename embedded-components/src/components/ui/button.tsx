@@ -11,13 +11,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'eb-bg-primary eb-text-primary-foreground hover:eb-bg-primary-hover hover:eb-drop-shadow-md active:eb-bg-primary-active eb-font-button-primary',
+          'eb-bg-primary hover:eb-text-primary-foreground-hover active:eb-text-primary-foreground-active eb-text-primary-foreground eb-shadow-border-primary [--tw-shadow-color:theme(colors.primary.foreground.DEFAULT)] hover:[--tw-shadow-color:theme(colors.primary.foreground.hover)] active:[--tw-shadow-color:theme(colors.primary.foreground.active)]  hover:eb-bg-primary-hover hover:eb-drop-shadow-md active:eb-bg-primary-active eb-font-button-primary',
         destructive:
-          'eb-bg-destructive eb-text-destructive-foreground hover:eb-bg-destructive-hover hover:eb-drop-shadow-md active:eb-bg-destructive-active eb-font-button-destructive',
+          'eb-bg-destructive hover:eb-text-destructive-foreground-hover active:eb-text-destructive-foreground-active eb-shadow-border-destructive [--tw-shadow-color:theme(colors.destructive.foreground.DEFAULT)] hover:[--tw-shadow-color:theme(colors.destructive.foreground.hover)] active:[--tw-shadow-color:theme(colors.destructive.foreground.active)] eb-text-destructive-foreground hover:eb-bg-destructive-hover hover:eb-drop-shadow-md active:eb-bg-destructive-active eb-font-button-destructive',
         outline:
           'eb-border eb-border-input eb-bg-background eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
         secondary:
-          'eb-bg-secondary eb-text-secondary-foreground hover:eb-bg-secondary-hover hover:eb-drop-shadow-md active:eb-bg-secondary-active eb-font-button-secondary',
+          'eb-bg-secondary hover:eb-text-secondary-foreground-hover active:eb-text-secondary-foreground-active eb-shadow-border-secondary [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:[--tw-shadow-color:theme(colors.secondary.foreground.active)] eb-text-secondary-foreground hover:eb-bg-secondary-hover hover:eb-drop-shadow-md active:eb-bg-secondary-active eb-font-button-secondary',
         ghost: 'hover:eb-bg-accent hover:eb-text-accent-foreground',
         link: 'eb-text-primary eb-underline-offset-4 hover:eb-underline',
         input:

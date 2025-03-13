@@ -18,6 +18,11 @@ const twMerge = extendTailwindMerge({
         'font-button-secondary',
         'font-button-destructive',
       ],
+      shadow: [
+        'shadow-border-primary',
+        'shadow-border-secondary',
+        'shadow-border-destructive',
+      ],
     },
   },
 });
