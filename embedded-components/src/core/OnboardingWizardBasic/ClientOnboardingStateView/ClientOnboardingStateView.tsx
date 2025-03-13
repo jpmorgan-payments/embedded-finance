@@ -68,9 +68,9 @@ interface DetailRowProps {
 }
 
 const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
-  <div className="eb-flex eb-items-center eb-justify-between">
-    <span className="eb-text-sm eb-font-medium eb-text-gray-500">{label}:</span>
-    <span className="eb-text-sm eb-font-bold">{value}</span>
+  <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
+    <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">{label}:</dt>
+    <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">{value}</dd>
   </div>
 );
 
@@ -212,13 +212,69 @@ export const ClientOnboardingStateView: React.FC<
 
       <Card className="eb-w-full eb-shadow-md">
         <CardHeader className="eb-border-b eb-bg-gray-50">
-          <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
-            {t('clientOnboardingStatus.title')}
-          </CardTitle>
+          <div className="eb-flex eb-flex-col eb-gap-2">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
+                {t('clientOnboardingStatus.title')}
+              </CardTitle>
+              <Badge
+                className={`eb-pointer-events-none eb-flex eb-h-6 eb-items-center eb-gap-1 eb-rounded-md eb-px-2 eb-py-0 eb-text-xs ${color}`}
+              >
+                {icon}
+                {t(`clientOnboardingStatus.statusLabels.${status}`)}
+              </Badge>
+            </div>
+            <p className="eb-text-xs eb-text-gray-600">
+              {statusMessages[status]}
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="eb-p-6">
+          <div className="eb-space-y-6">
+            {/* Business Summary Section */}
+            <div className="eb-mb-4 eb-rounded-md eb-border eb-border-blue-100 eb-bg-blue-50 eb-p-4">
+              <div className="eb-mb-2 eb-font-medium">
+                {t('clientOnboardingStatus.businessSummary')}
+              </div>
+              <dl className="eb-ml-2 eb-space-y-2">
+                {/* Legal Business Name */}
+                {businessDetails?.organizationDetails?.organizationName && (
+                  <DetailRow
+                    label={t('clientOnboardingStatus.labels.organization')}
+                    value={businessDetails.organizationDetails.organizationName}
+                  />
+                )}
+
+                {/* Business Type */}
+                {businessDetails?.organizationDetails?.organizationType && (
+                  <DetailRow
+                    label={t('clientOnboardingStatus.labels.organizationType')}
+                    value={t(
+                      `organizationTypes.${businessDetails.organizationDetails.organizationType}`
+                    )}
+                  />
+                )}
+
+                {/* Product */}
+                {clientData?.products && clientData.products.length > 0 && (
+                  <DetailRow
+                    label={t('clientOnboardingStatus.labels.product')}
+                    value={clientData.products
+                      .map((product) => t(`clientProducts.${product}`))
+                      .join(', ')}
+                  />
+                )}
+
+                {/* Client ID */}
+                <DetailRow
+                  label={t('clientOnboardingStatus.labels.clientId')}
+                  value={clientData.id}
+                />
+              </dl>
+            </div>
+          </div>
           {showLinkedAccountPanel && (
-            <div className="eb-rounded-lg eb-border eb-p-4">
+            <div className="eb-mt-6 eb-rounded-lg eb-border eb-p-4">
               <h3 className="eb-mb-4 eb-text-lg eb-font-semibold">
                 {t('linkedAccount.title', 'Linked Accounts')}
               </h3>
@@ -233,49 +289,7 @@ export const ClientOnboardingStateView: React.FC<
           )}
           {status === ClientStatus.REVIEW_IN_PROGRESS ? (
             <AdvancedReviewInProgressLoadingState />
-          ) : (
-            <div className="eb-space-y-6">
-              <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
-                <span className="eb-text-sm eb-font-medium eb-text-gray-600">
-                  {t('clientOnboardingStatus.labels.status')}:
-                </span>
-                <Badge
-                  className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
-                >
-                  {icon}
-                  {t(`clientOnboardingStatus.statusLabels.${status}`)}
-                </Badge>
-              </div>
-
-              <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.clientId')}
-                  value={clientData.id}
-                />
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.organization')}
-                  value={
-                    businessDetails?.organizationDetails?.organizationName ||
-                    'N/A'
-                  }
-                />
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.organizationType')}
-                  value={
-                    businessDetails?.organizationDetails?.organizationType
-                      ? t(
-                          `organizationTypes.${businessDetails.organizationDetails.organizationType}`
-                        )
-                      : 'N/A'
-                  }
-                />
-              </div>
-
-              <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
-                <p>{statusMessages[status]}</p>
-              </div>
-            </div>
-          )}
+          ) : null}
 
           <div className="eb-mt-8">
             {clientData?.status === ClientStatus.INFORMATION_REQUESTED && (

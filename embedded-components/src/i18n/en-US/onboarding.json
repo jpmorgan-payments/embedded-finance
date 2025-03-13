@@ -1145,11 +1145,13 @@
   "copyBusinessAddressLabel": "Controller's personal address is the same as the business address",
   "clientOnboardingStatus": {
     "title": "Client Onboarding Status",
+    "businessSummary": "Business Summary",
     "labels": {
       "status": "Status",
       "clientId": "Client ID",
-      "organization": "Organization",
-      "organizationType": "Organization Type"
+      "organization": "Legal Business Name",
+      "organizationType": "Business Type",
+      "product": "Product"
     },
     "errors": {
       "loadingError": "Error loading client information",
