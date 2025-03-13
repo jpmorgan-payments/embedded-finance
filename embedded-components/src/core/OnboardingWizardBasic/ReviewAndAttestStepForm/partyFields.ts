@@ -13,7 +13,7 @@ const formatIdentifications = (
   if (!Array.isArray(ids) || !ids.length) return [];
   return ids.map(
     (id) =>
-      `${t(`idValueLabels.individual.${id.idType}`)} (${id.issuer}): ${maskIdentification(id.value)}`
+      `${t(`idValueLabels.${id.idType}`)} (${id.issuer}): ${maskIdentification(id.value)}`
   );
 };
 
