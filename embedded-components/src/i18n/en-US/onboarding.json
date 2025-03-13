@@ -1330,5 +1330,15 @@
       "beneficialOwnerRestored": "Beneficial owner restored successfully",
       "clientBeneficialOwnersUpdated": "Client's beneficial owners updated successfully"
     }
+  },
+  "missingInfoAlert": {
+    "title": "Missing Information",
+    "businessSummary": "Business Summary",
+    "legalBusinessName": "Legal Business Name",
+    "businessType": "Business Type",
+    "product": "Product",
+    "clientProfileInfo": "Client Profile Existing Information",
+    "questionsResponses": "Questions Responses",
+    "response": "Response"
   }
 }
