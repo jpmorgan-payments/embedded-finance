@@ -9,6 +9,9 @@ export type EBThemeVariables = {
   headerFontFamily?: string;
   backgroundColor?: string;
   foregroundColor?: string;
+  borderRadius?: string;
+  inputRadius?: string;
+  buttonBorderRadius?: string;
   buttonFontWeight?: string;
   buttonFontSize?: string;
   buttonLineHeight?: string;
@@ -35,8 +38,6 @@ export type EBThemeVariables = {
   cardForegroundColor?: string;
   popoverColor?: string;
   popoverForegroundColor?: string;
-  borderRadius?: string;
-  buttonBorderRadius?: string;
   spacingUnit?: string;
   borderColor?: string;
   inputColor?: string;
