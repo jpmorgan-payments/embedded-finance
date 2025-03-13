@@ -263,10 +263,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              variant="outline"
+                              variant="input"
                               role="combobox"
                               aria-expanded={open}
-                              className="eb-w-full eb-justify-between eb-font-normal"
+                              className="eb-justify-between"
                               {...fieldWithoutBlur}
                             >
                               {field.value

@@ -35,6 +35,7 @@ CustomTheme.args = {
       buttonFontWeight: '600',
       buttonFontSize: '1rem',
       buttonLineHeight: '1.5rem',
+      inputBorderRadius: 'none',
     },
   },
 };

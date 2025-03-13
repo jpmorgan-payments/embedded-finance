@@ -57,7 +57,7 @@ const convertThemeVariablesToCssVariables = (
     '--eb-radius': variables.borderRadius,
     '--eb-button-radius':
       variables.buttonBorderRadius ?? variables.borderRadius,
-    '--eb-input-radius': variables.inputRadius ?? variables.borderRadius,
+    '--eb-input-radius': variables.inputBorderRadius ?? variables.borderRadius,
     '--eb-spacing-unit': variables.spacingUnit,
     '--eb-border': colorToHsl(variables.borderColor),
     '--eb-input': colorToHsl(variables.inputColor),

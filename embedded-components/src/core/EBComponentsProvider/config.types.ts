@@ -10,7 +10,7 @@ export type EBThemeVariables = {
   backgroundColor?: string;
   foregroundColor?: string;
   borderRadius?: string;
-  inputRadius?: string;
+  inputBorderRadius?: string;
   buttonBorderRadius?: string;
   buttonFontWeight?: string;
   buttonFontSize?: string;
