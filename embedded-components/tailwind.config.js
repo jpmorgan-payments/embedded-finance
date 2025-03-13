@@ -40,19 +40,20 @@ module.exports = {
           DEFAULT: 'hsl(var(--eb-primary))',
           foreground: 'hsl(var(--eb-primary-foreground))',
           hover: 'hsl(var(--eb-primary-hover))',
-          active: 'hsl(var(--eb-primary-active))',
+          active: 'hsl(var(--eb-primary-active, var(--eb-primary-hover)))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--eb-secondary))',
           foreground: 'hsl(var(--eb-secondary-foreground))',
           hover: 'hsl(var(--eb-secondary-hover))',
-          active: 'hsl(var(--eb-secondary-active))',
+          active: 'hsl(var(--eb-secondary-active, var(--eb-secondary-hover)))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--eb-destructive))',
           foreground: 'hsl(var(--eb-destructive-foreground))',
           hover: 'hsl(var(--eb-destructive-hover))',
-          active: 'hsl(var(--eb-destructive-active))',
+          active:
+            'hsl(var(--eb-destructive-active, var(--eb-destructive-hover)))',
         },
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
@@ -75,7 +76,6 @@ module.exports = {
         lg: 'calc(var(--eb-radius) + 2px)',
         md: 'var(--eb-radius)',
         sm: 'calc(var(--eb-radius) - 4px)',
-        button: 'var(--eb-button-radius)',
       },
       keyframes: {
         'accordion-down': {
@@ -103,9 +103,6 @@ module.exports = {
           return acc;
         }, {}),
       },
-      fontWeight: {
-        button: 'var(--eb-button-font-weight)',
-      },
     },
   },
   plugins: [
@@ -117,8 +114,23 @@ module.exports = {
     }),
     ({ addUtilities }) => {
       addUtilities({
-        '.cta-btn': {
-          padding: 'var(--eb-cta-button-padding)',
+        '.button-primary': {
+          fontSize: 'var(--eb-button-font-size)',
+          lineHeight: 'var(--eb-button-line-height)',
+          fontWeight: 'var(--eb-button-primary-font-weight)',
+          borderRadius: 'var(--eb-button-radius)',
+        },
+        '.button-secondary': {
+          fontSize: 'var(--eb-button-font-size)',
+          lineHeight: 'var(--eb-button-line-height)',
+          fontWeight: 'var(--eb-button-secondary-font-weight)',
+          borderRadius: 'var(--eb-button-radius)',
+        },
+        '.button-destructive': {
+          fontSize: 'var(--eb-button-font-size)',
+          lineHeight: 'var(--eb-button-line-height)',
+          fontWeight: 'var(--eb-button-destructive-font-weight)',
+          borderRadius: 'var(--eb-button-radius)',
         },
       });
     },
