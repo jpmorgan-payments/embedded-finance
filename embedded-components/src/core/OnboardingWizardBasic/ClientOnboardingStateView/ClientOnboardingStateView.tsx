@@ -264,12 +264,6 @@ export const ClientOnboardingStateView: React.FC<
                       .join(', ')}
                   />
                 )}
-
-                {/* Client ID */}
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.clientId')}
-                  value={clientData.id}
-                />
               </dl>
             </div>
           </div>
