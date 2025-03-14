@@ -75,10 +75,6 @@ export const BusinessSummaryCard: React.FC<BusinessSummaryCardProps> = ({
   const isInformationRequested =
     clientData.status === ClientStatus.INFORMATION_REQUESTED;
 
-  // Check if client status is REVIEW_IN_PROGRESS
-  const isReviewInProgress =
-    clientData.status === ClientStatus.REVIEW_IN_PROGRESS;
-
   // Show CTA only if there are missing documents and status is INFORMATION_REQUESTED
   const showUploadCTA = hasMissingBusinessDocs && isInformationRequested;
 

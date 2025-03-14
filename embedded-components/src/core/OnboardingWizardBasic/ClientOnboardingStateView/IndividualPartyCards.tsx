@@ -87,10 +87,6 @@ export const IndividualPartyCards: React.FC<IndividualPartyCardsProps> = ({
   const isInformationRequested =
     clientData.status === ClientStatus.INFORMATION_REQUESTED;
 
-  // Check if client status is REVIEW_IN_PROGRESS
-  const isReviewInProgress =
-    clientData.status === ClientStatus.REVIEW_IN_PROGRESS;
-
   // Determine default accordion value based on client status
   const defaultAccordionValue = isInformationRequested ? 'details' : undefined;
 
