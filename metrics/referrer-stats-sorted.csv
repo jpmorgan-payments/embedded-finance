@@ -1,7 +1,7 @@
 repository_name,site,views,unique_visitors/cloners
 embedded-banking,Bing,1,1
 embedded-banking,DuckDuckGo,1,1
-embedded-banking,Google,27,9
+embedded-banking,Google,36,13
 embedded-banking,bitbucketdc-cluster07.jpmchase.net,2,1
 embedded-banking,chatgpt.com,1,1
 embedded-banking,com.google.android.gm,2,1
@@ -13,7 +13,7 @@ embedded-banking,eb-component-showcase.apps.dev.na-9z.gap.jpmchase.net,2,1
 embedded-banking,eb-components-demo.apps.dev.na-1z.gap.jpmchase.net,12,2
 embedded-banking,embedded-banking-dev.com,1,1
 embedded-banking,embedded-banking-showcase.apps.dev.na-1z.gap.jpmchase.net,4,1
-embedded-banking,embedded-finance-dev.com,16,5
+embedded-banking,embedded-finance-dev.com,10,3
 embedded-banking,github.com,17,13
 embedded-banking,jira.vwfspay.eu,1,1
 embedded-banking,jiradc-cib-cluster02.prod.aws.jpmchase.net,1,1
