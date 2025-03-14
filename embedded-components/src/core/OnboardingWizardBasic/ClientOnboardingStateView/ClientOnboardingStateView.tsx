@@ -206,7 +206,7 @@ export const ClientOnboardingStateView: React.FC<
                 {t('clientOnboardingStatus.title')}
               </CardTitle>
               <Badge
-                className={`eb-pointer-events-none eb-flex eb-h-6 eb-items-center eb-gap-1 eb-rounded-md eb-px-2 eb-py-0 eb-text-xs ${color}`}
+                className={`eb-pointer-events-none eb-flex eb-h-6 eb-items-center eb-gap-1 eb-rounded-md eb-p-4 eb-text-sm ${color}`}
               >
                 {icon}
                 {t(`clientOnboardingStatus.statusLabels.${status}`)}
