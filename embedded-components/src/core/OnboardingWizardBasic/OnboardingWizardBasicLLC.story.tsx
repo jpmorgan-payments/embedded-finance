@@ -17,6 +17,7 @@ import {
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
 
 import { ORGANIZATION_TYPE_LIST } from './utils/organizationTypeList';
+import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
@@ -282,6 +283,9 @@ AdditionalDocumentsRequested.parameters = {
       }),
       http.get('/document-requests/68804', () => {
         return HttpResponse.json(efDocumentRequestDetails);
+      }),
+      http.get('/document-requests/68803', () => {
+        return HttpResponse.json(efOrganizationDocumentRequestDetails);
       }),
       http.post('/documents', () => {
         return HttpResponse.json({

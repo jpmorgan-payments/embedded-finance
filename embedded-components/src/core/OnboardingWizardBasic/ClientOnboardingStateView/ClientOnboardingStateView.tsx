@@ -20,9 +20,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LinkedAccountWidget } from '@/core/LinkedAccountWidget/LinkedAccountWidget';
 
-import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
+import { BusinessSummaryCard } from './BusinessSummaryCard';
+import { IndividualPartyCards } from './IndividualPartyCards';
 import { NotificationService } from './NotificationService';
 import { useClientStatusMonitor } from './useStatusMonitor';
 
@@ -61,18 +62,6 @@ const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
       color: 'eb-bg-gray-100 eb-text-gray-800',
     },
   };
-
-interface DetailRowProps {
-  label: string;
-  value: string;
-}
-
-const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
-  <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
-    <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">{label}:</dt>
-    <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">{value}</dd>
-  </div>
-);
 
 const LoadingState: React.FC = () => (
   <Card className="eb-w-full">
@@ -152,10 +141,6 @@ export const ClientOnboardingStateView: React.FC<
     );
   }
 
-  const businessDetails = clientData.parties?.find(
-    (party) => party?.partyType === 'ORGANIZATION'
-  );
-
   const status = clientData.status as ClientStatus;
   const { icon, color } = statusConfig[status] || statusConfig.NEW;
 
@@ -209,6 +194,9 @@ export const ClientOnboardingStateView: React.FC<
           )}
         </AlertDescription>
       </Alert>
+      {status === ClientStatus.REVIEW_IN_PROGRESS ? (
+        <AdvancedReviewInProgressLoadingState />
+      ) : null}
 
       <Card className="eb-w-full eb-shadow-md">
         <CardHeader className="eb-border-b eb-bg-gray-50">
@@ -231,41 +219,11 @@ export const ClientOnboardingStateView: React.FC<
         </CardHeader>
         <CardContent className="eb-p-6">
           <div className="eb-space-y-6">
-            {/* Business Summary Section */}
-            <div className="eb-mb-4 eb-rounded-md eb-border eb-border-blue-100 eb-bg-blue-50 eb-p-4">
-              <div className="eb-mb-2 eb-font-medium">
-                {t('clientOnboardingStatus.businessSummary')}
-              </div>
-              <dl className="eb-ml-2 eb-space-y-2">
-                {/* Legal Business Name */}
-                {businessDetails?.organizationDetails?.organizationName && (
-                  <DetailRow
-                    label={t('clientOnboardingStatus.labels.organization')}
-                    value={businessDetails.organizationDetails.organizationName}
-                  />
-                )}
+            {/* Business Summary Card */}
+            <BusinessSummaryCard clientData={clientData} />
 
-                {/* Business Type */}
-                {businessDetails?.organizationDetails?.organizationType && (
-                  <DetailRow
-                    label={t('clientOnboardingStatus.labels.organizationType')}
-                    value={t(
-                      `organizationTypes.${businessDetails.organizationDetails.organizationType}`
-                    )}
-                  />
-                )}
-
-                {/* Product */}
-                {clientData?.products && clientData.products.length > 0 && (
-                  <DetailRow
-                    label={t('clientOnboardingStatus.labels.product')}
-                    value={clientData.products
-                      .map((product) => t(`clientProducts.${product}`))
-                      .join(', ')}
-                  />
-                )}
-              </dl>
-            </div>
+            {/* Individual Party Cards */}
+            <IndividualPartyCards clientData={clientData} />
           </div>
           {showLinkedAccountPanel && (
             <div className="eb-mt-6 eb-rounded-lg eb-border eb-p-4">
@@ -281,15 +239,6 @@ export const ClientOnboardingStateView: React.FC<
               <LinkedAccountWidget variant="singleAccount" />
             </div>
           )}
-          {status === ClientStatus.REVIEW_IN_PROGRESS ? (
-            <AdvancedReviewInProgressLoadingState />
-          ) : null}
-
-          <div className="eb-mt-8">
-            {clientData?.status === ClientStatus.INFORMATION_REQUESTED && (
-              <DocumentUploadStepForm standalone />
-            )}
-          </div>
         </CardContent>
       </Card>
     </div>
