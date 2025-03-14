@@ -43,7 +43,7 @@ const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
     },
     INFORMATION_REQUESTED: {
       icon: <AlertCircleIcon className="eb-h-4 eb-w-4" />,
-      color: 'eb-bg-blue-100 eb-text-blue-800',
+      color: 'eb-bg-amber-100 eb-text-amber-800',
     },
     NEW: {
       icon: <CircleIcon className="eb-h-4 eb-w-4" />,
