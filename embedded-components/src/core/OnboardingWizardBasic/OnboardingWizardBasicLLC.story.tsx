@@ -5,6 +5,7 @@ import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
+import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
 import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
@@ -282,6 +283,9 @@ AdditionalDocumentsRequested.parameters = {
       }),
       http.get('/document-requests/68804', () => {
         return HttpResponse.json(efDocumentRequestDetails);
+      }),
+      http.get('/document-requests/68803', () => {
+        return HttpResponse.json(efOrganizationDocumentRequestDetails);
       }),
       http.post('/documents', () => {
         return HttpResponse.json({
