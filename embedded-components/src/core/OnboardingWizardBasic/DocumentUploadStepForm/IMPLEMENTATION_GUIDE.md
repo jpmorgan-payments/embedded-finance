@@ -9,8 +9,8 @@ The document upload process can be simplified by using an incremental approach t
 ```mermaid
 sequenceDiagram
     participant User
-    participant UI State
     participant UI Display
+    participant UI State
     participant API
     
     API->>UI Display: Load document request with all requirements
@@ -36,25 +36,6 @@ sequenceDiagram
     UI Display->>User: Enable submission
     User->>UI Display: Submit all documents
     UI Display->>API: Submit document request
-```
-
-## Requirement Evaluation Process
-
-```mermaid
-flowchart TD
-    A[Load Document Request] --> B[Display All Requirements]
-    B --> C[Enable First Requirement]
-    C --> D[User Completes Requirement]
-    D --> E[Update UI State]
-    E --> F{More Requirements?}
-    F -- Yes --> G[Enable Next Requirement]
-    F -- No --> H[Enable Submission]
-    G --> D
-    H --> I[Submit Documents]
-    
-    style B fill:#f5f5f5
-    style C fill:#c8e6c9
-    style G fill:#c8e6c9
 ```
 
 ## Implementation Note
