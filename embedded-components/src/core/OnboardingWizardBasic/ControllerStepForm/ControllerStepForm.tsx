@@ -266,7 +266,7 @@ export const ControllerStepForm = () => {
       | 'OTHER_GOVERNMENT_ID'
   ) => {
     if (!idType) return t('idValueLabels.placeholder');
-    return t(`idValueLabels.individual.${idType}`);
+    return t(`idValueLabels.${idType}`);
   };
 
   // Reset value of ID value field when ID type changes

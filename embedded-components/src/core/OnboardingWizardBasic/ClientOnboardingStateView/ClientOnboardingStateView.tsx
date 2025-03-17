@@ -20,9 +20,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LinkedAccountWidget } from '@/core/LinkedAccountWidget/LinkedAccountWidget';
 
-import { DocumentUploadStepForm } from '../DocumentUploadStepForm/DocumentUploadStepForm';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
+import { BusinessSummaryCard } from './BusinessSummaryCard';
+import { IndividualPartyCards } from './IndividualPartyCards';
 import { NotificationService } from './NotificationService';
 import { useClientStatusMonitor } from './useStatusMonitor';
 
@@ -42,7 +43,7 @@ const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
     },
     INFORMATION_REQUESTED: {
       icon: <AlertCircleIcon className="eb-h-4 eb-w-4" />,
-      color: 'eb-bg-blue-100 eb-text-blue-800',
+      color: 'eb-bg-amber-100 eb-text-amber-800',
     },
     NEW: {
       icon: <CircleIcon className="eb-h-4 eb-w-4" />,
@@ -61,18 +62,6 @@ const statusConfig: Record<ClientStatus, { icon: JSX.Element; color: string }> =
       color: 'eb-bg-gray-100 eb-text-gray-800',
     },
   };
-
-interface DetailRowProps {
-  label: string;
-  value: string;
-}
-
-const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
-  <div className="eb-flex eb-items-center eb-justify-between">
-    <span className="eb-text-sm eb-font-medium eb-text-gray-500">{label}:</span>
-    <span className="eb-text-sm eb-font-bold">{value}</span>
-  </div>
-);
 
 const LoadingState: React.FC = () => (
   <Card className="eb-w-full">
@@ -152,10 +141,6 @@ export const ClientOnboardingStateView: React.FC<
     );
   }
 
-  const businessDetails = clientData.parties?.find(
-    (party) => party?.partyType === 'ORGANIZATION'
-  );
-
   const status = clientData.status as ClientStatus;
   const { icon, color } = statusConfig[status] || statusConfig.NEW;
 
@@ -209,16 +194,39 @@ export const ClientOnboardingStateView: React.FC<
           )}
         </AlertDescription>
       </Alert>
+      {status === ClientStatus.REVIEW_IN_PROGRESS ? (
+        <AdvancedReviewInProgressLoadingState />
+      ) : null}
 
       <Card className="eb-w-full eb-shadow-md">
         <CardHeader className="eb-border-b eb-bg-gray-50">
-          <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
-            {t('clientOnboardingStatus.title')}
-          </CardTitle>
+          <div className="eb-flex eb-flex-col eb-gap-2">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
+                {t('clientOnboardingStatus.title')}
+              </CardTitle>
+              <Badge
+                className={`eb-pointer-events-none eb-flex eb-h-6 eb-items-center eb-gap-1 eb-rounded-md eb-p-4 eb-text-sm ${color}`}
+              >
+                {icon}
+                {t(`clientOnboardingStatus.statusLabels.${status}`)}
+              </Badge>
+            </div>
+            <p className="eb-text-xs eb-text-gray-600">
+              {statusMessages[status]}
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="eb-p-6">
+          <div className="eb-space-y-6">
+            {/* Business Summary Card */}
+            <BusinessSummaryCard clientData={clientData} />
+
+            {/* Individual Party Cards */}
+            <IndividualPartyCards clientData={clientData} />
+          </div>
           {showLinkedAccountPanel && (
-            <div className="eb-rounded-lg eb-border eb-p-4">
+            <div className="eb-mt-6 eb-rounded-lg eb-border eb-p-4">
               <h3 className="eb-mb-4 eb-text-lg eb-font-semibold">
                 {t('linkedAccount.title', 'Linked Accounts')}
               </h3>
@@ -231,57 +239,6 @@ export const ClientOnboardingStateView: React.FC<
               <LinkedAccountWidget variant="singleAccount" />
             </div>
           )}
-          {status === ClientStatus.REVIEW_IN_PROGRESS ? (
-            <AdvancedReviewInProgressLoadingState />
-          ) : (
-            <div className="eb-space-y-6">
-              <div className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-bg-gray-50 eb-p-4">
-                <span className="eb-text-sm eb-font-medium eb-text-gray-600">
-                  {t('clientOnboardingStatus.labels.status')}:
-                </span>
-                <Badge
-                  className={`eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1 ${color}`}
-                >
-                  {icon}
-                  {t(`clientOnboardingStatus.statusLabels.${status}`)}
-                </Badge>
-              </div>
-
-              <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.clientId')}
-                  value={clientData.id}
-                />
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.organization')}
-                  value={
-                    businessDetails?.organizationDetails?.organizationName ||
-                    'N/A'
-                  }
-                />
-                <DetailRow
-                  label={t('clientOnboardingStatus.labels.organizationType')}
-                  value={
-                    businessDetails?.organizationDetails?.organizationType
-                      ? t(
-                          `organizationTypes.${businessDetails.organizationDetails.organizationType}`
-                        )
-                      : 'N/A'
-                  }
-                />
-              </div>
-
-              <div className="eb-rounded-lg eb-bg-gray-50 eb-p-4 eb-text-sm eb-text-gray-600">
-                <p>{statusMessages[status]}</p>
-              </div>
-            </div>
-          )}
-
-          <div className="eb-mt-8">
-            {clientData?.status === ClientStatus.INFORMATION_REQUESTED && (
-              <DocumentUploadStepForm standalone />
-            )}
-          </div>
         </CardContent>
       </Card>
     </div>
