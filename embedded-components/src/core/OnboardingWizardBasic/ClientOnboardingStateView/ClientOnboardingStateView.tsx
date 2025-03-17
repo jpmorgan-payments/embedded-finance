@@ -198,49 +198,51 @@ export const ClientOnboardingStateView: React.FC<
         <AdvancedReviewInProgressLoadingState />
       ) : null}
 
-      <Card className="eb-w-full eb-shadow-md">
-        <CardHeader className="eb-border-b eb-bg-gray-50">
-          <div className="eb-flex eb-flex-col eb-gap-2">
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
-                {t('clientOnboardingStatus.title')}
-              </CardTitle>
-              <Badge
-                className={`eb-pointer-events-none eb-flex eb-h-6 eb-items-center eb-gap-1 eb-rounded-md eb-p-4 eb-text-sm ${color}`}
-              >
-                {icon}
-                {t(`clientOnboardingStatus.statusLabels.${status}`)}
-              </Badge>
-            </div>
-            <p className="eb-text-xs eb-text-gray-600">
-              {statusMessages[status]}
-            </p>
-          </div>
-        </CardHeader>
-        <CardContent className="eb-p-6">
-          <div className="eb-space-y-6">
-            {/* Business Summary Card */}
-            <BusinessSummaryCard clientData={clientData} />
-
-            {/* Individual Party Cards */}
-            <IndividualPartyCards clientData={clientData} />
-          </div>
-          {showLinkedAccountPanel && (
-            <div className="eb-mt-6 eb-rounded-lg eb-border eb-p-4">
-              <h3 className="eb-mb-4 eb-text-lg eb-font-semibold">
-                {t('linkedAccount.title', 'Linked Accounts')}
-              </h3>
-              <p className="eb-mb-4 eb-text-sm eb-text-gray-600">
-                {t(
-                  'linkedAccount.disclaimer',
-                  'While your onboarding is being processed, you can start adding linked accounts to your profile.'
-                )}
+      <div className="eb-flex eb-justify-center">
+        <Card className="eb-w-full eb-max-w-screen-xl eb-shadow-md">
+          <CardHeader className="eb-border-b eb-bg-gray-50">
+            <div className="eb-flex eb-flex-col eb-gap-2">
+              <div className="eb-flex eb-items-center eb-justify-between">
+                <CardTitle className="eb-text-xl eb-font-bold eb-text-gray-800">
+                  {t('clientOnboardingStatus.title')}
+                </CardTitle>
+                <Badge
+                  className={`eb-pointer-events-none eb-flex eb-h-6 eb-items-center eb-gap-1 eb-rounded-md eb-p-4 eb-text-sm ${color}`}
+                >
+                  {icon}
+                  {t(`clientOnboardingStatus.statusLabels.${status}`)}
+                </Badge>
+              </div>
+              <p className="eb-text-xs eb-text-gray-600">
+                {statusMessages[status]}
               </p>
-              <LinkedAccountWidget variant="singleAccount" />
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="eb-p-6">
+            <div className="eb-space-y-6">
+              {/* Business Summary Card */}
+              <BusinessSummaryCard clientData={clientData} />
+
+              {/* Individual Party Cards */}
+              <IndividualPartyCards clientData={clientData} />
+            </div>
+            {showLinkedAccountPanel && (
+              <div className="eb-mt-6 eb-rounded-lg eb-border eb-p-4">
+                <h3 className="eb-mb-4 eb-text-lg eb-font-semibold">
+                  {t('linkedAccount.title', 'Linked Accounts')}
+                </h3>
+                <p className="eb-mb-4 eb-text-sm eb-text-gray-600">
+                  {t(
+                    'linkedAccount.disclaimer',
+                    'While your onboarding is being processed, you can start adding linked accounts to your profile.'
+                  )}
+                </p>
+                <LinkedAccountWidget variant="singleAccount" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

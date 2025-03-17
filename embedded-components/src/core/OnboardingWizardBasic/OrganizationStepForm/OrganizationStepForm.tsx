@@ -303,7 +303,6 @@ export const OrganizationStepForm = () => {
         className={cn(
           'eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto',
           {
-            'eb-max-w-2xl': useSingleColumnLayout,
             'eb-opacity-50': isFormDisabled,
           }
         )}
