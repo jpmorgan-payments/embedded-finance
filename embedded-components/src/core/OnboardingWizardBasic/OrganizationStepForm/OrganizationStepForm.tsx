@@ -274,7 +274,7 @@ export const OrganizationStepForm = () => {
       | 'BUSINESS_REGISTRATION_NUMBER'
   ) => {
     if (!idType) return t('idValueLabels.placeholder');
-    return t(`idValueLabels.organization.${idType}`);
+    return t(`idValueLabels.${idType}`);
   };
 
   // Reset value of ID value field when ID type changes
@@ -303,7 +303,6 @@ export const OrganizationStepForm = () => {
         className={cn(
           'eb-grid eb-w-full eb-items-start eb-gap-6 eb-overflow-auto',
           {
-            'eb-max-w-2xl': useSingleColumnLayout,
             'eb-opacity-50': isFormDisabled,
           }
         )}

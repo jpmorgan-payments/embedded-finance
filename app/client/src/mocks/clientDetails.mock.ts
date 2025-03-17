@@ -323,13 +323,6 @@ export const LLCExistingClientOutstandingDocuments = {
         websiteAvailable: true,
         website: 'https://www.Neverlandbooks.com',
       },
-      validationResponse: [
-        {
-          validationStatus: 'NEEDS_INFO',
-          validationType: 'ENTITY_VALIDATION',
-          documentRequestIds: ['68430'],
-        },
-      ],
     },
     {
       id: '2000000112',
@@ -373,6 +366,13 @@ export const LLCExistingClientOutstandingDocuments = {
           phoneNumber: '7606810558',
         },
       },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          documentRequestIds: ['68430'],
+        },
+      ],
     },
     {
       id: '2000000113',

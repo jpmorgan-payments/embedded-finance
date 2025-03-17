@@ -345,9 +345,7 @@ const OnboardingWizardBasicComponent: FC<
               return (
                 <Step key={index} {...rest}>
                   <div
-                    className={cn(
-                      'eb-flex eb-scroll-mt-10 eb-justify-center eb-px-2'
-                    )}
+                    className="eb-flex eb-scroll-mt-10 eb-justify-center eb-px-2"
                     ref={(el) => {
                       stepRefs.current[index] = el;
                     }}
@@ -365,8 +363,8 @@ const OnboardingWizardBasicComponent: FC<
                       />
                     ) : (
                       <div
-                        className={cn({
-                          'eb-w-full eb-max-w-lg': useSingleColumnLayout,
+                        className={cn('eb-w-full eb-max-w-screen-xl', {
+                          'eb-max-w-lg': useSingleColumnLayout,
                         })}
                       >
                         <InfoStepAlert stepId={id!} />

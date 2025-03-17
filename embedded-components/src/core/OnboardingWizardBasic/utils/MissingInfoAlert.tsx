@@ -136,6 +136,11 @@ export const MissingInfoAlert = ({
 
   if (!hasAnyMissingInfo || isDismissed) return null;
 
+  // Find the organization party
+  const organizationParty = clientData?.parties?.find(
+    (party) => party.partyType === 'ORGANIZATION'
+  );
+
   return (
     <div className="eb-relative eb-mb-4 eb-rounded-md eb-border eb-border-blue-200 eb-bg-blue-50 eb-p-3 eb-text-sm eb-text-blue-900">
       <Button
@@ -147,7 +152,58 @@ export const MissingInfoAlert = ({
       >
         <X className="eb-h-4 eb-w-4" />
       </Button>
-      <div className="eb-mb-2 eb-font-medium">Missing Information:</div>
+
+      {/* Business Summary Section */}
+      <div className="eb-mb-4 eb-p-2">
+        <div className="eb-mb-2 eb-font-medium">
+          {t('onboarding:missingInfoAlert.businessSummary')}
+        </div>
+        <dl className="eb-ml-2 eb-space-y-2">
+          {/* Legal Business Name */}
+          {organizationParty?.organizationDetails?.organizationName && (
+            <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
+              <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
+                {t('onboarding:missingInfoAlert.legalBusinessName')}:
+              </dt>
+              <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
+                {organizationParty.organizationDetails.organizationName}
+              </dd>
+            </div>
+          )}
+
+          {/* Business Type */}
+          {organizationParty?.organizationDetails?.organizationType && (
+            <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
+              <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
+                {t('onboarding:missingInfoAlert.businessType')}:
+              </dt>
+              <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
+                {t(
+                  `onboarding:organizationTypes.${organizationParty.organizationDetails.organizationType}`
+                )}
+              </dd>
+            </div>
+          )}
+
+          {/* Product */}
+          {clientData?.products && clientData.products.length > 0 && (
+            <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
+              <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
+                {t('onboarding:missingInfoAlert.product')}:
+              </dt>
+              <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
+                {clientData.products
+                  .map((product) => t(`onboarding:clientProducts.${product}`))
+                  .join(', ')}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
+      <div className="eb-mb-2 eb-font-medium">
+        {t('onboarding:missingInfoAlert.title')}:
+      </div>
+
       <div className="eb-ml-2 eb-space-y-2">
         {missingFields.length > 0 && (
           <div className="eb-flex eb-flex-wrap eb-gap-2">
@@ -214,7 +270,7 @@ export const MissingInfoAlert = ({
         <CollapsibleTrigger className="eb-group eb-mb-2 eb-mt-4 eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-justify-between eb-text-left eb-font-medium">
           <ChevronDown className="eb-group-data-[state=open]:rotate-180 eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform" />
           <div className="eb-flex-1 eb-text-xs">
-            Client Profile Existing Information:
+            {t('onboarding:missingInfoAlert.clientProfileInfo')}:
           </div>
         </CollapsibleTrigger>
 
@@ -231,7 +287,7 @@ export const MissingInfoAlert = ({
             {!!clientData?.questionResponses?.length && (
               <div className="eb-w-xl eb-px-4">
                 <div className="eb-mb-2 eb-font-medium">
-                  Questions Responses
+                  {t('onboarding:missingInfoAlert.questionsResponses')}
                 </div>
                 {clientData?.questionResponses?.map((questionResponse) => (
                   <>
@@ -246,7 +302,7 @@ export const MissingInfoAlert = ({
                             }
                           </dt>
                           <dd className="">
-                            <b>Response:</b>{' '}
+                            <b>{t('onboarding:missingInfoAlert.response')}:</b>{' '}
                             {questionResponse?.values?.join(', ')}
                           </dd>
                         </dl>
