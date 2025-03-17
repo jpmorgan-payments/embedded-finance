@@ -329,7 +329,8 @@ const OnboardingWizardBasicComponent: FC<
         )}
         {clientData?.status === 'NEW' ||
         !clientId ||
-        clientGetStatus === 'pending' ? (
+        clientGetStatus === 'pending' ||
+        clientGetStatus === 'error' ? (
           <Stepper
             key={currentStepIndex}
             initialStep={currentStepIndex ?? 0}
