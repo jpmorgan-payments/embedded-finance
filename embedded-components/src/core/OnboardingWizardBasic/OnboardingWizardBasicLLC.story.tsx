@@ -3,7 +3,10 @@ import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuest
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
-import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
+import {
+  efDocumentRequestComplexDetails,
+  efDocumentRequestDetails,
+} from '@/mocks/efDocumentRequestDetails.mock';
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
@@ -283,6 +286,41 @@ AdditionalDocumentsRequested.parameters = {
       }),
       http.get('/document-requests/68804', () => {
         return HttpResponse.json(efDocumentRequestDetails);
+      }),
+      http.get('/document-requests/68803', () => {
+        return HttpResponse.json(efOrganizationDocumentRequestDetails);
+      }),
+      http.post('/documents', () => {
+        return HttpResponse.json({
+          requestId: Math.random().toString(36).substring(7),
+          traceId: `doc-${Math.random().toString(36).substring(7)}`,
+        });
+      }),
+    ],
+  },
+};
+
+export const AdditionalDocumentsRequestedComplex = Default.bind({});
+AdditionalDocumentsRequestedComplex.storyName =
+  '7.3. Additional Documents requested step (Complex)';
+AdditionalDocumentsRequestedComplex.args = {
+  ...WithClientId.args,
+  blockPostVerification: true,
+};
+AdditionalDocumentsRequestedComplex.parameters = {
+  msw: {
+    handlers: [
+      http.get('/clients/0030000133', () => {
+        return HttpResponse.json({
+          ...efClientCorpEBMock,
+          status: 'INFORMATION_REQUESTED',
+        });
+      }),
+      http.get('/document-requests/68805', () => {
+        return HttpResponse.json(efDocumentRequestComplexDetails);
+      }),
+      http.get('/document-requests/68804', () => {
+        return HttpResponse.json(efDocumentRequestComplexDetails);
       }),
       http.get('/document-requests/68803', () => {
         return HttpResponse.json(efOrganizationDocumentRequestDetails);

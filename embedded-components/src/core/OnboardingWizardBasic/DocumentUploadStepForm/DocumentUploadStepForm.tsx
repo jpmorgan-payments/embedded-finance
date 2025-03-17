@@ -20,7 +20,6 @@ import {
 import Dropzone from '@/components/ui/dropzone';
 import { useStepper } from '@/components/ui/stepper';
 import {
-  Badge,
   Button,
   Card,
   Form,
@@ -407,6 +406,33 @@ export const DocumentUploadStepForm = ({
                         docId &&
                         activeRequirements[docId]?.includes(requirementIndex);
 
+                      // Count how many document types are already satisfied
+                      const satisfiedCount = requirement.documentTypes.filter(
+                        (docType) =>
+                          isDocTypeSatisfied(docType as DocumentTypeSmbdo)
+                      ).length;
+
+                      // Calculate remaining docs needed
+                      const remainingNeeded = Math.max(
+                        (requirement.minRequired || 1) - satisfiedCount,
+                        0
+                      );
+
+                      // Get list of satisfied doc types for this requirement
+                      const satisfiedDocTypesForReq =
+                        requirement.documentTypes.filter((docType) =>
+                          isDocTypeSatisfied(docType as DocumentTypeSmbdo)
+                        );
+
+                      // Get a formatted list of already provided doc names for display
+                      const alreadyProvidedDocNames = satisfiedDocTypesForReq
+                        .map(
+                          (docType) =>
+                            DOCUMENT_TYPE_MAPPING[docType as DocumentTypeSmbdo]
+                              ?.label || docType
+                        )
+                        .join(', ');
+
                       // If not active, show a summary instead
                       if (!isActive) {
                         return (
@@ -415,41 +441,76 @@ export const DocumentUploadStepForm = ({
                             className="eb-rounded-md eb-border eb-border-gray-200 eb-bg-gray-50 eb-p-3"
                           >
                             <h4 className="eb-mb-2 eb-text-sm eb-font-medium eb-text-gray-700">
-                              Requirement {requirementIndex + 1}: Upload{' '}
-                              {requirement.minRequired} of the following
-                              document types
+                              {satisfiedCount > 0 ? (
+                                <span>
+                                  Requirement {requirementIndex + 1}:{' '}
+                                  {satisfiedCount ===
+                                  requirement.documentTypes.length ? (
+                                    <span className="eb-text-green-700">
+                                      All document types already provided
+                                    </span>
+                                  ) : remainingNeeded === 0 ? (
+                                    <span className="eb-text-green-700">
+                                      Minimum requirement met (
+                                      {requirement.minRequired} of{' '}
+                                      {requirement.minRequired})
+                                    </span>
+                                  ) : (
+                                    <span>
+                                      {alreadyProvidedDocNames} already
+                                      provided. Need {remainingNeeded} more
+                                      document(s) from the list below.
+                                    </span>
+                                  )}
+                                </span>
+                              ) : (
+                                <span>
+                                  Requirement {requirementIndex + 1}: Upload{' '}
+                                  {requirement.minRequired} of the following
+                                  document types
+                                </span>
+                              )}
                             </h4>
-                            <div className="eb-flex eb-flex-wrap eb-gap-2">
-                              {requirement.documentTypes.map((docType) => (
-                                <Badge
-                                  key={docType}
-                                  variant={
-                                    isDocTypeSatisfied(
-                                      docType as DocumentTypeSmbdo
+
+                            {/* Only show document types that aren't already satisfied */}
+                            {remainingNeeded > 0 && (
+                              <div className="eb-mt-2 eb-text-sm eb-text-gray-600">
+                                <p>Remaining document types needed:</p>
+                                <ul className="eb-mt-1 eb-list-disc eb-pl-5">
+                                  {requirement.documentTypes
+                                    .filter(
+                                      (docType) =>
+                                        !isDocTypeSatisfied(
+                                          docType as DocumentTypeSmbdo
+                                        )
                                     )
-                                      ? 'success'
-                                      : 'outline'
-                                  }
-                                  className={
-                                    isDocTypeSatisfied(
-                                      docType as DocumentTypeSmbdo
-                                    )
-                                      ? 'eb-border-green-200 eb-bg-green-100 eb-text-green-800'
-                                      : 'eb-bg-gray-100 eb-text-gray-800'
-                                  }
-                                >
-                                  {DOCUMENT_TYPE_MAPPING[
-                                    docType as DocumentTypeSmbdo
-                                  ]?.label || docType}
-                                  {isDocTypeSatisfied(
-                                    docType as DocumentTypeSmbdo
-                                  ) && ' ✓'}
-                                </Badge>
-                              ))}
-                            </div>
+                                    .map((docType) => (
+                                      <li key={docType}>
+                                        {DOCUMENT_TYPE_MAPPING[
+                                          docType as DocumentTypeSmbdo
+                                        ]?.label || docType}
+                                      </li>
+                                    ))}
+                                </ul>
+                              </div>
+                            )}
                           </div>
                         );
                       }
+
+                      // Filter out already satisfied document types if they weren't selected in this requirement
+                      const availableDocTypes =
+                        requirement.documentTypes.filter((docType) => {
+                          const docTypeStr = docType as DocumentTypeSmbdo;
+                          const isCurrentlySelected =
+                            form.watch(
+                              `${documentRequest?.id}.requirement_${requirementIndex}_docType`
+                            ) === docTypeStr;
+                          return (
+                            isCurrentlySelected ||
+                            !isDocTypeSatisfied(docTypeStr)
+                          );
+                        });
 
                       return (
                         <div
@@ -457,133 +518,156 @@ export const DocumentUploadStepForm = ({
                           className="eb-rounded-md eb-border eb-border-gray-200 eb-p-4"
                         >
                           <h4 className="eb-mb-3 eb-text-sm eb-font-medium eb-text-gray-700">
-                            Requirement {requirementIndex + 1}: Upload{' '}
-                            {requirement.minRequired} of the following document
-                            types
+                            {satisfiedCount > 0 ? (
+                              <span>
+                                Requirement {requirementIndex + 1}:{' '}
+                                {alreadyProvidedDocNames} already provided.
+                                {remainingNeeded > 0 ? (
+                                  <span>
+                                    {' '}
+                                    Need {remainingNeeded} more document(s).
+                                  </span>
+                                ) : (
+                                  <span className="eb-text-green-700">
+                                    {' '}
+                                    Minimum requirement met.
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              <span>
+                                Requirement {requirementIndex + 1}: Upload{' '}
+                                {requirement.minRequired} of the following
+                                document types
+                              </span>
+                            )}
                           </h4>
 
-                          {/* Document Type Selection */}
-                          <FormField
-                            control={form.control}
-                            name={`${documentRequest?.id}.requirement_${requirementIndex}_docType`}
-                            render={({ field }) => (
-                              <FormItem className="eb-mb-4">
-                                <FormLabel
-                                  asterisk
-                                  className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                >
-                                  Select Document Type
-                                </FormLabel>
-                                <FormControl>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
-                                    <SelectTrigger className="eb-w-full">
-                                      <SelectValue placeholder="Select a document type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {requirement.documentTypes.map(
-                                        (docType) => (
-                                          <SelectItem
-                                            key={docType}
-                                            value={docType}
-                                            disabled={
-                                              isDocTypeSatisfied(
+                          {/* Only show the selection if there are still document types to choose from */}
+                          {availableDocTypes.length > 0 && (
+                            <>
+                              {/* Document Type Selection */}
+                              <FormField
+                                control={form.control}
+                                name={`${documentRequest?.id}.requirement_${requirementIndex}_docType`}
+                                render={({ field }) => (
+                                  <FormItem className="eb-mb-4">
+                                    <FormLabel
+                                      asterisk
+                                      className="eb-text-sm eb-font-medium eb-text-gray-700"
+                                    >
+                                      Select Document Type
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                      >
+                                        <SelectTrigger className="eb-w-full">
+                                          <SelectValue placeholder="Select a document type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {availableDocTypes.map((docType) => (
+                                            <SelectItem
+                                              key={docType}
+                                              value={docType}
+                                            >
+                                              {DOCUMENT_TYPE_MAPPING[
                                                 docType as DocumentTypeSmbdo
-                                              ) && field.value !== docType
-                                            }
-                                          >
-                                            {DOCUMENT_TYPE_MAPPING[
-                                              docType as DocumentTypeSmbdo
-                                            ]?.label || docType}
-                                            {isDocTypeSatisfied(
-                                              docType as DocumentTypeSmbdo
-                                            ) && ' ✓'}
-                                          </SelectItem>
-                                        )
+                                              ]?.label || docType}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage className="eb-text-xs" />
+                                  </FormItem>
+                                )}
+                              />
+
+                              {/* File Upload */}
+                              <FormField
+                                control={form.control}
+                                name={`${documentRequest?.id}.requirement_${requirementIndex}_files`}
+                                render={({
+                                  field: { onChange, ...fieldProps },
+                                }) => {
+                                  // Get the selected document type
+                                  const selectedDocType = form.watch(
+                                    `${documentRequest?.id}.requirement_${requirementIndex}_docType`
+                                  );
+
+                                  return (
+                                    <FormItem className="eb-space-y-2">
+                                      <FormLabel
+                                        asterisk
+                                        className="eb-text-sm eb-font-medium eb-text-gray-700"
+                                      >
+                                        Upload Document
+                                      </FormLabel>
+                                      {selectedDocType && (
+                                        <FormDescription className="eb-text-xs eb-text-gray-500">
+                                          {DOCUMENT_TYPE_MAPPING[
+                                            selectedDocType as DocumentTypeSmbdo
+                                          ]?.description || ''}
+                                        </FormDescription>
                                       )}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage className="eb-text-xs" />
-                              </FormItem>
-                            )}
-                          />
-
-                          {/* File Upload */}
-                          <FormField
-                            control={form.control}
-                            name={`${documentRequest?.id}.requirement_${requirementIndex}_files`}
-                            render={({
-                              field: { onChange, ...fieldProps },
-                            }) => {
-                              // Get the selected document type
-                              const selectedDocType = form.watch(
-                                `${documentRequest?.id}.requirement_${requirementIndex}_docType`
-                              );
-
-                              return (
-                                <FormItem className="eb-space-y-2">
-                                  <FormLabel
-                                    asterisk
-                                    className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                  >
-                                    Upload Document
-                                  </FormLabel>
-                                  {selectedDocType && (
-                                    <FormDescription className="eb-text-xs eb-text-gray-500">
-                                      {DOCUMENT_TYPE_MAPPING[
-                                        selectedDocType as DocumentTypeSmbdo
-                                      ]?.description || ''}
-                                    </FormDescription>
-                                  )}
-                                  <FormControl>
-                                    <Dropzone
-                                      containerClassName="eb-max-w-full"
-                                      {...fieldProps}
-                                      multiple={
-                                        (requirement.minRequired ?? 0) > 1
-                                      }
-                                      accept={{
-                                        'application/pdf': ['.pdf'],
-                                        'image/jpeg': ['.jpeg', '.jpg'],
-                                        'image/png': ['.png'],
-                                        'image/gif': ['.gif'],
-                                        'image/bmp': ['.bmp'],
-                                        'image/tiff': ['.tiff', '.tif'],
-                                        'image/webp': ['.webp'],
-                                      }}
-                                      onChange={(files) => {
-                                        const maxSize = 2 * 1024 * 1024; // 2 MB
-                                        const validFiles = files.filter(
-                                          (file) => {
-                                            if (file.size > maxSize) {
-                                              form.setError(
-                                                `${documentRequest?.id}.requirement_${requirementIndex}_files`,
-                                                {
-                                                  message:
-                                                    'Each file must be less than 2MB',
-                                                }
-                                              );
-                                              return false;
-                                            }
-                                            form.clearErrors(
-                                              `${documentRequest?.id}.requirement_${requirementIndex}_files`
-                                            );
-
-                                            return true;
+                                      <FormControl>
+                                        <Dropzone
+                                          containerClassName="eb-max-w-full"
+                                          {...fieldProps}
+                                          multiple={
+                                            (requirement.minRequired ?? 0) > 1
                                           }
-                                        );
-                                        onChange(validFiles);
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormMessage className="eb-text-xs" />
-                                </FormItem>
-                              );
-                            }}
-                          />
+                                          accept={{
+                                            'application/pdf': ['.pdf'],
+                                            'image/jpeg': ['.jpeg', '.jpg'],
+                                            'image/png': ['.png'],
+                                            'image/gif': ['.gif'],
+                                            'image/bmp': ['.bmp'],
+                                            'image/tiff': ['.tiff', '.tif'],
+                                            'image/webp': ['.webp'],
+                                          }}
+                                          onChange={(files) => {
+                                            const maxSize = 2 * 1024 * 1024; // 2 MB
+                                            const validFiles = files.filter(
+                                              (file) => {
+                                                if (file.size > maxSize) {
+                                                  form.setError(
+                                                    `${documentRequest?.id}.requirement_${requirementIndex}_files`,
+                                                    {
+                                                      message:
+                                                        'Each file must be less than 2MB',
+                                                    }
+                                                  );
+                                                  return false;
+                                                }
+                                                form.clearErrors(
+                                                  `${documentRequest?.id}.requirement_${requirementIndex}_files`
+                                                );
+
+                                                return true;
+                                              }
+                                            );
+                                            onChange(validFiles);
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="eb-text-xs" />
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            </>
+                          )}
+
+                          {/* Show message when all requirements are met */}
+                          {availableDocTypes.length === 0 && (
+                            <div className="eb-rounded-md eb-bg-green-50 eb-p-2 eb-text-sm eb-font-medium eb-text-green-700">
+                              All document types for this requirement have been
+                              provided. You can proceed to the next step.
+                            </div>
+                          )}
                         </div>
                       );
                     }
