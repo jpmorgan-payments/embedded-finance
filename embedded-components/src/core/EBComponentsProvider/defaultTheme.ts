@@ -10,6 +10,10 @@ export const defaultTheme: EBTheme = {
     buttonFontWeight: '500',
     buttonFontSize: '0.875rem',
     buttonLineHeight: '1.25rem',
+    primaryBorderWidth: '0rem',
+    secondaryBorderWidth: '0rem',
+    destructiveBorderWidth: '0rem',
+    shiftButtonOnActive: true,
   },
   light: {
     backgroundColor: 'hsl(0 0% 100%)',

@@ -420,7 +420,7 @@ export const OrganizationStepForm = () => {
             control={form.control}
             name="industry"
             type="industrySelect"
-            className="eb-col-span-1 lg:eb-col-span-2"
+            className="eb-col-span-2"
           />
 
           <OnboardingFormField

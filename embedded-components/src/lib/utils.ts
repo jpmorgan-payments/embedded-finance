@@ -7,6 +7,24 @@ import { Recipient } from '@/api/generated/ef-v1.schemas';
 
 const twMerge = extendTailwindMerge({
   prefix: 'eb-',
+  extend: {
+    theme: {
+      borderRadius: ['button', 'input'],
+    },
+    classGroups: {
+      'font-size': ['text-button'],
+      'font-weight': [
+        'font-button-primary',
+        'font-button-secondary',
+        'font-button-destructive',
+      ],
+      shadow: [
+        'shadow-border-primary',
+        'shadow-border-secondary',
+        'shadow-border-destructive',
+      ],
+    },
+  },
 });
 
 export function cn(...inputs: ClassValue[]) {
