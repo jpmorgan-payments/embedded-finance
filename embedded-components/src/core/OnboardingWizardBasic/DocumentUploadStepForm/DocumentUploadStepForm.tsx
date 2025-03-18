@@ -364,14 +364,10 @@ export const DocumentUploadStepForm = ({
 
     // Use form.getValues() directly instead of the values passed to the handler
     const values = form.getValues();
-    console.log('values from getValues()', values);
 
     try {
       // Step 1: Upload all documents for all document requests first
       const documentRequestIds: string[] = [];
-
-      // Check if there are any actual documents to upload
-      let hasDocumentsToUpload = false;
 
       for (const [documentRequestId, requirementValues] of Object.entries(
         values
@@ -400,8 +396,6 @@ export const DocumentUploadStepForm = ({
               const files = (requirementValues as any)[filesFieldName];
 
               if (files && files.length > 0) {
-                hasDocumentsToUpload = true;
-
                 // For each file, create a direct mapping to document type
                 files.forEach((file: File) => {
                   documentUploads.push({
@@ -413,10 +407,6 @@ export const DocumentUploadStepForm = ({
             }
           }
         );
-
-        console.log('documentUploads', documentUploads);
-        console.log('hasDocumentsToUpload', hasDocumentsToUpload);
-        console.log('Number of documents to upload:', documentUploads.length);
 
         // Upload each document individually
         for (const { documentType, file } of documentUploads) {
@@ -446,10 +436,6 @@ export const DocumentUploadStepForm = ({
       // Step 2: After all uploads are complete, submit each document request
       // Only if we have request IDs to submit
       if (documentRequestIds.length > 0) {
-        console.log(
-          `Submitting ${documentRequestIds.length} document requests, hasDocumentsToUpload: ${hasDocumentsToUpload}`
-        );
-
         // If no new documents to upload but we have satisfied requirements,
         // we still need to submit the document requests
         for (const documentRequestId of documentRequestIds) {
@@ -497,9 +483,6 @@ export const DocumentUploadStepForm = ({
   const allRequirementsSatisfied = useMemo(() => {
     if (!documentRequestsQueries?.data?.length) return false;
 
-    // Debug information
-    console.log('Current satisfiedDocTypes:', satisfiedDocTypes);
-
     // Helper to determine if a requirement should be considered completed based on UI logic
     const isRequirementCompletedInUI = (
       docRequest: DocumentRequestResponse,
@@ -532,8 +515,6 @@ export const DocumentUploadStepForm = ({
     const result = documentRequestsQueries.data.every((docRequest) => {
       if (!docRequest?.id || !docRequest.requirements?.length) return true;
 
-      console.log(`Checking document request ${docRequest.id}`);
-
       // For this document request, check each requirement
       const requirementsSatisfied = docRequest.requirements.every(
         (requirement, reqIndex) => {
@@ -562,22 +543,13 @@ export const DocumentUploadStepForm = ({
           const isSatisfied =
             satisfiedDocCount >= minRequired || isCompletedInUI || !isActive;
 
-          console.log(
-            `Req #${reqIndex}: minRequired=${minRequired}, satisfiedCount=${satisfiedDocCount}, ` +
-              `isActive=${isActive}, isCompletedInUI=${isCompletedInUI}, isSatisfied=${isSatisfied}`
-          );
-
           return isSatisfied;
         }
       );
 
-      console.log(
-        `Document request ${docRequest.id} - all requirements satisfied: ${requirementsSatisfied}`
-      );
       return requirementsSatisfied;
     });
 
-    console.log(`Overall allRequirementsSatisfied: ${result}`);
     return result;
   }, [documentRequestsQueries?.data, satisfiedDocTypes, activeRequirements]);
 
@@ -692,27 +664,6 @@ export const DocumentUploadStepForm = ({
                         docTypesForThisRequirement.length > 0
                           ? docTypesForThisRequirement
                           : allSatisfiedDocTypesForReq;
-
-                      console.log(`requirement: ${requirementIndex}`);
-                      console.log(`isActive: ${isActive}`);
-                      console.log(`satisfiedCount: ${satisfiedCount}`);
-                      console.log(`numFieldsToShow: ${numFieldsToShow}`);
-                      console.log(
-                        `allSatisfiedDocTypesForReq: ${allSatisfiedDocTypesForReq.length} types`
-                      );
-                      console.log(
-                        `numFieldsToShowForReq: ${numFieldsToShowForReq}`
-                      );
-                      console.log(
-                        `docTypesForThisRequirement: ${docTypesForThisRequirement.length} types`
-                      );
-                      console.log(
-                        `displayedDocTypes: ${displayedDocTypes.length} types`
-                      );
-
-                      console.log('form values', form.getValues());
-                      console.log('form errors', form.formState.errors);
-                      console.log('form isValid', form.formState.isValid);
 
                       // If not active, show a summary instead
                       if (!isActive) {
