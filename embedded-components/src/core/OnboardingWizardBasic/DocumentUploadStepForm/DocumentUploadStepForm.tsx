@@ -497,22 +497,89 @@ export const DocumentUploadStepForm = ({
   const allRequirementsSatisfied = useMemo(() => {
     if (!documentRequestsQueries?.data?.length) return false;
 
+    // Debug information
+    console.log('Current satisfiedDocTypes:', satisfiedDocTypes);
+
+    // Helper to determine if a requirement should be considered completed based on UI logic
+    const isRequirementCompletedInUI = (
+      docRequest: DocumentRequestResponse,
+      reqIndex: number
+    ) => {
+      if (!docRequest?.id) return false;
+
+      // Check if this requirement is active in the UI
+      const isActive = activeRequirements[docRequest.id]?.includes(reqIndex);
+      if (isActive) return false; // Active requirements aren't considered completed yet
+
+      const requirement = docRequest.requirements?.[reqIndex];
+      if (!requirement) return false;
+
+      // Count how many documents of the required types have been uploaded
+      const satisfiedDocCount = requirement.documentTypes.filter((docType) =>
+        satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+      ).length;
+
+      // This matches the UI logic for showing a requirement as completed
+      const isPastRequirement =
+        satisfiedDocCount > 0 &&
+        (satisfiedDocCount === requirement.documentTypes.length ||
+          satisfiedDocCount >= (requirement.minRequired || 1));
+
+      return isPastRequirement;
+    };
+
     // Check if there are any document requests that have unsatisfied requirements
-    return documentRequestsQueries.data.every((docRequest) => {
+    const result = documentRequestsQueries.data.every((docRequest) => {
       if (!docRequest?.id || !docRequest.requirements?.length) return true;
 
-      // Check each requirement
-      return docRequest.requirements.every((requirement) => {
-        // Count how many documents of the required types have been uploaded
-        const satisfiedDocCount = requirement.documentTypes.filter((docType) =>
-          satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
-        ).length;
+      console.log(`Checking document request ${docRequest.id}`);
 
-        // Requirement is satisfied if we have uploaded at least the minimum required docs
-        return satisfiedDocCount >= (requirement.minRequired || 1);
-      });
+      // For this document request, check each requirement
+      const requirementsSatisfied = docRequest.requirements.every(
+        (requirement, reqIndex) => {
+          // Count how many documents of the required types have been uploaded
+          const satisfiedDocCount = requirement.documentTypes.filter(
+            (docType) =>
+              satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+          ).length;
+
+          const minRequired = requirement.minRequired || 1;
+
+          // Check if this requirement is active
+          const isActive =
+            docRequest.id &&
+            activeRequirements[docRequest.id]?.includes(reqIndex);
+
+          // Check if UI would show this as completed
+          const isCompletedInUI = isRequirementCompletedInUI(
+            docRequest,
+            reqIndex
+          );
+
+          // A requirement is satisfied if:
+          // 1. It has enough satisfied document types to meet the minimum requirement, OR
+          // 2. It's shown as completed in the UI
+          const isSatisfied =
+            satisfiedDocCount >= minRequired || isCompletedInUI || !isActive;
+
+          console.log(
+            `Req #${reqIndex}: minRequired=${minRequired}, satisfiedCount=${satisfiedDocCount}, ` +
+              `isActive=${isActive}, isCompletedInUI=${isCompletedInUI}, isSatisfied=${isSatisfied}`
+          );
+
+          return isSatisfied;
+        }
+      );
+
+      console.log(
+        `Document request ${docRequest.id} - all requirements satisfied: ${requirementsSatisfied}`
+      );
+      return requirementsSatisfied;
     });
-  }, [documentRequestsQueries?.data, satisfiedDocTypes]);
+
+    console.log(`Overall allRequirementsSatisfied: ${result}`);
+    return result;
+  }, [documentRequestsQueries?.data, satisfiedDocTypes, activeRequirements]);
 
   if (documentRequestsQueries?.pending) {
     return <FormLoadingState message="Fetching document requests..." />;
