@@ -75,7 +75,6 @@ export const efDocumentRequestComplexDetails = {
         'BANK_STATEMENT',
         'LOAN_ACCOUNT_STATEMENT',
         'UTILITY_BILL',
-        'INSURANCE_DOCUMENT',
       ],
       minRequired: 3,
     },
@@ -88,7 +87,6 @@ export const efDocumentRequestComplexDetails = {
       'BANK_STATEMENT',
       'LOAN_ACCOUNT_STATEMENT',
       'UTILITY_BILL',
-      'INSURANCE_DOCUMENT',
     ],
     requirements: [
       {
