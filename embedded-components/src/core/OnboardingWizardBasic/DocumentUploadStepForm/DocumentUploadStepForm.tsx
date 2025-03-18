@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { ArrowRight, CheckCircle, CircleDashed, RefreshCw } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +21,6 @@ import {
 import Dropzone from '@/components/ui/dropzone';
 import { useStepper } from '@/components/ui/stepper';
 import {
-  Badge,
   Button,
   Card,
   Form,
@@ -81,6 +81,11 @@ export const DocumentUploadStepForm = ({
   const [satisfiedDocTypes, setSatisfiedDocTypes] = useState<
     DocumentTypeSmbdo[]
   >([]);
+
+  // State to track which document types were uploaded for each requirement
+  const [requirementDocTypes, setRequirementDocTypes] = useState<
+    Record<string, Record<number, DocumentTypeSmbdo[]>>
+  >({});
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -154,18 +159,36 @@ export const DocumentUploadStepForm = ({
       }
       const nestedSchema: Record<string, z.ZodType<any>> = {};
 
-      // Only include active requirements in the schema
+      // Include all requirements in the schema, not just active ones
       documentRequest?.requirements?.forEach((requirement, index) => {
-        const docId = documentRequest.id;
-        if (docId && activeRequirements[docId]?.includes(index)) {
-          // Add a field for document type selection
-          nestedSchema[`requirement_${index}_docType`] = z
-            .string()
-            .nonempty('Document type is required');
-          // Add a field for file upload
-          nestedSchema[`requirement_${index}_files`] = z
-            .array(z.instanceof(File))
-            .nonempty('Document is required');
+        // Remove the activeRequirements condition to include all possible fields
+
+        // Calculate how many document fields we need
+        const remainingNeeded = Math.max(
+          (requirement.minRequired || 1) -
+            requirement.documentTypes.filter((docType) =>
+              satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+            ).length,
+          0
+        );
+
+        // If documents are still needed, create the required fields
+        if (remainingNeeded > 0) {
+          // Use fixed number of fields based on requirement
+          const numFieldsToShow = requirement.minRequired || 1;
+
+          // Create fields for each document upload
+          for (let i = 0; i < numFieldsToShow; i += 1) {
+            const fieldSuffix = i > 0 ? `_${i}` : '';
+            // Add a field for document type selection
+            nestedSchema[`requirement_${index}_docType${fieldSuffix}`] = z
+              .string()
+              .optional(); // Make optional instead of required
+            // Add a field for file upload
+            nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
+              .array(z.instanceof(File))
+              .optional(); // Make optional instead of required
+          }
         }
       });
 
@@ -174,12 +197,24 @@ export const DocumentUploadStepForm = ({
     return z.object(schema);
   }, [
     JSON.stringify(documentRequestsQueries?.data),
-    JSON.stringify(activeRequirements),
+    JSON.stringify(satisfiedDocTypes),
+    // Remove activeRequirements dependency to avoid schema recreation when steps change
   ]);
 
   const form = useForm<z.infer<typeof DocumentUploadSchema>>({
     resolver: zodResolver(DocumentUploadSchema),
+    mode: 'onChange', // Add this to validate on change
   });
+
+  // Add useEffect to trigger validation when form state needs updating
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      // Trigger validation manually after schema changes
+      form.trigger();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [JSON.stringify(activeRequirements), form]);
 
   // Watch form values to evaluate requirements
   const formValues = useWatch({
@@ -192,27 +227,56 @@ export const DocumentUploadStepForm = ({
 
     const newUploadedDocs: Record<string, UploadedDocument[]> = {};
     const newSatisfiedDocTypes: DocumentTypeSmbdo[] = [];
+    const newRequirementDocTypes: Record<
+      string,
+      Record<number, DocumentTypeSmbdo[]>
+    > = {};
 
     // Process form values to extract uploaded documents
     Object.entries(formValues).forEach(([docRequestId, requirementValues]) => {
       newUploadedDocs[docRequestId] = [];
+      // Initialize the object for this document request
+      newRequirementDocTypes[docRequestId] = {};
 
       Object.entries(requirementValues as Record<string, any>).forEach(
         ([fieldName, value]) => {
-          if (fieldName.endsWith('_docType') && value) {
-            const reqIndex = parseInt(fieldName.split('_')[1], 10);
-            const filesFieldName = `requirement_${reqIndex}_files`;
+          if (fieldName.includes('_docType') && value) {
+            // Extract requirement index and suffix from field name
+            const reqParts = fieldName.split('_');
+            const reqIndex = parseInt(reqParts[1], 10);
+
+            // Determine if this is a suffixed field
+            const fieldBase = `requirement_${reqIndex}_files`;
+            const fieldSuffix = fieldName.replace(
+              `requirement_${reqIndex}_docType`,
+              ''
+            );
+            const filesFieldName = `${fieldBase}${fieldSuffix}`;
+
             const files = (requirementValues as any)[filesFieldName];
 
             if (files && files.length > 0) {
+              const docType = value as DocumentTypeSmbdo;
               newUploadedDocs[docRequestId].push({
-                documentType: value as DocumentTypeSmbdo,
+                documentType: docType,
                 files,
               });
 
               // Add to satisfied document types
-              if (!newSatisfiedDocTypes.includes(value as DocumentTypeSmbdo)) {
-                newSatisfiedDocTypes.push(value as DocumentTypeSmbdo);
+              if (!newSatisfiedDocTypes.includes(docType)) {
+                newSatisfiedDocTypes.push(docType);
+              }
+
+              // Track which document types were uploaded for each requirement
+              if (!newRequirementDocTypes[docRequestId][reqIndex]) {
+                newRequirementDocTypes[docRequestId][reqIndex] = [];
+              }
+              if (
+                !newRequirementDocTypes[docRequestId][reqIndex].includes(
+                  docType
+                )
+              ) {
+                newRequirementDocTypes[docRequestId][reqIndex].push(docType);
               }
             }
           }
@@ -221,6 +285,7 @@ export const DocumentUploadStepForm = ({
     });
 
     setSatisfiedDocTypes(newSatisfiedDocTypes);
+    setRequirementDocTypes(newRequirementDocTypes);
 
     // Evaluate which requirements should be active
     const newActiveReqs = { ...activeRequirements };
@@ -230,102 +295,154 @@ export const DocumentUploadStepForm = ({
 
       const docId = docRequest.id;
 
-      // Always keep the first requirement active
+      // Always keep the first requirement active if nothing is satisfied yet
       if (!newActiveReqs[docId]) {
         newActiveReqs[docId] = [0];
       }
 
-      // Check if we need to activate more requirements
+      // Check each requirement to find the first unsatisfied one
       if (docRequest.requirements) {
+        let foundActiveStep = false;
+
+        // First pass: determine if any steps are fully satisfied
+        const satisfiedSteps: number[] = [];
         docRequest.requirements.forEach((requirement, reqIndex) => {
-          // Skip the first requirement as it's always active
-          if (reqIndex === 0) return;
+          // Count how many documents of the required types have been uploaded
+          const uploadedDocsOfRequiredTypes =
+            newUploadedDocs[docId]?.filter((doc: UploadedDocument) =>
+              requirement.documentTypes.includes(doc.documentType)
+            ).length || 0;
 
-          // Check if previous requirements are satisfied
-          const prevRequirementsSatisfied = docRequest.requirements
-            ? docRequest.requirements.slice(0, reqIndex).every((prevReq) => {
-                // Count how many documents of the required types have been uploaded
-                const uploadedDocsOfRequiredTypes =
-                  newUploadedDocs[docId]?.filter((doc: UploadedDocument) =>
-                    prevReq.documentTypes.includes(doc.documentType)
-                  ).length || 0;
-
-                return (
-                  uploadedDocsOfRequiredTypes >= (prevReq.minRequired || 1)
-                );
-              })
-            : false;
-
-          // If previous requirements are satisfied, activate this requirement
-          if (prevRequirementsSatisfied) {
-            if (!newActiveReqs[docId].includes(reqIndex)) {
-              newActiveReqs[docId].push(reqIndex);
-            }
-          } else {
-            // If not satisfied, deactivate this requirement
-            newActiveReqs[docId] = newActiveReqs[docId].filter(
-              (idx: number) => idx !== reqIndex
-            );
+          // If this step is satisfied, mark it
+          if (uploadedDocsOfRequiredTypes >= (requirement.minRequired || 1)) {
+            satisfiedSteps.push(reqIndex);
           }
         });
+
+        // Second pass: find the first unsatisfied step to make active
+        for (
+          let reqIndex = 0;
+          reqIndex < docRequest.requirements.length;
+          reqIndex += 1
+        ) {
+          // If this step is not satisfied, make it the active one
+          if (!satisfiedSteps.includes(reqIndex)) {
+            // Only make this step active if all previous steps are satisfied
+            const allPreviousSatisfied =
+              reqIndex === 0 ||
+              docRequest.requirements
+                .slice(0, reqIndex)
+                .every((_, idx) => satisfiedSteps.includes(idx));
+
+            if (allPreviousSatisfied) {
+              newActiveReqs[docId] = [reqIndex];
+              foundActiveStep = true;
+              break;
+            }
+          }
+        }
+
+        // If all steps are satisfied, keep the last one active
+        if (!foundActiveStep && docRequest.requirements.length > 0) {
+          if (satisfiedSteps.length === docRequest.requirements.length) {
+            // All steps are satisfied, don't keep any active to show them all as completed
+            newActiveReqs[docId] = [];
+          } else {
+            // Default to the first step if something went wrong with our logic
+            newActiveReqs[docId] = [0];
+          }
+        }
       }
     });
 
     setActiveRequirements(newActiveReqs);
   }, [formValues, documentRequestsQueries?.data]);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async () => {
+    // Clear any potential stale errors before submitting
+    form.clearErrors();
+
+    // Use form.getValues() directly instead of the values passed to the handler
+    const values = form.getValues();
+
     try {
-      // Convert files to base64 and upload them
+      // Step 1: Upload all documents for all document requests first
+      const documentRequestIds: string[] = [];
+
       for (const [documentRequestId, requirementValues] of Object.entries(
         values
       )) {
-        const docRequestUploads: Record<string, File[]> = {};
+        documentRequestIds.push(documentRequestId);
 
-        // Process form values to extract document types and files
+        // Create a more direct mapping of document type to files to ensure each document is uploaded
+        const documentUploads: { documentType: string; file: File }[] = [];
+
+        // Process form values to extract document types and files directly
         Object.entries(requirementValues as Record<string, any>).forEach(
           ([fieldName, value]) => {
-            if (fieldName.endsWith('_docType') && value) {
-              const reqIndex = parseInt(fieldName.split('_')[1], 10);
-              const filesFieldName = `requirement_${reqIndex}_files`;
+            if (fieldName.includes('_docType') && value) {
+              // Extract requirement index and suffix from field name
+              const reqParts = fieldName.split('_');
+              const reqIndex = parseInt(reqParts[1], 10);
+
+              // Determine if this is a suffixed field
+              const fieldBase = `requirement_${reqIndex}_files`;
+              const fieldSuffix = fieldName.replace(
+                `requirement_${reqIndex}_docType`,
+                ''
+              );
+              const filesFieldName = `${fieldBase}${fieldSuffix}`;
+
               const files = (requirementValues as any)[filesFieldName];
 
               if (files && files.length > 0) {
-                docRequestUploads[value as string] = files;
+                // For each file, create a direct mapping to document type
+                files.forEach((file: File) => {
+                  documentUploads.push({
+                    documentType: value as string,
+                    file,
+                  });
+                });
               }
             }
           }
         );
 
-        // Upload files for each document type
-        for (const [documentType, files] of Object.entries(docRequestUploads)) {
-          for (const file of files as File[]) {
-            const base64Content = await new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                const base64 = reader.result as string;
-                resolve(base64.split(',')[1]); // Remove data URL prefix
-              };
-              reader.readAsDataURL(file);
-            });
-
-            const documentData: PostUploadDocument = {
-              requestId: generateRequestId(),
-              documentContent: base64Content,
-              documentName: file.name,
-              documentType,
-              documentMetadata: {
-                documentRequestId,
-              },
+        // Upload each document individually
+        for (const { documentType, file } of documentUploads) {
+          const base64Content = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result as string;
+              resolve(base64.split(',')[1]); // Remove data URL prefix
             };
+            reader.readAsDataURL(file);
+          });
 
-            await uploadDocumentMutation.mutateAsync({ data: documentData });
-          }
+          const documentData: PostUploadDocument = {
+            requestId: generateRequestId(),
+            documentContent: base64Content,
+            documentName: file.name,
+            documentType,
+            documentMetadata: {
+              documentRequestId,
+            },
+          };
+
+          await uploadDocumentMutation.mutateAsync({ data: documentData });
         }
+      }
 
-        await submitDocumentMutation.mutateAsync({
-          id: documentRequestId,
-        });
+      // Step 2: After all uploads are complete, submit each document request
+      // Only if we have request IDs to submit
+      if (documentRequestIds.length > 0) {
+        // If no new documents to upload but we have satisfied requirements,
+        // we still need to submit the document requests
+        for (const documentRequestId of documentRequestIds) {
+          await submitDocumentMutation.mutateAsync({
+            id: documentRequestId,
+          });
+        }
       }
 
       // Invalidate both client and document request queries
@@ -344,6 +461,97 @@ export const DocumentUploadStepForm = ({
       toast.error('Error uploading document');
     }
   });
+
+  const resetForm = () => {
+    form.reset();
+    setSatisfiedDocTypes([]);
+    setRequirementDocTypes({});
+
+    // Reset active requirements to initial state (first requirement active)
+    const initialActiveReqs: Record<string, number[]> = {};
+    documentRequestsQueries.data.forEach((docRequest) => {
+      if (docRequest?.id) {
+        initialActiveReqs[docRequest.id] = [0];
+      }
+    });
+    setActiveRequirements(initialActiveReqs);
+
+    toast.success('Form has been reset');
+  };
+
+  // Additional check to see if all requirements are satisfied
+  const allRequirementsSatisfied = useMemo(() => {
+    if (!documentRequestsQueries?.data?.length) return false;
+
+    // Helper to determine if a requirement should be considered completed based on UI logic
+    const isRequirementCompletedInUI = (
+      docRequest: DocumentRequestResponse,
+      reqIndex: number
+    ) => {
+      if (!docRequest?.id) return false;
+
+      // Check if this requirement is active in the UI
+      const isActive = activeRequirements[docRequest.id]?.includes(reqIndex);
+      if (isActive) return false; // Active requirements aren't considered completed yet
+
+      const requirement = docRequest.requirements?.[reqIndex];
+      if (!requirement) return false;
+
+      // Count how many documents of the required types have been uploaded
+      const satisfiedDocCount = requirement.documentTypes.filter((docType) =>
+        satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+      ).length;
+
+      // This matches the UI logic for showing a requirement as completed
+      const isPastRequirement =
+        satisfiedDocCount > 0 &&
+        (satisfiedDocCount === requirement.documentTypes.length ||
+          satisfiedDocCount >= (requirement.minRequired || 1));
+
+      return isPastRequirement;
+    };
+
+    // Check if there are any document requests that have unsatisfied requirements
+    const result = documentRequestsQueries.data.every((docRequest) => {
+      if (!docRequest?.id || !docRequest.requirements?.length) return true;
+
+      // For this document request, check each requirement
+      const requirementsSatisfied = docRequest.requirements.every(
+        (requirement, reqIndex) => {
+          // Count how many documents of the required types have been uploaded
+          const satisfiedDocCount = requirement.documentTypes.filter(
+            (docType) =>
+              satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+          ).length;
+
+          const minRequired = requirement.minRequired || 1;
+
+          // Check if this requirement is active
+          const isActive =
+            docRequest.id &&
+            activeRequirements[docRequest.id]?.includes(reqIndex);
+
+          // Check if UI would show this as completed
+          const isCompletedInUI = isRequirementCompletedInUI(
+            docRequest,
+            reqIndex
+          );
+
+          // A requirement is satisfied if:
+          // 1. It has enough satisfied document types to meet the minimum requirement, OR
+          // 2. It's shown as completed in the UI
+          const isSatisfied =
+            satisfiedDocCount >= minRequired || isCompletedInUI || !isActive;
+
+          return isSatisfied;
+        }
+      );
+
+      return requirementsSatisfied;
+    });
+
+    return result;
+  }, [documentRequestsQueries?.data, satisfiedDocTypes, activeRequirements]);
 
   if (documentRequestsQueries?.pending) {
     return <FormLoadingState message="Fetching document requests..." />;
@@ -398,6 +606,17 @@ export const DocumentUploadStepForm = ({
                       </p>
                     ))}
                 </div>
+                <div className="eb-flex eb-justify-end eb-px-4 eb-pb-0 eb-pt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={resetForm}
+                    className="eb-flex eb-items-center eb-gap-1 eb-text-xs"
+                  >
+                    <RefreshCw className="eb-h-3 eb-w-3" /> Reset form
+                  </Button>
+                </div>
                 <div className="eb-space-y-6 eb-p-4">
                   {documentRequest?.requirements?.map(
                     (requirement, requirementIndex) => {
@@ -407,49 +626,127 @@ export const DocumentUploadStepForm = ({
                         docId &&
                         activeRequirements[docId]?.includes(requirementIndex);
 
+                      // Count how many document types are already satisfied
+                      const satisfiedCount = requirement.documentTypes.filter(
+                        (docType) =>
+                          isDocTypeSatisfied(docType as DocumentTypeSmbdo)
+                      ).length;
+
+                      // Calculate how many document fields we need based on requirement
+                      const numFieldsToShow = Math.max(
+                        (requirement.minRequired || 1) - satisfiedCount,
+                        0
+                      );
+
+                      // Get list of satisfied doc types for this requirement
+                      const allSatisfiedDocTypesForReq =
+                        requirement.documentTypes.filter((docType) =>
+                          isDocTypeSatisfied(docType as DocumentTypeSmbdo)
+                        );
+
+                      const numFieldsToShowForReq =
+                        numFieldsToShow +
+                        (allSatisfiedDocTypesForReq.length > 0
+                          ? allSatisfiedDocTypesForReq.length - 1
+                          : 0);
+
+                      // Get document types that were specifically uploaded for this requirement
+                      const docTypesForThisRequirement =
+                        (documentRequest?.id &&
+                          requirementDocTypes[documentRequest.id]?.[
+                            requirementIndex
+                          ]) ||
+                        [];
+
+                      // For display, show only document types specifically uploaded for this requirement
+                      // If none found, fall back to all satisfied doc types for this requirement
+                      const displayedDocTypes =
+                        docTypesForThisRequirement.length > 0
+                          ? docTypesForThisRequirement
+                          : allSatisfiedDocTypesForReq;
+
                       // If not active, show a summary instead
                       if (!isActive) {
+                        // Check if this is a past (completed) requirement or future requirement
+                        const isPastRequirement =
+                          satisfiedCount > 0 &&
+                          (satisfiedCount ===
+                            requirement.documentTypes.length ||
+                            numFieldsToShow === 0);
+
                         return (
                           <div
                             key={`${requirementIndex}-summary`}
-                            className="eb-rounded-md eb-border eb-border-gray-200 eb-bg-gray-50 eb-p-3"
+                            className="eb-rounded-md eb-border eb-border-gray-200 eb-p-3"
                           >
-                            <h4 className="eb-mb-2 eb-text-sm eb-font-medium eb-text-gray-700">
-                              Requirement {requirementIndex + 1}: Upload{' '}
-                              {requirement.minRequired} of the following
-                              document types
+                            <h4 className="eb-text-sm eb-font-medium eb-text-gray-700">
+                              {isPastRequirement ? (
+                                // Past requirement (completed)
+                                <span className="eb-flex eb-items-center">
+                                  <CheckCircle className="eb-mr-2 eb-h-4 eb-w-4 eb-text-green-600" />
+                                  <span className="eb-font-medium">
+                                    Step {requirementIndex + 1}.
+                                  </span>
+                                  <span className="eb-normal eb-ml-1">
+                                    Already provided:
+                                  </span>
+                                  <span className="eb-ml-1 eb-inline-flex eb-flex-wrap eb-gap-1">
+                                    {displayedDocTypes.map((docType) => (
+                                      <span
+                                        key={docType}
+                                        className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-green-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-green-800"
+                                      >
+                                        {DOCUMENT_TYPE_MAPPING[
+                                          docType as DocumentTypeSmbdo
+                                        ]?.label || docType}
+                                      </span>
+                                    ))}
+                                  </span>
+                                </span>
+                              ) : (
+                                // Future requirement
+                                <div className="eb-flex eb-items-center">
+                                  <CircleDashed className="eb-mr-2 eb-h-4 eb-w-4 eb-text-gray-400" />
+                                  <span className="eb-font-medium">
+                                    Step {requirementIndex + 1}.
+                                  </span>
+                                  <span className="eb-ml-2 eb-text-gray-500">
+                                    Pending completion of previous steps
+                                  </span>
+                                </div>
+                              )}
                             </h4>
-                            <div className="eb-flex eb-flex-wrap eb-gap-2">
-                              {requirement.documentTypes.map((docType) => (
-                                <Badge
-                                  key={docType}
-                                  variant={
-                                    isDocTypeSatisfied(
-                                      docType as DocumentTypeSmbdo
-                                    )
-                                      ? 'success'
-                                      : 'outline'
-                                  }
-                                  className={
-                                    isDocTypeSatisfied(
-                                      docType as DocumentTypeSmbdo
-                                    )
-                                      ? 'eb-border-green-200 eb-bg-green-100 eb-text-green-800'
-                                      : 'eb-bg-gray-100 eb-text-gray-800'
-                                  }
-                                >
-                                  {DOCUMENT_TYPE_MAPPING[
-                                    docType as DocumentTypeSmbdo
-                                  ]?.label || docType}
-                                  {isDocTypeSatisfied(
-                                    docType as DocumentTypeSmbdo
-                                  ) && ' ✓'}
-                                </Badge>
-                              ))}
-                            </div>
                           </div>
                         );
                       }
+
+                      // Filter document types to only include ones not yet satisfied
+                      const availableDocTypes =
+                        requirement.documentTypes.filter((docType) => {
+                          const docTypeStr = docType as DocumentTypeSmbdo;
+                          // Keep document types that:
+                          // 1. Are not yet satisfied globally, OR
+                          // 2. Are currently selected in this requirement's form fields
+
+                          // Check if this document type is currently selected in any field
+                          const isSelectedInForm = Array.from({
+                            length: numFieldsToShowForReq,
+                          }).some((_, idx) => {
+                            const fieldName = `${documentRequest?.id}.requirement_${requirementIndex}_docType${idx > 0 ? `_${idx}` : ''}`;
+                            return form.watch(fieldName) === docTypeStr;
+                          });
+
+                          return (
+                            !isDocTypeSatisfied(docTypeStr) || isSelectedInForm
+                          );
+                        });
+
+                      // Get only document types that haven't been satisfied yet for display
+                      const unsatisfiedDocTypes =
+                        requirement.documentTypes.filter(
+                          (docType) =>
+                            !isDocTypeSatisfied(docType as DocumentTypeSmbdo)
+                        );
 
                       return (
                         <div
@@ -457,133 +754,193 @@ export const DocumentUploadStepForm = ({
                           className="eb-rounded-md eb-border eb-border-gray-200 eb-p-4"
                         >
                           <h4 className="eb-mb-3 eb-text-sm eb-font-medium eb-text-gray-700">
-                            Requirement {requirementIndex + 1}: Upload{' '}
-                            {requirement.minRequired} of the following document
-                            types
+                            <div className="eb-flex eb-items-center">
+                              <ArrowRight className="eb-mr-2 eb-h-4 eb-w-4 eb-text-amber-600" />
+                              <span className="eb-font-medium">
+                                Step {requirementIndex + 1}.
+                              </span>
+                              {numFieldsToShow > 0 ? (
+                                <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
+                                  Upload {numFieldsToShow} of the following
+                                  document types
+                                </span>
+                              ) : (
+                                <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
+                                  All required documents provided
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
+                              {unsatisfiedDocTypes.map((docType) => (
+                                <span
+                                  key={docType}
+                                  className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-800"
+                                >
+                                  {DOCUMENT_TYPE_MAPPING[
+                                    docType as DocumentTypeSmbdo
+                                  ]?.label || docType}
+                                </span>
+                              ))}
+                            </div>
                           </h4>
 
-                          {/* Document Type Selection */}
-                          <FormField
-                            control={form.control}
-                            name={`${documentRequest?.id}.requirement_${requirementIndex}_docType`}
-                            render={({ field }) => (
-                              <FormItem className="eb-mb-4">
-                                <FormLabel
-                                  asterisk
-                                  className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                >
-                                  Select Document Type
-                                </FormLabel>
-                                <FormControl>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
+                          {/* Only show the form if there are still document types to choose from and documents needed */}
+                          {availableDocTypes.length > 0 &&
+                          numFieldsToShowForReq > 0 ? (
+                            <>
+                              {/* Show fixed number of upload sections based on requirement */}
+                              {Array.from({
+                                length: numFieldsToShowForReq,
+                              }).map((_, uploadIndex) => {
+                                // Get the current field name to maintain selection state
+                                const docTypeFieldName = `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
+                                const selectedValue =
+                                  form.watch(docTypeFieldName);
+
+                                return (
+                                  <div
+                                    key={`upload-section-${uploadIndex}`}
+                                    className="eb-mb-6"
                                   >
-                                    <SelectTrigger className="eb-w-full">
-                                      <SelectValue placeholder="Select a document type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {requirement.documentTypes.map(
-                                        (docType) => (
-                                          <SelectItem
-                                            key={docType}
-                                            value={docType}
-                                            disabled={
-                                              isDocTypeSatisfied(
-                                                docType as DocumentTypeSmbdo
-                                              ) && field.value !== docType
-                                            }
+                                    <div className="eb-mb-2 eb-flex eb-items-center">
+                                      <span className="eb-rounded-full eb-bg-amber-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-amber-800">
+                                        Document {uploadIndex + 1} of{' '}
+                                        {numFieldsToShowForReq}
+                                      </span>
+                                    </div>
+
+                                    {/* Document Type Selection */}
+                                    <FormField
+                                      control={form.control}
+                                      name={docTypeFieldName}
+                                      render={({ field }) => (
+                                        <FormItem className="eb-mb-4">
+                                          <FormLabel
+                                            asterisk
+                                            className="eb-text-sm eb-font-medium eb-text-gray-700"
                                           >
-                                            {DOCUMENT_TYPE_MAPPING[
-                                              docType as DocumentTypeSmbdo
-                                            ]?.label || docType}
-                                            {isDocTypeSatisfied(
-                                              docType as DocumentTypeSmbdo
-                                            ) && ' ✓'}
-                                          </SelectItem>
-                                        )
+                                            Select Document Type
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Select
+                                              onValueChange={field.onChange}
+                                              value={
+                                                field.value || selectedValue
+                                              }
+                                            >
+                                              <SelectTrigger className="eb-w-full">
+                                                <SelectValue placeholder="Select a document type" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {availableDocTypes.map(
+                                                  (docType) => (
+                                                    <SelectItem
+                                                      key={docType}
+                                                      value={docType}
+                                                    >
+                                                      {DOCUMENT_TYPE_MAPPING[
+                                                        docType as DocumentTypeSmbdo
+                                                      ]?.label || docType}
+                                                    </SelectItem>
+                                                  )
+                                                )}
+                                              </SelectContent>
+                                            </Select>
+                                          </FormControl>
+                                          <FormMessage className="eb-text-xs" />
+                                        </FormItem>
                                       )}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage className="eb-text-xs" />
-                              </FormItem>
-                            )}
-                          />
+                                    />
 
-                          {/* File Upload */}
-                          <FormField
-                            control={form.control}
-                            name={`${documentRequest?.id}.requirement_${requirementIndex}_files`}
-                            render={({
-                              field: { onChange, ...fieldProps },
-                            }) => {
-                              // Get the selected document type
-                              const selectedDocType = form.watch(
-                                `${documentRequest?.id}.requirement_${requirementIndex}_docType`
-                              );
-
-                              return (
-                                <FormItem className="eb-space-y-2">
-                                  <FormLabel
-                                    asterisk
-                                    className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                  >
-                                    Upload Document
-                                  </FormLabel>
-                                  {selectedDocType && (
-                                    <FormDescription className="eb-text-xs eb-text-gray-500">
-                                      {DOCUMENT_TYPE_MAPPING[
-                                        selectedDocType as DocumentTypeSmbdo
-                                      ]?.description || ''}
-                                    </FormDescription>
-                                  )}
-                                  <FormControl>
-                                    <Dropzone
-                                      containerClassName="eb-max-w-full"
-                                      {...fieldProps}
-                                      multiple={
-                                        (requirement.minRequired ?? 0) > 1
-                                      }
-                                      accept={{
-                                        'application/pdf': ['.pdf'],
-                                        'image/jpeg': ['.jpeg', '.jpg'],
-                                        'image/png': ['.png'],
-                                        'image/gif': ['.gif'],
-                                        'image/bmp': ['.bmp'],
-                                        'image/tiff': ['.tiff', '.tif'],
-                                        'image/webp': ['.webp'],
-                                      }}
-                                      onChange={(files) => {
-                                        const maxSize = 2 * 1024 * 1024; // 2 MB
-                                        const validFiles = files.filter(
-                                          (file) => {
-                                            if (file.size > maxSize) {
-                                              form.setError(
-                                                `${documentRequest?.id}.requirement_${requirementIndex}_files`,
-                                                {
-                                                  message:
-                                                    'Each file must be less than 2MB',
-                                                }
-                                              );
-                                              return false;
-                                            }
-                                            form.clearErrors(
-                                              `${documentRequest?.id}.requirement_${requirementIndex}_files`
-                                            );
-
-                                            return true;
-                                          }
+                                    {/* File Upload */}
+                                    <FormField
+                                      control={form.control}
+                                      name={`${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`}
+                                      render={({
+                                        field: { onChange, ...fieldProps },
+                                      }) => {
+                                        // Get the selected document type
+                                        const selectedDocType = form.watch(
+                                          `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
                                         );
-                                        onChange(validFiles);
+
+                                        return (
+                                          <FormItem className="eb-space-y-2">
+                                            <FormLabel
+                                              asterisk
+                                              className="eb-text-sm eb-font-medium eb-text-gray-700"
+                                            >
+                                              Upload Document
+                                            </FormLabel>
+                                            {selectedDocType && (
+                                              <FormDescription className="eb-text-xs eb-text-gray-500">
+                                                {DOCUMENT_TYPE_MAPPING[
+                                                  selectedDocType as DocumentTypeSmbdo
+                                                ]?.description || ''}
+                                              </FormDescription>
+                                            )}
+                                            <FormControl>
+                                              <Dropzone
+                                                containerClassName="eb-max-w-full"
+                                                {...fieldProps}
+                                                multiple={false}
+                                                accept={{
+                                                  'application/pdf': ['.pdf'],
+                                                  'image/jpeg': [
+                                                    '.jpeg',
+                                                    '.jpg',
+                                                  ],
+                                                  'image/png': ['.png'],
+                                                  'image/gif': ['.gif'],
+                                                  'image/bmp': ['.bmp'],
+                                                  'image/tiff': [
+                                                    '.tiff',
+                                                    '.tif',
+                                                  ],
+                                                  'image/webp': ['.webp'],
+                                                }}
+                                                onChange={(files) => {
+                                                  const maxSize =
+                                                    5 * 1024 * 1024; // 5 MB
+                                                  const validFiles =
+                                                    files.filter((file) => {
+                                                      if (file.size > maxSize) {
+                                                        form.setError(
+                                                          `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`,
+                                                          {
+                                                            message:
+                                                              'Each file must be less than 5MB',
+                                                          }
+                                                        );
+                                                        return false;
+                                                      }
+                                                      form.clearErrors(
+                                                        `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
+                                                      );
+
+                                                      return true;
+                                                    });
+                                                  onChange(validFiles);
+                                                }}
+                                              />
+                                            </FormControl>
+                                            <FormMessage className="eb-text-xs" />
+                                          </FormItem>
+                                        );
                                       }}
                                     />
-                                  </FormControl>
-                                  <FormMessage className="eb-text-xs" />
-                                </FormItem>
-                              );
-                            }}
-                          />
+                                  </div>
+                                );
+                              })}
+                            </>
+                          ) : (
+                            // Show message when all requirements are met
+                            <div className="eb-rounded-md eb-bg-green-50 eb-p-2 eb-text-sm eb-font-medium eb-text-green-700">
+                              All document types for this requirement have been
+                              provided. You can proceed to the next step.
+                            </div>
+                          )}
                         </div>
                       );
                     }
@@ -594,18 +951,37 @@ export const DocumentUploadStepForm = ({
           );
         })}
 
-        <div className="eb-mt-2 eb-flex eb-w-full eb-justify-end">
+        <div className="eb-mt-2 eb-flex eb-w-full eb-items-center eb-justify-end">
           {!standalone && <FormActions />}
           {standalone && filteredDocumentRequests?.length !== 0 && (
-            <Button
-              type="submit"
-              disabled={!form.formState.isValid || form.formState.isSubmitting}
-              className="eb-ml-auto"
-            >
-              {form.formState.isSubmitting
-                ? 'Uploading...'
-                : 'Upload Documents'}
-            </Button>
+            <>
+              <div className="eb-mr-auto eb-flex eb-items-center">
+                {allRequirementsSatisfied ? (
+                  <div className="eb-flex eb-items-center eb-text-sm eb-text-green-600">
+                    <CheckCircle className="eb-mr-1 eb-h-4 eb-w-4" />
+                    All required documents ready to upload
+                  </div>
+                ) : (
+                  <div className="eb-flex eb-items-center eb-text-sm eb-text-amber-600">
+                    <CircleDashed className="eb-mr-1 eb-h-4 eb-w-4" />
+                    Please complete all required documents
+                  </div>
+                )}
+              </div>
+              <Button
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting || !allRequirementsSatisfied
+                }
+                className="eb-ml-4"
+              >
+                {form.formState.isSubmitting
+                  ? 'Uploading...'
+                  : !allRequirementsSatisfied
+                    ? 'Complete All Required Documents'
+                    : 'Upload Documents'}
+              </Button>
+            </>
           )}
         </div>
       </form>
