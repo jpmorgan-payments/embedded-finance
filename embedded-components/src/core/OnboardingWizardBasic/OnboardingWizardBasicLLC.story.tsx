@@ -296,6 +296,22 @@ AdditionalDocumentsRequested.parameters = {
           traceId: `doc-${Math.random().toString(36).substring(7)}`,
         });
       }),
+      http.post('/document-requests/:requestId/submit', ({ params }) => {
+        console.log(
+          `Document request ${params.requestId} submitted successfully`
+        );
+        return new HttpResponse(
+          JSON.stringify({
+            acceptedAt: new Date().toISOString(),
+          }),
+          {
+            status: 202,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }),
     ],
   },
 };
@@ -331,6 +347,22 @@ AdditionalDocumentsRequestedComplex.parameters = {
           traceId: `doc-${Math.random().toString(36).substring(7)}`,
         });
       }),
+      http.post('/document-requests/:requestId/submit', ({ params }) => {
+        console.log(
+          `Document request ${params.requestId} submitted successfully`
+        );
+        return new HttpResponse(
+          JSON.stringify({
+            acceptedAt: new Date().toISOString(),
+          }),
+          {
+            status: 202,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }),
     ],
   },
 };
@@ -365,6 +397,22 @@ ClientStatusChangeSimulation.parameters = {
           requestId: Math.random().toString(36).substring(7),
           traceId: `doc-${Math.random().toString(36).substring(7)}`,
         });
+      }),
+      http.post('/document-requests/:requestId/submit', ({ params }) => {
+        console.log(
+          `Document request ${params.requestId} submitted successfully`
+        );
+        return new HttpResponse(
+          JSON.stringify({
+            acceptedAt: new Date().toISOString(),
+          }),
+          {
+            status: 202,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
       }),
     ],
   },

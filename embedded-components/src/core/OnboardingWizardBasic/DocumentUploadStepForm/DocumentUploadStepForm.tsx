@@ -159,36 +159,35 @@ export const DocumentUploadStepForm = ({
       }
       const nestedSchema: Record<string, z.ZodType<any>> = {};
 
-      // Only include active requirements in the schema
+      // Include all requirements in the schema, not just active ones
       documentRequest?.requirements?.forEach((requirement, index) => {
-        const docId = documentRequest.id;
-        if (docId && activeRequirements[docId]?.includes(index)) {
-          // Calculate how many document fields we need
-          const remainingNeeded = Math.max(
-            (requirement.minRequired || 1) -
-              requirement.documentTypes.filter((docType) =>
-                satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
-              ).length,
-            0
-          );
+        // Remove the activeRequirements condition to include all possible fields
 
-          // If documents are still needed, create the required fields
-          if (remainingNeeded > 0) {
-            // Use fixed number of fields based on requirement
-            const numFieldsToShow = requirement.minRequired || 1;
+        // Calculate how many document fields we need
+        const remainingNeeded = Math.max(
+          (requirement.minRequired || 1) -
+            requirement.documentTypes.filter((docType) =>
+              satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+            ).length,
+          0
+        );
 
-            // Create fields for each document upload
-            for (let i = 0; i < numFieldsToShow; i += 1) {
-              const fieldSuffix = i > 0 ? `_${i}` : '';
-              // Add a field for document type selection
-              nestedSchema[`requirement_${index}_docType${fieldSuffix}`] = z
-                .string()
-                .nonempty('Document type is required');
-              // Add a field for file upload
-              nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
-                .array(z.instanceof(File))
-                .nonempty('Document is required');
-            }
+        // If documents are still needed, create the required fields
+        if (remainingNeeded > 0) {
+          // Use fixed number of fields based on requirement
+          const numFieldsToShow = requirement.minRequired || 1;
+
+          // Create fields for each document upload
+          for (let i = 0; i < numFieldsToShow; i += 1) {
+            const fieldSuffix = i > 0 ? `_${i}` : '';
+            // Add a field for document type selection
+            nestedSchema[`requirement_${index}_docType${fieldSuffix}`] = z
+              .string()
+              .optional(); // Make optional instead of required
+            // Add a field for file upload
+            nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
+              .array(z.instanceof(File))
+              .optional(); // Make optional instead of required
           }
         }
       });
@@ -198,13 +197,24 @@ export const DocumentUploadStepForm = ({
     return z.object(schema);
   }, [
     JSON.stringify(documentRequestsQueries?.data),
-    JSON.stringify(activeRequirements),
     JSON.stringify(satisfiedDocTypes),
+    // Remove activeRequirements dependency to avoid schema recreation when steps change
   ]);
 
   const form = useForm<z.infer<typeof DocumentUploadSchema>>({
     resolver: zodResolver(DocumentUploadSchema),
+    mode: 'onChange', // Add this to validate on change
   });
+
+  // Add useEffect to trigger validation when form state needs updating
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      // Trigger validation manually after schema changes
+      form.trigger();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [JSON.stringify(activeRequirements), form]);
 
   // Watch form values to evaluate requirements
   const formValues = useWatch({
@@ -348,15 +358,30 @@ export const DocumentUploadStepForm = ({
     setActiveRequirements(newActiveReqs);
   }, [formValues, documentRequestsQueries?.data]);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async () => {
+    // Clear any potential stale errors before submitting
+    form.clearErrors();
+
+    // Use form.getValues() directly instead of the values passed to the handler
+    const values = form.getValues();
+    console.log('values from getValues()', values);
+
     try {
-      // Convert files to base64 and upload them
+      // Step 1: Upload all documents for all document requests first
+      const documentRequestIds: string[] = [];
+
+      // Check if there are any actual documents to upload
+      let hasDocumentsToUpload = false;
+
       for (const [documentRequestId, requirementValues] of Object.entries(
         values
       )) {
-        const docRequestUploads: Record<string, File[]> = {};
+        documentRequestIds.push(documentRequestId);
 
-        // Process form values to extract document types and files
+        // Create a more direct mapping of document type to files to ensure each document is uploaded
+        const documentUploads: { documentType: string; file: File }[] = [];
+
+        // Process form values to extract document types and files directly
         Object.entries(requirementValues as Record<string, any>).forEach(
           ([fieldName, value]) => {
             if (fieldName.includes('_docType') && value) {
@@ -375,49 +400,63 @@ export const DocumentUploadStepForm = ({
               const files = (requirementValues as any)[filesFieldName];
 
               if (files && files.length > 0) {
-                if (!docRequestUploads[value as string]) {
-                  docRequestUploads[value as string] = [];
-                }
-                docRequestUploads[value as string] = [
-                  ...docRequestUploads[value as string],
-                  ...files,
-                ];
+                hasDocumentsToUpload = true;
+
+                // For each file, create a direct mapping to document type
+                files.forEach((file: File) => {
+                  documentUploads.push({
+                    documentType: value as string,
+                    file,
+                  });
+                });
               }
             }
           }
         );
 
-        console.log('form values', form.getValues());
+        console.log('documentUploads', documentUploads);
+        console.log('hasDocumentsToUpload', hasDocumentsToUpload);
+        console.log('Number of documents to upload:', documentUploads.length);
 
-        // Upload files for each document type
-        for (const [documentType, files] of Object.entries(docRequestUploads)) {
-          for (const file of files as File[]) {
-            const base64Content = await new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                const base64 = reader.result as string;
-                resolve(base64.split(',')[1]); // Remove data URL prefix
-              };
-              reader.readAsDataURL(file);
-            });
-
-            const documentData: PostUploadDocument = {
-              requestId: generateRequestId(),
-              documentContent: base64Content,
-              documentName: file.name,
-              documentType,
-              documentMetadata: {
-                documentRequestId,
-              },
+        // Upload each document individually
+        for (const { documentType, file } of documentUploads) {
+          const base64Content = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result as string;
+              resolve(base64.split(',')[1]); // Remove data URL prefix
             };
+            reader.readAsDataURL(file);
+          });
 
-            await uploadDocumentMutation.mutateAsync({ data: documentData });
-          }
+          const documentData: PostUploadDocument = {
+            requestId: generateRequestId(),
+            documentContent: base64Content,
+            documentName: file.name,
+            documentType,
+            documentMetadata: {
+              documentRequestId,
+            },
+          };
+
+          await uploadDocumentMutation.mutateAsync({ data: documentData });
         }
+      }
 
-        await submitDocumentMutation.mutateAsync({
-          id: documentRequestId,
-        });
+      // Step 2: After all uploads are complete, submit each document request
+      // Only if we have request IDs to submit
+      if (documentRequestIds.length > 0) {
+        console.log(
+          `Submitting ${documentRequestIds.length} document requests, hasDocumentsToUpload: ${hasDocumentsToUpload}`
+        );
+
+        // If no new documents to upload but we have satisfied requirements,
+        // we still need to submit the document requests
+        for (const documentRequestId of documentRequestIds) {
+          await submitDocumentMutation.mutateAsync({
+            id: documentRequestId,
+          });
+        }
       }
 
       // Invalidate both client and document request queries
@@ -453,6 +492,27 @@ export const DocumentUploadStepForm = ({
 
     toast.success('Form has been reset');
   };
+
+  // Additional check to see if all requirements are satisfied
+  const allRequirementsSatisfied = useMemo(() => {
+    if (!documentRequestsQueries?.data?.length) return false;
+
+    // Check if there are any document requests that have unsatisfied requirements
+    return documentRequestsQueries.data.every((docRequest) => {
+      if (!docRequest?.id || !docRequest.requirements?.length) return true;
+
+      // Check each requirement
+      return docRequest.requirements.every((requirement) => {
+        // Count how many documents of the required types have been uploaded
+        const satisfiedDocCount = requirement.documentTypes.filter((docType) =>
+          satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+        ).length;
+
+        // Requirement is satisfied if we have uploaded at least the minimum required docs
+        return satisfiedDocCount >= (requirement.minRequired || 1);
+      });
+    });
+  }, [documentRequestsQueries?.data, satisfiedDocTypes]);
 
   if (documentRequestsQueries?.pending) {
     return <FormLoadingState message="Fetching document requests..." />;
@@ -582,6 +642,10 @@ export const DocumentUploadStepForm = ({
                       console.log(
                         `displayedDocTypes: ${displayedDocTypes.length} types`
                       );
+
+                      console.log('form values', form.getValues());
+                      console.log('form errors', form.formState.errors);
+                      console.log('form isValid', form.formState.isValid);
 
                       // If not active, show a summary instead
                       if (!isActive) {
@@ -869,18 +933,37 @@ export const DocumentUploadStepForm = ({
           );
         })}
 
-        <div className="eb-mt-2 eb-flex eb-w-full eb-justify-end">
+        <div className="eb-mt-2 eb-flex eb-w-full eb-items-center eb-justify-end">
           {!standalone && <FormActions />}
           {standalone && filteredDocumentRequests?.length !== 0 && (
-            <Button
-              type="submit"
-              disabled={!form.formState.isValid || form.formState.isSubmitting}
-              className="eb-ml-auto"
-            >
-              {form.formState.isSubmitting
-                ? 'Uploading...'
-                : 'Upload Documents'}
-            </Button>
+            <>
+              <div className="eb-mr-auto eb-flex eb-items-center">
+                {allRequirementsSatisfied ? (
+                  <div className="eb-flex eb-items-center eb-text-sm eb-text-green-600">
+                    <CheckCircle className="eb-mr-1 eb-h-4 eb-w-4" />
+                    All required documents ready to upload
+                  </div>
+                ) : (
+                  <div className="eb-flex eb-items-center eb-text-sm eb-text-amber-600">
+                    <CircleDashed className="eb-mr-1 eb-h-4 eb-w-4" />
+                    Please complete all required documents
+                  </div>
+                )}
+              </div>
+              <Button
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting || !allRequirementsSatisfied
+                }
+                className="eb-ml-4"
+              >
+                {form.formState.isSubmitting
+                  ? 'Uploading...'
+                  : !allRequirementsSatisfied
+                    ? 'Complete All Required Documents'
+                    : 'Upload Documents'}
+              </Button>
+            </>
           )}
         </div>
       </form>
