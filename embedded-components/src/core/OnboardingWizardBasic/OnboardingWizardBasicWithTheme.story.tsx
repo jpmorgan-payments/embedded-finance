@@ -39,6 +39,7 @@ CustomTheme.args = {
       buttonFontSize: '1rem',
       buttonLineHeight: '1.5rem',
       inputBorderRadius: 'none',
+      shiftButtonOnActive: false,
     },
   },
 };

@@ -15,6 +15,7 @@ export type EBThemeVariables = {
   buttonFontWeight?: string;
   buttonFontSize?: string;
   buttonLineHeight?: string;
+  shiftButtonOnActive?: boolean;
   primaryButtonFontWeight?: string;
   secondaryButtonFontWeight?: string;
   destructiveButtonFontWeight?: string;

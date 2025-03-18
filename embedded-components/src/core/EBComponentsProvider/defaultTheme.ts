@@ -13,6 +13,7 @@ export const defaultTheme: EBTheme = {
     primaryBorderWidth: '0rem',
     secondaryBorderWidth: '0rem',
     destructiveBorderWidth: '0rem',
+    shiftButtonOnActive: true,
   },
   light: {
     backgroundColor: 'hsl(0 0% 100%)',

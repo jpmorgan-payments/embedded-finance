@@ -95,6 +95,9 @@ const convertThemeVariablesToCssVariables = (
     '--eb-primary-border-width': variables.primaryBorderWidth,
     '--eb-secondary-border-width': variables.secondaryBorderWidth,
     '--eb-destructive-border-width': variables.destructiveBorderWidth,
+    '--eb-button-translate-y-active': variables.shiftButtonOnActive
+      ? '1px'
+      : undefined,
   };
 
   Object.keys(cssVariablesObject).forEach(

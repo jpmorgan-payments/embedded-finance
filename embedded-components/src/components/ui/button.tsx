@@ -6,18 +6,18 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'eb-inline-flex eb-items-center eb-rounded-button eb-text-button eb-font-medium eb-button eb-justify-center eb-gap-2 eb-whitespace-nowrap eb-ring-offset-background eb-transition-colors focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 active:eb-translate-y-0.25 disabled:eb-pointer-events-none disabled:eb-opacity-50 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
+  'eb-inline-flex eb-items-center eb-rounded-button eb-text-button eb-font-medium eb-button eb-justify-center eb-gap-2 eb-whitespace-nowrap eb-ring-offset-background eb-transition-colors focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 active:eb-translate-y-[var(--eb-button-translate-y-active)] disabled:eb-pointer-events-none disabled:eb-opacity-50 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
   {
     variants: {
       variant: {
         default:
-          'eb-bg-primary hover:eb-text-primary-foreground-hover active:eb-text-primary-foreground-active eb-text-primary-foreground eb-shadow-border-primary [--tw-shadow-color:theme(colors.primary.foreground.DEFAULT)] hover:[--tw-shadow-color:theme(colors.primary.foreground.hover)] active:[--tw-shadow-color:theme(colors.primary.foreground.active)]  hover:eb-bg-primary-hover hover:eb-drop-shadow-md active:eb-bg-primary-active eb-font-button-primary',
+          'eb-bg-primary eb-font-button-primary eb-text-primary-foreground eb-shadow-border-primary [--tw-shadow-color:theme(colors.primary.foreground.DEFAULT)] hover:eb-bg-primary-hover hover:eb-text-primary-foreground-hover hover:eb-drop-shadow-md hover:[--tw-shadow-color:theme(colors.primary.foreground.hover)] active:eb-bg-primary-active active:eb-text-primary-foreground-active active:[--tw-shadow-color:theme(colors.primary.foreground.active)]',
         destructive:
-          'eb-bg-destructive hover:eb-text-destructive-foreground-hover active:eb-text-destructive-foreground-active eb-shadow-border-destructive [--tw-shadow-color:theme(colors.destructive.foreground.DEFAULT)] hover:[--tw-shadow-color:theme(colors.destructive.foreground.hover)] active:[--tw-shadow-color:theme(colors.destructive.foreground.active)] eb-text-destructive-foreground hover:eb-bg-destructive-hover hover:eb-drop-shadow-md active:eb-bg-destructive-active eb-font-button-destructive',
+          'eb-bg-destructive eb-font-button-destructive eb-text-destructive-foreground eb-shadow-border-destructive [--tw-shadow-color:theme(colors.destructive.foreground.DEFAULT)] hover:eb-bg-destructive-hover hover:eb-text-destructive-foreground-hover hover:eb-drop-shadow-md hover:[--tw-shadow-color:theme(colors.destructive.foreground.hover)] active:eb-bg-destructive-active active:eb-text-destructive-foreground-active active:[--tw-shadow-color:theme(colors.destructive.foreground.active)]',
         outline:
           'eb-border eb-border-input eb-bg-background eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
         secondary:
-          'eb-bg-secondary hover:eb-text-secondary-foreground-hover active:eb-text-secondary-foreground-active eb-shadow-border-secondary [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:[--tw-shadow-color:theme(colors.secondary.foreground.active)] eb-text-secondary-foreground hover:eb-bg-secondary-hover hover:eb-drop-shadow-md active:eb-bg-secondary-active eb-font-button-secondary',
+          'eb-bg-secondary eb-font-button-secondary eb-text-secondary-foreground eb-shadow-border-secondary [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:eb-bg-secondary-hover hover:eb-text-secondary-foreground-hover hover:eb-drop-shadow-md hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:eb-bg-secondary-active active:eb-text-secondary-foreground-active active:[--tw-shadow-color:theme(colors.secondary.foreground.active)]',
         ghost: 'hover:eb-bg-accent hover:eb-text-accent-foreground',
         link: 'eb-text-primary eb-underline-offset-4 hover:eb-underline',
         input:
