@@ -14,8 +14,14 @@ import {
   useMantineTheme,
   List,
   Mark,
+  Badge,
 } from '@mantine/core';
-import { IconBook, IconListCheck, IconExternalLink } from '@tabler/icons';
+import {
+  IconBook,
+  IconListCheck,
+  IconArrowLeft,
+  IconArrowRight,
+} from '@tabler/icons';
 import { Prism } from '@mantine/prism';
 import { useLocation } from 'react-router-dom';
 
@@ -34,35 +40,15 @@ const MOCK_STORIES: StoryItem[] = [
     id: '1',
     title: 'Organization Description Validation',
     content:
-      '# Organization Description\n\nThe organization description field uses extensive client-side validation as a superset of OAS validations. Our validation approach:\n\n- **DOMPurify sanitization** ensures data integrity by stripping all HTML tags and preventing XSS attacks\n- **Length constraints** (10-500 characters) provide reasonable limits while allowing sufficient detail\n- **URL injection prevention** removes any web links that could be used for phishing\n- **Whitespace normalization** creates consistent formatting by replacing multiple spaces with singles\n- **Character filtering** removes potentially problematic characters like `<` and `>`\n\nThis multi-stage approach first uses DOMPurify to handle any HTML/XSS risks, then applies custom cleaning with regex patterns to handle specific formatting concerns. The `transform` function in the schema means validation happens transparently to users, with feedback provided immediately during typing rather than only on submission.\n\nOur implementation reduces API errors by up to 87% for this field and significantly enhances the user experience by catching formatting issues early in the submission process.',
+      '# Organization Description\n\nThe organization description field uses extensive client-side validation as a superset of OAS validations. Our validation approach:\n\n- **DOMPurify sanitization** ensures data integrity by stripping all HTML tags and preventing XSS attacks\n- **Length constraints** (10-500 characters) provide reasonable limits while allowing sufficient detail\n- **URL injection prevention** removes any web links that could be used for phishing\n- **Whitespace normalization** creates consistent formatting by replacing multiple spaces with singles\n- **Character filtering** removes potentially problematic characters like `<` and `>`\n\nThis multi-stage approach first uses DOMPurify to handle any HTML/XSS risks, then applies custom cleaning with regex patterns to handle specific formatting concerns. The `transform` function in the schema means validation happens transparently to users, with feedback provided immediately during typing rather than only on submission.\n\nOur implementation significantly reduces API errors and enhances the user experience by catching formatting issues early in the submission process.',
     cssSelector: 'form [name="organizationDescription"]',
-    codeExample: `// From OrganizationStepForm.schema.ts
-z.string()
-  .min(10)
-  .max(500)
-  .transform(sanitizeDescription)`,
   },
   {
     id: '2',
     title: 'Industry Type Selector',
     content:
-      '# Industry Type Selection\n\nOur `IndustryTypeSelect` component combines NAICS industry categories and specific types with a powerful text search interface to simplify a complex selection process.\n\n**Key UX improvements:**\n\n1. **Hierarchical organization** displays categories as section headers with child industries below, creating visual relationships between related options\n2. **Unified search** allows users to find industries by code, description, or sector name from a single input field\n3. **Virtualized rendering** with `react-window` ensures smooth performance even with 1000+ industry options\n4. **Visual distinction** between categories (bold/muted headers) and specific industries (regular text) reduces cognitive load\n5. **Smart filtering logic** keeps category headers visible when any child item matches, maintaining context\n\nUser testing showed this approach reduces selection time by 62% and error rates by 78% compared to traditional dropdown menus or separate category/subcategory selectors. The search functionality is particularly valuable for users who know their industry name but not the specific NAICS code.\n\nThe component adapts to viewport size, with column layout adjustments for mobile view, and includes keyboard navigation support for accessibility.',
+      '# Industry Type Selection\n\nOur `IndustryTypeSelect` component combines NAICS industry categories and specific types with a powerful text search interface to simplify a complex selection process.\n\n**Key UX improvements:**\n\n1. **Hierarchical organization** displays categories as section headers with child industries below, creating visual relationships between related options\n2. **Unified search** allows users to find industries by code, description, or sector name from a single input field\n3. **Virtualized rendering** with `react-window` ensures smooth performance even with 1000+ industry options\n4. **Visual distinction** between categories (bold/muted headers) and specific industries (regular text) reduces cognitive load\n5. **Smart filtering logic** keeps category headers visible when any child item matches, maintaining context\n\nThis approach significantly reduces selection time and error rates compared to traditional dropdown menus or separate category/subcategory selectors. The search functionality is particularly valuable for users who know their industry name but not the specific NAICS code.\n\nThe component adapts to viewport size, with column layout adjustments for mobile view, and includes keyboard navigation support for accessibility.',
     cssSelector: 'form [id*="industry"]',
-    codeExample: `// From IndustryTypeSelect.tsx
-<Command>
-  <CommandInput placeholder="Search industry type..." />
-  <CommandList>
-    <List height={300} itemCount={items.length}>
-      {({ index }) => (
-        items[index].type === 'header' 
-          ? <CategoryHeader>{items[index].category}</CategoryHeader>
-          : <CommandItem value={items[index].code}>
-              {items[index].description}
-            </CommandItem>
-      )}
-    </List>
-  </CommandList>
-</Command>`,
   },
   {
     id: '3',
@@ -83,7 +69,7 @@ z.string()
     id: '4',
     title: 'Birth Date Component',
     content:
-      '# Birth Date Selection\n\nOur `ImportantDateSelector` component reimagines date entry with a carefully designed interface that addresses the limitations of traditional date inputs.\n\n**Design rationale:**\n\n- **Split field approach** divides the complex date entry into three distinct inputs (day, month, year), reducing cognitive load\n- **Dropdown for months** eliminates spelling errors and invalid month selections while providing full month names for clarity\n- **Progressive validation** includes multiple validation layers:\n  - *Basic format validation* ensures values are numeric and within range\n  - *Date existence validation* catches invalid dates like February 30th\n  - *Age restriction validation* applies business rules (e.g., must be 18+, cannot be 120+ years old)\n  - *Future date prevention* ensures birth dates cannot be in the future\n\n**Implementation details:**\n- Supports multiple date formats (DMY, MDY, YMD) for international usage\n- Provides configurable separators between fields\n- Uses custom hooks for validation to maintain clean component code\n- Implements controlled component pattern for form integration\n- Tracks field "touched" state to avoid premature error messages\n\nUser testing showed 92% reduction in date entry errors compared to single-field date inputs, with particular improvements for users in countries with different date formats.',
+      '# Birth Date Selection\n\nOur `ImportantDateSelector` component reimagines date entry with a carefully designed interface that addresses the limitations of traditional date inputs.\n\n**Design rationale:**\n\n- **Split field approach** divides the complex date entry into three distinct inputs (day, month, year), reducing cognitive load\n- **Dropdown for months** eliminates spelling errors and invalid month selections while providing full month names for clarity\n- **Progressive validation** includes multiple validation layers:\n  - *Basic format validation* ensures values are numeric and within range\n  - *Date existence validation* catches invalid dates like February 30th\n  - *Age restriction validation* applies business rules (e.g., must be 18+, cannot be 120+ years old)\n  - *Future date prevention* ensures birth dates cannot be in the future\n\n**Implementation details:**\n- Supports multiple date formats (DMY, MDY, YMD) for international usage\n- Provides configurable separators between fields\n- Uses custom hooks for validation to maintain clean component code\n- Implements controlled component pattern for form integration\n- Tracks field "touched" state to avoid premature error messages\n\nThis approach substantially reduces date entry errors compared to single-field date inputs, with particular improvements for users in countries with different date formats.',
     cssSelector: 'form [id*="birth-"]',
     codeExample: `// From ImportantDateSelector.tsx
 <div className="date-selector">
@@ -509,6 +495,9 @@ export const StoryDrawer = ({}: StoryDrawerProps) => {
           title: {
             marginRight: 0,
           },
+          content: {
+            maxWidth: '100%',
+          },
         })}
         title={
           <Group position="apart" style={{ width: '100%' }}>
@@ -528,14 +517,14 @@ export const StoryDrawer = ({}: StoryDrawerProps) => {
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <ScrollArea style={{ flex: 1 }}>
             {viewMode === 'list' ? (
-              <Stack spacing="md">
+              <Stack spacing="xs">
                 <Text size="sm" color="dimmed" mb="xs">
                   Click on a story to view details
                 </Text>
                 {MOCK_STORIES.map((story, index) => (
                   <Paper
                     key={story.id}
-                    p="md"
+                    p="xs"
                     withBorder
                     sx={(theme) => ({
                       cursor: 'pointer',
@@ -549,16 +538,18 @@ export const StoryDrawer = ({}: StoryDrawerProps) => {
                     })}
                     onClick={() => handleStepClick(index)}
                   >
-                    <Group position="apart">
-                      <Stack spacing={4}>
-                        <Text weight={500}>{story.title}</Text>
+                    <Group position="apart" spacing="xs">
+                      <Stack spacing={0}>
+                        <Text weight={500} size="sm">
+                          {story.title}
+                        </Text>
                         <Text size="xs" color="dimmed">
                           Story {index + 1} of {MOCK_STORIES.length}
                         </Text>
                       </Stack>
                       {story.codeExample && (
                         <Text size="xs" color="blue">
-                          Has code example
+                          Code
                         </Text>
                       )}
                     </Group>
@@ -571,17 +562,94 @@ export const StoryDrawer = ({}: StoryDrawerProps) => {
                 onStepClick={handleStepClick}
                 breakpoint="sm"
                 orientation="vertical"
+                styles={(theme) => ({
+                  stepLabel: {
+                    fontSize: theme.fontSizes.sm,
+                    fontWeight: 500,
+                  },
+                  stepDescription: {
+                    fontSize: theme.fontSizes.xs,
+                    marginTop: 0,
+                  },
+                  step: {
+                    padding: 4,
+                  },
+                  separator: {
+                    marginLeft: theme.spacing.xs,
+                  },
+                  separatorActive: {
+                    marginLeft: theme.spacing.xs,
+                  },
+                  content: {
+                    paddingLeft: theme.spacing.lg,
+                    paddingBottom: 0,
+                  },
+                  stepIcon: {
+                    width: 28,
+                    height: 28,
+                    fontSize: theme.fontSizes.xs,
+                  },
+                  verticalSeparator: {
+                    marginLeft: 13, // Half of icon size - half of separator width
+                  },
+                })}
               >
                 {MOCK_STORIES.map((story, index) => (
                   <Stepper.Step
                     key={story.id}
-                    label={story.title}
-                    description={`Story ${index + 1}`}
+                    label={
+                      <Group spacing={4} noWrap>
+                        {story.title}
+                        {index === activeStep && (
+                          <Badge
+                            size="xs"
+                            variant="filled"
+                            color="orange"
+                            sx={{ minWidth: 'auto', height: 16 }}
+                          >
+                            Active
+                          </Badge>
+                        )}
+                      </Group>
+                    }
+                    description={null}
                     allowStepSelect={drawerOpened}
                   >
-                    <Paper p="md" withBorder mb="md">
-                      <Stack spacing="md">
-                        <Title order={3}>{story.title}</Title>
+                    <Paper
+                      p="sm"
+                      mb="xs"
+                      mt={8}
+                      shadow="xs"
+                      sx={{ border: 'none' }}
+                    >
+                      <Stack spacing="xs">
+                        <Group position="apart" mb="sm">
+                          <Title order={3} size="h5">
+                            {story.title}
+                          </Title>
+                          <Group spacing="xs">
+                            <Button
+                              compact
+                              size="sm"
+                              variant="subtle"
+                              onClick={handlePrevious}
+                              disabled={activeStep === 0}
+                              leftIcon={<IconArrowLeft size={14} />}
+                            >
+                              Back
+                            </Button>
+                            <Button
+                              compact
+                              size="sm"
+                              variant="subtle"
+                              onClick={handleNext}
+                              disabled={activeStep === MOCK_STORIES.length - 1}
+                              rightIcon={<IconArrowRight size={14} />}
+                            >
+                              Next
+                            </Button>
+                          </Group>
+                        </Group>
 
                         <Box
                           dangerouslySetInnerHTML={{
@@ -589,27 +657,137 @@ export const StoryDrawer = ({}: StoryDrawerProps) => {
                           }}
                           sx={{
                             h3: {
-                              fontSize: theme.fontSizes.lg,
+                              fontSize: theme.fontSizes.md,
                               marginBottom: theme.spacing.xs,
                               marginTop: theme.spacing.md,
                               fontWeight: 600,
                             },
-                            p: { marginBottom: theme.spacing.xs },
-                            'ul, ol': { paddingLeft: theme.spacing.md },
-                            li: { marginBottom: Number(theme.spacing.xs) / 2 },
+                            p: {
+                              fontSize: theme.fontSizes.sm,
+                              marginBottom: theme.spacing.xs,
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                              width: '100%',
+                              maxWidth: '100%',
+                            },
+                            'ul, ol': {
+                              fontSize: theme.fontSizes.sm,
+                              paddingLeft: theme.spacing.md,
+                              maxWidth: '100%',
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                            },
+                            li: {
+                              fontSize: theme.fontSizes.sm,
+                              marginBottom: Number(theme.spacing.xs) / 2,
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                            },
+                            code: {
+                              fontSize: theme.fontSizes.sm,
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                              maxWidth: '100%',
+                              display: 'inline-block',
+                              padding: '2px 4px',
+                              background: theme.colors.gray[0],
+                              borderRadius: '3px',
+                            },
+                            strong: {
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                            },
+                            em: {
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                            },
+                            a: {
+                              overflowWrap: 'break-word',
+                              wordWrap: 'break-word',
+                            },
+                            maxWidth: '100%',
+                            overflowX: 'hidden',
                           }}
                         />
 
                         {story.codeExample && (
-                          <Prism language="tsx" withLineNumbers>
+                          <Prism
+                            language="tsx"
+                            withLineNumbers
+                            styles={{
+                              code: {
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word',
+                                maxWidth: '100%',
+                                fontSize: theme.fontSizes.sm,
+                              },
+                              line: {
+                                maxWidth: '100%',
+                              },
+                              root: {
+                                marginBottom: 0,
+                                paddingBottom: theme.spacing.xs,
+                              },
+                              scrollArea: {
+                                padding: theme.spacing.xs,
+                                paddingBottom: 0,
+                              },
+                            }}
+                          >
                             {story.codeExample}
                           </Prism>
                         )}
 
-                        <Text size="sm" color="dimmed">
+                        <Text
+                          size="sm"
+                          color="dimmed"
+                          sx={{
+                            wordBreak: 'break-word',
+                            marginTop: theme.spacing.xs,
+                          }}
+                        >
                           <Mark color="orange">Highlighted selector:</Mark>{' '}
-                          <code>{story.cssSelector}</code>
+                          <code
+                            style={{
+                              wordBreak: 'break-word',
+                              maxWidth: '100%',
+                              display: 'inline-block',
+                              fontSize: theme.fontSizes.sm,
+                            }}
+                          >
+                            {story.cssSelector}
+                          </code>
                         </Text>
+
+                        {/* Bottom navigation buttons */}
+                        <Group
+                          position="apart"
+                          mt="md"
+                          pt="xs"
+                          sx={{
+                            borderTop: `1px solid ${theme.colors.gray[3]}`,
+                          }}
+                        >
+                          <Button
+                            size="sm"
+                            variant="subtle"
+                            onClick={handlePrevious}
+                            disabled={activeStep === 0}
+                            leftIcon={<IconArrowLeft size={16} />}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="subtle"
+                            onClick={handleNext}
+                            disabled={activeStep === MOCK_STORIES.length - 1}
+                            rightIcon={<IconArrowRight size={16} />}
+                          >
+                            Next
+                          </Button>
+                        </Group>
                       </Stack>
                     </Paper>
                   </Stepper.Step>
@@ -617,25 +795,6 @@ export const StoryDrawer = ({}: StoryDrawerProps) => {
               </Stepper>
             )}
           </ScrollArea>
-
-          {viewMode === 'details' && (
-            <Group position="apart" mt="xl">
-              <Button
-                variant="default"
-                onClick={handlePrevious}
-                disabled={activeStep === 0}
-              >
-                Back
-              </Button>
-
-              <Button
-                onClick={handleNext}
-                disabled={activeStep === MOCK_STORIES.length - 1}
-              >
-                Next
-              </Button>
-            </Group>
-          )}
         </Box>
       </Drawer>
     </>
