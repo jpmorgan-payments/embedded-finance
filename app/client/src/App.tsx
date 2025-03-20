@@ -6,6 +6,7 @@ import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 
 import { Layout } from 'components';
+import { StoryDrawerProvider } from 'components/StoryDrawer';
 import {
   AccountsPage,
   AuthenticationPage,
@@ -48,49 +49,54 @@ const App = () => {
       >
         <ModalsProvider>
           <Notifications position="top-right" zIndex={2077} />
-          <BrowserRouter>
-            <Layout
-              themeProps={{
-                currentThemeName: themeName,
-                themeNames: Object.keys(themes),
-                setThemeName: setThemeName,
-              }}
-            >
-              <Routes>
-                <Route path="*" element={<NotFoundErrorPage />} />
-                <Route element={<AuthenticationPage />}>
-                  <Route path="login">
-                    <Route path="" element={<Login />} />
-                    <Route path="callback" element={<ForgeRockCallback />} />
+          <StoryDrawerProvider>
+            <BrowserRouter>
+              <Layout
+                themeProps={{
+                  currentThemeName: themeName,
+                  themeNames: Object.keys(themes),
+                  setThemeName: setThemeName,
+                }}
+              >
+                <Routes>
+                  <Route path="*" element={<NotFoundErrorPage />} />
+                  <Route element={<AuthenticationPage />}>
+                    <Route path="login">
+                      <Route path="" element={<Login />} />
+                      <Route path="callback" element={<ForgeRockCallback />} />
+                    </Route>
+                    <Route element={<ForgeRockProtectedRoutes />}>
+                      <Route path="loggedIn" element={<SecureContent />} />
+                    </Route>
                   </Route>
-                  <Route element={<ForgeRockProtectedRoutes />}>
-                    <Route path="loggedIn" element={<SecureContent />} />
-                  </Route>
-                </Route>
-                <Route path="overview" element={<OverviewPage />} />
-                <Route path="onboarding" element={<OnboardingPage />} />
-                <Route path="accounts" element={<AccountsPage />} />
-                <Route path="recipients" element={<RecipientsPage />} />
-                <Route path="transactions" element={<TransactionsPage />} />
-                <Route path="debit-cards" element={<DebitCardsPage />} />
-                <Route path="cases" element={<CasesPage />} />
-                <Route
-                  path="embedded-components"
-                  element={<EmbeddedComponentsPage />}
-                />
-                <Route
-                  path="ep/onboarding"
-                  element={<OnboardingNextPageV2 />}
-                />
-                <Route path="theme-editor" element={<ThemeEditorPage />} />
-                <Route
-                  path="ep/linked-accounts"
-                  element={<EPLinkedAccountPage />}
-                />
-                <Route path="/" element={<Navigate replace to="/overview" />} />
-              </Routes>
-            </Layout>
-          </BrowserRouter>
+                  <Route path="overview" element={<OverviewPage />} />
+                  <Route path="onboarding" element={<OnboardingPage />} />
+                  <Route path="accounts" element={<AccountsPage />} />
+                  <Route path="recipients" element={<RecipientsPage />} />
+                  <Route path="transactions" element={<TransactionsPage />} />
+                  <Route path="debit-cards" element={<DebitCardsPage />} />
+                  <Route path="cases" element={<CasesPage />} />
+                  <Route
+                    path="embedded-components"
+                    element={<EmbeddedComponentsPage />}
+                  />
+                  <Route
+                    path="ep/onboarding"
+                    element={<OnboardingNextPageV2 />}
+                  />
+                  <Route path="theme-editor" element={<ThemeEditorPage />} />
+                  <Route
+                    path="ep/linked-accounts"
+                    element={<EPLinkedAccountPage />}
+                  />
+                  <Route
+                    path="/"
+                    element={<Navigate replace to="/overview" />}
+                  />
+                </Routes>
+              </Layout>
+            </BrowserRouter>
+          </StoryDrawerProvider>
         </ModalsProvider>
       </MantineProvider>
     </QueryClientProvider>

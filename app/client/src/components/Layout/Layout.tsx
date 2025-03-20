@@ -18,10 +18,8 @@ import { useMediaQuery } from '@mantine/hooks';
 
 import { NavbarLinks } from './NavbarLinks/NavbarLinks';
 import { NavbarLinksComponentShowcase } from './NavbarLinks/NavbarLinksComponentShowcase';
-import {
-  ThemeSelectMenu,
-  ThemeSelectMenuProps,
-} from './ThemeSelectMenu';
+import { ThemeSelectMenu, ThemeSelectMenuProps } from './ThemeSelectMenu';
+import { StoryDrawer, useStoryDrawer } from '../StoryDrawer';
 
 interface LayoutProps {
   themeProps: ThemeSelectMenuProps;
@@ -35,6 +33,7 @@ export const Layout = ({
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [opened, setOpened] = useState(false);
+  const { drawerOpened } = useStoryDrawer();
 
   const isFullScreen = searchParams.get('fullScreen') === 'true';
 
@@ -61,6 +60,18 @@ export const Layout = ({
             theme.colorScheme === 'dark'
               ? theme.colors.dark[8]
               : theme.colors.gray[0],
+          transition: 'all 400ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+          ...(drawerOpened && {
+            paddingRight: 'calc(30% + 4px)',
+            transform: 'scale(0.98)',
+            opacity: 0.98,
+          }),
+          height: '100vh',
+          overflowY: 'auto',
+        },
+        root: {
+          position: 'relative',
+          overflow: 'hidden',
         },
       })}
       navbarOffsetBreakpoint="sm"
@@ -125,7 +136,10 @@ export const Layout = ({
               {lessThanSm ? 'EB Showcase' : appTitle}
             </Text>
 
-            <ThemeSelectMenu {...themeProps} />
+            <Group spacing={4}>
+              <ThemeSelectMenu {...themeProps} />
+              <StoryDrawer />
+            </Group>
           </Group>
         </Header>
       }
