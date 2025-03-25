@@ -797,6 +797,39 @@ export function useStepFormWithFilters<
   return form;
 }
 
+export function useFormWithFilters<
+  TSchema extends z.ZodObject<Record<string, z.ZodType<any>>>,
+>(
+  props: Omit<UseFormProps<z.input<TSchema>>, 'resolver'> & {
+    clientData: ClientResponse | undefined;
+    schema: TSchema;
+    refineSchemaFn?: (
+      schema: z.ZodObject<Record<string, z.ZodType<any>>>
+    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
+  }
+): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
+  const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
+    props.clientData
+  );
+
+  const defaultValues = modifyDefaultValues(
+    shapeFormValuesBySchema(
+      props.defaultValues as Partial<OnboardingFormValuesSubmit>,
+      props.schema
+    )
+  ) as DefaultValues<z.input<TSchema>>;
+
+  const form = useForm<z.input<TSchema>, any, z.output<TSchema>>({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    ...props,
+    resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
+    defaultValues,
+  });
+
+  return form;
+}
+
 // Modifies the form values to match the schema shape
 export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
   formValues: Partial<OnboardingFormValuesInitial>,
