@@ -45,6 +45,7 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { useOnboardingOverviewContext } from '../OnboardingOverviewFlow/OnboardingContext/OnboardingContext';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   FieldRule,
@@ -136,7 +137,14 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   maskChar,
   shouldUnregister,
 }: OnboardingFormFieldProps<TFieldValues>) {
-  const { clientId } = useOnboardingContext();
+  let clientId;
+  try {
+    const context = useOnboardingContext();
+    clientId = context.clientId;
+  } catch (error) {
+    const context = useOnboardingOverviewContext();
+    clientId = context.clientId;
+  }
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 

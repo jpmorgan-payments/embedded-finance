@@ -1,52 +1,56 @@
-import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
-import { defaultResources } from '@/i18n/config';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
-import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { cn, loadContentTokens } from '@/lib/utils';
+import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import {
-  ClientProduct,
-  ClientResponse,
-  OrganizationType,
-} from '@/api/generated/smbdo.schemas';
 
 import { useContentTokens } from '../../EBComponentsProvider/EBComponentsProvider';
-import {
-  OnboardingContextProvider,
-  OnboardingProps,
-  useOnboardingContext,
-} from '../OnboardingContextProvider/OnboardingContextProvider';
-import { Jurisdiction } from '../utils/types';
+import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
+import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { OnboardingOverviewContext } from './OnboardingContext/OnboardingContext';
 import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGatewayScreen';
+import { GlobalStepper } from './OnboardingGlobalStepper';
+import {
+  OnboardingConfigDefault,
+  OnboardingConfigUsedInContext,
+} from './types';
 
-export interface OnboardingWizardBasicProps extends OnboardingProps {
-  initialStep?: number;
-  variant?: 'circle' | 'circle-alt' | 'line';
-  onboardingContentTokens?: DeepPartial<
-    (typeof defaultResources)['enUS']['onboarding']
-  >;
-  alertOnExit?: boolean;
-  userEventsToTrack?: string[];
-  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
-  showLinkedAccountPanel?: boolean;
-}
+export type OnboardingOverviewFlowProps = OnboardingConfigDefault &
+  OnboardingConfigUsedInContext;
 
-export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
-  initialStep,
-  variant,
+export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
+  initialClientId,
   onboardingContentTokens = {},
   alertOnExit = false,
   userEventsToTrack = [],
   userEventsHandler,
-  usePartyResource = true,
-  showLinkedAccountPanel = false,
+  onSetClientId,
   ...props
 }) => {
-  const { tokens: globalContentTokens = {} } = useContentTokens();
-  const { i18n } = useTranslation('onboarding');
+  const [clientId, setClientId] = useState(initialClientId ?? '');
 
+  // isLoading is only true for the initial fetch
+  const { isLoading, error } = useSmbdoGetClient(clientId, {
+    query: {
+      // refetch settings?
+    },
+  });
+
+  useEffect(() => {
+    setClientId(initialClientId ?? '');
+  }, [initialClientId]);
+
+  const handleSetClientId = async (id: string) => {
+    setClientId(id);
+    if (onSetClientId) {
+      await onSetClientId('');
+    }
+  };
+
+  // Load content tokens
+  const { tokens: globalContentTokens = {} } = useContentTokens();
+  const { i18n, t } = useTranslation('onboarding');
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [
       globalContentTokens.onboarding,
@@ -106,58 +110,43 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     };
   }, []);
 
-  return (
-    <OnboardingContextProvider
-      {...{ ...props, usePartyResource, showLinkedAccountPanel }}
-    >
-      <OnboardingWizardBasicComponent
-        initialStep={initialStep}
-        variant={variant}
-      />
-    </OnboardingContextProvider>
-  );
-};
-
-const OnboardingWizardBasicComponent: FC<
-  Pick<OnboardingWizardBasicProps, 'initialStep' | 'variant'>
-> = ({ initialStep, variant = 'circle-alt' }) => {
-  const { t } = useTranslation('onboarding');
-
-  const {
-    clientId,
-    wasClientIdCreated,
-    currentStepIndex,
-    setCurrentStepIndex,
-    useSingleColumnLayout,
-    setSteps,
-  } = useOnboardingContext();
-
-  const {
-    data: clientData,
-    status: clientGetStatus,
-    error: clientGetError,
-    refetch: refetchClient,
-  } = useSmbdoGetClient(clientId ?? '', {
-    query: {
-      enabled: !!clientId,
-    },
-  });
-
   useEnableDTRUMTracking({
     userEmail: 'test@test.com',
     DOMElementToTrack: 'embedded-component-layout',
     eventsToTrack: ['click', 'blur'],
   });
 
-  // const overviewSteps = [
-  //   {id: 'gateway', children: }
-  // ]
-
   return (
     <div className="eb-component" id="embedded-component-layout">
-      <div className="eb-space-y-6 eb-p-2 eb-pb-4 md:eb-p-10 md:eb-pb-16">
-        <OnboardingGatewayScreen />
-      </div>
+      <OnboardingOverviewContext.Provider
+        value={{
+          ...props,
+          clientId,
+          setClientId: handleSetClientId,
+        }}
+      >
+        <GlobalStepper.Scoped key={clientId}>
+          {error ? (
+            <ServerErrorAlert error={error} />
+          ) : isLoading ? (
+            <FormLoadingState message={t('fetchingClientData')} />
+          ) : (
+            <OnboardingMainSteps />
+          )}
+        </GlobalStepper.Scoped>
+      </OnboardingOverviewContext.Provider>
+    </div>
+  );
+};
+
+const OnboardingMainSteps = () => {
+  const methods = GlobalStepper.useStepper();
+
+  return (
+    <div className="eb-space-y-6 eb-p-2 eb-pb-4 md:eb-p-10 md:eb-pb-16">
+      {methods.switch({
+        gateway: () => <OnboardingGatewayScreen />,
+      })}
     </div>
   );
 };

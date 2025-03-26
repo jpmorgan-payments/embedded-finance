@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import {
   useSmbdoGetClient,
@@ -9,11 +8,11 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
+import { PartyType, Role } from '@/api/generated/smbdo.schemas';
 import { AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form } from '@/components/ui/form';
 import { Alert, Button, Separator } from '@/components/ui';
 
-import { useOnboardingContext } from '../../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingFormField } from '../../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../../ServerErrorAlert/ServerErrorAlert';
 import {
@@ -27,6 +26,8 @@ import {
   useFormWithFilters,
 } from '../../utils/formUtils';
 import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
+import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
+import { GlobalStepper } from '../OnboardingGlobalStepper';
 import { OnboardingGatewayScreenFormSchema } from './OnboardingGatewayScreenForm.schema';
 
 export const OnboardingGatewayScreen = () => {
@@ -36,13 +37,14 @@ export const OnboardingGatewayScreen = () => {
     onPostClientResponse,
     onPostPartyResponse,
     availableOrganizationTypes,
-  } = useOnboardingContext();
+  } = useOnboardingOverviewContext();
+
+  const globalStepper = GlobalStepper.useStepper();
 
   const { t } = useTranslation(['onboarding', 'common']);
 
   // Fetch client data
-  const { data: clientData, status: getClientStatus } =
-    useSmbdoGetClient(clientId);
+  const { data: clientData } = useSmbdoGetClient(clientId);
 
   const form = useFormWithFilters({
     clientData,
@@ -89,22 +91,28 @@ export const OnboardingGatewayScreen = () => {
   } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
+    const defaultPartyData = {
+      roles: [Role.CLIENT],
+      partyType: PartyType.ORGANIZATION,
+      organizationDetails: {
+        organizationName: 'Something',
+        countryOfFormation: 'US',
+      },
+    };
+
     // Create client if it doesn't exist
     if (!clientId) {
       const requestBody = generateClientRequestBody(values, 0, 'parties', {
-        parties: [
-          {
-            roles: ['CLIENT'],
-            organizationDetails: {
-              jurisdiction: 'US',
-            },
-            partyType: 'ORGANIZATION',
-          },
-        ],
+        parties: [defaultPartyData],
       });
 
       postClient(
-        { data: { products: ['EMBEDDED_PAYMENTS'], ...requestBody } },
+        {
+          data: {
+            products: ['EMBEDDED_PAYMENTS'],
+            ...requestBody,
+          },
+        },
         {
           onSettled: (data, error) => {
             onPostClientResponse?.(data, error?.response?.data);
@@ -112,9 +120,7 @@ export const OnboardingGatewayScreen = () => {
           onSuccess: async (response) => {
             await setClientId?.(response.id);
             // TODO: add prop to toggle toasts
-            toast.success(
-              `Client created successfully with ID: ${response.id}`
-            );
+            globalStepper.next();
           },
           onError: (error) => {
             if (error.response?.data?.context) {
@@ -133,6 +139,16 @@ export const OnboardingGatewayScreen = () => {
 
     // Update the organization party if it exists
     else if (clientId && existingOrgParty?.id) {
+      // If the organization type is the same, move to the next step
+      if (
+        values.organizationType ===
+        existingOrgParty.organizationDetails?.organizationType
+      ) {
+        globalStepper.next();
+        return;
+      }
+
+      // Else update the party
       const partyRequestBody = generatePartyRequestBody(values, {});
       updateParty(
         { partyId: existingOrgParty.id, data: partyRequestBody },
@@ -141,7 +157,7 @@ export const OnboardingGatewayScreen = () => {
             onPostPartyResponse?.(data, error?.response?.data);
           },
           onSuccess: () => {
-            toast.success('Organization party details updated successfully');
+            globalStepper.next();
           },
           onError: (error) => {
             if (error.response?.data?.context) {
@@ -154,22 +170,14 @@ export const OnboardingGatewayScreen = () => {
       );
     }
 
-    // Create organization party if it doesn't exist already
+    // If client exists but organization party does not exist, create it
     else {
       const clientRequestBody = generateClientRequestBody(
         values,
         0,
         'addParties',
         {
-          addParties: [
-            {
-              partyType: 'ORGANIZATION',
-              roles: ['CLIENT'],
-              organizationDetails: {
-                jurisdiction: 'US',
-              },
-            },
-          ],
+          addParties: [defaultPartyData],
         }
       );
       updateClient(
@@ -179,7 +187,7 @@ export const OnboardingGatewayScreen = () => {
             onPostClientResponse?.(data, error?.response?.data);
           },
           onSuccess: () => {
-            toast.success('Organization party created successfully');
+            globalStepper.next();
           },
           onError: (error) => {
             if (error.response?.data?.context) {
@@ -227,7 +235,9 @@ export const OnboardingGatewayScreen = () => {
               control={form.control}
               name="organizationType"
               type="radio-group-blocks"
-              options={ORGANIZATION_TYPE_LIST.map((type) => ({
+              options={(
+                availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST
+              ).map((type) => ({
                 value: type,
                 label: t(`organizationTypes.${type}`),
                 description: 'Winning help text goes here',

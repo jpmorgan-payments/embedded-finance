@@ -16,14 +16,14 @@ import { useDarkMode } from 'storybook-dark-mode';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import {
+  OnboardingOverviewFlowProps,
   OnboardingWizardBasic,
-  OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/OnboardingOverviewFlow';
 
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 
 export type OnboardingWizardBasicWithProviderProps =
-  OnboardingWizardBasicProps & EBConfig;
+  OnboardingOverviewFlowProps & EBConfig;
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   title: 'Onboarding Overview Flow / Steps (EP, US, LLC)',
@@ -73,7 +73,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       },
       options: ORGANIZATION_TYPE_LIST,
     },
-    usePartyResource: { control: 'boolean' },
   },
   decorators: [
     (Story, context) => {
@@ -127,7 +126,6 @@ Default.args = {
   contentTokens: {
     name: 'enUS',
   },
-  variant: 'circle-alt',
   alertOnExit: false,
 };
 
@@ -169,8 +167,6 @@ export const OrganizationStep = Default.bind({});
 OrganizationStep.storyName = '2. Organization step';
 OrganizationStep.args = {
   ...WithClientId.args,
-  usePartyResource: true, // Use party resource for organization step
-  initialStep: 1,
 };
 OrganizationStep.parameters = WithClientId.parameters;
 
@@ -178,7 +174,6 @@ export const IndividualStep = Default.bind({});
 IndividualStep.storyName = '3. Individual step';
 IndividualStep.args = {
   ...WithClientId.args,
-  initialStep: 2,
 };
 IndividualStep.parameters = WithClientId.parameters;
 
@@ -186,7 +181,6 @@ export const BenefitialOwners = Default.bind({});
 BenefitialOwners.storyName = '4. Benefitial Owners step';
 BenefitialOwners.args = {
   ...WithClientId.args,
-  initialStep: 3,
 };
 BenefitialOwners.parameters = WithClientId.parameters;
 
@@ -194,7 +188,6 @@ export const AdditionalQuestions = Default.bind({});
 AdditionalQuestions.storyName = '5. Additional Questions step';
 AdditionalQuestions.args = {
   ...WithClientId.args,
-  initialStep: 4,
 };
 AdditionalQuestions.parameters = WithClientId.parameters;
 
@@ -202,8 +195,6 @@ export const ReviewAndAttest = Default.bind({});
 ReviewAndAttest.storyName = '6. Review and Attest step';
 ReviewAndAttest.args = {
   ...WithClientId.args,
-  blockPostVerification: true,
-  initialStep: 5,
 };
 ReviewAndAttest.parameters = {
   msw: {
@@ -242,8 +233,6 @@ export const ReviewIsInProgress = Default.bind({});
 ReviewIsInProgress.storyName = '7.1. Review is in progress';
 ReviewIsInProgress.args = {
   ...WithClientId.args,
-  blockPostVerification: true,
-  showLinkedAccountPanel: true,
 };
 ReviewIsInProgress.parameters = {
   msw: {
@@ -270,7 +259,6 @@ AdditionalDocumentsRequested.storyName =
   '7.2. Additional Documents requested step';
 AdditionalDocumentsRequested.args = {
   ...WithClientId.args,
-  blockPostVerification: true,
 };
 AdditionalDocumentsRequested.parameters = {
   msw: {
@@ -321,7 +309,6 @@ AdditionalDocumentsRequestedComplex.storyName =
   '7.3. Additional Documents requested step (Complex)';
 AdditionalDocumentsRequestedComplex.args = {
   ...WithClientId.args,
-  blockPostVerification: true,
 };
 AdditionalDocumentsRequestedComplex.parameters = {
   msw: {
@@ -371,7 +358,6 @@ export const ClientStatusChangeSimulation = Default.bind({});
 ClientStatusChangeSimulation.storyName = '8. Client Status Change Simulation';
 ClientStatusChangeSimulation.args = {
   ...WithClientId.args,
-  blockPostVerification: true,
 };
 let requestCount = 0;
 ClientStatusChangeSimulation.parameters = {
