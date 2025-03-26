@@ -232,7 +232,7 @@ export const OnboardingGatewayScreen = () => {
                 label: t(`organizationTypes.${type}`),
                 description: 'Winning help text goes here',
               }))}
-              disabled={true}
+              disabled={isFormDisabled}
             />
 
             <Alert variant="informative">
