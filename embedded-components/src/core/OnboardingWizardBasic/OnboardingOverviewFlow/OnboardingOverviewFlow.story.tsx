@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuestions.mock';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
@@ -29,6 +29,9 @@ export type OnboardingWizardBasicWithProviderProps =
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   title: 'Onboarding Overview Flow / Steps (EP, US, LLC)',
   component: OnboardingWizardBasic,
+  parameters: {
+    layout: 'fullscreen',
+  },
   args: {
     onPostClientResponse: (data, error) => {
       if (data) {
@@ -54,6 +57,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   },
   argTypes: {
     onPostClientResponse: { table: { disable: true } },
+    onPostPartyResponse: { table: { disable: true } },
     onPostClientVerificationsResponse: { table: { disable: true } },
     onSetClientId: { table: { disable: true } },
     availableProducts: {
@@ -131,9 +135,9 @@ export const Default = Template.bind({});
 Default.storyName = '1a. Initial step without clientId';
 Default.args = {
   initialClientId: '',
-  apiBaseUrl: '/',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/',
   headers: {
-    api_gateway_client_id: 'test',
+    api_gateway_client_id: import.meta.env.VITE_API_GATEWAY_CLIENT_ID ?? 'test',
   },
   availableProducts: ['EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['US'],
@@ -145,11 +149,12 @@ Default.args = {
     'LIMITED_PARTNERSHIP',
     'C_CORPORATION',
     'S_CORPORATION',
-    'PARTNERSHIP',
-    'PUBLICLY_TRADED_COMPANY',
-    'NON_PROFIT_CORPORATION',
-    'GOVERNMENT_ENTITY',
-    'UNINCORPORATED_ASSOCIATION',
+    // not allowed:
+    // 'PARTNERSHIP',
+    // 'PUBLICLY_TRADED_COMPANY',
+    // 'NON_PROFIT_CORPORATION',
+    // 'GOVERNMENT_ENTITY',
+    // 'UNINCORPORATED_ASSOCIATION',
   ],
   theme: {},
   contentTokens: {

@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
@@ -120,41 +120,51 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
   });
 
   return (
-    <div
-      className="eb-component md:eb-max-w-2xl"
-      id="embedded-component-layout"
+    <OnboardingOverviewContext.Provider
+      value={{
+        ...props,
+        clientId,
+        setClientId: handleSetClientId,
+      }}
     >
-      <OnboardingOverviewContext.Provider
-        value={{
-          ...props,
-          clientId,
-          setClientId: handleSetClientId,
-        }}
-      >
-        <GlobalStepper.Scoped key={initialClientId}>
-          <div
-            className="eb-flex eb-space-y-6 eb-p-2 eb-pb-4 md:eb-p-10"
-            style={{ minHeight: height }}
-          >
-            {error ? (
-              <ServerErrorAlert error={error} />
-            ) : isLoading ? (
-              <FormLoadingState message={t('fetchingClientData')} />
-            ) : (
-              <OnboardingMainSteps />
-            )}
-          </div>
-        </GlobalStepper.Scoped>
-      </OnboardingOverviewContext.Provider>
-    </div>
+      <GlobalStepper.Scoped key={initialClientId}>
+        <div
+          id="embedded-component-layout"
+          className="eb-component"
+          style={{ minHeight: height }}
+        >
+          {error ? (
+            <ServerErrorAlert error={error} />
+          ) : isLoading ? (
+            <FormLoadingState message={t('fetchingClientData')} />
+          ) : (
+            <OnboardingMainSteps />
+          )}
+        </div>
+      </GlobalStepper.Scoped>
+    </OnboardingOverviewContext.Provider>
   );
 };
 
 const OnboardingMainSteps = () => {
   const methods = GlobalStepper.useStepper();
 
+  // Scroll to top on step change
+  const mainRef = useRef<HTMLDivElement>(null);
+  const initialRender = useRef(true);
+  useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+      return;
+    }
+    mainRef.current?.scrollIntoView({ block: 'start' });
+  }, [methods.current]);
+
   return (
-    <div className="eb-flex eb-flex-1 eb-flex-col eb-space-y-6">
+    <div
+      className="eb-flex eb-h-full eb-flex-col eb-space-y-6 eb-p-2 eb-pb-4 md:eb-max-w-2xl md:eb-p-10"
+      ref={mainRef}
+    >
       <div className="eb-space-y-1.5">
         <p className="eb-text-muted-foreground">Welcome!</p>
         <h2 className="eb-text-2xl eb-font-bold eb-tracking-tight">

@@ -215,49 +215,53 @@ export const OnboardingGatewayScreen = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="eb-space-y-8">
-        <OnboardingFormField
-          control={form.control}
-          name="organizationType"
-          type="radio-group-blocks"
-          options={(availableOrganizationTypes
-            ? ORGANIZATION_TYPE_LIST.filter((orgType) =>
-                availableOrganizationTypes?.includes(orgType)
-              )
-            : ORGANIZATION_TYPE_LIST
-          ).map((type) => ({
-            value: type,
-            label: t(`organizationTypes.${type}`),
-            description: t(`organizationTypeDescriptions.${type}`),
-          }))}
-          disabled={isFormDisabled}
-        />
+      <form
+        onSubmit={onSubmit}
+        className="eb-flex eb-min-h-full eb-flex-col eb-space-y-8"
+      >
+        <div className="eb-flex-auto eb-space-y-4">
+          <OnboardingFormField
+            control={form.control}
+            name="organizationType"
+            type="radio-group-blocks"
+            options={(availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST).map(
+              (type) => ({
+                value: type,
+                label: t(`organizationTypes.${type}`),
+                description: t(`organizationTypeDescriptions.${type}`),
+              })
+            )}
+            disabled={isFormDisabled}
+          />
+        </div>
 
-        <Alert variant="informative">
-          <InfoIcon className="eb-h-4 eb-w-4" />
-          <AlertTitle>Important</AlertTitle>
-          <AlertDescription>
-            Please make sure you make the correct selection. If you come back
-            and edit this later, you may lose saved progress.
-          </AlertDescription>
-        </Alert>
+        <div className="eb-space-y-4">
+          <Alert variant="informative">
+            <InfoIcon className="eb-h-4 eb-w-4" />
+            <AlertTitle>Important</AlertTitle>
+            <AlertDescription>
+              Please make sure you make the correct selection. If you come back
+              and edit this later, you may lose saved progress.
+            </AlertDescription>
+          </Alert>
 
-        <ServerErrorAlert
-          error={partyUpdateError || clientUpdateError || clientPostError}
-        />
+          <ServerErrorAlert
+            error={partyUpdateError || clientUpdateError || clientPostError}
+          />
 
-        <Button
-          type="submit"
-          variant="default"
-          size="lg"
-          className="eb-w-full eb-text-lg"
-          disabled={isFormDisabled}
-        >
-          {isFormSubmitting ? (
-            <Loader2Icon className="eb-animate-spin" />
-          ) : null}
-          Show me what's needed
-        </Button>
+          <Button
+            type="submit"
+            variant="default"
+            size="lg"
+            className="eb-w-full eb-text-lg"
+            disabled={isFormDisabled}
+          >
+            {isFormSubmitting ? (
+              <Loader2Icon className="eb-animate-spin" />
+            ) : null}
+            Show me what's needed
+          </Button>
+        </div>
       </form>
     </Form>
   );

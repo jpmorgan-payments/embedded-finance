@@ -25,7 +25,7 @@ export const OnboardingChecklistScreen = () => {
     existingOrgParty?.organizationDetails?.organizationType;
 
   return (
-    <div className="eb-flex eb-min-h-full eb-flex-col eb-space-y-6">
+    <div className="eb-flex eb-min-h-full eb-flex-col eb-space-y-8">
       <div className="eb-flex-auto eb-space-y-4">
         <div className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4">
           <h3 className="eb-text-xl eb-font-bold eb-tracking-tight">Company</h3>
