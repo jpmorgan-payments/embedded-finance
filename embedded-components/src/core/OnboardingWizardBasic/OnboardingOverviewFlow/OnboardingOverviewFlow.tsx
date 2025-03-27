@@ -125,7 +125,7 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
           setClientId: handleSetClientId,
         }}
       >
-        <GlobalStepper.Scoped key={clientId}>
+        <GlobalStepper.Scoped key={initialClientId}>
           {error ? (
             <ServerErrorAlert error={error} />
           ) : isLoading ? (
