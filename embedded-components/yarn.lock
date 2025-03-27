@@ -1818,7 +1818,7 @@ __metadata:
     json-diff-ts: "npm:^4.0.1"
     libphonenumber-js: "npm:^1.11.5"
     lucide-react: "npm:^0.418.0"
-    msw: "npm:^2.7.0"
+    msw: "npm:^2.7.3"
     msw-storybook-addon: "npm:^2.0.4"
     next-themes: "npm:^0.3.0"
     orval: "npm:^7.0.1"
@@ -10579,9 +10579,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "msw@npm:2.7.0"
+"msw@npm:^2.7.3":
+  version: 2.7.3
+  resolution: "msw@npm:2.7.3"
   dependencies:
     "@bundled-es-modules/cookie": "npm:^2.0.1"
     "@bundled-es-modules/statuses": "npm:^1.0.1"
@@ -10608,7 +10608,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 10c0/14fb8299dcb6bcf2c6b3777a3127ed6be795a281598394022650b82889f1b70e0ada96559fefead351b18ed5db4e0a3a64367b758dd64f74dea63edc8eb2b551
+  checksum: 10c0/47cad1c4b4615b312477c8977fddfda3e90becd8efc2d81d73be8fb860e45ad0d3f7bca6d4f70ae7ed21894e93975bda66d609aafc3a1c99cb923c5ef67f8686
   languageName: node
   linkType: hard
 

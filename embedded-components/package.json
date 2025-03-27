@@ -126,7 +126,7 @@
     "eslint-plugin-tailwindcss": "^3.17.4",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^24.1.1",
-    "msw": "^2.7.0",
+    "msw": "^2.7.3",
     "msw-storybook-addon": "^2.0.4",
     "orval": "^7.0.1",
     "postcss": "^8.4.40",
