@@ -128,7 +128,7 @@ export const OnboardingGatewayScreen = () => {
               const apiFormErrors = mapClientApiErrorsToFormErrors(
                 context,
                 0,
-                'addParties'
+                'parties'
               );
               setApiFormErrors(form, apiFormErrors);
             }
@@ -214,65 +214,51 @@ export const OnboardingGatewayScreen = () => {
   const isFormDisabled = isFormSubmitting || isFormPopulating;
 
   return (
-    <div className="eb-flex-1 md:eb-max-w-2xl">
-      <div className="eb-space-y-6">
-        <div className="eb-space-y-1.5">
-          <p className="eb-text-muted-foreground">Welcome!</p>
-          <h2 className="eb-text-2xl eb-font-bold eb-tracking-tight">
-            Let&apos;s help you get started
-          </h2>
-          <p className="eb-text-sm eb-font-semibold">
-            Select your company's business type and we&apos;ll explain what
-            information you&apos;ll need to complete the application.
-          </p>
-        </div>
+    <Form {...form}>
+      <form onSubmit={onSubmit} className="eb-space-y-8">
+        <OnboardingFormField
+          control={form.control}
+          name="organizationType"
+          type="radio-group-blocks"
+          options={(availableOrganizationTypes
+            ? ORGANIZATION_TYPE_LIST.filter((orgType) =>
+                availableOrganizationTypes?.includes(orgType)
+              )
+            : ORGANIZATION_TYPE_LIST
+          ).map((type) => ({
+            value: type,
+            label: t(`organizationTypes.${type}`),
+            description: t(`organizationTypeDescriptions.${type}`),
+          }))}
+          disabled={isFormDisabled}
+        />
 
-        <Separator />
+        <Alert variant="informative">
+          <InfoIcon className="eb-h-4 eb-w-4" />
+          <AlertTitle>Important</AlertTitle>
+          <AlertDescription>
+            Please make sure you make the correct selection. If you come back
+            and edit this later, you may lose saved progress.
+          </AlertDescription>
+        </Alert>
 
-        <Form {...form}>
-          <form onSubmit={onSubmit} className="eb-space-y-8">
-            <OnboardingFormField
-              control={form.control}
-              name="organizationType"
-              type="radio-group-blocks"
-              options={(
-                availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST
-              ).map((type) => ({
-                value: type,
-                label: t(`organizationTypes.${type}`),
-                description: 'Winning help text goes here',
-              }))}
-              disabled={isFormDisabled}
-            />
+        <ServerErrorAlert
+          error={partyUpdateError || clientUpdateError || clientPostError}
+        />
 
-            <Alert variant="informative">
-              <InfoIcon className="eb-h-4 eb-w-4" />
-              <AlertTitle>Important</AlertTitle>
-              <AlertDescription>
-                Please make sure you make the correct selection. If you come
-                back and edit this later, you may lose saved progress.
-              </AlertDescription>
-            </Alert>
-
-            <ServerErrorAlert
-              error={partyUpdateError || clientUpdateError || clientPostError}
-            />
-
-            <Button
-              type="submit"
-              variant="default"
-              size="lg"
-              className="eb-w-full eb-text-lg"
-              disabled={isFormDisabled}
-            >
-              {isFormSubmitting ? (
-                <Loader2Icon className="eb-animate-spin" />
-              ) : null}
-              Show me what's needed
-            </Button>
-          </form>
-        </Form>
-      </div>
-    </div>
+        <Button
+          type="submit"
+          variant="default"
+          size="lg"
+          className="eb-w-full eb-text-lg"
+          disabled={isFormDisabled}
+        >
+          {isFormSubmitting ? (
+            <Loader2Icon className="eb-animate-spin" />
+          ) : null}
+          Show me what's needed
+        </Button>
+      </form>
+    </Form>
   );
 };

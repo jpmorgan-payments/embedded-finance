@@ -33,4 +33,5 @@ export type OnboardingConfigUsedInContext = {
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
+  height?: string;
 };

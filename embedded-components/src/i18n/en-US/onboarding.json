@@ -1340,5 +1340,19 @@
     "clientProfileInfo": "Client Profile Existing Information",
     "questionsResponses": "Questions Responses",
     "response": "Response"
+  },
+  "organizationTypeDescriptions": {
+    "LIMITED_LIABILITY_COMPANY": "A Limited Liability Company (LLC) is a business structure that combines the pass-through taxation of a partnership or sole proprietorship with the limited liability of a corporation.",
+    "LIMITED_LIABILITY_PARTNERSHIP": "A Limited Liability Partnership (LLP) is a partnership in which some or all partners have limited liabilities. It therefore exhibits elements of partnerships and corporations.",
+    "GENERAL_PARTNERSHIP": "A General Partnership is a business structure in which two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.",
+    "LIMITED_PARTNERSHIP": "A Limited Partnership (LP) is a form of partnership similar to a general partnership, except that in addition to one or more general partners, there are one or more limited partners.",
+    "C_CORPORATION": "A C Corporation is a legal structure for a corporation in which the owners, or shareholders, are taxed separately from the entity.",
+    "S_CORPORATION": "An S Corporation is a corporation that meets the IRS requirements to be taxed under Subchapter S of the Internal Revenue Code.",
+    "PARTNERSHIP": "A Partnership is a business structure in which two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.",
+    "PUBLICLY_TRADED_COMPANY": "A Publicly Traded Company is a company that has issued securities through an initial public offering (IPO) and is traded on at least one stock exchange or in over-the-counter markets.",
+    "NON_PROFIT_CORPORATION": "A Non-Profit Corporation is a legal entity that is formed for the purpose of serving a public or mutual benefit other than the pursuit or accumulation of profits for owners or investors.",
+    "GOVERNMENT_ENTITY": "A Government Entity is a state, local, or federal organization that has a specific function or authority.",
+    "SOLE_PROPRIETORSHIP": "A Sole Proprietorship is a business that is owned and operated by a single person.",
+    "UNINCORPORATED_ASSOCIATION": "An Unincorporated Association is a group of people who come together for a common purpose but do not register as a corporation or limited liability company."
   }
 }

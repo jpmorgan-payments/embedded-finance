@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { useEffect, useRef, useState } from 'react';
 import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuestions.mock';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
@@ -104,9 +105,27 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
 
 export default meta;
 
-const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => (
-  <OnboardingWizardBasic {...args} />
-);
+const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => {
+  const [containerHeight, setContainerHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    const handleResize = () => setContainerHeight(window.innerHeight);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  });
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <OnboardingWizardBasic height={`${containerHeight - 32}px`} {...args} />
+    </div>
+  );
+};
 
 export const Default = Template.bind({});
 Default.storyName = '1a. Initial step without clientId';
@@ -121,6 +140,16 @@ Default.args = {
   availableOrganizationTypes: [
     'SOLE_PROPRIETORSHIP',
     'LIMITED_LIABILITY_COMPANY',
+    'LIMITED_LIABILITY_PARTNERSHIP',
+    'GENERAL_PARTNERSHIP',
+    'LIMITED_PARTNERSHIP',
+    'C_CORPORATION',
+    'S_CORPORATION',
+    'PARTNERSHIP',
+    'PUBLICLY_TRADED_COMPANY',
+    'NON_PROFIT_CORPORATION',
+    'GOVERNMENT_ENTITY',
+    'UNINCORPORATED_ASSOCIATION',
   ],
   theme: {},
   contentTokens: {

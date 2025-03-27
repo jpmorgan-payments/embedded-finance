@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { Separator } from '@/components/ui/separator';
 
 import { useContentTokens } from '../../EBComponentsProvider/EBComponentsProvider';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
+import { OnboardingChecklistScreen } from './OnboardingChecklistScreen/OnboardingChecklistScreen';
 import { OnboardingOverviewContext } from './OnboardingContext/OnboardingContext';
 import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGatewayScreen';
 import { GlobalStepper } from './OnboardingGlobalStepper';
@@ -26,6 +28,7 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
   userEventsToTrack = [],
   userEventsHandler,
   onSetClientId,
+  height,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
@@ -117,7 +120,10 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
   });
 
   return (
-    <div className="eb-component" id="embedded-component-layout">
+    <div
+      className="eb-component md:eb-max-w-2xl"
+      id="embedded-component-layout"
+    >
       <OnboardingOverviewContext.Provider
         value={{
           ...props,
@@ -126,13 +132,18 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
         }}
       >
         <GlobalStepper.Scoped key={initialClientId}>
-          {error ? (
-            <ServerErrorAlert error={error} />
-          ) : isLoading ? (
-            <FormLoadingState message={t('fetchingClientData')} />
-          ) : (
-            <OnboardingMainSteps />
-          )}
+          <div
+            className="eb-flex eb-space-y-6 eb-p-2 eb-pb-4 md:eb-p-10"
+            style={{ minHeight: height }}
+          >
+            {error ? (
+              <ServerErrorAlert error={error} />
+            ) : isLoading ? (
+              <FormLoadingState message={t('fetchingClientData')} />
+            ) : (
+              <OnboardingMainSteps />
+            )}
+          </div>
         </GlobalStepper.Scoped>
       </OnboardingOverviewContext.Provider>
     </div>
@@ -143,10 +154,26 @@ const OnboardingMainSteps = () => {
   const methods = GlobalStepper.useStepper();
 
   return (
-    <div className="eb-space-y-6 eb-p-2 eb-pb-4 md:eb-p-10 md:eb-pb-16">
-      {methods.switch({
-        gateway: () => <OnboardingGatewayScreen />,
-      })}
+    <div className="eb-flex eb-flex-1 eb-flex-col eb-space-y-6">
+      <div className="eb-space-y-1.5">
+        <p className="eb-text-muted-foreground">Welcome!</p>
+        <h2 className="eb-text-2xl eb-font-bold eb-tracking-tight">
+          Let&apos;s help you get started
+        </h2>
+        <p className="eb-text-sm eb-font-semibold">
+          Select your company's business type and we&apos;ll explain what
+          information you&apos;ll need to complete the application.
+        </p>
+      </div>
+
+      <Separator />
+
+      <div className="eb-flex-1">
+        {methods.switch({
+          gateway: () => <OnboardingGatewayScreen />,
+          checklist: () => <OnboardingChecklistScreen />,
+        })}
+      </div>
     </div>
   );
 };
