@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
+  getSmbdoGetClientQueryKey,
   useSmbdoGetClient,
   useSmbdoPostClients,
   useSmbdoUpdateClient,
@@ -11,7 +13,7 @@ import {
 import { PartyType, Role } from '@/api/generated/smbdo.schemas';
 import { AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form } from '@/components/ui/form';
-import { Alert, Button, Separator } from '@/components/ui';
+import { Alert, Button } from '@/components/ui';
 
 import { OnboardingFormField } from '../../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../../ServerErrorAlert/ServerErrorAlert';
@@ -31,6 +33,7 @@ import { GlobalStepper } from '../OnboardingGlobalStepper';
 import { OnboardingGatewayScreenFormSchema } from './OnboardingGatewayScreenForm.schema';
 
 export const OnboardingGatewayScreen = () => {
+  const queryClient = useQueryClient();
   const {
     clientId,
     setClientId,
@@ -41,7 +44,7 @@ export const OnboardingGatewayScreen = () => {
 
   const globalStepper = GlobalStepper.useStepper();
 
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId);
@@ -118,8 +121,7 @@ export const OnboardingGatewayScreen = () => {
             onPostClientResponse?.(data, error?.response?.data);
           },
           onSuccess: async (response) => {
-            await setClientId?.(response.id);
-            // TODO: add prop to toggle toasts
+            await setClientId(response.id);
             globalStepper.next();
           },
           onError: (error) => {
@@ -156,7 +158,22 @@ export const OnboardingGatewayScreen = () => {
           onSettled: (data, error) => {
             onPostPartyResponse?.(data, error?.response?.data);
           },
-          onSuccess: () => {
+          onSuccess: async () => {
+            // Update the client data in the cache while it fetches the new data
+            queryClient.setQueryData(getSmbdoGetClientQueryKey(clientId), {
+              ...clientData,
+              parties: clientData?.parties?.map((party) =>
+                party.id === existingOrgParty.id
+                  ? {
+                      ...party,
+                      organizationDetails: {
+                        ...party.organizationDetails,
+                        ...values,
+                      },
+                    }
+                  : party
+              ),
+            });
             globalStepper.next();
           },
           onError: (error) => {
@@ -227,8 +244,10 @@ export const OnboardingGatewayScreen = () => {
             options={(availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST).map(
               (type) => ({
                 value: type,
-                label: t(`organizationTypes.${type}`),
-                description: t(`organizationTypeDescriptions.${type}`),
+                label: t(`onboarding:organizationTypes.${type}`),
+                description: t(
+                  `onboarding:organizationTypeDescriptions.${type}`
+                ),
               })
             )}
             disabled={isFormDisabled}
@@ -236,14 +255,15 @@ export const OnboardingGatewayScreen = () => {
         </div>
 
         <div className="eb-space-y-4">
-          <Alert variant="informative">
-            <InfoIcon className="eb-h-4 eb-w-4" />
-            <AlertTitle>Important</AlertTitle>
-            <AlertDescription>
-              Please make sure you make the correct selection. If you come back
-              and edit this later, you may lose saved progress.
-            </AlertDescription>
-          </Alert>
+          {t('steps.gateway.alerts', { returnObjects: true }).map((alert) => (
+            <Alert variant="informative">
+              <InfoIcon className="eb-h-4 eb-w-4" />
+              {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
+              {alert.description && (
+                <AlertDescription>{alert.description}</AlertDescription>
+              )}
+            </Alert>
+          ))}
 
           <ServerErrorAlert
             error={partyUpdateError || clientUpdateError || clientPostError}
@@ -259,7 +279,7 @@ export const OnboardingGatewayScreen = () => {
             {isFormSubmitting ? (
               <Loader2Icon className="eb-animate-spin" />
             ) : null}
-            Show me what's needed
+            {t('steps.gateway.nextButton')}
           </Button>
         </div>
       </form>

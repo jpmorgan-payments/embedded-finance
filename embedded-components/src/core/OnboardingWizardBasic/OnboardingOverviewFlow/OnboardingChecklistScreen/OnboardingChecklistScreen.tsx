@@ -27,17 +27,66 @@ export const OnboardingChecklistScreen = () => {
   return (
     <div className="eb-flex eb-min-h-full eb-flex-col eb-space-y-8">
       <div className="eb-flex-auto eb-space-y-4">
-        <div className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4">
+        <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
+          <h3 className="eb-text-xl eb-font-bold eb-tracking-tight">
+            Personal Details
+          </h3>
+
+          <div className="eb-space-y-1">
+            <p className="eb-font-semibold">
+              We'll need information from you as the financial controller
+              responsible for managing finances for your company.
+            </p>
+            <ul className="eb-list-disc eb-pl-8">
+              <li>Data point A</li>
+              <li>Data point B</li>
+              <li>Data point C</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
           <h3 className="eb-text-xl eb-font-bold eb-tracking-tight">Company</h3>
-          <p>
-            Collect pertinent company details, typically found on your company's
-            registration certificate
+
+          <div className="eb-space-y-1">
+            <p className="eb-font-semibold">
+              Collect pertinent company details, typically found on your
+              company's registration certificate.
+            </p>
+            <ul className="eb-list-disc eb-pl-8">
+              <li>Data point A</li>
+              <li>Data point B</li>
+              <li>Data point C</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
+          <h3 className="eb-text-xl eb-font-bold eb-tracking-tight">
+            Stakeholders
+          </h3>
+
+          <p className="eb-font-semibold">
+            Collect personal details for all stakeholders in your company.
           </p>
-          <ul className="eb-list-disc eb-pl-8">
-            <li>Data point A</li>
-            <li>Data point B</li>
-            <li>Data point C</li>
-          </ul>
+
+          <div className="eb-space-y-1">
+            <p className="eb-font-semibold">Controllers</p>
+            <ul className="eb-list-disc eb-pl-8">
+              <li>Data point A</li>
+              <li>Data point B</li>
+              <li>Data point C</li>
+            </ul>
+          </div>
+
+          <div className="eb-space-y-1">
+            <p className="eb-font-semibold">Beneficial owners</p>
+            <ul className="eb-list-disc eb-pl-8">
+              <li>Data point A</li>
+              <li>Data point B</li>
+              <li>Data point C</li>
+            </ul>
+          </div>
         </div>
       </div>
       <div className="eb-flex eb-justify-between eb-gap-4">

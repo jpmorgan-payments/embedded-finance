@@ -1,16 +1,20 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
+import { PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui';
 
 import { useContentTokens } from '../../EBComponentsProvider/EBComponentsProvider';
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
 import { OnboardingChecklistScreen } from './OnboardingChecklistScreen/OnboardingChecklistScreen';
-import { OnboardingOverviewContext } from './OnboardingContext/OnboardingContext';
+import {
+  OnboardingOverviewContext,
+  useOnboardingOverviewContext,
+} from './OnboardingContext/OnboardingContext';
 import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGatewayScreen';
 import { GlobalStepper } from './OnboardingGlobalStepper';
 import {
@@ -53,7 +57,7 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
 
   // Load content tokens
   const { tokens: globalContentTokens = {} } = useContentTokens();
-  const { i18n, t } = useTranslation('onboarding');
+  const { i18n, t } = useTranslation(['onboarding-overview', 'onboarding']);
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [
       globalContentTokens.onboarding,
@@ -127,16 +131,17 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
         setClientId: handleSetClientId,
       }}
     >
-      <GlobalStepper.Scoped key={initialClientId}>
+      <GlobalStepper.Scoped>
         <div
           id="embedded-component-layout"
           className="eb-component"
           style={{ minHeight: height }}
+          key={initialClientId}
         >
           {error ? (
             <ServerErrorAlert error={error} />
           ) : isLoading ? (
-            <FormLoadingState message={t('fetchingClientData')} />
+            <FormLoadingState message={t('onboarding:fetchingClientData')} />
           ) : (
             <OnboardingMainSteps />
           )}
@@ -147,7 +152,17 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
 };
 
 const OnboardingMainSteps = () => {
-  const methods = GlobalStepper.useStepper();
+  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
+  const globalStepper = GlobalStepper.useStepper();
+  const currentStepId = globalStepper.current.id;
+
+  const { clientId } = useOnboardingOverviewContext();
+  const { data: clientData } = useSmbdoGetClient(clientId);
+  const existingOrgParty = clientData?.parties?.find(
+    (party) => party.partyType === 'ORGANIZATION'
+  );
+  const organizationType =
+    existingOrgParty?.organizationDetails?.organizationType;
 
   // Scroll to top on step change
   const mainRef = useRef<HTMLDivElement>(null);
@@ -158,28 +173,53 @@ const OnboardingMainSteps = () => {
       return;
     }
     mainRef.current?.scrollIntoView({ block: 'start' });
-  }, [methods.current]);
+  }, [currentStepId]);
+
+  // Edge case: Redirect to gateway if organization type is not set
+  useEffect(() => {
+    if (!organizationType && currentStepId !== 'gateway') {
+      globalStepper.goTo('gateway');
+    }
+  }, [organizationType, currentStepId]);
 
   return (
     <div
-      className="eb-flex eb-h-full eb-flex-col eb-space-y-6 eb-p-2 eb-pb-4 md:eb-max-w-2xl md:eb-p-10"
+      className="eb-mx-auto eb-flex eb-h-full eb-flex-col eb-space-y-6 eb-p-4 eb-pb-6 md:eb-max-w-screen-md md:eb-p-10 md:eb-pb-12"
       ref={mainRef}
+      key={clientId}
     >
-      <div className="eb-space-y-1.5">
-        <p className="eb-text-muted-foreground">Welcome!</p>
+      <div>
+        <div className="eb-flex eb-items-center eb-space-x-4">
+          {currentStepId === 'gateway' ? (
+            <p className="eb-h-6">{t('welcomeText')}</p>
+          ) : (
+            <>
+              <p className="eb-h-6">
+                {t(`onboarding:organizationTypes.${organizationType!}`)}
+              </p>
+              <Button
+                variant="ghost"
+                className="eb-h-6 eb-w-6 eb-px-3"
+                onClick={() => globalStepper.goTo('gateway')}
+                aria-label="change organization type"
+              >
+                <PencilIcon className="eb-stroke-primary" />
+              </Button>
+            </>
+          )}
+        </div>
+
         <h2 className="eb-text-2xl eb-font-bold eb-tracking-tight">
-          Let&apos;s help you get started
+          {t(`steps.${currentStepId}.title`)}
         </h2>
-        <p className="eb-text-sm eb-font-semibold">
-          Select your company's business type and we&apos;ll explain what
-          information you&apos;ll need to complete the application.
+
+        <p className="eb-pt-2 eb-text-sm eb-font-semibold">
+          {t(`steps.${currentStepId}.description`)}
         </p>
       </div>
 
-      <Separator />
-
       <div className="eb-flex-1">
-        {methods.switch({
+        {globalStepper.switch({
           gateway: () => <OnboardingGatewayScreen />,
           checklist: () => <OnboardingChecklistScreen />,
         })}

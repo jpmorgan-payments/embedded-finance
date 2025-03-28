@@ -137,18 +137,21 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   maskChar,
   shouldUnregister,
 }: OnboardingFormFieldProps<TFieldValues>) {
+  // temporary workaround to get clientId and flowType from different contexts
   let clientId;
+  let isOverviewFlow = false;
   try {
     const context = useOnboardingContext();
     clientId = context.clientId;
   } catch (error) {
     const context = useOnboardingOverviewContext();
     clientId = context.clientId;
+    isOverviewFlow = true;
   }
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
 
   let fieldRule: OptionalDefaults<FieldRule> = {};
   if (!disableFieldRuleMapping) {
@@ -181,9 +184,17 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
   const getContentToken = (id: string) => {
+    // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
+    const stepperFlowKey = `onboarding:${key}`;
+    const overviewFlowKey = `onboarding-overview:${key}`;
     return t(
-      [key, 'common:noTokenFallback'] as unknown as TemplateStringsArray,
+      [
+        ...(isOverviewFlow
+          ? [overviewFlowKey, stepperFlowKey]
+          : [stepperFlowKey]),
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
       {
         number,
         key,

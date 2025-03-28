@@ -119,16 +119,7 @@ const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => {
     return () => window.removeEventListener('resize', handleResize);
   });
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-      }}
-    >
-      <OnboardingWizardBasic height={`${containerHeight - 32}px`} {...args} />
-    </div>
-  );
+  return <OnboardingWizardBasic height={`${containerHeight}px`} {...args} />;
 };
 
 export const Default = Template.bind({});
