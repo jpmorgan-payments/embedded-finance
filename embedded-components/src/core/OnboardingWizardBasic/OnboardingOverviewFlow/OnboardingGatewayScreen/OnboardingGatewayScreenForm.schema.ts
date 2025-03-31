@@ -1,7 +1,7 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingWizardBasic/utils/COUNTRIES_OF_FORMATION';
+// import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingWizardBasic/utils/COUNTRIES_OF_FORMATION';
 
 export const OnboardingGatewayScreenFormSchema = z.object({
   organizationType: z
