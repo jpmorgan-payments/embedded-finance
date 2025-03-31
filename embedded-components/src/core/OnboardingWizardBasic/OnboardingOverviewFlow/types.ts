@@ -20,7 +20,6 @@ export type OnboardingConfigDefault = {
   alertOnExit?: boolean;
   userEventsToTrack?: string[];
   userEventsHandler?: ({ actionName }: { actionName: string }) => void;
-  onSetClientId?: (clientId: string) => Promise<void>;
 };
 
 export type OnboardingConfigUsedInContext = {

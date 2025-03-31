@@ -8,14 +8,11 @@ import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingCon
 import { GlobalStepper } from '../OnboardingGlobalStepper';
 
 export const OnboardingChecklistScreen = () => {
-  const { clientId } = useOnboardingOverviewContext();
+  const { clientData } = useOnboardingOverviewContext();
 
   const globalStepper = GlobalStepper.useStepper();
 
   const { t } = useTranslation(['onboarding', 'common']);
-
-  // Fetch client data
-  const { data: clientData } = useSmbdoGetClient(clientId);
 
   const existingOrgParty = clientData?.parties?.find(
     (party) => party.partyType === 'ORGANIZATION'

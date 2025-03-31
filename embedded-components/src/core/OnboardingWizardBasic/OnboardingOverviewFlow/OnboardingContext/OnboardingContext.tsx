@@ -1,10 +1,12 @@
 import { createContext, useContext } from 'react';
 
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
+
 import { OnboardingConfigUsedInContext } from '../types';
 
 type OnboardingContextType = OnboardingConfigUsedInContext & {
-  clientId: string;
-  setClientId: (clientId: string) => Promise<void>;
+  clientData: ClientResponse | undefined;
+  setClientId: (clientId: string) => void;
 };
 
 export const OnboardingOverviewContext = createContext<

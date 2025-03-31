@@ -31,14 +31,17 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
   alertOnExit = false,
   userEventsToTrack = [],
   userEventsHandler,
-  onSetClientId,
   height,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
 
-  // isLoading is only true for the initial fetch
-  const { isLoading, error } = useSmbdoGetClient(clientId, {
+  const {
+    data: clientData,
+    isPending,
+    isError,
+    error,
+  } = useSmbdoGetClient(clientId, {
     query: {
       // refetch settings?
     },
@@ -47,13 +50,6 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
   useEffect(() => {
     setClientId(initialClientId ?? '');
   }, [initialClientId]);
-
-  const handleSetClientId = async (id: string) => {
-    setClientId(id);
-    if (onSetClientId) {
-      await onSetClientId('');
-    }
-  };
 
   // Load content tokens
   const { tokens: globalContentTokens = {} } = useContentTokens();
@@ -127,8 +123,8 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
     <OnboardingOverviewContext.Provider
       value={{
         ...props,
-        clientId,
-        setClientId: handleSetClientId,
+        clientData,
+        setClientId,
       }}
     >
       <GlobalStepper.Scoped>
@@ -138,9 +134,9 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
           style={{ minHeight: height }}
           key={initialClientId}
         >
-          {error ? (
+          {isError ? (
             <ServerErrorAlert error={error} />
-          ) : isLoading ? (
+          ) : isPending && initialClientId ? (
             <FormLoadingState message={t('onboarding:fetchingClientData')} />
           ) : (
             <OnboardingMainSteps />
@@ -156,8 +152,7 @@ const OnboardingMainSteps = () => {
   const globalStepper = GlobalStepper.useStepper();
   const currentStepId = globalStepper.current.id;
 
-  const { clientId } = useOnboardingOverviewContext();
-  const { data: clientData } = useSmbdoGetClient(clientId);
+  const { clientData } = useOnboardingOverviewContext();
   const existingOrgParty = clientData?.parties?.find(
     (party) => party.partyType === 'ORGANIZATION'
   );
@@ -178,6 +173,7 @@ const OnboardingMainSteps = () => {
   // Edge case: Redirect to gateway if organization type is not set
   useEffect(() => {
     if (!organizationType && currentStepId !== 'gateway') {
+      console.log('hello');
       globalStepper.goTo('gateway');
     }
   }, [organizationType, currentStepId]);
@@ -186,7 +182,7 @@ const OnboardingMainSteps = () => {
     <div
       className="eb-mx-auto eb-flex eb-h-full eb-flex-col eb-space-y-6 eb-p-4 eb-pb-6 md:eb-max-w-screen-md md:eb-p-10 md:eb-pb-12"
       ref={mainRef}
-      key={clientId}
+      key={clientData?.id}
     >
       <div>
         <div className="eb-flex eb-items-center eb-space-x-4">

@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
-  useSmbdoGetClient,
   useSmbdoPostClients,
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
@@ -35,7 +34,7 @@ import { OnboardingGatewayScreenFormSchema } from './OnboardingGatewayScreenForm
 export const OnboardingGatewayScreen = () => {
   const queryClient = useQueryClient();
   const {
-    clientId,
+    clientData,
     setClientId,
     onPostClientResponse,
     onPostPartyResponse,
@@ -45,9 +44,6 @@ export const OnboardingGatewayScreen = () => {
   const globalStepper = GlobalStepper.useStepper();
 
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
-
-  // Fetch client data
-  const { data: clientData } = useSmbdoGetClient(clientId);
 
   const form = useFormWithFilters({
     clientData,
@@ -104,7 +100,7 @@ export const OnboardingGatewayScreen = () => {
     };
 
     // Create client if it doesn't exist
-    if (!clientId) {
+    if (!clientData) {
       const requestBody = generateClientRequestBody(values, 0, 'parties', {
         parties: [defaultPartyData],
       });
@@ -120,9 +116,16 @@ export const OnboardingGatewayScreen = () => {
           onSettled: (data, error) => {
             onPostClientResponse?.(data, error?.response?.data);
           },
-          onSuccess: async (response) => {
-            await setClientId(response.id);
-            globalStepper.next();
+          onSuccess: (response) => {
+            globalStepper.beforeNext(() => {
+              setClientId(response.id);
+              // Update the query cache with the new client data
+              queryClient.setQueryData(
+                getSmbdoGetClientQueryKey(response.id),
+                response
+              );
+              return true;
+            });
           },
           onError: (error) => {
             if (error.response?.data?.context) {
@@ -140,7 +143,7 @@ export const OnboardingGatewayScreen = () => {
     }
 
     // Update the organization party if it exists
-    else if (clientId && existingOrgParty?.id) {
+    else if (clientData && existingOrgParty?.id) {
       // If the organization type is the same, move to the next step
       if (
         values.organizationType ===
@@ -160,7 +163,7 @@ export const OnboardingGatewayScreen = () => {
           },
           onSuccess: async () => {
             // Update the client data in the cache while it fetches the new data
-            queryClient.setQueryData(getSmbdoGetClientQueryKey(clientId), {
+            queryClient.setQueryData(getSmbdoGetClientQueryKey(clientData.id), {
               ...clientData,
               parties: clientData?.parties?.map((party) =>
                 party.id === existingOrgParty.id
@@ -198,7 +201,7 @@ export const OnboardingGatewayScreen = () => {
         }
       );
       updateClient(
-        { id: clientId, data: clientRequestBody },
+        { id: clientData.id, data: clientRequestBody },
         {
           onSettled: (data, error) => {
             onPostClientResponse?.(data, error?.response?.data);
@@ -255,15 +258,17 @@ export const OnboardingGatewayScreen = () => {
         </div>
 
         <div className="eb-space-y-4">
-          {t('steps.gateway.alerts', { returnObjects: true }).map((alert) => (
-            <Alert variant="informative">
-              <InfoIcon className="eb-h-4 eb-w-4" />
-              {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
-              {alert.description && (
-                <AlertDescription>{alert.description}</AlertDescription>
-              )}
-            </Alert>
-          ))}
+          {t('steps.gateway.alerts', { returnObjects: true }).map(
+            (alert, index) => (
+              <Alert variant="informative" key={index}>
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
+                {alert.description && (
+                  <AlertDescription>{alert.description}</AlertDescription>
+                )}
+              </Alert>
+            )
+          )}
 
           <ServerErrorAlert
             error={partyUpdateError || clientUpdateError || clientPostError}
