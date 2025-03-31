@@ -1,25 +1,24 @@
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui';
 
-import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
-import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
+// import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
+// import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
 
 export const OnboardingChecklistScreen = () => {
-  const { clientData } = useOnboardingOverviewContext();
+  // const { clientData } = useOnboardingOverviewContext();
 
   const globalStepper = GlobalStepper.useStepper();
 
-  const { t } = useTranslation(['onboarding', 'common']);
+  // const { t } = useTranslation(['onboarding', 'common']);
 
-  const existingOrgParty = clientData?.parties?.find(
-    (party) => party.partyType === 'ORGANIZATION'
-  );
+  // const existingOrgParty = clientData?.parties?.find(
+  //   (party) => party.partyType === 'ORGANIZATION'
+  // );
 
-  const organizationType =
-    existingOrgParty?.organizationDetails?.organizationType;
+  // const organizationType =
+  //   existingOrgParty?.organizationDetails?.organizationType;
 
   return (
     <div className="eb-flex eb-min-h-full eb-flex-col eb-space-y-8">
@@ -31,7 +30,7 @@ export const OnboardingChecklistScreen = () => {
 
           <div className="eb-space-y-1">
             <p className="eb-font-semibold">
-              We'll need information from you as the financial controller
+              We&apos;ll need information from you as the financial controller
               responsible for managing finances for your company.
             </p>
             <ul className="eb-list-disc eb-pl-8">
@@ -48,7 +47,7 @@ export const OnboardingChecklistScreen = () => {
           <div className="eb-space-y-1">
             <p className="eb-font-semibold">
               Collect pertinent company details, typically found on your
-              company's registration certificate.
+              company&apos;s registration certificate.
             </p>
             <ul className="eb-list-disc eb-pl-8">
               <li>Data point A</li>
