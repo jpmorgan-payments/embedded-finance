@@ -59,7 +59,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
     onPostClientResponse: { table: { disable: true } },
     onPostPartyResponse: { table: { disable: true } },
     onPostClientVerificationsResponse: { table: { disable: true } },
-    onSetClientId: { table: { disable: true } },
     availableProducts: {
       control: {
         type: 'check',
