@@ -1764,6 +1764,7 @@ __metadata:
     "@radix-ui/react-slot": "npm:^1.1.0"
     "@radix-ui/react-switch": "npm:^1.1.0"
     "@radix-ui/react-toast": "npm:^1.2.1"
+    "@stepperize/react": "npm:^5.1.5"
     "@storybook/addon-a11y": "npm:^8.6.4"
     "@storybook/addon-actions": "npm:^8.6.4"
     "@storybook/addon-designs": "npm:^8.0.4"
@@ -1817,7 +1818,7 @@ __metadata:
     json-diff-ts: "npm:^4.0.1"
     libphonenumber-js: "npm:^1.11.5"
     lucide-react: "npm:^0.418.0"
-    msw: "npm:^2.7.0"
+    msw: "npm:^2.7.3"
     msw-storybook-addon: "npm:^2.0.4"
     next-themes: "npm:^0.3.0"
     orval: "npm:^7.0.1"
@@ -3702,6 +3703,26 @@ __metadata:
   version: 5.6.0
   resolution: "@sindresorhus/is@npm:5.6.0"
   checksum: 10c0/66727344d0c92edde5760b5fd1f8092b717f2298a162a5f7f29e4953e001479927402d9d387e245fb9dc7d3b37c72e335e93ed5875edfc5203c53be8ecba1b52
+  languageName: node
+  linkType: hard
+
+"@stepperize/core@npm:1.2.5":
+  version: 1.2.5
+  resolution: "@stepperize/core@npm:1.2.5"
+  peerDependencies:
+    typescript: ">=5.0.2"
+  checksum: 10c0/5ebf7bb5a5f6384e075c5a09f996bc012247f2108a1a71006dfe875ae7668546928df5648c81a95490c245eddfd2144308c60275b1187ef4341420794e199926
+  languageName: node
+  linkType: hard
+
+"@stepperize/react@npm:^5.1.5":
+  version: 5.1.5
+  resolution: "@stepperize/react@npm:5.1.5"
+  dependencies:
+    "@stepperize/core": "npm:1.2.5"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/d0a960b17373f808de1c21344f7b799f19c4e05db52cb5710e446f452ec7127bedc09485ae36c3dd30bf9f7b7024cc6fac44c661201a6a19ac59d439dd2f77bc
   languageName: node
   linkType: hard
 
@@ -10565,9 +10586,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "msw@npm:2.7.0"
+"msw@npm:^2.7.3":
+  version: 2.7.3
+  resolution: "msw@npm:2.7.3"
   dependencies:
     "@bundled-es-modules/cookie": "npm:^2.0.1"
     "@bundled-es-modules/statuses": "npm:^1.0.1"
@@ -10594,7 +10615,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 10c0/14fb8299dcb6bcf2c6b3777a3127ed6be795a281598394022650b82889f1b70e0ada96559fefead351b18ed5db4e0a3a64367b758dd64f74dea63edc8eb2b551
+  checksum: 10c0/47cad1c4b4615b312477c8977fddfda3e90becd8efc2d81d73be8fb860e45ad0d3f7bca6d4f70ae7ed21894e93975bda66d609aafc3a1c99cb923c5ef67f8686
   languageName: node
   linkType: hard
 

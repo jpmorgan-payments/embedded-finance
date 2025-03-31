@@ -45,6 +45,7 @@ import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { useOnboardingOverviewContext } from '../OnboardingOverviewFlow/OnboardingContext/OnboardingContext';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   FieldRule,
@@ -57,6 +58,7 @@ type FieldType =
   | 'email'
   | 'select'
   | 'radio-group'
+  | 'radio-group-blocks'
   | 'checkbox'
   | 'array'
   | 'date'
@@ -94,8 +96,12 @@ interface SelectOrRadioGroupProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends BaseProps<TFieldValues, TName> {
-  type: 'select' | 'radio-group' | 'combobox';
-  options: Array<{ label: JSX.Element | string; value: string }>;
+  type: 'select' | 'radio-group' | 'radio-group-blocks' | 'combobox';
+  options: Array<{
+    label: JSX.Element | string;
+    value: string;
+    description?: string;
+  }>;
 }
 interface OtherFieldProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -131,11 +137,21 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   maskChar,
   shouldUnregister,
 }: OnboardingFormFieldProps<TFieldValues>) {
-  const { clientId } = useOnboardingContext();
+  // temporary workaround to get clientId and flowType from different contexts
+  let clientId;
+  let isOverviewFlow = false;
+  try {
+    const context = useOnboardingContext();
+    clientId = context.clientId;
+  } catch (error) {
+    const context = useOnboardingOverviewContext();
+    clientId = context.clientData?.id;
+    isOverviewFlow = true;
+  }
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
 
   let fieldRule: OptionalDefaults<FieldRule> = {};
   if (!disableFieldRuleMapping) {
@@ -168,9 +184,17 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
   const getContentToken = (id: string) => {
+    // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
+    const stepperFlowKey = `onboarding:${key}`;
+    const overviewFlowKey = `onboarding-overview:${key}`;
     return t(
-      [key, 'common:noTokenFallback'] as unknown as TemplateStringsArray,
+      [
+        ...(isOverviewFlow
+          ? [overviewFlowKey, stepperFlowKey]
+          : [stepperFlowKey]),
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
       {
         number,
         key,
@@ -351,7 +375,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <RadioGroup
                           {...field}
                           value={field.value}
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            field.onBlur();
+                          }}
                           className="eb-flex eb-flex-col eb-space-y-1"
                           data-dtrum-tracking={field.name}
                         >
@@ -365,6 +392,41 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               </FormControl>
                               <FormLabel className="eb-font-normal">
                                 {option.label}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                    );
+                  case 'radio-group-blocks':
+                    return (
+                      <FormControl>
+                        <RadioGroup
+                          {...field}
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            field.onBlur();
+                          }}
+                          className="eb-grid eb-gap-3"
+                          data-dtrum-tracking={field.name}
+                        >
+                          {options?.map((option) => (
+                            <FormItem
+                              key={`radio-group-option-${option.value}`}
+                            >
+                              <FormLabel className="eb-flex eb-select-none eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-p-4 eb-text-sm eb-font-medium eb-leading-none hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5 group-data-[disabled=true]:eb-pointer-events-none group-data-[disabled=true]:eb-opacity-50">
+                                <FormControl>
+                                  <RadioGroupItem value={option.value} />
+                                </FormControl>
+                                <div className="eb-grid eb-gap-1 eb-font-normal">
+                                  <div className="eb-font-medium">
+                                    {option.label}
+                                  </div>
+                                  <FormDescription>
+                                    {option.description}
+                                  </FormDescription>
+                                </div>
                               </FormLabel>
                             </FormItem>
                           ))}

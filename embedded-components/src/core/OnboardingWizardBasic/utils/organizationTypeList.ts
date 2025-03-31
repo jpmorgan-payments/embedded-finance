@@ -1,6 +1,7 @@
 import { OrganizationType } from '@/api/generated/smbdo.schemas';
 
 export const ORGANIZATION_TYPE_LIST: OrganizationType[] = [
+  'SOLE_PROPRIETORSHIP',
   'LIMITED_LIABILITY_COMPANY',
   'LIMITED_LIABILITY_PARTNERSHIP',
   'GENERAL_PARTNERSHIP',
@@ -11,6 +12,5 @@ export const ORGANIZATION_TYPE_LIST: OrganizationType[] = [
   'PUBLICLY_TRADED_COMPANY',
   'NON_PROFIT_CORPORATION',
   'GOVERNMENT_ENTITY',
-  'SOLE_PROPRIETORSHIP',
   'UNINCORPORATED_ASSOCIATION',
 ];

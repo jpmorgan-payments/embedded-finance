@@ -13,7 +13,9 @@ function colorToHsl(colorString?: string, alphaModifier?: number) {
   try {
     const color = new ColorTranslator(colorString);
     const alpha = color.A * (alphaModifier ?? 1);
-    return `${color.H} ${color.S}% ${color.L}% / ${alpha}`;
+    return alpha !== 1
+      ? `${color.H} ${color.S}% ${color.L}% / ${alpha}`
+      : `${color.H} ${color.S}% ${color.L}%`;
   } catch {
     return undefined;
   }
