@@ -145,7 +145,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     clientId = context.clientId;
   } catch (error) {
     const context = useOnboardingOverviewContext();
-    clientId = context.clientId;
+    clientId = context.clientData?.id;
     isOverviewFlow = true;
   }
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
