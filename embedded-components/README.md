@@ -16,50 +16,11 @@ The Embedded UI Components library offers a seamless way to integrate sophistica
 
 **All Embedded UI Components must be wrapped within the `EBComponentsProvider`.** The `EBComponentsProvider` is specifically designed for these components and is not applicable to any other client components in your application.
 
-## Setup and Configuration
-
-### EBComponentsProvider
-
-The `EBComponentsProvider` is a crucial wrapper component that must be placed at the top level of your Embedded UI Components implementation. It handles authentication, applies theming, and provides necessary context to all child Embedded UI Components.
-It is using @tanstack/react-query for handling API calls and authentication as well as Orval generated types for the API requests and responses.
-
-#### Key Props:
-
-- `apiBaseUrl`: The base URL for API calls (required)
-- `theme`: Customization options for the components' appearance (optional)
-- `headers`: Custom headers for API requests (optional)
-
-#### Usage:
-
-```jsx
-import { EBComponentsProvider } from '@jpmorgan-payments/embedded-finance-components';
-
-const EmbeddedFinanceSection = () => {
-  return (
-    <EBComponentsProvider
-      apiBaseUrl="https://your-api-base-url.com"
-      theme={{
-        colorScheme: 'light',
-        variables: {
-          primaryColor: '#007bff',
-          fontFamily: 'Arial, sans-serif',
-        },
-      }}
-      headers={{
-        'Custom-Header': 'value',
-      }}
-    >
-      {/* Your Embedded UI Components go here */}
-    </EBComponentsProvider>
-  );
-};
-```
-
-## Main concepts
+## Main Embedded UI Components Architecture Concepts
 
 The library is built on several key architectural concepts:
 
-### Individual Component Architecture Overview
+### Overall Logical Composition Diagram
 
 **Note:** The following diagram illustrates the component architecture using the onboarding wizard as an example:
 
@@ -95,7 +56,7 @@ graph TB
     end
 ```
 
-### Key Embedded UI Components Architecture Principles
+### Key Principles
 
 1. **OpenAPI Specification (OAS) & Future Arazzo Flows**
 
@@ -177,6 +138,43 @@ graph TB
 ## Embedded UI Components
 
 The library currently provides the following components:
+
+### EBComponentsProvider
+
+The `EBComponentsProvider` is a crucial wrapper component that must be placed at the top level of your Embedded UI Components implementation. It handles authentication, applies theming, and provides necessary context to all child Embedded UI Components.
+It is using @tanstack/react-query for handling API calls and authentication as well as Orval generated types for the API requests and responses.
+
+#### Key Props:
+
+- `apiBaseUrl`: The base URL for API calls (required)
+- `theme`: Customization options for the components' appearance (optional)
+- `headers`: Custom headers for API requests (optional)
+
+#### Usage:
+
+```jsx
+import { EBComponentsProvider } from '@jpmorgan-payments/embedded-finance-components';
+
+const EmbeddedFinanceSection = () => {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://your-api-base-url.com"
+      theme={{
+        colorScheme: 'light',
+        variables: {
+          primaryColor: '#007bff',
+          fontFamily: 'Arial, sans-serif',
+        },
+      }}
+      headers={{
+        'Custom-Header': 'value',
+      }}
+    >
+      {/* Your Embedded UI Components go here */}
+    </EBComponentsProvider>
+  );
+};
+```
 
 ### 1. OnboardingWizardBasic
 
