@@ -20,6 +20,56 @@ The Embedded UI Components library offers a seamless way to integrate sophistica
 
 The library is built on several key architectural concepts:
 
+### Integration Scenarios and Use Cases
+
+The Embedded UI Components are designed for flexible integration into parent web applications, offering several customization points:
+
+```mermaid
+graph TB
+    subgraph "Parent Web Application"
+        CMS["Content Management System"]
+        Theme["Theming System"]
+        RUM["Real User Monitoring"]
+
+        subgraph "Embedded Components Integration"
+            Provider["EBComponentsProvider"]
+            Components["Embedded UI Components"]
+
+            Provider --> Components
+        end
+
+        CMS -->|"Content Tokens"| Provider
+        Theme -->|"Design Tokens"| Provider
+        RUM -->|"User Event Handler"| Components
+    end
+```
+
+#### Integration Flexibility
+
+1. **Runtime Customization**
+
+   - Inject design tokens to match parent app's theme or use the default ones
+   - Override content tokens from parent app's CMS systems or any other source
+   - Connect to parent app's monitoring via `userEventsHandler`
+
+2. **Component Configuration**
+   - Configure API endpoints via provider
+   - Customize component behavior through props
+
+#### Future Extensibility
+
+1. **Field Configuration**
+
+   - Externalization of field mapping logic
+   - Custom field validation rules
+   - Dynamic form layout configuration
+   - Validation rules can be overridden from the parent app
+
+2. **Workflow Customization**
+   - Integration with Arazzo workflow definitions
+   - Custom step sequencing
+   - Conditional flow logic
+
 ### Overall Logical Composition Diagram
 
 **Note:** The following diagram illustrates the component architecture using the onboarding wizard as an example:
@@ -84,56 +134,6 @@ graph TB
      - Smart field prepopulation
      - Cognitive load reduction
      - Intelligent navigation
-
-### Integration Scenarios and Use Cases
-
-The Embedded UI Components are designed for flexible integration into parent web applications, offering several customization points:
-
-```mermaid
-graph TB
-    subgraph "Parent Web Application"
-        CMS["Content Management System"]
-        Theme["Theming System"]
-        RUM["Real User Monitoring"]
-
-        subgraph "Embedded Components Integration"
-            Provider["EBComponentsProvider"]
-            Components["Embedded UI Components"]
-
-            Provider --> Components
-        end
-
-        CMS -->|"Content Tokens"| Provider
-        Theme -->|"Design Tokens"| Provider
-        RUM -->|"User Event Handler"| Components
-    end
-```
-
-#### Integration Flexibility
-
-1. **Runtime Customization**
-
-   - Inject design tokens to match parent app's theme or use the default ones
-   - Override content tokens from parent app's CMS systems or any other source
-   - Connect to parent app's monitoring via `userEventsHandler`
-
-2. **Component Configuration**
-   - Configure API endpoints via provider
-   - Customize component behavior through props
-
-#### Future Extensibility
-
-1. **Field Configuration**
-
-   - Externalization of field mapping logic
-   - Custom field validation rules
-   - Dynamic form layout configuration
-   - Validation rules can be overridden from the parent app
-
-2. **Workflow Customization**
-   - Integration with Arazzo workflow definitions
-   - Custom step sequencing
-   - Conditional flow logic
 
 ## Embedded UI Components
 
