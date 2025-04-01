@@ -10,7 +10,7 @@ While we strive to incorporate ADA (Americans with Disabilities Act) best practi
 
 ## Overview
 
-Embedded UI Components offer a seamless way to integrate sophisticated UI components into your existing applications, providing a plug-and-play solution for Embedded Finance features. These components implement complex API capabilities for client onboarding and account linking, simplifying the integration process for developers.
+The Embedded UI Components library offers a seamless way to integrate sophisticated UI capabilities into your existing web applications, providing a plug-and-play solution for Embedded Finance features.
 
 ## Important Usage Notes
 
@@ -57,9 +57,11 @@ const EmbeddedFinanceSection = () => {
 
 ## Main concepts
 
-The Embedded UI Components are built using a sophisticated approach that leverages OpenAPI Specifications (OAS) and automated code generation to ensure type safety and consistent API integration.
+The library is built on several key architectural concepts:
 
-### Architecture Overview
+### Individual Component Architecture Overview
+
+**Note:** The following diagram illustrates the component architecture using the onboarding wizard as an example:
 
 ```mermaid
 graph TB
@@ -93,14 +95,14 @@ graph TB
     end
 ```
 
-### Key Architecture Components
+### Key Embedded UI Components Architecture Principles
 
 1. **OpenAPI Specification (OAS) & Future Arazzo Flows**
 
    - OAS defines API contracts and types
-   - Source of truth for API interfaces
-   - Used to generate TypeScript types and React Query hooks
-   - Note: Arazzo Flows and automated flow generation are planned future capabilities - currently no flows are pre-configured
+   - Serves as source of truth for API interfaces
+   - Generates TypeScript types and React Query hooks
+   - Future: Arazzo Flows will enable automated flow generation (not currently available)
 
 2. **Automated Code Generation**
 
@@ -108,10 +110,9 @@ graph TB
      - TypeScript interfaces
      - Type-safe React Query hooks
      - API client utilities
-   - Future capability: Flow generation from Arazzo Flows
    - Ensures type consistency between API and UI
 
-3. **Component Architecture**
+3. **Other utility functions**
 
    Built using generated types and hooks with an opinionated layer providing:
 
@@ -123,15 +124,59 @@ graph TB
      - Cognitive load reduction
      - Intelligent navigation
 
-4. **Runtime Flow**
-   - Components make API calls to Platform Service Layer (PSL)
-   - PSL handles:
-     - Authentication & authorization
-     - Request forwarding to backend APIs
-     - Response processing
-     - Error handling
+### Integration Scenarios and Use Cases
 
-## Main Components
+The Embedded UI Components are designed for flexible integration into parent web applications, offering several customization points:
+
+```mermaid
+graph TB
+    subgraph "Parent Web Application"
+        CMS["Content Management System"]
+        Theme["Theming System"]
+        RUM["Real User Monitoring"]
+
+        subgraph "Embedded Components Integration"
+            Provider["EBComponentsProvider"]
+            Components["Embedded UI Components"]
+
+            Provider --> Components
+        end
+
+        CMS -->|"Content Tokens"| Provider
+        Theme -->|"Design Tokens"| Provider
+        RUM -->|"User Event Handler"| Components
+    end
+```
+
+#### Integration Flexibility
+
+1. **Runtime Customization**
+
+   - Inject design tokens to match parent app's theme or use the default ones
+   - Override content tokens from parent app's CMS systems or any other source
+   - Connect to parent app's monitoring via `userEventsHandler`
+
+2. **Component Configuration**
+   - Configure API endpoints via provider
+   - Customize component behavior through props
+
+#### Future Extensibility
+
+1. **Field Configuration**
+
+   - Externalization of field mapping logic
+   - Custom field validation rules
+   - Dynamic form layout configuration
+   - Validation rules can be overridden from the parent app
+
+2. **Workflow Customization**
+   - Integration with Arazzo workflow definitions
+   - Custom step sequencing
+   - Conditional flow logic
+
+## Embedded UI Components
+
+The library currently provides the following components:
 
 ### 1. OnboardingWizardBasic
 
@@ -255,6 +300,8 @@ Please refer to the LinkedAccountProps interface in the codebase for more detail
 
 ## Theming
 
+The library supports comprehensive theming through the EBComponentsProvider. Components can be styled to match your application's design system using theme tokens.
+
 The `EBComponentsProvider` accepts a `theme` prop that allows for extensive customization of the components' appearance. The theme object can include the following properties:
 
 - `colorScheme`: 'dark' | 'light' | 'system'
@@ -307,6 +354,8 @@ yarn add @jpmorgan-payments/embedded-finance-components
 ```
 
 ## Contributing
+
+To contribute to the development of this library, please follow these guidelines:
 
 ### Recommended VSCode plugins:
 
