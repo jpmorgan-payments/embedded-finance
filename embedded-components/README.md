@@ -30,6 +30,7 @@ graph TB
         CMS["Content Management System"]
         Theme["Theming System"]
         RUM["Real User Monitoring"]
+        Storage["Client ID / Platform ID / User Identity"]
 
         subgraph "Embedded Components Integration"
             Provider["EBComponentsProvider"]
@@ -41,6 +42,7 @@ graph TB
         CMS -->|"Content Tokens"| Provider
         Theme -->|"Design Tokens"| Provider
         RUM -->|"User Event Handler"| Components
+        Storage -->|"Client ID / Platform ID"| Components
     end
 ```
 
@@ -55,6 +57,10 @@ graph TB
 2. **Component Configuration**
    - Configure API endpoints via provider
    - Customize component behavior through props
+
+3. **Client ID / Platform ID** (only for onboarding components)
+   - Onboarding Embedded UI Components can be used in fully controlled (client ID is provided and managed by the parent app) or uncontrolled (client ID is created from scratch by the embedded component) mode
+   - In uncontrolled mode the embedded component will create a new client and it is recommended to manage its lifecycle via the `onPostClientResponse` callback prop
 
 #### Future Extensibility
 
