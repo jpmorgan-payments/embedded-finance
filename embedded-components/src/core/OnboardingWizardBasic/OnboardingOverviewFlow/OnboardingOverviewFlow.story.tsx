@@ -141,6 +141,9 @@ Default.args = {
       buttonBorderRadius: '8px',
       headerFontFamily: 'Amplitude',
       fontFamily: 'Open Sans',
+      secondaryColor: 'white',
+      secondaryForegroundColor: '#1B7F9E',
+      secondaryBorderWidth: '1px',
     },
   },
   contentTokens: {

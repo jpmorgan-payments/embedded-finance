@@ -17,6 +17,7 @@ import {
 } from './OnboardingContext/OnboardingContext';
 import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGatewayScreen';
 import { GlobalStepper } from './OnboardingGlobalStepper';
+import { OnboardingOverviewScreen } from './OnboardingOverviewScreen/OnboardingOverviewScreen';
 import {
   OnboardingConfigDefault,
   OnboardingConfigUsedInContext,
@@ -184,19 +185,16 @@ const OnboardingMainSteps = () => {
       key={clientData?.id}
     >
       <div>
-        <div className="eb-flex eb-items-center eb-space-x-4">
+        <div className="eb-flex eb-h-6 eb-items-end eb-space-x-2 eb-text-sm">
           {currentStepId === 'gateway' ? (
-            <p className="eb-h-6 eb-text-sm">{t('welcomeText')}</p>
+            <p>{t('welcomeText')}</p>
           ) : (
             <>
-              <p className="eb-h-6 eb-text-sm">
-                {t(`onboarding:organizationTypes.${organizationType!}`)}
-              </p>
+              <p>{t(`onboarding:organizationTypes.${organizationType!}`)}</p>
               <Button
                 variant="ghost"
                 className="eb-h-6 eb-w-6 eb-px-3"
                 onClick={() => globalStepper.goTo('gateway')}
-                aria-label="change organization type"
               >
                 <PencilIcon className="eb-stroke-primary" />
               </Button>
@@ -217,6 +215,7 @@ const OnboardingMainSteps = () => {
         {globalStepper.switch({
           gateway: () => <OnboardingGatewayScreen />,
           checklist: () => <OnboardingChecklistScreen />,
+          overview: () => <OnboardingOverviewScreen />,
         })}
       </div>
     </div>

@@ -27,6 +27,7 @@
     "overview": {
       "title": "Overview",
       "description": "",
+      "infoAlert": "Complete steps in any order. Your data will be saved as you go.",
       "prevButton": "Back to checklist"
     }
   },

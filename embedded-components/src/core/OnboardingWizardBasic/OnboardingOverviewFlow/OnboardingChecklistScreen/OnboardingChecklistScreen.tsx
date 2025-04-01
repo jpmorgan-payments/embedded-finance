@@ -1,6 +1,8 @@
-// import { useTranslation } from 'react-i18next';
+import { InfoIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui';
+import { AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, Button } from '@/components/ui';
 
 // import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
 // import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
@@ -11,7 +13,7 @@ export const OnboardingChecklistScreen = () => {
 
   const globalStepper = GlobalStepper.useStepper();
 
-  // const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-overview', 'common']);
 
   // const existingOrgParty = clientData?.parties?.find(
   //   (party) => party.partyType === 'ORGANIZATION'
@@ -85,22 +87,35 @@ export const OnboardingChecklistScreen = () => {
           </div>
         </div>
       </div>
-      <div className="eb-flex eb-justify-between eb-gap-4">
-        <Button
-          variant="outline"
-          size="lg"
-          className="eb-w-full eb-text-lg"
-          onClick={() => globalStepper.prev()}
-        >
-          Back
-        </Button>
-        <Button
-          size="lg"
-          className="eb-w-full eb-text-lg"
-          onClick={() => globalStepper.next()}
-        >
-          Get Started
-        </Button>
+      <div className="eb-space-y-8">
+        {t('steps.checklist.alerts', { returnObjects: true }).map(
+          (alert, index) => (
+            <Alert variant="informative" key={index}>
+              <InfoIcon className="eb-h-4 eb-w-4" />
+              {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
+              {alert.description && (
+                <AlertDescription>{alert.description}</AlertDescription>
+              )}
+            </Alert>
+          )
+        )}
+        <div className="eb-flex eb-justify-between eb-gap-4">
+          <Button
+            variant="secondary"
+            size="lg"
+            className="eb-w-full eb-text-lg"
+            onClick={() => globalStepper.prev()}
+          >
+            {t('steps.checklist.prevButton')}
+          </Button>
+          <Button
+            size="lg"
+            className="eb-w-full eb-text-lg"
+            onClick={() => globalStepper.next()}
+          >
+            {t('steps.checklist.nextButton')}
+          </Button>
+        </div>
       </div>
     </div>
   );
