@@ -415,15 +415,18 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             <FormItem
                               key={`radio-group-option-${option.value}`}
                             >
-                              <FormLabel className="eb-flex eb-select-none eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-p-4 eb-text-sm eb-font-medium eb-leading-none hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5 group-data-[disabled=true]:eb-pointer-events-none group-data-[disabled=true]:eb-opacity-50">
+                              <FormLabel className="eb-flex eb-select-none eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-p-4 eb-text-sm eb-font-medium eb-leading-none hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5">
                                 <FormControl>
-                                  <RadioGroupItem value={option.value} />
+                                  <RadioGroupItem
+                                    value={option.value}
+                                    className="eb-shadow-none data-[state=checked]:eb-border-primary data-[state=checked]:eb-bg-primary [&_svg]:eb-fill-white [&_svg]:eb-stroke-white"
+                                  />
                                 </FormControl>
-                                <div className="eb-grid eb-gap-1 eb-font-normal">
+                                <div className="eb-grid eb-gap-1.5 eb-font-normal">
                                   <div className="eb-font-medium">
                                     {option.label}
                                   </div>
-                                  <FormDescription>
+                                  <FormDescription className="eb-text-xs">
                                     {option.description}
                                   </FormDescription>
                                 </div>
