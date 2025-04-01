@@ -173,7 +173,6 @@ const OnboardingMainSteps = () => {
   // Edge case: Redirect to gateway if organization type is not set
   useEffect(() => {
     if (!organizationType && currentStepId !== 'gateway') {
-      console.log('hello');
       globalStepper.goTo('gateway');
     }
   }, [organizationType, currentStepId]);
@@ -187,10 +186,10 @@ const OnboardingMainSteps = () => {
       <div>
         <div className="eb-flex eb-items-center eb-space-x-4">
           {currentStepId === 'gateway' ? (
-            <p className="eb-h-6">{t('welcomeText')}</p>
+            <p className="eb-h-6 eb-text-sm">{t('welcomeText')}</p>
           ) : (
             <>
-              <p className="eb-h-6">
+              <p className="eb-h-6 eb-text-sm">
                 {t(`onboarding:organizationTypes.${organizationType!}`)}
               </p>
               <Button
@@ -205,7 +204,7 @@ const OnboardingMainSteps = () => {
           )}
         </div>
 
-        <h2 className="eb-text-2xl eb-font-bold eb-tracking-tight">
+        <h2 className="eb-font-header eb-text-3xl eb-font-medium">
           {t(`steps.${currentStepId}.title`)}
         </h2>
 
