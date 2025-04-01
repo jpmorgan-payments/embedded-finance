@@ -237,7 +237,7 @@ export const OnboardingGatewayScreen = () => {
     <Form {...form}>
       <form
         onSubmit={onSubmit}
-        className="eb-flex eb-min-h-full eb-flex-col eb-space-y-8"
+        className="eb-flex eb-min-h-full eb-flex-col eb-space-y-6 eb-pt-6"
       >
         <div className="eb-flex-auto eb-space-y-4">
           <OnboardingFormField

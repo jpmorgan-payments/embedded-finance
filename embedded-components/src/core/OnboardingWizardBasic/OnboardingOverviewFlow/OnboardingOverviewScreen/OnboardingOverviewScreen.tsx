@@ -41,7 +41,7 @@ export const OnboardingOverviewScreen = () => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   return (
-    <div className="eb-flex eb-min-h-full eb-flex-col eb-space-y-8">
+    <div className="eb-flex eb-min-h-full eb-flex-col eb-space-y-6 eb-pt-2">
       <Alert variant="informative">
         <InfoIcon className="eb-h-4 eb-w-4" />
         <AlertDescription>{t('steps.overview.infoAlert')}</AlertDescription>
