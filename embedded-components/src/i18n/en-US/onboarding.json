@@ -1109,6 +1109,10 @@
     "Senior Branch Manager": "Senior Branch Manager",
     "Other": "Other"
   },
+  "natureOfOwnershipTypes":{
+    "direct":"Direct",
+    "indirect":"Indirect"
+  },
   "phoneTypes": {
     "BUSINESS_PHONE": "Business Phone",
     "MOBILE_PHONE": "Mobile Phone",
