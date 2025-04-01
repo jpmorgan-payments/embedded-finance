@@ -1,4 +1,4 @@
-import { FC, Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -51,6 +51,14 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
   useEffect(() => {
     setClientId(initialClientId ?? '');
   }, [initialClientId]);
+
+  const existingOrgParty = clientData?.parties?.find(
+    (party) => party.partyType === 'ORGANIZATION'
+  );
+  const organizationType =
+    existingOrgParty?.organizationDetails?.organizationType;
+
+  const initialStep = organizationType ? 'overview' : 'gateway';
 
   // Load content tokens
   const { tokens: globalContentTokens = {} } = useContentTokens();
@@ -126,24 +134,25 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
         ...props,
         clientData,
         setClientId,
+        organizationType,
       }}
     >
-      <GlobalStepper.Scoped>
-        <div
-          id="embedded-component-layout"
-          className="eb-component"
-          style={{ minHeight: height }}
-          key={initialClientId}
-        >
-          {isError ? (
-            <ServerErrorAlert error={error} />
-          ) : isPending && initialClientId ? (
-            <FormLoadingState message={t('onboarding:fetchingClientData')} />
-          ) : (
+      <div
+        id="embedded-component-layout"
+        className="eb-component"
+        style={{ minHeight: height }}
+        key={initialClientId}
+      >
+        {isError ? (
+          <ServerErrorAlert error={error} />
+        ) : isPending && initialClientId ? (
+          <FormLoadingState message={t('onboarding:fetchingClientData')} />
+        ) : (
+          <GlobalStepper.Scoped initialStep={initialStep}>
             <OnboardingMainSteps />
-          )}
-        </div>
-      </GlobalStepper.Scoped>
+          </GlobalStepper.Scoped>
+        )}
+      </div>
     </OnboardingOverviewContext.Provider>
   );
 };
@@ -153,12 +162,7 @@ const OnboardingMainSteps = () => {
   const globalStepper = GlobalStepper.useStepper();
   const currentStepId = globalStepper.current.id;
 
-  const { clientData } = useOnboardingOverviewContext();
-  const existingOrgParty = clientData?.parties?.find(
-    (party) => party.partyType === 'ORGANIZATION'
-  );
-  const organizationType =
-    existingOrgParty?.organizationDetails?.organizationType;
+  const { clientData, organizationType } = useOnboardingOverviewContext();
 
   // Scroll to top on step change
   const mainRef = useRef<HTMLDivElement>(null);
@@ -166,9 +170,6 @@ const OnboardingMainSteps = () => {
   useEffect(() => {
     if (initialRender.current) {
       initialRender.current = false;
-      if (organizationType && currentStepId === 'gateway') {
-        globalStepper.goTo('overview');
-      }
       return;
     }
     mainRef.current?.scrollIntoView({ block: 'start' });
