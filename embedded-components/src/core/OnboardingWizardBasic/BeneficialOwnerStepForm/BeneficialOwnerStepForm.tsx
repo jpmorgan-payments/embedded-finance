@@ -780,6 +780,21 @@ export const BeneficialOwnerStepForm = () => {
                     name="ownerEmail"
                     type="email"
                   />
+                  <OnboardingFormField
+                    control={ownerForm.control}
+                    name="natureOfOwnership"
+                    type="select"
+                    options={[
+                      {
+                        value: 'Direct',
+                        label: t('natureOfOwnershipTypes.direct'),
+                      },
+                      {
+                        value: 'Indirect',
+                        label: t('natureOfOwnershipTypes.indirect'),
+                      },
+                    ]}
+                  />
                 </fieldset>
 
                 {/* Phone Information */}
