@@ -87,7 +87,7 @@ export const OnboardingChecklistScreen = () => {
           </div>
         </div>
       </div>
-      <div className="eb-space-y-8">
+      <div className="eb-space-y-6">
         {t('steps.checklist.alerts', { returnObjects: true }).map(
           (alert, index) => (
             <Alert variant="informative" key={index}>

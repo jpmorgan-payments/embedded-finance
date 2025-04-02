@@ -139,7 +139,7 @@ export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
     >
       <div
         id="embedded-component-layout"
-        className="eb-component"
+        className="eb-component eb-flex"
         style={{ minHeight: height }}
         key={initialClientId}
       >
@@ -184,7 +184,7 @@ const OnboardingMainSteps = () => {
 
   return (
     <div
-      className="eb-mx-auto eb-flex eb-h-full eb-flex-col eb-p-4 eb-pb-6 md:eb-max-w-screen-md md:eb-p-10 md:eb-pb-12"
+      className="eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-p-4 eb-pb-6 md:eb-max-w-screen-md md:eb-p-10 md:eb-pb-12"
       ref={mainRef}
       key={clientData?.id}
     >
