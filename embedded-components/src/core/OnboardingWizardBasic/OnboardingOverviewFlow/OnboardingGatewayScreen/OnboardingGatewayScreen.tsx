@@ -29,6 +29,7 @@ import {
 import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
+import { StepLayout } from '../StepLayout/StepLayout';
 import { OnboardingGatewayScreenFormSchema } from './OnboardingGatewayScreenForm.schema';
 
 export const OnboardingGatewayScreen = () => {
@@ -235,58 +236,61 @@ export const OnboardingGatewayScreen = () => {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={onSubmit}
-        className="eb-flex eb-min-h-full eb-flex-col eb-space-y-6 eb-pt-6"
-      >
-        <div className="eb-flex-auto eb-space-y-4">
-          <OnboardingFormField
-            control={form.control}
-            name="organizationType"
-            type="radio-group-blocks"
-            options={(availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST).map(
-              (type) => ({
+      <form onSubmit={onSubmit}>
+        <StepLayout
+          subTitle={t('welcomeText')}
+          title={t('steps.gateway.title')}
+          description={t('steps.gateway.description')}
+        >
+          <div className="eb-flex-auto">
+            <OnboardingFormField
+              control={form.control}
+              name="organizationType"
+              type="radio-group-blocks"
+              options={(
+                availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST
+              ).map((type) => ({
                 value: type,
                 label: t(`onboarding:organizationTypes.${type}`),
                 description: t(
                   `onboarding:organizationTypeDescriptions.${type}`
                 ),
-              })
+              }))}
+              disabled={isFormDisabled}
+            />
+          </div>
+
+          <div className="eb-space-y-6">
+            {t('steps.gateway.alerts', { returnObjects: true }).map(
+              (alert, index) => (
+                <Alert variant="informative" key={index}>
+                  <InfoIcon className="eb-h-4 eb-w-4" />
+                  {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
+                  {alert.description && (
+                    <AlertDescription>{alert.description}</AlertDescription>
+                  )}
+                </Alert>
+              )
             )}
-            disabled={isFormDisabled}
-          />
-        </div>
 
-        <div className="eb-space-y-6">
-          {t('steps.gateway.alerts', { returnObjects: true }).map(
-            (alert, index) => (
-              <Alert variant="informative" key={index}>
-                <InfoIcon className="eb-h-4 eb-w-4" />
-                {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
-                {alert.description && (
-                  <AlertDescription>{alert.description}</AlertDescription>
-                )}
-              </Alert>
-            )
-          )}
+            <ServerErrorAlert
+              error={partyUpdateError || clientUpdateError || clientPostError}
+            />
 
-          <ServerErrorAlert
-            error={partyUpdateError || clientUpdateError || clientPostError}
-          />
-
-          <Button
-            type="submit"
-            variant="default"
-            size="lg"
-            className="eb-w-full eb-text-lg"
-            disabled={isFormDisabled}
-          >
-            {isFormSubmitting ? (
-              <Loader2Icon className="eb-animate-spin" />
-            ) : null}
-            {t('steps.gateway.nextButton')}
-          </Button>
-        </div>
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              className="eb-w-full eb-text-lg"
+              disabled={isFormDisabled}
+            >
+              {isFormSubmitting ? (
+                <Loader2Icon className="eb-animate-spin" />
+              ) : null}
+              {t('steps.gateway.nextButton')}
+            </Button>
+          </div>
+        </StepLayout>
       </form>
     </Form>
   );
