@@ -27,6 +27,7 @@ const convertThemeVariablesToCssVariables = (
   const cssVariablesObject: CSSVariables = {
     '--eb-font-family': variables.fontFamily,
     '--eb-header-font-family': variables.headerFontFamily,
+    '--eb-button-font-family': variables.buttonFontFamily,
     '--eb-background': colorToHsl(variables.backgroundColor),
     '--eb-foreground': colorToHsl(variables.foregroundColor),
     '--eb-card': colorToHsl(variables.cardColor),
@@ -100,6 +101,8 @@ const convertThemeVariablesToCssVariables = (
     '--eb-button-translate-y-active': variables.shiftButtonOnActive
       ? '1px'
       : undefined,
+    '--eb-button-text-transform': variables.buttonTextTransform,
+    '--eb-button-letter-spacing': variables.buttonLetterSpacing,
   };
 
   Object.keys(cssVariablesObject).forEach(

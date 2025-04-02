@@ -14,6 +14,8 @@ export const defaultTheme: EBTheme = {
     secondaryBorderWidth: '0rem',
     destructiveBorderWidth: '0rem',
     shiftButtonOnActive: true,
+    buttonTextTransform: 'none',
+    buttonLetterSpacing: '0em',
   },
   light: {
     backgroundColor: 'hsl(0 0% 100%)',

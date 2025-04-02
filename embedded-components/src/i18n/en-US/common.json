@@ -10,6 +10,7 @@
   "yes": "Yes",
   "no": "No",
   "cancel": "Cancel",
+  "start": "Start",
   "validation": {
     "required": "This field is required",
     "minItems": "Minimum {{count}} items required",

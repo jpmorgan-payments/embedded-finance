@@ -25,6 +25,7 @@ module.exports = {
     fontFamily: {
       sans: ['var(--eb-font-family)', ...defaultTheme.fontFamily.sans],
       header: ['var(--eb-header-font-family)', ...defaultTheme.fontFamily.sans],
+      button: ['var(--eb-button-font-family)', ...defaultTheme.fontFamily.sans],
     },
     extend: {
       height: {
@@ -139,6 +140,9 @@ module.exports = {
         'border-destructive':
           'inset 0 0 0 var(--eb-destructive-border-width) var(--tw-shadow-color)',
       },
+      letterSpacing: {
+        button: 'var(--eb-button-letter-spacing)',
+      },
     },
   },
   plugins: [
@@ -152,6 +156,9 @@ module.exports = {
       addUtilities({
         '.button-padding': {
           // padding: 'var(--eb-button-padding)',
+        },
+        '.button-text-transform': {
+          textTransform: 'var(--eb-button-text-transform)',
         },
       });
     },
