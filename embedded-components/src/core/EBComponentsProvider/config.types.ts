@@ -7,6 +7,7 @@ export type EBColorScheme = 'dark' | 'light' | 'system';
 export type EBThemeVariables = {
   fontFamily?: string;
   headerFontFamily?: string;
+  buttonFontFamily?: string;
   backgroundColor?: string;
   foregroundColor?: string;
   borderRadius?: string;
@@ -53,6 +54,8 @@ export type EBThemeVariables = {
   inputColor?: string;
   ringColor?: string;
   zIndexOverlay?: number;
+  buttonTextTransform?: string;
+  buttonLetterSpacing?: string;
 };
 
 export type EBTheme = {

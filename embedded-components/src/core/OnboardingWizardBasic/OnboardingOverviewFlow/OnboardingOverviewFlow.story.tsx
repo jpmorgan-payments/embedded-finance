@@ -136,18 +136,30 @@ Default.args = {
     // 'UNINCORPORATED_ASSOCIATION',
   ],
   theme: {
-    variables: {
-      primaryColor: '#1B7F9E',
-      buttonBorderRadius: '8px',
-      headerFontFamily: 'Amplitude',
-      fontFamily: 'Open Sans',
-      secondaryColor: 'white',
-      secondaryForegroundColor: '#1B7F9E',
-      secondaryBorderWidth: '1px',
-    },
+    variables: {},
   },
   contentTokens: {
     name: 'enUS',
   },
   alertOnExit: false,
+};
+
+export const STheme = Default.bind({});
+STheme.storyName = 'S Theme';
+STheme.args = {
+  ...Default.args,
+  theme: {
+    variables: {
+      fontFamily: 'Open Sans',
+      headerFontFamily: 'Amplitude',
+      buttonFontFamily: 'Amplitude',
+      buttonTextTransform: 'uppercase',
+      buttonLetterSpacing: '0.6px',
+      primaryColor: '#1B7F9E',
+      buttonBorderRadius: '8px',
+      secondaryColor: 'white',
+      secondaryForegroundColor: '#1B7F9E',
+      secondaryBorderWidth: '1px',
+    },
+  },
 };
