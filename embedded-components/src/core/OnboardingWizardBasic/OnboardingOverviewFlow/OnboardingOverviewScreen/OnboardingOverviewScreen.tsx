@@ -1,49 +1,18 @@
-import { useEffect, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import {
-  ChevronRightIcon,
-  InfoIcon,
-  Loader2Icon,
-  PencilIcon,
-  UserIcon,
-} from 'lucide-react';
+import { ChevronRightIcon, InfoIcon, PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  getSmbdoGetClientQueryKey,
-  useSmbdoPostClients,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
-} from '@/api/generated/smbdo';
-import { PartyType, Role } from '@/api/generated/smbdo.schemas';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Form } from '@/components/ui/form';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui';
 
-import { OnboardingFormField } from '../../OnboardingFormField/OnboardingFormField';
-import { ServerErrorAlert } from '../../ServerErrorAlert/ServerErrorAlert';
-import {
-  convertClientResponseToFormValues,
-  generateClientRequestBody,
-  generatePartyRequestBody,
-  mapClientApiErrorsToFormErrors,
-  mapPartyApiErrorsToFormErrors,
-  setApiFormErrors,
-  shapeFormValuesBySchema,
-  useFormWithFilters,
-} from '../../utils/formUtils';
-import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
+import { onboardingOverviewSections } from '../onboardingOverviewSections';
 import { StepLayout } from '../StepLayout/StepLayout';
 
-const items = [{}];
-
 export const OnboardingOverviewScreen = () => {
-  const queryClient = useQueryClient();
-  const { clientData, organizationType } = useOnboardingOverviewContext();
+  const { organizationType } = useOnboardingOverviewContext();
 
-  // Show message if clientData changes upon refetch? (edge case)
+  // TODO: Show message if clientData changes upon refetch? (edge case)
 
   const globalStepper = GlobalStepper.useStepper();
 
@@ -63,8 +32,8 @@ export const OnboardingOverviewScreen = () => {
           </Button>
         </div>
       }
-      title={t('steps.checklist.title')}
-      description={t('steps.checklist.description')}
+      title={t('steps.overview.title')}
+      description={t('steps.overview.description')}
     >
       <div className="eb-flex-auto eb-space-y-4">
         <Alert variant="informative">
@@ -76,16 +45,18 @@ export const OnboardingOverviewScreen = () => {
           <p className="eb-text-sm eb-font-semibold">
             Please complete the following to verify your company
           </p>
-          <div className="eb-flex eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm">
-            <div className="eb-flex eb-items-center eb-gap-2">
-              <UserIcon className="eb-h-4 eb-w-4" />
-              <span>Personal details</span>
+          {onboardingOverviewSections.map((section) => (
+            <div className="eb-flex eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm">
+              <div className="eb-flex eb-items-center eb-gap-2">
+                <section.icon className="eb-h-4 eb-w-4" />
+                <span>{section.title}</span>
+              </div>
+              <Button variant="ghost" size="sm" className="eb-text-primary">
+                {t('common:start')}
+                <ChevronRightIcon className="eb-h-4 eb-w-4" />
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" className="eb-text-primary">
-              Start
-              <ChevronRightIcon className="eb-h-4 eb-w-4" />
-            </Button>
-          </div>
+          ))}
         </div>
       </div>
 

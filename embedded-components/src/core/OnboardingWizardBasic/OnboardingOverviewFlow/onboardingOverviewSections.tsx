@@ -3,7 +3,7 @@
 
 import { BuildingIcon, UserIcon } from 'lucide-react';
 
-export const overviewSections = [
+export const onboardingOverviewSections = [
   {
     id: 'personal-details',
     title: 'Personal details',

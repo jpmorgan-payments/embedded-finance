@@ -3,6 +3,6 @@ import { defineStepper } from '@stepperize/react';
 export const GlobalStepper = defineStepper(
   { id: 'gateway' },
   { id: 'checklist' },
-  { id: 'overview' }
-  // { id: 'wizard' }
+  { id: 'overview' },
+  { id: 'wizard' }
 );
