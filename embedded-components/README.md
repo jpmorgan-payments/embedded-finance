@@ -25,12 +25,12 @@ The library is built on several key architectural concepts:
 The Embedded UI Components are designed for flexible integration into parent web applications, offering several customization points:
 
 ```mermaid
-graph TB
+graph LR
     subgraph "Parent Web Application"
         CMS["Content Management System"]
         Theme["Theming System"]
         RUM["Real User Monitoring"]
-        Storage["Client ID / Platform ID / User Identity"]
+        Storage[("Client ID / Platform ID / User Identity")]
 
         subgraph "Embedded Components Integration"
             Provider["EBComponentsProvider"]
