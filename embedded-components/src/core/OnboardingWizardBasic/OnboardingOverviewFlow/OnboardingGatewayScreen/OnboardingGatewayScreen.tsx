@@ -162,22 +162,23 @@ export const OnboardingGatewayScreen = () => {
           onSettled: (data, error) => {
             onPostPartyResponse?.(data, error?.response?.data);
           },
-          onSuccess: async () => {
+          onSuccess: (response) => {
             // Update the client data in the cache while it fetches the new data
-            queryClient.setQueryData(getSmbdoGetClientQueryKey(clientData.id), {
-              ...clientData,
-              parties: clientData?.parties?.map((party) =>
-                party.id === existingOrgParty.id
-                  ? {
+            queryClient.setQueryData(
+              getSmbdoGetClientQueryKey(clientData.id),
+              (oldClientData: ClientResponse | undefined) => ({
+                ...oldClientData,
+                parties: oldClientData?.parties?.map((party) => {
+                  if (party.id === response.id) {
+                    return {
                       ...party,
-                      organizationDetails: {
-                        ...party.organizationDetails,
-                        ...values,
-                      },
-                    }
-                  : party
-              ),
-            });
+                      ...response,
+                    };
+                  }
+                  return party;
+                }),
+              })
+            );
             globalStepper.next();
           },
           onError: (error) => {

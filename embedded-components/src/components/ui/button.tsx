@@ -6,7 +6,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'eb-inline-flex eb-items-center eb-font-button eb-tracking-button eb-button-text-transform eb-rounded-button eb-text-sm eb-font-medium eb-button eb-justify-center eb-gap-2 eb-whitespace-nowrap eb-ring-offset-background eb-transition-colors focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 active:eb-translate-y-[var(--eb-button-translate-y-active)] disabled:eb-opacity-50 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
+  'eb-inline-flex eb-items-center disabled:eb-pointer-events-none eb-font-button eb-tracking-button eb-button-text-transform eb-rounded-button eb-text-sm eb-font-medium eb-button eb-justify-center eb-gap-2 eb-whitespace-nowrap eb-ring-offset-background eb-transition-colors focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 active:eb-translate-y-[var(--eb-button-translate-y-active)] disabled:eb-opacity-50 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
   {
     variants: {
       variant: {
@@ -21,7 +21,7 @@ const buttonVariants = cva(
         ghost: 'hover:eb-bg-accent hover:eb-text-accent-foreground',
         link: 'eb-text-primary eb-underline-offset-4 hover:eb-underline',
         input:
-          'active:eb-translate-y-0 disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 eb-font-normal eb-text-foreground eb-w-full eb-rounded-input eb-bg-background eb-border eb-border-input',
+          'active:eb-translate-y-0 disabled:eb-pointer-events-auto disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 eb-font-normal eb-text-foreground eb-w-full eb-rounded-input eb-bg-background eb-border eb-border-input',
       },
       size: {
         default: 'eb-h-10 eb-px-4 eb-py-2',
