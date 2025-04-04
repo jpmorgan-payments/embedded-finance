@@ -21,7 +21,7 @@ export const OnboardingOverviewScreen = () => {
   return (
     <StepLayout
       subTitle={
-        <div className="eb-flex eb-h-6 eb-items-end eb-space-x-2">
+        <div className="eb-flex eb-items-end eb-space-x-2">
           <p>{t(`onboarding:organizationTypes.${organizationType!}`)}</p>
           <Button
             variant="ghost"
@@ -35,7 +35,7 @@ export const OnboardingOverviewScreen = () => {
       title={t('steps.overview.title')}
       description={t('steps.overview.description')}
     >
-      <div className="eb-flex-auto eb-space-y-4">
+      <div className="eb-flex-auto eb-space-y-6">
         <Alert variant="informative">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription>{t('steps.overview.infoAlert')}</AlertDescription>
@@ -51,7 +51,15 @@ export const OnboardingOverviewScreen = () => {
                 <section.icon className="eb-h-4 eb-w-4" />
                 <span>{section.title}</span>
               </div>
-              <Button variant="ghost" size="sm" className="eb-text-primary">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="eb-text-primary"
+                onClick={() => {
+                  globalStepper.setMetadata('section-stepper', { ...section });
+                  globalStepper.goTo('section-stepper');
+                }}
+              >
                 {t('common:start')}
                 <ChevronRightIcon className="eb-h-4 eb-w-4" />
               </Button>

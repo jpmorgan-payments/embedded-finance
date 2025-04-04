@@ -16,6 +16,7 @@ import {
 import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGatewayScreen';
 import { GlobalStepper } from './OnboardingGlobalStepper';
 import { OnboardingOverviewScreen } from './OnboardingOverviewScreen/OnboardingOverviewScreen';
+import { OnboardingSectionStepper } from './OnboardingSectionStepper/OnboardingSectionStepper';
 import {
   OnboardingConfigDefault,
   OnboardingConfigUsedInContext,
@@ -190,6 +191,7 @@ const OnboardingMainSteps = () => {
         gateway: () => <OnboardingGatewayScreen />,
         checklist: () => <OnboardingChecklistScreen />,
         overview: () => <OnboardingOverviewScreen />,
+        'section-stepper': () => <OnboardingSectionStepper />,
       })}
     </div>
   );
