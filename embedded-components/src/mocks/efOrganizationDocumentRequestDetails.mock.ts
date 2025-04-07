@@ -3,19 +3,34 @@ export const efOrganizationDocumentRequestDetails = {
   id: '68803',
   partyId: '2000000113',
   description:
-    'To verify your business, please provide the following documents:\n1. Articles of Incorporation or Formation\n2. Business License\n3. Operating Agreement\n4. Utility Bill (dated within last 3 months)\n5. EIN Document',
+    'To verify your business, please provide the following documents:\n1. Articles of Incorporation or Formation\n2. Business License\n3. Operating Agreement\n4. EIN Document',
   outstanding: {
     documentTypes: [
       'ARTICLES_OF_INCORPORATION',
       'BUSINESS_LICENSE',
       'OPERATING_AGREEMENT',
-      'UTILITY_BILL',
       'EIN',
+    ],
+    requirements: [
+      {
+        documentTypes: [
+          'ARTICLES_OF_INCORPORATION',
+          'BUSINESS_LICENSE',
+          'OPERATING_AGREEMENT',
+          'EIN',
+        ],
+        missing: 1,
+      },
     ],
   },
   requirements: [
     {
-      documentTypes: ['ARTICLES_OF_INCORPORATION', 'OPERATING_AGREEMENT'],
+      documentTypes: [
+        'ARTICLES_OF_INCORPORATION',
+        'BUSINESS_LICENSE',
+        'OPERATING_AGREEMENT',
+        'EIN',
+      ],
       minRequired: 1,
     },
   ],

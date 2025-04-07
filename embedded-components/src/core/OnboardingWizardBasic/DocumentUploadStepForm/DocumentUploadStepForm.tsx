@@ -141,7 +141,7 @@ export const DocumentUploadStepForm = ({
     if (documentRequestsQueries?.data?.length) {
       const initialActiveReqs: Record<string, number[]> = {};
       documentRequestsQueries.data.forEach((docRequest) => {
-        if (docRequest?.id) {
+        if (docRequest?.id && docRequest.outstanding?.requirements?.length) {
           // Only make the first requirement active initially
           initialActiveReqs[docRequest.id] = [0];
         }
@@ -154,18 +154,16 @@ export const DocumentUploadStepForm = ({
   const DocumentUploadSchema = useMemo(() => {
     const schema: Record<string, z.ZodType<any>> = {};
     documentRequestsQueries?.data?.forEach((documentRequest) => {
-      if (!documentRequest?.id) {
+      if (!documentRequest?.id || !documentRequest.outstanding?.requirements) {
         return;
       }
       const nestedSchema: Record<string, z.ZodType<any>> = {};
 
       // Include all requirements in the schema, not just active ones
-      documentRequest?.requirements?.forEach((requirement, index) => {
-        // Remove the activeRequirements condition to include all possible fields
-
+      documentRequest.outstanding.requirements.forEach((requirement, index) => {
         // Calculate how many document fields we need
         const remainingNeeded = Math.max(
-          (requirement.minRequired || 1) -
+          requirement.missing -
             requirement.documentTypes.filter((docType) =>
               satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
             ).length,
@@ -175,7 +173,7 @@ export const DocumentUploadStepForm = ({
         // If documents are still needed, create the required fields
         if (remainingNeeded > 0) {
           // Use fixed number of fields based on requirement
-          const numFieldsToShow = requirement.minRequired || 1;
+          const numFieldsToShow = requirement.missing;
 
           // Create fields for each document upload
           for (let i = 0; i < numFieldsToShow; i += 1) {
@@ -198,7 +196,6 @@ export const DocumentUploadStepForm = ({
   }, [
     JSON.stringify(documentRequestsQueries?.data),
     JSON.stringify(satisfiedDocTypes),
-    // Remove activeRequirements dependency to avoid schema recreation when steps change
   ]);
 
   const form = useForm<z.infer<typeof DocumentUploadSchema>>({
@@ -301,12 +298,12 @@ export const DocumentUploadStepForm = ({
       }
 
       // Check each requirement to find the first unsatisfied one
-      if (docRequest.requirements) {
+      if (docRequest.outstanding?.requirements) {
         let foundActiveStep = false;
 
         // First pass: determine if any steps are fully satisfied
         const satisfiedSteps: number[] = [];
-        docRequest.requirements.forEach((requirement, reqIndex) => {
+        docRequest.outstanding.requirements.forEach((requirement, reqIndex) => {
           // Count how many documents of the required types have been uploaded
           const uploadedDocsOfRequiredTypes =
             newUploadedDocs[docId]?.filter((doc: UploadedDocument) =>
@@ -314,7 +311,7 @@ export const DocumentUploadStepForm = ({
             ).length || 0;
 
           // If this step is satisfied, mark it
-          if (uploadedDocsOfRequiredTypes >= (requirement.minRequired || 1)) {
+          if (uploadedDocsOfRequiredTypes >= (requirement.missing || 1)) {
             satisfiedSteps.push(reqIndex);
           }
         });
@@ -322,7 +319,7 @@ export const DocumentUploadStepForm = ({
         // Second pass: find the first unsatisfied step to make active
         for (
           let reqIndex = 0;
-          reqIndex < docRequest.requirements.length;
+          reqIndex < docRequest.outstanding.requirements.length;
           reqIndex += 1
         ) {
           // If this step is not satisfied, make it the active one
@@ -330,7 +327,7 @@ export const DocumentUploadStepForm = ({
             // Only make this step active if all previous steps are satisfied
             const allPreviousSatisfied =
               reqIndex === 0 ||
-              docRequest.requirements
+              docRequest.outstanding.requirements
                 .slice(0, reqIndex)
                 .every((_, idx) => satisfiedSteps.includes(idx));
 
@@ -343,8 +340,13 @@ export const DocumentUploadStepForm = ({
         }
 
         // If all steps are satisfied, keep the last one active
-        if (!foundActiveStep && docRequest.requirements.length > 0) {
-          if (satisfiedSteps.length === docRequest.requirements.length) {
+        if (
+          !foundActiveStep &&
+          docRequest.outstanding.requirements.length > 0
+        ) {
+          if (
+            satisfiedSteps.length === docRequest.outstanding.requirements.length
+          ) {
             // All steps are satisfied, don't keep any active to show them all as completed
             newActiveReqs[docId] = [];
           } else {
@@ -488,13 +490,14 @@ export const DocumentUploadStepForm = ({
       docRequest: DocumentRequestResponse,
       reqIndex: number
     ) => {
-      if (!docRequest?.id) return false;
+      if (!docRequest?.id || !docRequest.outstanding?.requirements)
+        return false;
 
       // Check if this requirement is active in the UI
       const isActive = activeRequirements[docRequest.id]?.includes(reqIndex);
       if (isActive) return false; // Active requirements aren't considered completed yet
 
-      const requirement = docRequest.requirements?.[reqIndex];
+      const requirement = docRequest.outstanding.requirements[reqIndex];
       if (!requirement) return false;
 
       // Count how many documents of the required types have been uploaded
@@ -506,25 +509,24 @@ export const DocumentUploadStepForm = ({
       const isPastRequirement =
         satisfiedDocCount > 0 &&
         (satisfiedDocCount === requirement.documentTypes.length ||
-          satisfiedDocCount >= (requirement.minRequired || 1));
+          satisfiedDocCount >= requirement.missing);
 
       return isPastRequirement;
     };
 
     // Check if there are any document requests that have unsatisfied requirements
     const result = documentRequestsQueries.data.every((docRequest) => {
-      if (!docRequest?.id || !docRequest.requirements?.length) return true;
+      if (!docRequest?.id || !docRequest.outstanding?.requirements?.length)
+        return true;
 
       // For this document request, check each requirement
-      const requirementsSatisfied = docRequest.requirements.every(
+      const requirementsSatisfied = docRequest.outstanding.requirements.every(
         (requirement, reqIndex) => {
           // Count how many documents of the required types have been uploaded
           const satisfiedDocCount = requirement.documentTypes.filter(
             (docType) =>
               satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
           ).length;
-
-          const minRequired = requirement.minRequired || 1;
 
           // Check if this requirement is active
           const isActive =
@@ -538,10 +540,12 @@ export const DocumentUploadStepForm = ({
           );
 
           // A requirement is satisfied if:
-          // 1. It has enough satisfied document types to meet the minimum requirement, OR
+          // 1. It has enough satisfied document types to meet the missing requirement, OR
           // 2. It's shown as completed in the UI
           const isSatisfied =
-            satisfiedDocCount >= minRequired || isCompletedInUI || !isActive;
+            satisfiedDocCount >= requirement.missing ||
+            isCompletedInUI ||
+            !isActive;
 
           return isSatisfied;
         }
@@ -618,7 +622,7 @@ export const DocumentUploadStepForm = ({
                   </Button>
                 </div>
                 <div className="eb-space-y-6 eb-p-4">
-                  {documentRequest?.requirements?.map(
+                  {documentRequest?.outstanding?.requirements?.map(
                     (requirement, requirementIndex) => {
                       // Check if this requirement is active
                       const docId = documentRequest?.id;
@@ -634,7 +638,7 @@ export const DocumentUploadStepForm = ({
 
                       // Calculate how many document fields we need based on requirement
                       const numFieldsToShow = Math.max(
-                        (requirement.minRequired || 1) - satisfiedCount,
+                        requirement.missing - satisfiedCount,
                         0
                       );
 
