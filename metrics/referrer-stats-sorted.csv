@@ -1,7 +1,7 @@
 repository_name,site,views,unique_visitors/cloners
 embedded-banking,Bing,1,1
 embedded-banking,DuckDuckGo,1,1
-embedded-banking,Google,44,9
+embedded-banking,Google,43,8
 embedded-banking,bitbucketdc-cluster07.jpmchase.net,2,1
 embedded-banking,chatgpt.com,1,1
 embedded-banking,com.google.android.gm,2,1
@@ -15,7 +15,7 @@ embedded-banking,embedded-banking-dev.com,1,1
 embedded-banking,embedded-banking-showcase.apps.dev.na-1z.gap.jpmchase.net,4,1
 embedded-banking,embedded-finance-dev.com,5,3
 embedded-banking,gitdiagram.com,1,1
-embedded-banking,github.com,30,6
+embedded-banking,github.com,29,5
 embedded-banking,jira.vwfspay.eu,1,1
 embedded-banking,jiradc-cib-cluster02.prod.aws.jpmchase.net,3,1
 embedded-banking,jpmorganchase.github.io,3,1
@@ -26,7 +26,7 @@ embedded-banking,opensourceindex.io,1,1
 embedded-banking,p97.sharepoint.com,7,1
 embedded-banking,payments-preview.prod.aws.jpmchase.net,9,1
 embedded-banking,payments-preview.uat.aws.jpmchase.net,2,2
-embedded-banking,statics.teams.cdn.office.net,3,2
+embedded-banking,statics.teams.cdn.office.net,1,1
 embedded-banking,t.co,1,1
 embedded-banking,teams.microsoft.com,1,1
 embedded-banking,theforage.com,2,1
