@@ -14,4 +14,4 @@ export { transactionDetailsMock } from './transactionDetails.mock';
 export { transactionsMock } from './transactions.mock';
 export { efClientQuestionsMock } from './efClientQuestions.mock';
 export { efDocumentClientDetail } from './efDocumentClientDetail.mock';
-export { efDocumentRequestDetails } from './efDocumentRequestDetails.mock';
+export { efDocumentRequestDetailsList } from './efDocumentRequestDetailsList.mock';
