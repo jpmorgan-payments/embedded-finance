@@ -187,12 +187,14 @@ const OnboardingMainSteps = () => {
       ref={mainRef}
       key={clientData?.id}
     >
-      {globalStepper.switch({
-        gateway: () => <OnboardingGatewayScreen />,
-        checklist: () => <OnboardingChecklistScreen />,
-        overview: () => <OnboardingOverviewScreen />,
-        'section-stepper': () => <OnboardingSectionStepper />,
-      })}
+      <div className="eb-w-full">
+        {globalStepper.switch({
+          gateway: () => <OnboardingGatewayScreen />,
+          checklist: () => <OnboardingChecklistScreen />,
+          overview: () => <OnboardingOverviewScreen />,
+          'section-stepper': () => <OnboardingSectionStepper />,
+        })}
+      </div>
     </div>
   );
 };

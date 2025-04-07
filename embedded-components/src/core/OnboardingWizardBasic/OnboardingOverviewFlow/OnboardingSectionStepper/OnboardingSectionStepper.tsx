@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
@@ -38,21 +38,22 @@ import { StepLayout } from '../StepLayout/StepLayout';
  */
 const useOnboardingForm = (
   clientData: ClientResponse | undefined,
-  currentStepFormConfig: StepType['form']
+  currentStep: StepType
 ) => {
-  const form = currentStepFormConfig
+  const formConfig = currentStep.form;
+  const form = formConfig
     ? useFormWithFilters({
         clientData,
-        schema: currentStepFormConfig.schema,
+        schema: formConfig.schema,
         defaultValues: {},
       })
     : undefined;
 
-  const currentPartyData = currentStepFormConfig
+  const currentPartyData = formConfig
     ? clientData?.parties?.find(
         (party) =>
-          party?.partyType === currentStepFormConfig.party.partyType &&
-          currentStepFormConfig.party.roles?.every((role) =>
+          party?.partyType === formConfig.party.partyType &&
+          formConfig.party.roles?.every((role) =>
             party?.roles?.includes(role)
           ) &&
           party.active
@@ -60,15 +61,19 @@ const useOnboardingForm = (
     : undefined;
 
   const [isFormPopulationPending, setIsFormPopulationPending] = useState(
-    currentStepFormConfig !== undefined
+    formConfig !== undefined
   );
+
+  useEffect(() => {
+    setIsFormPopulationPending(!!currentStep.form);
+  }, [currentStep.id]);
 
   useEffect(() => {
     if (
       form &&
       clientData &&
       currentPartyData &&
-      currentStepFormConfig &&
+      formConfig &&
       isFormPopulationPending
     ) {
       const formValues = convertClientResponseToFormValues(
@@ -78,24 +83,12 @@ const useOnboardingForm = (
       form.reset(
         shapeFormValuesBySchema(
           { ...form.getValues(), ...formValues },
-          currentStepFormConfig.schema
+          formConfig.schema
         )
       );
       setIsFormPopulationPending(false);
     }
-  }, [
-    form,
-    clientData,
-    currentPartyData,
-    isFormPopulationPending,
-    currentStepFormConfig,
-  ]);
-
-  useEffect(() => {
-    if (currentStepFormConfig) {
-      setIsFormPopulationPending(true);
-    }
-  }, [currentStepFormConfig]);
+  }, [form, clientData, currentPartyData, isFormPopulationPending, formConfig]);
 
   return { form, currentPartyData, isFormPopulationPending };
 };
@@ -128,7 +121,7 @@ export const OnboardingSectionStepper = () => {
 
   const { form, currentPartyData, isFormPopulationPending } = useOnboardingForm(
     clientData,
-    currentStep.form
+    currentStep
   );
 
   // For adding a new party to the client
@@ -145,108 +138,96 @@ export const OnboardingSectionStepper = () => {
     status: partyUpdateStatus,
   } = useUpdateParty();
 
-  const onSubmit = form
-    ? form.handleSubmit((values) => {
-        if (clientData && currentStep.form) {
-          // TODO: update config to allow for providing a default body using form values
-          // Update party if it exists
-          if (currentPartyData && currentPartyData.id) {
-            const partyRequestBody = generatePartyRequestBody(values, {});
-            updateParty(
-              {
-                partyId: currentPartyData.id ?? '',
-                data: partyRequestBody,
-              },
-              {
-                onSettled: (data, error) => {
-                  onPostPartyResponse?.(data, error?.response?.data);
-                },
-                onSuccess: (response) => {
-                  // Update client cache with party data
-                  queryClient.setQueryData(
-                    getSmbdoGetClientQueryKey(clientData.id),
-                    (oldClientData: ClientResponse | undefined) => ({
-                      ...oldClientData,
-                      parties: oldClientData?.parties?.map((party) => {
-                        if (party.id === response.id) {
-                          return {
-                            ...party,
-                            ...response,
-                          };
-                        }
-                        return party;
-                      }),
-                    })
-                  );
-                  handleNext();
-                },
-                onError: (error) => {
-                  if (error.response?.data?.context) {
-                    const { context } = error.response.data;
-                    const apiFormErrors =
-                      mapPartyApiErrorsToFormErrors(context);
-                    setApiFormErrors(form, apiFormErrors);
-                  }
-                },
+  // TODO: move this to hook
+  // TODO: skip api call if data is the same
+  const onSubmit = form?.handleSubmit((values) => {
+    if (clientData && currentStep.form) {
+      // TODO: update config to allow for providing a default body using form values
+      // Update party if it exists
+      if (currentPartyData && currentPartyData.id) {
+        const partyRequestBody = generatePartyRequestBody(values, {});
+        updateParty(
+          {
+            partyId: currentPartyData.id ?? '',
+            data: partyRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartyResponse?.(data, error?.response?.data);
+            },
+            onSuccess: (response) => {
+              // Update client cache with party data
+              queryClient.setQueryData(
+                getSmbdoGetClientQueryKey(clientData.id),
+                (oldClientData: ClientResponse | undefined) => ({
+                  ...oldClientData,
+                  parties: oldClientData?.parties?.map((party) => {
+                    if (party.id === response.id) {
+                      return {
+                        ...party,
+                        ...response,
+                      };
+                    }
+                    return party;
+                  }),
+                })
+              );
+              handleNext();
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
+                setApiFormErrors(form, apiFormErrors);
               }
-            );
+            },
           }
-          // Create party if it doesn't exist
-          else {
-            const clientRequestBody = generateClientRequestBody(
-              values,
-              0,
-              'addParties',
-              {
-                addParties: [currentStep.form.party],
-              }
-            );
-            updateClient(
-              {
-                id: clientData.id,
-                data: clientRequestBody,
-              },
-              {
-                onSettled: (data, error) => {
-                  onPostClientResponse?.(data, error?.response?.data);
-                },
-                onSuccess: (response) => {
-                  // Update client cache
-                  queryClient.setQueryData(
-                    getSmbdoGetClientQueryKey(clientData.id),
-                    response
-                  );
-                  handleNext();
-                },
-                onError: (error) => {
-                  if (error.response?.data?.context) {
-                    const { context } = error.response.data;
-                    const apiFormErrors =
-                      mapPartyApiErrorsToFormErrors(context);
-                    setApiFormErrors(form, apiFormErrors);
-                  }
-                },
-              }
-            );
+        );
+      }
+      // Create party if it doesn't exist
+      else {
+        const clientRequestBody = generateClientRequestBody(
+          values,
+          0,
+          'addParties',
+          {
+            addParties: [currentStep.form.party],
           }
-        }
-      })
-    : () => handleNext();
+        );
+        updateClient(
+          {
+            id: clientData.id,
+            data: clientRequestBody,
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientResponse?.(data, error?.response?.data);
+            },
+            onSuccess: (response) => {
+              // Update client cache
+              queryClient.setQueryData(
+                getSmbdoGetClientQueryKey(clientData.id),
+                response
+              );
+              handleNext();
+            },
+            onError: (error) => {
+              if (error.response?.data?.context) {
+                const { context } = error.response.data;
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+      }
+    }
+  });
 
   const isFormSubmitting =
     clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
 
   const isFormDisabled = isFormSubmitting || isFormPopulationPending;
-
-  const formComponent = (
-    <form
-      id={currentStep.id}
-      onSubmit={onSubmit}
-      className="eb-flex-auto eb-space-y-6"
-    >
-      {currentStep.content}
-    </form>
-  );
 
   return (
     <StepLayout
@@ -258,7 +239,19 @@ export const OnboardingSectionStepper = () => {
       title={currentStep.title}
       description={currentStep.description}
     >
-      {form ? <Form {...form}>{formComponent}</Form> : formComponent}
+      {form ? (
+        <Form {...form}>
+          <form
+            id={currentStep.id}
+            onSubmit={onSubmit}
+            className="eb-flex-auto"
+          >
+            <currentStep.content control={form.control} />
+          </form>
+        </Form>
+      ) : (
+        <form id={currentStep.id} onSubmit={handleNext}></form>
+      )}
 
       <div className="eb-flex eb-justify-between eb-gap-4">
         {currentStepNumber === 1 ? (
@@ -278,7 +271,7 @@ export const OnboardingSectionStepper = () => {
             variant="secondary"
             size="lg"
             className="eb-w-full eb-text-lg"
-            onClick={() => prev()}
+            onClick={prev}
             disabled={isFormDisabled}
           >
             Back

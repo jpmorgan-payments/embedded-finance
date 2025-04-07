@@ -9,7 +9,7 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { PartyType, Role } from '@/api/generated/smbdo.schemas';
+import { ClientResponse, PartyType, Role } from '@/api/generated/smbdo.schemas';
 import { AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form } from '@/components/ui/form';
 import { Alert, Button } from '@/components/ui';

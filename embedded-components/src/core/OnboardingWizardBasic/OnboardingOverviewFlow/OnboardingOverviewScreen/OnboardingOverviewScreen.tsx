@@ -46,7 +46,10 @@ export const OnboardingOverviewScreen = () => {
             Please complete the following to verify your company
           </p>
           {onboardingOverviewSections.map((section) => (
-            <div className="eb-flex eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm">
+            <div
+              key={section.id}
+              className="eb-flex eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm"
+            >
               <div className="eb-flex eb-items-center eb-gap-2">
                 <section.icon className="eb-h-4 eb-w-4" />
                 <span>{section.title}</span>

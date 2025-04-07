@@ -1,17 +1,22 @@
 // org type condition
 // disabled.locked condition state
 
+import { FC } from 'react';
 import { BuildingIcon, LucideIcon, UserIcon } from 'lucide-react';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
+import {
+  PersonalDetailsForm,
+  SectionStepFormProps,
+} from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
 import { PersonalDetailsFormSchema } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm.schema';
 
 export type StepType = {
   id: string;
   title: string;
   description?: string;
-  content: React.ReactNode;
+  content: FC<SectionStepFormProps<any>>;
   form?: {
     schema: any; // Replace with the actual schema type
     party: Partial<PartyResponse>;
@@ -49,7 +54,7 @@ export const onboardingOverviewSections: SectionType[] = [
         title: 'Personal details',
         description:
           'We collect your personal information as the primary person controlling business operations for the company.',
-        content: <div>Personal Details Form Content</div>, // Replace with actual form component
+        content: PersonalDetailsForm,
         form: {
           schema: PersonalDetailsFormSchema,
           party: parties.controller,
@@ -60,7 +65,7 @@ export const onboardingOverviewSections: SectionType[] = [
         title: 'Identity document',
         description:
           'We need some additional details to confirm your identity.',
-        content: <div>Identity Document Form Content</div>, // Replace with actual form component
+        content: PersonalDetailsForm,
         form: {
           schema: PersonalDetailsFormSchema,
           party: parties.controller,
@@ -77,7 +82,7 @@ export const onboardingOverviewSections: SectionType[] = [
         id: 'company-details',
         title: 'Company details',
         description: 'Provide details about your company.',
-        content: <div>Company Details Form Content</div>, // Replace with actual form component
+        content: PersonalDetailsForm,
         form: {
           schema: PersonalDetailsFormSchema,
           party: parties.organization,
@@ -87,7 +92,7 @@ export const onboardingOverviewSections: SectionType[] = [
         id: 'company-identification',
         title: 'Company identification',
         description: 'Provide identification details for your company.',
-        content: <div>Company Identification Form Content</div>, // Replace with actual form component
+        content: PersonalDetailsForm,
         form: {
           schema: PersonalDetailsFormSchema,
           party: parties.organization,
