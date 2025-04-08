@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Embedded Finance Digital Onboarding API
  * Embedded Finance & Solutions APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.10
+ * OpenAPI spec version: 1.0.12
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {

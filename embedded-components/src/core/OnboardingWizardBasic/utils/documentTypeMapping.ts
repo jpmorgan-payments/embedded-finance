@@ -28,7 +28,6 @@ export const DOCUMENT_TYPE_MAPPING: Record<
     description: '',
   },
   BRAND_LOGO: { label: 'Brand Logo', description: '' },
-  BULK_PARTY: { label: 'Bulk Party', description: '' },
   BUSINESS_LICENSE: {
     label: 'Business License',
     description: 'Current business license issued by your local government',
@@ -108,7 +107,7 @@ export const DOCUMENT_TYPE_MAPPING: Record<
     description: '',
   },
   PARTNERSHIP_AGREEMENT: { label: 'Partnership Agreement', description: '' },
-  PASSPORT: { label: 'Passport', description: 'Cover page and id page' },
+  PASSPORT: { label: 'Passport', description: 'Photo page' },
   SEC_FILINGS_10K: { label: 'SEC Filings 10K', description: '' },
   SIGNATURE_CARD: { label: 'Signature Card', description: '' },
   SSN_CARD: { label: 'SSN Card', description: '' },
@@ -130,4 +129,5 @@ export const DOCUMENT_TYPE_MAPPING: Record<
     description:
       'Dated within the past 3 months, showing your business address',
   },
+  BULK_MIGRATION: { label: 'Bulk Migration', description: '' },
 };

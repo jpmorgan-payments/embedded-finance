@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Embedded Finance Digital Onboarding API
  * Embedded Finance & Solutions APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.10
+ * OpenAPI spec version: 1.0.12
  */
 export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
 
@@ -12,11 +12,15 @@ export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
  */
 export type PageSizeParameter = number;
 
-export type GetAllPartiesParams = {
+export type SmbdoGetAllDocumentDetailsParams = {
   /**
-   * Unique party identifier.
+   * Unique Client identifier.
    */
-  parentPartyId?: ParentPartyIdInQueryParameter;
+  clientId?: ClientIdQueryParameter;
+  /**
+   * Unique Party identifier.
+   */
+  partyId?: PartyIdQueryParameter;
   /**
    * Page number.
    */
@@ -65,25 +69,6 @@ export type SmbdoListDocumentRequestsParams = {
  */
 export type PageNumberParameter = number;
 
-export type SmbdoGetAllDocumentDetailsParams = {
-  /**
-   * Unique Client identifier.
-   */
-  clientId?: ClientIdQueryParameter;
-  /**
-   * Unique Party identifier.
-   */
-  partyId?: PartyIdQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-};
-
 export type SmbdoListClientsParams = {
   /**
    * Number of records per page.
@@ -99,6 +84,21 @@ export type SmbdoListClientsParams = {
  * Unique party identifier.
  */
 export type ParentPartyIdInQueryParameter = string;
+
+export type GetAllPartiesParams = {
+  /**
+   * Unique party identifier.
+   */
+  parentPartyId?: ParentPartyIdInQueryParameter;
+  /**
+   * Page number.
+   */
+  page?: PageNumberParameter;
+  /**
+   * Number of records per page.
+   */
+  limit?: PageSizeParameter;
+};
 
 /**
  * Bad Request
@@ -129,11 +129,6 @@ export type N500Response = SchemasApiError;
  * Request could not be processed due to semantic errors. Check error response.
  */
 export type N422Response = SchemasApiError;
-
-/**
- * Request could not be processed because of conflict
- */
-export type N409Response = SchemasApiError;
 
 /**
  * No data found for the criteria specified
@@ -167,13 +162,16 @@ export interface UpdatePartyRequest {
   individualDetails?: IndividualDetails;
   networkRegistration?: NetworkRegistration;
   organizationDetails?: OrganizationDetails;
-  /**
-   * @minItems 1
-   * @maxItems 10
-   */
-  roles?: Role[];
+  roles?: PartyRoleList;
   status?: PartyStatus;
 }
+
+/**
+ * The preferences of the party.
+ */
+export type CreatePartyRequestPreferences = {
+  defaultLanguage?: DefaultLanguagePreferenceEnum;
+};
 
 export interface CreatePartyRequest {
   access?: AccessList;
@@ -185,11 +183,9 @@ export interface CreatePartyRequest {
   parentExternalId?: ExternalId;
   parentPartyId?: ParentPartyId;
   partyType: PartyType;
-  /**
-   * @minItems 1
-   * @maxItems 10
-   */
-  roles: Role[];
+  /** The preferences of the party. */
+  preferences?: CreatePartyRequestPreferences;
+  roles: PartyRoleList;
 }
 
 /**
@@ -212,11 +208,7 @@ export interface PartySummaryResponse {
   parentPartyId?: ParentPartyId;
   partyType?: PartyType;
   profileStatus?: ProfileStatus;
-  /**
-   * @minItems 0
-   * @maxItems 10
-   */
-  roles?: Role[];
+  roles?: PartyRoleList;
   status?: PartyStatus;
 }
 
@@ -319,34 +311,6 @@ export interface ListDocumentsResponse {
   metadata?: PageMetaData;
 }
 
-export interface DocumentRequestResponse {
-  clientId?: ClientId;
-  /**
-   * Country code in ISO alpha-2 format. Deprecated for document requests.
-   * @deprecated
-   * @minLength 2
-   * @maxLength 2
-   */
-  country?: string;
-  createdAt?: string;
-  /** Provides an accurate detailing of which documents and how many are being requested. A plain English description that will fulfill the document-request. */
-  description?: string;
-  documentType?: DocumentTypeSmbdo;
-  id?: DocumentRequestId;
-  outstanding?: DocumentRequestOutstanding;
-  partyId?: PartyId;
-  /**
-   * All requirements must be fulfilled.
-   * @minItems 1
-   * @maxItems 10
-   */
-  requirements?: DocumentRequestRequirement[];
-  status?: DocumentRequestStatus;
-  /** @deprecated */
-  updatedAt?: string;
-  validForDays?: ValidForDays;
-}
-
 export interface DocumentRequestListResponse {
   /**
    * @minItems 0
@@ -404,7 +368,7 @@ export const DocumentTypeSmbdo = {
   BEARER_SHARES_ATTESTATION: 'BEARER_SHARES_ATTESTATION',
   BENEFICIAL_OWNER_INFORMATION: 'BENEFICIAL_OWNER_INFORMATION',
   BRAND_LOGO: 'BRAND_LOGO',
-  BULK_PARTY: 'BULK_PARTY',
+  BULK_MIGRATION: 'BULK_MIGRATION',
   BUSINESS_LICENSE: 'BUSINESS_LICENSE',
   BUSINESS_REGISTRATION_CERT: 'BUSINESS_REGISTRATION_CERT',
   CERTIFICATE_OF_GOOD_STANDING: 'CERTIFICATE_OF_GOOD_STANDING',
@@ -472,6 +436,43 @@ export interface DocumentRequestOutstanding {
    * @maxItems 100
    */
   documentTypes: DocumentTypeSmbdo[];
+  /**
+   * List of outstanding requirements that need to be fulfilled.
+   * @minItems 0
+   * @maxItems 10
+   */
+  requirements: {
+    documentTypes: DocumentTypeSmbdo[];
+    missing: number;
+  }[];
+}
+
+export interface DocumentRequestResponse {
+  clientId?: ClientId;
+  /**
+   * Country code in ISO alpha-2 format. Deprecated for document requests.
+   * @deprecated
+   * @minLength 2
+   * @maxLength 2
+   */
+  country?: string;
+  createdAt?: string;
+  /** Provides an accurate detailing of which documents and how many are being requested. A plain English description that will fulfill the document-request. */
+  description?: string;
+  documentType?: DocumentTypeSmbdo;
+  id?: DocumentRequestId;
+  outstanding?: DocumentRequestOutstanding;
+  partyId?: PartyId;
+  /**
+   * All requirements must be fulfilled.
+   * @minItems 1
+   * @maxItems 10
+   */
+  requirements?: DocumentRequestRequirement[];
+  status?: DocumentRequestStatus;
+  /** @deprecated */
+  updatedAt?: string;
+  validForDays?: ValidForDays;
 }
 
 export interface QuestionListResponse {
@@ -501,6 +502,16 @@ export type ResponseSchemaType =
 export const ResponseSchemaType = {
   array: 'array',
 } as const;
+
+/**
+ * A subset of JSON Schema used to validate the response values.
+ */
+export interface ResponseSchema {
+  items?: ResponseSchemaItem;
+  maxItems?: number;
+  minItems?: number;
+  type?: ResponseSchemaType;
+}
 
 /**
  * The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
@@ -559,16 +570,6 @@ export interface ResponseSchemaItem {
 }
 
 /**
- * A subset of JSON Schema used to validate the response values.
- */
-export interface ResponseSchema {
-  items?: ResponseSchemaItem;
-  maxItems?: number;
-  minItems?: number;
-  type?: ResponseSchemaType;
-}
-
-/**
  * A description of the question.
  */
 export type QuestionDescription = string;
@@ -613,31 +614,15 @@ export interface ClientVerificationRequest {
   consumerDevice?: ConsumerDevice;
 }
 
+export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
+  UpdatePartyRequestInline;
+
 /**
  * Describes which attestation to remove. An existing attestation with a matching `documentId` will be removed.
  */
 export interface AttestationRemoval {
   documentId: DocumentId;
 }
-
-/**
- * Update a party inline within the clients API by supplying its ID.
- */
-export interface UpdatePartyRequestInline {
-  access?: AccessList;
-  email?: Email;
-  id?: PartyId;
-  individualDetails?: IndividualDetails;
-  organizationDetails?: OrganizationDetails;
-  /**
-   * @minItems 1
-   * @maxItems 10
-   */
-  roles?: Role[];
-}
-
-export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
-  UpdatePartyRequestInline;
 
 export interface UpdateClientRequestSmbdo {
   /**
@@ -646,7 +631,7 @@ export interface UpdateClientRequestSmbdo {
    */
   addAttestations?: Attestation[];
   /**
-   * Update a party by specifying its ID in the object. Create a party by setting `parentPartyId` to the client's root party. `partyType` and `roles` are required when creating a new party.
+   * Create a party by setting `parentPartyId` to the client's root party. `partyType` and `roles` are required when creating a new party.
 
    * @minLength 1
    * @maxLength 10
@@ -665,6 +650,27 @@ export interface UpdateClientRequestSmbdo {
    * @maxItems 10
    */
   removeAttestations?: AttestationRemoval[];
+}
+
+/**
+ * The preferences of the party.
+ */
+export type UpdatePartyRequestInlinePreferences = {
+  defaultLanguage?: DefaultLanguagePreferenceEnum;
+};
+
+/**
+ * Update a party inline within the clients API by supplying its ID.
+ */
+export interface UpdatePartyRequestInline {
+  access?: AccessList;
+  email?: Email;
+  id?: PartyId;
+  individualDetails?: IndividualDetails;
+  organizationDetails?: OrganizationDetails;
+  /** The preferences of the party. */
+  preferences?: UpdatePartyRequestInlinePreferences;
+  roles?: PartyRoleList;
 }
 
 export type ClientUpdatedResponse = ClientResponse & {
@@ -716,6 +722,13 @@ export interface ClientQuestionResponse {
   values?: ResponseValueList;
 }
 
+/**
+ * The preferences of the party.
+ */
+export type PartyResponsePreferences = {
+  defaultLanguage?: DefaultLanguagePreferenceEnum;
+};
+
 export interface PartyResponse {
   access?: AccessList;
   active?: Active;
@@ -729,12 +742,10 @@ export interface PartyResponse {
   parentExternalId?: ExternalId;
   parentPartyId?: ParentPartyId;
   partyType?: PartyType;
+  /** The preferences of the party. */
+  preferences?: PartyResponsePreferences;
   profileStatus?: ProfileStatus;
-  /**
-   * @minItems 0
-   * @maxItems 10
-   */
-  roles?: Role[];
+  roles?: PartyRoleList;
   status?: PartyStatus;
   validationResponse?: ValidationResponse;
 }
@@ -763,6 +774,12 @@ export interface ClientResponse {
 }
 
 /**
+ * Unique identifier assigned to a merchant/business that participates in the American Express OptBlue program
+
+ */
+export type AmexOptBlueServiceEstablishmentNumber = string;
+
+/**
  * The ID that identifies the merchant account when processing with Discover.
 
  */
@@ -781,7 +798,7 @@ export type AmexSellerId = string;
 export type JcbAccepted = boolean;
 
 /**
- * Indicates whether the merchant has opted-in to American Express OptBlue marketing. - `true` ? All Marketing (Merchant has not opted out of receiving marketing) - `false` ? No Marketing (Merchant has opted out of receiving marketing)
+ * Indicates whether the merchant has opted-in to American Express OptBlue marketing. - `true` – All Marketing (Merchant has not opted out of receiving marketing) - `false` – No Marketing (Merchant has opted out of receiving marketing)
 
  */
 export type AmexOptBlueMarketing = boolean;
@@ -869,6 +886,7 @@ export const SettlementPaymentMethods = {
  */
 export interface NetworkRegistration {
   amexOptBlueMarketing?: AmexOptBlueMarketing;
+  amexOptBlueServiceEstablishmentNumber?: AmexOptBlueServiceEstablishmentNumber;
   amexSellerId?: AmexSellerId;
   currencyCode?: NetworkRegistrationCurrencyCode;
   discoverDebtRepayment?: DiscoverDebtRepayment;
@@ -995,31 +1013,6 @@ export const ProfileStatus = {
   TERMINATED: 'TERMINATED',
 } as const;
 
-export type OrganizationDetailsRequired = OrganizationDetails;
-
-/**
- * Create a party within the clients payload.
- */
-export interface CreatePartyRequestInline {
-  access?: AccessList;
-  email?: Email;
-  externalId?: ExternalId;
-  individualDetails?: IndividualDetailsRequired;
-  organizationDetails?: OrganizationDetailsRequired;
-  parentPartyId?: ParentPartyId;
-  partyType?: PartyType;
-  /**
-   * @minItems 1
-   * @maxItems 10
-   */
-  roles?: Role[];
-}
-
-/**
- * Create a party within the clients payload.
- */
-export type CreatePartyRequestInlineRequired = CreatePartyRequestInline;
-
 export interface CreateClientRequestSmbdo {
   /**
    * @minItems 1
@@ -1035,6 +1028,49 @@ export interface CreateClientRequestSmbdo {
   partyId?: PartyId;
   products: ClientProductList;
 }
+
+/**
+ * The default language preference of the party's user. It defines the initial language of user communications during client onboarding. Any changes to the user's language preference after the verifications process begins are not reflected in this field.
+
+ * @minLength 5
+ * @maxLength 5
+ */
+export type DefaultLanguagePreferenceEnum =
+  (typeof DefaultLanguagePreferenceEnum)[keyof typeof DefaultLanguagePreferenceEnum];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DefaultLanguagePreferenceEnum = {
+  'en-US': 'en-US',
+  'fr-CA': 'fr-CA',
+} as const;
+
+/**
+ * The preferences of the party.
+ */
+export type CreatePartyRequestInlinePreferences = {
+  defaultLanguage?: DefaultLanguagePreferenceEnum;
+};
+
+/**
+ * Create a party within the clients payload.
+ */
+export interface CreatePartyRequestInline {
+  access?: AccessList;
+  email?: Email;
+  externalId?: ExternalId;
+  individualDetails?: IndividualDetailsRequired;
+  organizationDetails?: OrganizationDetailsRequired;
+  parentPartyId?: ParentPartyId;
+  partyType?: PartyType;
+  /** The preferences of the party. */
+  preferences?: CreatePartyRequestInlinePreferences;
+  roles?: PartyRoleList;
+}
+
+/**
+ * Create a party within the clients payload.
+ */
+export type CreatePartyRequestInlineRequired = CreatePartyRequestInline;
 
 /**
  * Year of company formation.
@@ -1074,15 +1110,19 @@ export const OrganizationIdentityDtoIdType = {
  * The tax ID of the organization.
  */
 export interface OrganizationIdentityDto {
-  /** Description of the ID. */
+  /**
+   * Description of the ID.
+   * @minLength 1
+   * @maxLength 255
+   */
   description?: string;
   expiryDate?: string;
   /** The ID type */
   idType: OrganizationIdentityDtoIdType;
   /**
    * Issuing authority
-   * @minLength 1
-   * @maxLength 500
+   * @minLength 2
+   * @maxLength 2
    */
   issuer: string;
   /**
@@ -1114,7 +1154,8 @@ export const OrganizationType = {
 
 /**
  * The organization's description.
- * @minLength 0
+ * @minLength 10
+ * @maxLength 1000
  */
 export type OrganizationDescription = string;
 
@@ -1122,6 +1163,7 @@ export type OrganizationDescription = string;
  * The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork
 
  * @minLength 1
+ * @maxLength 500
  */
 export type OrganizationName = string;
 
@@ -1151,107 +1193,32 @@ export interface OrganizationIndustry {
 }
 
 /**
- * The industry type of the business connected to the client. You can use the Reference Data resource to get a list of acceptable values.
+ * The industry type of the business connected to the client. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/industry-descriptor-reference) to get a list of acceptable values.
 
  * @minLength 0
  */
 export type OrganizationIndustryType = string;
 
 /**
- * The industry category of the business connected to the client. For example, Accommodation and Food Services. You can use the Reference Data resource to get a list of acceptable values.
+ * The industry category of the business connected to the client. For example, `Accommodation and Food Services`. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/industry-descriptor-reference) to get a list of acceptable values.
 
  * @minLength 0
  */
 export type OrganizationIndustryCategory = string;
 
 /**
- * Entities in ownership means that one or more businesses own part of the business connected to the client. Always required for a Privately Owned Business.
+ * Entities in ownership means that one or more businesses own part of the business connected to the client.
 
  */
 export type EntitiesInOwnership = boolean;
 
 /**
- * An alternate name that the business is doing business under. Provide this if your business is registered with an alias. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+ * An alternate name that the business is doing business under. Provide this if your business is registered with an alias. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\']*$`.
 
  * @minLength 1
  * @maxLength 100
  */
 export type DbaName = string;
-
-export type IndividualDetailsRequired = IndividualDetails;
-
-export type SoleOwner = boolean;
-
-/**
- * The platform of the social media profile.
-| Platform | Description |
-| -- | -- |
-| FACEBOOK | Facebook, the social media profile at facebook.com. |
-| INSTAGRAM | Instagram, the social media profile at instagram.com. |
-| X | X (formerly known as Twitter), the social media profile at x.com. |
-
- */
-export type SocialMediaProfilePlatform =
-  (typeof SocialMediaProfilePlatform)[keyof typeof SocialMediaProfilePlatform];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SocialMediaProfilePlatform = {
-  FACEBOOK: 'FACEBOOK',
-  INSTAGRAM: 'INSTAGRAM',
-  X: 'X',
-} as const;
-
-export interface SocialMedia {
-  /** The platform of the social media profile.
-| Platform | Description |
-| -- | -- |
-| FACEBOOK | Facebook, the social media profile at facebook.com. |
-| INSTAGRAM | Instagram, the social media profile at instagram.com. |
-| X | X (formerly known as Twitter), the social media profile at x.com. |
- */
-  profilePlatform: SocialMediaProfilePlatform;
-  /**
-   * The social media username. This field should contain only alphanumeric characters and underscores.
-   * @minLength 1
-   * @maxLength 50
-   */
-  username: string;
-}
-
-/**
- * The entity's social media profiles.
- * @minItems 1
- * @maxItems 3
- */
-export type SocialMediaList = SocialMedia[];
-
-/**
- * Nature of ownership e.g. Direct|Indirect
-
- * @minLength 0
- */
-export type NatureOfOwnership = string;
-
-export type PhoneSmbdoPhoneType =
-  (typeof PhoneSmbdoPhoneType)[keyof typeof PhoneSmbdoPhoneType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const PhoneSmbdoPhoneType = {
-  BUSINESS_PHONE: 'BUSINESS_PHONE',
-  MOBILE_PHONE: 'MOBILE_PHONE',
-  ALTERNATE_PHONE: 'ALTERNATE_PHONE',
-} as const;
-
-/**
- * Phone number information of the party.
- */
-export interface PhoneSmbdo {
-  /** The phone number dialing code prefix for the country. */
-  countryCode: string;
-  /** The phone number value. */
-  phoneNumber: string;
-  phoneType?: PhoneSmbdoPhoneType;
-}
 
 /**
  * Details of an organization.
@@ -1297,20 +1264,19 @@ export interface OrganizationDetails {
   yearOfFormation?: YearOfFormation;
 }
 
-/**
- * If `jobTitle` is Other, then job title description is required.
+export type OrganizationDetailsRequired = OrganizationDetails;
 
- * @minLength 0
- * @maxLength 50
- */
-export type IndividualJobTitleDescription = string;
+export type IndividualDetailsRequired = IndividualDetails;
+
+export type SoleOwner = boolean;
 
 /**
- * Job title in the case of party type being an `INDIVIDUAL`. Job title is a required field for Controllers. Also, If Privately Owned Business is selected as the business type, Job Title should be a required field for Decision Makers. e.g. CEO|CFO|COO|President|Chairman|Senior Branch Manager|Other
-
- * @minLength 0
+ * Social media profile URL.
+ * @minLength 1
+ * @maxLength 100
+ * @pattern ^[A-Za-z0-9-_:.,;!?~*'()/=+&%@#]+$
  */
-export type IndividualJobTitle = string;
+export type SocialMediaUrl = string;
 
 /**
  * Details of an individual.
@@ -1338,8 +1304,104 @@ export interface IndividualDetails {
   natureOfOwnership?: NatureOfOwnership;
   phone?: PhoneSmbdo;
   socialMedia?: SocialMediaList;
+  socialMediaUrl?: SocialMediaUrl;
   soleOwner?: SoleOwner;
 }
+
+/**
+ * The platform of the social media profile.
+| Platform | Description |
+| -- | -- |
+| FACEBOOK | Facebook, the social media profile at facebook.com. |
+| INSTAGRAM | Instagram, the social media profile at instagram.com. |
+| X | X (formerly known as Twitter), the social media profile at x.com. |
+
+ */
+export type SocialMediaProfilePlatform =
+  (typeof SocialMediaProfilePlatform)[keyof typeof SocialMediaProfilePlatform];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SocialMediaProfilePlatform = {
+  FACEBOOK: 'FACEBOOK',
+  INSTAGRAM: 'INSTAGRAM',
+  X: 'X',
+} as const;
+
+export interface SocialMedia {
+  /** The platform of the social media profile.
+| Platform | Description |
+| -- | -- |
+| FACEBOOK | Facebook, the social media profile at facebook.com. |
+| INSTAGRAM | Instagram, the social media profile at instagram.com. |
+| X | X (formerly known as Twitter), the social media profile at x.com. |
+ */
+  profilePlatform: SocialMediaProfilePlatform;
+  /**
+   * The social media username. This field should contain only alphanumeric characters and underscores.
+   * @minLength 1
+   * @maxLength 50
+   */
+  username: string;
+}
+
+/**
+ * The entity's social media profiles.
+ * @minItems 1
+ * @maxItems 3
+ */
+export type SocialMediaList = SocialMedia[];
+
+/**
+ * Nature of ownership. Allowed values are: `Direct`, `Indirect`.
+
+ */
+export type NatureOfOwnership = string;
+
+export type PhoneSmbdoPhoneType =
+  (typeof PhoneSmbdoPhoneType)[keyof typeof PhoneSmbdoPhoneType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PhoneSmbdoPhoneType = {
+  BUSINESS_PHONE: 'BUSINESS_PHONE',
+  MOBILE_PHONE: 'MOBILE_PHONE',
+  ALTERNATE_PHONE: 'ALTERNATE_PHONE',
+} as const;
+
+/**
+ * Phone number information of the party.
+ */
+export interface PhoneSmbdo {
+  /**
+   * The phone number dialing code prefix for the country. The `+` symbol is optional, maximum 3 digits (e.g. `+852`).
+
+   * @minLength 1
+   * @maxLength 4
+   */
+  countryCode: string;
+  /**
+   * The phone number value.
+   * @minLength 7
+   * @maxLength 14
+   */
+  phoneNumber: string;
+  phoneType?: PhoneSmbdoPhoneType;
+}
+
+/**
+ * If `jobTitle` is Other, then job title description is required.
+
+ * @minLength 0
+ * @maxLength 50
+ */
+export type IndividualJobTitleDescription = string;
+
+/**
+ * Job title in the case of party type being an `INDIVIDUAL`. Job title is a required field for controllers, beneficial owners, and decision makers. Allowed values are: `CEO`, `CFO`, `COO`, `President`, `Chairman`, `Senior Branch Manager`, `Other`.
+
+ * @minLength 1
+ * @maxLength 40
+ */
+export type IndividualJobTitle = string;
 
 /**
  * `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
@@ -1363,13 +1425,21 @@ export const IndividualIdentityIdType = {
  * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
  */
 export interface IndividualIdentity {
-  /** Description of the ID. */
+  /**
+   * Description of the ID.
+   * @minLength 1
+   * @maxLength 255
+   */
   description?: string;
   expiryDate?: string;
   /** `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
    */
   idType: IndividualIdentityIdType;
-  /** Identification issuer country code e.g. US */
+  /**
+   * Identification issuer country code e.g. US
+   * @minLength 2
+   * @maxLength 2
+   */
   issuer: string;
   /**
    * Value of the identification type. EIN/SSN/ITIN must be of 9 digits.
@@ -1387,25 +1457,25 @@ export interface IndividualIdentity {
 export type NameSuffix = string;
 
 /**
- * Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+ * Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\']*$`.
 
- * @minLength 2
+ * @minLength 1
  * @maxLength 30
  */
 export type LastName = string;
 
 /**
- * Middle name of the individual in case of party type being an individual. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+ * Middle name of the individual in case of party type being an individual. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\']*$`.
 
- * @minLength 0
+ * @minLength 1
  * @maxLength 30
  */
 export type MiddleName = string;
 
 /**
- * First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `'^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$'`.
+ * First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `'^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\']*$'`.
 
- * @minLength 2
+ * @minLength 1
  * @maxLength 30
  */
 export type FirstName = string;
@@ -1442,7 +1512,8 @@ export const AddressDtoAddressType = {
  */
 export interface AddressDto {
   /**
-   * The first line must not be a PO Box and must begin with a number. Each line has a maximum of 60 characters.
+   * The address lines. Post-office boxes (PO Box) and private mail boxes (PMB) addresses are not allowed. Each line has a maximum of 60 characters. The line format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&\_\'\ \#]*$`.
+
    * @minItems 1
    * @maxItems 5
    */
@@ -1450,19 +1521,25 @@ export interface AddressDto {
   /** Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`. */
   addressType?: AddressDtoAddressType;
   /**
-   * city has a maximum of 30 characters.
+   * City has a maximum of 34 characters.
    * @maxLength 34
    */
   city: string;
-  /** Country code in alpha-2 format. */
+  /**
+   * Country code in alpha-2 format.
+   * @minLength 2
+   * @maxLength 2
+   */
   country: string;
   /**
    * Postal/ZIP code.
+   * @minLength 1
    * @maxLength 10
    */
   postalCode: string;
   /**
-   * State code in alpha-2 format. State is mandatory for countries like United States. Refer to subdivision codes in [ISO-3166-2](https://www.iso.org/obp/ui/#search/code/).
+   * The 2-3 character length state code should be provided in alpha-2 format, adhering to [ISO-3166-2](https://www.iso.org/obp/ui/#search/code/). State is mandatory in the US. In Great Britain, for example, the City of London would be LND.
+
    * @minLength 1
    * @maxLength 3
    */
@@ -1489,14 +1566,15 @@ export const PartyType = {
 export type ParentPartyId = string;
 
 /**
- * Id in external system.
+ * ID in external system.
  * @minLength 1
  * @maxLength 50
  */
 export type ExternalId = string;
 
 /**
- * Email of the party.
+ * Email of the party. The email is validated against the [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) format, which is 64 characters (local part) + 1 character (`@` symbol) + 255 characters (domain part), e.g.: "local@domain.com".
+
  * @minLength 0
  * @maxLength 320
  */
@@ -1517,7 +1595,7 @@ export interface ConsumerDevice {
   /** IPv4 address of the consumer device. */
   ipAddress?: string;
   /**
-   * The unique session identifier of the device that was created by the client. It can be up to 128 characters long and can contain only the following characters: uppercase and lowercase Roman letters, digits, underscore characters, and hyphens (a?z, A?Z, 0?9, _, -). The session ID should contain at least 16 bytes of randomly generated data.
+   * The unique session identifier of the device that was created by the client. It can be up to 128 characters long and can contain only the following characters: uppercase and lowercase Roman letters, digits, underscore characters, and hyphens (a–z, A–Z, 0–9, _, -). The session ID should contain at least 16 bytes of randomly generated data.
 
    * @pattern ^[a-zA-Z0-9_-]+$
    */
@@ -1595,7 +1673,7 @@ export interface ApiErrorContext {
   field?: string;
   /** Part of the request which is responsible for the reason */
   location?: ApiErrorContextLocation;
-  /** Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise */
+  /** Message describing the reason. */
   message: string;
 }
 
@@ -1655,6 +1733,17 @@ export interface ClientListResponse {
   metadata: PageMetaData;
 }
 
+/**
+ * The party's role.
+- `CLIENT`: A party that is the business entity. Only one party under a client may have this role. No other role can be specified alongside `CLIENT`.
+- `CONTROLLER`: Individuals with significant responsibility to control, manage, or direct a legal entity customer, including an executive officer or senior manager or any other individual who regularly performs similar functions.
+- `BENEFICIAL_OWNER`: Individual who either directly or indirectly holds ultimate ownership (>=25%) of the equity interest of the customer through all intermediary ownership layers.
+- `DIRECTOR`: Key senior officers who, for corporations, are generally the CEO, CFO, COO, Chairman, President, or anyone performing a similar function. For privately held companies, these controllers are generally the senior management team.
+- `PRIMARY_CONTACT`: The primary contact of the business entity.
+- `DECISION_MAKER`: Deprecated.
+- `AUTHORIZED_USER`: Deprecated.
+
+ */
 export type Role = (typeof Role)[keyof typeof Role];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -1670,6 +1759,14 @@ export const Role = {
 
 /**
  * A list of party roles.
+- `CLIENT`: A party that is the business entity. Only one party under a client may have this role. No other role can be specified alongside `CLIENT`.
+- `CONTROLLER`: Individuals with significant responsibility to control, manage, or direct a legal entity customer, including an executive officer or senior manager or any other individual who regularly performs similar functions.
+- `BENEFICIAL_OWNER`: Individual who either directly or indirectly holds ultimate ownership (>=25%) of the equity interest of the customer through all intermediary ownership layers.
+- `DIRECTOR`: Key senior officers who, for corporations, are generally the CEO, CFO, COO, Chairman, President, or anyone performing a similar function. For privately held companies, these controllers are generally the senior management team.
+- `PRIMARY_CONTACT`: The primary contact of the business entity.
+- `DECISION_MAKER`: Deprecated.
+- `AUTHORIZED_USER`: Deprecated.
+
  * @minItems 0
  * @maxItems 10
  */
@@ -1751,7 +1848,7 @@ export type PartyId = string;
 /**
  * A list of party IDs.
  * @minItems 0
- * @maxItems 10
+ * @maxItems 15
  */
 export type PartyIdList = PartyId[];
 
