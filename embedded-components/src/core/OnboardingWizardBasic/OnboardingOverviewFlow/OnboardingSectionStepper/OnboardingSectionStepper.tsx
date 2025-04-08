@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
@@ -13,6 +13,7 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import { Button, Form } from '@/components/ui';
 
+import { ServerErrorAlert } from '../../ServerErrorAlert/ServerErrorAlert';
 import {
   convertClientResponseToFormValues,
   generateClientRequestBody,
@@ -110,15 +111,6 @@ export const OnboardingSectionStepper = () => {
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const { current: currentStep, prev, next } = useStepper();
 
-  const currentStepNumber = stepperUtils.getIndex(currentStep.id) + 1;
-  const handleNext = () => {
-    if (currentStepNumber < steps.length) {
-      next();
-    } else {
-      globalStepper.goTo('overview');
-    }
-  };
-
   const { form, currentPartyData, isFormPopulationPending } = useOnboardingForm(
     clientData,
     currentStep
@@ -129,6 +121,7 @@ export const OnboardingSectionStepper = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
+    reset: resetClientUpdate,
   } = useSmbdoUpdateClient();
 
   // For updating an existing party
@@ -136,7 +129,28 @@ export const OnboardingSectionStepper = () => {
     mutate: updateParty,
     error: partyUpdateError,
     status: partyUpdateStatus,
+    reset: resetPartyUpdate,
   } = useUpdateParty();
+
+  const currentStepNumber = stepperUtils.getIndex(currentStep.id) + 1;
+  const handleNext = () => {
+    resetClientUpdate();
+    resetPartyUpdate();
+    if (currentStepNumber < steps.length) {
+      next();
+    } else {
+      globalStepper.goTo('overview');
+    }
+  };
+  const handlePrev = () => {
+    resetClientUpdate();
+    resetPartyUpdate();
+    if (currentStepNumber > 1) {
+      prev();
+    } else {
+      globalStepper.goTo('overview');
+    }
+  };
 
   // TODO: move this to hook
   // TODO: skip api call if data is the same
@@ -253,41 +267,31 @@ export const OnboardingSectionStepper = () => {
         <form id={currentStep.id} onSubmit={handleNext}></form>
       )}
 
-      <div className="eb-flex eb-justify-between eb-gap-4">
-        {currentStepNumber === 1 ? (
+      <div className="eb-flex eb-flex-col eb-gap-y-6">
+        <ServerErrorAlert error={clientUpdateError || partyUpdateError} />
+        <div className="eb-flex eb-justify-between eb-gap-4">
           <Button
             type="button"
             variant="secondary"
             size="lg"
             className="eb-w-full eb-text-lg"
-            onClick={() => globalStepper.goTo('overview')}
+            onClick={handlePrev}
             disabled={isFormDisabled}
           >
-            Back to overview
+            {currentStepNumber === 1 ? 'Back to overview' : 'Back'}
           </Button>
-        ) : (
           <Button
-            type="button"
-            variant="secondary"
+            form={currentStep.id}
+            type="submit"
+            variant="default"
             size="lg"
             className="eb-w-full eb-text-lg"
-            onClick={prev}
             disabled={isFormDisabled}
           >
-            Back
+            {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
+            Next
           </Button>
-        )}
-        <Button
-          form={currentStep.id}
-          type="submit"
-          variant="default"
-          size="lg"
-          className="eb-w-full eb-text-lg"
-          disabled={isFormDisabled}
-        >
-          {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
-          Next
-        </Button>
+        </div>
       </div>
     </StepLayout>
   );
