@@ -594,9 +594,6 @@ export const DocumentUploadStepForm = ({
     return satisfiedDocTypes.includes(docType);
   };
 
-  console.log('form', form.formState.errors);
-  console.log('form values', form.getValues());
-
   return (
     <Form {...form}>
       <form
