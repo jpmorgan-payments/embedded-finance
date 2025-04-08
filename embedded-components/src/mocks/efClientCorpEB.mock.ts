@@ -1,9 +1,5 @@
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
-
-
-
-
 export const efClientCorpEBMock: ClientResponse = {
   id: '0030000133',
   attestations: [
