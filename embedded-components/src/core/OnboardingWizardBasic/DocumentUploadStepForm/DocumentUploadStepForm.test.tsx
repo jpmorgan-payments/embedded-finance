@@ -118,7 +118,7 @@ describe('DocumentUploadStepForm', () => {
 
       expect(
         await screen.findByText(
-          /To verify your business, please provide the following documents:/i
+          /To verify the identity of the business/i
         )
       ).toBeInTheDocument();
     });
