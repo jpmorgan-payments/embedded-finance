@@ -8,16 +8,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { userEvent } from '@test-utils';
 
-
-
 import { ClientProduct } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
-
-
 import { OnboardingContextProvider } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { ACCEPTED_FILE_TYPES, DocumentUploadStepForm } from './DocumentUploadStepForm';
-
+import {
+  ACCEPTED_FILE_TYPES,
+  DocumentUploadStepForm,
+} from './DocumentUploadStepForm';
 
 // Mock external dependencies
 vi.mock('@/components/ui/stepper', () => ({
