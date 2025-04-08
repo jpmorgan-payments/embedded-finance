@@ -41,11 +41,12 @@ const useOnboardingForm = (
   clientData: ClientResponse | undefined,
   currentStep: StepType
 ) => {
-  const formConfig = currentStep.form;
+  const { id, formConfig } = currentStep;
+
   const form = formConfig
     ? useFormWithFilters({
         clientData,
-        schema: formConfig.schema,
+        schema: formConfig?.schema,
         defaultValues: {},
       })
     : undefined;
@@ -61,13 +62,11 @@ const useOnboardingForm = (
       )
     : undefined;
 
-  const [isFormPopulationPending, setIsFormPopulationPending] = useState(
-    formConfig !== undefined
-  );
+  const [isFormPopulationPending, setIsFormPopulationPending] = useState(true);
 
   useEffect(() => {
-    setIsFormPopulationPending(!!currentStep.form);
-  }, [currentStep.id]);
+    setIsFormPopulationPending(!!formConfig);
+  }, [id]);
 
   useEffect(() => {
     if (
@@ -155,7 +154,7 @@ export const OnboardingSectionStepper = () => {
   // TODO: move this to hook
   // TODO: skip api call if data is the same
   const onSubmit = form?.handleSubmit((values) => {
-    if (clientData && currentStep.form) {
+    if (clientData && currentStep.formConfig) {
       // TODO: update config to allow for providing a default body using form values
       // Update party if it exists
       if (currentPartyData && currentPartyData.id) {
@@ -205,7 +204,7 @@ export const OnboardingSectionStepper = () => {
           0,
           'addParties',
           {
-            addParties: [currentStep.form.party],
+            addParties: [currentStep.formConfig.party],
           }
         );
         updateClient(
@@ -253,19 +252,19 @@ export const OnboardingSectionStepper = () => {
       title={currentStep.title}
       description={currentStep.description}
     >
-      {form ? (
-        <Form {...form}>
-          <form
-            id={currentStep.id}
-            onSubmit={onSubmit}
-            className="eb-flex-auto"
-          >
-            <currentStep.content control={form.control} />
+      <div className="eb-flex-auto">
+        {currentStep.formConfig && form ? (
+          <Form {...form}>
+            <form id={currentStep.id} onSubmit={onSubmit}>
+              <currentStep.formConfig.FormComponent control={form.control} />
+            </form>
+          </Form>
+        ) : (
+          <form id={currentStep.id} onSubmit={handleNext}>
+            {currentStep.Component && <currentStep.Component />}
           </form>
-        </Form>
-      ) : (
-        <form id={currentStep.id} onSubmit={handleNext}></form>
-      )}
+        )}
+      </div>
 
       <div className="eb-flex eb-flex-col eb-gap-y-6">
         <ServerErrorAlert error={clientUpdateError || partyUpdateError} />
