@@ -54,6 +54,16 @@ interface UploadedDocument {
   files: File[];
 }
 
+export const ACCEPTED_FILE_TYPES = {
+  'application/pdf': ['.pdf'],
+  'image/jpeg': ['.jpeg', '.jpg'],
+  'image/png': ['.png'],
+  'image/gif': ['.gif'],
+  'image/bmp': ['.bmp'],
+  'image/tiff': ['.tiff', '.tif'],
+  'image/webp': ['.webp'],
+};
+
 const generateRequestId = () => {
   return uuidv4()
     .replace(/[^a-zA-Z0-9_-]/g, '')
@@ -182,9 +192,19 @@ export const DocumentUploadStepForm = ({
             nestedSchema[`requirement_${index}_docType${fieldSuffix}`] = z
               .string()
               .optional(); // Make optional instead of required
-            // Add a field for file upload
+            // Add a field for file upload with size validation
             nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
               .array(z.instanceof(File))
+              .refine(
+                (files) => {
+                  if (!files?.length) return true;
+                  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 10MB in bytes
+                  return files.every((file) => file.size <= MAX_FILE_SIZE);
+                },
+                {
+                  message: 'Each file must be 2MB or less',
+                }
+              )
               .optional(); // Make optional instead of required
           }
         }
@@ -574,6 +594,9 @@ export const DocumentUploadStepForm = ({
     return satisfiedDocTypes.includes(docType);
   };
 
+  console.log('form', form.formState.errors);
+  console.log('form values', form.getValues());
+
   return (
     <Form {...form}>
       <form
@@ -584,6 +607,7 @@ export const DocumentUploadStepForm = ({
           const partyDetails = clientData?.parties?.find(
             (p) => p.id === documentRequest?.partyId
           );
+
           const partyName =
             partyDetails?.partyType === 'INDIVIDUAL'
               ? `${partyDetails?.individualDetails?.firstName} ${partyDetails?.individualDetails?.lastName}`
@@ -889,43 +913,9 @@ export const DocumentUploadStepForm = ({
                                                 containerClassName="eb-max-w-full"
                                                 {...fieldProps}
                                                 multiple={false}
-                                                accept={{
-                                                  'application/pdf': ['.pdf'],
-                                                  'image/jpeg': [
-                                                    '.jpeg',
-                                                    '.jpg',
-                                                  ],
-                                                  'image/png': ['.png'],
-                                                  'image/gif': ['.gif'],
-                                                  'image/bmp': ['.bmp'],
-                                                  'image/tiff': [
-                                                    '.tiff',
-                                                    '.tif',
-                                                  ],
-                                                  'image/webp': ['.webp'],
-                                                }}
+                                                accept={ACCEPTED_FILE_TYPES}
                                                 onChange={(files) => {
-                                                  const maxSize =
-                                                    5 * 1024 * 1024; // 5 MB
-                                                  const validFiles =
-                                                    files.filter((file) => {
-                                                      if (file.size > maxSize) {
-                                                        form.setError(
-                                                          `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`,
-                                                          {
-                                                            message:
-                                                              'Each file must be less than 5MB',
-                                                          }
-                                                        );
-                                                        return false;
-                                                      }
-                                                      form.clearErrors(
-                                                        `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
-                                                      );
-
-                                                      return true;
-                                                    });
-                                                  onChange(validFiles);
+                                                  onChange(files);
                                                 }}
                                               />
                                             </FormControl>

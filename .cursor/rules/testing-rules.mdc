@@ -20,6 +20,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { OnboardingContextProvider } from '@/core/OnboardingWizardBasic/OnboardingContextProvider/OnboardingContextProvider';
 ```
 
 ### 3. Test Setup Structure
@@ -34,22 +35,25 @@ const mockData = {
   // Component-specific mock data
 };
 
-// 3. Setup context mocks if needed
-const mockContext = {
-  // Context-specific mock data
-};
-
-// 4. Setup QueryClient
+// 3. Setup QueryClient
 const queryClient = new QueryClient();
 
+// 4. Setup OnboardingContext mock if testing wizard steps
+const mockOnboardingContext = {
+  initialClientId: '123456789',
+  onPostClientResponse: vi.fn(),
+  availableJurisdictions: ['US'],
+  availableProducts: ['EMBEDDED_PAYMENTS'],
+};
+
 // 5. Component render helper
-const renderComponent = () => {
+const renderComponent = (props = {}) => {
   // Reset MSW handlers
   server.resetHandlers();
 
-  // Setup API mocks
+  // Setup API mocks - use exact OAS endpoints without suffixes
   server.use(
-    http.get('/api/endpoint', () => {
+    http.get('/clients/:id', () => {
       return HttpResponse.json(mockData);
     })
   );
@@ -62,13 +66,20 @@ const renderComponent = () => {
         name: 'enUS'
       }}
     >
-      <QueryClientProvider client={queryClient}>
-        <ComponentName />
-      </QueryClientProvider>
+      <OnboardingContextProvider {...mockOnboardingContext}>
+        <QueryClientProvider client={queryClient}>
+          <ComponentName {...props} />
+        </QueryClientProvider>
+      </OnboardingContextProvider>
     </EBComponentsProvider>
   );
 };
 ```
+
+### 4. API Mocking Guidelines
+- Use exact OAS endpoint paths without suffixes (e.g., `/clients/:id` instead of `/clients/123`)
+- Match response shape to OAS schema definitions
+- Use path parameters in endpoints where required (e.g., `:id`, `:requestId`)
 
 ## Test Organization
 
@@ -124,7 +135,7 @@ describe('ComponentName', () => {
 test('handles API interactions', async () => {
   // Setup specific API mock
   server.use(
-    http.post('/api/endpoint', () => {
+    http.post('/documents', () => {
       return HttpResponse.json({ success: true });
     })
   );
@@ -156,7 +167,7 @@ test('validates form inputs', async () => {
 ```typescript
 test('displays loading state', async () => {
   server.use(
-    http.get('/api/endpoint', async () => {
+    http.get('/clients/:id', async () => {
       await delay(1000);
       return HttpResponse.json(mockData);
     })
@@ -189,7 +200,7 @@ test('displays loading state', async () => {
 ```typescript
 test('handles error states', async () => {
   server.use(
-    http.get('/api/endpoint', () => {
+    http.get('/clients/:id', () => {
       return HttpResponse.json(
         { error: 'Error message' },
         { status: 400 }
