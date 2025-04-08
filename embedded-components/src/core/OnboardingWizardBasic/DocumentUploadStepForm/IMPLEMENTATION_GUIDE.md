@@ -106,3 +106,103 @@ This pattern creates an intuitive experience by:
 4. Preventing duplicate uploads of already satisfied requirements
 
 While this implementation uses React Hook Form and client-side state management, other approaches to consuming the API are possible depending on specific requirements.
+
+## Testing Scenarios for EP/US Document Requests
+
+For Embedded Payments (EP) in the US jurisdiction, there are two primary document request scenarios that need to be tested:
+
+### 1. Organization Party Document Requests
+
+This scenario occurs either at the client object level or during party validation. The request structure follows the pattern in `efOrganizationDocumentRequestDetails.mock.ts`:
+
+```typescript
+{
+  requirements: [{
+    documentTypes: [
+      'ARTICLES_OF_INCORPORATION',
+      'CERTIFICATE_OF_GOOD_STANDING',
+      'CERTIFICATE_OF_INCUMBENCY',
+      'ARTICLES_OF_ASSOCIATION',
+      'CONSTITUTIONAL_DOCUMENT',
+      'LLC_AGREEMENT',
+      'FILING_RECEIPT',
+      'OPERATING_AGREEMENT',
+    ],
+    minRequired: 1
+  }],
+  outstanding: {
+    documentTypes: [/* same as above */],
+    requirements: [{
+      documentTypes: [/* same as above */],
+      missing: 1
+    }]
+  }
+}
+```
+
+Key testing considerations:
+
+- Verify that only one document from the list is required
+- Test that uploading any valid document type satisfies the requirement
+- Ensure proper handling of organization-specific document types
+- Verify the request appears both at client level and in party validation contexts
+
+### 2. Individual Party Document Requests
+
+This scenario occurs during party validation for individual parties. The request structure follows the pattern in `efDocumentRequestDetails.mock.ts`:
+
+```typescript
+{
+  requirements: [
+    {
+      documentTypes: ['PASSPORT', 'DRIVERS_LICENSE'],
+      minRequired: 1
+    },
+    {
+      documentTypes: [
+        'PASSPORT',
+        'DRIVERS_LICENSE',
+        'CREDIT_CARD_STATEMENT',
+        'BANK_STATEMENT',
+        'LOAN_ACCOUNT_STATEMENT',
+        'UTILITY_BILL',
+        'INSURANCE_DOCUMENT'
+      ],
+      minRequired: 2
+    }
+  ],
+  outstanding: {
+    documentTypes: [/* same as above */],
+    requirements: [
+      {
+        documentTypes: ['PASSPORT', 'DRIVERS_LICENSE'],
+        missing: 1
+      },
+      {
+        documentTypes: [/* same as above */],
+        missing: 2
+      }
+    ]
+  }
+}
+```
+
+Key testing considerations:
+
+- Verify the sequential nature of requirements (first requirement must be satisfied before second becomes active)
+- Test various valid document combinations:
+  - Passport + any secondary document
+  - Driver's license + any secondary document
+- Ensure proper handling of individual-specific document types
+- Verify that requirements are properly tracked and updated as documents are uploaded
+
+### Common Testing Considerations
+
+For both scenarios:
+
+1. Validate proper filtering of document requests by party ID
+2. Test file upload functionality for each document type
+3. Verify proper handling of the `missing` count in the outstanding requirements
+4. Test error scenarios and validation messages
+5. Verify proper state management as requirements are satisfied
+6. Test the completion state when all requirements are met
