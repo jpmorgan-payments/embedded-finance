@@ -1,33 +1,81 @@
-import { FC } from 'react';
-import { Control } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { useFormContext } from 'react-hook-form';
+// import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 
-import { PersonalDetailsFormSchema } from './PersonalDetailsForm.schema';
+import { SectionStepFormComponent } from '../../../types';
+import {
+  PersonalDetailsFormSchema,
+  refinePersonalDetailsFormSchema,
+} from './PersonalDetailsForm.schema';
 
-type D = z.input<typeof PersonalDetailsFormSchema>;
-
-export type SectionStepFormProps<T extends object> = {
-  disabled?: boolean;
-  control: Control<T>;
-};
-
-export const PersonalDetailsForm: FC<SectionStepFormProps<D>> = ({
-  control,
-  disabled,
-}) => {
-  const { t } = useTranslation('onboarding');
+export const PersonalDetailsForm: SectionStepFormComponent = () => {
+  // const { t } = useTranslation('onboarding');
+  const form = useFormContext<z.input<typeof PersonalDetailsFormSchema>>();
 
   return (
-    <>
-      <OnboardingFormField
-        control={control}
-        name="controllerFirstName"
-        type="text"
-        disabled={disabled}
-      />
-    </>
+    <div className="eb-flex eb-flex-col eb-gap-y-9">
+      <fieldset className="eb-flex eb-flex-col eb-gap-y-6">
+        <legend className="eb-mb-1 eb-text-base eb-font-medium">
+          Legal name
+        </legend>
+        <p className="eb-text-sm eb-italic eb-text-muted-foreground">
+          Please provide your full name exactly as recorded with government
+          agencies
+        </p>
+        <OnboardingFormField
+          control={form.control}
+          name="controllerFirstName"
+          type="text"
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="controllerMiddleName"
+          type="text"
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="controllerLastName"
+          type="text"
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="controllerNameSuffix"
+          type="text"
+        />
+      </fieldset>
+
+      <div className="eb-flex eb-flex-col eb-gap-y-6">
+        <OnboardingFormField
+          control={form.control}
+          name="controllerJobTitle"
+          type="combobox"
+          options={[
+            { value: 'CEO', label: 'CEO' },
+            { value: 'CFO', label: 'CFO' },
+            { value: 'COO', label: 'COO' },
+            { value: 'President', label: 'President' },
+            { value: 'Chairman', label: 'Chairman' },
+            {
+              value: 'Senior Branch Manager',
+              label: 'Senior Branch Manager',
+            },
+            { value: 'Other', label: 'Other' },
+          ]}
+        />
+        {form.watch('controllerJobTitle') === 'Other' && (
+          <OnboardingFormField
+            control={form.control}
+            name="controllerJobTitleDescription"
+            type="text"
+            required
+          />
+        )}
+      </div>
+    </div>
   );
 };
+
+PersonalDetailsForm.schema = PersonalDetailsFormSchema;
+PersonalDetailsForm.refineSchemaFn = refinePersonalDetailsFormSchema;

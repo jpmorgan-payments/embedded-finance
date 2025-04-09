@@ -3,11 +3,9 @@ import { BuildingIcon, LucideIcon, UserIcon } from 'lucide-react';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
-import {
-  PersonalDetailsForm,
-  SectionStepFormProps,
-} from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
-import { PersonalDetailsFormSchema } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm.schema';
+import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
+import { ReviewStep } from './OnboardingSectionStepper/PersonalSectionForms/ReviewStep/ReviewStep';
+import { SectionStepFormComponent } from './types';
 
 export type StepType =
   | {
@@ -15,8 +13,7 @@ export type StepType =
       title: string;
       description?: string;
       formConfig: {
-        FormComponent: FC<SectionStepFormProps<any>>;
-        schema: any; // Replace with the actual schema type
+        FormComponent: SectionStepFormComponent;
         party: Partial<PartyResponse>;
       };
       Component?: never; // Ensure Component is not allowed
@@ -60,7 +57,6 @@ export const onboardingOverviewSections: SectionType[] = [
           'We collect your personal information as the primary person controlling business operations for the company.',
         formConfig: {
           FormComponent: PersonalDetailsForm,
-          schema: PersonalDetailsFormSchema,
           party: parties.controller,
         },
       },
@@ -71,7 +67,6 @@ export const onboardingOverviewSections: SectionType[] = [
           'We need some additional details to confirm your identity.',
         formConfig: {
           FormComponent: PersonalDetailsForm,
-          schema: PersonalDetailsFormSchema,
           party: parties.controller,
         },
       },
@@ -79,7 +74,7 @@ export const onboardingOverviewSections: SectionType[] = [
         id: 'company-introduction',
         title: 'Company introduction',
         description: 'Learn more about our company.',
-        Component: () => <div>Review step</div>,
+        Component: ReviewStep,
       },
     ],
   },
@@ -94,7 +89,6 @@ export const onboardingOverviewSections: SectionType[] = [
         description: 'Provide details about your company.',
         formConfig: {
           FormComponent: PersonalDetailsForm,
-          schema: PersonalDetailsFormSchema,
           party: parties.organization,
         },
       },

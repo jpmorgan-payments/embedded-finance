@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -25,73 +26,8 @@ import {
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
-import {
-  onboardingOverviewSections,
-  StepType,
-} from '../onboardingOverviewSections';
+import { onboardingOverviewSections } from '../onboardingOverviewSections';
 import { StepLayout } from '../StepLayout/StepLayout';
-
-/**
- * Custom hook to manage onboarding form state.
- * @param clientData - The client data.
- * @param currentStepFormConfig - The current step form configuration.
- * @returns form, currentPartyData, and isFormPopulationPending.
- */
-const useOnboardingForm = (
-  clientData: ClientResponse | undefined,
-  currentStep: StepType
-) => {
-  const { id, formConfig } = currentStep;
-
-  const form = formConfig
-    ? useFormWithFilters({
-        clientData,
-        schema: formConfig?.schema,
-        defaultValues: {},
-      })
-    : undefined;
-
-  const currentPartyData = formConfig
-    ? clientData?.parties?.find(
-        (party) =>
-          party?.partyType === formConfig.party.partyType &&
-          formConfig.party.roles?.every((role) =>
-            party?.roles?.includes(role)
-          ) &&
-          party.active
-      )
-    : undefined;
-
-  const [isFormPopulationPending, setIsFormPopulationPending] = useState(true);
-
-  useEffect(() => {
-    setIsFormPopulationPending(!!formConfig);
-  }, [id]);
-
-  useEffect(() => {
-    if (
-      form &&
-      clientData &&
-      currentPartyData &&
-      formConfig &&
-      isFormPopulationPending
-    ) {
-      const formValues = convertClientResponseToFormValues(
-        clientData,
-        currentPartyData.id
-      );
-      form.reset(
-        shapeFormValuesBySchema(
-          { ...form.getValues(), ...formValues },
-          formConfig.schema
-        )
-      );
-      setIsFormPopulationPending(false);
-    }
-  }, [form, clientData, currentPartyData, isFormPopulationPending, formConfig]);
-
-  return { form, currentPartyData, isFormPopulationPending };
-};
 
 export const OnboardingSectionStepper = () => {
   const queryClient = useQueryClient();
@@ -110,10 +46,18 @@ export const OnboardingSectionStepper = () => {
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const { current: currentStep, prev, next } = useStepper();
 
-  const { form, currentPartyData, isFormPopulationPending } = useOnboardingForm(
-    clientData,
-    currentStep
-  );
+  const { id: stepId, formConfig } = currentStep;
+
+  const currentPartyData = formConfig
+    ? clientData?.parties?.find(
+        (party) =>
+          party?.partyType === formConfig.party.partyType &&
+          formConfig.party.roles?.every((role) =>
+            party?.roles?.includes(role)
+          ) &&
+          party.active
+      )
+    : undefined;
 
   // For adding a new party to the client
   const {
@@ -131,7 +75,7 @@ export const OnboardingSectionStepper = () => {
     reset: resetPartyUpdate,
   } = useUpdateParty();
 
-  const currentStepNumber = stepperUtils.getIndex(currentStep.id) + 1;
+  const currentStepNumber = stepperUtils.getIndex(stepId) + 1;
   const handleNext = () => {
     resetClientUpdate();
     resetPartyUpdate();
@@ -151,9 +95,52 @@ export const OnboardingSectionStepper = () => {
     }
   };
 
+  const [isFormPopulationPending, setIsFormPopulationPending] = useState(true);
+
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
+
+  const isFormDisabled = isFormSubmitting || isFormPopulationPending;
+
+  const form = formConfig
+    ? useFormWithFilters({
+        clientData,
+        schema: formConfig.FormComponent.schema,
+        refineSchemaFn: formConfig.FormComponent.refineSchemaFn,
+        defaultValues: {},
+        disabled: isFormDisabled,
+      })
+    : useForm();
+
+  useEffect(() => {
+    setIsFormPopulationPending(!!formConfig);
+  }, [stepId]);
+
+  useEffect(() => {
+    if (
+      form &&
+      clientData &&
+      currentPartyData &&
+      formConfig &&
+      isFormPopulationPending
+    ) {
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        currentPartyData.id
+      );
+      form.reset(
+        shapeFormValuesBySchema(
+          { ...form.getValues(), ...formValues },
+          formConfig.FormComponent.schema
+        )
+      );
+      setIsFormPopulationPending(false);
+    }
+  }, [form, clientData, currentPartyData, isFormPopulationPending, formConfig]);
+
   // TODO: move this to hook
   // TODO: skip api call if data is the same
-  const onSubmit = form?.handleSubmit((values) => {
+  const onSubmit = form.handleSubmit((values) => {
     if (clientData && currentStep.formConfig) {
       // TODO: update config to allow for providing a default body using form values
       // Update party if it exists
@@ -237,11 +224,6 @@ export const OnboardingSectionStepper = () => {
     }
   });
 
-  const isFormSubmitting =
-    clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
-
-  const isFormDisabled = isFormSubmitting || isFormPopulationPending;
-
   return (
     <StepLayout
       subTitle={
@@ -253,10 +235,10 @@ export const OnboardingSectionStepper = () => {
       description={currentStep.description}
     >
       <div className="eb-flex-auto">
-        {currentStep.formConfig && form ? (
+        {currentStep.formConfig ? (
           <Form {...form}>
             <form id={currentStep.id} onSubmit={onSubmit}>
-              <currentStep.formConfig.FormComponent control={form.control} />
+              <currentStep.formConfig.FormComponent />
             </form>
           </Form>
         ) : (

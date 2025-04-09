@@ -244,7 +244,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                   <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
                   <InfoPopover>{fieldTooltip}</InfoPopover>
                 </div>
-                {fieldDescription && (
+                {fieldDescription && !isOverviewFlow && (
                   <FormDescription className="eb-text-xs eb-text-gray-500">
                     {fieldDescription}
                   </FormDescription>
@@ -288,6 +288,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           <FormControl>
                             <Button
                               variant="input"
+                              size="input"
                               role="combobox"
                               aria-expanded={open}
                               className="eb-justify-between"
@@ -552,6 +553,12 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                     );
                 }
               })()
+            )}
+
+            {fieldDescription && isOverviewFlow && (
+              <FormDescription className="eb-text-xs eb-text-gray-500">
+                {fieldDescription}
+              </FormDescription>
             )}
 
             <FormMessage />

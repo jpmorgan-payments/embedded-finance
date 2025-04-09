@@ -34,6 +34,28 @@
   "fields": {
     "organizationType": {
       "description": ""
+    },
+    "controllerFirstName": {
+      "label": "First name",
+      "description": "",
+      "tooltip": ""
+    },
+    "controllerMiddleName": {
+      "label": "Middle name",
+      "description": "",
+      "tooltip": ""
+    },
+    "controllerLastName": {
+      "label": "Last name",
+      "description": "",
+      "tooltip": ""
+    },
+    "controllerNameSuffix": {
+      "description": "(e.g. Jr., Sr. II, etc)",
+      "tooltip": ""
+    },
+    "controllerJobTitle": {
+      "tooltip": ""
     }
   }
 }

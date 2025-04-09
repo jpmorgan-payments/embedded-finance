@@ -113,7 +113,8 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
         <PopoverTrigger asChild>
           <FormControl>
             <Button
-              variant="outline"
+              variant="input"
+              size="input"
               role="combobox"
               className={cn(
                 'eb-w-full eb-justify-between eb-font-normal',
