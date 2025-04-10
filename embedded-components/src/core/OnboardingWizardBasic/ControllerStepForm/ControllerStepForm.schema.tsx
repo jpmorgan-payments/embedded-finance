@@ -103,6 +103,7 @@ const controllerIdSchema = z
   );
 
 export const ControllerStepFormSchema = z.object({
+  externalId: z.string().optional(),
   controllerAddresses: z.array(AddressSchema).refine((addresses) => {
     const types = addresses.map((addr) => addr.addressType);
     return new Set(types).size === types.length;

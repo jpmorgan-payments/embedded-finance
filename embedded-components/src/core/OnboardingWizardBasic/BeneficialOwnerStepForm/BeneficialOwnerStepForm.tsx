@@ -62,6 +62,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
@@ -110,8 +111,13 @@ import {
 } from './BeneficialOwnerStepForm.schema';
 
 export const BeneficialOwnerStepForm = () => {
-  const { clientId, onPostClientResponse, onPostPartyResponse, processStep } =
-    useOnboardingContext();
+  const {
+    clientId,
+    onPostClientResponse,
+    onPostPartyResponse,
+    processStep,
+    mode,
+  } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
   // TODO: move this state to context to prevent re-render when resizing
@@ -1026,6 +1032,25 @@ export const BeneficialOwnerStepForm = () => {
                     </fieldset>
                   )}
                 />
+
+                {mode === 'test' && (
+                  <fieldset
+                    className={cn(
+                      'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4'
+                    )}
+                    disabled={isOwnerFormSubmitting}
+                  >
+                    <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+                      Testing only fields
+                    </legend>
+                    <OnboardingFormField
+                      control={ownerForm.control}
+                      name="ownerExternalId"
+                      type="text"
+                      required={false}
+                    />
+                  </fieldset>
+                )}
 
                 <ServerErrorAlert
                   error={clientUpdateError || partyUpdateError}

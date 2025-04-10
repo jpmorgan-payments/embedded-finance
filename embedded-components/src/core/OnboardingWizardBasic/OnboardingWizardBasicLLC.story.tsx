@@ -74,6 +74,12 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       options: ORGANIZATION_TYPE_LIST,
     },
     usePartyResource: { control: 'boolean' },
+    mode: {
+      control: {
+        type: 'radio',
+      },
+      options: ['prod', 'test'],
+    },
   },
   decorators: [
     (Story, context) => {
@@ -129,6 +135,7 @@ Default.args = {
   },
   variant: 'circle-alt',
   alertOnExit: false,
+  mode: 'test',
 };
 
 export const WithClientId = Default.bind({});

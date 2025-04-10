@@ -14,7 +14,6 @@ export const OnboardingGatewayScreenFormSchema = z.object({
         'C_CORPORATION',
         'S_CORPORATION',
         'PARTNERSHIP',
-        'PUBLICLY_TRADED_COMPANY',
         'NON_PROFIT_CORPORATION',
         'GOVERNMENT_ENTITY',
         'SOLE_PROPRIETORSHIP',
