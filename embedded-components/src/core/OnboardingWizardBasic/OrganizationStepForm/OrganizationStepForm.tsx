@@ -101,7 +101,7 @@ export const OrganizationStepForm = () => {
     usePartyResource,
     useSingleColumnLayout,
     processStep,
-    mode
+    mode,
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 

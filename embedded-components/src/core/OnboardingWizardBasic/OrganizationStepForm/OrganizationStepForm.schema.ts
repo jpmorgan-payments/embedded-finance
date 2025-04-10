@@ -161,9 +161,7 @@ const sanitizeDescription = (input: string): string => {
 };
 
 export const OrganizationStepFormSchema = z.object({
-  externalId: z
-    .string()
-    .optional(),
+  externalId: z.string().optional(),
   organizationName: z
     .string()
     .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))

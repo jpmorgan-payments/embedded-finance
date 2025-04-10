@@ -79,7 +79,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
         type: 'radio',
       },
       options: ['prod', 'test'],
-    }
+    },
   },
   decorators: [
     (Story, context) => {
