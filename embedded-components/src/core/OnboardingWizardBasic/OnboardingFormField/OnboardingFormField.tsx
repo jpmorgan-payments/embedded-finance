@@ -4,7 +4,7 @@ import {
   ControllerProps,
   FieldPath,
   FieldValues,
-  UseFormReturn,
+  useFormContext,
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -87,7 +87,6 @@ interface BaseProps<
   noOptionalLabel?: boolean;
   disableFieldRuleMapping?: boolean;
   inputProps?: React.ComponentProps<typeof Input>;
-  form?: UseFormReturn<TFieldValues, any, any>;
   maskFormat?: string;
   maskChar?: string;
 }
@@ -132,11 +131,12 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   noOptionalLabel,
   disableFieldRuleMapping,
   inputProps,
-  form,
   maskFormat,
   maskChar,
   shouldUnregister,
 }: OnboardingFormFieldProps<TFieldValues>) {
+  const form = useFormContext();
+
   // temporary workaround to get clientId and flowType from different contexts
   let clientId;
   let isOverviewFlow = false;

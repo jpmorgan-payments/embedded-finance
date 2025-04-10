@@ -416,7 +416,6 @@ export const OrganizationStepForm = () => {
           </legend>
 
           <OnboardingFormField
-            form={form}
             control={form.control}
             name="industry"
             type="industrySelect"

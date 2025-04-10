@@ -19,7 +19,7 @@ export const StepLayout: FC<StepLayoutProps> = ({
         <div className="eb-flex eb-h-6 eb-items-end eb-text-sm">{subTitle}</div>
       )}
 
-      <h2 className="eb-font-header eb-text-3xl eb-font-medium">{title}</h2>
+      <h1 className="eb-font-header eb-text-3xl eb-font-medium">{title}</h1>
 
       {description && (
         <p className="eb-text-sm eb-font-semibold">{description}</p>

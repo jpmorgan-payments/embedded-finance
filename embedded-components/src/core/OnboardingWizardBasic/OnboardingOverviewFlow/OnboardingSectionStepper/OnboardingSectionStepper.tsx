@@ -3,6 +3,7 @@ import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -10,8 +11,6 @@ import {
   useUpdateParty,
 } from '@/api/generated/smbdo';
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
-// import { useTranslation } from 'react-i18next';
-
 import { Button, Form } from '@/components/ui';
 
 import { ServerErrorAlert } from '../../ServerErrorAlert/ServerErrorAlert';
@@ -24,6 +23,7 @@ import {
   shapeFormValuesBySchema,
   useFormWithFilters,
 } from '../../utils/formUtils';
+import { OnboardingFormValuesSubmit } from '../../utils/types';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
 import { onboardingOverviewSections } from '../onboardingOverviewSections';
@@ -31,7 +31,7 @@ import { StepLayout } from '../StepLayout/StepLayout';
 
 export const OnboardingSectionStepper = () => {
   const queryClient = useQueryClient();
-  // const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   // TODO: Show message if clientData changes upon refetch? (edge case)
 
@@ -44,7 +44,7 @@ export const OnboardingSectionStepper = () => {
   ) as (typeof onboardingOverviewSections)[number];
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
-  const { current: currentStep, prev, next } = useStepper();
+  const { current: currentStep, prev, next, all: allSteps } = useStepper();
 
   const { id: stepId, formConfig } = currentStep;
 
@@ -235,15 +235,75 @@ export const OnboardingSectionStepper = () => {
       description={currentStep.description}
     >
       <div className="eb-flex-auto">
-        {currentStep.formConfig ? (
+        {currentStep.type === 'form' && (
           <Form {...form}>
             <form id={currentStep.id} onSubmit={onSubmit}>
               <currentStep.formConfig.FormComponent />
             </form>
           </Form>
-        ) : (
+        )}
+        {currentStep.type === 'non-form' && (
           <form id={currentStep.id} onSubmit={handleNext}>
             {currentStep.Component && <currentStep.Component />}
+          </form>
+        )}
+        {currentStep.type === 'check-answers' && (
+          <form id={currentStep.id} onSubmit={handleNext}>
+            <div className="eb-space-y-6">
+              {allSteps.map((step) => {
+                if (step.type === 'form') {
+                  const stepPartyData = clientData?.parties?.find(
+                    (party) =>
+                      party?.partyType === step.formConfig.party.partyType &&
+                      step.formConfig.party.roles?.every((role) =>
+                        party?.roles?.includes(role)
+                      ) &&
+                      party.active
+                  );
+                  const values = clientData
+                    ? convertClientResponseToFormValues(
+                        clientData,
+                        stepPartyData?.id
+                      )
+                    : {};
+                  return (
+                    <div className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
+                      <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
+                        {step.title}
+                      </h2>
+                      {Object.keys(
+                        step.formConfig.FormComponent.schema.shape
+                      ).map((field) => {
+                        const value =
+                          values?.[
+                            field as keyof Partial<OnboardingFormValuesSubmit>
+                          ];
+                        return (
+                          <div className="eb-space-y-0.5">
+                            <p className="eb-text-sm eb-font-medium">
+                              {t([
+                                `onboarding-overview:fields.${field}.label`,
+                                `onboarding:fields.${field}.label`,
+                              ] as unknown as TemplateStringsArray)}
+                            </p>
+                            <p>
+                              {value ? (
+                                String(value)
+                              ) : (
+                                <span className="eb-italic eb-text-muted-foreground">
+                                  {t('common:empty')}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
           </form>
         )}
       </div>

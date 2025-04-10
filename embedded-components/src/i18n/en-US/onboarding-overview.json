@@ -56,6 +56,13 @@
     },
     "controllerJobTitle": {
       "tooltip": ""
+    },
+    "birthDate": {
+      "description": ""
+    },
+    "countryOfResidence": {
+      "tooltip": "",
+      "description": "Please select your current country of residence"
     }
   }
 }

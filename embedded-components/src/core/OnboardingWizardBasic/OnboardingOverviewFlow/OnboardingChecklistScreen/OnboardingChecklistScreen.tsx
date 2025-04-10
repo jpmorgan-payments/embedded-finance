@@ -35,9 +35,9 @@ export const OnboardingChecklistScreen = () => {
     >
       <div className="eb-flex-auto eb-space-y-4">
         <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-          <h3 className="eb-text-xl eb-font-bold eb-tracking-tight">
+          <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
             Personal Details
-          </h3>
+          </h2>
 
           <div className="eb-space-y-1">
             <p className="eb-font-semibold">

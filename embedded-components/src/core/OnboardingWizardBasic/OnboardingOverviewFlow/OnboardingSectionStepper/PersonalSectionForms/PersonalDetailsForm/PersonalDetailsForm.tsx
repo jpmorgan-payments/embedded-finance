@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 // import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -13,6 +14,14 @@ import {
 export const PersonalDetailsForm: SectionStepFormComponent = () => {
   // const { t } = useTranslation('onboarding');
   const form = useFormContext<z.input<typeof PersonalDetailsFormSchema>>();
+
+  const jobTitle = form.watch('controllerJobTitle');
+
+  useEffect(() => {
+    if (jobTitle !== 'Other') {
+      form.setValue('controllerJobTitleDescription', '');
+    }
+  }, [jobTitle]);
 
   return (
     <div className="eb-flex eb-flex-col eb-gap-y-9">
@@ -43,6 +52,7 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
           control={form.control}
           name="controllerNameSuffix"
           type="text"
+          className="eb-max-w-48"
         />
       </fieldset>
 
@@ -64,7 +74,7 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
             { value: 'Other', label: 'Other' },
           ]}
         />
-        {form.watch('controllerJobTitle') === 'Other' && (
+        {jobTitle === 'Other' && (
           <OnboardingFormField
             control={form.control}
             name="controllerJobTitleDescription"

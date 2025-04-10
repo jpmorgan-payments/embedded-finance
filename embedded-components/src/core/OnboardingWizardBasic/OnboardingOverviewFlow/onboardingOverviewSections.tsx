@@ -3,13 +3,14 @@ import { BuildingIcon, LucideIcon, UserIcon } from 'lucide-react';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
+import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
-import { ReviewStep } from './OnboardingSectionStepper/PersonalSectionForms/ReviewStep/ReviewStep';
 import { SectionStepFormComponent } from './types';
 
 export type StepType =
   | {
       id: string;
+      type: 'form';
       title: string;
       description?: string;
       formConfig: {
@@ -20,10 +21,19 @@ export type StepType =
     }
   | {
       id: string;
+      type: 'non-form';
       title: string;
       description?: string;
       formConfig?: never; // Ensure formConfig is not allowed
       Component: FC; // Optional non-form component
+    }
+  | {
+      id: string;
+      type: 'check-answers';
+      title: string;
+      description?: string;
+      formConfig?: never; // Ensure formConfig is not allowed\
+      Component?: never;
     };
 
 type SectionType = {
@@ -52,6 +62,7 @@ export const onboardingOverviewSections: SectionType[] = [
     steps: [
       {
         id: 'personal-details',
+        type: 'form',
         title: 'Personal details',
         description:
           'We collect your personal information as the primary person controlling business operations for the company.',
@@ -62,19 +73,21 @@ export const onboardingOverviewSections: SectionType[] = [
       },
       {
         id: 'identity-document',
+        type: 'form',
         title: 'Identity document',
         description:
           'We need some additional details to confirm your identity.',
         formConfig: {
-          FormComponent: PersonalDetailsForm,
+          FormComponent: IndividualIdentityForm,
           party: parties.controller,
         },
       },
       {
         id: 'company-introduction',
-        title: 'Company introduction',
-        description: 'Learn more about our company.',
-        Component: ReviewStep,
+        type: 'check-answers',
+        title: 'Check your answers',
+        description:
+          'Please ensure your answers are accurate and complete anything you may have missed.',
       },
     ],
   },
@@ -85,6 +98,7 @@ export const onboardingOverviewSections: SectionType[] = [
     steps: [
       {
         id: 'company-details',
+        type: 'form',
         title: 'Company details',
         description: 'Provide details about your company.',
         formConfig: {

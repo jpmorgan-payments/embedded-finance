@@ -286,7 +286,7 @@ export const partyFieldMap: PartyFieldMap = {
       ],
       defaultAppendValue: {
         idType: 'EIN',
-        issuer: '',
+        issuer: 'US',
         value: '',
       },
     },
@@ -500,7 +500,7 @@ export const partyFieldMap: PartyFieldMap = {
             condition: {
               product: ['EMBEDDED_PAYMENTS'],
             },
-            rule: { interaction: 'disabled', defaultValue: 'US' },
+            rule: { interaction: 'enabled', defaultValue: 'US' },
           },
         ],
       },
