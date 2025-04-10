@@ -36,6 +36,7 @@ export type OnboardingProps = {
   blockPostVerification?: boolean;
   showLinkedAccountPanel?: boolean;
   useSingleColumnLayout?: boolean;
+  mode?: 'prod' | 'test';
 };
 
 // Option: Const assertion with object (most future-proof)
@@ -121,6 +122,7 @@ export const OnboardingContextProvider: FC<
         processStep,
         steps,
         setSteps,
+        mode: props.mode || 'prod',
       }}
     >
       {children}

@@ -101,6 +101,7 @@ export const OrganizationStepForm = () => {
     usePartyResource,
     useSingleColumnLayout,
     processStep,
+    mode
   } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
@@ -777,6 +778,27 @@ export const OrganizationStepForm = () => {
             )}
           </div>
         </fieldset>
+        {mode === 'test' && (
+          <fieldset
+            className={cn(
+              'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4',
+              {
+                'md:eb-grid-cols-2 lg:eb-grid-cols-3': !useSingleColumnLayout,
+              }
+            )}
+            disabled={isFormDisabled}
+          >
+            <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+              Testing only fields
+            </legend>
+            <OnboardingFormField
+              control={form.control}
+              name="externalId"
+              type="text"
+              required={false}
+            />
+          </fieldset>
+        )}
         <ServerErrorAlert
           error={usePartyResource ? partyUpdateError : clientUpdateError}
         />

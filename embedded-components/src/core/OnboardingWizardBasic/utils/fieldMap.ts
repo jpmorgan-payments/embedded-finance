@@ -8,6 +8,22 @@ import { PartyFieldMap } from './types';
 // path is used for handling server errors and mapping values from/to the API
 // rules are used for configuring field display, required, etc.
 export const partyFieldMap: PartyFieldMap = {
+  externalId: {
+    path: 'externalId',
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
+  },
+  ownerExternalId: {
+    path: 'externalId',
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
+  },
   product: {
     excludeFromMapping: true,
     baseRule: {

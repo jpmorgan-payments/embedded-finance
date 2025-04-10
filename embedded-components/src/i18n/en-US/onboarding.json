@@ -1,5 +1,17 @@
 {
   "fields": {
+    "externalId": {
+      "label": "External ID",
+      "placeholder": "Enter external ID",
+      "description": "",
+      "tooltip": ""
+    },
+    "ownerExternalId": {
+      "label": "External ID",
+      "placeholder": "Enter external ID",
+      "description": "",
+      "tooltip": ""
+    },
     "product": {
       "label": "Product",
       "placeholder": "Select product",
@@ -1108,9 +1120,9 @@
     "Senior Branch Manager": "Senior Branch Manager",
     "Other": "Other"
   },
-  "natureOfOwnershipTypes":{
-    "direct":"Direct",
-    "indirect":"Indirect"
+  "natureOfOwnershipTypes": {
+    "direct": "Direct",
+    "indirect": "Indirect"
   },
   "phoneTypes": {
     "BUSINESS_PHONE": "Business Phone",
