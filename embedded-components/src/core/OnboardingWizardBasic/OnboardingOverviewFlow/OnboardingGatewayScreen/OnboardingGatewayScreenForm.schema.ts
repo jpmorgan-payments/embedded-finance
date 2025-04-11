@@ -18,6 +18,7 @@ export const OnboardingGatewayScreenFormSchema = z.object({
         'GOVERNMENT_ENTITY',
         'SOLE_PROPRIETORSHIP',
         'UNINCORPORATED_ASSOCIATION',
+        'PUBLICLY_TRADED_COMPANY',
       ]),
       z.literal(''),
     ])
