@@ -96,6 +96,7 @@ const ownerIdSchema = z
   );
 
 export const BeneficialOwnerStepFormSchema = z.object({
+  ownerExternalId: z.string().optional(),
   ownerAddresses: z.array(AddressSchema).refine((addresses) => {
     const types = addresses.map((addr) => addr.addressType);
     return new Set(types).size === types.length;

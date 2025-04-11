@@ -1,5 +1,17 @@
 {
   "fields": {
+    "externalId": {
+      "label": "External ID",
+      "placeholder": "Enter external ID",
+      "description": "",
+      "tooltip": ""
+    },
+    "ownerExternalId": {
+      "label": "External ID",
+      "placeholder": "Enter external ID",
+      "description": "",
+      "tooltip": ""
+    },
     "product": {
       "label": "Product",
       "placeholder": "Select product",
@@ -1088,7 +1100,6 @@
     "C_CORPORATION": "C Corporation",
     "S_CORPORATION": "S Corporation",
     "PARTNERSHIP": "Partnership",
-    "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company",
     "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
     "GOVERNMENT_ENTITY": "Government Entity",
     "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
@@ -1109,9 +1120,9 @@
     "Senior Branch Manager": "Senior Branch Manager",
     "Other": "Other"
   },
-  "natureOfOwnershipTypes":{
-    "direct":"Direct",
-    "indirect":"Indirect"
+  "natureOfOwnershipTypes": {
+    "direct": "Direct",
+    "indirect": "Indirect"
   },
   "phoneTypes": {
     "BUSINESS_PHONE": "Business Phone",

@@ -12,7 +12,7 @@ import {
   transactionsMock,
   efClientQuestionsMock,
   efDocumentClientDetail,
-  efDocumentRequestDetails,
+  efDocumentRequestDetailsList,
 } from 'mocks';
 
 import { API_URL } from 'data/constants';
@@ -107,7 +107,12 @@ export const createHandlers = (apiUrl) => [
     return HttpResponse.json(efDocumentClientDetail);
   }),
 
-  http.get('/ef/do/v1/document-requests/:documentRequestId', () => {
-    return HttpResponse.json(efDocumentRequestDetails);
+  http.get('/ef/do/v1/document-requests/:documentRequestId', (req) => {
+    const { documentRequestId } = req.params;
+    return HttpResponse.json(
+      efDocumentRequestDetailsList.find(
+        (request) => +request?.id === +documentRequestId,
+      ),
+    );
   }),
 ];

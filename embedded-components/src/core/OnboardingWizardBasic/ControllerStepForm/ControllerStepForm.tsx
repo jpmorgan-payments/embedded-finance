@@ -54,6 +54,7 @@ import { XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
   useSmbdoUpdateClient,
@@ -92,6 +93,7 @@ export const ControllerStepForm = () => {
     usePartyResource,
     onPostPartyResponse,
     processStep,
+    mode,
   } = useOnboardingContext();
   const { t } = useTranslation('onboarding');
 
@@ -673,6 +675,25 @@ export const ControllerStepForm = () => {
             </fieldset>
           )}
         />
+
+        {mode === 'test' && (
+          <fieldset
+            className={cn(
+              'eb-grid eb-grid-cols-1 eb-items-start eb-gap-6 eb-rounded-lg eb-border eb-p-4'
+            )}
+            disabled={isFormDisabled}
+          >
+            <legend className="eb-m-1 eb-px-1 eb-text-sm eb-font-medium">
+              Testing only fields
+            </legend>
+            <OnboardingFormField
+              control={form.control}
+              name="externalId"
+              type="text"
+              required={false}
+            />
+          </fieldset>
+        )}
 
         <ServerErrorAlert
           error={usePartyResource ? partyUpdateError : clientUpdateError}
