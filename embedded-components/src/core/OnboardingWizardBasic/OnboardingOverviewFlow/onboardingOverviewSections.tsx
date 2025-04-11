@@ -1,5 +1,12 @@
 import { FC } from 'react';
-import { BuildingIcon, LucideIcon, UserIcon } from 'lucide-react';
+import {
+  BuildingIcon,
+  FileIcon,
+  LucideIcon,
+  TagIcon,
+  UserIcon,
+  Users2Icon,
+} from 'lucide-react';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
@@ -107,5 +114,18 @@ export const onboardingOverviewSections: SectionType[] = [
         },
       },
     ],
+  },
+  {
+    id: 'owners',
+    title: 'Owners and key roles',
+    icon: Users2Icon,
+    steps: [],
+  },
+  { id: 'operational', title: 'Operational details', icon: TagIcon, steps: [] },
+  {
+    id: 'attest',
+    title: 'Review and attest',
+    icon: FileIcon,
+    steps: [],
   },
 ];

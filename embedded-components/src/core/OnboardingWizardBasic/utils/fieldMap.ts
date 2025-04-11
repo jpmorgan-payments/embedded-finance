@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n/config';
 import { parsePhoneNumber } from 'react-phone-number-input';
 
 import { AddressDto, PhoneSmbdo } from '@/api/generated/smbdo.schemas';
@@ -427,6 +428,7 @@ export const partyFieldMap: PartyFieldMap = {
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
+    toStringFn: (val) => `${i18n.t(`common:countries.${val}`)} (${val})`,
   },
   controllerFirstName: {
     path: 'individualDetails.firstName',
