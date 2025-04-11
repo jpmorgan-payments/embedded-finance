@@ -98,7 +98,8 @@ export const OnboardingSectionStepper = () => {
   const isFormSubmitting =
     clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
 
-  const isFormDisabled = isFormSubmitting || isFormPopulationPending;
+  const isFormDisabled =
+    isFormSubmitting || (isFormPopulationPending && !!currentPartyData);
 
   const form = formConfig
     ? useFormWithFilters({
