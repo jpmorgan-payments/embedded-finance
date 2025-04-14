@@ -4,6 +4,31 @@
 
 A guided document upload component that enables users to fulfill document requirements in a step-by-step interface. Handles both required and optional documents, with support for multiple parties.
 
+## Document Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant State
+    participant API
+
+    API->>UI: Load document request (ACTIVE status)
+    Note over UI: Show all requirements<br/>First one interactive
+
+    User->>UI: Upload document for requirement
+    UI->>State: Update satisfied docs
+    State->>UI: Activate next requirement
+    UI->>API: Upload document (async)
+
+    Note over State: Evaluate based on minRequired
+
+    State->>UI: All requirements met
+    UI->>User: Enable submission
+    User->>UI: Submit
+    UI->>API: Submit request
+```
+
 ## Key Features
 
 - Progressive disclosure of requirements
