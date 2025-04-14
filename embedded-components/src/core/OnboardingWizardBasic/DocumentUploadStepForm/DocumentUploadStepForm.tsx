@@ -512,7 +512,10 @@ export const DocumentUploadStepForm = ({
       if (isActive) return false; // Active requirements aren't considered completed yet
 
       const requirement = docRequest.requirements[reqIndex];
-      if (!requirement) return false;
+      if (!requirement) return false; 
+
+      // If minRequired is 0, the requirement is optional and considered satisfied
+      if (requirement.minRequired === 0) return true;
 
       // Count how many documents of the required types have been uploaded
       const satisfiedDocCount = requirement.documentTypes.filter((docType) =>
@@ -556,7 +559,7 @@ export const DocumentUploadStepForm = ({
           // 1. It has enough satisfied document types to meet the missing requirement, OR
           // 2. It's shown as completed in the UI
           const isSatisfied =
-            satisfiedDocCount >= (requirement.minRequired || 1) ||
+            satisfiedDocCount >= (requirement.minRequired ?? 1) ||
             isCompletedInUI ||
             !isActive;
 
@@ -779,8 +782,17 @@ export const DocumentUploadStepForm = ({
                               </span>
                               {numFieldsToShow > 0 ? (
                                 <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
-                                  Upload {numFieldsToShow} of the following
-                                  document types
+                                  {requirement.minRequired === 0 ? (
+                                    <>
+                                      Optional: Upload any of the following
+                                      document types
+                                      <span className="eb-ml-2 eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-500">
+                                        Optional
+                                      </span>
+                                    </>
+                                  ) : (
+                                    `Upload ${numFieldsToShow} of the following document types`
+                                  )}
                                 </span>
                               ) : (
                                 <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
@@ -835,10 +847,17 @@ export const DocumentUploadStepForm = ({
                                       render={({ field }) => (
                                         <FormItem className="eb-mb-4">
                                           <FormLabel
-                                            asterisk
+                                            asterisk={
+                                              requirement.minRequired !== 0
+                                            }
                                             className="eb-text-sm eb-font-medium eb-text-gray-700"
                                           >
                                             Select Document Type
+                                            {requirement.minRequired === 0 && (
+                                              <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
+                                                (Optional)
+                                              </span>
+                                            )}
                                           </FormLabel>
                                           <FormControl>
                                             <Select
@@ -886,10 +905,18 @@ export const DocumentUploadStepForm = ({
                                         return (
                                           <FormItem className="eb-space-y-2">
                                             <FormLabel
-                                              asterisk
+                                              asterisk={
+                                                requirement.minRequired !== 0
+                                              }
                                               className="eb-text-sm eb-font-medium eb-text-gray-700"
                                             >
                                               Upload Document
+                                              {requirement.minRequired ===
+                                                0 && (
+                                                <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
+                                                  (Optional)
+                                                </span>
+                                              )}
                                             </FormLabel>
                                             {selectedDocType && (
                                               <FormDescription className="eb-text-xs eb-text-gray-500">
