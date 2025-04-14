@@ -136,11 +136,16 @@ export const DocumentUploadStepForm = ({
     queries: (filteredDocumentRequests ?? []).map((documentRequestId) => ({
       queryKey: ['documentRequest', documentRequestId],
       queryFn: () =>
-        documentRequestId && smbdoGetDocumentRequest(documentRequestId), // Ensure this returns a promise
+        documentRequestId && smbdoGetDocumentRequest(documentRequestId),
     })),
     combine: (results) => {
       return {
-        data: results.map((result) => result.data) as DocumentRequestResponse[],
+        data: results
+          .map((result) => result.data)
+          .filter(
+            (data): data is DocumentRequestResponse =>
+              !!data && data.status === 'ACTIVE'
+          ) as DocumentRequestResponse[],
         pending: results.some((result) => result.isPending),
       };
     },
@@ -512,7 +517,7 @@ export const DocumentUploadStepForm = ({
       if (isActive) return false; // Active requirements aren't considered completed yet
 
       const requirement = docRequest.requirements[reqIndex];
-      if (!requirement) return false; 
+      if (!requirement) return false;
 
       // If minRequired is 0, the requirement is optional and considered satisfied
       if (requirement.minRequired === 0) return true;
