@@ -117,7 +117,7 @@ describe('DocumentUploadStepForm', () => {
       renderComponent({ partyFilter: '2000000111' });
 
       expect(
-        await screen.findByText(/To verify the identity of the business/i)
+        await screen.findByText(/To verify your identity, please provide requested documents./i)
       ).toBeInTheDocument();
     });
 
