@@ -54,6 +54,16 @@ interface UploadedDocument {
   files: File[];
 }
 
+export const ACCEPTED_FILE_TYPES = {
+  'application/pdf': ['.pdf'],
+  'image/jpeg': ['.jpeg', '.jpg'],
+  'image/png': ['.png'],
+  'image/gif': ['.gif'],
+  'image/bmp': ['.bmp'],
+  'image/tiff': ['.tiff', '.tif'],
+  'image/webp': ['.webp'],
+};
+
 const generateRequestId = () => {
   return uuidv4()
     .replace(/[^a-zA-Z0-9_-]/g, '')
@@ -141,7 +151,7 @@ export const DocumentUploadStepForm = ({
     if (documentRequestsQueries?.data?.length) {
       const initialActiveReqs: Record<string, number[]> = {};
       documentRequestsQueries.data.forEach((docRequest) => {
-        if (docRequest?.id && docRequest.outstanding?.requirements?.length) {
+        if (docRequest?.id && docRequest.requirements?.length) {
           // Only make the first requirement active initially
           initialActiveReqs[docRequest.id] = [0];
         }
@@ -154,16 +164,16 @@ export const DocumentUploadStepForm = ({
   const DocumentUploadSchema = useMemo(() => {
     const schema: Record<string, z.ZodType<any>> = {};
     documentRequestsQueries?.data?.forEach((documentRequest) => {
-      if (!documentRequest?.id || !documentRequest.outstanding?.requirements) {
+      if (!documentRequest?.id || !documentRequest.requirements) {
         return;
       }
       const nestedSchema: Record<string, z.ZodType<any>> = {};
 
       // Include all requirements in the schema, not just active ones
-      documentRequest.outstanding.requirements.forEach((requirement, index) => {
+      documentRequest.requirements.forEach((requirement, index) => {
         // Calculate how many document fields we need
         const remainingNeeded = Math.max(
-          requirement.missing -
+          (requirement.minRequired || 1) -
             requirement.documentTypes.filter((docType) =>
               satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
             ).length,
@@ -173,7 +183,7 @@ export const DocumentUploadStepForm = ({
         // If documents are still needed, create the required fields
         if (remainingNeeded > 0) {
           // Use fixed number of fields based on requirement
-          const numFieldsToShow = requirement.missing;
+          const numFieldsToShow = requirement.minRequired || 1;
 
           // Create fields for each document upload
           for (let i = 0; i < numFieldsToShow; i += 1) {
@@ -185,6 +195,16 @@ export const DocumentUploadStepForm = ({
             // Add a field for file upload
             nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
               .array(z.instanceof(File))
+              .refine(
+                (files) => {
+                  if (!files?.length) return true;
+                  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 10MB in bytes
+                  return files.every((file) => file.size <= MAX_FILE_SIZE);
+                },
+                {
+                  message: 'Each file must be 2MB or less',
+                }
+              )
               .optional(); // Make optional instead of required
           }
         }
@@ -298,12 +318,12 @@ export const DocumentUploadStepForm = ({
       }
 
       // Check each requirement to find the first unsatisfied one
-      if (docRequest.outstanding?.requirements) {
+      if (docRequest.requirements) {
         let foundActiveStep = false;
 
         // First pass: determine if any steps are fully satisfied
         const satisfiedSteps: number[] = [];
-        docRequest.outstanding.requirements.forEach((requirement, reqIndex) => {
+        docRequest.requirements.forEach((requirement, reqIndex) => {
           // Count how many documents of the required types have been uploaded
           const uploadedDocsOfRequiredTypes =
             newUploadedDocs[docId]?.filter((doc: UploadedDocument) =>
@@ -311,7 +331,7 @@ export const DocumentUploadStepForm = ({
             ).length || 0;
 
           // If this step is satisfied, mark it
-          if (uploadedDocsOfRequiredTypes >= (requirement.missing || 1)) {
+          if (uploadedDocsOfRequiredTypes >= (requirement.minRequired || 1)) {
             satisfiedSteps.push(reqIndex);
           }
         });
@@ -319,7 +339,7 @@ export const DocumentUploadStepForm = ({
         // Second pass: find the first unsatisfied step to make active
         for (
           let reqIndex = 0;
-          reqIndex < docRequest.outstanding.requirements.length;
+          reqIndex < docRequest.requirements.length;
           reqIndex += 1
         ) {
           // If this step is not satisfied, make it the active one
@@ -327,7 +347,7 @@ export const DocumentUploadStepForm = ({
             // Only make this step active if all previous steps are satisfied
             const allPreviousSatisfied =
               reqIndex === 0 ||
-              docRequest.outstanding.requirements
+              docRequest.requirements
                 .slice(0, reqIndex)
                 .every((_, idx) => satisfiedSteps.includes(idx));
 
@@ -340,13 +360,8 @@ export const DocumentUploadStepForm = ({
         }
 
         // If all steps are satisfied, keep the last one active
-        if (
-          !foundActiveStep &&
-          docRequest.outstanding.requirements.length > 0
-        ) {
-          if (
-            satisfiedSteps.length === docRequest.outstanding.requirements.length
-          ) {
+        if (!foundActiveStep && docRequest.requirements.length > 0) {
+          if (satisfiedSteps.length === docRequest.requirements.length) {
             // All steps are satisfied, don't keep any active to show them all as completed
             newActiveReqs[docId] = [];
           } else {
@@ -490,15 +505,17 @@ export const DocumentUploadStepForm = ({
       docRequest: DocumentRequestResponse,
       reqIndex: number
     ) => {
-      if (!docRequest?.id || !docRequest.outstanding?.requirements)
-        return false;
+      if (!docRequest?.id || !docRequest.requirements) return false;
 
       // Check if this requirement is active in the UI
       const isActive = activeRequirements[docRequest.id]?.includes(reqIndex);
       if (isActive) return false; // Active requirements aren't considered completed yet
 
-      const requirement = docRequest.outstanding.requirements[reqIndex];
-      if (!requirement) return false;
+      const requirement = docRequest.requirements[reqIndex];
+      if (!requirement) return false; 
+
+      // If minRequired is 0, the requirement is optional and considered satisfied
+      if (requirement.minRequired === 0) return true;
 
       // Count how many documents of the required types have been uploaded
       const satisfiedDocCount = requirement.documentTypes.filter((docType) =>
@@ -509,18 +526,17 @@ export const DocumentUploadStepForm = ({
       const isPastRequirement =
         satisfiedDocCount > 0 &&
         (satisfiedDocCount === requirement.documentTypes.length ||
-          satisfiedDocCount >= requirement.missing);
+          satisfiedDocCount >= (requirement.minRequired || 1));
 
       return isPastRequirement;
     };
 
     // Check if there are any document requests that have unsatisfied requirements
     const result = documentRequestsQueries.data.every((docRequest) => {
-      if (!docRequest?.id || !docRequest.outstanding?.requirements?.length)
-        return true;
+      if (!docRequest?.id || !docRequest.requirements?.length) return true;
 
       // For this document request, check each requirement
-      const requirementsSatisfied = docRequest.outstanding.requirements.every(
+      const requirementsSatisfied = docRequest.requirements.every(
         (requirement, reqIndex) => {
           // Count how many documents of the required types have been uploaded
           const satisfiedDocCount = requirement.documentTypes.filter(
@@ -543,7 +559,7 @@ export const DocumentUploadStepForm = ({
           // 1. It has enough satisfied document types to meet the missing requirement, OR
           // 2. It's shown as completed in the UI
           const isSatisfied =
-            satisfiedDocCount >= requirement.missing ||
+            satisfiedDocCount >= (requirement.minRequired ?? 1) ||
             isCompletedInUI ||
             !isActive;
 
@@ -584,6 +600,7 @@ export const DocumentUploadStepForm = ({
           const partyDetails = clientData?.parties?.find(
             (p) => p.id === documentRequest?.partyId
           );
+
           const partyName =
             partyDetails?.partyType === 'INDIVIDUAL'
               ? `${partyDetails?.individualDetails?.firstName} ${partyDetails?.individualDetails?.lastName}`
@@ -622,7 +639,7 @@ export const DocumentUploadStepForm = ({
                   </Button>
                 </div>
                 <div className="eb-space-y-6 eb-p-4">
-                  {documentRequest?.outstanding?.requirements?.map(
+                  {documentRequest?.requirements?.map(
                     (requirement, requirementIndex) => {
                       // Check if this requirement is active
                       const docId = documentRequest?.id;
@@ -638,7 +655,7 @@ export const DocumentUploadStepForm = ({
 
                       // Calculate how many document fields we need based on requirement
                       const numFieldsToShow = Math.max(
-                        requirement.missing - satisfiedCount,
+                        (requirement.minRequired || 1) - satisfiedCount,
                         0
                       );
 
@@ -765,8 +782,17 @@ export const DocumentUploadStepForm = ({
                               </span>
                               {numFieldsToShow > 0 ? (
                                 <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
-                                  Upload {numFieldsToShow} of the following
-                                  document types
+                                  {requirement.minRequired === 0 ? (
+                                    <>
+                                      Optional: Upload any of the following
+                                      document types
+                                      <span className="eb-ml-2 eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-500">
+                                        Optional
+                                      </span>
+                                    </>
+                                  ) : (
+                                    `Upload ${numFieldsToShow} of the following document types`
+                                  )}
                                 </span>
                               ) : (
                                 <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
@@ -821,10 +847,17 @@ export const DocumentUploadStepForm = ({
                                       render={({ field }) => (
                                         <FormItem className="eb-mb-4">
                                           <FormLabel
-                                            asterisk
+                                            asterisk={
+                                              requirement.minRequired !== 0
+                                            }
                                             className="eb-text-sm eb-font-medium eb-text-gray-700"
                                           >
                                             Select Document Type
+                                            {requirement.minRequired === 0 && (
+                                              <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
+                                                (Optional)
+                                              </span>
+                                            )}
                                           </FormLabel>
                                           <FormControl>
                                             <Select
@@ -872,10 +905,18 @@ export const DocumentUploadStepForm = ({
                                         return (
                                           <FormItem className="eb-space-y-2">
                                             <FormLabel
-                                              asterisk
+                                              asterisk={
+                                                requirement.minRequired !== 0
+                                              }
                                               className="eb-text-sm eb-font-medium eb-text-gray-700"
                                             >
                                               Upload Document
+                                              {requirement.minRequired ===
+                                                0 && (
+                                                <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
+                                                  (Optional)
+                                                </span>
+                                              )}
                                             </FormLabel>
                                             {selectedDocType && (
                                               <FormDescription className="eb-text-xs eb-text-gray-500">
@@ -889,43 +930,9 @@ export const DocumentUploadStepForm = ({
                                                 containerClassName="eb-max-w-full"
                                                 {...fieldProps}
                                                 multiple={false}
-                                                accept={{
-                                                  'application/pdf': ['.pdf'],
-                                                  'image/jpeg': [
-                                                    '.jpeg',
-                                                    '.jpg',
-                                                  ],
-                                                  'image/png': ['.png'],
-                                                  'image/gif': ['.gif'],
-                                                  'image/bmp': ['.bmp'],
-                                                  'image/tiff': [
-                                                    '.tiff',
-                                                    '.tif',
-                                                  ],
-                                                  'image/webp': ['.webp'],
-                                                }}
+                                                accept={ACCEPTED_FILE_TYPES}
                                                 onChange={(files) => {
-                                                  const maxSize =
-                                                    5 * 1024 * 1024; // 5 MB
-                                                  const validFiles =
-                                                    files.filter((file) => {
-                                                      if (file.size > maxSize) {
-                                                        form.setError(
-                                                          `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`,
-                                                          {
-                                                            message:
-                                                              'Each file must be less than 5MB',
-                                                          }
-                                                        );
-                                                        return false;
-                                                      }
-                                                      form.clearErrors(
-                                                        `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
-                                                      );
-
-                                                      return true;
-                                                    });
-                                                  onChange(validFiles);
+                                                  onChange(files);
                                                 }}
                                               />
                                             </FormControl>

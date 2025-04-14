@@ -7,49 +7,21 @@ export const efDocumentRequestDetails = {
   status: 'ACTIVE',
   requirements: [
     {
-      documentTypes: ['PASSPORT', 'DRIVERS_LICENSE'],
+      documentTypes: ['PASSPORT', 'DRIVERS_LICENSE', 'GOV_ISSUED_ID_CARD'],
       minRequired: 1,
     },
     {
-      documentTypes: [
-        'PASSPORT',
-        'DRIVERS_LICENSE',
-        'CREDIT_CARD_STATEMENT',
-        'BANK_STATEMENT',
-        'LOAN_ACCOUNT_STATEMENT',
-        'UTILITY_BILL',
-        'INSURANCE_DOCUMENT',
-      ],
-      minRequired: 2,
+      documentTypes: ['BANK_STATEMENT', 'UTILITY_BILL'],
+      minRequired: 0,
     },
   ],
   outstanding: {
     documentTypes: [
       'PASSPORT',
       'DRIVERS_LICENSE',
-      'CREDIT_CARD_STATEMENT',
+      'GOV_ISSUED_ID_CARD',
       'BANK_STATEMENT',
-      'LOAN_ACCOUNT_STATEMENT',
       'UTILITY_BILL',
-      'INSURANCE_DOCUMENT',
-    ],
-    requirements: [
-      {
-        documentTypes: ['PASSPORT', 'DRIVERS_LICENSE'],
-        missing: 1,
-      },
-      {
-        documentTypes: [
-          'PASSPORT',
-          'DRIVERS_LICENSE',
-          'CREDIT_CARD_STATEMENT',
-          'BANK_STATEMENT',
-          'LOAN_ACCOUNT_STATEMENT',
-          'UTILITY_BILL',
-          'INSURANCE_DOCUMENT',
-        ],
-        missing: 2,
-      },
     ],
   },
   validForDays: 120,
