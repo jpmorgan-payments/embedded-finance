@@ -1,6 +1,7 @@
 import {
   EBComponentsProvider,
   OnboardingWizardBasic,
+  OnboardingOverviewFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
 import { Badge, Divider, Grid, Select, Text, NumberInput } from '@mantine/core';
 import { Prism } from '@mantine/prism';
@@ -237,6 +238,33 @@ export const OnboardingNextPageV2 = () => {
           <div>Loading...</div>
         ) : error ? (
           <div>{error}</div>
+        ) : scenario?.component === 'OnboardingOverviewFlow' ? (
+          <OnboardingOverviewFlow
+            key={`wizard-${scenario?.clientId}`}
+            // @ts-ignore
+            availableProducts={scenario?.availableProducts ?? []}
+            // @ts-ignore
+            availableJurisdictions={scenario?.availableJurisdictions ?? []}
+            // @ts-ignore
+            availableOrganizationTypes={
+              scenario?.availableOrganizationTypes ?? [
+                'SOLE_PROPRIETORSHIP',
+                'LIMITED_LIABILITY_COMPANY',
+              ]
+            }
+            title="Onboarding Wizard"
+            initialClientId={clientIdFromParams ?? scenario?.clientId}
+            initialStep={initialStep - 1}
+            onPostClientResponse={(response, error) => {
+              console.log('@@clientId POST', response, error);
+              if (error) setError(error.title);
+            }}
+            onPostClientVerificationsResponse={(response, error) => {
+              console.log('@@clientId GET', response, error);
+              if (error) setError(error.title);
+            }}
+            height="100vh"
+          />
         ) : (
           <OnboardingWizardBasic
             key={`wizard-${scenario?.clientId}`}
