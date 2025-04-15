@@ -33,7 +33,7 @@ export const OnboardingChecklistScreen = () => {
       title={t('steps.checklist.title')}
       description={t('steps.checklist.description')}
     >
-      <div className="eb-flex-auto eb-space-y-4">
+      <div className="eb-mt-6 eb-flex-auto eb-space-y-4">
         <div className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
           <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
             Personal Details
@@ -97,7 +97,7 @@ export const OnboardingChecklistScreen = () => {
         </div>
       </div>
 
-      <div className="eb-space-y-6">
+      <div className="eb-mt-6 eb-space-y-6">
         {t('steps.checklist.alerts', { returnObjects: true }).map(
           (alert, index) => (
             <Alert variant="informative" key={index}>

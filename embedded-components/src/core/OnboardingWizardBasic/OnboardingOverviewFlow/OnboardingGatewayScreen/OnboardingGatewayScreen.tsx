@@ -253,7 +253,7 @@ export const OnboardingGatewayScreen = () => {
           title={t('steps.gateway.title')}
           description={t('steps.gateway.description')}
         >
-          <div className="eb-flex-auto">
+          <div className="eb-mt-6 eb-flex-auto">
             <OnboardingFormField
               control={form.control}
               name="organizationType"

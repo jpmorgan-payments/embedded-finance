@@ -355,7 +355,7 @@ export const OnboardingSectionStepper = () => {
       description={currentStep.description}
       showSpinner={isFormPopulationPending && !!currentPartyData}
     >
-      <div className="eb-flex-auto">
+      <div className="eb-mt-6 eb-flex-auto">
         {currentStep.type === 'form' && (
           <Form {...form}>
             <form id={currentStep.id} onSubmit={onSubmit}>

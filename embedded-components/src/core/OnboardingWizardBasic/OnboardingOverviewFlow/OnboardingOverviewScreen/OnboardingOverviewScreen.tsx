@@ -35,7 +35,7 @@ export const OnboardingOverviewScreen = () => {
       title={t('steps.overview.title')}
       description={t('steps.overview.description')}
     >
-      <div className="eb-flex-auto eb-space-y-6">
+      <div className="eb-mt-2 eb-flex-auto eb-space-y-6">
         <Alert variant="informative">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription>{t('steps.overview.infoAlert')}</AlertDescription>
