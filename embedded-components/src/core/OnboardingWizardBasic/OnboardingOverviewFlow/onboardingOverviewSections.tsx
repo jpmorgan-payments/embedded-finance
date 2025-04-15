@@ -12,6 +12,7 @@ import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
 import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
 import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
+import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
 import { SectionStepFormComponent } from './types';
@@ -88,6 +89,17 @@ export const onboardingOverviewSections: SectionType[] = [
           'We need some additional details to confirm your identity.',
         formConfig: {
           FormComponent: IndividualIdentityForm,
+          party: parties.controller,
+        },
+      },
+      {
+        id: 'contact-details',
+        type: 'form',
+        title: 'Contact details',
+        description:
+          'We need some additional details to confirm your identity.',
+        formConfig: {
+          FormComponent: ContactDetailsForm,
           party: parties.controller,
         },
       },

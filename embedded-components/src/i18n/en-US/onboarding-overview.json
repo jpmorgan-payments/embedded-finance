@@ -99,6 +99,16 @@
       "value": {
         "tooltip": ""
       }
+    },
+
+    "controllerAddresses": {
+      "country": {
+        "description": ""
+      },
+      "primaryAddressLine": {
+        "description": "P.O. box is not accepted",
+        "tooltip": ""
+      }
     }
   },
   "idValueLabels": {

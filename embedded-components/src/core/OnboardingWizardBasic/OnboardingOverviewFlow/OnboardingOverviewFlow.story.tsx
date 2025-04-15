@@ -150,6 +150,7 @@ STheme.args = {
   ...Default.args,
   theme: {
     variables: {
+      // backgroundColor: '#f6f7f8',
       fontFamily: 'Open Sans',
       headerFontFamily: 'Amplitude',
       buttonFontFamily: 'Amplitude',

@@ -724,7 +724,7 @@ export const partyFieldMap: PartyFieldMap = {
           city: '',
           state: '',
           postalCode: '',
-          country: '',
+          country: 'US',
         },
       ],
       defaultAppendValue: {

@@ -271,7 +271,7 @@ export const OnboardingGatewayScreen = () => {
             />
           </div>
 
-          <div className="eb-space-y-6">
+          <div className="eb-mt-6 eb-space-y-6">
             {t('steps.gateway.alerts', { returnObjects: true }).map(
               (alert, index) => (
                 <Alert variant="informative" key={index}>
