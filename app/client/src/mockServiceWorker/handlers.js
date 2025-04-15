@@ -384,6 +384,125 @@ export const createHandlers = (apiUrl) => [
     return HttpResponse.json(documentRequest);
   }),
 
+  http.post('/ef/do/v1/documents', async ({ request }) => {
+    const data = await request.json();
+    const documentId = Math.random().toString(36).substring(7);
+
+    // Create a mock document response
+    const documentResponse = {
+      id: documentId,
+      status: 'ACTIVE',
+      documentType: data.documentType,
+      fileName: data.fileName,
+      mimeType: data.mimeType,
+      createdAt: new Date().toISOString(),
+      metadata: data.metadata || {},
+    };
+
+    return HttpResponse.json(documentResponse, { status: 201 });
+  }),
+
+  http.post(
+    '/ef/do/v1/document-requests/:documentRequestId/submit',
+    async ({ params }) => {
+      const { documentRequestId } = params;
+
+      // Find the document request
+      const documentRequest = db.documentRequest.findFirst({
+        where: { id: { equals: documentRequestId } },
+      });
+
+      if (!documentRequest) {
+        return new HttpResponse(null, { status: 404 });
+      }
+
+      // Update document request status
+      const updatedRequest = db.documentRequest.update({
+        where: { id: { equals: documentRequestId } },
+        data: {
+          ...documentRequest,
+          status: 'SUBMITTED',
+        },
+      });
+
+      // Find the associated client
+      const client = db.client.findFirst({
+        where: { id: { equals: documentRequest.clientId } },
+      });
+
+      if (client) {
+        // Remove document request ID from client's outstanding block
+        const updatedClient = {
+          ...client,
+          outstanding: {
+            ...client.outstanding,
+            documentRequestIds: (
+              client.outstanding?.documentRequestIds || []
+            ).filter((id) => id !== documentRequestId),
+          },
+        };
+
+        // Check if there are any remaining document requests
+        const hasOutstandingDocRequests =
+          updatedClient.outstanding.documentRequestIds.length > 0;
+
+        // Check if there are any parties with outstanding validation
+        const parties = updatedClient.parties
+          .map((partyId) =>
+            db.party.findFirst({ where: { id: { equals: partyId } } }),
+          )
+          .filter(Boolean);
+
+        const hasPartyValidationPending = parties.some((party) =>
+          (party.validationResponse || []).some(
+            (validation) => validation.validationStatus === 'NEEDS_INFO',
+          ),
+        );
+
+        // If no outstanding requests and no pending validations, update client status
+        if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
+          updatedClient.status = 'REVIEW_IN_PROGRESS';
+        }
+
+        // Update client
+        db.client.update({
+          where: { id: { equals: client.id } },
+          data: updatedClient,
+        });
+      }
+
+      // If associated with a party, update party's validation response
+      if (documentRequest.partyId) {
+        const party = db.party.findFirst({
+          where: { id: { equals: documentRequest.partyId } },
+        });
+
+        if (party) {
+          const updatedParty = {
+            ...party,
+            validationResponse: (party.validationResponse || [])
+              .map((validation) => ({
+                ...validation,
+                documentRequestIds: validation.documentRequestIds.filter(
+                  (id) => id !== documentRequestId,
+                ),
+              }))
+              .filter((validation) => validation.documentRequestIds.length > 0),
+          };
+
+          // Update party
+          db.party.delete({
+            where: { id: { equals: party.id } },
+          });
+          db.party.create(updatedParty);
+        }
+      }
+
+      logDbState('Document Request Submission');
+      return HttpResponse.json(updatedRequest);
+    },
+  ),
+
   http.post('/ef/do/v1/_reset', () => {
     return HttpResponse.json(resetDb());
   }),

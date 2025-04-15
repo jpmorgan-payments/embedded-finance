@@ -169,7 +169,11 @@ export function initializeDb(force = false) {
                 `\nParty ${party.id}:`,
                 JSON.stringify(newParty, null, 2),
               );
-              db.party.create(newParty);
+              try {
+                db.party.create(newParty);
+              } catch (error) {
+                console.error('Error creating party:', error);
+              }
             }
           });
 
@@ -198,9 +202,90 @@ export function initializeDb(force = false) {
           };
           console.log(`\nCreating Client:`, JSON.stringify(newClient, null, 2));
           db.client.create(newClient);
+
+          // If client status is INFORMATION_REQUESTED, create document requests
+          if (clientData.status === 'INFORMATION_REQUESTED') {
+            // Find individual parties
+            const individualParties = parties.filter(
+              (p) => p.partyType === 'INDIVIDUAL',
+            );
+
+            // Create document requests for individual parties
+            for (const indParty of individualParties) {
+              const indDocRequest = efDocumentRequestDetailsList.find(
+                (req) => req.id === '68430',
+              );
+              const generatedDocRequestId = Math.floor(
+                10000 + Math.random() * 90000,
+              ).toString(); // 5 digit number
+              try {
+                upsertDocumentRequest(generatedDocRequestId, {
+                  ...indDocRequest,
+                  id: generatedDocRequestId,
+                  clientId,
+                  partyId: indParty.id,
+                  createdAt: timestamp,
+                });
+
+                // Add the generated ID to client's outstanding block
+                newClient.outstanding.documentRequestIds.push(
+                  generatedDocRequestId,
+                );
+
+                // Update party with validation response
+                const updatedParty = {
+                  ...indParty,
+                  validationResponse: [
+                    ...(indParty.validationResponse || []),
+                    {
+                      validationStatus: 'NEEDS_INFO',
+                      validationType: 'ENTITY_VALIDATION',
+                      documentRequestIds: [generatedDocRequestId],
+                    },
+                  ],
+                };
+
+                // Update the party
+                db.party.delete({
+                  where: { id: { equals: indParty.id } },
+                });
+                db.party.create(updatedParty);
+              } catch (error) {
+                console.error('Error creating document request:', error);
+              }
+            }
+
+            // Create document request for organization if exists
+            const orgParty = parties.find(
+              (p) => p.partyType === 'ORGANIZATION',
+            );
+            if (orgParty) {
+              const orgDocRequest = efDocumentRequestDetailsList.find(
+                (req) => req.id === '68803',
+              );
+              const generatedDocRequestId = Math.floor(
+                10000 + Math.random() * 90000,
+              ).toString(); // 5 digit number
+              try {
+                upsertDocumentRequest(generatedDocRequestId, {
+                  ...orgDocRequest,
+                  id: generatedDocRequestId,
+                  clientId,
+                  partyId: orgParty.id,
+                  createdAt: timestamp,
+                });
+
+                // Add the generated ID to client's outstanding block
+                newClient.outstanding.documentRequestIds.push(
+                  generatedDocRequestId,
+                );
+              } catch (error) {
+                console.error('Error creating document request:', error);
+              }
+            }
+          }
         } catch (e) {
           console.error('Error creating client:', e);
-          console.error('Error details:', JSON.stringify(e, null, 2));
         }
       });
 
@@ -211,7 +296,6 @@ export function initializeDb(force = false) {
     return false;
   } catch (error) {
     console.error('Database initialization error:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
     return false;
   }
 }
@@ -255,14 +339,20 @@ export function handleMagicValues(clientId, verificationData = {}) {
 
       // Handle organization document requests
       if (rootParty.partyType === 'ORGANIZATION') {
-        updatedClient.outstanding.documentRequestIds.push('68803');
+        const generatedDocRequestId = Math.floor(
+          10000 + Math.random() * 90000,
+        ).toString();
+        updatedClient.outstanding.documentRequestIds.push(
+          generatedDocRequestId,
+        );
 
         // Create or update organization document request using the mock data
         const orgDocRequest = efDocumentRequestDetailsList.find(
           (req) => req.id === '68803',
         );
-        upsertDocumentRequest('68803', {
+        upsertDocumentRequest(generatedDocRequestId, {
           ...orgDocRequest,
+          id: generatedDocRequestId,
           clientId,
           partyId: client.partyId,
           createdAt: new Date().toISOString(),
@@ -277,7 +367,12 @@ export function handleMagicValues(clientId, verificationData = {}) {
         .filter((party) => party && party.partyType === 'INDIVIDUAL');
 
       for (const indParty of individualParties) {
-        updatedClient.outstanding.documentRequestIds.push('68430');
+        const generatedDocRequestId = Math.floor(
+          10000 + Math.random() * 90000,
+        ).toString();
+        updatedClient.outstanding.documentRequestIds.push(
+          generatedDocRequestId,
+        );
 
         // Update the party with validation response
         const updatedParty = {
@@ -286,9 +381,8 @@ export function handleMagicValues(clientId, verificationData = {}) {
             ...(indParty.validationResponse || []),
             {
               validationStatus: 'NEEDS_INFO',
-              documentRequestId: '68430',
-              type: 'IDENTITY_VERIFICATION',
-              createdAt: new Date().toISOString(),
+              validationType: 'ENTITY_VALIDATION',
+              documentRequestIds: [generatedDocRequestId],
             },
           ],
         };
@@ -303,8 +397,9 @@ export function handleMagicValues(clientId, verificationData = {}) {
         const indDocRequest = efDocumentRequestDetailsList.find(
           (req) => req.id === '68430',
         );
-        upsertDocumentRequest('68430', {
+        upsertDocumentRequest(generatedDocRequestId, {
           ...indDocRequest,
+          id: generatedDocRequestId,
           clientId,
           partyId: indParty.id,
           createdAt: new Date().toISOString(),
