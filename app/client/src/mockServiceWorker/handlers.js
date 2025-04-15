@@ -82,14 +82,18 @@ export const createHandlers = (apiUrl) => [
 
   http.post(`/ef/do/v1/clients`, async ({ request }) => {
     const data = await request.json();
-    const newClientId = Math.random().toString(36).substring(7);
+    // Generate client ID starting with '00' followed by 8 random digits
+    const newClientId =
+      '00' + Math.floor(10000000 + Math.random() * 90000000).toString();
     const timestamp = new Date().toISOString();
 
     // First create the parties if any
     const partyIds = [];
     if (data.parties && Array.isArray(data.parties)) {
       for (const partyData of data.parties) {
-        const newPartyId = Math.random().toString(36).substring(7);
+        // Generate party ID starting with '2' followed by 9 random digits
+        const newPartyId =
+          '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
         const newParty = {
           id: newPartyId,
           status: 'ACTIVE',
@@ -109,22 +113,17 @@ export const createHandlers = (apiUrl) => [
     // Create the client with party IDs
     const client = db.client.create({
       id: newClientId,
-      status: 'DRAFT',
+      status: 'NEW',
       createdAt: timestamp,
       partyId: partyIds[0] || null, // Set first party as primary if exists
       parties: partyIds,
-      products: data.products || [],
+      products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [],
-        questionIds: ['Q1', 'Q2'],
+        questionIds: ['30005'],
         attestationDocumentIds: [],
         partyIds: [],
         partyRoles: [],
-      },
-      questionResponses: [],
-      attestations: [],
-      results: {
-        customerIdentityStatus: 'NOT_STARTED',
       },
     });
 
