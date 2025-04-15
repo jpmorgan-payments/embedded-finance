@@ -9,7 +9,7 @@ import {
   useSmbdoUpdateClient,
   useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { PartyType, Role } from '@/api/generated/smbdo.schemas';
+import { ClientResponse, PartyType, Role } from '@/api/generated/smbdo.schemas';
 import { AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form } from '@/components/ui/form';
 import { Alert, Button } from '@/components/ui';
@@ -162,22 +162,23 @@ export const OnboardingGatewayScreen = () => {
           onSettled: (data, error) => {
             onPostPartyResponse?.(data, error?.response?.data);
           },
-          onSuccess: async () => {
+          onSuccess: (response) => {
             // Update the client data in the cache while it fetches the new data
-            queryClient.setQueryData(getSmbdoGetClientQueryKey(clientData.id), {
-              ...clientData,
-              parties: clientData?.parties?.map((party) =>
-                party.id === existingOrgParty.id
-                  ? {
+            queryClient.setQueryData(
+              getSmbdoGetClientQueryKey(clientData.id),
+              (oldClientData: ClientResponse | undefined) => ({
+                ...oldClientData,
+                parties: oldClientData?.parties?.map((party) => {
+                  if (party.id === response.id) {
+                    return {
                       ...party,
-                      organizationDetails: {
-                        ...party.organizationDetails,
-                        ...values,
-                      },
-                    }
-                  : party
-              ),
-            });
+                      ...response,
+                    };
+                  }
+                  return party;
+                }),
+              })
+            );
             globalStepper.next();
           },
           onError: (error) => {
@@ -237,12 +238,22 @@ export const OnboardingGatewayScreen = () => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
+        <Alert variant="informative" className="eb-mb-4">
+          <InfoIcon className="eb-h-4 eb-w-4" />
+          <AlertTitle>Is this you?</AlertTitle>
+          <AlertDescription>
+            To keep your account details safe, we expect that the person
+            completing this application holds primary control over financial and
+            business operations for the business. If this is not you, please
+            don&apos;t proceed below.
+          </AlertDescription>
+        </Alert>
         <StepLayout
           subTitle={t('welcomeText')}
           title={t('steps.gateway.title')}
           description={t('steps.gateway.description')}
         >
-          <div className="eb-flex-auto">
+          <div className="eb-mt-6 eb-flex-auto">
             <OnboardingFormField
               control={form.control}
               name="organizationType"
@@ -260,7 +271,7 @@ export const OnboardingGatewayScreen = () => {
             />
           </div>
 
-          <div className="eb-space-y-6">
+          <div className="eb-mt-6 eb-space-y-6">
             {t('steps.gateway.alerts', { returnObjects: true }).map(
               (alert, index) => (
                 <Alert variant="informative" key={index}>

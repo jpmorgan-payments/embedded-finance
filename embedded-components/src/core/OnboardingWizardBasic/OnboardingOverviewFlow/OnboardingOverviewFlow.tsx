@@ -16,6 +16,7 @@ import {
 import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGatewayScreen';
 import { GlobalStepper } from './OnboardingGlobalStepper';
 import { OnboardingOverviewScreen } from './OnboardingOverviewScreen/OnboardingOverviewScreen';
+import { OnboardingSectionStepper } from './OnboardingSectionStepper/OnboardingSectionStepper';
 import {
   OnboardingConfigDefault,
   OnboardingConfigUsedInContext,
@@ -24,7 +25,7 @@ import {
 export type OnboardingOverviewFlowProps = OnboardingConfigDefault &
   OnboardingConfigUsedInContext;
 
-export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
+export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
   initialClientId,
   onboardingContentTokens = {},
   alertOnExit = false,
@@ -186,11 +187,14 @@ const OnboardingMainSteps = () => {
       ref={mainRef}
       key={clientData?.id}
     >
-      {globalStepper.switch({
-        gateway: () => <OnboardingGatewayScreen />,
-        checklist: () => <OnboardingChecklistScreen />,
-        overview: () => <OnboardingOverviewScreen />,
-      })}
+      <div className="eb-w-full">
+        {globalStepper.switch({
+          gateway: () => <OnboardingGatewayScreen />,
+          checklist: () => <OnboardingChecklistScreen />,
+          overview: () => <OnboardingOverviewScreen />,
+          'section-stepper': () => <OnboardingSectionStepper />,
+        })}
+      </div>
     </div>
   );
 };

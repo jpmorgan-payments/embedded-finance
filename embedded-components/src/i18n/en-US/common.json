@@ -11,6 +11,7 @@
   "no": "No",
   "cancel": "Cancel",
   "start": "Start",
+  "empty": "empty",
   "validation": {
     "required": "This field is required",
     "minItems": "Minimum {{count}} items required",

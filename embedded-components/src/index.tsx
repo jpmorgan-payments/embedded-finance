@@ -11,3 +11,6 @@ export * from './core/MakePayment/MakePayment';
 
 export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
 export type * from './core/OnboardingWizardBasic/utils/types';
+
+export * from './core/OnboardingWizardBasic/OnboardingOverviewFlow/OnboardingOverviewFlow';
+export type * from './core/OnboardingWizardBasic/OnboardingOverviewFlow/types';
