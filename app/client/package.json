@@ -39,7 +39,7 @@
   },
   "scripts": {
     "start": " cross-env VITE_API_URL='' vite --port 3010",
-    "build": "node_modules/typescript/bin/tsc && vite build",
+    "build": "cross-env \"node_modules\\.bin\\tsc\" && vite build",
     "serve": "vite preview",
     "test": "vitest watch",
     "test:no-watch": "vitest run",

@@ -569,7 +569,7 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@jpmorgan-payments/embedded-finance-components@^0.5.98":
+"@jpmorgan-payments/embedded-finance-components@^0.5.99":
   version "0.5.99"
   resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.99.tgz#004a330014aab0932af283688273cd8c549c1f93"
   integrity sha512-qeMn4QFjmoYtgJvI4dQGwu5dIpL4Fnm0sRvcXZiu8U5Az+LPVKHM4wQJe0qHZrRqac+KaJarIrojMBMjfCzPmQ==
