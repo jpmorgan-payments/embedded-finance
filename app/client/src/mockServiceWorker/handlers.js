@@ -82,14 +82,18 @@ export const createHandlers = (apiUrl) => [
 
   http.post(`/ef/do/v1/clients`, async ({ request }) => {
     const data = await request.json();
-    const newClientId = Math.random().toString(36).substring(7);
+    // Generate client ID starting with '00' followed by 8 random digits
+    const newClientId =
+      '00' + Math.floor(10000000 + Math.random() * 90000000).toString();
     const timestamp = new Date().toISOString();
 
     // First create the parties if any
     const partyIds = [];
     if (data.parties && Array.isArray(data.parties)) {
       for (const partyData of data.parties) {
-        const newPartyId = Math.random().toString(36).substring(7);
+        // Generate party ID starting with '2' followed by 9 random digits
+        const newPartyId =
+          '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
         const newParty = {
           id: newPartyId,
           status: 'ACTIVE',
@@ -109,22 +113,17 @@ export const createHandlers = (apiUrl) => [
     // Create the client with party IDs
     const client = db.client.create({
       id: newClientId,
-      status: 'DRAFT',
+      status: 'NEW',
       createdAt: timestamp,
       partyId: partyIds[0] || null, // Set first party as primary if exists
       parties: partyIds,
-      products: data.products || [],
+      products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [],
-        questionIds: ['Q1', 'Q2'],
+        questionIds: ['30005'],
         attestationDocumentIds: [],
         partyIds: [],
         partyRoles: [],
-      },
-      questionResponses: [],
-      attestations: [],
-      results: {
-        customerIdentityStatus: 'NOT_STARTED',
       },
     });
 
@@ -356,9 +355,9 @@ export const createHandlers = (apiUrl) => [
   }),
 
   http.get('/ef/do/v1/documents/:documentId/file', () => {
-    // This is a minimal valid PDF file encoded in base64
+    // This is a minimal valid PDF file with "Sample PDF" text, encoded in base64
     const pdfBase64 =
-      'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCgo1IDAgb2JqICAlIHBhZ2UgY29udGVudAo8PAogIC9MZW5ndGggNDQKPj4Kc3RyZWFtCkJUCjcwIDUwIFRECi9GMSAxMiBUZgooSGVsbG8sIHdvcmxkISkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNzkgMDAwMDAgbiAKMDAwMDAwMDE3MyAwMDAwMCBuIAowMDAwMDAwMzAxIDAwMDAwIG4gCjAwMDAwMDAzODAgMDAwMDAgbiAKdHJhaWxlcgo8PAogIC9TaXplIDYKICAvUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNDkyCiUlRU9G';
+      'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvSGVsdmV0aWNhCj4+CmVuZG9iagoKNSAwIG9iaiAgJSBwYWdlIGNvbnRlbnQKPDwKICAvTGVuZ3RoIDQ0Cj4+CnN0cmVhbQpCVAo3MCA1MCBURCAKL0YxIDI0IFRmCihTYW1wbGUgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTAgMDAwMDAgbiAKMDAwMDAwMDA3OSAwMDAwMCBuIAowMDAwMDAwMTczIDAwMDAwIG4gCjAwMDAwMDAzMDEgMDAwMDAgbiAKMDAwMDAwMDM4MCAwMDAwMCBuIAp0cmFpbGVyCjw8CiAgL1NpemUgNgogIC9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTIKJSVFT0Y=';
 
     return new HttpResponse(
       Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0)),
