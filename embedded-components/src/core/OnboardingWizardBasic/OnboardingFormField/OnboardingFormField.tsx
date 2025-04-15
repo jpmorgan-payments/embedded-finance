@@ -241,7 +241,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             {type !== 'checkbox' ? (
               <>
                 <div className="eb-flex eb-items-center eb-space-x-2">
-                  <FormLabel asterisk={fieldRequired}>{fieldLabel}</FormLabel>
+                  <FormLabel asterisk={fieldRequired && !isOverviewFlow}>
+                    {fieldLabel}
+                  </FormLabel>
                   <InfoPopover>{fieldTooltip}</InfoPopover>
                 </div>
                 {fieldDescription && !isOverviewFlow && (
@@ -450,7 +452,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         </FormControl>
                         <div className="eb-space-y-1 eb-leading-none">
                           <div className="eb-flex eb-items-center eb-space-x-2">
-                            <FormLabel asterisk={fieldRequired}>
+                            <FormLabel
+                              asterisk={fieldRequired && !isOverviewFlow}
+                            >
                               {fieldLabel}
                             </FormLabel>
                             <InfoPopover>{fieldTooltip}</InfoPopover>
