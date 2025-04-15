@@ -123,7 +123,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
               {...fieldWithoutBlur}
             >
               {field.value ? (
-                <div className="eb-flex eb-w-[calc(100%-1rem)]">
+                <div className="eb-flex eb-w-[calc(100%-2rem)]">
                   <span>[{field.value}]</span>
                   <span className="eb-overflow-hidden eb-text-ellipsis eb-pl-1 eb-text-muted-foreground">
                     {
@@ -168,9 +168,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
                     const lineHeight = 32;
                     const additionalHeight = 18;
                     if (containerWidth === 0) return lineHeight;
-                    const charsPerLine =
-                      Math.floor((containerWidth - 70) / 7) -
-                      (items[index].code?.length ?? 0);
+                    const charsPerLine = Math.floor((containerWidth - 60) / 7);
                     const numLines = Math.ceil(
                       ((items[index].description?.length ?? 0) +
                         items[index].category.length) /
