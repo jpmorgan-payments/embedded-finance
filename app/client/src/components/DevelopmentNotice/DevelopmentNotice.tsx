@@ -11,8 +11,10 @@ export const DevelopmentNotice = () => {
       mb="md"
     >
       <Text size="sm">
-        This is a preview version under active development. All data and API
-        interactions are simulated using local mock services.
+        🚧 Preview Environment: Safe Testing Space This is a development preview
+        environment designed for UI testing. All interactions are simulated
+        locally in your browser - no data is transmitted or stored on any
+        external servers. Feel free to explore and test with sample information.
       </Text>
     </Alert>
   );
