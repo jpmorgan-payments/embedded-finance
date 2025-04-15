@@ -366,13 +366,6 @@ export const LLCExistingClientOutstandingDocuments = {
           phoneNumber: '7606810558',
         },
       },
-      validationResponse: [
-        {
-          validationStatus: 'NEEDS_INFO',
-          validationType: 'ENTITY_VALIDATION',
-          documentRequestIds: ['68430'],
-        },
-      ],
     },
     {
       id: '2100000113',
@@ -422,7 +415,7 @@ export const LLCExistingClientOutstandingDocuments = {
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
     attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
-    documentRequestIds: ['68803'],
+    documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
     questionIds: ['30005'],
