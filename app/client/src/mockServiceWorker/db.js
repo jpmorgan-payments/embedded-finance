@@ -169,7 +169,11 @@ export function initializeDb(force = false) {
                 `\nParty ${party.id}:`,
                 JSON.stringify(newParty, null, 2),
               );
-              db.party.create(newParty);
+              try {
+                db.party.create(newParty);
+              } catch (error) {
+                console.error('Error creating party:', error);
+              }
             }
           });
 
