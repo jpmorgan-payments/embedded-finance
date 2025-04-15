@@ -44,4 +44,8 @@ export type SectionStepFormComponent<
 > = FC & {
   schema: TSchema;
   refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
+  modifyFormValuesBeforeSubmit?: (
+    values: z.output<TSchema>,
+    partyData: PartyResponse | undefined
+  ) => z.output<TSchema>;
 };

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 // import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -16,12 +15,6 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
   const form = useFormContext<z.input<typeof PersonalDetailsFormSchema>>();
 
   const jobTitle = form.watch('controllerJobTitle');
-
-  useEffect(() => {
-    if (jobTitle !== 'Other') {
-      form.setValue('controllerJobTitleDescription', '');
-    }
-  }, [jobTitle]);
 
   return (
     <div className="eb-flex eb-flex-col eb-gap-y-9">
@@ -89,3 +82,18 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
 
 PersonalDetailsForm.schema = PersonalDetailsFormSchema;
 PersonalDetailsForm.refineSchemaFn = refinePersonalDetailsFormSchema;
+PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
+  values: Partial<z.output<typeof PersonalDetailsFormSchema>>,
+  partyData
+) => {
+  // If the controller job title is not "Other", remove jobTitleDescription
+  if (values.controllerJobTitle !== 'Other') {
+    delete values.controllerJobTitleDescription;
+  }
+
+  // Set the country of residence as it is required
+  values.countryOfResidence =
+    partyData?.individualDetails?.countryOfResidence ?? 'US';
+
+  return values;
+};

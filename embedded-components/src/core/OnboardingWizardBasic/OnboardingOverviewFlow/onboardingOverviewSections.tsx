@@ -10,6 +10,8 @@ import {
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
+import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
+import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
 import { SectionStepFormComponent } from './types';
@@ -90,7 +92,7 @@ export const onboardingOverviewSections: SectionType[] = [
         },
       },
       {
-        id: 'company-introduction',
+        id: 'check-answers',
         type: 'check-answers',
         title: 'Check your answers',
         description:
@@ -104,12 +106,23 @@ export const onboardingOverviewSections: SectionType[] = [
     icon: BuildingIcon,
     steps: [
       {
-        id: 'company-details',
+        id: 'industry',
         type: 'form',
-        title: 'Company details',
-        description: 'Provide details about your company.',
+        title: 'Industry',
+        description:
+          'Selecting your industry helps satisfy important risk and compliance obligations.',
         formConfig: {
-          FormComponent: PersonalDetailsForm,
+          FormComponent: IndustryForm,
+          party: parties.organization,
+        },
+      },
+      {
+        id: 'company-identification',
+        type: 'form',
+        title: 'Company identification',
+        description: 'Please provide details about your company.',
+        formConfig: {
+          FormComponent: CompanyIdentificationForm,
           party: parties.organization,
         },
       },

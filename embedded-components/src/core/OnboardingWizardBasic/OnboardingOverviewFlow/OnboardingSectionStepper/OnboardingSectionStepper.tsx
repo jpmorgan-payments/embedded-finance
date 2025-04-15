@@ -1,15 +1,23 @@
 import { useEffect, useState } from 'react';
+import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
+import { ChevronDownIcon, Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
   useSmbdoUpdateClient,
   useUpdateParty,
 } from '@/api/generated/smbdo';
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button, Form } from '@/components/ui';
 
 import { ServerErrorAlert } from '../../ServerErrorAlert/ServerErrorAlert';
@@ -20,6 +28,7 @@ import {
   mapPartyApiErrorsToFormErrors,
   setApiFormErrors,
   shapeFormValuesBySchema,
+  useFormUtilsWithClientContext,
   useFormWithFilters,
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
@@ -42,9 +51,20 @@ export const OnboardingSectionStepper = () => {
   ) as (typeof onboardingOverviewSections)[number];
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
-  const { current: currentStep, prev, next, all: allSteps } = useStepper();
+  const {
+    current: currentStep,
+    prev,
+    next,
+    all: allSteps,
+    goTo,
+    setMetadata,
+    getMetadata,
+  } = useStepper();
 
   const { id: stepId, formConfig } = currentStep;
+
+  // Whether the user came from the check answers screen
+  const editModeOriginStepId = getMetadata(stepId)?.editModeOriginStepId;
 
   const currentPartyData = formConfig
     ? clientData?.parties?.find(
@@ -90,19 +110,29 @@ export const OnboardingSectionStepper = () => {
   const handleNext = () => {
     resetClientUpdate();
     resetPartyUpdate();
-    if (currentStepNumber < steps.length) {
+    if (editModeOriginStepId) {
+      setMetadata(stepId, {
+        editMode: false,
+      });
+      goTo(editModeOriginStepId);
+    } else if (currentStepNumber < steps.length) {
+      setIsFormPopulationPending(true);
       next();
     } else {
       globalStepper.goTo('overview');
-      setIsFormPopulationPending(true);
     }
   };
   const handlePrev = () => {
     resetClientUpdate();
     resetPartyUpdate();
-    if (currentStepNumber > 1) {
-      prev();
+    if (editModeOriginStepId) {
+      setMetadata(stepId, {
+        editMode: false,
+      });
+      goTo(editModeOriginStepId);
+    } else if (currentStepNumber > 1) {
       setIsFormPopulationPending(true);
+      prev();
     } else {
       globalStepper.goTo('overview');
     }
@@ -142,11 +172,25 @@ export const OnboardingSectionStepper = () => {
 
   // TODO: skip api call if data is the same
   const onSubmit = form.handleSubmit((values) => {
+    // Perform step-defined transformations on the form values
+    const modifiedValues =
+      formConfig?.FormComponent.modifyFormValuesBeforeSubmit?.(
+        values,
+        currentPartyData
+      ) ?? values;
+
     if (clientData && currentStep.formConfig) {
       // TODO: update config to allow for providing a default body using form values
       // Update party if it exists
       if (currentPartyData && currentPartyData.id) {
-        const partyRequestBody = generatePartyRequestBody(values, {});
+        const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
+
+        // Check if the form is dirty and skip the API call if not
+        if (!form.formState.isDirty) {
+          handleNext();
+          return;
+        }
+
         updateParty(
           {
             partyId: currentPartyData.id ?? '',
@@ -188,7 +232,7 @@ export const OnboardingSectionStepper = () => {
       // Create party if it doesn't exist
       else {
         const clientRequestBody = generateClientRequestBody(
-          values,
+          modifiedValues,
           0,
           'addParties',
           {
@@ -225,16 +269,91 @@ export const OnboardingSectionStepper = () => {
     }
   });
 
+  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+
+  const checkStepIsCompleted = (id: string) => {
+    const checkedStep = stepperUtils.get(id);
+    if (
+      checkedStep &&
+      checkedStep.formConfig &&
+      clientData &&
+      currentPartyData
+    ) {
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        currentPartyData.id
+      );
+      const modifiedSchema = modifySchema(
+        checkedStep.formConfig.FormComponent.schema,
+        checkedStep.formConfig.FormComponent.refineSchemaFn
+      );
+      return modifiedSchema.safeParse(formValues).success;
+    }
+    return false;
+  };
+
   return (
     <StepLayout
       subTitle={
-        <p className="eb-font-semibold">
-          Step {currentStepNumber} of {steps.length}
-        </p>
+        !editModeOriginStepId ? (
+          <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+            <p className="eb-font-semibold">
+              Step {currentStepNumber} of {steps.length}
+            </p>
+            <div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="eb-h-6 eb-gap-1 eb-rounded-none eb-p-1 eb-text-xs"
+                  >
+                    Step menu
+                    <ChevronDownIcon />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="eb-w-54 eb-component"
+                  side="bottom"
+                  align="end"
+                >
+                  {form.formState.isDirty && (
+                    <DropdownMenuLabel className="eb-p-2 eb-text-xs eb-italic eb-text-red-500">
+                      ⓘ You have unconfirmed changes on this step.
+                    </DropdownMenuLabel>
+                  )}
+                  {steps.map((step, index) => (
+                    <DropdownMenuCheckboxItem
+                      key={step.id}
+                      checked={checkStepIsCompleted(step.id)}
+                      disabled={
+                        !checkStepIsCompleted(step.id) &&
+                        stepperUtils.getIndex(step.id) > index &&
+                        !checkStepIsCompleted(stepperUtils.getPrev(step.id).id)
+                      }
+                      className={cn({
+                        'eb-pointer-events-none eb-font-semibold':
+                          step.id === stepId,
+                      })}
+                      onClick={() => {
+                        if (step.id !== stepId) {
+                          goTo(step.id);
+                          setIsFormPopulationPending(true);
+                        }
+                      }}
+                    >
+                      {index + 1}. {step.title}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        ) : undefined
       }
       title={currentStep.title}
       description={currentStep.description}
-      showSpinner={isFormPopulationPending}
+      showSpinner={isFormPopulationPending && !!currentPartyData}
     >
       <div className="eb-flex-auto">
         {currentStep.type === 'form' && (
@@ -251,7 +370,12 @@ export const OnboardingSectionStepper = () => {
         )}
         {currentStep.type === 'check-answers' && (
           <form id={currentStep.id} onSubmit={handleNext}>
-            <CheckAnswersScreen steps={allSteps} />
+            <CheckAnswersScreen
+              stepId={stepId}
+              steps={allSteps}
+              goToStep={goTo}
+              setMetadata={setMetadata}
+            />
           </form>
         )}
       </div>
@@ -267,7 +391,11 @@ export const OnboardingSectionStepper = () => {
             onClick={handlePrev}
             disabled={isFormDisabled}
           >
-            {currentStepNumber === 1 ? 'Back to overview' : 'Back'}
+            {editModeOriginStepId
+              ? 'Cancel'
+              : currentStepNumber === 1
+                ? 'Back to overview'
+                : 'Back'}
           </Button>
           <Button
             form={currentStep.id}
@@ -278,7 +406,7 @@ export const OnboardingSectionStepper = () => {
             disabled={isFormDisabled}
           >
             {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
-            Next
+            {editModeOriginStepId ? 'Save' : 'Next'}
           </Button>
         </div>
       </div>

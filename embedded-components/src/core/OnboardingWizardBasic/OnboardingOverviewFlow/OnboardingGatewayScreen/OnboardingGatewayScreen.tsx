@@ -238,6 +238,16 @@ export const OnboardingGatewayScreen = () => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
+        <Alert variant="informative" className="eb-mb-4">
+          <InfoIcon className="eb-h-4 eb-w-4" />
+          <AlertTitle>Is this you?</AlertTitle>
+          <AlertDescription>
+            To keep your account details safe, we expect that the person
+            completing this application holds primary control over financial and
+            business operations for the business. If this is not you, please
+            don&apos;t proceed below.
+          </AlertDescription>
+        </Alert>
         <StepLayout
           subTitle={t('welcomeText')}
           title={t('steps.gateway.title')}
