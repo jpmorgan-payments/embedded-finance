@@ -34,6 +34,93 @@
   "fields": {
     "organizationType": {
       "description": ""
+    },
+    "controllerFirstName": {
+      "label": "First name",
+      "description": "",
+      "tooltip": ""
+    },
+    "controllerMiddleName": {
+      "label": "Middle name",
+      "description": "",
+      "tooltip": ""
+    },
+    "controllerLastName": {
+      "label": "Last name",
+      "description": "",
+      "tooltip": ""
+    },
+    "controllerNameSuffix": {
+      "description": "(e.g. Jr., Sr. II, etc)",
+      "tooltip": ""
+    },
+    "controllerJobTitle": {
+      "tooltip": ""
+    },
+    "birthDate": {
+      "description": ""
+    },
+    "countryOfResidence": {
+      "tooltip": "",
+      "description": "Please select your current country of residence"
+    },
+    "industry": {
+      "label": "Industry type",
+      "description": "Select your industry that best matches the goods or services your customers will buy. Search by the North American Industry Classification System code (e.g. “123456”) or keyword (e.g. “automotive dealership”).",
+      "placeholder": "Look up by keyword or NAICS code",
+      "tooltip": ""
+    },
+    "countryOfFormation": {
+      "label": "Where is your business located?",
+      "description": "Please select your country of registration",
+      "tooltip": ""
+    },
+    "organizationName": {
+      "label": "Legal name of the company",
+      "description": "Please enter this exactly as it appears on your business registration documents",
+      "tooltip": ""
+    },
+    "yearOfFormation": {
+      "label": "Year of formation",
+      "description": "Please enter as YYYY format (e.g. 2001)",
+      "tooltip": ""
+    },
+    "organizationIds": {
+      "idType": {
+        "label": "Identification type",
+        "description": "Make a selection",
+        "tooltip": ""
+      },
+      "issuer": {
+        "label": "Issuing authority",
+        "description": "Country where your ID was issued",
+        "tooltip": ""
+      },
+      "value": {
+        "tooltip": ""
+      }
+    },
+
+    "controllerAddresses": {
+      "country": {
+        "description": ""
+      },
+      "primaryAddressLine": {
+        "description": "P.O. box is not accepted",
+        "tooltip": ""
+      }
     }
+  },
+  "idValueLabels": {
+    "EIN": "Employer Identification Number (EIN)",
+    "BUSINESS_REGISTRATION_ID": "Business Registration ID",
+    "BUSINESS_NUMBER": "Business Number",
+    "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+  },
+  "idValueDescriptions": {
+    "EIN": "A unique nine-digit number, assigned by the IRS, that identifies your company as a business operating in the United States.",
+    "BUSINESS_REGISTRATION_ID": "A unique ID assigned by the state or province where your business is registered.",
+    "BUSINESS_NUMBER": "A unique number assigned by the Canada Revenue Agency (CRA) to identify your business.",
+    "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered."
   }
 }

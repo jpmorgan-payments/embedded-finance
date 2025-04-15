@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  * {
+  *,
+  :before,
+  :after {
     @apply eb-border-border;
   }
   body {

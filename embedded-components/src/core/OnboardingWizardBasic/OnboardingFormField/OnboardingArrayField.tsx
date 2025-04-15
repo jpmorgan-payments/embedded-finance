@@ -14,6 +14,7 @@ import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
+import { useOnboardingOverviewContext } from '../OnboardingOverviewFlow/OnboardingContext/OnboardingContext';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   ArrayFieldRule,
@@ -90,7 +91,15 @@ export function OnboardingArrayField<
   disableFieldRuleMapping,
   ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
-  const { clientId } = useOnboardingContext();
+  // temporary workaround to get clientId and flowType from different contexts
+  let clientId;
+  try {
+    const context = useOnboardingContext();
+    clientId = context.clientId;
+  } catch (error) {
+    const context = useOnboardingOverviewContext();
+    clientId = context.clientData?.id;
+  }
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 

@@ -6,8 +6,8 @@ import { useDarkMode } from 'storybook-dark-mode';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import {
+  OnboardingOverviewFlow,
   OnboardingOverviewFlowProps,
-  OnboardingWizardBasic,
 } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/OnboardingOverviewFlow';
 
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
@@ -17,7 +17,7 @@ export type OnboardingWizardBasicWithProviderProps =
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   title: 'Onboarding Overview Flow / Appearance & Theme',
-  component: OnboardingWizardBasic,
+  component: OnboardingOverviewFlow,
   parameters: {
     layout: 'fullscreen',
   },
@@ -107,7 +107,7 @@ const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => {
     return () => window.removeEventListener('resize', handleResize);
   });
 
-  return <OnboardingWizardBasic height={`${containerHeight}px`} {...args} />;
+  return <OnboardingOverviewFlow height={`${containerHeight}px`} {...args} />;
 };
 
 export const Default = Template.bind({});
@@ -150,6 +150,7 @@ STheme.args = {
   ...Default.args,
   theme: {
     variables: {
+      // backgroundColor: '#f6f7f8',
       fontFamily: 'Open Sans',
       headerFontFamily: 'Amplitude',
       buttonFontFamily: 'Amplitude',
