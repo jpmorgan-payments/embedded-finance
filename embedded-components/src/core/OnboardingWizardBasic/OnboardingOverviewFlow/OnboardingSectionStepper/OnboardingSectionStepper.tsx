@@ -74,24 +74,6 @@ export const OnboardingSectionStepper = () => {
   } = useUpdateParty();
 
   const currentStepNumber = stepperUtils.getIndex(stepId) + 1;
-  const handleNext = () => {
-    resetClientUpdate();
-    resetPartyUpdate();
-    if (currentStepNumber < steps.length) {
-      next();
-    } else {
-      globalStepper.goTo('overview');
-    }
-  };
-  const handlePrev = () => {
-    resetClientUpdate();
-    resetPartyUpdate();
-    if (currentStepNumber > 1) {
-      prev();
-    } else {
-      globalStepper.goTo('overview');
-    }
-  };
 
   const [isFormPopulationPending, setIsFormPopulationPending] = useState(true);
 
@@ -100,6 +82,31 @@ export const OnboardingSectionStepper = () => {
 
   const isFormDisabled =
     isFormSubmitting || (isFormPopulationPending && !!currentPartyData);
+
+  useEffect(() => {
+    setIsFormPopulationPending(!!formConfig);
+  }, [stepId]);
+
+  const handleNext = () => {
+    resetClientUpdate();
+    resetPartyUpdate();
+    if (currentStepNumber < steps.length) {
+      next();
+    } else {
+      globalStepper.goTo('overview');
+      setIsFormPopulationPending(true);
+    }
+  };
+  const handlePrev = () => {
+    resetClientUpdate();
+    resetPartyUpdate();
+    if (currentStepNumber > 1) {
+      prev();
+      setIsFormPopulationPending(true);
+    } else {
+      globalStepper.goTo('overview');
+    }
+  };
 
   const form = formConfig
     ? useFormWithFilters({
@@ -110,10 +117,6 @@ export const OnboardingSectionStepper = () => {
         disabled: isFormDisabled,
       })
     : useForm();
-
-  useEffect(() => {
-    setIsFormPopulationPending(!!formConfig);
-  }, [stepId]);
 
   useEffect(() => {
     if (
@@ -137,7 +140,6 @@ export const OnboardingSectionStepper = () => {
     }
   }, [form, clientData, currentPartyData, isFormPopulationPending, formConfig]);
 
-  // TODO: move this to hook
   // TODO: skip api call if data is the same
   const onSubmit = form.handleSubmit((values) => {
     if (clientData && currentStep.formConfig) {
@@ -232,6 +234,7 @@ export const OnboardingSectionStepper = () => {
       }
       title={currentStep.title}
       description={currentStep.description}
+      showSpinner={isFormPopulationPending}
     >
       <div className="eb-flex-auto">
         {currentStep.type === 'form' && (

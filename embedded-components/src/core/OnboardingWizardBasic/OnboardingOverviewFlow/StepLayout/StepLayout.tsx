@@ -1,7 +1,9 @@
 import { FC } from 'react';
+import { Loader2Icon } from 'lucide-react';
 
 type StepLayoutProps = {
   title: string;
+  showSpinner?: boolean;
   subTitle?: string | JSX.Element;
   description?: string;
   children?: React.ReactNode;
@@ -9,6 +11,7 @@ type StepLayoutProps = {
 
 export const StepLayout: FC<StepLayoutProps> = ({
   title,
+  showSpinner,
   subTitle,
   description,
   children,
@@ -19,7 +22,12 @@ export const StepLayout: FC<StepLayoutProps> = ({
         <div className="eb-flex eb-h-6 eb-items-end eb-text-sm">{subTitle}</div>
       )}
 
-      <h1 className="eb-font-header eb-text-3xl eb-font-medium">{title}</h1>
+      <div className="eb-flex eb-items-center eb-gap-3">
+        <h1 className="eb-font-header eb-text-3xl eb-font-medium">{title}</h1>
+        {showSpinner && (
+          <Loader2Icon className="eb-animate-spin eb-stroke-primary" />
+        )}
+      </div>
 
       {description && (
         <p className="eb-text-sm eb-font-semibold">{description}</p>
