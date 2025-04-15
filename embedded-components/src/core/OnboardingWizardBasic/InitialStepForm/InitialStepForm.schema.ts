@@ -19,7 +19,6 @@ export const InitialStepFormSchema = z.object({
         'GOVERNMENT_ENTITY',
         'SOLE_PROPRIETORSHIP',
         'UNINCORPORATED_ASSOCIATION',
-        'PUBLICLY_TRADED_COMPANY',
       ]),
       z.literal(''),
     ])
