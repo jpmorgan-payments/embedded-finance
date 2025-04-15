@@ -152,11 +152,26 @@ export const createHandlers = (apiUrl) => [
     const { clientId } = params;
     const data = await request.json();
 
-    // Check for magic values and update client state
-    const updatedClient = handleMagicValues(clientId, data);
-    if (!updatedClient) {
+    // Find the existing client
+    const existingClient = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+
+    if (!existingClient) {
       return new HttpResponse(null, { status: 404 });
     }
+
+    // Start with existing client data
+    let updatedClient = { ...existingClient };
+
+    // Ensure outstanding object exists
+    updatedClient.outstanding = updatedClient.outstanding || {
+      documentRequestIds: [],
+      questionIds: [],
+      attestationDocumentIds: [],
+      partyIds: [],
+      partyRoles: [],
+    };
 
     // Handle adding new parties if present
     if (data.addParties && Array.isArray(data.addParties)) {
@@ -192,12 +207,56 @@ export const createHandlers = (apiUrl) => [
       ];
     }
 
+    // Handle question responses if present
+    if (data.questionResponses) {
+      // Add new question responses
+      updatedClient.questionResponses = [
+        ...(updatedClient.questionResponses || []),
+        ...data.questionResponses,
+      ];
+
+      // Ensure outstanding object exists
+      updatedClient.outstanding = updatedClient.outstanding || {
+        documentRequestIds: [],
+        questionIds: [],
+        attestationDocumentIds: [],
+        partyIds: [],
+        partyRoles: [],
+      };
+
+      // Remove answered question IDs from outstanding
+      const answeredQuestionIds = data.questionResponses.map(
+        (response) => response.questionId,
+      );
+      updatedClient.outstanding.questionIds = (
+        updatedClient.outstanding.questionIds || []
+      ).filter((id) => !answeredQuestionIds.includes(id));
+    }
+
     // Handle adding new attestations if present
     if (data.addAttestations) {
+      // Add new attestations
       updatedClient.attestations = [
         ...(updatedClient.attestations || []),
         ...data.addAttestations,
       ];
+
+      // Ensure outstanding object exists
+      updatedClient.outstanding = updatedClient.outstanding || {
+        documentRequestIds: [],
+        questionIds: [],
+        attestationDocumentIds: [],
+        partyIds: [],
+        partyRoles: [],
+      };
+
+      // Remove attested document IDs from outstanding
+      const attestedDocumentIds = data.addAttestations.map(
+        (attestation) => attestation.documentId,
+      );
+      updatedClient.outstanding.attestationDocumentIds = (
+        updatedClient.outstanding.attestationDocumentIds || []
+      ).filter((id) => !attestedDocumentIds.includes(id));
     }
 
     // Handle removing attestations if present
@@ -208,13 +267,20 @@ export const createHandlers = (apiUrl) => [
       updatedClient.attestations = (updatedClient.attestations || []).filter(
         (a) => !attestationIdsToRemove.includes(a.documentId),
       );
-    }
 
-    // Handle question responses if present
-    if (data.questionResponses) {
-      updatedClient.questionResponses = [
-        ...(updatedClient.questionResponses || []),
-        ...data.questionResponses,
+      // Ensure outstanding object exists
+      updatedClient.outstanding = updatedClient.outstanding || {
+        documentRequestIds: [],
+        questionIds: [],
+        attestationDocumentIds: [],
+        partyIds: [],
+        partyRoles: [],
+      };
+
+      // Add removed attestation IDs back to outstanding
+      updatedClient.outstanding.attestationDocumentIds = [
+        ...(updatedClient.outstanding.attestationDocumentIds || []),
+        ...attestationIdsToRemove,
       ];
     }
 
@@ -287,6 +353,22 @@ export const createHandlers = (apiUrl) => [
 
   http.get('/ef/do/v1/documents/:documentId', () => {
     return HttpResponse.json(efDocumentClientDetail);
+  }),
+
+  http.get('/ef/do/v1/documents/:documentId/file', () => {
+    // This is a minimal valid PDF file encoded in base64
+    const pdfBase64 =
+      'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCgo1IDAgb2JqICAlIHBhZ2UgY29udGVudAo8PAogIC9MZW5ndGggNDQKPj4Kc3RyZWFtCkJUCjcwIDUwIFRECi9GMSAxMiBUZgooSGVsbG8sIHdvcmxkISkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNzkgMDAwMDAgbiAKMDAwMDAwMDE3MyAwMDAwMCBuIAowMDAwMDAwMzAxIDAwMDAwIG4gCjAwMDAwMDAzODAgMDAwMDAgbiAKdHJhaWxlcgo8PAogIC9TaXplIDYKICAvUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNDkyCiUlRU9G';
+
+    return new HttpResponse(
+      Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0)),
+      {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment; filename="sample.pdf"',
+        },
+      },
+    );
   }),
 
   http.get('/ef/do/v1/document-requests/:documentRequestId', (req) => {

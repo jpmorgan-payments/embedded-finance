@@ -1,4 +1,5 @@
 import { factory, primaryKey } from '@mswjs/data';
+import merge from 'lodash/merge';
 import {
   SoleProprietorExistingClient,
   LLCExistingClient,
@@ -244,50 +245,76 @@ export function handleMagicValues(clientId, verificationData = {}) {
 
   switch (taxId) {
     case MAGIC_VALUES.INFORMATION_REQUESTED:
+      // Initialize the updated client with base changes
       updatedClient = merge({}, updatedClient, {
         status: 'INFORMATION_REQUESTED',
         outstanding: {
-          documentRequestIds: ['DOC_REQ_001'],
-        },
-        results: {
-          customerIdentityStatus: 'PENDING',
+          documentRequestIds: [],
         },
       });
 
-      // Create or update document request with proper schema
-      upsertDocumentRequest('DOC_REQ_001', {
-        clientId,
-        partyId: client.partyId,
-        documentType: 'PROOF_OF_IDENTITY',
-        status: 'PENDING',
-        description: 'Additional verification required',
-        requirements: [
-          {
-            documentTypes: ['PROOF_OF_IDENTITY'],
-            level: 'REQUIRED',
-            minRequired: 1,
-          },
-        ],
-        outstanding: {
-          documentTypes: ['PROOF_OF_IDENTITY'],
-          requirements: [
+      // Handle organization document requests
+      if (rootParty.partyType === 'ORGANIZATION') {
+        updatedClient.outstanding.documentRequestIds.push('68803');
+
+        // Create or update organization document request using the mock data
+        const orgDocRequest = efDocumentRequestDetailsList.find(
+          (req) => req.id === '68803',
+        );
+        upsertDocumentRequest('68803', {
+          ...orgDocRequest,
+          clientId,
+          partyId: client.partyId,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      // Handle individual document requests and validation response
+      const individualParties = client.parties
+        .map((partyId) =>
+          db.party.findFirst({ where: { id: { equals: partyId } } }),
+        )
+        .filter((party) => party && party.partyType === 'INDIVIDUAL');
+
+      for (const indParty of individualParties) {
+        updatedClient.outstanding.documentRequestIds.push('68430');
+
+        // Update the party with validation response
+        const updatedParty = {
+          ...indParty,
+          validationResponse: [
+            ...(indParty.validationResponse || []),
             {
-              documentTypes: ['PROOF_OF_IDENTITY'],
-              missing: 1,
+              validationStatus: 'NEEDS_INFO',
+              documentRequestId: '68430',
+              type: 'IDENTITY_VERIFICATION',
+              createdAt: new Date().toISOString(),
             },
           ],
-        },
-        createdAt: new Date().toISOString(),
-        validForDays: 30,
-      });
+        };
+
+        // Update the party in the database
+        db.party.delete({
+          where: { id: { equals: indParty.id } },
+        });
+        db.party.create(updatedParty);
+
+        // Create or update individual document request using the mock data
+        const indDocRequest = efDocumentRequestDetailsList.find(
+          (req) => req.id === '68430',
+        );
+        upsertDocumentRequest('68430', {
+          ...indDocRequest,
+          clientId,
+          partyId: indParty.id,
+          createdAt: new Date().toISOString(),
+        });
+      }
       break;
 
     case MAGIC_VALUES.REVIEW_IN_PROGRESS:
       updatedClient = merge({}, updatedClient, {
         status: 'REVIEW_IN_PROGRESS',
-        results: {
-          customerIdentityStatus: 'IN_PROGRESS',
-        },
       });
       break;
 
@@ -306,6 +333,12 @@ export function handleMagicValues(clientId, verificationData = {}) {
         results: {
           customerIdentityStatus: 'APPROVED',
         },
+      });
+      break;
+
+    default:
+      updatedClient = merge({}, updatedClient, {
+        status: 'REVIEW_IN_PROGRESS',
       });
       break;
   }
