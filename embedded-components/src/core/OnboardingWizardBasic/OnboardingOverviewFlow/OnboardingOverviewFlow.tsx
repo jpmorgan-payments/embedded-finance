@@ -25,7 +25,7 @@ import {
 export type OnboardingOverviewFlowProps = OnboardingConfigDefault &
   OnboardingConfigUsedInContext;
 
-export const OnboardingWizardBasic: FC<OnboardingOverviewFlowProps> = ({
+export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
   initialClientId,
   onboardingContentTokens = {},
   alertOnExit = false,
