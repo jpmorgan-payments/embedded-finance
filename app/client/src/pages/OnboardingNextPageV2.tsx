@@ -401,7 +401,7 @@ export const OnboardingNextPageV2 = () => {
                   >
                     <IconTestPipe size={10} />
                   </ThemeIcon>
-                  Magic Tax IDs for Testing:
+                  Use the below SSN/EIN "magic values" to trigger various flows:
                 </Text>
 
                 <List spacing="xs" size="xs">
