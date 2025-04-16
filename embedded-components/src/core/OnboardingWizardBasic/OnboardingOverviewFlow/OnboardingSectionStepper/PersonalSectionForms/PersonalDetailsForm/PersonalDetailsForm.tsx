@@ -92,8 +92,11 @@ PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
   }
 
   // Set the country of residence as it is required
-  values.countryOfResidence =
-    partyData?.individualDetails?.countryOfResidence ?? 'US';
+  const modifiedValues = {
+    ...values,
+    countryOfResidence:
+      partyData?.individualDetails?.countryOfResidence ?? 'US',
+  };
 
-  return values;
+  return modifiedValues;
 };

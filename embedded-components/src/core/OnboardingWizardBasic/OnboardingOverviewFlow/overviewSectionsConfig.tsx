@@ -64,7 +64,7 @@ const parties: Record<string, Partial<PartyResponse>> = {
   },
 };
 
-export const onboardingOverviewSections: SectionType[] = [
+export const overviewSections: SectionType[] = [
   {
     id: 'personal',
     title: 'Personal details',

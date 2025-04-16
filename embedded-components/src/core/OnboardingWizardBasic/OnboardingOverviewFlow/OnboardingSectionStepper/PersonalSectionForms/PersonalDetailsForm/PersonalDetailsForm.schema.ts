@@ -112,7 +112,6 @@ export const PersonalDetailsFormSchema = z.object({
         'onboarding:fields.controllerJobTitleDescription.validation.noUrls'
       )
     ),
-  countryOfResidence: z.string().optional(),
 });
 
 export const refinePersonalDetailsFormSchema = (

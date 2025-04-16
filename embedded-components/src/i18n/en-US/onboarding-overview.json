@@ -100,8 +100,16 @@
         "tooltip": ""
       }
     },
-
+    "controllerPhone": {
+      "label": "Phone number",
+      "description": "Please enter a valid phone number",
+      "tooltip": ""
+    },
+    "organizationPhone": {
+      "label": "Phone number"
+    },
     "controllerAddresses": {
+      "label": "Residential address",
       "country": {
         "description": ""
       },

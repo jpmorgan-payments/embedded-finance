@@ -6,7 +6,7 @@ import { Button } from '@/components/ui';
 
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
-import { onboardingOverviewSections } from '../onboardingOverviewSections';
+import { overviewSections } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
 
 export const OnboardingOverviewScreen = () => {
@@ -45,7 +45,7 @@ export const OnboardingOverviewScreen = () => {
           <p className="eb-text-sm eb-font-semibold">
             Please complete the following to verify your company
           </p>
-          {onboardingOverviewSections.map((section) => (
+          {overviewSections.map((section) => (
             <div
               key={section.id}
               className="eb-flex eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm"

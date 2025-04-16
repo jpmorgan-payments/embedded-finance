@@ -8,7 +8,7 @@ import { partyFieldMap } from '../../../utils/fieldMap';
 import { convertClientResponseToFormValues } from '../../../utils/formUtils';
 import { OnboardingFormValuesSubmit } from '../../../utils/types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
-import { StepType } from '../../onboardingOverviewSections';
+import { StepType } from '../../overviewSectionsConfig';
 
 type CheckAnswersScreenProps = {
   stepId: string;
@@ -65,6 +65,16 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                 (field) => {
                   const value =
                     values?.[field as keyof OnboardingFormValuesSubmit];
+                  const toStringFn = partyFieldMap?.[
+                    field as keyof OnboardingFormValuesSubmit
+                  ]?.toStringFn as (val: any) => string | string[] | undefined;
+                  const valueString =
+                    value !== undefined
+                      ? toStringFn
+                        ? toStringFn(value)
+                        : String(value)
+                      : undefined;
+
                   return (
                     <div className="eb-space-y-0.5">
                       <p className="eb-text-sm eb-font-medium">
@@ -73,17 +83,19 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                           `onboarding:fields.${field}.label`,
                         ] as unknown as TemplateStringsArray)}
                       </p>
-                      <p>
-                        {value ? (
-                          (partyFieldMap?.[
-                            field as keyof OnboardingFormValuesSubmit
-                          ]?.toStringFn?.(value) ?? String(value))
+                      <div className="eb-flex eb-flex-col">
+                        {Array.isArray(valueString) ? (
+                          valueString.map((val, index) => (
+                            <p key={index}>{val}</p>
+                          ))
+                        ) : valueString ? (
+                          <p>{valueString}</p>
                         ) : (
                           <span className="eb-italic eb-text-muted-foreground">
                             {t('common:empty')}
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                   );
                 }

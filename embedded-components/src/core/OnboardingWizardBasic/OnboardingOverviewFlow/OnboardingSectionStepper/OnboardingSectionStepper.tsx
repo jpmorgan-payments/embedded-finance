@@ -38,7 +38,7 @@ import {
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
-import { onboardingOverviewSections } from '../onboardingOverviewSections';
+import { overviewSections } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
 import { CheckAnswersScreen } from './CheckAnswersScreen/CheckAnswersScreen';
 
@@ -57,7 +57,7 @@ export const OnboardingSectionStepper = () => {
 
   const { steps } = globalStepper.getMetadata(
     'section-stepper'
-  ) as (typeof onboardingOverviewSections)[number];
+  ) as (typeof overviewSections)[number];
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const {
@@ -404,7 +404,7 @@ export const OnboardingSectionStepper = () => {
         )}
       </div>
 
-      <div className="eb-flex eb-flex-col eb-gap-y-6">
+      <div className="eb-mt-6 eb-flex eb-flex-col eb-gap-y-6">
         <ServerErrorAlert error={clientUpdateError || partyUpdateError} />
         <div className="eb-flex eb-justify-between eb-gap-4">
           <Button
