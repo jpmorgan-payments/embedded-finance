@@ -138,6 +138,13 @@ export const overviewSections: SectionType[] = [
           party: parties.organization,
         },
       },
+      {
+        id: 'check-answers',
+        type: 'check-answers',
+        title: 'Check your answers',
+        description:
+          'Please ensure your answers are accurate and complete anything you may have missed.',
+      },
     ],
   },
   {

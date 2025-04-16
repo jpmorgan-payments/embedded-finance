@@ -51,6 +51,7 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    fromResponseFn: (val) => (val === 'PLACEHOLDER_ORG_NAME' ? '' : val),
   },
   organizationType: {
     path: 'organizationDetails.organizationType',

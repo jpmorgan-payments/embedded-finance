@@ -95,7 +95,8 @@ export const OnboardingGatewayScreen = () => {
       roles: [Role.CLIENT],
       partyType: PartyType.ORGANIZATION,
       organizationDetails: {
-        organizationName: 'Something',
+        // TODO: Temporary workaround
+        organizationName: 'PLACEHOLDER_ORG_NAME',
         countryOfFormation: 'US',
       },
     };
