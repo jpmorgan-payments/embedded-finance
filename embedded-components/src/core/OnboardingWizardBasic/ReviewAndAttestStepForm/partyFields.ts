@@ -129,13 +129,7 @@ export const organizationFields = (t: TFunction) => [
   {
     label: t('fields.secondaryMccList.headerLabel'),
     path: 'organizationDetails.secondaryMccList',
-  },
-  {
-    label: t('missingPartyFields.fields.entitiesInOwnership'),
-    path: 'organizationDetails.entitiesInOwnership',
-    transformFunc: (value: boolean) =>
-      value ? t('common:yes') : t('common:no'),
-  },
+  }
 ];
 
 export const individualFields = (t: TFunction) => [
