@@ -42,6 +42,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                 </h2>
                 <Button
                   variant="ghost"
+                  type="button"
                   size="sm"
                   className="eb-h-8 eb-p-2 eb-text-sm"
                   onClick={() => {
@@ -69,7 +70,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                     : undefined;
 
                 return (
-                  <div className="eb-space-y-0.5">
+                  <div className="eb-space-y-0.5" key={field}>
                     <p className="eb-text-sm eb-font-medium">
                       {t([
                         `onboarding-overview:fields.${field}.reviewLabel`,

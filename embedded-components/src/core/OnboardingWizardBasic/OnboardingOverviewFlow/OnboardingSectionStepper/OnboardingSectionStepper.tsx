@@ -7,6 +7,7 @@ import {
   CheckIcon,
   ChevronDownIcon,
   Loader2Icon,
+  TextSearchIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
@@ -143,7 +144,7 @@ export const OnboardingSectionStepper = () => {
         editMode: false,
       });
       handleStepChange(stepperUtils.get(editModeOriginStepId));
-    } else if (currentStepNumber < steps.length - 1) {
+    } else if (currentStepNumber < steps.length) {
       handleStepChange(stepperUtils.getNext(currentStepId));
     } else {
       globalStepper.goTo('overview');
@@ -310,6 +311,7 @@ export const OnboardingSectionStepper = () => {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
+                    type="button"
                     size="sm"
                     className="eb-h-6 eb-gap-1 eb-rounded-none eb-p-1 eb-text-xs"
                   >
@@ -346,7 +348,9 @@ export const OnboardingSectionStepper = () => {
                       }}
                     >
                       <div className="eb-flex eb-items-center eb-gap-2">
-                        {checkStepIsCompleted(step.id) ? (
+                        {step.type === 'check-answers' ? (
+                          <TextSearchIcon className="eb-size-4 eb-stroke-muted-foreground" />
+                        ) : checkStepIsCompleted(step.id) ? (
                           <CheckIcon className="eb-size-4 eb-stroke-green-600" />
                         ) : step.id === currentStepId ? (
                           <ArrowRightIcon className="eb-size-4 eb-stroke-primary" />
@@ -371,14 +375,14 @@ export const OnboardingSectionStepper = () => {
     >
       <div className="eb-mt-6 eb-flex-auto">
         {currentStep.type === 'form' && (
-          <Form {...form} key={currentStep.id}>
+          <Form {...form}>
             <form id={currentStep.id} onSubmit={onSubmit} key={currentStep.id}>
               <currentStep.FormComponent />
             </form>
           </Form>
         )}
         {currentStep.type === 'check-answers' && (
-          <form id={currentStep.id} onSubmit={handleNext}>
+          <form id={currentStep.id} onSubmit={form.handleSubmit(handleNext)}>
             <CheckAnswersScreen
               stepId={currentStepId}
               partyId={currentPartyData?.id}
