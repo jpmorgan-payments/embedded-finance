@@ -3,7 +3,18 @@ import {
   OnboardingWizardBasic,
   OnboardingOverviewFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Badge, Divider, Grid, Select, Text, NumberInput } from '@mantine/core';
+import {
+  Badge,
+  Divider,
+  Grid,
+  Select,
+  Text,
+  NumberInput,
+  Accordion,
+  Paper,
+  List,
+  ThemeIcon,
+} from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
 import { GITHUB_REPO } from 'data/constants';
@@ -11,7 +22,12 @@ import { onboardingScenarios } from 'data/onboardingScenarios';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ThemeConfig, useThemes } from '../hooks/useThemes';
-import { IconMaximize } from '@tabler/icons';
+import {
+  IconMaximize,
+  IconInfoCircle,
+  IconWand,
+  IconTestPipe,
+} from '@tabler/icons';
 import { DevelopmentNotice } from 'components/DevelopmentNotice/DevelopmentNotice';
 
 const mapToEBTheme = (theme?: ThemeConfig) => {
@@ -335,11 +351,77 @@ export const OnboardingNextPageV2 = () => {
             placeholder="Select a scenario"
             onChange={handleScenarioIdChange}
             value={scenarioId}
-            data={onboardingScenarios.map((s) => ({
-              label: s.name,
-              value: s.id,
-            }))}
+            data={Object.entries(
+              onboardingScenarios.reduce(
+                (acc, s) => {
+                  const group = s.component || 'OnboardingWizardBasic';
+                  if (!acc[group]) acc[group] = [];
+                  acc[group].push({ value: s.id, label: s.name });
+                  return acc;
+                },
+                {} as Record<string, { label: string; value: string }[]>,
+              ),
+            ).flatMap(([group, items]) => [
+              { value: group, label: group, disabled: true },
+              ...items,
+            ])}
           />
+          <Accordion
+            variant="contained"
+            styles={{
+              control: {
+                paddingLeft: '8px',
+                border: 'none',
+                background: 'transparent',
+              },
+              item: {
+                border: 'none',
+                background: 'transparent',
+              },
+              content: {
+                padding: '8px',
+              },
+            }}
+          >
+            <Accordion.Item value="scenarios-info">
+              <Accordion.Control icon={<IconInfoCircle size={16} />}>
+                <Text size="xs" fw={300}>
+                  Scenarios simulate different client states using mock GET
+                  /clients/:id responses. Magic Values could be used to test
+                  different flows.
+                </Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Text size="xs" fw={500} mb="xs">
+                  <ThemeIcon
+                    color="blue"
+                    size={16}
+                    radius="xl"
+                    style={{ marginRight: 8 }}
+                  >
+                    <IconTestPipe size={10} />
+                  </ThemeIcon>
+                  Use the below SSN/EIN "magic values" to trigger various flows:
+                </Text>
+
+                <List spacing="xs" size="xs">
+                  <List.Item>
+                    <code>111111111</code> - Triggers "Information Requested"
+                    state with document requirements
+                  </List.Item>
+                  <List.Item>
+                    <code>222222222</code> - Sets status to "Review in Progress"
+                  </List.Item>
+                  <List.Item>
+                    <code>333333333</code> - Triggers "Rejected" state
+                  </List.Item>
+                  <List.Item>
+                    <code>444444444</code> - Triggers "Approved" state
+                  </List.Item>
+                </List>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
         </Grid.Col>
 
         <Grid.Col span={4} lg={2}>

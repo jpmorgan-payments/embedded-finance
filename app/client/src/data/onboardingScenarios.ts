@@ -20,6 +20,7 @@ export const onboardingScenarios = [
     baseURL: '/ef/do/v1/',
     gatewayID: '',
     availableOrganizationTypes,
+    component: 'OnboardingWizardBasic',
   },
   {
     id: 'scenario2',
@@ -30,6 +31,7 @@ export const onboardingScenarios = [
     baseURL: '/ef/do/v1/',
     gatewayID: '',
     availableOrganizationTypes,
+    component: 'OnboardingWizardBasic',
   },
   {
     id: 'scenario3',
@@ -40,6 +42,7 @@ export const onboardingScenarios = [
     baseURL: '/ef/do/v1/',
     gatewayID: '',
     availableOrganizationTypes,
+    component: 'OnboardingWizardBasic',
   },
   {
     id: 'scenario4',
@@ -50,6 +53,7 @@ export const onboardingScenarios = [
     baseURL: '/ef/do/v1/',
     gatewayID: '',
     availableOrganizationTypes,
+    component: 'OnboardingWizardBasic',
   },
   {
     id: 'scenario5',
@@ -60,6 +64,7 @@ export const onboardingScenarios = [
     baseURL: '/ef/do/v1/',
     gatewayID: '',
     availableOrganizationTypes,
+    component: 'OnboardingWizardBasic',
   },
   {
     id: 'scenario6',
