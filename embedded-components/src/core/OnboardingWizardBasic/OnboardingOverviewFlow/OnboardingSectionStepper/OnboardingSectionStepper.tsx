@@ -38,7 +38,7 @@ import {
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
-import { overviewSections } from '../overviewSectionsConfig';
+import { StepperSectionType, StepType } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
 import { CheckAnswersScreen } from './CheckAnswersScreen/CheckAnswersScreen';
 
@@ -55,31 +55,30 @@ export const OnboardingSectionStepper = () => {
 
   const globalStepper = GlobalStepper.useStepper();
 
-  const { steps } = globalStepper.getMetadata(
+  const { steps = [], correspondingParty } = globalStepper.getMetadata(
     'section-stepper'
-  ) as (typeof overviewSections)[number];
+  ) as StepperSectionType & { partyId?: string };
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const {
     current: currentStep,
-    prev,
-    next,
-    all: allSteps,
     goTo,
+    all: allSteps,
     setMetadata,
     getMetadata,
   } = useStepper();
 
-  const { id: stepId, formConfig: currentFormConfig } = currentStep;
+  const { id: currentStepId, FormComponent: CurrentFormComponent } =
+    currentStep;
 
   // Whether the user came from the check answers screen
-  const editModeOriginStepId = getMetadata(stepId)?.editModeOriginStepId;
+  const editModeOriginStepId = getMetadata(currentStepId)?.editModeOriginStepId;
 
-  const currentPartyData = currentFormConfig
+  const currentPartyData = correspondingParty
     ? clientData?.parties?.find(
         (party) =>
-          party?.partyType === currentFormConfig.party.partyType &&
-          currentFormConfig.party.roles?.every((role) =>
+          party?.partyType === correspondingParty.partyType &&
+          correspondingParty.roles?.every((role) =>
             party?.roles?.includes(role)
           ) &&
           party.active
@@ -102,7 +101,7 @@ export const OnboardingSectionStepper = () => {
     reset: resetPartyUpdate,
   } = useUpdateParty();
 
-  const currentStepNumber = stepperUtils.getIndex(stepId) + 1;
+  const currentStepNumber = stepperUtils.getIndex(currentStepId) + 1;
 
   const [isFormPopulationPending, setIsFormPopulationPending] = useState(true);
 
@@ -112,21 +111,40 @@ export const OnboardingSectionStepper = () => {
   const isFormDisabled =
     isFormSubmitting || (isFormPopulationPending && !!currentPartyData);
 
-  useEffect(() => {
-    setIsFormPopulationPending(!!currentFormConfig);
-  }, [stepId]);
+  const form = CurrentFormComponent
+    ? useFormWithFilters({
+        clientData,
+        schema: CurrentFormComponent.schema,
+        refineSchemaFn: CurrentFormComponent.refineSchemaFn,
+        defaultValues: {},
+        disabled: isFormDisabled,
+      })
+    : useForm();
+
+  const handleStepChange = (destinationStep: StepType) => {
+    goTo(destinationStep.id);
+    if (destinationStep.type === 'form') {
+      form.reset(
+        modifyDefaultValues(
+          shapeFormValuesBySchema(
+            formValues,
+            destinationStep.FormComponent?.schema
+          )
+        )
+      );
+    }
+  };
 
   const handleNext = () => {
     resetClientUpdate();
     resetPartyUpdate();
     if (editModeOriginStepId) {
-      setMetadata(stepId, {
+      setMetadata(currentStepId, {
         editMode: false,
       });
-      goTo(editModeOriginStepId);
-    } else if (currentStepNumber < steps.length) {
-      setIsFormPopulationPending(true);
-      next();
+      handleStepChange(stepperUtils.get(editModeOriginStepId));
+    } else if (currentStepNumber < steps.length - 1) {
+      handleStepChange(stepperUtils.getNext(currentStepId));
     } else {
       globalStepper.goTo('overview');
     }
@@ -135,61 +153,43 @@ export const OnboardingSectionStepper = () => {
     resetClientUpdate();
     resetPartyUpdate();
     if (editModeOriginStepId) {
-      setMetadata(stepId, {
+      setMetadata(currentStepId, {
         editMode: false,
       });
-      goTo(editModeOriginStepId);
+      handleStepChange(stepperUtils.get(editModeOriginStepId));
     } else if (currentStepNumber > 1) {
-      setIsFormPopulationPending(true);
-      prev();
+      handleStepChange(stepperUtils.getPrev(currentStepId));
     } else {
       globalStepper.goTo('overview');
     }
   };
 
-  const form = currentFormConfig
-    ? useFormWithFilters({
-        clientData,
-        schema: currentFormConfig.FormComponent.schema,
-        refineSchemaFn: currentFormConfig.FormComponent.refineSchemaFn,
-        defaultValues: {},
-        disabled: isFormDisabled,
-      })
-    : useForm();
+  const formValues =
+    currentPartyData && clientData
+      ? convertClientResponseToFormValues(clientData, currentPartyData.id)
+      : {};
 
   useEffect(() => {
-    if (form && clientData && currentFormConfig && isFormPopulationPending) {
-      const formValues = currentPartyData
-        ? convertClientResponseToFormValues(clientData, currentPartyData.id)
-        : {};
+    if (form && CurrentFormComponent) {
       form.reset(
         modifyDefaultValues(
-          shapeFormValuesBySchema(
-            formValues,
-            currentFormConfig.FormComponent.schema
-          )
+          shapeFormValuesBySchema(formValues, CurrentFormComponent.schema)
         )
       );
       setIsFormPopulationPending(false);
     }
-  }, [
-    form,
-    clientData,
-    currentPartyData,
-    isFormPopulationPending,
-    currentFormConfig,
-  ]);
+  }, [form, CurrentFormComponent]);
 
   // TODO: skip api call if data is the same
   const onSubmit = form.handleSubmit((values) => {
     // Perform step-defined transformations on the form values
     const modifiedValues =
-      currentFormConfig?.FormComponent.modifyFormValuesBeforeSubmit?.(
+      CurrentFormComponent?.modifyFormValuesBeforeSubmit?.(
         values,
         currentPartyData
       ) ?? values;
 
-    if (clientData && currentStep.formConfig) {
+    if (clientData) {
       // TODO: update config to allow for providing a default body using form values
       // Update party if it exists
       if (currentPartyData && currentPartyData.id) {
@@ -246,7 +246,7 @@ export const OnboardingSectionStepper = () => {
           0,
           'addParties',
           {
-            addParties: [currentStep.formConfig.party],
+            addParties: [correspondingParty],
           }
         );
         updateClient(
@@ -281,25 +281,16 @@ export const OnboardingSectionStepper = () => {
 
   const checkStepIsCompleted = (id: string) => {
     const checkedStep = stepperUtils.get(id);
-    const stepPartyData = checkedStep.formConfig
-      ? clientData?.parties?.find(
-          (party) =>
-            party?.partyType === checkedStep.formConfig.party.partyType &&
-            checkedStep.formConfig.party.roles?.every((role) =>
-              party?.roles?.includes(role)
-            ) &&
-            party.active
-        )
-      : undefined;
 
-    if (checkedStep && checkedStep.formConfig && clientData && stepPartyData) {
-      const formValues = convertClientResponseToFormValues(
-        clientData,
-        stepPartyData.id
-      );
+    if (
+      checkedStep &&
+      checkedStep.FormComponent &&
+      clientData &&
+      currentPartyData?.id
+    ) {
       const modifiedSchema = modifySchema(
-        checkedStep.formConfig.FormComponent.schema,
-        checkedStep.formConfig.FormComponent.refineSchemaFn
+        checkedStep.FormComponent.schema,
+        checkedStep.FormComponent.refineSchemaFn
       );
       return modifiedSchema.safeParse(formValues).success;
     }
@@ -341,24 +332,23 @@ export const OnboardingSectionStepper = () => {
                       key={step.id}
                       disabled={
                         !checkStepIsCompleted(step.id) &&
-                        index > stepperUtils.getIndex(stepId) &&
+                        index > stepperUtils.getIndex(currentStepId) &&
                         !checkStepIsCompleted(stepperUtils.getPrev(step.id)?.id)
                       }
                       className={cn({
                         'eb-pointer-events-none eb-font-semibold':
-                          step.id === stepId,
+                          step.id === currentStepId,
                       })}
                       onClick={() => {
-                        if (step.id !== stepId) {
-                          goTo(step.id);
-                          setIsFormPopulationPending(true);
+                        if (step.id !== currentStepId) {
+                          handleStepChange(step);
                         }
                       }}
                     >
                       <div className="eb-flex eb-items-center eb-gap-2">
                         {checkStepIsCompleted(step.id) ? (
                           <CheckIcon className="eb-size-4 eb-stroke-green-600" />
-                        ) : step.id === stepId ? (
+                        ) : step.id === currentStepId ? (
                           <ArrowRightIcon className="eb-size-4 eb-stroke-primary" />
                         ) : (
                           <div className="eb-size-4"></div>
@@ -383,21 +373,17 @@ export const OnboardingSectionStepper = () => {
         {currentStep.type === 'form' && (
           <Form {...form} key={currentStep.id}>
             <form id={currentStep.id} onSubmit={onSubmit} key={currentStep.id}>
-              <currentStep.formConfig.FormComponent />
+              <currentStep.FormComponent />
             </form>
           </Form>
-        )}
-        {currentStep.type === 'non-form' && (
-          <form id={currentStep.id} onSubmit={handleNext}>
-            {currentStep.Component && <currentStep.Component />}
-          </form>
         )}
         {currentStep.type === 'check-answers' && (
           <form id={currentStep.id} onSubmit={handleNext}>
             <CheckAnswersScreen
-              stepId={stepId}
+              stepId={currentStepId}
+              partyId={currentPartyData?.id}
               steps={allSteps}
-              goToStep={goTo}
+              goToStep={handleStepChange}
               setMetadata={setMetadata}
             />
           </form>

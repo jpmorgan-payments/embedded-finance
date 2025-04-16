@@ -1,4 +1,3 @@
-import { FC } from 'react';
 import {
   BuildingIcon,
   FileIcon,
@@ -23,35 +22,37 @@ export type StepType =
       type: 'form';
       title: string;
       description?: string;
-      formConfig: {
-        FormComponent: SectionStepFormComponent;
-        party: Partial<PartyResponse>;
-      };
-      Component?: never; // Ensure Component is not allowed
-    }
-  | {
-      id: string;
-      type: 'non-form';
-      title: string;
-      description?: string;
-      formConfig?: never; // Ensure formConfig is not allowed
-      Component: FC; // Optional non-form component
+      FormComponent: SectionStepFormComponent;
     }
   | {
       id: string;
       type: 'check-answers';
       title: string;
       description?: string;
-      formConfig?: never; // Ensure formConfig is not allowed\
-      Component?: never;
+      FormComponent?: never; // Ensure formConfig is not allowed\
     };
 
-type SectionType = {
+export type StepperSectionType = {
   id: string;
   title: string;
   icon: LucideIcon;
+  type: 'stepper';
+  correspondingParty: Partial<PartyResponse>;
   steps: StepType[];
+  Component?: never;
 };
+
+export type ComponentSectionType = {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  type: 'component';
+  correspondingParty?: never;
+  steps?: never;
+  Component: JSX.Element;
+};
+
+type SectionType = StepperSectionType | ComponentSectionType;
 
 const parties: Record<string, Partial<PartyResponse>> = {
   controller: {
@@ -69,6 +70,8 @@ export const overviewSections: SectionType[] = [
     id: 'personal',
     title: 'Personal details',
     icon: UserIcon,
+    type: 'stepper',
+    correspondingParty: parties.controller,
     steps: [
       {
         id: 'personal-details',
@@ -76,10 +79,7 @@ export const overviewSections: SectionType[] = [
         title: 'Personal details',
         description:
           'We collect your personal information as the primary person controlling business operations for the company.',
-        formConfig: {
-          FormComponent: PersonalDetailsForm,
-          party: parties.controller,
-        },
+        FormComponent: PersonalDetailsForm,
       },
       {
         id: 'identity-document',
@@ -87,10 +87,7 @@ export const overviewSections: SectionType[] = [
         title: 'Identity document',
         description:
           'We need some additional details to confirm your identity.',
-        formConfig: {
-          FormComponent: IndividualIdentityForm,
-          party: parties.controller,
-        },
+        FormComponent: IndividualIdentityForm,
       },
       {
         id: 'contact-details',
@@ -98,10 +95,7 @@ export const overviewSections: SectionType[] = [
         title: 'Contact details',
         description:
           'We need some additional details to confirm your identity.',
-        formConfig: {
-          FormComponent: ContactDetailsForm,
-          party: parties.controller,
-        },
+        FormComponent: ContactDetailsForm,
       },
       {
         id: 'check-answers',
@@ -116,6 +110,8 @@ export const overviewSections: SectionType[] = [
     id: 'business',
     title: 'Business details',
     icon: BuildingIcon,
+    type: 'stepper',
+    correspondingParty: parties.organization,
     steps: [
       {
         id: 'industry',
@@ -123,20 +119,14 @@ export const overviewSections: SectionType[] = [
         title: 'Industry',
         description:
           'Selecting your industry helps satisfy important risk and compliance obligations.',
-        formConfig: {
-          FormComponent: IndustryForm,
-          party: parties.organization,
-        },
+        FormComponent: IndustryForm,
       },
       {
         id: 'company-identification',
         type: 'form',
         title: 'Company identification',
         description: 'Please provide details about your company.',
-        formConfig: {
-          FormComponent: CompanyIdentificationForm,
-          party: parties.organization,
-        },
+        FormComponent: CompanyIdentificationForm,
       },
       {
         id: 'check-answers',
@@ -151,13 +141,21 @@ export const overviewSections: SectionType[] = [
     id: 'owners',
     title: 'Owners and key roles',
     icon: Users2Icon,
-    steps: [],
+    type: 'component',
+    Component: <div></div>,
   },
-  { id: 'operational', title: 'Operational details', icon: TagIcon, steps: [] },
+  {
+    id: 'operational',
+    title: 'Operational details',
+    icon: TagIcon,
+    type: 'component',
+    Component: <div></div>,
+  },
   {
     id: 'attest',
     title: 'Review and attest',
     icon: FileIcon,
-    steps: [],
+    type: 'component',
+    Component: <div></div>,
   },
 ];

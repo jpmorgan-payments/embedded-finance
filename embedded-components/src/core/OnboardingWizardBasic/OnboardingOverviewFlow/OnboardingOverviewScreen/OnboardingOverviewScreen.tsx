@@ -59,8 +59,12 @@ export const OnboardingOverviewScreen = () => {
                 size="sm"
                 className="eb-text-primary"
                 onClick={() => {
-                  globalStepper.setMetadata('section-stepper', { ...section });
-                  globalStepper.goTo('section-stepper');
+                  if (section.type === 'stepper') {
+                    globalStepper.setMetadata('section-stepper', {
+                      ...section,
+                    });
+                    globalStepper.goTo('section-stepper');
+                  }
                 }}
               >
                 {t('common:start')}

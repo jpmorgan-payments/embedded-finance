@@ -12,8 +12,9 @@ import { StepType } from '../../overviewSectionsConfig';
 
 type CheckAnswersScreenProps = {
   stepId: string;
+  partyId: string | undefined;
   steps: StepType[];
-  goToStep: (id: string) => void;
+  goToStep: (id: StepType) => void;
   setMetadata: (id: string, metadata: any) => void;
 };
 export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
@@ -21,6 +22,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
   steps,
   goToStep,
   setMetadata,
+  partyId,
 }) => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
   const { clientData } = useOnboardingOverviewContext();
@@ -29,16 +31,8 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
     <div className="eb-space-y-6">
       {steps.map((step) => {
         if (step.type === 'form') {
-          const stepPartyData = clientData?.parties?.find(
-            (party) =>
-              party?.partyType === step.formConfig.party.partyType &&
-              step.formConfig.party.roles?.every((role) =>
-                party?.roles?.includes(role)
-              ) &&
-              party.active
-          );
           const values = clientData
-            ? convertClientResponseToFormValues(clientData, stepPartyData?.id)
+            ? convertClientResponseToFormValues(clientData, partyId)
             : {};
           return (
             <div className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
@@ -51,7 +45,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                   size="sm"
                   className="eb-h-8 eb-p-2 eb-text-sm"
                   onClick={() => {
-                    goToStep(step.id);
+                    goToStep(step);
                     setMetadata(step.id, {
                       editModeOriginStepId: stepId,
                     });
@@ -61,45 +55,44 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                   Change
                 </Button>
               </div>
-              {Object.keys(step.formConfig.FormComponent.schema.shape).map(
-                (field) => {
-                  const value =
-                    values?.[field as keyof OnboardingFormValuesSubmit];
-                  const toStringFn = partyFieldMap?.[
-                    field as keyof OnboardingFormValuesSubmit
-                  ]?.toStringFn as (val: any) => string | string[] | undefined;
-                  const valueString =
-                    value !== undefined
-                      ? toStringFn
-                        ? toStringFn(value)
-                        : String(value)
-                      : undefined;
+              {Object.keys(step.FormComponent.schema.shape).map((field) => {
+                const value =
+                  values?.[field as keyof OnboardingFormValuesSubmit];
+                const toStringFn = partyFieldMap?.[
+                  field as keyof OnboardingFormValuesSubmit
+                ]?.toStringFn as (val: any) => string | string[] | undefined;
+                const valueString =
+                  value !== undefined
+                    ? toStringFn
+                      ? toStringFn(value)
+                      : String(value)
+                    : undefined;
 
-                  return (
-                    <div className="eb-space-y-0.5">
-                      <p className="eb-text-sm eb-font-medium">
-                        {t([
-                          `onboarding-overview:fields.${field}.label`,
-                          `onboarding:fields.${field}.label`,
-                        ] as unknown as TemplateStringsArray)}
-                      </p>
-                      <div className="eb-flex eb-flex-col">
-                        {Array.isArray(valueString) ? (
-                          valueString.map((val, index) => (
-                            <p key={index}>{val}</p>
-                          ))
-                        ) : valueString ? (
-                          <p>{valueString}</p>
-                        ) : (
-                          <span className="eb-italic eb-text-muted-foreground">
-                            {t('common:empty')}
-                          </span>
-                        )}
-                      </div>
+                return (
+                  <div className="eb-space-y-0.5">
+                    <p className="eb-text-sm eb-font-medium">
+                      {t([
+                        `onboarding-overview:fields.${field}.reviewLabel`,
+                        `onboarding-overview:fields.${field}.label`,
+                        `onboarding:fields.${field}.label`,
+                      ] as unknown as TemplateStringsArray)}
+                    </p>
+                    <div className="eb-flex eb-flex-col">
+                      {Array.isArray(valueString) ? (
+                        valueString.map((val, index) => (
+                          <p key={index}>{val}</p>
+                        ))
+                      ) : valueString ? (
+                        <p>{valueString}</p>
+                      ) : (
+                        <span className="eb-italic eb-text-muted-foreground">
+                          {t('common:empty')}
+                        </span>
+                      )}
                     </div>
-                  );
-                }
-              )}
+                  </div>
+                );
+              })}
             </div>
           );
         }

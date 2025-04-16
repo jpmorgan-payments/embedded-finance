@@ -71,6 +71,7 @@
       "tooltip": ""
     },
     "countryOfFormation": {
+      "reviewLabel": "Country of registration",
       "label": "Where is your business located?",
       "description": "Please select your country of registration",
       "tooltip": ""
