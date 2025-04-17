@@ -133,6 +133,11 @@ export const OnboardingOverviewScreen = () => {
                     completed: checkSectionIsCompleted(section.id),
                   });
                   globalStepper.goTo('section-stepper');
+                } else if (section.type === 'component') {
+                  globalStepper.setMetadata('component', {
+                    ...section,
+                  });
+                  globalStepper.goTo('component');
                 }
               }}
             >

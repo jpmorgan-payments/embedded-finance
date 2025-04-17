@@ -129,7 +129,7 @@ export const organizationFields = (t: TFunction) => [
   {
     label: t('fields.secondaryMccList.headerLabel'),
     path: 'organizationDetails.secondaryMccList',
-  }
+  },
 ];
 
 export const individualFields = (t: TFunction) => [

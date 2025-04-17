@@ -11,6 +11,7 @@ import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
 import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
 import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
+import { OwnersSectionScreen } from './OnboardingSectionStepper/OwnersSectionScreen/OwnersSectionScreen';
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
@@ -142,7 +143,7 @@ export const overviewSections: SectionType[] = [
     title: 'Owners and key roles',
     icon: Users2Icon,
     type: 'component',
-    Component: <div></div>,
+    Component: <OwnersSectionScreen />,
   },
   {
     id: 'operational',

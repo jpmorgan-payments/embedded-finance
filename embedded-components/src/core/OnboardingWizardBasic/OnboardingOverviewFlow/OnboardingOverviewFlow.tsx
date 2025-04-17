@@ -17,6 +17,7 @@ import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGat
 import { GlobalStepper } from './OnboardingGlobalStepper';
 import { OnboardingOverviewScreen } from './OnboardingOverviewScreen/OnboardingOverviewScreen';
 import { OnboardingSectionStepper } from './OnboardingSectionStepper/OnboardingSectionStepper';
+import { overviewSections } from './overviewSectionsConfig';
 import {
   OnboardingConfigDefault,
   OnboardingConfigUsedInContext,
@@ -158,6 +159,7 @@ export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
                 justCompletedSection: undefined,
               },
               'section-stepper': {},
+              component: {},
             }}
           >
             <OnboardingMainSteps />
@@ -204,6 +206,13 @@ const OnboardingMainSteps = () => {
           checklist: () => <OnboardingChecklistScreen />,
           overview: () => <OnboardingOverviewScreen />,
           'section-stepper': () => <OnboardingSectionStepper />,
+          component: () => {
+            const metadata = globalStepper.getMetadata('component');
+            const section = overviewSections.find(
+              (item) => item.id === metadata?.id
+            );
+            return section?.Component;
+          },
         })}
       </div>
     </div>
