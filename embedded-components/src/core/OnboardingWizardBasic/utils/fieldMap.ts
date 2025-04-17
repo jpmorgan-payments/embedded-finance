@@ -5,6 +5,7 @@ import {
 } from 'react-phone-number-input';
 
 import { AddressDto, PhoneSmbdo } from '@/api/generated/smbdo.schemas';
+import naicsCodes from '@/components/IndustryTypeSelect/naics-codes.json';
 
 import { PartyFieldMap } from './types';
 
@@ -142,6 +143,10 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       required: true,
       defaultValue: '',
+    },
+    toStringFn: (val) => {
+      const industry = naicsCodes.find((code) => code.id === val);
+      return `[${val}]  ${industry?.sectorDescription} - ${industry?.description}`;
     },
     fromResponseFn: (val) => val.code,
     toRequestFn: (val) => {

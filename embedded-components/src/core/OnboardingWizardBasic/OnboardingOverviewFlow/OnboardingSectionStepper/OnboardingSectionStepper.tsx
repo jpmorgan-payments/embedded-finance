@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -56,18 +55,25 @@ export const OnboardingSectionStepper = () => {
 
   const globalStepper = GlobalStepper.useStepper();
 
-  const { steps = [], correspondingParty } = globalStepper.getMetadata(
-    'section-stepper'
-  ) as StepperSectionType & { partyId?: string };
+  const {
+    steps = [],
+    correspondingParty,
+    completed,
+    id: sectionId,
+  } = globalStepper.getMetadata('section-stepper') as StepperSectionType & {
+    partyId?: string;
+    completed: boolean;
+  };
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const {
     current: currentStep,
     goTo,
-    all: allSteps,
     setMetadata,
     getMetadata,
-  } = useStepper();
+  } = useStepper({
+    initialStep: completed ? steps[steps.length - 1].id : steps[0].id,
+  });
 
   const { id: currentStepId, FormComponent: CurrentFormComponent } =
     currentStep;
@@ -85,6 +91,11 @@ export const OnboardingSectionStepper = () => {
           party.active
       )
     : undefined;
+
+  const formValues =
+    currentPartyData && clientData
+      ? convertClientResponseToFormValues(clientData, currentPartyData.id)
+      : {};
 
   // For adding a new party to the client
   const {
@@ -104,20 +115,17 @@ export const OnboardingSectionStepper = () => {
 
   const currentStepNumber = stepperUtils.getIndex(currentStepId) + 1;
 
-  const [isFormPopulationPending, setIsFormPopulationPending] = useState(true);
-
   const isFormSubmitting =
     clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
 
-  const isFormDisabled =
-    isFormSubmitting || (isFormPopulationPending && !!currentPartyData);
+  const isFormDisabled = isFormSubmitting;
 
   const form = CurrentFormComponent
     ? useFormWithFilters({
         clientData,
         schema: CurrentFormComponent.schema,
         refineSchemaFn: CurrentFormComponent.refineSchemaFn,
-        defaultValues: {},
+        overrideDefaultValues: formValues,
         disabled: isFormDisabled,
       })
     : useForm();
@@ -147,6 +155,10 @@ export const OnboardingSectionStepper = () => {
     } else if (currentStepNumber < steps.length) {
       handleStepChange(stepperUtils.getNext(currentStepId));
     } else {
+      globalStepper.setMetadata('overview', {
+        ...globalStepper.getMetadata('overview'),
+        justCompletedSection: sectionId,
+      });
       globalStepper.goTo('overview');
     }
   };
@@ -164,22 +176,6 @@ export const OnboardingSectionStepper = () => {
       globalStepper.goTo('overview');
     }
   };
-
-  const formValues =
-    currentPartyData && clientData
-      ? convertClientResponseToFormValues(clientData, currentPartyData.id)
-      : {};
-
-  useEffect(() => {
-    if (form && CurrentFormComponent) {
-      form.reset(
-        modifyDefaultValues(
-          shapeFormValuesBySchema(formValues, CurrentFormComponent.schema)
-        )
-      );
-      setIsFormPopulationPending(false);
-    }
-  }, [form, CurrentFormComponent]);
 
   // TODO: skip api call if data is the same
   const onSubmit = form.handleSubmit((values) => {
@@ -371,7 +367,6 @@ export const OnboardingSectionStepper = () => {
       }
       title={currentStep.title}
       description={currentStep.description}
-      showSpinner={isFormPopulationPending && !!currentPartyData}
     >
       <div className="eb-mt-6 eb-flex-auto">
         {currentStep.type === 'form' && (
@@ -386,7 +381,7 @@ export const OnboardingSectionStepper = () => {
             <CheckAnswersScreen
               stepId={currentStepId}
               partyId={currentPartyData?.id}
-              steps={allSteps}
+              steps={steps}
               goToStep={handleStepChange}
               setMetadata={setMetadata}
             />

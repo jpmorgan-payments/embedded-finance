@@ -148,7 +148,18 @@ export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
         ) : isPending && initialClientId ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (
-          <GlobalStepper.Scoped initialStep={initialStep}>
+          <GlobalStepper.Scoped
+            initialStep={initialStep}
+            initialMetadata={{
+              gateway: {},
+              checklist: {},
+              overview: {
+                completedSections: {},
+                justCompletedSection: undefined,
+              },
+              'section-stepper': {},
+            }}
+          >
             <OnboardingMainSteps />
           </GlobalStepper.Scoped>
         )}

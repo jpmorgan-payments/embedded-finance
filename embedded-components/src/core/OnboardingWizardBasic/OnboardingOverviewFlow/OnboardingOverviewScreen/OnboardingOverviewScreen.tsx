@@ -1,22 +1,98 @@
-import { ChevronRightIcon, InfoIcon, PencilIcon } from 'lucide-react';
+import { useEffect } from 'react';
+import {
+  CheckCircle2Icon,
+  ChevronRightIcon,
+  InfoIcon,
+  Loader2Icon,
+  PencilIcon,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui';
 
+import {
+  convertClientResponseToFormValues,
+  useFormUtilsWithClientContext,
+} from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
 import { overviewSections } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
 
 export const OnboardingOverviewScreen = () => {
-  const { organizationType } = useOnboardingOverviewContext();
+  const { organizationType, clientData } = useOnboardingOverviewContext();
 
   // TODO: Show message if clientData changes upon refetch? (edge case)
 
   const globalStepper = GlobalStepper.useStepper();
 
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
+
+  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+
+  const { justCompletedSection, completedSections } = globalStepper.getMetadata(
+    'overview'
+  ) as {
+    justCompletedSection: string | undefined;
+    // completedSections just tracks the ones completed this session
+    completedSections: Record<string, false>;
+  };
+
+  // Mocked loading state: After 3 seconds, add justCompletedSection to completedSections
+  useEffect(() => {
+    if (justCompletedSection) {
+      const timeout = setTimeout(() => {
+        globalStepper.setMetadata('overview', {
+          completedSections: {
+            ...completedSections,
+            [justCompletedSection]: true,
+          },
+        });
+      }, 1500);
+
+      return () => clearTimeout(timeout);
+    }
+    return () => {};
+  }, [justCompletedSection]);
+
+  const checkSectionIsCompleted = (id: string) => {
+    const section = overviewSections.find((item) => item.id === id);
+    if (!section) return false;
+    if (completedSections[id]) return true;
+
+    const { type, steps, correspondingParty } = section;
+    if (type === 'stepper' && clientData) {
+      const partyData = clientData.parties?.find(
+        (party) =>
+          party?.partyType === correspondingParty.partyType &&
+          correspondingParty.roles?.every((role) =>
+            party?.roles?.includes(role)
+          ) &&
+          party.active
+      );
+      if (!partyData) return false;
+
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        partyData.id
+      );
+
+      const notComplete = steps.some((step) => {
+        if (step.type === 'form') {
+          const modifiedSchema = modifySchema(
+            step.FormComponent.schema,
+            step.FormComponent.refineSchemaFn
+          );
+          return modifiedSchema.safeParse(formValues).success === false;
+        }
+        return false;
+      });
+      return !notComplete;
+    }
+    return false;
+  };
 
   return (
     <StepLayout
@@ -46,31 +122,54 @@ export const OnboardingOverviewScreen = () => {
             Please complete the following to verify your company
           </p>
           {overviewSections.map((section) => (
-            <div
+            <Button
               key={section.id}
-              className="eb-flex eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm"
+              variant="ghost"
+              className="eb-flex eb-h-14 eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm"
+              onClick={() => {
+                if (section.type === 'stepper') {
+                  globalStepper.setMetadata('section-stepper', {
+                    ...section,
+                    completed: checkSectionIsCompleted(section.id),
+                  });
+                  globalStepper.goTo('section-stepper');
+                }
+              }}
             >
-              <div className="eb-flex eb-items-center eb-gap-2">
-                <section.icon className="eb-h-4 eb-w-4" />
+              <div className="eb-flex eb-items-center eb-gap-2 eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
+                <section.icon className="eb-size-4" />
                 <span>{section.title}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="eb-text-primary"
-                onClick={() => {
-                  if (section.type === 'stepper') {
-                    globalStepper.setMetadata('section-stepper', {
-                      ...section,
-                    });
-                    globalStepper.goTo('section-stepper');
-                  }
-                }}
-              >
-                {t('common:start')}
-                <ChevronRightIcon className="eb-h-4 eb-w-4" />
-              </Button>
-            </div>
+
+              {section.id === justCompletedSection ||
+              checkSectionIsCompleted(section.id) ? (
+                <div className="eb-flex eb-px-3 [&_svg]:eb-size-6">
+                  <CheckCircle2Icon
+                    className={cn(
+                      'eb-duration-400 eb-stroke-green-600 eb-opacity-100 eb-transition-opacity eb-ease-in',
+                      {
+                        'eb-hidden': !checkSectionIsCompleted(section.id),
+                        'eb-opacity-0': justCompletedSection === section.id,
+                      }
+                    )}
+                  />
+                  <Loader2Icon
+                    className={cn('eb-animate-spin eb-stroke-primary', {
+                      'eb-hidden': justCompletedSection !== section.id,
+                    })}
+                  />
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="eb-pointer-events-none eb-text-primary"
+                >
+                  {t('common:start')}
+                  <ChevronRightIcon />
+                </Button>
+              )}
+            </Button>
           ))}
         </div>
       </div>

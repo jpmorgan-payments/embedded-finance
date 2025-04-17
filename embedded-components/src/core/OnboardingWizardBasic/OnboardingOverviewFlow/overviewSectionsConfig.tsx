@@ -116,9 +116,9 @@ export const overviewSections: SectionType[] = [
       {
         id: 'industry',
         type: 'form',
-        title: 'Industry',
+        title: 'Business classification',
         description:
-          'Selecting your industry helps satisfy important risk and compliance obligations.',
+          'Selecting your business classification helps satisfy important risk and compliance obligations.',
         FormComponent: IndustryForm,
       },
       {
