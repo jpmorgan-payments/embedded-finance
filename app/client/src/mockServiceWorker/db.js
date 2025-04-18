@@ -227,11 +227,6 @@ export function initializeDb(force = false) {
                   createdAt: timestamp,
                 });
 
-                // Add the generated ID to client's outstanding block
-                newClient.outstanding.documentRequestIds.push(
-                  generatedDocRequestId,
-                );
-
                 // Update party with validation response
                 const updatedParty = {
                   ...indParty,
