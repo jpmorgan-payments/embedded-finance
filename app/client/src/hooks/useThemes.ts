@@ -40,17 +40,17 @@ export const useThemes = () => {
         secondaryBorderWidth: '1px',
       },
       {
-        id: 'CUSTOM2',
+        id: 'CUSTOM3  ',
         name: 'Create Commerce',
         // TODO: Add Create Commerce theme following embedded-components\src\core\EBComponentsProvider\convert-theme-to-css-variables.ts
       },
       {
-        id: 'CUSTOM3',
+        id: 'CUSTOM4',
         name: 'SellSense',
         // TODO: Add SellSense theme following embedded-components\src\core\EBComponentsProvider\convert-theme-to-css-variables.ts
       },
       {
-        id: 'CUSTOM4',
+        id: 'CUSTOM5',
         name: 'PayFicient',
         // TODO: Add PayFicient theme following embedded-components\src\core\EBComponentsProvider\convert-theme-to-css-variables.ts
       },
