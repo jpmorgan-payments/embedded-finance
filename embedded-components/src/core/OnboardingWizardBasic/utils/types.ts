@@ -109,7 +109,7 @@ type FieldConfigurationGeneric<
       path: string;
       fromResponseFn?: (val: any) => T;
       toRequestFn?: (val: T) => any;
-      toStringFn?: (val: any) => string;
+      toStringFn?: (val: T) => string | string[];
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
       key?: K; // phantom property
@@ -117,7 +117,7 @@ type FieldConfigurationGeneric<
       path?: never;
       fromResponseFn?: never;
       toRequestFn?: never;
-      toStringFn?: (val: any) => string;
+      toStringFn?: (val: T) => string | string[];
     } & BaseFieldConfiguration<T, IsSubfield>);
 
 interface ArrayFieldConfigurationGeneric<

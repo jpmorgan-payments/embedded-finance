@@ -47,7 +47,7 @@ export const CompanyIdentificationForm: SectionStepFormComponent = () => {
   const selectedIdType = form.watch('organizationIds.0.idType');
 
   return (
-    <div className="eb-flex eb-flex-col eb-gap-y-6">
+    <div className="eb-space-y-6">
       <OnboardingFormField
         control={form.control}
         name="countryOfFormation"

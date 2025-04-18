@@ -26,8 +26,8 @@ const buttonVariants = cva(
       },
       size: {
         default: 'eb-h-10 eb-px-4 eb-py-2',
-        sm: 'eb-h-9 eb-rounded-md eb-px-3',
-        lg: 'eb-h-11 eb-rounded-md eb-px-8',
+        sm: 'eb-h-9 eb-rounded-button eb-px-3',
+        lg: 'eb-h-11 eb-rounded-button eb-px-8',
         icon: 'eb-h-3 eb-w-3',
         input: 'eb-h-10 eb-px-3 eb-py-2',
       },

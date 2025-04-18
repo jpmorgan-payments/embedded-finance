@@ -314,8 +314,8 @@ export function getValueByPath(obj: any, pathTemplate: string): any {
 export function convertClientResponseToFormValues(
   response: ClientResponse,
   partyId?: string
-): Partial<OnboardingFormValuesSubmit> {
-  const formValues: Partial<OnboardingFormValuesSubmit> = {};
+): Partial<OnboardingFormValuesInitial> {
+  const formValues: Partial<OnboardingFormValuesInitial> = {};
   const partyIndex =
     response.parties?.findIndex((party) => party?.id === partyId) ?? -1;
 
@@ -806,15 +806,15 @@ export function useFormWithFilters<
     refineSchemaFn?: (
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
+    overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
   }
 ): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
     props.clientData
   );
-
   const defaultValues = modifyDefaultValues(
     shapeFormValuesBySchema(
-      props.defaultValues as Partial<OnboardingFormValuesSubmit>,
+      (props.defaultValues ?? {}) as Partial<OnboardingFormValuesSubmit>,
       props.schema
     )
   ) as DefaultValues<z.input<TSchema>>;
@@ -824,7 +824,10 @@ export function useFormWithFilters<
     reValidateMode: 'onChange',
     ...props,
     resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      ...(props.overrideDefaultValues ?? {}),
+    },
   });
 
   return form;

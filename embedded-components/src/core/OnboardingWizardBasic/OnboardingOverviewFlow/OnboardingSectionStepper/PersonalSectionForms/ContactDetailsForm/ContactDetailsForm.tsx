@@ -13,8 +13,8 @@ export const ContactDetailsForm: SectionStepFormComponent = () => {
   const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
 
   return (
-    <div className="eb-flex eb-flex-col eb-gap-y-9">
-      <div className="eb-flex eb-flex-col eb-gap-y-6">
+    <div className="eb-space-y-9">
+      <div className="eb-space-y-6">
         <OnboardingFormField
           control={form.control}
           name="controllerEmail"
@@ -26,7 +26,7 @@ export const ContactDetailsForm: SectionStepFormComponent = () => {
           type="phone"
         />
       </div>
-      <fieldset className="eb-flex eb-flex-col eb-gap-y-6">
+      <fieldset className="eb-space-y-6">
         <legend className="eb-mb-6 eb-text-base eb-font-medium">
           Personal address
         </legend>

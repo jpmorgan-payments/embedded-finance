@@ -4,5 +4,6 @@ export const GlobalStepper = defineStepper(
   { id: 'gateway' },
   { id: 'checklist' },
   { id: 'overview' },
-  { id: 'section-stepper' }
+  { id: 'section-stepper' },
+  { id: 'component' }
 );

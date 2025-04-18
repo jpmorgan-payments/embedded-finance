@@ -168,7 +168,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
                     const lineHeight = 32;
                     const additionalHeight = 18;
                     if (containerWidth === 0) return lineHeight;
-                    const charsPerLine = Math.floor((containerWidth - 60) / 7);
+                    const charsPerLine = Math.floor((containerWidth - 120) / 7);
                     const numLines = Math.ceil(
                       ((items[index].description?.length ?? 0) +
                         items[index].category.length) /

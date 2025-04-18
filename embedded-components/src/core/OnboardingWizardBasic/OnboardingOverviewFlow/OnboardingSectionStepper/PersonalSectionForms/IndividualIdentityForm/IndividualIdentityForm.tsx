@@ -13,7 +13,7 @@ export const IndividualIdentityForm: SectionStepFormComponent = () => {
   const form = useFormContext<z.input<typeof IndividualIdentityFormSchema>>();
 
   return (
-    <div className="eb-flex eb-flex-col eb-gap-y-6">
+    <div className="eb-space-y-6">
       <OnboardingFormField
         control={form.control}
         name="birthDate"
