@@ -17,17 +17,19 @@ type ServerErrorAlertProps = {
   error: ErrorType<ApiError> | null;
   customErrorMessage?: string | Record<string, string>;
   tryAgainAction?: () => void;
+  className?: string;
 };
 export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   error,
   customErrorMessage = defaultErrorMessage,
   tryAgainAction,
+  className,
 }) => {
   if (error) {
     const httpStatus =
       error.response?.data?.httpStatus?.toString() ?? error.status?.toString();
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className={className}>
         <AlertCircleIcon className="eb-h-4 eb-w-4" />
         <AlertTitle>
           {error?.response?.data?.title ?? error?.message}

@@ -145,7 +145,10 @@ export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
       >
         {/* TODO: replace with actual screens */}
         {isError ? (
-          <ServerErrorAlert error={error} />
+          <ServerErrorAlert
+            error={error}
+            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
+          />
         ) : isPending && initialClientId ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (

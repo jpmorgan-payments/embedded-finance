@@ -3,6 +3,7 @@ import {
   FileIcon,
   LucideIcon,
   TagIcon,
+  UploadIcon,
   UserIcon,
   Users2Icon,
 } from 'lucide-react';
@@ -156,6 +157,13 @@ export const overviewSections: SectionType[] = [
     id: 'attest',
     title: 'Review and attest',
     icon: FileIcon,
+    type: 'component',
+    Component: <div></div>,
+  },
+  {
+    id: 'upload-documents',
+    title: 'Supporting documents',
+    icon: UploadIcon,
     type: 'component',
     Component: <div></div>,
   },

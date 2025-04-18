@@ -28,6 +28,11 @@ export const useThemes = () => {
       {
         id: 'CUSTOM2',
         name: 'S&P Theme',
+        backgroundColor: '#f6f7f8',
+        inputColor: '#FFFFFF',
+        borderColor: '#0000004D',
+        borderRadius: '8px',
+        inputBorderRadius: '4px',
         fontFamily: 'Open Sans',
         headerFontFamily: 'Amplitude',
         buttonFontFamily: 'Amplitude',

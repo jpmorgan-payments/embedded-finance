@@ -58,10 +58,12 @@ export const OnboardingSectionStepper = () => {
   const {
     steps = [],
     correspondingParty,
+    originStepId,
     completed,
     id: sectionId,
   } = globalStepper.getMetadata('section-stepper') as StepperSectionType & {
-    partyId?: string;
+    correspondingPartyId?: string;
+    originStepId?: (typeof globalStepper.all)[number]['id'];
     completed: boolean;
   };
 
@@ -81,16 +83,18 @@ export const OnboardingSectionStepper = () => {
   // Whether the user came from the check answers screen
   const editModeOriginStepId = getMetadata(currentStepId)?.editModeOriginStepId;
 
-  const currentPartyData = correspondingParty
-    ? clientData?.parties?.find(
-        (party) =>
-          party?.partyType === correspondingParty.partyType &&
-          correspondingParty.roles?.every((role) =>
-            party?.roles?.includes(role)
-          ) &&
-          party.active
-      )
-    : undefined;
+  const currentPartyData = correspondingParty?.id
+    ? clientData?.parties?.find((party) => party.id === correspondingParty?.id)
+    : correspondingParty
+      ? clientData?.parties?.find(
+          (party) =>
+            party?.partyType === correspondingParty.partyType &&
+            correspondingParty.roles?.every((role) =>
+              party?.roles?.includes(role)
+            ) &&
+            party.active
+        )
+      : undefined;
 
   const formValues =
     currentPartyData && clientData
@@ -155,11 +159,12 @@ export const OnboardingSectionStepper = () => {
     } else if (currentStepNumber < steps.length) {
       handleStepChange(stepperUtils.getNext(currentStepId));
     } else {
-      globalStepper.setMetadata('overview', {
-        ...globalStepper.getMetadata('overview'),
+      const targetStepId = originStepId ?? 'overview';
+      globalStepper.setMetadata(targetStepId, {
+        ...globalStepper.getMetadata(targetStepId),
         justCompletedSection: sectionId,
       });
-      globalStepper.goTo('overview');
+      globalStepper.goTo(targetStepId);
     }
   };
   const handlePrev = () => {
@@ -389,8 +394,11 @@ export const OnboardingSectionStepper = () => {
         )}
       </div>
 
-      <div className="eb-mt-6 eb-flex eb-flex-col eb-gap-y-6">
-        <ServerErrorAlert error={clientUpdateError || partyUpdateError} />
+      <div className="eb-mt-6 eb-space-y-6">
+        <ServerErrorAlert
+          error={clientUpdateError || partyUpdateError}
+          className="eb-border-[#E52135] eb-bg-[#FFECEA]"
+        />
         <div className="eb-flex eb-justify-between eb-gap-4">
           <Button
             type="button"
