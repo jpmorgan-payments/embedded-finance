@@ -1,6 +1,12 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { InfoIcon, Loader2Icon, PlusIcon, UsersIcon } from 'lucide-react';
+import {
+  InfoIcon,
+  Loader2Icon,
+  PencilIcon,
+  PlusIcon,
+  UsersIcon,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -12,14 +18,19 @@ import { ClientResponse, Role } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Card, CardContent } from '@/components/ui';
+import { Badge, Card, CardTitle } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '@/core/OnboardingWizardBasic/ServerErrorAlert/ServerErrorAlert';
+import {
+  convertClientResponseToFormValues,
+  useFormUtilsWithClientContext,
+} from '@/core/OnboardingWizardBasic/utils/formUtils';
 
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../../OnboardingGlobalStepper';
-import { overviewSections } from '../../overviewSectionsConfig';
 import { StepLayout } from '../../StepLayout/StepLayout';
+import { StepperSectionType } from '../../types';
+import { ownerSteps } from './ownerSteps';
 
 export const OwnersSectionScreen = () => {
   const { clientData, onPostPartyResponse } = useOnboardingOverviewContext();
@@ -140,12 +151,15 @@ export const OwnersSectionScreen = () => {
         correspondingParty: {
           id: beneficialOwnerId,
         },
+        defaultPartyRequestBody: {
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+        },
         originStepId: 'owners',
-        id: beneficialOwnerId || 'new-party',
-        completed: !!beneficialOwnerId,
-        steps: overviewSections.find((section) => section.id === 'personal')
-          ?.steps,
-      });
+        id: beneficialOwnerId || 'new-party', // passed to justCompletedStep
+        completed: checkOwnerIsCompleted(beneficialOwnerId),
+        steps: ownerSteps,
+      } as Partial<StepperSectionType>);
       globalStepper.goTo('section-stepper');
     }
   };
@@ -191,6 +205,35 @@ export const OwnersSectionScreen = () => {
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
     partyActiveUpdateStatus === 'pending';
+
+  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+
+  const checkOwnerIsCompleted = (ownerId?: string) => {
+    if (clientData) {
+      const partyData = clientData.parties?.find(
+        (party) => party?.id === ownerId
+      );
+      if (!partyData) return false;
+
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        partyData.id
+      );
+
+      const notComplete = ownerSteps.some((step) => {
+        if (step.type === 'form') {
+          const modifiedSchema = modifySchema(
+            step.FormComponent.schema,
+            step.FormComponent.refineSchemaFn
+          );
+          return modifiedSchema.safeParse(formValues).success === false;
+        }
+        return false;
+      });
+      return !notComplete;
+    }
+    return false;
+  };
 
   // TODO: get completed status from global stepper,
   // send completed status to global stepper
@@ -251,22 +294,94 @@ export const OwnersSectionScreen = () => {
         <div className="eb-space-y-4">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="lg"
             className="eb-w-full eb-text-lg"
             onClick={() => handleEditBeneficialOwner('')}
+            disabled={isFormDisabled || activeOwners.length >= 4}
           >
             <PlusIcon /> Add Owner
           </Button>
 
-          <Card className="eb-mt-6 eb-p-4 eb-shadow-md">
-            <div className="eb-flex eb-flex-col eb-items-center eb-space-y-3">
-              <div className="eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary eb-stroke-white">
-                <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
+          {ownersData.length >= 4 && (
+            <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+              {'\u24d8'} {t('beneficialOwnerStepForm.maxOwnersWarning')}
+            </p>
+          )}
+
+          {activeOwners.length === 0 && (
+            <Card className="eb-mt-6 eb-p-4 eb-shadow-md">
+              <div className="eb-flex eb-flex-col eb-items-center eb-space-y-3">
+                <div className="eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary eb-stroke-white">
+                  <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
+                </div>
+                <p className="eb-text-sm">No stakeholders added yet.</p>
               </div>
-              <p className="eb-text-sm">No stakeholders added yet.</p>
-            </div>
-          </Card>
+            </Card>
+          )}
+
+          {activeOwners.map((owner) => (
+            <Card
+              key={owner.id}
+              className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
+            >
+              <div className="eb-space-y-1">
+                <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+                  {[
+                    owner.individualDetails?.firstName,
+                    owner.individualDetails?.middleName,
+                    owner.individualDetails?.lastName,
+                    owner.individualDetails?.nameSuffix,
+                  ].join(' ')}
+                </CardTitle>
+                <p className="eb-text-sm eb-font-medium">
+                  {owner.individualDetails?.jobTitle === 'Other'
+                    ? `${t('jobTitles.Other')} - ${owner.individualDetails.jobTitleDescription}`
+                    : t([
+                        `jobTitles.${owner.individualDetails?.jobTitle}`,
+                      ] as unknown as TemplateStringsArray)}
+                </p>
+                <div className="eb-flex eb-gap-2 eb-pt-2">
+                  <Badge className="eb-bg-[#EDF4FF] eb-text-[#355FA1]">
+                    Owner
+                  </Badge>
+                  {owner.roles?.includes('CONTROLLER') && (
+                    <Badge className="eb-bg-[#FFEBD9] eb-text-[#8F521F]">
+                      Controller
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="eb-flex eb-gap-2 eb-pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    owner.id && handleEditBeneficialOwner(owner.id)
+                  }
+                >
+                  <PencilIcon />
+                  Edit
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="eb-hidden"
+                  onClick={() =>
+                    owner.id && deactivateBeneficialOwner(owner.id)
+                  }
+                >
+                  Deactivate
+                </Button>
+              </div>
+              {!checkOwnerIsCompleted(owner.id) && (
+                <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                  {'\u24d8'} This individual is missing some details.
+                </p>
+              )}
+            </Card>
+          ))}
         </div>
       </div>
 
@@ -288,6 +403,7 @@ export const OwnersSectionScreen = () => {
               });
               globalStepper.goTo('overview');
             }}
+            disabled={isFormDisabled}
           >
             Save and return to overview
           </Button>

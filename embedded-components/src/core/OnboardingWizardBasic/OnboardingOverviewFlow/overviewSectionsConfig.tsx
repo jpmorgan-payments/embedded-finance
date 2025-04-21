@@ -1,7 +1,6 @@
 import {
   BuildingIcon,
   FileIcon,
-  LucideIcon,
   TagIcon,
   UploadIcon,
   UserIcon,
@@ -12,54 +11,15 @@ import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
 import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
 import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
-import { OwnersSectionScreen } from './OnboardingSectionStepper/OwnersSectionScreen/OwnersSectionScreen';
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
-import { SectionStepFormComponent } from './types';
-
-export type StepType =
-  | {
-      id: string;
-      type: 'form';
-      title: string;
-      description?: string;
-      FormComponent: SectionStepFormComponent;
-    }
-  | {
-      id: string;
-      type: 'check-answers';
-      title: string;
-      description?: string;
-      FormComponent?: never; // Ensure formConfig is not allowed\
-    };
-
-export type StepperSectionType = {
-  id: string;
-  title: string;
-  icon: LucideIcon;
-  type: 'stepper';
-  correspondingParty: Partial<PartyResponse>;
-  steps: StepType[];
-  Component?: never;
-};
-
-export type ComponentSectionType = {
-  id: string;
-  title: string;
-  icon: LucideIcon;
-  type: 'component';
-  correspondingParty?: never;
-  steps?: never;
-  Component: JSX.Element;
-};
-
-type SectionType = StepperSectionType | ComponentSectionType;
+import { SectionType } from './types';
 
 const parties: Record<string, Partial<PartyResponse>> = {
   controller: {
     partyType: 'INDIVIDUAL',
-    roles: ['CONTROLLER'],
+    roles: ['BENEFICIAL_OWNER'],
   },
   organization: {
     partyType: 'ORGANIZATION',
@@ -74,6 +34,7 @@ export const overviewSections: SectionType[] = [
     icon: UserIcon,
     type: 'stepper',
     correspondingParty: parties.controller,
+    defaultPartyRequestBody: parties.controller,
     steps: [
       {
         id: 'personal-details',
@@ -114,6 +75,7 @@ export const overviewSections: SectionType[] = [
     icon: BuildingIcon,
     type: 'stepper',
     correspondingParty: parties.organization,
+    defaultPartyRequestBody: parties.organization,
     steps: [
       {
         id: 'industry',
@@ -143,28 +105,28 @@ export const overviewSections: SectionType[] = [
     id: 'owners',
     title: 'Owners and key roles',
     icon: Users2Icon,
-    type: 'component',
-    Component: <OwnersSectionScreen />,
+    type: 'global-step',
+    stepId: 'owners',
   },
   {
     id: 'operational',
     title: 'Operational details',
     icon: TagIcon,
-    type: 'component',
-    Component: <div></div>,
+    type: 'global-step',
+    stepId: 'overview',
   },
   {
     id: 'attest',
     title: 'Review and attest',
     icon: FileIcon,
-    type: 'component',
-    Component: <div></div>,
+    type: 'global-step',
+    stepId: 'overview',
   },
   {
     id: 'upload-documents',
     title: 'Supporting documents',
     icon: UploadIcon,
-    type: 'component',
-    Component: <div></div>,
+    type: 'global-step',
+    stepId: 'overview',
   },
 ];

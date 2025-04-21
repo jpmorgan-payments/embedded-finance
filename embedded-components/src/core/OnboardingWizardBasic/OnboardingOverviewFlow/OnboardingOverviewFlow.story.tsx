@@ -154,6 +154,7 @@ STheme.args = {
       headerFontFamily: 'Amplitude',
       backgroundColor: '#f6f7f8',
       inputColor: '#FFFFFF',
+      inputBorderColor: '#0000004D',
       borderColor: '#0000004D',
       borderRadius: '6px',
       inputBorderRadius: '4px',

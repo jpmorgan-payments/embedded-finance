@@ -52,6 +52,7 @@ export type EBThemeVariables = {
   spacingUnit?: string;
   borderColor?: string;
   inputColor?: string;
+  inputBorderColor?: string;
   ringColor?: string;
   zIndexOverlay?: number;
   buttonTextTransform?: string;

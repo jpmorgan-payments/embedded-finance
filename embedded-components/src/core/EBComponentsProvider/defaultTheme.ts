@@ -35,7 +35,8 @@ export const defaultTheme: EBTheme = {
     destructiveColor: 'hsl(0 84.2% 60.2%)',
     destructiveForegroundColor: 'hsl(0 0% 98%)',
     borderColor: 'hsl(240 5.9% 90%)',
-    inputColor: 'hsl(240 5.9% 90%)',
+    inputColor: 'hsl(0 0% 100%)',
+    inputBorderColor: 'hsl(240 5.9% 90%)',
     ringColor: 'hsl(240 10% 3.9%)',
   },
   dark: {
@@ -57,6 +58,7 @@ export const defaultTheme: EBTheme = {
     destructiveForegroundColor: 'hsl(0 0% 98%)',
     borderColor: 'hsl(240 3.7% 15.9%)',
     inputColor: 'hsl(240 3.7% 15.9%)',
+    inputBorderColor: 'hsl(240 3.7% 15.9%)',
     ringColor: 'hsl(240 4.9% 83.9%)',
   },
 };

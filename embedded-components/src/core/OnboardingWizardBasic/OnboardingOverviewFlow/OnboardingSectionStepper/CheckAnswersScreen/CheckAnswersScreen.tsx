@@ -2,13 +2,13 @@ import { FC } from 'react';
 import { PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 
 import { partyFieldMap } from '../../../utils/fieldMap';
 import { convertClientResponseToFormValues } from '../../../utils/formUtils';
 import { OnboardingFormValuesSubmit } from '../../../utils/types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
-import { StepType } from '../../overviewSectionsConfig';
+import { StepType } from '../../types';
 
 type CheckAnswersScreenProps = {
   stepId: string;
@@ -35,7 +35,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
             ? convertClientResponseToFormValues(clientData, partyId)
             : {};
           return (
-            <div className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
+            <Card className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
               <div className="eb-flex eb-items-start eb-justify-between">
                 <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
                   {step.title}
@@ -94,7 +94,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                   </div>
                 );
               })}
-            </div>
+            </Card>
           );
         }
         return null;

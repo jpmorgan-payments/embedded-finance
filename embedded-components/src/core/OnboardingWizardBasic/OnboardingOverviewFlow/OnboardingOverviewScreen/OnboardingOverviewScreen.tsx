@@ -125,19 +125,20 @@ export const OnboardingOverviewScreen = () => {
             <Button
               key={section.id}
               variant="ghost"
-              className="eb-flex eb-h-14 eb-justify-between eb-rounded-md eb-border eb-px-4 eb-py-2 eb-text-sm"
+              className="eb-flex eb-h-14 eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-text-sm"
               onClick={() => {
                 if (section.type === 'stepper') {
                   globalStepper.setMetadata('section-stepper', {
                     ...section,
                     completed: checkSectionIsCompleted(section.id),
+                    originStepId: 'overview',
                   });
                   globalStepper.goTo('section-stepper');
-                } else if (section.type === 'component') {
-                  globalStepper.setMetadata('component', {
+                } else if (section.type === 'global-step') {
+                  globalStepper.setMetadata(section.stepId, {
                     ...section,
                   });
-                  globalStepper.goTo('component');
+                  globalStepper.goTo(section.stepId);
                 }
               }}
             >

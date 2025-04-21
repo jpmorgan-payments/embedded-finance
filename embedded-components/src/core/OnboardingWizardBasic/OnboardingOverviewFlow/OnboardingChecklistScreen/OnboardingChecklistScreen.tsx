@@ -2,13 +2,7 @@ import { InfoIcon, PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui';
+import { Button, Card, CardTitle } from '@/components/ui';
 
 // import { ORGANIZATION_TYPE_LIST } from '../../utils/organizationTypeList';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
@@ -41,13 +35,11 @@ export const OnboardingChecklistScreen = () => {
     >
       <div className="eb-mt-6 eb-flex-auto eb-space-y-4">
         <Card className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-              Personal details
-            </CardTitle>
-          </CardHeader>
+          <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+            Personal details
+          </CardTitle>
 
-          <CardContent className="eb-space-y-1">
+          <div className="eb-space-y-1">
             <p className="eb-font-semibold">
               {/* eslint-disable-next-line react/no-unescaped-entities */}
               We'll need your information as the business's financial
@@ -58,17 +50,15 @@ export const OnboardingChecklistScreen = () => {
               <li>Identity document details</li>
               <li>Address and contact details</li>
             </ul>
-          </CardContent>
+          </div>
         </Card>
 
         <Card className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-              Business details
-            </CardTitle>
-          </CardHeader>
+          <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+            Business details
+          </CardTitle>
 
-          <CardContent className="eb-space-y-1">
+          <div className="eb-space-y-1">
             <p className="eb-font-semibold">
               Collect pertinent company details, typically found on your
               company&apos;s registration certificate.
@@ -78,17 +68,15 @@ export const OnboardingChecklistScreen = () => {
               <li>Industry type</li>
               <li>Registration ID details</li>
             </ul>
-          </CardContent>
+          </div>
         </Card>
 
         <Card className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-              Owners and key roles
-            </CardTitle>
-          </CardHeader>
+          <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+            Owners and key roles
+          </CardTitle>
 
-          <CardContent>
+          <div>
             <p className="eb-font-semibold">
               Collect personal details for key stakeholders in your business.
             </p>
@@ -103,22 +91,20 @@ export const OnboardingChecklistScreen = () => {
                 <li>Address and contact details</li>
               </ul>
             </div>
-          </CardContent>
+          </div>
         </Card>
 
         <Card className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-              Bank account
-            </CardTitle>
-          </CardHeader>
+          <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+            Bank account
+          </CardTitle>
 
-          <CardContent>
+          <div>
             <p className="eb-font-semibold">
               We&apos;ll need the details of the bank account you wish to
               receive payouts.
             </p>
-          </CardContent>
+          </div>
         </Card>
       </div>
 

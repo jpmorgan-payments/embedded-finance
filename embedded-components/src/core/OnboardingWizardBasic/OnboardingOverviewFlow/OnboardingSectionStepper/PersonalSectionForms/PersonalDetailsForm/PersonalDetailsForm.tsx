@@ -18,7 +18,7 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
 
   return (
     <div className="eb-space-y-9">
-      <fieldset className="eb-space-y-6">
+      <fieldset className="eb-grid eb-gap-y-6">
         <legend className="eb-mb-1 eb-text-base eb-font-medium">
           Legal name
         </legend>

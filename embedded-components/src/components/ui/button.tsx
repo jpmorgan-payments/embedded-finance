@@ -15,14 +15,14 @@ const buttonVariants = cva(
         destructive:
           'eb-bg-destructive eb-button-text-transform eb-tracking-button eb-font-button-destructive eb-text-button eb-text-destructive-foreground eb-shadow-border-destructive [--tw-shadow-color:theme(colors.destructive.foreground.DEFAULT)] hover:eb-bg-destructive-hover hover:eb-text-destructive-foreground-hover hover:[--tw-shadow-color:theme(colors.destructive.foreground.hover)] active:eb-bg-destructive-active active:eb-text-destructive-foreground-active active:[--tw-shadow-color:theme(colors.destructive.foreground.active)]',
         outline:
-          'eb-border eb-border-input eb-bg-background eb-button-text-transform eb-tracking-button eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
+          'eb-border eb-border-inputBorder eb-bg-input eb-button-text-transform eb-tracking-button eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
         secondary:
           'eb-bg-secondary eb-font-button-secondary eb-button-text-transform eb-tracking-button eb-text-button eb-text-secondary-foreground eb-shadow-border-secondary [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:eb-bg-secondary-hover hover:eb-text-secondary-foreground-hover hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:eb-bg-secondary-active active:eb-text-secondary-foreground-active active:[--tw-shadow-color:theme(colors.secondary.foreground.active)]',
         ghost:
           'hover:eb-bg-accent hover:eb-text-accent-foreground eb-button-text-transform eb-tracking-button',
         link: 'eb-text-primary eb-underline-offset-4 hover:eb-underline eb-button-text-transform eb-tracking-button',
         input:
-          'active:eb-translate-y-0 eb-font-sm disabled:eb-pointer-events-auto disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 eb-font-normal eb-text-foreground eb-w-full eb-rounded-input eb-bg-background eb-border eb-border-input',
+          'active:eb-translate-y-0 eb-font-sm disabled:eb-pointer-events-auto disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 eb-font-normal eb-text-foreground eb-w-full eb-rounded-input eb-bg-input eb-border eb-border-inputBorder',
       },
       size: {
         default: 'eb-h-10 eb-px-4 eb-py-2',

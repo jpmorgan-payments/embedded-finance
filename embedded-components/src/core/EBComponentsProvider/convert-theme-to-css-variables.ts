@@ -83,6 +83,7 @@ const convertThemeVariablesToCssVariables = (
     '--eb-spacing-unit': variables.spacingUnit,
     '--eb-border': colorToHsl(variables.borderColor),
     '--eb-input': colorToHsl(variables.inputColor),
+    '--eb-input-border': colorToHsl(variables.inputBorderColor),
     '--eb-ring': colorToHsl(variables.ringColor),
     '--eb-z-overlay': variables.zIndexOverlay
       ? String(variables.zIndexOverlay)

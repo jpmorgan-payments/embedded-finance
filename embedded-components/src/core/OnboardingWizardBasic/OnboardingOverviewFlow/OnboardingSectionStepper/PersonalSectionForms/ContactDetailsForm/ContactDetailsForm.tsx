@@ -26,7 +26,7 @@ export const ContactDetailsForm: SectionStepFormComponent = () => {
           type="phone"
         />
       </div>
-      <fieldset className="eb-space-y-6">
+      <fieldset className="eb-grid eb-gap-6">
         <legend className="eb-mb-6 eb-text-base eb-font-medium">
           Personal address
         </legend>

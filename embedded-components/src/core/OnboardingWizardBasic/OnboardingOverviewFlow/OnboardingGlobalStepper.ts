@@ -1,9 +1,11 @@
 import { defineStepper } from '@stepperize/react';
 
-export const GlobalStepper = defineStepper(
+export const globalSteps = [
   { id: 'gateway' },
   { id: 'checklist' },
   { id: 'overview' },
   { id: 'section-stepper' },
-  { id: 'component' }
-);
+  { id: 'owners' },
+];
+
+export const GlobalStepper = defineStepper(...globalSteps);

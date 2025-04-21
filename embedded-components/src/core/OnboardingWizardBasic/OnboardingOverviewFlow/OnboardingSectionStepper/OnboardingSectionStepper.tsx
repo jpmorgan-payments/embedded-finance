@@ -38,8 +38,8 @@ import {
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
-import { StepperSectionType, StepType } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
+import { StepperSectionType, StepType } from '../types';
 import { CheckAnswersScreen } from './CheckAnswersScreen/CheckAnswersScreen';
 
 export const OnboardingSectionStepper = () => {
@@ -58,6 +58,7 @@ export const OnboardingSectionStepper = () => {
   const {
     steps = [],
     correspondingParty,
+    defaultPartyRequestBody,
     originStepId,
     completed,
     id: sectionId,
@@ -178,7 +179,7 @@ export const OnboardingSectionStepper = () => {
     } else if (currentStepNumber > 1) {
       handleStepChange(stepperUtils.getPrev(currentStepId));
     } else {
-      globalStepper.goTo('overview');
+      globalStepper.goTo(originStepId ?? 'overview');
     }
   };
 
@@ -248,7 +249,7 @@ export const OnboardingSectionStepper = () => {
           0,
           'addParties',
           {
-            addParties: [correspondingParty],
+            addParties: [defaultPartyRequestBody ?? correspondingParty],
           }
         );
         updateClient(
@@ -302,7 +303,7 @@ export const OnboardingSectionStepper = () => {
   return (
     <StepLayout
       subTitle={
-        !editModeOriginStepId ? (
+        !editModeOriginStepId && !completed ? (
           <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
             <p className="eb-font-semibold">
               Step {currentStepNumber} of {steps.length}
@@ -404,26 +405,38 @@ export const OnboardingSectionStepper = () => {
             type="button"
             variant="secondary"
             size="lg"
-            className="eb-w-full eb-text-lg"
+            className={cn('eb-w-full eb-text-lg', {
+              'eb-hidden': completed && !editModeOriginStepId,
+            })}
             onClick={handlePrev}
             disabled={isFormDisabled}
           >
             {editModeOriginStepId
               ? 'Cancel'
               : currentStepNumber === 1
-                ? 'Back to overview'
+                ? originStepId === 'overview'
+                  ? 'Back to overview'
+                  : 'Back to all owners'
                 : 'Back'}
           </Button>
           <Button
             form={currentStep.id}
             type="submit"
-            variant="default"
+            variant={
+              completed && !editModeOriginStepId ? 'secondary' : 'default'
+            }
             size="lg"
             className="eb-w-full eb-text-lg"
             disabled={isFormDisabled}
           >
             {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
-            {editModeOriginStepId ? 'Save' : 'Next'}
+            {editModeOriginStepId
+              ? 'Save'
+              : completed
+                ? originStepId === 'overview'
+                  ? 'Back to overview'
+                  : 'Back to all owners'
+                : 'Next'}
           </Button>
         </div>
       </div>
