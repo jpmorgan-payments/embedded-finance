@@ -88,4 +88,14 @@ export const onboardingScenarios = [
     availableOrganizationTypes,
     component: 'OnboardingOverviewFlow',
   },
+  {
+    id: 'scenario8',
+    name: 'Overview Layout - no client',
+    availableJurisdictions: ['US'],
+    availableProducts: ['EMBEDDED_PAYMENTS'],
+    baseURL: '/ef/do/v1/',
+    gatewayID: '',
+    availableOrganizationTypes,
+    component: 'OnboardingOverviewFlow',
+  },
 ];
