@@ -17,6 +17,7 @@ import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGat
 import { GlobalStepper } from './OnboardingGlobalStepper';
 import { OnboardingOverviewScreen } from './OnboardingOverviewScreen/OnboardingOverviewScreen';
 import { OnboardingSectionStepper } from './OnboardingSectionStepper/OnboardingSectionStepper';
+import { OwnersSectionScreen } from './OnboardingSectionStepper/OwnersSectionScreen/OwnersSectionScreen';
 import {
   OnboardingConfigDefault,
   OnboardingConfigUsedInContext,
@@ -144,11 +145,26 @@ export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
       >
         {/* TODO: replace with actual screens */}
         {isError ? (
-          <ServerErrorAlert error={error} />
+          <ServerErrorAlert
+            error={error}
+            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
+          />
         ) : isPending && initialClientId ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (
-          <GlobalStepper.Scoped initialStep={initialStep}>
+          <GlobalStepper.Scoped
+            initialStep={initialStep}
+            initialMetadata={{
+              gateway: {},
+              checklist: {},
+              overview: {
+                completedSections: {},
+                justCompletedSection: undefined,
+              },
+              'section-stepper': {},
+              owners: {},
+            }}
+          >
             <OnboardingMainSteps />
           </GlobalStepper.Scoped>
         )}
@@ -193,6 +209,7 @@ const OnboardingMainSteps = () => {
           checklist: () => <OnboardingChecklistScreen />,
           overview: () => <OnboardingOverviewScreen />,
           'section-stepper': () => <OnboardingSectionStepper />,
+          owners: () => <OwnersSectionScreen />,
         })}
       </div>
     </div>

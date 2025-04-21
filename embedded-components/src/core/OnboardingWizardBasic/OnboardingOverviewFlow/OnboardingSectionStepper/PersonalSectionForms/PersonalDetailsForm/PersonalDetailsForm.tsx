@@ -17,8 +17,8 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
   const jobTitle = form.watch('controllerJobTitle');
 
   return (
-    <div className="eb-flex eb-flex-col eb-gap-y-9">
-      <fieldset className="eb-flex eb-flex-col eb-gap-y-6">
+    <div className="eb-space-y-9">
+      <fieldset className="eb-grid eb-gap-y-6">
         <legend className="eb-mb-1 eb-text-base eb-font-medium">
           Legal name
         </legend>
@@ -49,7 +49,7 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
         />
       </fieldset>
 
-      <div className="eb-flex eb-flex-col eb-gap-y-6">
+      <div className="eb-space-y-6">
         <OnboardingFormField
           control={form.control}
           name="controllerJobTitle"
@@ -92,8 +92,11 @@ PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
   }
 
   // Set the country of residence as it is required
-  values.countryOfResidence =
-    partyData?.individualDetails?.countryOfResidence ?? 'US';
+  const modifiedValues = {
+    ...values,
+    countryOfResidence:
+      partyData?.individualDetails?.countryOfResidence ?? 'US',
+  };
 
-  return values;
+  return modifiedValues;
 };

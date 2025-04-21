@@ -2,18 +2,19 @@ import { FC } from 'react';
 import { PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 
 import { partyFieldMap } from '../../../utils/fieldMap';
 import { convertClientResponseToFormValues } from '../../../utils/formUtils';
 import { OnboardingFormValuesSubmit } from '../../../utils/types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
-import { StepType } from '../../onboardingOverviewSections';
+import { StepType } from '../../types';
 
 type CheckAnswersScreenProps = {
   stepId: string;
+  partyId: string | undefined;
   steps: StepType[];
-  goToStep: (id: string) => void;
+  goToStep: (id: StepType) => void;
   setMetadata: (id: string, metadata: any) => void;
 };
 export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
@@ -21,6 +22,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
   steps,
   goToStep,
   setMetadata,
+  partyId,
 }) => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
   const { clientData } = useOnboardingOverviewContext();
@@ -29,29 +31,22 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
     <div className="eb-space-y-6">
       {steps.map((step) => {
         if (step.type === 'form') {
-          const stepPartyData = clientData?.parties?.find(
-            (party) =>
-              party?.partyType === step.formConfig.party.partyType &&
-              step.formConfig.party.roles?.every((role) =>
-                party?.roles?.includes(role)
-              ) &&
-              party.active
-          );
           const values = clientData
-            ? convertClientResponseToFormValues(clientData, stepPartyData?.id)
+            ? convertClientResponseToFormValues(clientData, partyId)
             : {};
           return (
-            <div className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
+            <Card className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
               <div className="eb-flex eb-items-start eb-justify-between">
                 <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
                   {step.title}
                 </h2>
                 <Button
                   variant="ghost"
+                  type="button"
                   size="sm"
                   className="eb-h-8 eb-p-2 eb-text-sm"
                   onClick={() => {
-                    goToStep(step.id);
+                    goToStep(step);
                     setMetadata(step.id, {
                       editModeOriginStepId: stepId,
                     });
@@ -61,34 +56,45 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                   Change
                 </Button>
               </div>
-              {Object.keys(step.formConfig.FormComponent.schema.shape).map(
-                (field) => {
-                  const value =
-                    values?.[field as keyof OnboardingFormValuesSubmit];
-                  return (
-                    <div className="eb-space-y-0.5">
-                      <p className="eb-text-sm eb-font-medium">
-                        {t([
-                          `onboarding-overview:fields.${field}.label`,
-                          `onboarding:fields.${field}.label`,
-                        ] as unknown as TemplateStringsArray)}
-                      </p>
-                      <p>
-                        {value ? (
-                          (partyFieldMap?.[
-                            field as keyof OnboardingFormValuesSubmit
-                          ]?.toStringFn?.(value) ?? String(value))
-                        ) : (
-                          <span className="eb-italic eb-text-muted-foreground">
-                            {t('common:empty')}
-                          </span>
-                        )}
-                      </p>
+              {Object.keys(step.FormComponent.schema.shape).map((field) => {
+                const value =
+                  values?.[field as keyof OnboardingFormValuesSubmit];
+                const toStringFn = partyFieldMap?.[
+                  field as keyof OnboardingFormValuesSubmit
+                ]?.toStringFn as (val: any) => string | string[] | undefined;
+                const valueString =
+                  value !== undefined
+                    ? toStringFn
+                      ? toStringFn(value)
+                      : String(value)
+                    : undefined;
+
+                return (
+                  <div className="eb-space-y-0.5" key={field}>
+                    <p className="eb-text-sm eb-font-medium">
+                      {t([
+                        `onboarding-overview:fields.${field}.reviewLabel`,
+                        `onboarding-overview:fields.${field}.label`,
+                        `onboarding:fields.${field}.label`,
+                      ] as unknown as TemplateStringsArray)}
+                    </p>
+                    <div className="eb-flex eb-flex-col">
+                      {Array.isArray(valueString) ? (
+                        valueString.map((val, index) => (
+                          <p key={index}>{val}</p>
+                        ))
+                      ) : valueString ? (
+                        <p>{valueString}</p>
+                      ) : (
+                        <span className="eb-italic eb-text-muted-foreground">
+                          {t('common:empty')}
+                        </span>
+                      )}
                     </div>
-                  );
-                }
-              )}
-            </div>
+                  </div>
+                );
+              })}
+            </Card>
           );
         }
         return null;

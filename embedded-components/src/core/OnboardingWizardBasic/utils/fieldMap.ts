@@ -1,7 +1,11 @@
 import { i18n } from '@/i18n/config';
-import { parsePhoneNumber } from 'react-phone-number-input';
+import {
+  formatPhoneNumberIntl,
+  parsePhoneNumber,
+} from 'react-phone-number-input';
 
 import { AddressDto, PhoneSmbdo } from '@/api/generated/smbdo.schemas';
+import naicsCodes from '@/components/IndustryTypeSelect/naics-codes.json';
 
 import { PartyFieldMap } from './types';
 
@@ -48,6 +52,7 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    fromResponseFn: (val) => (val === 'PLACEHOLDER_ORG_NAME' ? '' : val),
   },
   organizationType: {
     path: 'organizationDetails.organizationType',
@@ -138,6 +143,10 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       required: true,
       defaultValue: '',
+    },
+    toStringFn: (val) => {
+      const industry = naicsCodes.find((code) => code.id === val);
+      return `[${val}]  ${industry?.sectorDescription} - ${industry?.description}`;
     },
     fromResponseFn: (val) => val.code,
     toRequestFn: (val) => {
@@ -424,6 +433,12 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    toStringFn: (val) =>
+      new Date(val).toLocaleDateString('default', {
+        month: 'long',
+        day: '2-digit',
+        year: 'numeric',
+      }),
   },
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
@@ -690,6 +705,15 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerAddresses: {
     path: 'individualDetails.addresses',
+    toStringFn: (addresses) => {
+      const primaryAddress = addresses[0];
+      return [
+        primaryAddress.primaryAddressLine,
+        ...primaryAddress.additionalAddressLines.map((line) => line.value),
+        `${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`,
+        i18n.t(`common:countries.${primaryAddress.country}`),
+      ];
+    },
     modifyErrorField: (field) => {
       const parts = field.split('.');
       const lastPart = parts[parts.length - 1];
@@ -910,6 +934,7 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
     },
+    toStringFn: (val) => formatPhoneNumberIntl(val.phoneNumber),
     fromResponseFn: (val: PhoneSmbdo) => ({
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,

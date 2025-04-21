@@ -95,7 +95,8 @@ export const OnboardingGatewayScreen = () => {
       roles: [Role.CLIENT],
       partyType: PartyType.ORGANIZATION,
       organizationDetails: {
-        organizationName: 'Something',
+        // TODO: Temporary workaround
+        organizationName: 'PLACEHOLDER_ORG_NAME',
         countryOfFormation: 'US',
       },
     };
@@ -274,7 +275,7 @@ export const OnboardingGatewayScreen = () => {
           <div className="eb-mt-6 eb-space-y-6">
             {t('steps.gateway.alerts', { returnObjects: true }).map(
               (alert, index) => (
-                <Alert variant="informative" key={index}>
+                <Alert variant="informative" key={index} className="eb-pb-3">
                   <InfoIcon className="eb-h-4 eb-w-4" />
                   {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
                   {alert.description && (
@@ -286,6 +287,7 @@ export const OnboardingGatewayScreen = () => {
 
             <ServerErrorAlert
               error={partyUpdateError || clientUpdateError || clientPostError}
+              className="eb-border-[#E52135] eb-bg-[#FFECEA]"
             />
 
             <Button

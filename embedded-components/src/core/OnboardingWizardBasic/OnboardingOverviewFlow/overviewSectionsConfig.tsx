@@ -1,9 +1,8 @@
-import { FC } from 'react';
 import {
   BuildingIcon,
   FileIcon,
-  LucideIcon,
   TagIcon,
+  UploadIcon,
   UserIcon,
   Users2Icon,
 } from 'lucide-react';
@@ -15,48 +14,12 @@ import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/In
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
-import { SectionStepFormComponent } from './types';
-
-export type StepType =
-  | {
-      id: string;
-      type: 'form';
-      title: string;
-      description?: string;
-      formConfig: {
-        FormComponent: SectionStepFormComponent;
-        party: Partial<PartyResponse>;
-      };
-      Component?: never; // Ensure Component is not allowed
-    }
-  | {
-      id: string;
-      type: 'non-form';
-      title: string;
-      description?: string;
-      formConfig?: never; // Ensure formConfig is not allowed
-      Component: FC; // Optional non-form component
-    }
-  | {
-      id: string;
-      type: 'check-answers';
-      title: string;
-      description?: string;
-      formConfig?: never; // Ensure formConfig is not allowed\
-      Component?: never;
-    };
-
-type SectionType = {
-  id: string;
-  title: string;
-  icon: LucideIcon;
-  steps: StepType[];
-};
+import { SectionType } from './types';
 
 const parties: Record<string, Partial<PartyResponse>> = {
   controller: {
     partyType: 'INDIVIDUAL',
-    roles: ['CONTROLLER'],
+    roles: ['BENEFICIAL_OWNER'],
   },
   organization: {
     partyType: 'ORGANIZATION',
@@ -64,11 +27,14 @@ const parties: Record<string, Partial<PartyResponse>> = {
   },
 };
 
-export const onboardingOverviewSections: SectionType[] = [
+export const overviewSections: SectionType[] = [
   {
     id: 'personal',
     title: 'Personal details',
     icon: UserIcon,
+    type: 'stepper',
+    correspondingParty: parties.controller,
+    defaultPartyRequestBody: parties.controller,
     steps: [
       {
         id: 'personal-details',
@@ -76,10 +42,7 @@ export const onboardingOverviewSections: SectionType[] = [
         title: 'Personal details',
         description:
           'We collect your personal information as the primary person controlling business operations for the company.',
-        formConfig: {
-          FormComponent: PersonalDetailsForm,
-          party: parties.controller,
-        },
+        FormComponent: PersonalDetailsForm,
       },
       {
         id: 'identity-document',
@@ -87,10 +50,7 @@ export const onboardingOverviewSections: SectionType[] = [
         title: 'Identity document',
         description:
           'We need some additional details to confirm your identity.',
-        formConfig: {
-          FormComponent: IndividualIdentityForm,
-          party: parties.controller,
-        },
+        FormComponent: IndividualIdentityForm,
       },
       {
         id: 'contact-details',
@@ -98,10 +58,7 @@ export const onboardingOverviewSections: SectionType[] = [
         title: 'Contact details',
         description:
           'We need some additional details to confirm your identity.',
-        formConfig: {
-          FormComponent: ContactDetailsForm,
-          party: parties.controller,
-        },
+        FormComponent: ContactDetailsForm,
       },
       {
         id: 'check-answers',
@@ -116,27 +73,31 @@ export const onboardingOverviewSections: SectionType[] = [
     id: 'business',
     title: 'Business details',
     icon: BuildingIcon,
+    type: 'stepper',
+    correspondingParty: parties.organization,
+    defaultPartyRequestBody: parties.organization,
     steps: [
       {
         id: 'industry',
         type: 'form',
-        title: 'Industry',
+        title: 'Business classification',
         description:
-          'Selecting your industry helps satisfy important risk and compliance obligations.',
-        formConfig: {
-          FormComponent: IndustryForm,
-          party: parties.organization,
-        },
+          'Selecting your business classification helps satisfy important risk and compliance obligations.',
+        FormComponent: IndustryForm,
       },
       {
         id: 'company-identification',
         type: 'form',
         title: 'Company identification',
         description: 'Please provide details about your company.',
-        formConfig: {
-          FormComponent: CompanyIdentificationForm,
-          party: parties.organization,
-        },
+        FormComponent: CompanyIdentificationForm,
+      },
+      {
+        id: 'check-answers',
+        type: 'check-answers',
+        title: 'Check your answers',
+        description:
+          'Please ensure your answers are accurate and complete anything you may have missed.',
       },
     ],
   },
@@ -144,13 +105,28 @@ export const onboardingOverviewSections: SectionType[] = [
     id: 'owners',
     title: 'Owners and key roles',
     icon: Users2Icon,
-    steps: [],
+    type: 'global-step',
+    stepId: 'owners',
   },
-  { id: 'operational', title: 'Operational details', icon: TagIcon, steps: [] },
+  {
+    id: 'operational',
+    title: 'Operational details',
+    icon: TagIcon,
+    type: 'global-step',
+    stepId: 'overview',
+  },
   {
     id: 'attest',
     title: 'Review and attest',
     icon: FileIcon,
-    steps: [],
+    type: 'global-step',
+    stepId: 'overview',
+  },
+  {
+    id: 'upload-documents',
+    title: 'Supporting documents',
+    icon: UploadIcon,
+    type: 'global-step',
+    stepId: 'overview',
   },
 ];

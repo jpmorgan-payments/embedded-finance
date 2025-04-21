@@ -12,7 +12,7 @@ export const IndustryForm: SectionStepFormComponent = () => {
   const form = useFormContext<z.input<typeof IndustryFormSchema>>();
 
   return (
-    <div className="eb-flex eb-flex-col eb-gap-y-6">
+    <div className="eb-space-y-6">
       <OnboardingFormField
         control={form.control}
         name="industry"
