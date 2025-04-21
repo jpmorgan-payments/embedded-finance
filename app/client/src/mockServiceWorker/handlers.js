@@ -502,6 +502,10 @@ export const createHandlers = (apiUrl) => [
     },
   ),
 
+  http.get('/clients/:clientId', () => {
+    return new HttpResponse(null, { status: 404 });
+  }),
+
   http.post('/ef/do/v1/_reset', () => {
     return HttpResponse.json(resetDb());
   }),

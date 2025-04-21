@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.20.0",
-    "http-proxy-middleware": "^2.0.7",
+    "http-proxy-middleware": "^2.0.9",
     "https-proxy-agent": "^5.0.1"
   },
   "engines": {
