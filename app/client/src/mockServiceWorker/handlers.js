@@ -176,7 +176,8 @@ export const createHandlers = (apiUrl) => [
     if (data.addParties && Array.isArray(data.addParties)) {
       for (const partyData of data.addParties) {
         // Generate a new party ID if not provided
-        const newPartyId = Math.random().toString(36).substring(7);
+        const newPartyId =
+          '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
 
         // Create the new party with required fields
         const newParty = {
