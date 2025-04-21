@@ -110,6 +110,7 @@ type FieldConfigurationGeneric<
       fromResponseFn?: (val: any) => T;
       toRequestFn?: (val: T) => any;
       toStringFn?: (val: T) => string | string[];
+      generateLabelStringFn?: (val: T) => string;
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
       key?: K; // phantom property
@@ -118,6 +119,7 @@ type FieldConfigurationGeneric<
       fromResponseFn?: never;
       toRequestFn?: never;
       toStringFn?: (val: T) => string | string[];
+      generateLabelStringFn?: (val: T) => string;
     } & BaseFieldConfiguration<T, IsSubfield>);
 
 interface ArrayFieldConfigurationGeneric<

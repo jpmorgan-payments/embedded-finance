@@ -44,12 +44,18 @@ export const OwnersSectionScreen = () => {
       party.active
   );
 
+  const { completed } = globalStepper.getMetadata(
+    'section-stepper'
+  ) as Partial<StepperSectionType> & { completed: boolean };
+
   const form = useForm({
     defaultValues: {
       controllerIsAnOwner: controllerParty
         ? controllerParty.roles?.includes('BENEFICIAL_OWNER')
           ? 'yes'
-          : 'no'
+          : completed
+            ? 'no'
+            : undefined
         : undefined,
     },
   });
@@ -248,8 +254,8 @@ export const OwnersSectionScreen = () => {
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription className="eb-flex eb-flex-col">
             <p className="eb-mb-2">Organization roles:</p>
-            <p className="eb-font-medium">Owners</p>
-            <p>Please add all owners holding 25% or more of the business.</p>
+            <p className="eb-text-lg eb-font-bold">Owners</p>
+            <p>All owners holding 25% or more of the business.</p>
           </AlertDescription>
         </Alert>
 
@@ -277,7 +283,7 @@ export const OwnersSectionScreen = () => {
             {activeOwners.length >= 4 &&
               form.watch('controllerIsAnOwner') === 'no' &&
               controllerUpdateStatus !== 'pending' && (
-                <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
+                <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
                   {'\u24d8'}{' '}
                   {t('beneficialOwnerStepForm.controllerCannotBeOwnerWarning')}
                 </p>
@@ -304,7 +310,7 @@ export const OwnersSectionScreen = () => {
           </Button>
 
           {ownersData.length >= 4 && (
-            <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+            <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
               {'\u24d8'} {t('beneficialOwnerStepForm.maxOwnersWarning')}
             </p>
           )}
@@ -342,7 +348,10 @@ export const OwnersSectionScreen = () => {
                       ] as unknown as TemplateStringsArray)}
                 </p>
                 <div className="eb-flex eb-gap-2 eb-pt-2">
-                  <Badge className="eb-bg-[#EDF4FF] eb-text-[#355FA1]">
+                  <Badge
+                    variant="outline"
+                    className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                  >
                     Owner
                   </Badge>
                   {owner.roles?.includes('CONTROLLER') && (
@@ -376,7 +385,7 @@ export const OwnersSectionScreen = () => {
                 </Button>
               </div>
               {!checkOwnerIsCompleted(owner.id) && (
-                <p className="eb-text[0.8rem] eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
                   {'\u24d8'} This individual is missing some details.
                 </p>
               )}
@@ -397,10 +406,15 @@ export const OwnersSectionScreen = () => {
             size="lg"
             className="eb-w-full eb-text-lg"
             onClick={() => {
-              globalStepper.setMetadata('overview', {
-                ...globalStepper.getMetadata('overview'),
-                justCompleted: globalStepper.current.id,
-              });
+              if (!completed) {
+                globalStepper.setMetadata('overview', {
+                  ...globalStepper.getMetadata('overview'),
+                  completed: [
+                    ...(globalStepper.getMetadata('overview')?.completed || []),
+                    'owners',
+                  ],
+                });
+              }
               globalStepper.goTo('overview');
             }}
             disabled={isFormDisabled}

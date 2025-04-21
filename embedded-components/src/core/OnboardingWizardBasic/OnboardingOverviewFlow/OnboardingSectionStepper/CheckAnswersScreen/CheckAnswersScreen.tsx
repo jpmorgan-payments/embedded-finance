@@ -62,6 +62,18 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                 const toStringFn = partyFieldMap?.[
                   field as keyof OnboardingFormValuesSubmit
                 ]?.toStringFn as (val: any) => string | string[] | undefined;
+                const generateLabelStringFn = partyFieldMap?.[
+                  field as keyof OnboardingFormValuesSubmit
+                ]?.generateLabelStringFn as (val: any) => string | undefined;
+
+                const labelString =
+                  generateLabelStringFn?.(value) ??
+                  t([
+                    `onboarding-overview:fields.${field}.reviewLabel`,
+                    `onboarding-overview:fields.${field}.label`,
+                    `onboarding:fields.${field}.label`,
+                  ] as unknown as TemplateStringsArray);
+
                 const valueString =
                   value !== undefined
                     ? toStringFn
@@ -71,13 +83,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
 
                 return (
                   <div className="eb-space-y-0.5" key={field}>
-                    <p className="eb-text-sm eb-font-medium">
-                      {t([
-                        `onboarding-overview:fields.${field}.reviewLabel`,
-                        `onboarding-overview:fields.${field}.label`,
-                        `onboarding:fields.${field}.label`,
-                      ] as unknown as TemplateStringsArray)}
-                    </p>
+                    <p className="eb-text-sm eb-font-medium">{labelString}</p>
                     <div className="eb-flex eb-flex-col">
                       {Array.isArray(valueString) ? (
                         valueString.map((val, index) => (
