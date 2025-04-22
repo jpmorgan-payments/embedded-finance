@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  ArrowRightIcon,
   InfoIcon,
   Loader2Icon,
   PencilIcon,
@@ -282,10 +283,23 @@ export const OwnersSectionScreen = () => {
               noOptionalLabel
             />
             {controllerParty === undefined && (
-              <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                {'\u24d8'}
-                {' Please complete the controller details first.'}
-              </p>
+              <div className="eb-mt-2 eb-flex eb-items-center">
+                <p className="eb-flex eb-h-8 eb-items-center eb-text-sm eb-font-normal eb-text-orange-500">
+                  {'\u24d8'}
+                  {' Please complete the personal details first.'}
+                </p>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="eb-h-8"
+                  onClick={() => {
+                    globalStepper.goTo('section-stepper');
+                  }}
+                >
+                  Go now
+                  <ArrowRightIcon />
+                </Button>
+              </div>
             )}
             {activeOwners.length >= 4 &&
               form.watch('controllerIsAnOwner') === 'no' &&
@@ -416,10 +430,7 @@ export const OwnersSectionScreen = () => {
               if (!completed) {
                 globalStepper.setMetadata('overview', {
                   ...globalStepper.getMetadata('overview'),
-                  completed: [
-                    ...(globalStepper.getMetadata('overview')?.completed || []),
-                    'owners',
-                  ],
+                  justCompletedSection: 'owners',
                 });
               }
               globalStepper.goTo('overview');

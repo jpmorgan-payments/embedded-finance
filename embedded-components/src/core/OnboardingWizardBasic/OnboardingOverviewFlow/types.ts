@@ -52,12 +52,19 @@ export type SectionStepFormComponent<
   ) => z.output<TSchema>;
 };
 
+export type SectionStepComponent = FC<{
+  stepId: string;
+  handleNext: () => void;
+  handlePrev: () => void;
+}>;
+
 export type StepType =
   | {
       id: string;
       type: 'form';
       title: string;
       description?: string;
+      Component?: never;
       FormComponent: SectionStepFormComponent;
     }
   | {
@@ -65,7 +72,16 @@ export type StepType =
       type: 'check-answers';
       title: string;
       description?: string;
-      FormComponent?: never; // Ensure formConfig is not allowed\
+      Component?: never;
+      FormComponent?: never; // Ensure formConfig is not allowed
+    }
+  | {
+      id: string;
+      type: 'component';
+      title: string;
+      description?: string;
+      Component?: SectionStepComponent;
+      FormComponent?: never; // Ensure formConfig is not allowed
     };
 
 export type StepperSectionType = {
@@ -73,7 +89,7 @@ export type StepperSectionType = {
   title: string;
   icon: LucideIcon;
   type: 'stepper';
-  correspondingParty: Partial<PartyResponse>;
+  correspondingParty?: Partial<PartyResponse>;
   defaultPartyRequestBody?: Partial<PartyResponse>;
   steps: StepType[];
   Component?: never;

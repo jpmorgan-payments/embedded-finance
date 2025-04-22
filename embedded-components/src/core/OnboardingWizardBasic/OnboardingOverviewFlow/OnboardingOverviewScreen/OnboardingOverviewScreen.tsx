@@ -66,8 +66,8 @@ export const OnboardingOverviewScreen = () => {
     if (type === 'stepper' && clientData) {
       const partyData = clientData.parties?.find(
         (party) =>
-          party?.partyType === correspondingParty.partyType &&
-          correspondingParty.roles?.every((role) =>
+          party?.partyType === correspondingParty?.partyType &&
+          correspondingParty?.roles?.every((role) =>
             party?.roles?.includes(role)
           ) &&
           party.active
