@@ -5,9 +5,6 @@ const availableOrganizationTypes = [
   'GENERAL_PARTNERSHIP',
   'LIMITED_PARTNERSHIP',
   'C_CORPORATION',
-  'S_CORPORATION',
-  'PARTNERSHIP',
-  'PUBLICLY_TRADED_COMPANY',
 ];
 
 export const onboardingScenarios = [
