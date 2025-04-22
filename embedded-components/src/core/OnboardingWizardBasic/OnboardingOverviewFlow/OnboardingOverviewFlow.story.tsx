@@ -11,6 +11,7 @@ import {
 } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/OnboardingOverviewFlow';
 
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
+import { handlers } from './msw.handlers';
 
 export type OnboardingWizardBasicWithProviderProps =
   OnboardingOverviewFlowProps & EBConfig;
@@ -20,6 +21,9 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   component: OnboardingOverviewFlow,
   parameters: {
     layout: 'fullscreen',
+    msw: {
+      handlers,
+    },
   },
   args: {
     onPostClientResponse: (data, error) => {
@@ -168,4 +172,21 @@ STheme.args = {
       secondaryBorderWidth: '1px',
     },
   },
+};
+
+export const SThemeWithMock = Default.bind({});
+SThemeWithMock.storyName = 'Mocked New Client';
+SThemeWithMock.args = {
+  ...STheme.args,
+  apiBaseUrl: '/ef/do/v1/',
+  headers: {
+    api_gateway_client_id: 'test',
+  },
+};
+
+export const MockExistingClient = Default.bind({});
+MockExistingClient.storyName = 'Mocked Existing LLC Client';
+MockExistingClient.args = {
+  ...SThemeWithMock.args,
+  initialClientId: '0030000132',
 };

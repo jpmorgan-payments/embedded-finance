@@ -9,7 +9,7 @@ const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
-const controllerIdSchema = z
+export const controllerIdSchema = z
   .object({
     description: z.string().optional(),
     expiryDate: z

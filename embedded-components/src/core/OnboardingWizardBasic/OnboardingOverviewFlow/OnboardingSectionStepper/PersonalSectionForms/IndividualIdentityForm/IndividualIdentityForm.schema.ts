@@ -1,6 +1,8 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
+import { controllerIdSchema } from '@/core/OnboardingWizardBasic/ControllerStepForm/ControllerStepForm.schema';
+
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
@@ -36,5 +38,12 @@ export const IndividualIdentityFormSchema = z.object({
     .length(
       2,
       i18n.t('onboarding:fields.countryOfResidence.validation.exactlyTwoChars')
-    ),
+    )
+    .refine((val) => val === 'US', {
+      message: 'Only US is supported at this time.',
+    }),
+  controllerIds: z.array(controllerIdSchema).refine((ids) => {
+    const types = ids.map((id) => id.idType);
+    return new Set(types).size === types.length;
+  }, i18n.t('onboarding:fields.controllerIds.validation.uniqueTypes')),
 });

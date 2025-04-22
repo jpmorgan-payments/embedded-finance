@@ -327,6 +327,11 @@ export const partyFieldMap: PartyFieldMap = {
         },
       },
     ],
+    toStringFn: (val) => {
+      const primaryId = val[0];
+      const idType = i18n.t(`idValueLabels.${primaryId.idType}`);
+      return `${idType} (${primaryId.issuer}) - ${primaryId.value}`;
+    },
     subFields: {
       idType: {
         baseRule: { display: 'visible', required: true },
@@ -513,6 +518,15 @@ export const partyFieldMap: PartyFieldMap = {
         issuer: 'US',
         value: '',
       },
+    },
+    generateLabelStringFn: (val) => {
+      const primaryId = val[0];
+      const idType = i18n.t(`idValueLabels.${primaryId.idType}`);
+      return idType;
+    },
+    toStringFn: (val) => {
+      const primaryId = val[0];
+      return primaryId.value.replace(/(\d{3})(\d{2})(\d{4})/, '$1-$2-$3');
     },
     subFields: {
       idType: {
