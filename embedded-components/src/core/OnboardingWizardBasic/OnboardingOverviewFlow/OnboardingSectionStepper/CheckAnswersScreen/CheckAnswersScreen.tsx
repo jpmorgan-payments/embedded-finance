@@ -57,17 +57,24 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                 </Button>
               </div>
               {Object.keys(step.FormComponent.schema.shape).map((field) => {
+                const fieldConfig = partyFieldMap?.[
+                  field as keyof OnboardingFormValuesSubmit
+                ] as {
+                  toStringFn?: (val: any) => string | string[] | undefined;
+                  generateLabelStringFn?: (val: any) => string | undefined;
+                  isHiddenInReview?: (val: any) => boolean;
+                } & {
+                  [key: string]: any;
+                };
                 const value =
                   values?.[field as keyof OnboardingFormValuesSubmit];
-                const toStringFn = partyFieldMap?.[
-                  field as keyof OnboardingFormValuesSubmit
-                ]?.toStringFn as (val: any) => string | string[] | undefined;
-                const generateLabelStringFn = partyFieldMap?.[
-                  field as keyof OnboardingFormValuesSubmit
-                ]?.generateLabelStringFn as (val: any) => string | undefined;
+
+                if (fieldConfig?.isHiddenInReview?.(value)) {
+                  return null;
+                }
 
                 const labelString =
-                  generateLabelStringFn?.(value) ??
+                  fieldConfig?.generateLabelStringFn?.(value) ??
                   t([
                     `onboarding-overview:fields.${field}.reviewLabel`,
                     `onboarding-overview:fields.${field}.label`,
@@ -76,8 +83,8 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
 
                 const valueString =
                   value !== undefined
-                    ? toStringFn
-                      ? toStringFn(value)
+                    ? fieldConfig?.toStringFn
+                      ? fieldConfig.toStringFn(value)
                       : String(value)
                     : undefined;
 

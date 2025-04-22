@@ -10,6 +10,7 @@ import {
 import { BeneficialOwnerStepFormSchema } from '../BeneficialOwnerStepForm/BeneficialOwnerStepForm.schema';
 import { ControllerStepFormSchema } from '../ControllerStepForm/ControllerStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
+import { CustomerFacingDetailsFormSchema } from '../OnboardingOverviewFlow/OnboardingSectionStepper/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
 // TODO: add more form schemas here
@@ -18,14 +19,16 @@ export type OnboardingFormValuesSubmit = z.output<
 > &
   z.output<typeof OrganizationStepFormSchema> &
   z.output<typeof ControllerStepFormSchema> &
-  z.output<typeof BeneficialOwnerStepFormSchema>;
+  z.output<typeof BeneficialOwnerStepFormSchema> &
+  z.output<typeof CustomerFacingDetailsFormSchema>;
 
 export type OnboardingFormValuesInitial = z.input<
   typeof InitialStepFormSchema
 > &
   z.input<typeof OrganizationStepFormSchema> &
   z.input<typeof ControllerStepFormSchema> &
-  z.input<typeof BeneficialOwnerStepFormSchema>;
+  z.input<typeof BeneficialOwnerStepFormSchema> &
+  z.input<typeof CustomerFacingDetailsFormSchema>;
 
 export type OnboardingTopLevelArrayFieldNames = Extract<
   FieldArrayPath<OnboardingFormValuesSubmit>,
@@ -84,6 +87,9 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     rule: OptionalDefaults<FieldRule<T>, true>;
   }>;
   modifyErrorField?: (field: string) => string;
+  toStringFn?: (val: T) => string | string[];
+  generateLabelStringFn?: (val: T) => string;
+  isHiddenInReview?: (val: T) => boolean;
 };
 
 type DefaultKeys<Rule> = Extract<
@@ -109,8 +115,6 @@ type FieldConfigurationGeneric<
       path: string;
       fromResponseFn?: (val: any) => T;
       toRequestFn?: (val: T) => any;
-      toStringFn?: (val: T) => string | string[];
-      generateLabelStringFn?: (val: T) => string;
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
       key?: K; // phantom property
@@ -118,8 +122,6 @@ type FieldConfigurationGeneric<
       path?: never;
       fromResponseFn?: never;
       toRequestFn?: never;
-      toStringFn?: (val: T) => string | string[];
-      generateLabelStringFn?: (val: T) => string;
     } & BaseFieldConfiguration<T, IsSubfield>);
 
 interface ArrayFieldConfigurationGeneric<

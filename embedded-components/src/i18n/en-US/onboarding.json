@@ -498,6 +498,7 @@
       "group": "identification"
     },
     "website": {
+      "label": "Business website",
       "validation": {
         "invalid": "Invalid URL",
         "maxLength": "Website URL must be 500 characters or less",

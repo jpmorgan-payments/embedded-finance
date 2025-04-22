@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ChevronDownIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +28,12 @@ export const IndividualIdentityForm: SectionStepFormComponent = () => {
   };
 
   const currentIdType = form.watch('controllerIds.0.idType');
+
+  useEffect(() => {
+    if (form.watch('controllerIds.0.issuer') !== 'US') {
+      form.setValue('controllerIds.0.issuer', 'US');
+    }
+  }, [form.watch('controllerIds.0.issuer')]);
 
   return (
     <div className="eb-space-y-6">

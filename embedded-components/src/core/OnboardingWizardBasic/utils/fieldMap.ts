@@ -327,10 +327,13 @@ export const partyFieldMap: PartyFieldMap = {
         },
       },
     ],
+    generateLabelStringFn: (val) => {
+      const primaryId = val[0];
+      return `${i18n.t(`idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
+    },
     toStringFn: (val) => {
       const primaryId = val[0];
-      const idType = i18n.t(`idValueLabels.${primaryId.idType}`);
-      return `${idType} (${primaryId.issuer}) - ${primaryId.value}`;
+      return primaryId.value.replace(/(\d{2})(\d{7})/, '$1 - $2');
     },
     subFields: {
       idType: {
@@ -413,6 +416,24 @@ export const partyFieldMap: PartyFieldMap = {
     },
     fromResponseFn: (val: boolean) => !val,
     toRequestFn: (val): boolean => !val,
+  },
+  websiteNotAvailable: {
+    excludeFromMapping: true,
+    isHiddenInReview: () => true,
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: false,
+    },
+  },
+  dbaNameNotAvailable: {
+    excludeFromMapping: true,
+    isHiddenInReview: () => true,
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: false,
+    },
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',
@@ -521,12 +542,11 @@ export const partyFieldMap: PartyFieldMap = {
     },
     generateLabelStringFn: (val) => {
       const primaryId = val[0];
-      const idType = i18n.t(`idValueLabels.${primaryId.idType}`);
-      return idType;
+      return `${i18n.t(`idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
       const primaryId = val[0];
-      return primaryId.value.replace(/(\d{3})(\d{2})(\d{4})/, '$1-$2-$3');
+      return primaryId.value.replace(/(\d{3})(\d{2})(\d{4})/, '*** - ** - $3');
     },
     subFields: {
       idType: {

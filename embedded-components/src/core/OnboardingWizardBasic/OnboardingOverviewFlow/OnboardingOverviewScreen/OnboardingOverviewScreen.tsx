@@ -60,7 +60,7 @@ export const OnboardingOverviewScreen = () => {
   const checkSectionIsCompleted = (id: string) => {
     const section = overviewSections.find((item) => item.id === id);
     if (!section) return false;
-    if (completedSections[id]) return true;
+    if (completedSections?.[id]) return true;
 
     const { type, steps, correspondingParty } = section;
     if (type === 'stepper' && clientData) {

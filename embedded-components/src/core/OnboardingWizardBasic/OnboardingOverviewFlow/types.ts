@@ -14,7 +14,7 @@ import {
 } from '@/api/generated/smbdo.schemas';
 
 import { Jurisdiction } from '../utils/types';
-import { globalSteps } from './OnboardingGlobalStepper';
+import { GlobalStepper } from './OnboardingGlobalStepper';
 
 export type OnboardingConfigDefault = {
   initialClientId?: string;
@@ -43,7 +43,7 @@ export type SectionStepFormComponent<
   TSchema extends z.ZodObject<Record<string, z.ZodType<any>>> = z.ZodObject<
     Record<string, z.ZodType<any>>
   >,
-> = FC & {
+> = FC<{ currentPartyData?: PartyResponse }> & {
   schema: TSchema;
   refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
   modifyFormValuesBeforeSubmit?: (
@@ -87,7 +87,7 @@ export type GlobalStepSectionType = {
   correspondingParty?: never;
   defaultPartyRequestBody?: never;
   steps?: never;
-  stepId: (typeof globalSteps)[number]['id'];
+  stepId: (typeof GlobalStepper.steps)[number]['id'];
 };
 
 export type SectionType = StepperSectionType | GlobalStepSectionType;

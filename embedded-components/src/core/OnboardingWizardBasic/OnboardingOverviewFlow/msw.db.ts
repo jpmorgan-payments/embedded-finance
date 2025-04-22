@@ -121,9 +121,18 @@ export function logDbState(operation = 'Current State') {
   const documentRequests = db.documentRequest.getAll();
 
   console.log('=== Database State After:', operation, '===');
-  console.log('Clients:', JSON.stringify(clients, null, 2));
-  console.log('Parties:', JSON.stringify(parties, null, 2));
-  console.log('Document Requests:', JSON.stringify(documentRequests, null, 2));
+  console.log(
+    'Clients:',
+    clients.map((c) => c.id)
+  );
+  console.log(
+    'Parties:',
+    parties.map((p) => p.id)
+  );
+  console.log(
+    'Document Requests:',
+    documentRequests.map((dr) => dr.id)
+  );
   console.log('=====================================');
 }
 

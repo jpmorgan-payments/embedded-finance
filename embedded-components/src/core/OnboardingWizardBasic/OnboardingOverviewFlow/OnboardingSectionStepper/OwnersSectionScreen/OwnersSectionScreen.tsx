@@ -266,6 +266,7 @@ export const OwnersSectionScreen = () => {
               disableFieldRuleMapping
               disabled={
                 isFormDisabled ||
+                controllerParty === undefined ||
                 (activeOwners.length >= 4 &&
                   form.watch('controllerIsAnOwner') === 'no')
               }
@@ -280,6 +281,12 @@ export const OwnersSectionScreen = () => {
               ]}
               noOptionalLabel
             />
+            {controllerParty === undefined && (
+              <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                {'\u24d8'}
+                {' Please complete the controller details first.'}
+              </p>
+            )}
             {activeOwners.length >= 4 &&
               form.watch('controllerIsAnOwner') === 'no' &&
               controllerUpdateStatus !== 'pending' && (
