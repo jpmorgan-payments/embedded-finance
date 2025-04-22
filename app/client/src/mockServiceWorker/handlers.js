@@ -96,7 +96,6 @@ export const createHandlers = (apiUrl) => [
           '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
         const newParty = {
           id: newPartyId,
-          status: 'ACTIVE',
           ...partyData,
           createdAt: timestamp,
           active: true,
@@ -182,7 +181,7 @@ export const createHandlers = (apiUrl) => [
         // Create the new party with required fields
         const newParty = {
           id: newPartyId,
-          status: 'ACTIVE',
+          active: true,
           ...partyData,
           // Ensure partyType and roles are present as they are required
           partyType: partyData.partyType || 'ORGANIZATION',
