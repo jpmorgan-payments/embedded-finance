@@ -8,25 +8,31 @@ A guided document upload component that enables users to fulfill document requir
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant User
     participant UI
-    participant State
+    participant UI State
     participant API
 
     API->>UI: Load document request (ACTIVE status)
-    Note over UI: Show all requirements<br/>First one interactive
+    Note over API, UI: API GET /document-requests?clientId={id}&includeRelatedParties=true<br/>OR API GET /clients/{id} -> API GET /document-requests/{id}
+    Note over UI: Show all requirements as steps<br/>Only first one interactive
 
     User->>UI: Upload document for requirement
-    UI->>State: Update satisfied docs
-    State->>UI: Activate next requirement
-    UI->>API: Upload document (async)
+    UI->>UI State: Update satisfied docs
+    UI State->>UI: Activate next requirement
 
-    Note over State: Evaluate based on minRequired
+    Note over UI State: Evaluate based on minRequired
 
-    State->>UI: All requirements met
+    UI State->>UI: All requirements met
     UI->>User: Enable submission
     User->>UI: Submit
-    UI->>API: Submit request
+
+    UI->>API: Upload document (sync)
+    Note over API, UI: API POST /documents
+
+    UI->>API: Submit document request
+    Note over API, UI: API POST /document-requests/{id}/submit
 ```
 
 ## Key Features
