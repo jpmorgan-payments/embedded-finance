@@ -29,9 +29,13 @@ export interface NAICSCode {
 
 interface IndustryTypeSelectProps {
   field: ControllerRenderProps<any, string>;
+  placeholder?: string;
 }
 
-export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
+export const IndustryTypeSelect = ({
+  field,
+  placeholder,
+}: IndustryTypeSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { onBlur, onChange, ...fieldWithoutBlur } = field;
@@ -139,7 +143,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
                   </span>
                 </div>
               ) : (
-                'Select industry type'
+                (placeholder ?? 'Select industry type')
               )}
               <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
             </Button>
@@ -152,7 +156,7 @@ export const IndustryTypeSelect = ({ field }: IndustryTypeSelectProps) => {
         >
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Search industry type..."
+              placeholder={placeholder ?? 'Search industry type...'}
               className="eb-h-9"
               value={searchQuery}
               onValueChange={setSearchQuery}

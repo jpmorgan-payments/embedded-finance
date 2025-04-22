@@ -281,6 +281,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <IndustryTypeSelect
                         field={field}
                         data-dtrum-tracking={field.name}
+                        placeholder={fieldPlaceholder}
                       />
                     );
                   case 'combobox':
