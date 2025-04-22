@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { factory, primaryKey } from '@mswjs/data';
 import merge from 'lodash/merge';
 
@@ -8,7 +9,6 @@ import {
   LLCExistingClientOutstandingDocuments,
   SoleProprietorExistingClient,
 } from './.storybook/mocks/clientDetails.mock';
-import { efClientQuestionsMock } from './.storybook/mocks/clientQuestions.mock';
 import { efDocumentRequestDetailsList } from './.storybook/mocks/documentRequestDetailsList.mock';
 
 // Magic values configuration
@@ -328,6 +328,12 @@ export function handleMagicValues(clientId, verificationData = {}) {
 
   let updatedClient = { ...client };
 
+  const individualParties = client.parties
+    .map((partyId) =>
+      db.party.findFirst({ where: { id: { equals: partyId } } })
+    )
+    .filter((party) => party && party.partyType === 'INDIVIDUAL');
+
   switch (taxId) {
     case MAGIC_VALUES.INFORMATION_REQUESTED:
       // Initialize the updated client with base changes
@@ -361,12 +367,6 @@ export function handleMagicValues(clientId, verificationData = {}) {
       }
 
       // Handle individual document requests and validation response
-      const individualParties = client.parties
-        .map((partyId) =>
-          db.party.findFirst({ where: { id: { equals: partyId } } })
-        )
-        .filter((party) => party && party.partyType === 'INDIVIDUAL');
-
       for (const indParty of individualParties) {
         const generatedDocRequestId = Math.floor(
           10000 + Math.random() * 90000
@@ -445,7 +445,7 @@ export function handleMagicValues(clientId, verificationData = {}) {
     data: updatedClient,
   });
 
-  logDbState('Client Verification Update');
+  logDbState('Client Verification Update', updated);
 
   // Return verification response according to SMBDO schema
   return {
