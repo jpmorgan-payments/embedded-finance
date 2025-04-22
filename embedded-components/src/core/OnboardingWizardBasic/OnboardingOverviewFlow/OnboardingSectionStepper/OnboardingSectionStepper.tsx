@@ -378,7 +378,7 @@ export const OnboardingSectionStepper = () => {
         {currentStep.type === 'form' && (
           <Form {...form}>
             <form id={currentStep.id} onSubmit={onSubmit} key={currentStep.id}>
-              <currentStep.FormComponent />
+              <currentStep.FormComponent currentPartyData={currentPartyData} />
             </form>
           </Form>
         )}
@@ -419,25 +419,36 @@ export const OnboardingSectionStepper = () => {
                   : 'Back to all owners'
                 : 'Back'}
           </Button>
-          <Button
-            form={currentStep.id}
-            type="submit"
-            variant={
-              completed && !editModeOriginStepId ? 'secondary' : 'default'
-            }
-            size="lg"
-            className="eb-w-full eb-text-lg"
-            disabled={isFormDisabled}
-          >
-            {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
-            {editModeOriginStepId
-              ? 'Save'
-              : completed
-                ? originStepId === 'overview'
-                  ? 'Back to overview'
-                  : 'Back to all owners'
-                : 'Next'}
-          </Button>
+          {currentStep.type !== 'check-answers' ||
+          (currentStep.type === 'check-answers' && !completed) ? (
+            <Button
+              form={currentStep.id}
+              type="submit"
+              variant="default"
+              size="lg"
+              className="eb-w-full eb-text-lg"
+              disabled={isFormDisabled}
+            >
+              {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
+              {currentStep.type === 'check-answers' && !completed
+                ? 'Next'
+                : editModeOriginStepId
+                  ? 'Save'
+                  : 'Next'}
+            </Button>
+          ) : (
+            <Button
+              form={currentStep.id}
+              type="submit"
+              variant="secondary"
+              size="lg"
+              className="eb-w-full eb-text-lg"
+            >
+              {originStepId === 'overview'
+                ? 'Back to overview'
+                : 'Back to all owners'}
+            </Button>
+          )}
         </div>
       </div>
     </StepLayout>

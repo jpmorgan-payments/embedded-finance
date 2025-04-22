@@ -10,6 +10,7 @@ import {
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
 import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
+import { CustomerFacingDetailsForm } from './OnboardingSectionStepper/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm';
 import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
@@ -93,6 +94,14 @@ export const overviewSections: SectionType[] = [
         FormComponent: CompanyIdentificationForm,
       },
       {
+        id: 'customer-facing-details',
+        type: 'form',
+        title: 'Customer facing details',
+        description:
+          'Please help us understand how you present your company to customers.',
+        FormComponent: CustomerFacingDetailsForm,
+      },
+      {
         id: 'check-answers',
         type: 'check-answers',
         title: 'Check your answers',
@@ -113,7 +122,7 @@ export const overviewSections: SectionType[] = [
     title: 'Operational details',
     icon: TagIcon,
     type: 'global-step',
-    stepId: 'overview',
+    stepId: 'operational-details',
   },
   {
     id: 'attest',

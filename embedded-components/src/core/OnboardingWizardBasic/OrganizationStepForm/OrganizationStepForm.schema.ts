@@ -138,7 +138,7 @@ const secondaryMccSchema = z.object({
     ),
 });
 
-const sanitizeDescription = (input: string): string => {
+export const sanitizeDescription = (input: string): string => {
   // First pass: DOMPurify to handle any HTML/XSS
   let sanitized = DOMPurify.sanitize(input, {
     ALLOWED_TAGS: [], // strip all HTML

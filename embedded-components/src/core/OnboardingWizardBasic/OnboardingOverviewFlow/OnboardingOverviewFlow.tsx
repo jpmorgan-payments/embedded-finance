@@ -17,6 +17,7 @@ import { OnboardingGatewayScreen } from './OnboardingGatewayScreen/OnboardingGat
 import { GlobalStepper } from './OnboardingGlobalStepper';
 import { OnboardingOverviewScreen } from './OnboardingOverviewScreen/OnboardingOverviewScreen';
 import { OnboardingSectionStepper } from './OnboardingSectionStepper/OnboardingSectionStepper';
+import { OperationalDetailsForm } from './OnboardingSectionStepper/OperationalDetailsForm/OperationalDetailsForm';
 import { OwnersSectionScreen } from './OnboardingSectionStepper/OwnersSectionScreen/OwnersSectionScreen';
 import {
   OnboardingConfigDefault,
@@ -163,6 +164,8 @@ export const OnboardingOverviewFlow: FC<OnboardingOverviewFlowProps> = ({
               },
               'section-stepper': {},
               owners: {},
+              'operational-details': {},
+              'review-and-attest': {},
             }}
           >
             <OnboardingMainSteps />
@@ -210,6 +213,7 @@ const OnboardingMainSteps = () => {
           overview: () => <OnboardingOverviewScreen />,
           'section-stepper': () => <OnboardingSectionStepper />,
           owners: () => <OwnersSectionScreen />,
+          'operational-details': () => <OperationalDetailsForm />,
         })}
       </div>
     </div>

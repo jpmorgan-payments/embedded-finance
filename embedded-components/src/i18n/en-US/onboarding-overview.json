@@ -117,6 +117,19 @@
       "primaryAddressLine": {
         "description": "P.O. box is not accepted",
         "tooltip": ""
+      },
+      "postalCode": {
+        "label": "Postal code",
+        "description": ""
+      },
+      "city": {
+        "label": "Town/City",
+        "description": ""
+      },
+      "state": {
+        "label": "State/Province",
+        "description": "",
+        "placeholder": "Select"
       }
     }
   },
