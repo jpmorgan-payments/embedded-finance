@@ -15,7 +15,7 @@ sequenceDiagram
     participant API
 
     API->>UI: Load document request (ACTIVE status)
-    Note over API, UI: API GET /document-requests?clientId={id}&includeRelatedParties=true<br/>GET /clients/{id} -> GET /document-requests/{id}
+    Note over API, UI: API GET /document-requests?clientId={id}&includeRelatedParties=true<br/>OR API GET /clients/{id} -> API GET /document-requests/{id}
     Note over UI: Show all requirements<br/>First one interactive
 
     User->>UI: Upload document for requirement
@@ -27,11 +27,11 @@ sequenceDiagram
     UI State->>UI: All requirements met
     UI->>User: Enable submission
     User->>UI: Submit
-    
+
     UI->>API: Upload document (sync)
     Note over API, UI: API POST /documents
 
-    UI->>API: Submit request
+    UI->>API: Submit document request
     Note over API, UI: API POST /document-requests/{id}/submit
 ```
 
