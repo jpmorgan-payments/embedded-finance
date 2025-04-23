@@ -19,12 +19,17 @@ import { SectionStepFormComponent } from '../../../types';
 import { IndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
 
 export const IndividualIdentityForm: SectionStepFormComponent = () => {
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
   const form = useFormContext<z.input<typeof IndividualIdentityFormSchema>>();
 
   const getValueLabel = (idType: IndividualIdentityIdType) => {
-    if (!idType) return t('idValueLabels.placeholder');
-    return t(`idValueLabels.${idType}`);
+    if (!idType) return t(['onboarding:idValueLabels.placeholder']);
+    return t([`idValueLabels.${idType}`, `onboarding:idValueLabels.${idType}`]);
+  };
+
+  const getValueDescription = (idType: IndividualIdentityIdType) => {
+    if (!idType) return '';
+    return t([`idValueDescriptions.${idType}`]);
   };
 
   const currentIdType = form.watch('controllerIds.0.idType');
@@ -67,6 +72,7 @@ export const IndividualIdentityForm: SectionStepFormComponent = () => {
             maskFormat="### - ## - ####"
             maskChar="_"
             label={getValueLabel(currentIdType)}
+            description={getValueDescription(currentIdType)}
           />
 
           <DropdownMenu>

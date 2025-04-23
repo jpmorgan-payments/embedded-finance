@@ -55,7 +55,8 @@
       "tooltip": ""
     },
     "controllerJobTitle": {
-      "tooltip": ""
+      "tooltip": "",
+      "placeholder": "Select job title"
     },
     "birthDate": {
       "description": ""
@@ -97,6 +98,11 @@
         "description": "Country where your ID was issued",
         "tooltip": ""
       },
+      "value": {
+        "tooltip": ""
+      }
+    },
+    "controllerIds": {
       "value": {
         "tooltip": ""
       }
@@ -160,13 +166,27 @@
     "EIN": "Employer Identification Number (EIN)",
     "BUSINESS_REGISTRATION_ID": "Business Registration ID",
     "BUSINESS_NUMBER": "Business Number",
-    "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+    "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number",
+    "SSN": "Social security number",
+    "ITIN": "Individual Taxpayer Identification Number (ITIN)",
+    "NATIONAL_ID": "National ID",
+    "PASSPORT": "Passport",
+    "DRIVERS_LICENSE": "Driver's License",
+    "OTHER_GOVERNMENT_ID": "Other Government ID",
+    "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
   },
   "idValueDescriptions": {
     "EIN": "A unique nine-digit number, assigned by the IRS, that identifies your company as a business operating in the United States.",
     "BUSINESS_REGISTRATION_ID": "A unique ID assigned by the state or province where your business is registered.",
     "BUSINESS_NUMBER": "A unique number assigned by the Canada Revenue Agency (CRA) to identify your business.",
-    "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered."
+    "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered.",
+    "SSN": "E.g. 555-11-0000",
+    "ITIN": "E.g. 900-70-0000",
+    "NATIONAL_ID": "National ID",
+    "PASSPORT": "Passport",
+    "DRIVERS_LICENSE": "Driver's License",
+    "OTHER_GOVERNMENT_ID": "Other Government ID",
+    "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
   },
   "organizationTypes": {
     "LIMITED_LIABILITY_COMPANY": "Limited Liability Company (LLC)",
