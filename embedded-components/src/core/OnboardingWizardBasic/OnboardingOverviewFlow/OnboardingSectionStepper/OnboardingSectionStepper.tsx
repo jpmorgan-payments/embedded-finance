@@ -138,10 +138,30 @@ export const OnboardingSectionStepper = () => {
   const handleStepChange = (destinationStep: StepType) => {
     goTo(destinationStep.id);
     if (destinationStep.type === 'form') {
+      const newClientData = queryClient.getQueryData(
+        getSmbdoGetClientQueryKey(clientData?.id ?? '')
+      ) as ClientResponse | undefined;
+      const newPartyData = correspondingParty?.id
+        ? newClientData?.parties?.find(
+            (party) => party.id === correspondingParty?.id
+          )
+        : correspondingParty
+          ? newClientData?.parties?.find(
+              (party) =>
+                party?.partyType === correspondingParty.partyType &&
+                correspondingParty.roles?.every((role) =>
+                  party?.roles?.includes(role)
+                ) &&
+                party.active
+            )
+          : undefined;
+      const newFormValues = newClientData
+        ? convertClientResponseToFormValues(newClientData, newPartyData?.id)
+        : formValues;
       form.reset(
         modifyDefaultValues(
           shapeFormValuesBySchema(
-            formValues,
+            newFormValues,
             destinationStep.FormComponent?.schema
           )
         )
