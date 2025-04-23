@@ -119,7 +119,7 @@ export const OnboardingOverviewScreen = () => {
 
         <div className="eb-flex eb-flex-col eb-space-y-2">
           <p className="eb-text-sm eb-font-semibold">
-            Please complete the following to verify your company
+            Please complete the following to verify your business
           </p>
           {overviewSections.map((section) => (
             <Button
