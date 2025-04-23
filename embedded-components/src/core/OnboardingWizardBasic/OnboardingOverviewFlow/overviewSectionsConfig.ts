@@ -49,7 +49,7 @@ export const overviewSections: SectionType[] = [
       {
         id: 'identity-document',
         type: 'form',
-        title: 'Identity document',
+        title: 'Individual identity',
         description:
           'We need some additional details to confirm your identity.',
         FormComponent: IndividualIdentityForm,
