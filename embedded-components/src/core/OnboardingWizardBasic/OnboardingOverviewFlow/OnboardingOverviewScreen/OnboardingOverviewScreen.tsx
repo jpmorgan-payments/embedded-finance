@@ -4,6 +4,7 @@ import {
   ChevronRightIcon,
   InfoIcon,
   Loader2Icon,
+  LockIcon,
   PencilIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -121,62 +122,137 @@ export const OnboardingOverviewScreen = () => {
           <p className="eb-text-sm eb-font-semibold">
             Please complete the following to verify your business
           </p>
-          {overviewSections.map((section) => (
-            <Button
-              key={section.id}
-              variant="ghost"
-              className="eb-flex eb-h-14 eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-text-sm"
-              onClick={() => {
-                if (section.type === 'stepper') {
-                  globalStepper.setMetadata('section-stepper', {
-                    ...section,
-                    completed: checkSectionIsCompleted(section.id),
-                    originStepId: 'overview',
-                  });
-                  globalStepper.goTo('section-stepper');
-                } else if (section.type === 'global-step') {
-                  globalStepper.setMetadata(section.stepId, {
-                    ...section,
-                  });
-                  globalStepper.goTo(section.stepId);
-                }
-              }}
-            >
-              <div className="eb-flex eb-items-center eb-gap-2 eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
-                <section.icon className="eb-size-4" />
-                <span>{section.title}</span>
-              </div>
-
-              {section.id === justCompletedSection ||
-              checkSectionIsCompleted(section.id) ? (
-                <div className="eb-flex eb-px-3 [&_svg]:eb-size-6">
-                  <CheckCircle2Icon
-                    className={cn(
-                      'eb-duration-400 eb-stroke-green-600 eb-opacity-100 eb-transition-opacity eb-ease-in',
-                      {
-                        'eb-hidden': !checkSectionIsCompleted(section.id),
-                        'eb-opacity-0': justCompletedSection === section.id,
-                      }
-                    )}
-                  />
-                  <Loader2Icon
-                    className={cn('eb-animate-spin eb-stroke-primary', {
-                      'eb-hidden': justCompletedSection !== section.id,
-                    })}
-                  />
-                </div>
-              ) : (
+          {overviewSections.map((section) => {
+            const disabled = section.id === 'upload-documents';
+            return (
+              <div key={section.id}>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="eb-pointer-events-none eb-text-primary"
+                  className={cn(
+                    'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-text-sm',
+                    {
+                      'eb-italic': disabled,
+                    }
+                  )}
+                  disabled={disabled}
+                  onClick={() => {
+                    if (section.type === 'stepper') {
+                      globalStepper.setMetadata('section-stepper', {
+                        ...section,
+                        completed: checkSectionIsCompleted(section.id),
+                        originStepId: 'overview',
+                      });
+                      globalStepper.goTo('section-stepper');
+                    } else if (section.type === 'global-step') {
+                      globalStepper.setMetadata(section.stepId, {
+                        ...section,
+                      });
+                      globalStepper.goTo(section.stepId);
+                    }
+                  }}
                 >
-                  {t('common:start')}
-                  <ChevronRightIcon />
+                  <div className="eb-flex eb-items-center eb-gap-2 eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
+                    <section.icon className="eb-size-4" />
+                    <span>{section.title}</span>
+                  </div>
+
+                  {section.id === justCompletedSection ||
+                  checkSectionIsCompleted(section.id) ? (
+                    <div className="eb-flex eb-px-3 [&_svg]:eb-size-6">
+                      <CheckCircle2Icon
+                        className={cn(
+                          'eb-duration-400 eb-stroke-green-600 eb-opacity-100 eb-transition-opacity eb-ease-in',
+                          {
+                            'eb-hidden': !checkSectionIsCompleted(section.id),
+                            'eb-opacity-0': justCompletedSection === section.id,
+                          }
+                        )}
+                      />
+                      <Loader2Icon
+                        className={cn('eb-animate-spin eb-stroke-primary', {
+                          'eb-hidden': justCompletedSection !== section.id,
+                        })}
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn('eb-pointer-events-none eb-text-primary', {
+                        'eb-italic': disabled,
+                        'eb-font-normal': disabled,
+                        '[--eb-button-text-transform:lowercase]': disabled,
+                      })}
+                    >
+                      {disabled ? (
+                        'hold'
+                      ) : (
+                        <>
+                          {t('common:start')}
+                          <ChevronRightIcon />
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </Button>
-              )}
+                {section.helpText && (
+                  <p className="eb-mt-1 eb-text-sm eb-italic">
+                    {section.helpText}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div>
+          <p className="eb-text-sm eb-font-semibold">
+            Let us know where to send payouts
+          </p>
+          <p className="eb-mt-0.5 eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
+            <LockIcon className="eb-size-3" /> Verify your business to unlock
+            this step
+          </p>
+          <Button
+            variant="ghost"
+            className={cn(
+              'eb-mt-2 eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-text-sm'
+            )}
+            disabled
+          >
+            <div className="eb-flex eb-items-center eb-gap-2 eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5.5 4V3H6.5V4H5.5Z"
+                  fill="#4C5157"
+                  fillOpacity="0.4"
+                />
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
+                  fill="#4C5157"
+                  fillOpacity="0.4"
+                />
+              </svg>
+
+              <span>Link a bank account</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn('eb-pointer-events-none eb-text-primary')}
+            >
+              {t('common:start')}
+              <ChevronRightIcon />
             </Button>
-          ))}
+          </Button>
         </div>
       </div>
 

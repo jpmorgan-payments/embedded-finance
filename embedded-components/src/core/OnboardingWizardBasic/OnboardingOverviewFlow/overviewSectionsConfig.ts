@@ -146,6 +146,7 @@ export const overviewSections: SectionType[] = [
     title: 'Supporting documents',
     icon: UploadIcon,
     type: 'global-step',
-    stepId: 'overview',
+    stepId: 'overview', // placeholder
+    helpText: 'Supporting documents are only needed in some cases',
   },
 ];
