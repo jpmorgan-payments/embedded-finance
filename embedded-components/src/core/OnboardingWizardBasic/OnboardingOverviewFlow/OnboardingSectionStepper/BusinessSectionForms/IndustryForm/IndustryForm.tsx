@@ -17,7 +17,7 @@ export const IndustryForm: SectionStepFormComponent = () => {
   return (
     <div className="eb-space-y-6">
       <LearnMorePopoverTrigger content={<div>hello</div>}>
-        <Button className="-eb-mt-6 eb-text-primary" variant="ghost">
+        <Button className="-eb-mt-6 eb-text-primary" size="sm" variant="ghost">
           Learn more <InfoIcon />
         </Button>
       </LearnMorePopoverTrigger>
