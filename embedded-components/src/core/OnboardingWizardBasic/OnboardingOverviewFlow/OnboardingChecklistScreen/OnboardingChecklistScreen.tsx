@@ -1,4 +1,4 @@
-import { InfoIcon, PencilIcon } from 'lucide-react';
+import { DownloadIcon, InfoIcon, PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -33,6 +33,11 @@ export const OnboardingChecklistScreen = () => {
       title={t('steps.checklist.title')}
       description={t('steps.checklist.description')}
     >
+      <div className="eb-mt-1">
+        <Button variant="ghost">
+          <DownloadIcon /> Download checklist
+        </Button>
+      </div>
       <div className="eb-mt-6 eb-flex-auto eb-space-y-4">
         <Card className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
           <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
