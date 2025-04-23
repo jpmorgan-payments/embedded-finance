@@ -21,7 +21,7 @@ import { SectionType } from './types';
 const parties: Record<string, Partial<PartyResponse>> = {
   controller: {
     partyType: 'INDIVIDUAL',
-    roles: ['BENEFICIAL_OWNER'],
+    roles: ['CONTROLLER'],
   },
   organization: {
     partyType: 'ORGANIZATION',
