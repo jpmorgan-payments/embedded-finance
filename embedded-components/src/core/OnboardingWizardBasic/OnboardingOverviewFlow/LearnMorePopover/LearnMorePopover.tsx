@@ -34,10 +34,10 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:eb-max-w-[425px]">
-          {content}{' '}
+          {content}
           <DialogFooter className="eb-pt-2">
             <DialogClose asChild>
-              <Button variant="outline" className="eb-w-full">
+              <Button variant="secondary" className="eb-w-full">
                 Close
               </Button>
             </DialogClose>
@@ -54,7 +54,13 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
         <div className="eb-px-4">{content}</div>
         <DrawerFooter className="eb-pt-2">
           <DrawerClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button
+              variant="secondary"
+              className="eb-w-full eb-text-lg"
+              size="lg"
+            >
+              Close
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

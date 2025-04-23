@@ -239,7 +239,7 @@ export const OnboardingGatewayScreen = () => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
-        <Alert variant="informative" className="eb-mb-4">
+        <Alert variant="informative" className="eb-mb-4 eb-text-foreground">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertTitle>Is this you?</AlertTitle>
           <AlertDescription>
@@ -263,7 +263,10 @@ export const OnboardingGatewayScreen = () => {
                 availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST
               ).map((type) => ({
                 value: type,
-                label: t(`onboarding:organizationTypes.${type}`),
+                label: t([
+                  `organizationTypes.${type}`,
+                  `onboarding:organizationTypes.${type}`,
+                ]),
                 description: t(
                   `onboarding:organizationTypeDescriptions.${type}`
                 ),
