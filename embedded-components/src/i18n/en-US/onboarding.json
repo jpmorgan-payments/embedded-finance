@@ -1361,7 +1361,7 @@
     "LIMITED_LIABILITY_COMPANY": "A company owned by one or more members and managed by one or more managers.",
     "LIMITED_LIABILITY_PARTNERSHIP": "A partnership where all owners, or limited partners, have limited liability.",
     "GENERAL_PARTNERSHIP": "A partnership where all owners, or general partners, have unlimited liability.",
-    "LIMITED_PARTNERSHIP": "A partnership where all owners, or general partners, have unlimited liability.",
+    "LIMITED_PARTNERSHIP": "A partnership between one or more limited partners and a general partner.",
     "C_CORPORATION": "A company owned by shareholders and managed by a board of directors and other officers.",
     "S_CORPORATION": "An S Corporation is a corporation that meets the IRS requirements to be taxed under Subchapter S of the Internal Revenue Code.",
     "PARTNERSHIP": "A Partnership is a business structure in which two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.",

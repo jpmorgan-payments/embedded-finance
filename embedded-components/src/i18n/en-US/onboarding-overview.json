@@ -8,7 +8,7 @@
       "alerts": [
         {
           "title": null,
-          "description": "Please ensure you make the correct selection. If you come back and edit this later, you may lose saved progress."
+          "description": "Please ensure you make the correct selection before continuing. If you change this later, you may lose your saved progress. "
         }
       ]
     },
@@ -167,5 +167,18 @@
     "BUSINESS_REGISTRATION_ID": "A unique ID assigned by the state or province where your business is registered.",
     "BUSINESS_NUMBER": "A unique number assigned by the Canada Revenue Agency (CRA) to identify your business.",
     "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered."
+  },
+  "organizationTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Limited Liability Company (LLC)",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Limited Liability Partnership (LLP)",
+    "GENERAL_PARTNERSHIP": "General Partnership",
+    "LIMITED_PARTNERSHIP": "Limited Partnership",
+    "C_CORPORATION": "C Corporation",
+    "S_CORPORATION": "S Corporation",
+    "PARTNERSHIP": "Partnership",
+    "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
+    "GOVERNMENT_ENTITY": "Government Entity",
+    "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
+    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
   }
 }
