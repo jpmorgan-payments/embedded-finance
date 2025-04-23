@@ -65,13 +65,13 @@ export const OnboardingChecklistScreen = () => {
 
           <div className="eb-space-y-1">
             <p className="eb-font-semibold">
-              Collect pertinent company details, typically found on your
-              company&apos;s registration certificate.
+              Collect pertinent business details, typically found on official
+              business registration documents.
             </p>
             <ul className="eb-list-disc eb-pl-8">
-              <li>Location and contact details</li>
-              <li>Industry type</li>
+              <li>Business classification</li>
               <li>Registration ID details</li>
+              <li>Location and contact details</li>
             </ul>
           </div>
         </Card>
@@ -116,7 +116,11 @@ export const OnboardingChecklistScreen = () => {
       <div className="eb-mt-6 eb-space-y-6">
         {t('steps.checklist.alerts', { returnObjects: true }).map(
           (alert, index) => (
-            <Alert variant="informative" key={index} className="eb-pb-3">
+            <Alert
+              variant="informative"
+              key={index}
+              className="eb-pb-3 eb-text-foreground"
+            >
               <InfoIcon className="eb-h-4 eb-w-4" />
               {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
               {alert.description && (
