@@ -18,18 +18,28 @@ sequenceDiagram
     Note over API, UI: API GET /document-requests?clientId={id}&includeRelatedParties=true<br/>OR API GET /clients/{id} -> API GET /document-requests/{id}
     Note over UI: Show all requirements as steps<br/>Only first one interactive
 
-    User->>UI: Upload document for requirement
-    UI->>UI State: Update satisfied docs
-    UI State->>UI: Activate next requirement
+    alt manage/render requirements state via UI State (recommended)
+      User->>UI: Upload document for requirement
+      UI->>UI State: Update satisfied docs
+      UI State->>UI: Activate next requirement
 
-    Note over UI State: Evaluate based on minRequired
+      Note over UI State: Evaluate based on minRequired
 
-    UI State->>UI: All requirements met
-    UI->>User: Enable submission
-    User->>UI: Submit
+      UI State->>UI: All requirements met
+      UI->>User: Enable submission
+      User->>UI: Submit
 
-    UI->>API: Upload document (sync)
-    Note over API, UI: API POST /documents
+      UI->>API: Upload document (sync)
+      Note over API, UI: API POST /documents
+    else manage/render requirements state via API state
+      loop for each requirement/document
+        UI->>API: Upload document (sync)
+        Note over API, UI: API POST /documents
+
+        UI->>API: re-fetch document-request and re-render the requirements/form based on the outstanding requirements
+        Note over API, UI: API GET /document-requests/{id}
+      end
+    end
 
     UI->>API: Submit document request
     Note over API, UI: API POST /document-requests/{id}/submit
