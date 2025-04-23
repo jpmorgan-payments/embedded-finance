@@ -131,6 +131,29 @@
         "description": "",
         "placeholder": "Select"
       }
+    },
+    "dbaNameNotAvailable": {
+      "description": "",
+      "tooltip": ""
+    },
+    "websiteNotAvailable": {
+      "description": "",
+      "tooltip": ""
+    },
+    "website": {
+      "tooltip": "",
+      "description": "Please provide a URL for your business",
+      "placeholder": "Enter URL"
+    },
+    "dbaName": {
+      "label": "Doing business as",
+      "description": "",
+      "tooltip": ""
+    },
+    "businessDescription": {
+      "label": "Business description",
+      "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don’t use special characters (e.g. * @ %, etc).",
+      "tooltip": ""
     }
   },
   "idValueLabels": {

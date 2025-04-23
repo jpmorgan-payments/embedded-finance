@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 // import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -18,42 +19,68 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
   const form =
     useFormContext<z.input<typeof CustomerFacingDetailsFormSchema>>();
 
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'dbaNameNotAvailable') {
+        form.setValue(
+          'dbaName',
+          value.dbaNameNotAvailable
+            ? (currentPartyData?.organizationDetails?.organizationName ?? '')
+            : ''
+        );
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, currentPartyData]);
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'websiteNotAvailable') {
+        form.setValue('website', value.websiteNotAvailable ? 'N/A' : '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   return (
     <div className="eb-space-y-6">
-      <OnboardingFormField
-        control={form.control}
-        name="dbaName"
-        type="text"
-        disabled={form.watch('dbaNameNotAvailable')}
-        {...(form.watch('dbaNameNotAvailable')
-          ? { value: currentPartyData?.organizationDetails?.organizationName }
-          : {})}
-      />
-      <OnboardingFormField
-        control={form.control}
-        name="dbaNameNotAvailable"
-        type="checkbox"
-        label="Same as legal name of the company"
-      />
+      <div className="eb-space-y-2">
+        <OnboardingFormField
+          control={form.control}
+          name="dbaName"
+          type="text"
+          disabled={form.watch('dbaNameNotAvailable')}
+          required
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="dbaNameNotAvailable"
+          type="checkbox-basic"
+          label="Same as legal name of the company"
+          noOptionalLabel
+        />
+      </div>
       <OnboardingFormField
         control={form.control}
         name="organizationDescription"
         type="textarea"
       />
-      <OnboardingFormField
-        control={form.control}
-        name="website"
-        type="text"
-        disabled={form.watch('websiteNotAvailable')}
-        {...(form.watch('websiteNotAvailable') ? { value: 'N/A' } : {})}
-      />
-      <OnboardingFormField
-        control={form.control}
-        name="websiteNotAvailable"
-        type="checkbox"
-        disableFieldRuleMapping
-        label="My business doesn't have a website"
-      />
+      <div className="eb-space-y-2">
+        <OnboardingFormField
+          control={form.control}
+          name="website"
+          type="text"
+          disabled={form.watch('websiteNotAvailable')}
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="websiteNotAvailable"
+          type="checkbox-basic"
+          disableFieldRuleMapping
+          label="My business doesn't have a website"
+          noOptionalLabel
+        />
+      </div>
     </div>
   );
 };

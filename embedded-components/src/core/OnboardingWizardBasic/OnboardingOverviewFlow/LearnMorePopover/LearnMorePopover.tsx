@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui';
 
 type LearnMorePopoverTriggerProps = {
-  content: string;
+  content: ReactNode;
   children?: ReactNode;
 };
 
@@ -33,12 +33,16 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:eb-max-w-[425px]">{content}</DialogContent>
-        <DialogFooter className="eb-pt-2">
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
-        </DialogFooter>
+        <DialogContent className="sm:eb-max-w-[425px]">
+          {content}{' '}
+          <DialogFooter className="eb-pt-2">
+            <DialogClose asChild>
+              <Button variant="outline" className="eb-w-full">
+                Close
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     );
   }
@@ -47,7 +51,7 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent>
-        {content}
+        <div className="eb-px-4">{content}</div>
         <DrawerFooter className="eb-pt-2">
           <DrawerClose asChild>
             <Button variant="outline">Close</Button>

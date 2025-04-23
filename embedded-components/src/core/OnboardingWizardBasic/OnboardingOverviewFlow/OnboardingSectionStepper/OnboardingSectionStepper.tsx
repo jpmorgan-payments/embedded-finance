@@ -249,7 +249,7 @@ export const OnboardingSectionStepper = () => {
           0,
           'addParties',
           {
-            addParties: [defaultPartyRequestBody ?? correspondingParty],
+            addParties: [defaultPartyRequestBody ?? correspondingParty ?? {}],
           }
         );
         updateClient(
@@ -392,6 +392,13 @@ export const OnboardingSectionStepper = () => {
               setMetadata={setMetadata}
             />
           </form>
+        )}
+        {currentStep.type === 'component' && currentStep.Component && (
+          <currentStep.Component
+            stepId={currentStepId}
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+          />
         )}
       </div>
 

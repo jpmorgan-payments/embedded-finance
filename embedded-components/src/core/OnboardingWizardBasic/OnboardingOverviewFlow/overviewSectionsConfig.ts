@@ -15,6 +15,7 @@ import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/In
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
+import { ReviewForm } from './OnboardingSectionStepper/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
 import { SectionType } from './types';
 
 const parties: Record<string, Partial<PartyResponse>> = {
@@ -128,8 +129,17 @@ export const overviewSections: SectionType[] = [
     id: 'attest',
     title: 'Review and attest',
     icon: FileIcon,
-    type: 'global-step',
-    stepId: 'overview',
+    type: 'stepper',
+    steps: [
+      {
+        id: 'review',
+        title: 'Review your details',
+        description:
+          'Please ensure your answers are accurate and complete anything you may have missed.',
+        type: 'component',
+        Component: ReviewForm,
+      },
+    ],
   },
   {
     id: 'upload-documents',

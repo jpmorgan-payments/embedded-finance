@@ -60,6 +60,7 @@ type FieldType =
   | 'radio-group'
   | 'radio-group-blocks'
   | 'checkbox'
+  | 'checkbox-basic'
   | 'array'
   | 'date'
   | 'textarea'
@@ -238,7 +239,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
         return (
           <FormItem className={className}>
-            {type !== 'checkbox' ? (
+            {type !== 'checkbox' && type !== 'checkbox-basic' ? (
               <>
                 <div className="eb-flex eb-items-center eb-space-x-2">
                   <FormLabel asterisk={fieldRequired && !isOverviewFlow}>
@@ -466,6 +467,26 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         </div>
                       </div>
                     );
+                  case 'checkbox-basic':
+                    return (
+                      <div className="eb-flex eb-items-center eb-space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="eb-flex eb-items-center eb-space-x-2">
+                          <FormLabel
+                            asterisk={fieldRequired && !isOverviewFlow}
+                            className="eb-text-sm eb-font-medium eb-leading-none peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
+                          >
+                            {fieldLabel}
+                          </FormLabel>
+                          <InfoPopover>{fieldTooltip}</InfoPopover>
+                        </div>
+                      </div>
+                    );
                   case 'textarea':
                     return (
                       <FormControl>
@@ -560,7 +581,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               })()
             )}
 
-            {fieldDescription && isOverviewFlow && (
+            {fieldDescription && isOverviewFlow && type !== 'checkbox' && (
               <FormDescription className="eb-text-xs eb-text-gray-500">
                 {fieldDescription}
               </FormDescription>
