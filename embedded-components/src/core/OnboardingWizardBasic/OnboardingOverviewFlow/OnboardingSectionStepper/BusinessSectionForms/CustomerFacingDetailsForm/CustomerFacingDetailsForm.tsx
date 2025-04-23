@@ -21,13 +21,9 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'dbaNameNotAvailable') {
-        form.setValue(
-          'dbaName',
-          value.dbaNameNotAvailable
-            ? (currentPartyData?.organizationDetails?.organizationName ?? '')
-            : ''
-        );
+      if (name === 'dbaNameNotAvailable' && value.dbaNameNotAvailable) {
+        form.setValue('dbaName', '');
+        form.clearErrors('dbaName');
       }
     });
     return () => subscription.unsubscribe();
@@ -35,8 +31,9 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'websiteNotAvailable') {
-        form.setValue('website', value.websiteNotAvailable ? 'N/A' : '');
+      if (name === 'websiteNotAvailable' && value.websiteNotAvailable) {
+        form.setValue('website', '');
+        form.clearErrors('website');
       }
     });
     return () => subscription.unsubscribe();
@@ -49,6 +46,11 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
           control={form.control}
           name="dbaName"
           type="text"
+          placeholder={
+            form.watch('dbaNameNotAvailable')
+              ? (currentPartyData?.organizationDetails?.organizationName ?? '')
+              : undefined
+          }
           disabled={form.watch('dbaNameNotAvailable')}
           required
         />
@@ -70,7 +72,9 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
           control={form.control}
           name="website"
           type="text"
+          placeholder={form.watch('websiteNotAvailable') ? 'N/A' : undefined}
           disabled={form.watch('websiteNotAvailable')}
+          required
         />
         <OnboardingFormField
           control={form.control}
