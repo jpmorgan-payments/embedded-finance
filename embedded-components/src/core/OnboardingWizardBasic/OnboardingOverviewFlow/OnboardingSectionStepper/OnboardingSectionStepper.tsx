@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -320,164 +321,187 @@ export const OnboardingSectionStepper = () => {
     return false;
   };
 
-  return (
-    <StepLayout
-      subTitle={
-        !editModeOriginStepId && !completed ? (
-          <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
-            <p className="eb-font-semibold">
-              Step {currentStepNumber} of {steps.length}
-            </p>
-            <div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    size="sm"
-                    className="eb-h-6 eb-gap-1 eb-rounded-none eb-p-1 eb-text-xs"
-                  >
-                    Step menu
-                    <ChevronDownIcon />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="eb-w-54 eb-component"
-                  side="bottom"
-                  align="end"
-                >
-                  {form.formState.isDirty && (
-                    <DropdownMenuLabel className="eb-p-2 eb-text-xs eb-italic eb-text-red-500">
-                      ⓘ You have unconfirmed changes on this step.
-                    </DropdownMenuLabel>
-                  )}
-                  {steps.map((step, index) => (
-                    <DropdownMenuItem
-                      key={step.id}
-                      disabled={
-                        !checkStepIsCompleted(step.id) &&
-                        index > stepperUtils.getIndex(currentStepId) &&
-                        !checkStepIsCompleted(stepperUtils.getPrev(step.id)?.id)
-                      }
-                      className={cn({
-                        'eb-pointer-events-none eb-font-semibold':
-                          step.id === currentStepId,
-                      })}
-                      onClick={() => {
-                        if (step.id !== currentStepId) {
-                          handleStepChange(step);
-                        }
-                      }}
-                    >
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        {step.type === 'check-answers' ? (
-                          <TextSearchIcon className="eb-size-4 eb-stroke-muted-foreground" />
-                        ) : checkStepIsCompleted(step.id) ? (
-                          <CheckIcon className="eb-size-4 eb-stroke-green-600" />
-                        ) : step.id === currentStepId ? (
-                          <ArrowRightIcon className="eb-size-4 eb-stroke-primary" />
-                        ) : (
-                          <div className="eb-size-4"></div>
-                        )}
-                        <p>
-                          {index + 1}. {step.title}
-                        </p>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        ) : undefined
-      }
-      title={currentStep.title}
-      description={currentStep.description}
-    >
-      <div className="eb-flex-auto">
-        {currentStep.type === 'form' && (
-          <Form {...form}>
-            <form id={currentStep.id} onSubmit={onSubmit} key={currentStep.id}>
-              <currentStep.FormComponent currentPartyData={currentPartyData} />
-            </form>
-          </Form>
-        )}
-        {currentStep.type === 'check-answers' && (
-          <form id={currentStep.id} onSubmit={form.handleSubmit(handleNext)}>
-            <CheckAnswersScreen
-              stepId={currentStepId}
-              partyId={currentPartyData?.id}
-              steps={steps}
-              goToStep={handleStepChange}
-              setMetadata={setMetadata}
-            />
-          </form>
-        )}
-        {currentStep.type === 'component' && currentStep.Component && (
-          <currentStep.Component
-            stepId={currentStepId}
-            handleNext={handleNext}
-            handlePrev={handlePrev}
-          />
-        )}
-      </div>
+  // Scroll to top on step change
+  const mainRef = useRef<HTMLDivElement>(null);
+  const initialRender = useRef(true);
+  useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+      return;
+    }
+    mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [currentStepId]);
 
-      <div className="eb-mt-6 eb-space-y-6">
-        <ServerErrorAlert
-          error={clientUpdateError || partyUpdateError}
-          className="eb-border-[#E52135] eb-bg-[#FFECEA]"
-        />
-        <div className="eb-flex eb-justify-between eb-gap-4">
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            className={cn('eb-w-full eb-text-lg', {
-              'eb-hidden': completed && !editModeOriginStepId,
-            })}
-            onClick={handlePrev}
-            disabled={isFormDisabled}
-          >
-            {editModeOriginStepId
-              ? 'Cancel'
-              : currentStepNumber === 1
-                ? originStepId === 'overview'
-                  ? 'Back to overview'
-                  : 'Back to all owners'
-                : 'Back'}
-          </Button>
-          {currentStep.type !== 'check-answers' ||
-          (currentStep.type === 'check-answers' && !completed) ? (
-            <Button
-              form={currentStep.id}
-              type="submit"
-              variant="default"
-              size="lg"
-              className="eb-w-full eb-text-lg eb-transition-none"
-              disabled={isFormDisabled}
-            >
-              {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
-              {currentStep.type === 'check-answers' && !completed
-                ? 'Next'
-                : editModeOriginStepId
-                  ? 'Save'
-                  : 'Next'}
-            </Button>
-          ) : (
-            <Button
-              form={currentStep.id}
-              type="submit"
-              variant="secondary"
-              size="lg"
-              className="eb-w-full eb-text-lg"
-            >
-              {originStepId === 'overview'
-                ? 'Back to overview'
-                : 'Back to all owners'}
-            </Button>
+  return (
+    <div ref={mainRef} className="eb-scroll-mt-4 sm:eb-scroll-mt-10">
+      <StepLayout
+        subTitle={
+          !editModeOriginStepId && !completed ? (
+            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+              <p className="eb-font-semibold">
+                Step {currentStepNumber} of {steps.length}
+              </p>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      size="sm"
+                      className="eb-h-6 eb-gap-1 eb-rounded-none eb-p-1 eb-text-xs"
+                    >
+                      Step menu
+                      <ChevronDownIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="eb-w-54 eb-component"
+                    side="bottom"
+                    align="end"
+                  >
+                    {form.formState.isDirty && (
+                      <DropdownMenuLabel className="eb-p-2 eb-text-xs eb-italic eb-text-red-500">
+                        ⓘ You have unconfirmed changes on this step.
+                      </DropdownMenuLabel>
+                    )}
+                    {steps.map((step, index) => (
+                      <DropdownMenuItem
+                        key={step.id}
+                        disabled={
+                          !checkStepIsCompleted(step.id) &&
+                          index > stepperUtils.getIndex(currentStepId) &&
+                          !checkStepIsCompleted(
+                            stepperUtils.getPrev(step.id)?.id
+                          )
+                        }
+                        className={cn({
+                          'eb-pointer-events-none eb-font-semibold':
+                            step.id === currentStepId,
+                        })}
+                        onClick={() => {
+                          if (step.id !== currentStepId) {
+                            handleStepChange(step);
+                          }
+                        }}
+                      >
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          {step.type === 'check-answers' ? (
+                            <TextSearchIcon className="eb-size-4 eb-stroke-muted-foreground" />
+                          ) : checkStepIsCompleted(step.id) ? (
+                            <CheckIcon className="eb-size-4 eb-stroke-green-600" />
+                          ) : step.id === currentStepId ? (
+                            <ArrowRightIcon className="eb-size-4 eb-stroke-primary" />
+                          ) : (
+                            <div className="eb-size-4"></div>
+                          )}
+                          <p>
+                            {index + 1}. {step.title}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ) : undefined
+        }
+        title={currentStep.title}
+        description={currentStep.description}
+      >
+        <div className="eb-flex-auto">
+          {currentStep.type === 'form' && (
+            <Form {...form}>
+              <form
+                id={currentStep.id}
+                onSubmit={onSubmit}
+                key={currentStep.id}
+              >
+                <currentStep.FormComponent
+                  currentPartyData={currentPartyData}
+                />
+              </form>
+            </Form>
+          )}
+          {currentStep.type === 'check-answers' && (
+            <form id={currentStep.id} onSubmit={form.handleSubmit(handleNext)}>
+              <CheckAnswersScreen
+                stepId={currentStepId}
+                partyId={currentPartyData?.id}
+                steps={steps}
+                goToStep={handleStepChange}
+                setMetadata={setMetadata}
+              />
+            </form>
+          )}
+          {currentStep.type === 'component' && currentStep.Component && (
+            <currentStep.Component
+              stepId={currentStepId}
+              handleNext={handleNext}
+              handlePrev={handlePrev}
+            />
           )}
         </div>
-      </div>
-    </StepLayout>
+
+        <div className="eb-mt-6 eb-space-y-6">
+          <ServerErrorAlert
+            error={clientUpdateError || partyUpdateError}
+            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
+          />
+          <div className="eb-flex eb-justify-between eb-gap-4">
+            <Button
+              type="button"
+              variant="secondary"
+              size="lg"
+              className={cn('eb-w-full eb-text-lg', {
+                'eb-hidden': completed && !editModeOriginStepId,
+              })}
+              onClick={handlePrev}
+              disabled={isFormDisabled}
+            >
+              {editModeOriginStepId
+                ? 'Cancel'
+                : currentStepNumber === 1
+                  ? originStepId === 'overview'
+                    ? 'Back to overview'
+                    : 'Back to all owners'
+                  : 'Back'}
+            </Button>
+            {currentStep.type !== 'check-answers' ||
+            (currentStep.type === 'check-answers' && !completed) ? (
+              <Button
+                form={currentStep.id}
+                type="submit"
+                variant="default"
+                size="lg"
+                className="eb-w-full eb-text-lg eb-transition-none"
+                disabled={isFormDisabled}
+              >
+                {isFormSubmitting && (
+                  <Loader2Icon className="eb-animate-spin" />
+                )}
+                {currentStep.type === 'check-answers' && !completed
+                  ? 'Next'
+                  : editModeOriginStepId
+                    ? 'Save'
+                    : 'Next'}
+              </Button>
+            ) : (
+              <Button
+                form={currentStep.id}
+                type="submit"
+                variant="secondary"
+                size="lg"
+                className="eb-w-full eb-text-lg"
+              >
+                {originStepId === 'overview'
+                  ? 'Back to overview'
+                  : 'Back to all owners'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </StepLayout>
+    </div>
   );
 };
