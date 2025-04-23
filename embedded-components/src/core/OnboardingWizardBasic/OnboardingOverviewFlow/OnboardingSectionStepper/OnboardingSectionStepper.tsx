@@ -453,7 +453,7 @@ export const OnboardingSectionStepper = () => {
               type="submit"
               variant="default"
               size="lg"
-              className="eb-w-full eb-text-lg"
+              className="eb-w-full eb-text-lg eb-transition-none"
               disabled={isFormDisabled}
             >
               {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}

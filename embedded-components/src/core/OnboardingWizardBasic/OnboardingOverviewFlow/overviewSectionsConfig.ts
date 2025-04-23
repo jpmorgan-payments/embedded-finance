@@ -9,6 +9,7 @@ import {
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
+import { BusinessContactInfoForm } from './OnboardingSectionStepper/BusinessSectionForms/BusinessContactInfoForm/BusinessContactInfoForm';
 import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
 import { CustomerFacingDetailsForm } from './OnboardingSectionStepper/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm';
 import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
@@ -101,6 +102,13 @@ export const overviewSections: SectionType[] = [
         description:
           'Please help us understand how you present your company to customers.',
         FormComponent: CustomerFacingDetailsForm,
+      },
+      {
+        id: 'contact-info',
+        type: 'form',
+        title: 'Contact info',
+        description: 'Please let us know how to get in touch.',
+        FormComponent: BusinessContactInfoForm,
       },
       {
         id: 'check-answers',

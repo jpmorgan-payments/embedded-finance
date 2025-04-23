@@ -98,6 +98,10 @@ export const OwnersSectionScreen = () => {
                   }),
                 })
               );
+              form.setValue(
+                'controllerIsAnOwner',
+                response.roles?.includes('BENEFICIAL_OWNER') ? 'yes' : 'no'
+              );
             }
           },
           onError: (error) => {
@@ -309,12 +313,14 @@ export const OwnersSectionScreen = () => {
                   {t('beneficialOwnerStepForm.controllerCannotBeOwnerWarning')}
                 </p>
               )}
-            {controllerUpdateStatus === 'pending' && (
-              <div className="eb-mt-2 eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
-                <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
-                <span>{t('beneficialOwnerStepForm.makingChanges')}</span>
-              </div>
-            )}
+            <div className="eb-mt-2 eb-inline-flex eb-h-4 eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+              {controllerUpdateStatus === 'pending' && (
+                <>
+                  <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
+                  <span>{t('beneficialOwnerStepForm.makingChanges')}</span>
+                </>
+              )}
+            </div>
           </form>
         </Form>
 
@@ -376,7 +382,10 @@ export const OwnersSectionScreen = () => {
                     Owner
                   </Badge>
                   {owner.roles?.includes('CONTROLLER') && (
-                    <Badge className="eb-bg-[#FFEBD9] eb-text-[#8F521F]">
+                    <Badge
+                      variant="outline"
+                      className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                    >
                       Controller
                     </Badge>
                   )}

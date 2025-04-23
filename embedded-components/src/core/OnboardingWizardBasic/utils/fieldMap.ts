@@ -166,6 +166,15 @@ export const partyFieldMap: PartyFieldMap = {
   },
   addresses: {
     path: 'organizationDetails.addresses',
+    toStringFn: (addresses) => {
+      const primaryAddress = addresses[0];
+      return [
+        primaryAddress.primaryAddressLine,
+        ...primaryAddress.additionalAddressLines.map((line) => line.value),
+        `${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`,
+        i18n.t(`common:countries.${primaryAddress.country}`),
+      ];
+    },
     modifyErrorField: (field) => {
       const parts = field.split('.');
       const lastPart = parts[parts.length - 1];
@@ -384,6 +393,7 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: { phoneType: 'BUSINESS_PHONE', phoneNumber: '' },
     },
+    toStringFn: (val) => formatPhoneNumberIntl(val.phoneNumber),
     fromResponseFn: (val: PhoneSmbdo) => ({
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
