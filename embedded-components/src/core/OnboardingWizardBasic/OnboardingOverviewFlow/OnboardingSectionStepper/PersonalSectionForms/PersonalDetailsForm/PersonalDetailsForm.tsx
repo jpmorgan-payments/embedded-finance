@@ -17,7 +17,7 @@ export const PersonalDetailsForm: SectionStepFormComponent = () => {
   const jobTitle = form.watch('controllerJobTitle');
 
   return (
-    <div className="eb-space-y-9">
+    <div className="eb-mt-6 eb-space-y-9">
       <fieldset className="eb-grid eb-gap-y-6">
         <legend className="eb-mb-1 eb-text-base eb-font-medium">
           Legal name

@@ -43,7 +43,7 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
   }, [form]);
 
   return (
-    <div className="eb-space-y-6">
+    <div className="eb-mt-6 eb-space-y-6">
       <div className="eb-space-y-2">
         <OnboardingFormField
           control={form.control}

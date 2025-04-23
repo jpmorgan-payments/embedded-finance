@@ -41,7 +41,7 @@ export const IndividualIdentityForm: SectionStepFormComponent = () => {
   }, [form.watch('controllerIds.0.issuer')]);
 
   return (
-    <div className="eb-space-y-6">
+    <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
         control={form.control}
         name="birthDate"

@@ -15,7 +15,7 @@ export const IndustryForm: SectionStepFormComponent = () => {
   const form = useFormContext<z.input<typeof IndustryFormSchema>>();
 
   return (
-    <div className="eb-space-y-6">
+    <div className="eb-mt-1 eb-space-y-6">
       <LearnMorePopoverTrigger
         content={
           <div className="eb-space-y-3">
@@ -46,7 +46,7 @@ export const IndustryForm: SectionStepFormComponent = () => {
           </div>
         }
       >
-        <Button className="-eb-mt-6 eb-text-primary" size="sm" variant="ghost">
+        <Button className="eb-text-primary" size="sm" variant="ghost">
           Learn more <InfoIcon />
         </Button>
       </LearnMorePopoverTrigger>

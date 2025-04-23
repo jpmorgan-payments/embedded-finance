@@ -50,7 +50,7 @@ export const ReviewForm: SectionStepComponent = ({ stepId, handleNext }) => {
           });
         })}
       >
-        <div className="eb-space-y-8">
+        <div className="eb-mt-6 eb-space-y-8">
           <div className="eb-space-y-4">
             <FormField
               control={form.control}

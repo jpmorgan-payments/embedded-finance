@@ -394,7 +394,7 @@ export const OnboardingSectionStepper = () => {
       title={currentStep.title}
       description={currentStep.description}
     >
-      <div className="eb-mt-6 eb-flex-auto">
+      <div className="eb-flex-auto">
         {currentStep.type === 'form' && (
           <Form {...form}>
             <form id={currentStep.id} onSubmit={onSubmit} key={currentStep.id}>
