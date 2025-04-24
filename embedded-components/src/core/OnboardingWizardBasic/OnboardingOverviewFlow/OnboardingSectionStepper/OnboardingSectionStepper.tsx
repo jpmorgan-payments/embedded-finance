@@ -299,6 +299,22 @@ export const OnboardingSectionStepper = () => {
               onPostClientResponse?.(data, error?.response?.data);
             },
             onSuccess: (response) => {
+              // find new party
+              const oldPartyIds = clientData.parties?.map((party) => party.id);
+              const newParty = response.parties?.find(
+                (party) => !oldPartyIds?.includes(party.id)
+              );
+
+              // Update metadata with new party id
+              if (newParty) {
+                globalStepper.setMetadata('section-stepper', {
+                  ...globalStepper.getMetadata('section-stepper'),
+                  correspondingParty: {
+                    id: newParty.id,
+                  },
+                });
+              }
+
               // Update client cache
               queryClient.setQueryData(
                 getSmbdoGetClientQueryKey(clientData.id),
