@@ -182,9 +182,17 @@ export const handlers = [
 
     // Handle question responses if present
     if (data.questionResponses) {
-      // Add new question responses
+      // Get existing responses without the ones we're updating
+      const existingResponses = (updatedClient.questionResponses || []).filter(
+        (existing) =>
+          !data.questionResponses.some(
+            (incoming) => incoming.questionId === existing.questionId
+          )
+      );
+
+      // Combine existing responses (minus the updated ones) with new responses
       updatedClient.questionResponses = [
-        ...(updatedClient.questionResponses || []),
+        ...existingResponses,
         ...data.questionResponses,
       ];
 
