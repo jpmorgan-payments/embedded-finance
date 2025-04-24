@@ -186,6 +186,14 @@ export const OnboardingOverviewScreen = () => {
                   )}
                   disabled={disabled}
                   onClick={() => {
+                    if (justCompletedSection) {
+                      globalStepper.setMetadata('overview', {
+                        completedSections: {
+                          ...completedSections,
+                          [justCompletedSection]: true,
+                        },
+                      });
+                    }
                     if (section.type === 'stepper') {
                       globalStepper.setMetadata('section-stepper', {
                         ...section,
