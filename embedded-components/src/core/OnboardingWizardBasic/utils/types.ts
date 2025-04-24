@@ -87,7 +87,10 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     rule: OptionalDefaults<FieldRule<T>, true>;
   }>;
   modifyErrorField?: (field: string) => string;
-  toStringFn?: (val: T) => string | string[];
+  toStringFn?: (
+    val: T,
+    values: Partial<OnboardingFormValuesSubmit>
+  ) => string | string[] | undefined;
   generateLabelStringFn?: (val: T) => string | undefined;
   isHiddenInReview?: (val: T) => boolean;
 };
