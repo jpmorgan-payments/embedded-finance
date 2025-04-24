@@ -121,10 +121,7 @@ export const OperationalDetailsForm = () => {
                   )
               ) ?? [],
           },
-          questionResponses: [
-            ...(old?.questionResponses ?? []),
-            ...(newData.data.questionResponses ?? []),
-          ],
+          questionResponses: [...(newData.data.questionResponses ?? [])],
         }));
 
         // Return a context object with the snapshotted value
@@ -134,7 +131,9 @@ export const OperationalDetailsForm = () => {
         // If the mutation fails, use the context returned from onMutate to roll back
         queryClient.setQueryData(queryKey, context?.previousClientData);
       },
-      onSuccess: () => {
+      onSuccess: (response) => {
+        queryClient.setQueryData(queryKey, response);
+
         globalStepper.setMetadata('overview', {
           ...globalStepper.getMetadata('overview'),
           justCompletedSection: 'operational',
