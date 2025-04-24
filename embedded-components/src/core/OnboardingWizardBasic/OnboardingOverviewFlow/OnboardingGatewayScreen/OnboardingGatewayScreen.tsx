@@ -238,7 +238,7 @@ export const OnboardingGatewayScreen = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className="eb-flex eb-min-h-full eb-flex-col">
         <Alert variant="informative" className="eb-mb-4 eb-text-foreground">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertTitle>Is this you?</AlertTitle>

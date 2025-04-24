@@ -349,7 +349,10 @@ export const OnboardingSectionStepper = () => {
   }, [currentStepId]);
 
   return (
-    <div ref={mainRef} className="eb-scroll-mt-4 sm:eb-scroll-mt-10">
+    <div
+      ref={mainRef}
+      className="eb-flex eb-min-h-full eb-scroll-mt-4 eb-flex-col sm:eb-scroll-mt-10"
+    >
       <StepLayout
         subTitle={
           !editModeOriginStepId && !completed && !reviewMode ? (

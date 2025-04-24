@@ -197,7 +197,10 @@ export const OnboardingOverviewScreen = () => {
                     if (section.type === 'stepper') {
                       globalStepper.setMetadata('section-stepper', {
                         ...section,
-                        completed: checkSectionIsCompleted(section.id),
+                        completed:
+                          section.id === 'attest'
+                            ? false
+                            : checkSectionIsCompleted(section.id),
                         originStepId: 'overview',
                       });
                       globalStepper.goTo('section-stepper');

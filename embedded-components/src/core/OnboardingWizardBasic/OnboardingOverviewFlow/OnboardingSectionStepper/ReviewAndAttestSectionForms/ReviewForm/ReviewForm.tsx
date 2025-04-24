@@ -194,12 +194,10 @@ export const ReviewForm: SectionStepComponent = ({ stepId, handleNext }) => {
         id={stepId}
         onSubmit={(e) => {
           e.preventDefault();
-          console.log(isMissingDetails);
           if (isMissingDetails) {
             setShouldDisplayAlert(true);
           } else {
             form.handleSubmit(() => {
-              console.log('what');
               handleNext();
             })(e);
           }
