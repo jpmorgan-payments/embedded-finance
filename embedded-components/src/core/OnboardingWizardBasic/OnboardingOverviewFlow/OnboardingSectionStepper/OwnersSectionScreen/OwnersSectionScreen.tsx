@@ -29,6 +29,7 @@ import {
 
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../../OnboardingGlobalStepper';
+import { overviewSections } from '../../overviewSectionsConfig';
 import { StepLayout } from '../../StepLayout/StepLayout';
 import { StepperSectionType } from '../../types';
 import { ownerSteps } from './ownerSteps';
@@ -302,6 +303,13 @@ export const OwnersSectionScreen = () => {
                   className="eb-h-8"
                   onClick={() => {
                     globalStepper.goTo('section-stepper');
+                    globalStepper.setMetadata('section-stepper', {
+                      ...globalStepper.getMetadata('section-stepper'),
+                      ...overviewSections.find(
+                        (section) => section.id === 'personal'
+                      ),
+                      originStepId: 'owners',
+                    });
                   }}
                 >
                   Go now
@@ -440,21 +448,25 @@ export const OwnersSectionScreen = () => {
             size="lg"
             className="eb-w-full eb-text-lg"
             onClick={() => {
-              if (!completed && !reviewMode) {
+              const controllerQuestionAnswered =
+                form.getValues('controllerIsAnOwner') !== undefined;
+              if (!completed && !reviewMode && controllerQuestionAnswered) {
                 globalStepper.setMetadata('overview', {
                   ...globalStepper.getMetadata('overview'),
                   justCompletedSection: 'owners',
                 });
               }
               if (reviewMode) {
-                globalStepper.setMetadata('overview', {
-                  ...globalStepper.getMetadata('overview'),
-                  completedSections: {
-                    ...(globalStepper.getMetadata('overview') || {})
-                      .completedSections,
-                    owners: true,
-                  },
-                });
+                if (controllerQuestionAnswered) {
+                  globalStepper.setMetadata('overview', {
+                    ...globalStepper.getMetadata('overview'),
+                    completedSections: {
+                      ...(globalStepper.getMetadata('overview') || {})
+                        .completedSections,
+                      owners: true,
+                    },
+                  });
+                }
                 globalStepper.setMetadata('section-stepper', {
                   ...globalStepper.getMetadata('section-stepper'),
                   reviewSectionId: 'owners',
