@@ -95,7 +95,7 @@ export const handlers = [
       outstanding: {
         documentRequestIds: [],
         questionIds: ['30005'],
-        attestationDocumentIds: [],
+        attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
         partyIds: [],
         partyRoles: [],
       },
