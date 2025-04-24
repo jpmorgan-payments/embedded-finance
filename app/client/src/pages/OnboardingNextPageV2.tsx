@@ -14,6 +14,7 @@ import {
   Paper,
   List,
   ThemeIcon,
+  Box,
 } from '@mantine/core';
 import { Prism } from '@mantine/prism';
 import { PageWrapper } from 'components';
@@ -221,19 +222,25 @@ export const OnboardingNextPageV2 = () => {
         </div>
       )}
 
-      <div
-        style={{
+      <Box
+        sx={(theme) => ({
           position: 'absolute',
           top: 4,
           right: 35,
           zIndex: 10,
           cursor: 'pointer',
-        }}
+          [`@media (max-width: ${theme.breakpoints.sm})`]: {
+            position: 'static',
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: theme.spacing.md,
+          },
+        })}
       >
         <Badge size="sm" variant="light">
           v{packageVersion}
         </Badge>
-      </div>
+      </Box>
       <EBComponentsProvider
         key={`provider-${scenario?.clientId}-${selectedThemeId}-${initialStep}`}
         apiBaseUrl={sanitizedApiBaseUrl}
