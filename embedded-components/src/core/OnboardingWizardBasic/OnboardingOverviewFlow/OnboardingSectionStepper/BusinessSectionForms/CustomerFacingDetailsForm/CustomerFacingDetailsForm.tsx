@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 // import { useTranslation } from 'react-i18next';
@@ -20,6 +21,24 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
 
   const form =
     useFormContext<z.input<typeof CustomerFacingDetailsFormSchema>>();
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'dbaNameNotAvailable' && value.dbaNameNotAvailable) {
+        form.clearErrors('dbaName');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, currentPartyData]);
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'websiteNotAvailable' && value.websiteNotAvailable) {
+        form.clearErrors('website');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
