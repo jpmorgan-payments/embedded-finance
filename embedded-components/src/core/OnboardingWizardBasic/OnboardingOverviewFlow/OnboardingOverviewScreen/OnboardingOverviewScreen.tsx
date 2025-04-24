@@ -186,16 +186,28 @@ export const OnboardingOverviewScreen = () => {
                   )}
                   disabled={disabled}
                   onClick={() => {
+                    if (justCompletedSection) {
+                      globalStepper.setMetadata('overview', {
+                        completedSections: {
+                          ...completedSections,
+                          [justCompletedSection]: true,
+                        },
+                      });
+                    }
                     if (section.type === 'stepper') {
                       globalStepper.setMetadata('section-stepper', {
                         ...section,
-                        completed: checkSectionIsCompleted(section.id),
+                        completed:
+                          section.id === 'attest'
+                            ? false
+                            : checkSectionIsCompleted(section.id),
                         originStepId: 'overview',
                       });
                       globalStepper.goTo('section-stepper');
                     } else if (section.type === 'global-step') {
                       globalStepper.setMetadata(section.stepId, {
                         ...section,
+                        originStepId: 'overview',
                       });
                       globalStepper.goTo(section.stepId);
                     }

@@ -90,6 +90,7 @@ interface BaseProps<
   inputProps?: React.ComponentProps<typeof Input>;
   maskFormat?: string;
   maskChar?: string;
+  valueOverride?: string;
 }
 
 interface SelectOrRadioGroupProps<
@@ -135,6 +136,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   maskFormat,
   maskChar,
   shouldUnregister,
+  valueOverride,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
 
@@ -492,7 +494,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <Textarea
                           {...field}
-                          value={field.value}
+                          value={valueOverride ?? field.value}
                           placeholder={fieldPlaceholder}
                           onChange={(e) => field.onChange(e)}
                         />
@@ -509,7 +511,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             mask={maskChar}
                             type={type}
                             defaultValue={field.value}
-                            value={field.value}
+                            value={valueOverride ?? field.value}
                             placeholder={fieldPlaceholder}
                           />
                         </FormControl>
@@ -522,7 +524,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             {...field}
                             {...inputProps}
                             type={type}
-                            value={field.value}
+                            value={valueOverride ?? field.value}
                             placeholder={fieldPlaceholder}
                             data-dtrum-tracking={field.name}
                           />

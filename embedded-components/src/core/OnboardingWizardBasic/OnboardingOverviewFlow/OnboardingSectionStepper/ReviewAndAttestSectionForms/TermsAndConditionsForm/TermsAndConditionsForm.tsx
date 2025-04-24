@@ -274,6 +274,7 @@ export const TermsAndConditionsForm: SectionStepComponent = ({
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={field.disabled}
                       />
                     </FormControl>
                     <FormLabel className="eb-text-sm eb-font-normal peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
