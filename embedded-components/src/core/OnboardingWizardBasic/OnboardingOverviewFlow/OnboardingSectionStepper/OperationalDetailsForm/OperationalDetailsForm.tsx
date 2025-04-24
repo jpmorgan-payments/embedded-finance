@@ -134,19 +134,27 @@ export const OperationalDetailsForm = () => {
       onSuccess: (response) => {
         queryClient.setQueryData(queryKey, response);
 
-        globalStepper.setMetadata('overview', {
-          ...globalStepper.getMetadata('overview'),
-          justCompletedSection: 'operational',
-        });
         if (metadata?.reviewMode) {
           globalStepper.setMetadata('section-stepper', {
             ...globalStepper.getMetadata('section-stepper'),
             reviewSectionId: 'operational',
           });
+          globalStepper.setMetadata('overview', {
+            ...globalStepper.getMetadata('overview'),
+            completedSections: {
+              ...(globalStepper.getMetadata('overview') || {})
+                .completedSections,
+              operational: true,
+            },
+          });
+          globalStepper.goTo('section-stepper');
+        } else {
+          globalStepper.setMetadata('overview', {
+            ...globalStepper.getMetadata('overview'),
+            justCompletedSection: 'operational',
+          });
+          globalStepper.goTo('overview');
         }
-        globalStepper.goTo(
-          metadata?.reviewMode ? 'section-stepper' : 'overview'
-        );
       },
     },
   });
