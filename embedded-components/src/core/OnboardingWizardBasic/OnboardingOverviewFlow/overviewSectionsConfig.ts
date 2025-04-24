@@ -16,7 +16,7 @@ import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/In
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
-import { ReviewForm } from './OnboardingSectionStepper/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
+import { TermsAndConditionsForm } from './OnboardingSectionStepper/ReviewAndAttestSectionForms/TermsAndConditionsForm/TermsAndConditionsForm';
 import { SectionType } from './types';
 
 const parties: Record<string, Partial<PartyResponse>> = {
@@ -144,8 +144,15 @@ export const overviewSections: SectionType[] = [
         title: 'Review your details',
         description:
           'Please ensure your answers are accurate and complete anything you may have missed.',
+        type: 'review',
+      },
+      {
+        id: 'documents',
+        title: 'Terms and conditions',
+        description:
+          'Please open and review the following documents from J.P. Morgan to complete the process.',
         type: 'component',
-        Component: ReviewForm,
+        Component: TermsAndConditionsForm,
       },
     ],
   },

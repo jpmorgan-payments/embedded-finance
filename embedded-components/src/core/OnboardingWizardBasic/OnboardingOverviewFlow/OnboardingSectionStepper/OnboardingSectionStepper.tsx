@@ -39,9 +39,11 @@ import {
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
+import { overviewSections } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
 import { StepperSectionType, StepType } from '../types';
 import { CheckAnswersScreen } from './CheckAnswersScreen/CheckAnswersScreen';
+import { ReviewForm } from './ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
 
 export const OnboardingSectionStepper = () => {
   const queryClient = useQueryClient();
@@ -63,10 +65,15 @@ export const OnboardingSectionStepper = () => {
     originStepId,
     completed,
     id: sectionId,
+    reviewMode,
+    reviewStepId,
+    reviewSectionId,
   } = globalStepper.getMetadata('section-stepper') as StepperSectionType & {
-    correspondingPartyId?: string;
     originStepId?: (typeof globalStepper.all)[number]['id'];
     completed: boolean;
+    reviewMode?: boolean;
+    reviewStepId?: string;
+    reviewSectionId?: string;
   };
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
@@ -76,7 +83,8 @@ export const OnboardingSectionStepper = () => {
     setMetadata,
     getMetadata,
   } = useStepper({
-    initialStep: completed ? steps[steps.length - 1].id : steps[0].id,
+    initialStep:
+      reviewStepId ?? (completed ? steps[steps.length - 1].id : steps[0].id),
   });
 
   const { id: currentStepId, FormComponent: CurrentFormComponent } =
@@ -173,10 +181,12 @@ export const OnboardingSectionStepper = () => {
   const handleNext = () => {
     resetClientUpdate();
     resetPartyUpdate();
-    if (editModeOriginStepId) {
-      setMetadata(currentStepId, {
-        editMode: false,
+    if (reviewMode) {
+      globalStepper.setMetadata('section-stepper', {
+        ...overviewSections.find((section) => section.id === 'attest'),
+        reviewSectionId,
       });
+    } else if (editModeOriginStepId) {
       handleStepChange(stepperUtils.get(editModeOriginStepId));
     } else if (currentStepNumber < steps.length) {
       handleStepChange(stepperUtils.getNext(currentStepId));
@@ -192,7 +202,12 @@ export const OnboardingSectionStepper = () => {
   const handlePrev = () => {
     resetClientUpdate();
     resetPartyUpdate();
-    if (editModeOriginStepId) {
+    if (reviewMode) {
+      globalStepper.setMetadata('section-stepper', {
+        ...overviewSections.find((section) => section.id === 'attest'),
+        reviewSectionId,
+      });
+    } else if (editModeOriginStepId) {
       setMetadata(currentStepId, {
         editMode: false,
       });
@@ -220,7 +235,7 @@ export const OnboardingSectionStepper = () => {
         const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
 
         // Check if the form is dirty and skip the API call if not
-        if (!form.formState.isDirty) {
+        if (!form.getFieldState('isDirty')) {
           handleNext();
           return;
         }
@@ -336,7 +351,7 @@ export const OnboardingSectionStepper = () => {
     <div ref={mainRef} className="eb-scroll-mt-4 sm:eb-scroll-mt-10">
       <StepLayout
         subTitle={
-          !editModeOriginStepId && !completed ? (
+          !editModeOriginStepId && !completed && !reviewMode ? (
             <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
               <p className="eb-font-semibold">
                 Step {currentStepNumber} of {steps.length}
@@ -411,12 +426,8 @@ export const OnboardingSectionStepper = () => {
       >
         <div className="eb-flex-auto">
           {currentStep.type === 'form' && (
-            <Form {...form}>
-              <form
-                id={currentStep.id}
-                onSubmit={onSubmit}
-                key={currentStep.id}
-              >
+            <Form {...form} key={currentStep.id}>
+              <form id={currentStep.id} onSubmit={onSubmit}>
                 <currentStep.FormComponent
                   currentPartyData={currentPartyData}
                 />
@@ -426,16 +437,26 @@ export const OnboardingSectionStepper = () => {
           {currentStep.type === 'check-answers' && (
             <form id={currentStep.id} onSubmit={form.handleSubmit(handleNext)}>
               <CheckAnswersScreen
-                stepId={currentStepId}
+                handleGoTo={(step) => {
+                  handleStepChange(step);
+                  setMetadata(step.id, {
+                    editModeOriginStepId: currentStepId,
+                  });
+                }}
                 partyId={currentPartyData?.id}
                 steps={steps}
-                goToStep={handleStepChange}
-                setMetadata={setMetadata}
               />
             </form>
           )}
           {currentStep.type === 'component' && currentStep.Component && (
             <currentStep.Component
+              stepId={currentStepId}
+              handleNext={handleNext}
+              handlePrev={handlePrev}
+            />
+          )}
+          {currentStep.type === 'review' && (
+            <ReviewForm
               stepId={currentStepId}
               handleNext={handleNext}
               handlePrev={handlePrev}
@@ -459,7 +480,7 @@ export const OnboardingSectionStepper = () => {
               onClick={handlePrev}
               disabled={isFormDisabled}
             >
-              {editModeOriginStepId
+              {editModeOriginStepId || reviewMode
                 ? 'Cancel'
                 : currentStepNumber === 1
                   ? originStepId === 'overview'
@@ -482,7 +503,7 @@ export const OnboardingSectionStepper = () => {
                 )}
                 {currentStep.type === 'check-answers' && !completed
                   ? 'Next'
-                  : editModeOriginStepId
+                  : editModeOriginStepId || reviewMode
                     ? 'Save'
                     : 'Next'}
               </Button>

@@ -82,6 +82,14 @@ export type StepType =
       description?: string;
       Component?: SectionStepComponent;
       FormComponent?: never; // Ensure formConfig is not allowed
+    }
+  | {
+      id: string;
+      type: 'review';
+      title: string;
+      description?: string;
+      Component?: never;
+      FormComponent?: never; // Ensure formConfig is not allowed
     };
 
 type BaseSectionType = {

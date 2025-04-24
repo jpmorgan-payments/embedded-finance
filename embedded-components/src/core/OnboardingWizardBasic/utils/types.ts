@@ -88,7 +88,7 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
   }>;
   modifyErrorField?: (field: string) => string;
   toStringFn?: (val: T) => string | string[];
-  generateLabelStringFn?: (val: T) => string;
+  generateLabelStringFn?: (val: T) => string | undefined;
   isHiddenInReview?: (val: T) => boolean;
 };
 

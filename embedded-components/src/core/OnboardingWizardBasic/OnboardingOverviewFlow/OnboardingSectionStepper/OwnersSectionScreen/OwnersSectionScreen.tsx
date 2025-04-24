@@ -49,6 +49,10 @@ export const OwnersSectionScreen = () => {
     'section-stepper'
   ) as Partial<StepperSectionType> & { completed: boolean };
 
+  const { reviewMode } = globalStepper.getMetadata('owners') as {
+    reviewMode?: boolean;
+  };
+
   const form = useForm({
     defaultValues: {
       controllerIsAnOwner: controllerParty
@@ -436,17 +440,33 @@ export const OwnersSectionScreen = () => {
             size="lg"
             className="eb-w-full eb-text-lg"
             onClick={() => {
-              if (!completed) {
+              if (!completed && !reviewMode) {
                 globalStepper.setMetadata('overview', {
                   ...globalStepper.getMetadata('overview'),
                   justCompletedSection: 'owners',
                 });
               }
-              globalStepper.goTo('overview');
+              if (reviewMode) {
+                globalStepper.setMetadata('overview', {
+                  ...globalStepper.getMetadata('overview'),
+                  completedSections: {
+                    ...(globalStepper.getMetadata('overview') || {})
+                      .completedSections,
+                    owners: true,
+                  },
+                });
+                globalStepper.setMetadata('section-stepper', {
+                  ...globalStepper.getMetadata('section-stepper'),
+                  reviewSectionId: 'owners',
+                });
+              }
+              globalStepper.goTo(reviewMode ? 'section-stepper' : 'overview');
             }}
             disabled={isFormDisabled}
           >
-            Save and return to overview
+            {reviewMode
+              ? 'Save and return to review'
+              : 'Save and return to overview'}
           </Button>
         </div>
       </div>

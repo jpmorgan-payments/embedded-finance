@@ -337,7 +337,10 @@ export const partyFieldMap: PartyFieldMap = {
       },
     ],
     generateLabelStringFn: (val) => {
-      const primaryId = val[0];
+      const primaryId = val?.[0];
+      if (!primaryId) {
+        return undefined;
+      }
       return `${i18n.t(`idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
@@ -551,7 +554,10 @@ export const partyFieldMap: PartyFieldMap = {
       },
     },
     generateLabelStringFn: (val) => {
-      const primaryId = val[0];
+      const primaryId = val?.[0];
+      if (!primaryId) {
+        return undefined;
+      }
       return `${i18n.t(`idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {

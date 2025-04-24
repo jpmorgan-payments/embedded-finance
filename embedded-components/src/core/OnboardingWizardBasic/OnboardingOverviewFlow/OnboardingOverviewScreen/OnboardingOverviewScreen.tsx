@@ -62,6 +62,9 @@ export const OnboardingOverviewScreen = () => {
     const section = overviewSections.find((item) => item.id === id);
     if (!section) return false;
     if (completedSections?.[id]) return true;
+    if (section.id === 'operational') {
+      return clientData?.outstanding?.questionIds?.length === 0;
+    }
 
     const { type, steps, correspondingParty } = section;
     if (type === 'stepper' && clientData) {

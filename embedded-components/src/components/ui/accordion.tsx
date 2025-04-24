@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
-import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -12,7 +11,7 @@ const AccordionItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn('eb-border-b', className)}
+    className={cn('eb-border-t', className)}
     {...props}
   />
 ));
@@ -26,13 +25,12 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        'eb-flex eb-flex-1 eb-items-center eb-justify-between eb-py-4 eb-font-medium eb-transition-all hover:eb-underline [&[data-state=open]>svg]:eb-rotate-180',
+        'eb-flex eb-flex-1 eb-items-center eb-py-4 eb-font-medium eb-transition-all hover:eb-underline [&[data-state=open]>svg]:eb-rotate-180',
         className
       )}
       {...props}
     >
       {children}
-      <ChevronDown className="eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200" />
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ));

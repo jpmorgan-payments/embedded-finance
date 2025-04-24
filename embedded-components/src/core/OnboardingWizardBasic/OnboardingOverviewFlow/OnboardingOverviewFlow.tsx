@@ -211,9 +211,14 @@ const OnboardingMainSteps = () => {
           gateway: () => <OnboardingGatewayScreen />,
           checklist: () => <OnboardingChecklistScreen />,
           overview: () => <OnboardingOverviewScreen />,
-          'section-stepper': () => <OnboardingSectionStepper />,
+          'section-stepper': () => (
+            <OnboardingSectionStepper
+              key={globalStepper.metadata['section-stepper']?.steps}
+            />
+          ),
           owners: () => <OwnersSectionScreen />,
           'operational-details': () => <OperationalDetailsForm />,
+          'review-and-attest': () => <OnboardingSectionStepper />,
         })}
       </div>
     </div>
