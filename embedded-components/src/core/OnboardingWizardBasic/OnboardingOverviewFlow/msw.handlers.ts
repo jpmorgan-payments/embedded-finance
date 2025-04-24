@@ -1,4 +1,3 @@
-;
 // @ts-nocheck
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
