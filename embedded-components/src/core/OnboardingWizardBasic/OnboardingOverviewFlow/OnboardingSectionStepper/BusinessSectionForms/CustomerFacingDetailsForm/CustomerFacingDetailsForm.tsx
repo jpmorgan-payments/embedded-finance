@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 // import { useTranslation } from 'react-i18next';

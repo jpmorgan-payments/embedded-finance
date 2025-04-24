@@ -108,9 +108,9 @@
       }
     },
     "controllerPhone": {
-      "label": "Phone number",
-      "description": "Please enter a valid phone number",
-      "tooltip": ""
+      "phoneNumber": {
+        "label": "Phone number"
+      }
     },
     "organizationPhone": {
       "label": "Phone number"
