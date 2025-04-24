@@ -208,9 +208,17 @@ export const createHandlers = (apiUrl) => [
 
     // Handle question responses if present
     if (data.questionResponses) {
-      // Add new question responses
+      // Get existing responses without the ones we're updating
+      const existingResponses = (updatedClient.questionResponses || []).filter(
+        (existing) =>
+          !data.questionResponses.some(
+            (incoming) => incoming.questionId === existing.questionId,
+          ),
+      );
+
+      // Combine existing responses (minus the updated ones) with new responses
       updatedClient.questionResponses = [
-        ...(updatedClient.questionResponses || []),
+        ...existingResponses,
         ...data.questionResponses,
       ];
 
@@ -326,12 +334,22 @@ export const createHandlers = (apiUrl) => [
       where: { id: { equals: partyId } },
     });
 
-    // Use lodash merge for deep merging
-    const mergedData = merge({}, existingParty, data);
+    // Use lodash merge for deep merging, but handle roles separately
+    const { roles: newRoles, ...restData } = data;
+    const { roles: existingRoles, ...restExisting } = existingParty;
+
+    // Merge everything except roles
+    const mergedData = merge({}, restExisting, restData);
+
+    // Add roles back, preferring the new roles if provided
+    const finalData = {
+      ...mergedData,
+      roles: newRoles || existingRoles,
+    };
 
     // Create a new party with the merged data
     const updatedParty = db.party.create({
-      ...mergedData,
+      ...finalData,
       id: partyId, // Ensure we keep the same ID
     });
 
