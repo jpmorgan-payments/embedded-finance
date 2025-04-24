@@ -19,6 +19,7 @@ import {
 } from '../../utils/formUtils';
 import { useOnboardingOverviewContext } from '../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../OnboardingGlobalStepper';
+import { ownerSteps } from '../OnboardingSectionStepper/OwnersSectionScreen/ownerSteps';
 import { overviewSections } from '../overviewSectionsConfig';
 import { StepLayout } from '../StepLayout/StepLayout';
 
@@ -58,13 +59,57 @@ export const OnboardingOverviewScreen = () => {
     return () => {};
   }, [justCompletedSection]);
 
+  const ownersData =
+    clientData?.parties?.filter(
+      (party) =>
+        party?.partyType === 'INDIVIDUAL' &&
+        party?.roles?.includes('BENEFICIAL_OWNER')
+    ) || [];
+
+  const activeOwners = ownersData.filter(
+    (owner) => owner.active || owner.status === 'ACTIVE'
+  );
+
+  const checkOwnerIsCompleted = (ownerId?: string) => {
+    if (clientData) {
+      const partyData = clientData.parties?.find(
+        (party) => party?.id === ownerId
+      );
+      if (!partyData) return false;
+
+      const formValues = convertClientResponseToFormValues(
+        clientData,
+        partyData.id
+      );
+
+      const notComplete = ownerSteps.some((step) => {
+        if (step.type === 'form') {
+          const modifiedSchema = modifySchema(
+            step.FormComponent.schema,
+            step.FormComponent.refineSchemaFn
+          );
+          return modifiedSchema.safeParse(formValues).success === false;
+        }
+        return false;
+      });
+      return !notComplete;
+    }
+    return false;
+  };
+
   const checkSectionIsCompleted = (id: string) => {
     const section = overviewSections.find((item) => item.id === id);
     if (!section) return false;
-    if (completedSections?.[id]) return true;
+    if (section.id === 'owners') {
+      const ownerIsIncomplete = activeOwners.some(
+        (owner) => !checkOwnerIsCompleted(owner.id)
+      );
+      return !ownerIsIncomplete;
+    }
     if (section.id === 'operational') {
       return clientData?.outstanding?.questionIds?.length === 0;
     }
+    if (completedSections?.[id]) return true;
 
     const { type, steps, correspondingParty } = section;
     if (type === 'stepper' && clientData) {

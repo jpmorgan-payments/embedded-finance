@@ -27,6 +27,7 @@ import {
   useFormUtilsWithClientContext,
 } from '@/core/OnboardingWizardBasic/utils/formUtils';
 
+import { LearnMorePopoverTrigger } from '../../LearnMorePopover/LearnMorePopover';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../../OnboardingGlobalStepper';
 import { overviewSections } from '../../overviewSectionsConfig';
@@ -263,9 +264,38 @@ export const OwnersSectionScreen = () => {
         <Alert variant="informative">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription className="eb-flex eb-flex-col">
-            <p className="eb-mb-2">Organization roles:</p>
+            <p className="eb-mb-2 eb-font-semibold">Organization roles:</p>
             <p className="eb-text-lg eb-font-bold">Owners</p>
-            <p>All owners holding 25% or more of the business.</p>
+            <p>
+              Please add <span className="eb-font-semibold">all owners</span>{' '}
+              holding 25% or more of the business
+            </p>
+
+            <div className="eb-mt-4">
+              <LearnMorePopoverTrigger
+                content={
+                  <div className="eb-space-y-3">
+                    <h2 className="eb-font-header eb-text-xl eb-font-medium">
+                      What is an owner?
+                    </h2>
+                    <p className="eb-pb-1 eb-text-sm">
+                      An owner is an individual or entity that ultimately owns
+                      at least part of a business, established through a chain
+                      of ownership or by means of control other than direct
+                      control.
+                    </p>
+                  </div>
+                }
+              >
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="eb-rounded-md eb-border hover:eb-bg-black/5"
+                >
+                  <InfoIcon /> Learn more
+                </Button>
+              </LearnMorePopoverTrigger>
+            </div>
           </AlertDescription>
         </Alert>
 

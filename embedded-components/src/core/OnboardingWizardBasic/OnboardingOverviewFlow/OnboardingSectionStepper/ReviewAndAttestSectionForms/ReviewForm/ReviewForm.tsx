@@ -94,10 +94,16 @@ export const ReviewForm: SectionStepComponent = ({ stepId, handleNext }) => {
   const checkSectionIsCompleted = (id: string) => {
     const section = overviewSections.find((item) => item.id === id);
     if (!section) return false;
-    if (completedSections?.[id]) return true;
+    if (section.id === 'owners') {
+      const ownerIsIncomplete = activeOwners.some(
+        (owner) => !checkOwnerIsCompleted(owner.id)
+      );
+      return !ownerIsIncomplete;
+    }
     if (section.id === 'operational') {
       return clientData?.outstanding?.questionIds?.length === 0;
     }
+    if (completedSections?.[id]) return true;
 
     const { type, steps, correspondingParty } = section;
     if (type === 'stepper' && clientData) {
