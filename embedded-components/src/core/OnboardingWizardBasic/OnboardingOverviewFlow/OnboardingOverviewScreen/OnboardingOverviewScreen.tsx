@@ -104,7 +104,9 @@ export const OnboardingOverviewScreen = () => {
       const ownerIsIncomplete = activeOwners.some(
         (owner) => !checkOwnerIsCompleted(owner.id)
       );
-      return !ownerIsIncomplete;
+      if (ownerIsIncomplete) {
+        return false;
+      }
     }
     if (section.id === 'operational') {
       return clientData?.outstanding?.questionIds?.length === 0;
