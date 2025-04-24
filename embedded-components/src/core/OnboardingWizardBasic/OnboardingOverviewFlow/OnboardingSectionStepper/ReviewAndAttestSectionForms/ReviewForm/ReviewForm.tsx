@@ -265,10 +265,12 @@ export const ReviewForm: SectionStepComponent = ({ stepId, handleNext }) => {
                         correspondingParty: {
                           id: sectionPartyData?.id,
                         },
+                        defaultPartyRequestBody:
+                          section.defaultPartyRequestBody,
+                        steps: section.steps,
                         reviewMode: true,
                         reviewStepId: step.id,
                         reviewSectionId: section.id,
-                        steps: section.steps,
                       });
                     };
                     content = (

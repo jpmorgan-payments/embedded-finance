@@ -196,6 +196,7 @@ export const OnboardingOverviewScreen = () => {
                     } else if (section.type === 'global-step') {
                       globalStepper.setMetadata(section.stepId, {
                         ...section,
+                        originStepId: 'overview',
                       });
                       globalStepper.goTo(section.stepId);
                     }

@@ -206,6 +206,7 @@ export const OnboardingSectionStepper = () => {
       globalStepper.setMetadata('section-stepper', {
         ...overviewSections.find((section) => section.id === 'attest'),
         reviewSectionId,
+        originStepId: 'overview',
       });
     } else if (editModeOriginStepId) {
       setMetadata(currentStepId, {
