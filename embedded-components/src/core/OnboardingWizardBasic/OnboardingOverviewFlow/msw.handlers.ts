@@ -4,14 +4,15 @@ import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import merge from 'lodash/merge';
 import { http, HttpResponse } from 'msw';
 
-
-
 import { CreateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 
-
-
-import { db, getDbStatus, handleMagicValues, logDbState, resetDb } from './msw.db';
-
+import {
+  db,
+  getDbStatus,
+  handleMagicValues,
+  logDbState,
+  resetDb,
+} from './msw.db';
 
 export const handlers = [
   http.get(`/ef/do/v1/clients/:clientId`, (req) => {
