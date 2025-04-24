@@ -53,7 +53,7 @@ export const CompanyIdentificationForm: SectionStepFormComponent = () => {
   }, [form.watch('organizationIds.0.issuer')]);
 
   return (
-    <div className="eb-space-y-6">
+    <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
         control={form.control}
         name="organizationName"

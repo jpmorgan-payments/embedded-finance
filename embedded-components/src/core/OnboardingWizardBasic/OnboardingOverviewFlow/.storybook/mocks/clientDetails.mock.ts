@@ -265,7 +265,7 @@ export const SoleProprietorExistingClient = {
   questionResponses: [
     {
       questionId: '300005',
-      values: ['$10,000'],
+      values: ['10000'],
     },
   ],
   results: {
@@ -423,7 +423,7 @@ export const LLCExistingClientOutstandingDocuments = {
   questionResponses: [
     {
       questionId: '30005',
-      values: ['$10,000'],
+      values: ['10000'],
     },
   ],
   results: {

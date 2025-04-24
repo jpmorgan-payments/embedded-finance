@@ -88,6 +88,8 @@ export const OperationalDetailsForm = () => {
 
   const queryKey = getSmbdoGetClientQueryKey(clientData?.id ?? '');
 
+  const metadata = globalStepper.getMetadata('operational-details');
+
   const {
     mutate: updateClient,
     error: updateClientError,
@@ -137,7 +139,15 @@ export const OperationalDetailsForm = () => {
           ...globalStepper.getMetadata('overview'),
           justCompletedSection: 'operational',
         });
-        globalStepper.goTo('overview');
+        if (metadata?.reviewMode) {
+          globalStepper.setMetadata('section-stepper', {
+            ...globalStepper.getMetadata('section-stepper'),
+            reviewSectionId: 'operational',
+          });
+        }
+        globalStepper.goTo(
+          metadata?.reviewMode ? 'section-stepper' : 'overview'
+        );
       },
     },
   });
@@ -191,6 +201,7 @@ export const OperationalDetailsForm = () => {
                     placeholder="0.00"
                     className="eb-pl-7"
                     {...field}
+                    value={field.value?.[0]}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       if (value >= 0 && value <= 10000000000) {
@@ -495,7 +506,7 @@ export const OperationalDetailsForm = () => {
           title="Operational details"
           description="Please answer these additional questions to help us understand your business operations."
         >
-          <div className="eb-mt-6 eb-flex-auto">
+          <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
             {renderQuestions()}
 
             <ServerErrorAlert
@@ -510,7 +521,9 @@ export const OperationalDetailsForm = () => {
               {updateClientStatus === 'pending' && (
                 <Loader2Icon className="eb-animate-spin" />
               )}
-              Save and return to overview
+              {metadata?.reviewMode
+                ? 'Save and return to review'
+                : 'Save and return to overview'}
             </Button>
           </div>
         </StepLayout>

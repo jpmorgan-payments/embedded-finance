@@ -1,61 +1,93 @@
 import { FC } from 'react';
-import { PencilIcon } from 'lucide-react';
+import { AlertTriangleIcon, PencilIcon, TriangleAlertIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Card } from '@/components/ui';
+import { AlertTitle } from '@/components/ui/alert';
+import { Alert, Button, Card } from '@/components/ui';
 
 import { partyFieldMap } from '../../../utils/fieldMap';
-import { convertClientResponseToFormValues } from '../../../utils/formUtils';
+import {
+  convertClientResponseToFormValues,
+  useFormUtilsWithClientContext,
+} from '../../../utils/formUtils';
 import { OnboardingFormValuesSubmit } from '../../../utils/types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { StepType } from '../../types';
 
 type CheckAnswersScreenProps = {
-  stepId: string;
-  partyId: string | undefined;
+  handleGoTo: (step: StepType) => void;
   steps: StepType[];
-  goToStep: (id: StepType) => void;
-  setMetadata: (id: string, metadata: any) => void;
+  partyId: string | undefined;
 };
 export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
-  stepId,
+  handleGoTo,
   steps,
-  goToStep,
-  setMetadata,
   partyId,
 }) => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
   const { clientData } = useOnboardingOverviewContext();
 
+  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+
   return (
-    <div className="eb-space-y-6">
+    <div className="eb-mt-6 eb-space-y-6">
       {steps.map((step) => {
         if (step.type === 'form') {
           const values = clientData
             ? convertClientResponseToFormValues(clientData, partyId)
             : {};
+          const modifiedSchema = modifySchema(
+            step.FormComponent.schema,
+            step.FormComponent.refineSchemaFn
+          );
+          const parseResult = modifiedSchema.safeParse(values);
+          const hasErrors = !parseResult.success;
+          const issues = parseResult.error?.issues.map(
+            (issue) => issue.path?.[0]
+          );
+
           return (
-            <Card className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
+            <Card className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4">
               <div className="eb-flex eb-items-start eb-justify-between">
                 <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
                   {step.title}
                 </h2>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  size="sm"
-                  className="eb-h-8 eb-p-2 eb-text-sm"
-                  onClick={() => {
-                    goToStep(step);
-                    setMetadata(step.id, {
-                      editModeOriginStepId: stepId,
-                    });
-                  }}
-                >
-                  <PencilIcon />
-                  Change
-                </Button>
+                {hasErrors ? (
+                  <Button
+                    variant="default"
+                    type="button"
+                    size="sm"
+                    className="eb-bg-[#C75300] eb-text-sm hover:eb-bg-[#C75300]/90"
+                    onClick={() => {
+                      handleGoTo(step);
+                    }}
+                  >
+                    <PencilIcon />
+                    Add
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    size="sm"
+                    className="eb-h-8 eb-p-2 eb-text-sm"
+                    onClick={() => {
+                      handleGoTo(step);
+                    }}
+                  >
+                    <PencilIcon />
+                    Change
+                  </Button>
+                )}
               </div>
+              {hasErrors && (
+                <Alert variant="warning" className="eb-mb-4 eb-pb-3">
+                  <AlertTriangleIcon className="eb-mt-0.5 eb-size-5" />
+                  <AlertTitle className="eb-text-base eb-font-semibold">
+                    Provide missing details
+                  </AlertTitle>
+                </Alert>
+              )}
               {Object.keys(step.FormComponent.schema.shape).map((field) => {
                 const fieldConfig = partyFieldMap?.[
                   field as keyof OnboardingFormValuesSubmit
@@ -92,7 +124,12 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                   <div className="eb-space-y-0.5" key={field}>
                     <p className="eb-text-sm eb-font-medium">{labelString}</p>
                     <div className="eb-flex eb-flex-col">
-                      {Array.isArray(valueString) ? (
+                      {issues?.includes(field) ? (
+                        <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
+                          <TriangleAlertIcon className="eb-size-4" />
+                          <p className="eb-italic">This field is missing</p>
+                        </div>
+                      ) : Array.isArray(valueString) ? (
                         valueString.map((val, index) => (
                           <p key={index}>{val}</p>
                         ))

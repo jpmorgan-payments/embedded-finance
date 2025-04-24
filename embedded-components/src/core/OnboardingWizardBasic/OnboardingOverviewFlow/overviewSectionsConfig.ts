@@ -9,19 +9,20 @@ import {
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 
+import { BusinessContactInfoForm } from './OnboardingSectionStepper/BusinessSectionForms/BusinessContactInfoForm/BusinessContactInfoForm';
 import { CompanyIdentificationForm } from './OnboardingSectionStepper/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
 import { CustomerFacingDetailsForm } from './OnboardingSectionStepper/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm';
 import { IndustryForm } from './OnboardingSectionStepper/BusinessSectionForms/IndustryForm/IndustryForm';
 import { ContactDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/ContactDetailsForm/ContactDetailsForm';
 import { IndividualIdentityForm } from './OnboardingSectionStepper/PersonalSectionForms/IndividualIdentityForm/IndividualIdentityForm';
 import { PersonalDetailsForm } from './OnboardingSectionStepper/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
-import { ReviewForm } from './OnboardingSectionStepper/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
+import { TermsAndConditionsForm } from './OnboardingSectionStepper/ReviewAndAttestSectionForms/TermsAndConditionsForm/TermsAndConditionsForm';
 import { SectionType } from './types';
 
 const parties: Record<string, Partial<PartyResponse>> = {
   controller: {
     partyType: 'INDIVIDUAL',
-    roles: ['BENEFICIAL_OWNER'],
+    roles: ['CONTROLLER'],
   },
   organization: {
     partyType: 'ORGANIZATION',
@@ -49,7 +50,7 @@ export const overviewSections: SectionType[] = [
       {
         id: 'identity-document',
         type: 'form',
-        title: 'Identity document',
+        title: 'Individual identity',
         description:
           'We need some additional details to confirm your identity.',
         FormComponent: IndividualIdentityForm,
@@ -103,6 +104,13 @@ export const overviewSections: SectionType[] = [
         FormComponent: CustomerFacingDetailsForm,
       },
       {
+        id: 'contact-info',
+        type: 'form',
+        title: 'Contact info',
+        description: 'Please let us know how to get in touch.',
+        FormComponent: BusinessContactInfoForm,
+      },
+      {
         id: 'check-answers',
         type: 'check-answers',
         title: 'Check your answers',
@@ -136,8 +144,15 @@ export const overviewSections: SectionType[] = [
         title: 'Review your details',
         description:
           'Please ensure your answers are accurate and complete anything you may have missed.',
+        type: 'review',
+      },
+      {
+        id: 'documents',
+        title: 'Terms and conditions',
+        description:
+          'Please open and review the following documents from J.P. Morgan to complete the process.',
         type: 'component',
-        Component: ReviewForm,
+        Component: TermsAndConditionsForm,
       },
     ],
   },
@@ -146,6 +161,7 @@ export const overviewSections: SectionType[] = [
     title: 'Supporting documents',
     icon: UploadIcon,
     type: 'global-step',
-    stepId: 'overview',
+    stepId: 'overview', // placeholder
+    helpText: 'Supporting documents are only needed in some cases',
   },
 ];

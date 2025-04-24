@@ -82,12 +82,24 @@ export type StepType =
       description?: string;
       Component?: SectionStepComponent;
       FormComponent?: never; // Ensure formConfig is not allowed
+    }
+  | {
+      id: string;
+      type: 'review';
+      title: string;
+      description?: string;
+      Component?: never;
+      FormComponent?: never; // Ensure formConfig is not allowed
     };
 
-export type StepperSectionType = {
+type BaseSectionType = {
   id: string;
   title: string;
   icon: LucideIcon;
+  helpText?: string;
+};
+
+export type StepperSectionType = BaseSectionType & {
   type: 'stepper';
   correspondingParty?: Partial<PartyResponse>;
   defaultPartyRequestBody?: Partial<PartyResponse>;
@@ -95,7 +107,7 @@ export type StepperSectionType = {
   Component?: never;
 };
 
-export type GlobalStepSectionType = {
+export type GlobalStepSectionType = BaseSectionType & {
   id: string;
   title: string;
   icon: LucideIcon;

@@ -55,7 +55,8 @@
       "tooltip": ""
     },
     "controllerJobTitle": {
-      "tooltip": ""
+      "tooltip": "",
+      "placeholder": "Select job title"
     },
     "birthDate": {
       "description": ""
@@ -66,8 +67,8 @@
     },
     "industry": {
       "label": "Business classification",
-      "description": "Select the classification that best matches the goods or services your customers will buy. Search by the North American Industry Classification System code (e.g. “123456”) or keyword (e.g. “automotive dealership”).",
-      "placeholder": "Look up by keyword or NAICS code",
+      "description": "Select the classification that best matches the goods or services your customers will buy. Search by keyword (e.g. “automotive dealership”) or the North American Industry Classification System code (e.g. “123456”).",
+      "placeholder": "Search by keyword or NAICS code",
       "tooltip": ""
     },
     "countryOfFormation": {
@@ -101,6 +102,11 @@
         "tooltip": ""
       }
     },
+    "controllerIds": {
+      "value": {
+        "tooltip": ""
+      }
+    },
     "controllerPhone": {
       "label": "Phone number",
       "description": "Please enter a valid phone number",
@@ -109,8 +115,35 @@
     "organizationPhone": {
       "label": "Phone number"
     },
+    "organizationEmail": {
+      "label": "Company email address",
+      "description": "Provide the best email address to contact the business",
+      "tooltip": ""
+    },
     "controllerAddresses": {
       "label": "Residential address",
+      "country": {
+        "description": ""
+      },
+      "primaryAddressLine": {
+        "description": "P.O. box is not accepted",
+        "tooltip": ""
+      },
+      "postalCode": {
+        "label": "Postal code",
+        "description": ""
+      },
+      "city": {
+        "label": "Town/City",
+        "description": ""
+      },
+      "state": {
+        "label": "State/Province",
+        "description": "",
+        "placeholder": "Select"
+      }
+    },
+    "addresses": {
       "country": {
         "description": ""
       },
@@ -150,7 +183,7 @@
       "description": "",
       "tooltip": ""
     },
-    "businessDescription": {
+    "organizationDescription": {
       "label": "Business description",
       "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don’t use special characters (e.g. * @ %, etc).",
       "tooltip": ""
@@ -160,13 +193,27 @@
     "EIN": "Employer Identification Number (EIN)",
     "BUSINESS_REGISTRATION_ID": "Business Registration ID",
     "BUSINESS_NUMBER": "Business Number",
-    "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number"
+    "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number",
+    "SSN": "Social security number",
+    "ITIN": "Individual Taxpayer Identification Number (ITIN)",
+    "NATIONAL_ID": "National ID",
+    "PASSPORT": "Passport",
+    "DRIVERS_LICENSE": "Driver's License",
+    "OTHER_GOVERNMENT_ID": "Other Government ID",
+    "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
   },
   "idValueDescriptions": {
     "EIN": "A unique nine-digit number, assigned by the IRS, that identifies your company as a business operating in the United States.",
     "BUSINESS_REGISTRATION_ID": "A unique ID assigned by the state or province where your business is registered.",
     "BUSINESS_NUMBER": "A unique number assigned by the Canada Revenue Agency (CRA) to identify your business.",
-    "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered."
+    "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered.",
+    "SSN": "E.g. 555-11-0000",
+    "ITIN": "E.g. 900-70-0000",
+    "NATIONAL_ID": "National ID",
+    "PASSPORT": "Passport",
+    "DRIVERS_LICENSE": "Driver's License",
+    "OTHER_GOVERNMENT_ID": "Other Government ID",
+    "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
   },
   "organizationTypes": {
     "LIMITED_LIABILITY_COMPANY": "Limited Liability Company (LLC)",

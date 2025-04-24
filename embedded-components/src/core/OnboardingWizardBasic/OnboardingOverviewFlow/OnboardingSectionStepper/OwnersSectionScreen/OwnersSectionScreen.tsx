@@ -27,8 +27,10 @@ import {
   useFormUtilsWithClientContext,
 } from '@/core/OnboardingWizardBasic/utils/formUtils';
 
+import { LearnMorePopoverTrigger } from '../../LearnMorePopover/LearnMorePopover';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { GlobalStepper } from '../../OnboardingGlobalStepper';
+import { overviewSections } from '../../overviewSectionsConfig';
 import { StepLayout } from '../../StepLayout/StepLayout';
 import { StepperSectionType } from '../../types';
 import { ownerSteps } from './ownerSteps';
@@ -48,6 +50,10 @@ export const OwnersSectionScreen = () => {
   const { completed } = globalStepper.getMetadata(
     'section-stepper'
   ) as Partial<StepperSectionType> & { completed: boolean };
+
+  const { reviewMode } = globalStepper.getMetadata('owners') as {
+    reviewMode?: boolean;
+  };
 
   const form = useForm({
     defaultValues: {
@@ -97,6 +103,10 @@ export const OwnersSectionScreen = () => {
                     return party;
                   }),
                 })
+              );
+              form.setValue(
+                'controllerIsAnOwner',
+                response.roles?.includes('BENEFICIAL_OWNER') ? 'yes' : 'no'
               );
             }
           },
@@ -254,9 +264,38 @@ export const OwnersSectionScreen = () => {
         <Alert variant="informative">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription className="eb-flex eb-flex-col">
-            <p className="eb-mb-2">Organization roles:</p>
+            <p className="eb-mb-2 eb-font-semibold">Organization roles:</p>
             <p className="eb-text-lg eb-font-bold">Owners</p>
-            <p>All owners holding 25% or more of the business.</p>
+            <p>
+              Please add <span className="eb-font-semibold">all owners</span>{' '}
+              holding 25% or more of the business
+            </p>
+
+            <div className="eb-mt-4">
+              <LearnMorePopoverTrigger
+                content={
+                  <div className="eb-space-y-3">
+                    <h2 className="eb-font-header eb-text-xl eb-font-medium">
+                      What is an owner?
+                    </h2>
+                    <p className="eb-pb-1 eb-text-sm">
+                      An owner is an individual or entity that ultimately owns
+                      at least part of a business, established through a chain
+                      of ownership or by means of control other than direct
+                      control.
+                    </p>
+                  </div>
+                }
+              >
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="eb-rounded-md eb-border hover:eb-bg-black/5"
+                >
+                  <InfoIcon /> Learn more
+                </Button>
+              </LearnMorePopoverTrigger>
+            </div>
           </AlertDescription>
         </Alert>
 
@@ -294,6 +333,13 @@ export const OwnersSectionScreen = () => {
                   className="eb-h-8"
                   onClick={() => {
                     globalStepper.goTo('section-stepper');
+                    globalStepper.setMetadata('section-stepper', {
+                      ...globalStepper.getMetadata('section-stepper'),
+                      ...overviewSections.find(
+                        (section) => section.id === 'personal'
+                      ),
+                      originStepId: 'owners',
+                    });
                   }}
                 >
                   Go now
@@ -309,12 +355,14 @@ export const OwnersSectionScreen = () => {
                   {t('beneficialOwnerStepForm.controllerCannotBeOwnerWarning')}
                 </p>
               )}
-            {controllerUpdateStatus === 'pending' && (
-              <div className="eb-mt-2 eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
-                <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
-                <span>{t('beneficialOwnerStepForm.makingChanges')}</span>
-              </div>
-            )}
+            <div className="eb-mt-2 eb-inline-flex eb-h-4 eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+              {controllerUpdateStatus === 'pending' && (
+                <>
+                  <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
+                  <span>{t('beneficialOwnerStepForm.makingChanges')}</span>
+                </>
+              )}
+            </div>
           </form>
         </Form>
 
@@ -376,7 +424,10 @@ export const OwnersSectionScreen = () => {
                     Owner
                   </Badge>
                   {owner.roles?.includes('CONTROLLER') && (
-                    <Badge className="eb-bg-[#FFEBD9] eb-text-[#8F521F]">
+                    <Badge
+                      variant="outline"
+                      className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                    >
                       Controller
                     </Badge>
                   )}
@@ -427,17 +478,37 @@ export const OwnersSectionScreen = () => {
             size="lg"
             className="eb-w-full eb-text-lg"
             onClick={() => {
-              if (!completed) {
+              const controllerQuestionAnswered =
+                form.getValues('controllerIsAnOwner') !== undefined;
+              if (!completed && !reviewMode && controllerQuestionAnswered) {
                 globalStepper.setMetadata('overview', {
                   ...globalStepper.getMetadata('overview'),
                   justCompletedSection: 'owners',
                 });
               }
-              globalStepper.goTo('overview');
+              if (reviewMode) {
+                if (controllerQuestionAnswered) {
+                  globalStepper.setMetadata('overview', {
+                    ...globalStepper.getMetadata('overview'),
+                    completedSections: {
+                      ...(globalStepper.getMetadata('overview') || {})
+                        .completedSections,
+                      owners: true,
+                    },
+                  });
+                }
+                globalStepper.setMetadata('section-stepper', {
+                  ...globalStepper.getMetadata('section-stepper'),
+                  reviewSectionId: 'owners',
+                });
+              }
+              globalStepper.goTo(reviewMode ? 'section-stepper' : 'overview');
             }}
             disabled={isFormDisabled}
           >
-            Save and return to overview
+            {reviewMode
+              ? 'Save and return to review'
+              : 'Save and return to overview'}
           </Button>
         </div>
       </div>
