@@ -419,6 +419,8 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
+    toStringFn: (val, formValues) =>
+      !formValues.websiteNotAvailable ? val : undefined,
   },
   websiteAvailable: {
     path: 'organizationDetails.websiteAvailable',
@@ -431,13 +433,15 @@ export const partyFieldMap: PartyFieldMap = {
     toRequestFn: (val): boolean => !val,
   },
   websiteNotAvailable: {
-    excludeFromMapping: true,
+    path: 'organizationDetails.websiteAvailable',
     isHiddenInReview: () => true,
     baseRule: {
       display: 'visible',
       required: false,
       defaultValue: false,
     },
+    fromResponseFn: (val: boolean) => !val,
+    toRequestFn: (val): boolean => !val,
   },
   dbaNameNotAvailable: {
     excludeFromMapping: true,

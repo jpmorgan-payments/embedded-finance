@@ -703,10 +703,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@jpmorgan-payments/embedded-finance-components@0.5.107":
-  version "0.5.107"
-  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.107.tgz#a7e891ed1962f1d9c5f544e3c6402d2707b0c309"
-  integrity sha512-925c1yWZoxvGuDQiOGCeogr7krl3jzJWmNjP6gpKEEHb3KUvDyQ5UD4peNR0oDKNzvOB6HuULeZ1EPOa+zckeg==
+"@jpmorgan-payments/embedded-finance-components@0.5.110":
+  version "0.5.110"
+  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.5.110.tgz#5539ca0bd4bdef151ec54381a22a69579f8d907e"
+  integrity sha512-qutY3waeZUZ7q52asvnlwoOIAws03QzHQjuamMwTfQENMS4KIv+nIOAPkLMRHW7dZ/pmjX0/1ErAddir+6qOQQ==
   dependencies:
     "@hookform/resolvers" "^3.6.0"
     "@radix-ui/react-accordion" "^1.2.0"

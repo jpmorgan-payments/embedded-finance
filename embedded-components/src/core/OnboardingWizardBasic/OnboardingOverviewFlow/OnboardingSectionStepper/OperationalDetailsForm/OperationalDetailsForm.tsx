@@ -121,10 +121,7 @@ export const OperationalDetailsForm = () => {
                   )
               ) ?? [],
           },
-          questionResponses: [
-            ...(old?.questionResponses ?? []),
-            ...(newData.data.questionResponses ?? []),
-          ],
+          questionResponses: [...(newData.data.questionResponses ?? [])],
         }));
 
         // Return a context object with the snapshotted value
@@ -134,20 +131,30 @@ export const OperationalDetailsForm = () => {
         // If the mutation fails, use the context returned from onMutate to roll back
         queryClient.setQueryData(queryKey, context?.previousClientData);
       },
-      onSuccess: () => {
-        globalStepper.setMetadata('overview', {
-          ...globalStepper.getMetadata('overview'),
-          justCompletedSection: 'operational',
-        });
+      onSuccess: (response) => {
+        queryClient.setQueryData(queryKey, response);
+
         if (metadata?.reviewMode) {
           globalStepper.setMetadata('section-stepper', {
             ...globalStepper.getMetadata('section-stepper'),
             reviewSectionId: 'operational',
           });
+          globalStepper.setMetadata('overview', {
+            ...globalStepper.getMetadata('overview'),
+            completedSections: {
+              ...(globalStepper.getMetadata('overview') || {})
+                .completedSections,
+              operational: true,
+            },
+          });
+          globalStepper.goTo('section-stepper');
+        } else {
+          globalStepper.setMetadata('overview', {
+            ...globalStepper.getMetadata('overview'),
+            justCompletedSection: 'operational',
+          });
+          globalStepper.goTo('overview');
         }
-        globalStepper.goTo(
-          metadata?.reviewMode ? 'section-stepper' : 'overview'
-        );
       },
     },
   });

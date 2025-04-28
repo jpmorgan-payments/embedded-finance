@@ -26,12 +26,12 @@ export const CustomerFacingDetailsFormSchema = z.object({
     .transform(sanitizeDescription),
   website: z
     .string()
-    .url(i18n.t('onboarding:fields.website.validation.invalid'))
-    .max(500, i18n.t('onboarding:fields.website.validation.maxLength'))
-    .refine(
-      (val) => !val || val.startsWith('https://'),
+    .regex(
+      /^https?:\/\//,
       i18n.t('onboarding:fields.website.validation.httpsRequired')
     )
+    .url(i18n.t('onboarding:fields.website.validation.invalid'))
+    .max(500, i18n.t('onboarding:fields.website.validation.maxLength'))
     .refine(
       (val) =>
         !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
@@ -44,14 +44,14 @@ export const refineCustomerFacingDetailsFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
-    if (!values.websiteNotAvailable && !values.website) {
+    if (values.websiteNotAvailable === false && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: i18n.t('onboarding:fields.website.validation.required'),
         path: ['website'],
       });
     }
-    if (!values.dbaNameNotAvailable && !values.dbaName) {
+    if (values.dbaNameNotAvailable === false && !values.dbaName) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Required',

@@ -10,7 +10,10 @@ import {
   convertClientResponseToFormValues,
   useFormUtilsWithClientContext,
 } from '../../../utils/formUtils';
-import { OnboardingFormValuesSubmit } from '../../../utils/types';
+import {
+  OnboardingFormValuesInitial,
+  OnboardingFormValuesSubmit,
+} from '../../../utils/types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { StepType } from '../../types';
 
@@ -33,14 +36,14 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
     <div className="eb-mt-6 eb-space-y-6">
       {steps.map((step) => {
         if (step.type === 'form') {
-          const values = clientData
+          const formValues = clientData
             ? convertClientResponseToFormValues(clientData, partyId)
             : {};
           const modifiedSchema = modifySchema(
             step.FormComponent.schema,
             step.FormComponent.refineSchemaFn
           );
-          const parseResult = modifiedSchema.safeParse(values);
+          const parseResult = modifiedSchema.safeParse(formValues);
           const hasErrors = !parseResult.success;
           const issues = parseResult.error?.issues.map(
             (issue) => issue.path?.[0]
@@ -92,14 +95,17 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                 const fieldConfig = partyFieldMap?.[
                   field as keyof OnboardingFormValuesSubmit
                 ] as {
-                  toStringFn?: (val: any) => string | string[] | undefined;
+                  toStringFn?: (
+                    val: any,
+                    values: Partial<OnboardingFormValuesInitial>
+                  ) => string | string[] | undefined;
                   generateLabelStringFn?: (val: any) => string | undefined;
                   isHiddenInReview?: (val: any) => boolean;
                 } & {
                   [key: string]: any;
                 };
                 const value =
-                  values?.[field as keyof OnboardingFormValuesSubmit];
+                  formValues?.[field as keyof OnboardingFormValuesSubmit];
 
                 if (fieldConfig?.isHiddenInReview?.(value)) {
                   return null;
@@ -116,7 +122,7 @@ export const CheckAnswersScreen: FC<CheckAnswersScreenProps> = ({
                 const valueString =
                   value !== undefined
                     ? fieldConfig?.toStringFn
-                      ? fieldConfig.toStringFn(value)
+                      ? fieldConfig.toStringFn(value, formValues)
                       : String(value)
                     : undefined;
 

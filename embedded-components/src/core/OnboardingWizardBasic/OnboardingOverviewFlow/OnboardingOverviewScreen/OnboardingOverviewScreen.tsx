@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CheckCircle2Icon,
+  CheckIcon,
   ChevronRightIcon,
   InfoIcon,
   Loader2Icon,
@@ -42,9 +43,14 @@ export const OnboardingOverviewScreen = () => {
     completedSections: Record<string, false>;
   };
 
+  const [mockKycCompleted, setMockKycCompleted] = useState(false);
+
   // Mocked loading state: After 3 seconds, add justCompletedSection to completedSections
   useEffect(() => {
     if (justCompletedSection) {
+      if (justCompletedSection === 'attest') {
+        setMockKycCompleted(true);
+      }
       const timeout = setTimeout(() => {
         globalStepper.setMetadata('overview', {
           completedSections: {
@@ -173,7 +179,8 @@ export const OnboardingOverviewScreen = () => {
             Please complete the following to verify your business
           </p>
           {overviewSections.map((section) => {
-            const disabled = section.id === 'upload-documents';
+            const disabled =
+              mockKycCompleted || section.id === 'upload-documents';
             return (
               <div key={section.id}>
                 <Button
@@ -186,16 +193,28 @@ export const OnboardingOverviewScreen = () => {
                   )}
                   disabled={disabled}
                   onClick={() => {
+                    if (justCompletedSection) {
+                      globalStepper.setMetadata('overview', {
+                        completedSections: {
+                          ...completedSections,
+                          [justCompletedSection]: true,
+                        },
+                      });
+                    }
                     if (section.type === 'stepper') {
                       globalStepper.setMetadata('section-stepper', {
                         ...section,
-                        completed: checkSectionIsCompleted(section.id),
+                        completed:
+                          section.id === 'attest'
+                            ? false
+                            : checkSectionIsCompleted(section.id),
                         originStepId: 'overview',
                       });
                       globalStepper.goTo('section-stepper');
                     } else if (section.type === 'global-step') {
                       globalStepper.setMetadata(section.stepId, {
                         ...section,
+                        originStepId: 'overview',
                       });
                       globalStepper.goTo(section.stepId);
                     }
@@ -246,29 +265,45 @@ export const OnboardingOverviewScreen = () => {
                   )}
                 </Button>
                 {section.helpText && (
-                  <p className="eb-mt-1 eb-text-sm eb-italic">
+                  <p
+                    className={cn('eb-mt-1 eb-text-sm eb-italic', {
+                      'eb-text-muted-foreground': disabled,
+                    })}
+                  >
                     {section.helpText}
                   </p>
                 )}
               </div>
             );
           })}
+
+          {mockKycCompleted && (
+            <Alert className="eb-border-[#00875D] eb-bg-[#EAF5F2] eb-pb-3">
+              <CheckIcon className="eb-size-4 eb-stroke-[#00875D]" />
+              <AlertDescription>
+                Success! Your business has been verified and your account has
+                been activated. Please continue below to link a bank account.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div>
           <p className="eb-text-sm eb-font-semibold">
             Let us know where to send payouts
           </p>
-          <p className="eb-mt-0.5 eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
-            <LockIcon className="eb-size-3" /> Verify your business to unlock
-            this step
-          </p>
+          {!mockKycCompleted && (
+            <p className="eb-mt-0.5 eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
+              <LockIcon className="eb-size-3" /> Verify your business to unlock
+              this step
+            </p>
+          )}
           <Button
             variant="ghost"
             className={cn(
               'eb-mt-2 eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-text-sm'
             )}
-            disabled
+            disabled={!mockKycCompleted}
           >
             <div className="eb-flex eb-items-center eb-gap-2 eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
               <svg
@@ -288,7 +323,7 @@ export const OnboardingOverviewScreen = () => {
                   clipRule="evenodd"
                   d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
                   fill="#4C5157"
-                  fillOpacity="0.4"
+                  fillOpacity={mockKycCompleted ? '1' : '0.4'}
                 />
               </svg>
 

@@ -194,12 +194,10 @@ export const ReviewForm: SectionStepComponent = ({ stepId, handleNext }) => {
         id={stepId}
         onSubmit={(e) => {
           e.preventDefault();
-          console.log(isMissingDetails);
           if (isMissingDetails) {
             setShouldDisplayAlert(true);
           } else {
             form.handleSubmit(() => {
-              console.log('what');
               handleNext();
             })(e);
           }
@@ -265,10 +263,12 @@ export const ReviewForm: SectionStepComponent = ({ stepId, handleNext }) => {
                         correspondingParty: {
                           id: sectionPartyData?.id,
                         },
+                        defaultPartyRequestBody:
+                          section.defaultPartyRequestBody,
+                        steps: section.steps,
                         reviewMode: true,
                         reviewStepId: step.id,
                         reviewSectionId: section.id,
-                        steps: section.steps,
                       });
                     };
                     content = (

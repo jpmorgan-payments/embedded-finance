@@ -25,7 +25,6 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'dbaNameNotAvailable' && value.dbaNameNotAvailable) {
-        form.setValue('dbaName', '');
         form.clearErrors('dbaName');
       }
     });
@@ -35,7 +34,6 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'websiteNotAvailable' && value.websiteNotAvailable) {
-        form.setValue('website', '');
         form.clearErrors('website');
       }
     });
@@ -49,7 +47,7 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
           control={form.control}
           name="dbaName"
           type="text"
-          placeholder={
+          valueOverride={
             form.watch('dbaNameNotAvailable')
               ? (currentPartyData?.organizationDetails?.organizationName ?? '')
               : undefined
@@ -114,7 +112,7 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
           control={form.control}
           name="website"
           type="text"
-          placeholder={form.watch('websiteNotAvailable') ? 'N/A' : undefined}
+          valueOverride={form.watch('websiteNotAvailable') ? 'N/A' : undefined}
           disabled={form.watch('websiteNotAvailable')}
           required
         />
@@ -122,7 +120,6 @@ export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
           control={form.control}
           name="websiteNotAvailable"
           type="checkbox-basic"
-          disableFieldRuleMapping
           label="My business doesn't have a website"
           noOptionalLabel
         />
@@ -148,5 +145,6 @@ CustomerFacingDetailsForm.modifyFormValuesBeforeSubmit = (
     ...rest,
     ...(!dbaNameNotAvailable ? { dbaName } : {}),
     ...(!websiteNotAvailable ? { website } : {}),
+    websiteNotAvailable,
   };
 };
