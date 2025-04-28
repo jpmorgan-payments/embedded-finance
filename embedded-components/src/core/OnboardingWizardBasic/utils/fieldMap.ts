@@ -481,6 +481,7 @@ export const partyFieldMap: PartyFieldMap = {
         month: 'long',
         day: '2-digit',
         year: 'numeric',
+        timeZone: 'UTC',
       }),
   },
   countryOfResidence: {
