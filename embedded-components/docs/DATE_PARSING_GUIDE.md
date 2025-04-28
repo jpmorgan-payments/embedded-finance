@@ -1,6 +1,6 @@
 # JavaScript/TypeScript Date Parsing Guide
 
-This guide covers common date parsing issues in JavaScript/TypeScript and their solutions, with a focus on reliable date handling in the Embedded Banking components.
+This guide covers common date parsing issues in JavaScript/TypeScript and their solutions, with a focus on reliable date handling in the Embedded Finance components.
 
 ## Common Issues and Solutions
 
