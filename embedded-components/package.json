@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.5.110",
+  "version": "0.5.111",
   "license": "Apache-2.0",
   "type": "module",
   "description": "Embedded Finance Components",
@@ -162,7 +162,7 @@
   "resolutions": {
     "strip-ansi": "6.0.1",
     "braces": "^3.0.3",
-    "jsonpath-plus": "^10.3.0"
+    "jsonpath-plus": "^10.2.0"
   },
   "packageManager": "yarn@4.1.1",
   "publishConfig": {
