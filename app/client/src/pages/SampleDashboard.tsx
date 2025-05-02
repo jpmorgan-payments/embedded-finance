@@ -413,7 +413,7 @@ export const SampleDashboard: FC = () => {
   </div>
   <iframe
     id="onboarding-iframe"
-    src="https://onboarding-app.com/onboarding?token={jwt}"
+    src="https://<host>/onboarding?token={jwt}"
     title="Onboarding UI"
     width="100%"
     height="700"
