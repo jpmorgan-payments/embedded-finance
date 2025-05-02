@@ -90,7 +90,7 @@ export const SampleDashboard: FC = () => {
 
   // Construct iframe URL
   const iframeUrl = onboardingToken
-    ? `http://localhost:3010/ep/onboarding?scenario=scenario3&fullScreen=true&token=${onboardingToken}`
+    ? `/ep/onboarding?scenario=scenario3&fullScreen=true&token=${onboardingToken}`
     : '';
 
   return (
