@@ -10,7 +10,7 @@ import {
 import { BeneficialOwnerStepFormSchema } from '../BeneficialOwnerStepForm/BeneficialOwnerStepForm.schema';
 import { ControllerStepFormSchema } from '../ControllerStepForm/ControllerStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
-import { CustomerFacingDetailsFormSchema } from '../OnboardingOverviewFlow/OnboardingSectionStepper/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm.schema';
+import { CustomerFacingDetailsFormSchema } from '../OnboardingOverviewFlow/screens/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
 // TODO: add more form schemas here

@@ -8,13 +8,13 @@ import { Button } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 
 import { LearnMorePopoverTrigger } from '../../../components/LearnMorePopover/LearnMorePopover';
-import { SectionStepFormComponent } from '../../../types';
+import { FormStepComponent } from '../../../flow.types';
 import {
   CustomerFacingDetailsFormSchema,
   refineCustomerFacingDetailsFormSchema,
 } from './CustomerFacingDetailsForm.schema';
 
-export const CustomerFacingDetailsForm: SectionStepFormComponent = ({
+export const CustomerFacingDetailsForm: FormStepComponent = ({
   currentPartyData,
 }) => {
   // const { t } = useTranslation(['onboarding-overview', 'onboarding']);

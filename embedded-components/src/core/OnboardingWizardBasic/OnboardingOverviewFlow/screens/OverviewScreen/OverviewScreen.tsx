@@ -21,7 +21,7 @@ import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
   const { organizationType, clientData } = useOnboardingOverviewContext();
-  const { sections, goTo, goBack, sessionData } = useFlowContext();
+  const { sections, goTo, sessionData } = useFlowContext();
 
   const { sectionStatuses } = getFlowProgress(
     sections,
@@ -224,7 +224,7 @@ export const OverviewScreen = () => {
           variant="secondary"
           size="lg"
           className="eb-w-full eb-text-lg"
-          onClick={() => goBack()}
+          onClick={() => goTo('checklist')}
         >
           {t('steps.overview.prevButton')}
         </Button>

@@ -11,7 +11,7 @@ import { useOnboardingOverviewContext } from '../../OnboardingContext/Onboarding
 
 export const ChecklistScreen = () => {
   const { organizationType } = useOnboardingOverviewContext();
-  const { goTo, goBack } = useFlowContext();
+  const { goTo } = useFlowContext();
 
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
@@ -133,7 +133,7 @@ export const ChecklistScreen = () => {
             variant="secondary"
             size="lg"
             className="eb-w-full eb-text-lg"
-            onClick={goBack}
+            onClick={() => goTo('gateway')}
           >
             {t('steps.checklist.prevButton')}
           </Button>

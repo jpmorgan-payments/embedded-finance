@@ -4,13 +4,13 @@ import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 
-import { SectionStepFormComponent } from '../../../types';
+import { FormStepComponent } from '../../../flow.types';
 import {
   PersonalDetailsFormSchema,
   refinePersonalDetailsFormSchema,
 } from './PersonalDetailsForm.schema';
 
-export const PersonalDetailsForm: SectionStepFormComponent = () => {
+export const PersonalDetailsForm: FormStepComponent = () => {
   // const { t } = useTranslation('onboarding');
   const form = useFormContext<z.input<typeof PersonalDetailsFormSchema>>();
 

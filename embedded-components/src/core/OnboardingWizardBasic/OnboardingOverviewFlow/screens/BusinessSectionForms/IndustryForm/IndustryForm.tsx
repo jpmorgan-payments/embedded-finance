@@ -7,10 +7,10 @@ import { Button } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 
 import { LearnMorePopoverTrigger } from '../../../components/LearnMorePopover/LearnMorePopover';
-import { SectionStepFormComponent } from '../../../types';
+import { FormStepComponent } from '../../../flow.types';
 import { IndustryFormSchema } from './IndustryForm.schema';
 
-export const IndustryForm: SectionStepFormComponent = () => {
+export const IndustryForm: FormStepComponent = () => {
   // const { t } = useTranslation('onboarding');
   const form = useFormContext<z.input<typeof IndustryFormSchema>>();
 

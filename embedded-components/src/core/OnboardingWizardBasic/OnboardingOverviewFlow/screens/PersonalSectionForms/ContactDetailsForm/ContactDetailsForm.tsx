@@ -6,10 +6,10 @@ import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingForm
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingWizardBasic/utils/COUNTRIES_OF_FORMATION';
 import { stateOptions } from '@/core/OnboardingWizardBasic/utils/stateOptions';
 
-import { SectionStepFormComponent } from '../../../types';
+import { FormStepComponent } from '../../../flow.types';
 import { ContactDetailsFormSchema } from './ContactDetailsForm.schema';
 
-export const ContactDetailsForm: SectionStepFormComponent = () => {
+export const ContactDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
 

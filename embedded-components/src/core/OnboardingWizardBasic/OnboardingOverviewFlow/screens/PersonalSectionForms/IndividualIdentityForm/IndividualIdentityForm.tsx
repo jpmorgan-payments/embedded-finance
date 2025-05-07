@@ -15,10 +15,10 @@ import {
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingWizardBasic/utils/COUNTRIES_OF_FORMATION';
 
-import { SectionStepFormComponent } from '../../../types';
+import { FormStepComponent } from '../../../flow.types';
 import { IndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
 
-export const IndividualIdentityForm: SectionStepFormComponent = () => {
+export const IndividualIdentityForm: FormStepComponent = () => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding']);
   const form = useFormContext<z.input<typeof IndividualIdentityFormSchema>>();
 
