@@ -175,7 +175,7 @@ export const SThemeWithMock = Default.bind({});
 SThemeWithMock.storyName = 'Mocked New Client';
 SThemeWithMock.args = {
   ...STheme.args,
-  apiBaseUrl: '/ef/do/v1/',
+  apiBaseUrl: '',
   headers: {
     api_gateway_client_id: 'test',
   },

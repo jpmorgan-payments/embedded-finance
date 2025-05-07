@@ -15,7 +15,7 @@ import {
 } from './msw.db';
 
 export const handlers = [
-  http.get(`/ef/do/v1/clients/:clientId`, (req) => {
+  http.get(`/clients/:clientId`, (req) => {
     const { clientId } = req.params;
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
@@ -49,7 +49,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/ef/do/v1/clients`, async ({ request }) => {
+  http.post(`/clients`, async ({ request }) => {
     const rawData = await request.json();
     if (!rawData || typeof rawData !== 'object') {
       return new HttpResponse(null, {
@@ -121,7 +121,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/ef/do/v1/clients/:clientId`, async ({ request, params }) => {
+  http.post(`/clients/:clientId`, async ({ request, params }) => {
     const { clientId } = params;
     const data = await request.json();
 
@@ -290,7 +290,7 @@ export const handlers = [
     });
   }),
 
-  http.post('/ef/do/v1/parties/:partyId', async ({ request, params }) => {
+  http.post('/parties/:partyId', async ({ request, params }) => {
     const { partyId } = params;
     const data = await request.json();
 
@@ -331,7 +331,7 @@ export const handlers = [
     return HttpResponse.json(updatedParty);
   }),
 
-  http.get('/ef/do/v1/questions', (req) => {
+  http.get('/questions', (req) => {
     const url = new URL(req.request.url);
     const questionIds = url.searchParams.get('questionIds');
     return HttpResponse.json({
@@ -342,11 +342,11 @@ export const handlers = [
     });
   }),
 
-  http.get('/ef/do/v1/documents/:documentId', () => {
+  http.get('/documents/:documentId', () => {
     return HttpResponse.json(efDocumentClientDetail);
   }),
 
-  http.get('/ef/do/v1/documents/:documentId/file', () => {
+  http.get('/documents/:documentId/file', () => {
     // This is a minimal valid PDF file with "Sample PDF" text, encoded in base64
     const pdfBase64 =
       'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvSGVsdmV0aWNhCj4+CmVuZG9iagoKNSAwIG9iaiAgJSBwYWdlIGNvbnRlbnQKPDwKICAvTGVuZ3RoIDQ0Cj4+CnN0cmVhbQpCVAo3MCA1MCBURCAKL0YxIDI0IFRmCihTYW1wbGUgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTAgMDAwMDAgbiAKMDAwMDAwMDA3OSAwMDAwMCBuIAowMDAwMDAwMTczIDAwMDAwIG4gCjAwMDAwMDAzMDEgMDAwMDAgbiAKMDAwMDAwMDM4MCAwMDAwMCBuIAp0cmFpbGVyCjw8CiAgL1NpemUgNgogIC9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTIKJSVFT0Y=';
@@ -362,7 +362,7 @@ export const handlers = [
     );
   }),
 
-  http.get('/ef/do/v1/document-requests/:documentRequestId', (req) => {
+  http.get('/document-requests/:documentRequestId', (req) => {
     const { documentRequestId } = req.params;
     const documentRequest = db.documentRequest.findFirst({
       where: { id: { equals: documentRequestId } },
@@ -375,7 +375,7 @@ export const handlers = [
     return HttpResponse.json(documentRequest);
   }),
 
-  http.post('/ef/do/v1/documents', async ({ request }) => {
+  http.post('/documents', async ({ request }) => {
     const data = await request.json();
     const documentId = Math.random().toString(36).substring(7);
 
@@ -394,7 +394,7 @@ export const handlers = [
   }),
 
   http.post(
-    '/ef/do/v1/document-requests/:documentRequestId/submit',
+    '/document-requests/:documentRequestId/submit',
     async ({ params }) => {
       const { documentRequestId } = params;
 
@@ -498,26 +498,23 @@ export const handlers = [
     return new HttpResponse(null, { status: 404 });
   }),
 
-  http.post('/ef/do/v1/_reset', () => {
+  http.post('/_reset', () => {
     return HttpResponse.json(resetDb());
   }),
 
-  http.get('/ef/do/v1/_status', () => {
+  http.get('/_status', () => {
     return HttpResponse.json(getDbStatus());
   }),
 
-  http.post(
-    '/ef/do/v1/clients/:clientId/verifications',
-    async ({ request, params }) => {
-      const { clientId } = params;
-      const data = await request.json();
+  http.post('/clients/:clientId/verifications', async ({ request, params }) => {
+    const { clientId } = params;
+    const data = await request.json();
 
-      const verificationResponse = handleMagicValues(clientId, data);
-      if (!verificationResponse) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      return HttpResponse.json(verificationResponse);
+    const verificationResponse = handleMagicValues(clientId, data);
+    if (!verificationResponse) {
+      return new HttpResponse(null, { status: 404 });
     }
-  ),
+
+    return HttpResponse.json(verificationResponse);
+  }),
 ];
