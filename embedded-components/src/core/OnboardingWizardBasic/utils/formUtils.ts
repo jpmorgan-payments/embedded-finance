@@ -19,6 +19,7 @@ import {
   ApiErrorReasonV2,
   ClientResponse,
   CreateClientRequestSmbdo,
+  PartyResponse,
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
@@ -325,6 +326,34 @@ export function convertClientResponseToFormValues(
       return;
     }
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
+    const value = getValueByPath(response, pathTemplate);
+    if (value !== undefined && (!Array.isArray(value) || value.length > 0)) {
+      const modifiedValue = config.fromResponseFn
+        ? config.fromResponseFn(value)
+        : value;
+      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+    }
+  });
+
+  return formValues;
+}
+
+/**
+ * Converts API response data into form values format
+ * @param response - Party response from API
+ * @returns Partial form values object with mapped API data
+ * Cleans empty organization IDs and applies response transformations
+ */
+export function convertPartyResponseToFormValues(
+  response: PartyResponse
+): Partial<OnboardingFormValuesInitial> {
+  const formValues: Partial<OnboardingFormValuesInitial> = {};
+  objectKeys(partyFieldMap).forEach((fieldName) => {
+    const config = getPartyFieldConfig(fieldName);
+    if (config.excludeFromMapping) {
+      return;
+    }
+    const pathTemplate = `${config.path}`;
     const value = getValueByPath(response, pathTemplate);
     if (value !== undefined && (!Array.isArray(value) || value.length > 0)) {
       const modifiedValue = config.fromResponseFn
