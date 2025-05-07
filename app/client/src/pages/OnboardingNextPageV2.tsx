@@ -1,7 +1,7 @@
 import {
   EBComponentsProvider,
   OnboardingWizardBasic,
-  OnboardingOverviewFlow,
+  OnboardingFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
 import {
   Badge,
@@ -262,7 +262,7 @@ export const OnboardingNextPageV2 = () => {
         ) : error ? (
           <div>{error}</div>
         ) : scenario?.component === 'OnboardingOverviewFlow' ? (
-          <OnboardingOverviewFlow
+          <OnboardingFlow
             key={`wizard-${scenario?.clientId}`}
             // @ts-ignore
             availableProducts={scenario?.availableProducts ?? []}
@@ -277,7 +277,6 @@ export const OnboardingNextPageV2 = () => {
             }
             title="Onboarding Wizard"
             initialClientId={clientIdFromParams ?? scenario?.clientId}
-            initialStep={initialStep - 1}
             onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
