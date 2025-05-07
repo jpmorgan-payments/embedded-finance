@@ -11,7 +11,6 @@ import {
   SectionStatus,
   StepConfig,
   StepperValidation,
-  StepValidationMap,
 } from '../flow.types';
 import {
   getClientContext,
