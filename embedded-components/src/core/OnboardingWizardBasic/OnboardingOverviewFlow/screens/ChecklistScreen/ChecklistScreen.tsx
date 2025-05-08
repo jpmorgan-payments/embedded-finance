@@ -37,7 +37,7 @@ export const ChecklistScreen = () => {
           <DownloadIcon /> Download checklist
         </Button>
       </div>
-      <div className="eb-mt-6 eb-flex-auto eb-space-y-4">
+      <div className="eb-mt-6 eb-max-h-[480px] eb-flex-auto eb-space-y-4 eb-overflow-y-scroll eb-border-y eb-py-2">
         <Card className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4">
           <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
             Personal details
