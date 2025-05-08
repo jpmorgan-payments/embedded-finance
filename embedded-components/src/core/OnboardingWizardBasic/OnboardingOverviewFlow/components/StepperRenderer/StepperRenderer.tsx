@@ -265,6 +265,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       >
         {currentStep.stepType === 'form' && (
           <StepperFormStep
+            key={currentStep.id}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
             defaultPartyRequestBody={defaultPartyRequestBody}
@@ -275,6 +276,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         )}
         {currentStep.stepType === 'check-answers' && (
           <CheckAnswersStep
+            key={currentStep.id}
             steps={steps}
             stepValidationMap={stepValidationMap}
             onEditClick={(stepId) => {
@@ -286,7 +288,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
           />
         )}
         {currentStep.stepType === 'static' && currentStep.Component && (
-          <currentStep.Component {...sharedProps} />
+          <currentStep.Component key={currentStep.id} {...sharedProps} />
         )}
       </StepLayout>
     </div>
