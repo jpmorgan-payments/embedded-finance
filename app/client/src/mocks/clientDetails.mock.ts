@@ -414,17 +414,17 @@ export const LLCExistingClientOutstandingDocuments = {
   partyId: '2100000111',
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
-    attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
+    attestationDocumentIds: [],
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
-    questionIds: ['30005'],
+    questionIds: [],
   },
   questionResponses: [
     {
       questionId: '30005',
       values: ['10,000'],
-    },
+    }
   ],
   results: {
     customerIdentityStatus: 'APPROVED',
