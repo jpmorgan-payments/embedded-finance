@@ -1,8 +1,5 @@
-import { FC } from 'react';
 import { defaultResources } from '@/i18n/config';
-import { LucideIcon } from 'lucide-react';
 import { DeepPartial } from 'react-hook-form';
-import { z } from 'zod';
 
 import {
   ApiError,
@@ -14,7 +11,6 @@ import {
 } from '@/api/generated/smbdo.schemas';
 
 import { Jurisdiction } from '../utils/types';
-import { GlobalStepper } from './OnboardingGlobalStepper';
 
 export type OnboardingConfigDefault = {
   initialClientId?: string;
@@ -24,6 +20,7 @@ export type OnboardingConfigDefault = {
   alertOnExit?: boolean;
   userEventsToTrack?: string[];
   userEventsHandler?: ({ actionName }: { actionName: string }) => void;
+  height?: string;
 };
 
 export type OnboardingConfigUsedInContext = {
@@ -36,86 +33,4 @@ export type OnboardingConfigUsedInContext = {
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
-  height?: string;
 };
-
-export type SectionStepFormComponent<
-  TSchema extends z.ZodObject<Record<string, z.ZodType<any>>> = z.ZodObject<
-    Record<string, z.ZodType<any>>
-  >,
-> = FC<{ currentPartyData?: PartyResponse }> & {
-  schema: TSchema;
-  refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
-  modifyFormValuesBeforeSubmit?: (
-    values: z.output<TSchema>,
-    partyData: PartyResponse | undefined
-  ) => z.output<TSchema>;
-};
-
-export type SectionStepComponent = FC<{
-  stepId: string;
-  handleNext: () => void;
-  handlePrev: () => void;
-}>;
-
-export type StepType =
-  | {
-      id: string;
-      type: 'form';
-      title: string;
-      description?: string;
-      Component?: never;
-      FormComponent: SectionStepFormComponent;
-    }
-  | {
-      id: string;
-      type: 'check-answers';
-      title: string;
-      description?: string;
-      Component?: never;
-      FormComponent?: never; // Ensure formConfig is not allowed
-    }
-  | {
-      id: string;
-      type: 'component';
-      title: string;
-      description?: string;
-      Component?: SectionStepComponent;
-      FormComponent?: never; // Ensure formConfig is not allowed
-    }
-  | {
-      id: string;
-      type: 'review';
-      title: string;
-      description?: string;
-      Component?: never;
-      FormComponent?: never; // Ensure formConfig is not allowed
-    };
-
-type BaseSectionType = {
-  id: string;
-  title: string;
-  icon: LucideIcon;
-  helpText?: string;
-};
-
-export type StepperSectionType = BaseSectionType & {
-  type: 'stepper';
-  correspondingParty?: Partial<PartyResponse>;
-  defaultPartyRequestBody?: Partial<PartyResponse>;
-  steps: StepType[];
-  Component?: never;
-};
-
-export type GlobalStepSectionType = BaseSectionType & {
-  id: string;
-  title: string;
-  icon: LucideIcon;
-  type: 'global-step';
-  correspondingParty?: never;
-  defaultPartyRequestBody?: never;
-  steps?: never;
-  stepId: (typeof GlobalStepper.steps)[number]['id'];
-};
-
-export type SectionType = StepperSectionType | GlobalStepSectionType;

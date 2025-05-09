@@ -108,9 +108,7 @@
       }
     },
     "controllerPhone": {
-      "phoneNumber": {
-        "label": "Phone number"
-      }
+      "label": "Phone number"
     },
     "organizationPhone": {
       "label": "Phone number"

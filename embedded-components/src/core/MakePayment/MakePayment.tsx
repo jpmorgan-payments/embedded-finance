@@ -148,7 +148,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="eb-sm:max-w-[425px]">
+      <DialogContent className="sm:eb-max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>{t('description')}</DialogDescription>
