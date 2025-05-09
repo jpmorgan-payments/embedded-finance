@@ -65,7 +65,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario6',
-    name: 'Overview Layout - Sole Proprietor',
+    name: 'Overview Layout - Existing Client - Sole Proprietor',
     clientId: '0030000131',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -76,7 +76,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario7',
-    name: 'Overview Layout - LLC',
+    name: 'Overview Layout - Existing Client - LLC',
     clientId: '0030000132',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -88,6 +88,17 @@ export const onboardingScenarios = [
   {
     id: 'scenario8',
     name: 'Overview Layout - no client',
+    availableJurisdictions: ['US'],
+    availableProducts: ['EMBEDDED_PAYMENTS'],
+    baseURL: '/ef/do/v1/',
+    gatewayID: '',
+    availableOrganizationTypes,
+    component: 'OnboardingOverviewFlow',
+  },
+  {
+    id: 'scenario9',
+    name: 'Overview Layout - Existing Client with Docs Requested',
+    clientId: '0030000133',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',

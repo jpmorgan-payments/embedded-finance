@@ -30,6 +30,7 @@ import { EmbeddedComponentsPage } from 'pages/EmbeddedComponentsPage';
 import { EPLinkedAccountPage } from 'pages/EPLinkedAccountsPage';
 import { OnboardingNextPageV2 } from 'pages/OnboardingNextPageV2';
 import { ThemeEditorPage } from 'pages/ThemeEditorPage';
+import { SampleDashboard } from 'pages/SampleDashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,18 +52,24 @@ const App = () => {
           <Notifications position="top-right" zIndex={2077} />
           <StoryDrawerProvider>
             <BrowserRouter>
-              <Layout
-                themeProps={{
-                  currentThemeName: themeName,
-                  themeNames: Object.keys(themes),
-                  setThemeName: setThemeName,
-                }}
-              >
-                <Routes>
-                  <Route path="*" element={<NotFoundErrorPage />} />
+              <Routes>
+                <Route path="sample-dashboard" element={<SampleDashboard />} />
+                <Route
+                  path="/"
+                  element={
+                    <Layout
+                      themeProps={{
+                        currentThemeName: themeName,
+                        themeNames: Object.keys(themes),
+                        setThemeName: setThemeName,
+                      }}
+                    />
+                  }
+                >
+                  <Route index element={<Navigate replace to="/overview" />} />
                   <Route element={<AuthenticationPage />}>
                     <Route path="login">
-                      <Route path="" element={<Login />} />
+                      <Route index element={<Login />} />
                       <Route path="callback" element={<ForgeRockCallback />} />
                     </Route>
                     <Route element={<ForgeRockProtectedRoutes />}>
@@ -80,21 +87,18 @@ const App = () => {
                     path="embedded-components"
                     element={<EmbeddedComponentsPage />}
                   />
-                  <Route
-                    path="ep/onboarding"
-                    element={<OnboardingNextPageV2 />}
-                  />
                   <Route path="theme-editor" element={<ThemeEditorPage />} />
                   <Route
                     path="ep/linked-accounts"
                     element={<EPLinkedAccountPage />}
                   />
                   <Route
-                    path="/"
-                    element={<Navigate replace to="/overview" />}
+                    path="ep/onboarding"
+                    element={<OnboardingNextPageV2 />}
                   />
-                </Routes>
-              </Layout>
+                  <Route path="*" element={<NotFoundErrorPage />} />
+                </Route>
+              </Routes>
             </BrowserRouter>
           </StoryDrawerProvider>
         </ModalsProvider>
