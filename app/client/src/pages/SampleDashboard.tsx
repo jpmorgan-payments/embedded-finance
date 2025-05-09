@@ -153,7 +153,7 @@ export const SampleDashboard: FC = () => {
             loading={isLoading}
             style={{ justifyContent: 'space-between' }}
           >
-            Seller Wallet
+            Marketplace Wallet
           </Button>
         </Stack>
 
