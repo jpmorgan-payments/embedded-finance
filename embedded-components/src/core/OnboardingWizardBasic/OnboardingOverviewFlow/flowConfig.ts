@@ -17,6 +17,7 @@ import { CompanyIdentificationForm } from './screens/BusinessSectionForms/Compan
 import { CustomerFacingDetailsForm } from './screens/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm';
 import { IndustryForm } from './screens/BusinessSectionForms/IndustryForm/IndustryForm';
 import { ChecklistScreen } from './screens/ChecklistScreen/ChecklistScreen';
+import { DocumentUploadScreen } from './screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from './screens/GatewayScreen/GatewayScreen';
 import { OperationalDetailsForm } from './screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from './screens/OverviewScreen/OverviewScreen';
@@ -265,11 +266,17 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Upload documents',
       icon: UploadIcon,
       helpText: 'Supporting documents are only needed in some cases',
-      statusResolver: () => {
+      statusResolver: (sessionData, clientData) => {
+        if (
+          sessionData.mockedKycCompleted ||
+          clientData?.status === 'INFORMATION_REQUESTED'
+        ) {
+          return 'not_started';
+        }
         return 'on_hold';
       },
     },
-    Component: () => 'Not implemented',
+    Component: DocumentUploadScreen,
   },
 ];
 
