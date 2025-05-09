@@ -57,11 +57,11 @@ const staticScreens: StaticScreenConfig[] = [
     stepperConfig: {
       associatedPartyFilters: {
         partyType: 'INDIVIDUAL',
-        roles: ['CONTROLLER'],
+        roles: ['BENEFICIAL_OWNER'],
       },
       defaultPartyRequestBody: {
         partyType: 'INDIVIDUAL',
-        roles: ['CONTROLLER'],
+        roles: ['BENEFICIAL_OWNER'],
       },
       steps: ownerSteps,
     },
