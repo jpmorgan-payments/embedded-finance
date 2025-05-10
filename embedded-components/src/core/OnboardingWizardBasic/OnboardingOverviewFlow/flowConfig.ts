@@ -76,6 +76,18 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Personal details',
       icon: UserIcon,
+      statusResolver: (sessionData, clientData, allStepsValid) => {
+        if (sessionData.mockedKycCompleted) {
+          return 'done_disabled';
+        }
+        if (clientData?.status === 'INFORMATION_REQUESTED') {
+          return 'done_disabled';
+        }
+        if (allStepsValid) {
+          return 'done_editable';
+        }
+        return 'not_started';
+      },
     },
     stepperConfig: {
       associatedPartyFilters: {
@@ -128,6 +140,18 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Business details',
       icon: BuildingIcon,
+      statusResolver: (sessionData, clientData, allStepsValid) => {
+        if (sessionData.mockedKycCompleted) {
+          return 'done_disabled';
+        }
+        if (clientData?.status === 'INFORMATION_REQUESTED') {
+          return 'done_disabled';
+        }
+        if (allStepsValid) {
+          return 'done_editable';
+        }
+        return 'not_started';
+      },
     },
     stepperConfig: {
       associatedPartyFilters: {
@@ -196,6 +220,12 @@ const sectionScreens: SectionScreenConfig[] = [
           );
           return allStepsValid;
         });
+        if (
+          sessionData.mockedKycCompleted ||
+          clientData?.status === 'INFORMATION_REQUESTED'
+        ) {
+          return 'done_disabled';
+        }
 
         if (sessionData.isOwnersSectionDone && allOwnersValid) {
           return 'done_editable';
@@ -213,8 +243,15 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Operational details',
       icon: TagIcon,
       statusResolver: (sessionData, clientData) => {
-        const completed = clientData?.outstanding?.questionIds?.length === 0;
-        if (completed) {
+        const sectionCompleted =
+          clientData?.outstanding?.questionIds?.length === 0;
+        if (
+          clientData?.status === 'INFORMATION_REQUESTED' ||
+          sessionData.mockedKycCompleted
+        ) {
+          return 'done_disabled';
+        }
+        if (sectionCompleted) {
           return 'done_editable';
         }
         return 'not_started';
@@ -230,9 +267,9 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Review and attest',
       icon: FileIcon,
       statusResolver: (sessionData, clientData) => {
-        const completed = clientData?.status === 'REVIEW_IN_PROGRESS';
+        const completed = clientData?.status === 'INFORMATION_REQUESTED';
         if (completed || sessionData.mockedKycCompleted) {
-          return 'done_editable';
+          return 'done_disabled';
         }
         return 'not_started';
       },
@@ -267,13 +304,13 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: UploadIcon,
       helpText: 'Supporting documents are only needed in some cases',
       statusResolver: (sessionData, clientData) => {
-        if (
-          sessionData.mockedKycCompleted ||
-          clientData?.status === 'INFORMATION_REQUESTED'
-        ) {
+        if (clientData?.status === 'INFORMATION_REQUESTED') {
           return 'not_started';
         }
-        return 'on_hold';
+        if (clientData?.status === 'NEW') {
+          return 'on_hold';
+        }
+        return 'done_disabled';
       },
     },
     Component: DocumentUploadScreen,
