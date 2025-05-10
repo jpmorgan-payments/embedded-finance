@@ -33,7 +33,7 @@ export const OverviewScreen = () => {
   // TODO:
   const kycCompleted =
     sessionData.mockedKycCompleted ||
-    clientData?.status === 'INFORMATION_REQUESTED';
+    clientData?.status === 'REVIEW_IN_PROGRESS';
 
   return (
     <StepLayout
