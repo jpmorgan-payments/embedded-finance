@@ -3,7 +3,6 @@ import {
   CheckIcon,
   ChevronRightIcon,
   InfoIcon,
-  Loader2Icon,
   LockIcon,
   PencilIcon,
 } from 'lucide-react';
@@ -32,7 +31,9 @@ export const OverviewScreen = () => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   // TODO:
-  const kycCompleted = sessionData.mockedKycCompleted;
+  const kycCompleted =
+    sessionData.mockedKycCompleted ||
+    clientData?.status === 'REVIEW_IN_PROGRESS';
 
   return (
     <StepLayout
@@ -63,9 +64,11 @@ export const OverviewScreen = () => {
           </p>
           {sections.map((section) => {
             const sectionStatus = sectionStatuses?.[section.id];
-            const sectionCompleted =
-              ['done_disabled', 'done_editable'].includes(sectionStatus) &&
-              sessionData.mockedVerifyingSectionId !== section.id;
+            const sectionCompleted = [
+              'done_disabled',
+              'done_editable',
+            ].includes(sectionStatus);
+            // && sessionData.mockedVerifyingSectionId !== section.id;
             const sectionDisabled = ['done_disabled', 'on_hold'].includes(
               sectionStatus
             );
@@ -103,6 +106,7 @@ export const OverviewScreen = () => {
 
                   <div className="eb-flex eb-px-3 [&_svg]:eb-size-6">
                     <CheckCircle2Icon
+                      aria-label="Completed"
                       className={cn(
                         'eb-duration-400 eb-hidden eb-stroke-green-600 eb-opacity-0 eb-transition-opacity eb-ease-in',
                         {
@@ -110,14 +114,14 @@ export const OverviewScreen = () => {
                         }
                       )}
                     />
-                    <Loader2Icon
+                    {/* <Loader2Icon
                       className={cn(
                         'eb-hidden eb-animate-spin eb-stroke-primary',
                         {
                           'eb-block': sectionVerifying,
                         }
                       )}
-                    />
+                    /> */}
                   </div>
 
                   <Button
