@@ -51,31 +51,21 @@ This approach uses a configuration-driven system (`flowConfig.ts`) to define the
 
 ```mermaid
 graph TD
-    A[Start Onboarding Flow] --> B{Client ID provided?};
-    B -- Yes --> C{Fetch Client Data GET /clients/:id};
-    B -- No --> D[Show Gateway Screen];
-    C --> E{Client Data Loaded?};
-    E -- Yes --> F{Org Type known?};
-    E -- No / Error --> G[Show Loading / Error State];
-    F -- Yes --> H[Show Overview Screen];
-    F -- No --> D;
-    D --> I[User Selects Org Type];
-    I --> J[Create Client POST /clients?];
-    J --> C;
-    H --> K{User Selects Section};
-    K --> L[Navigate to Section Screen];
-    L --> M{Render Section Component / Stepper};
-    M --> H;
-    subgraph Section Rendering
-      N[Section Screen (e.g., 'business-section')]
-      O{Type: Stepper?}
-      N --> O;
-      O -- Yes --> P[Render StepperRenderer];
-      O -- No --> Q[Render Section Component (e.g., OwnersSectionScreen)];
-      P --> R[User Completes Steps];
-      Q --> R;
-      R --> H;
-    end
+    A[Start Onboarding Flow] --> B{Client ID provided?}
+    B -- Yes --> C{Fetch Client Data GET /clients/:id}
+    B -- No --> D[Show Gateway Screen]
+    C --> E{Client Data Loaded?}
+    E -- Yes --> F{Org Type known?}
+    E -- No / Error --> G[Show Loading / Error State]
+    F -- Yes --> H[Show Overview Screen]
+    F -- No --> D
+    D --> I[User Selects Org Type]
+    I --> J[Create Client POST /clients?]
+    J --> C
+    H --> K{User Selects Section}
+    K --> L[Navigate to Section Screen]
+    L --> M{Render Section Component or Stepper}
+    M --> H
 ```
 
 **Explanation:**
