@@ -1,7 +1,7 @@
-⚠️ DRAFT - UNDER REVIEW ⚠️
+# ⚠️ DRAFT - UNDER REVIEW ⚠️
 
-This document is a draft and is currently being updated. Information contained
-herein may be incomplete or subject to change.
+> **Note:** Information contained herein may be incomplete and is subject to
+> change.
 
 # Hosted Onboarding UI Integration Guide
 
@@ -33,12 +33,12 @@ The integration involves the following key steps:
 
 1.  **Client Status Check (Optional but Recommended):** Before initiating
     onboarding, your platform can check the client's current onboarding status
-    (e.g., by calling an API endpoint like `GET /clients/:id`). If the status
-    indicates that client status is INFORMATION_REQUESTED, you might show a
-    specific visual indicator to the user.
-2.  **Session Initiation (User Action):** When the user triggers the rendering
-    of the web page with the onboarding UI (e.g., by clicking a "Wallet" or
-    "Complete Onboarding" button), your platform's frontend initiates a session.
+    (e.g., by calling an API endpoint such as `GET /clients/:id`). If the client
+    status is `INFORMATION_REQUESTED`, you might display a specific visual
+    indicator to the user.
+2.  **Session Initiation (User Action):** When the user triggers the onboarding
+    UI (e.g., by clicking a "Wallet" or "Complete Onboarding" button), your
+    platform's frontend initiates a session.
 3.  **Backend Session Transfer:**
     - The frontend calls a secure backend endpoint on your platform (e.g.,
       `POST /sessions`).
@@ -51,7 +51,7 @@ The integration involves the following key steps:
     - The frontend receives the session token.
     - It dynamically constructs the URL for the hosted Onboarding UI, appending
       the token as a query parameter (e.g.,
-      `https://<host>/onboarding?token={jwt_token}`).
+      `https://<onboarding-provider-domain>/onboarding?token={jwt_token}`).
     - The Onboarding UI is then loaded within an `<iframe>` on your platform's
       page.
 5.  **Communication (Optional):** The iframe can communicate events (e.g.,
@@ -80,8 +80,8 @@ sequenceDiagram
 
 ## 2. API Reference: Session Transfer
 
-This section refers to an API endpoint **you would build on your platform's
-backend** to manage the session transfer to the hosted Onboarding UI.
+This section describes an API endpoint that **you must build on your platform's
+backend** to manage session transfer to the hosted Onboarding UI.
 
 ### Initiate Session Transfer
 
@@ -89,13 +89,18 @@ backend** to manage the session transfer to the hosted Onboarding UI.
 - **Method:** `POST`
 - **Description:** Called by your frontend to initiate an onboarding session for
   a user and retrieve a session token required to load the hosted Onboarding UI.
-- **Request Payload (Example from your frontend to your backend):**
+- **Example Request Payload (from your frontend to your backend):**
   ```json
   {
-    "clientId": "sample-client-001"
+    "type": "HOSTED_UI",
+    "targetId": "1000000000", // clientId
+    "hostedUi": {
+      "sessionTransferUrl": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
+      "token": "jwt_token"
+    }
   }
   ```
-- **Backend Logic (Your platform's backend):**
+- **Backend Logic (on your platform's backend):**
   1.  Authenticate the request from your frontend (ensure the user is logged in
       on your platform).
   2.  Retrieve your platform's API credentials for the hosted Onboarding
@@ -104,18 +109,18 @@ backend** to manage the session transfer to the hosted Onboarding UI.
       endpoint (provided by the Onboarding Service) to create a session for the
       given `clientId`. This request might include passing user details to
       pre-fill information.
-  4.  The Onboarding Service's API will respond, typically with:
+  4.  The Onboarding Service's API typically responds with:
       - A unique session ID or inquiry ID.
       - A short-lived JWT token (or similar) to authenticate the user session
         within the iframe.
       - The URL (or components to build the URL) for the hosted Onboarding UI.
   5.  Your backend securely returns the necessary information (e.g., the JWT
       token) to your frontend.
-- **Response (Example from your backend to your frontend):**
+- **Example Response (from your backend to your frontend):**
   ```json
   {
-    "token": "mock-jwt-token-12345",
-    "clientId": "sample-client-001"
+    "token": "jwt_token",
+    "clientId": "1000000000"
   }
   ```
 
@@ -130,16 +135,16 @@ When the user initiates onboarding on your platform:
 2.  On success, your frontend receives the session token (and other necessary
     details) from your backend.
 3.  Display appropriate loading indicators during this process (e.g., on the
-    button that triggers the action, as seen in the `SampleDashboard.tsx`
+    button that triggers the action, as shown in the `SampleDashboard.tsx`
     example).
 
 ### 3.2. Rendering the Iframe
 
-1.  **Dynamically Construct URL:** Use the received token to build the `src` URL
-    for the iframe, e.g.
-    `https://<onboarding-provider-domain>/onboarding?token=${onboardingToken}`
+1.  **Dynamically construct the URL:** Use the received token to build the `src`
+    URL for the iframe, e.g.
+    `https://<onboarding-provider-domain>/onboarding?token=${sessionToken}`
 
-2.  **Create and Mount Iframe (HTML/JS Example):**
+2.  **Create and mount the iframe (HTML/JS example):**
     ```html
     <!-- Responsive container for the iframe -->
     <div style="position:relative; width:100%; min-height:700px;">
@@ -149,15 +154,15 @@ When the user initiates onboarding on your platform:
       </div>
       <iframe
         id="onboarding-iframe"
-        title="Onboarding UI" /* Crucial for accessibility */
+        title="Onboarding UI" <!-- Crucial for accessibility -->
         src="YOUR_CONSTRUCTED_IFRAME_URL"
         width="100%"
-        height="700" /* Adjust as needed, or manage height dynamically */
-        style="border:none; display:block;" /* Initially 'display:none' or visibility hidden until loaded to prevent FOUC */
+        height="700" <!-- Adjust as needed, or manage height dynamically -->
+        style="border:none; display:block;" <!-- Initially 'display:none' or visibility hidden until loaded to prevent FOUC -->
         allowfullscreen
-        referrerpolicy="no-referrer" /* Recommended for security */
+        referrerpolicy="no-referrer" <!-- Recommended for security -->
         onload="document.getElementById('iframe-loader').style.display='none'; this.style.visibility='visible';"
-        onerror="handleIframeError()" /* Optional: Implement iframe error handling */
+        onerror="handleIframeError()" <!-- Optional: Implement iframe error handling -->
       ></iframe>
     </div>
     <script>
@@ -167,14 +172,15 @@ When the user initiates onboarding on your platform:
       }
     </script>
     ```
-    - **React Implementation:** In a React application like
-      `SampleDashboard.tsx`, you'd manage the iframe's `src`, loading state
+    - **React Implementation:** In a React application such as
+      `SampleDashboard.tsx`, manage the iframe's `src`, loading state
       (`isFrameLoading`), and visibility conditionally using component state and
       the `onLoad` prop of the `iframe` element.
-    - **Loading State:** Show a loader (like `iframe-loader` above or the
+    - **Loading State:** Show a loader (such as `iframe-loader` above or the
       `Loader` component in `SampleDashboard.tsx`) until the iframe's `onload`
       event fires.
-    - **Responsiveness:** Ensure the iframe and its container are responsive.
+    - **Responsiveness:** Ensure that the iframe and its container are
+      responsive.
     - **Error Handling:** Implement an `onerror` handler or use a timeout
       mechanism to detect if the iframe fails to load.
 
@@ -182,28 +188,28 @@ When the user initiates onboarding on your platform:
 
 - **`sandbox`**: Restricts the capabilities of the content within the iframe.
   This is a critical security feature. Start with the most restrictive set of
-  permissions and add only what is necessary for the Onboarding UI to function.
-  - `allow-scripts`: Allows the execution of JavaScript.
+  permissions and add only those necessary for the Onboarding UI to function.
+  - `allow-scripts`: Allows execution of JavaScript.
   - `allow-popups`: Allows content to open new windows or tabs (e.g., for OAuth
     flows or help documents). Use with caution.
   - `allow-modals`: Allows content to open modal dialogs.
 - **`referrerpolicy="no-referrer"`**: Prevents the browser from sending the
-  `Referer` header with requests made from the iframe. This is generally a good
-  practice for privacy and security unless the provider specifically requires
+  `Referer` header with requests made from the iframe. This is generally good
+  practice for privacy and security, unless the provider specifically requires
   it.
 
 ### 3.4. Optional: Communication with Iframe (using `window.postMessage`)
 
 If the Onboarding UI needs to communicate events (e.g., completion, errors,
-specific steps taken, readiness) back to your host platform:
+specific steps, readiness) back to your host platform:
 
 **Receiving Messages from Iframe (in your platform's frontend):**
 
 ```javascript
 window.addEventListener('message', function (event) {
-  // CRITICAL: ALWAYS verify the origin of the message
-  // Replace 'https://your-onboarding-provider.com' with the actual origin of the Onboarding UI
-  const EXPECTED_ORIGIN = 'https://your-onboarding-provider.com'; // Store this securely or derive it
+  // CRITICAL: Always verify the origin of the message
+  // Replace 'https://onboarding-provider-domain.com' with the actual origin of the Onboarding UI
+  const EXPECTED_ORIGIN = 'https://onboarding-provider-domain.com'; // Store this securely or derive it
   if (event.origin !== EXPECTED_ORIGIN) {
     console.warn(
       `Message received from unexpected origin: ${event.origin}. Expected: ${EXPECTED_ORIGIN}`,
@@ -213,7 +219,7 @@ window.addEventListener('message', function (event) {
 
   const data = event.data; // Data can be a string or an object. Parse if necessary.
 
-  // Process data based on message type or content defined by the Onboarding UI provider
+  // Process data based on message type or content as defined by the Onboarding UI provider
   if (data && data.type === 'IFRAME_LOADED') {
     console.log('Onboarding Iframe Loaded and Ready (via postMessage)');
     // You can use this signal to hide your primary loader if it's more reliable than iframe.onload
@@ -227,22 +233,22 @@ window.addEventListener('message', function (event) {
     console.error('Onboarding Error reported from iframe:', data.payload);
     // Handle error: show an error message to the user, allow retry, notify backend
   }
-  // ... other event types based on Onboarding UI documentation
+  // ... other event types as defined in the Onboarding UI documentation
 });
 ```
 
 - **Origin Verification:** `event.origin` **MUST** be strictly checked against
-  the expected origin of the Onboarding UI. Do not use wildcard `*`.
+  the expected origin of the Onboarding UI. Do not use the wildcard `*`.
 - **Data Handling:** The structure of `event.data` is defined by the Onboarding
   UI provider. It might be a JSON string that needs parsing or an object. Always
   validate and sanitize the data.
 
-**Sending Messages to Iframe (Less common if token is passed in `src`):** If you
+**Sending Messages to Iframe (less common if token is passed in `src`):** If you
 need to send information to the iframe after it has loaded:
 
 ```javascript
 const onboardingIframe = document.getElementById('onboarding-iframe'); // Get the iframe element
-const IFRAME_TARGET_ORIGIN = 'https://onboarding-ui-provider.com';
+const IFRAME_TARGET_ORIGIN = 'https://onboarding-provider-domain.com';
 
 // Ensure iframe is loaded and you have its contentWindow
 if (onboardingIframe && onboardingIframe.contentWindow) {
@@ -272,40 +278,39 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
     token.
   - Handle errors from the Onboarding Service API gracefully.
   - Return the session token (and any other necessary data) to your frontend.
-  - **Webhook Handling (If applicable):** If the Onboarding Service uses
+  - **Webhook Handling (if applicable):** If the Onboarding Service uses
     webhooks to send final status updates:
     - Implement a secure webhook ingestion endpoint on your backend.
     - Verify webhook authenticity (e.g., using cryptographic signatures, IP
       whitelisting).
     - Process the status and update the user's record in your platform's
       database. Correlate the webhook data to the correct user.
-  - **Status Update Endpoint (If frontend relays status):** If your frontend
+  - **Status Update Endpoint (if frontend relays status):** If your frontend
     receives status updates via `postMessage` and then informs your backend:
     - Implement an endpoint (e.g., `/update-status`) for your frontend.
     - **CRITICAL:** Your backend should, if possible, re-verify this status
       directly with the Onboarding Service using a server-to-server API call
-      (using the session/inquiry ID) before marking the onboarding as complete
-      in your database. This prevents client-side tampering.
+      (using the session or inquiry ID) before marking the onboarding as
+      complete in your database. This prevents client-side tampering.
 
 ### 4.2. Representation Layer (Your Platform's Frontend UI)
 
 - **Responsibilities:**
-  - Provide a UI element (e.g., button) for the user to initiate the onboarding
-    process.
-  - Call your platform's backend to get the session token.
+  - Provide a UI element (e.g., a button) for the user to initiate the
+    onboarding process.
+  - Call your platform's backend to obtain the session token.
   - Dynamically create and render the `<iframe>` with the correct `src` URL
-    (including the token) and security attributes.
+    (including the token) and appropriate security attributes.
   - Manage loading states:
     - While waiting for the session token from your backend.
     - While the `<iframe>` content is loading (e.g., using the `onLoad` event
-      and/or `postMessage` signals like `IFRAME_LOADED`).
-  - Handle and display errors (e.g., if token generation fails, iframe fails to
-    load, or errors are reported from the iframe via `postMessage`).
-  - Implement `postMessage` event listeners to react to messages from the
-    iframe.
-  - Ensure the iframe is responsive and accessible.
-  - (Optional) Provide a UI control to refresh the session (get a new token and
-    reload the iframe), as shown in `SampleDashboard.tsx`.
+      and/or `postMessage` signals such as `IFRAME_LOADED`).
+  - Handle and display errors (e.g., if token generation fails, the iframe fails
+    to load, or errors are reported from the iframe via `postMessage`).
+  - Implement `postMessage` event listeners to handle messages from the iframe.
+  - Ensure that the iframe is responsive and accessible.
+  - (Optional) Provide a UI control to refresh the session (obtain a new token
+    and reload the iframe), as shown in `SampleDashboard.tsx`.
 
 ## 5. Handling Onboarding Results & Session State
 
@@ -316,10 +321,8 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
     Often preferred for definitive, secure confirmation of the final onboarding
     status (e.g., APPROVED, DECLINED).
 - **Updating User Status in Your Platform's Database:**
-  - Once the final KYC/onboarding status is confirmed (ideally via webhook or
-    backend-to-backend verification):
-- Store the status (e.g., NEW, APPROVED, DECLINED, REVIEW_IN_PROGRESS,
-  INFORMATION_REQUESTED).
+  - Store the status (e.g., NEW, APPROVED, DECLINED, REVIEW_IN_PROGRESS,
+    INFORMATION_REQUESTED).
   - Store any relevant identifiers from the Onboarding Service (e.g.,
     verification ID, report ID).
   - Timestamp the verification.
@@ -327,8 +330,8 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 - **Handling Re-entry and Different Statuses:**
   - If a user re-enters the onboarding flow, your system (and potentially the
     Onboarding UI, if it supports it) should handle their current status
-    gracefully (e.g., resume an incomplete application, show a "Submitted,
-    awaiting review" page instead of restarting the flow).
+    gracefully (e.g., resume an incomplete application, or show a 'Submitted,
+    awaiting review' page instead of restarting the flow).
 
 ## 6. Security & Testing Considerations
 
@@ -337,17 +340,17 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 - **`sandbox` Attribute:** Essential. Apply the principle of least privilege.
 - **`allow` Attribute:** Only grant necessary device permissions and scope them
   to the Onboarding UI's origin. Not required for this integration.
-- **Content Security Policy (CSP) Headers (Your Platform):**
-  - `frame-src <onboarding-ui-domain.com>;` Restricts where iframes can be
+- **Content Security Policy (CSP) Headers (on your platform):**
+  - `frame-src <onboarding-provider-domain.com>;` Restricts where iframes can be
     loaded from on your pages.
 
 ### 6.2. `postMessage` Security
 
-- **Always Validate `event.origin`:** This is the most critical check when
+- **Always validate `event.origin`:** This is the most critical check when
   receiving messages.
-- **Always Specify `targetOrigin`:** When sending messages, use the specific
+- **Always specify `targetOrigin`:** When sending messages, use the specific
   target origin, not `*`.
-- **Validate and Sanitize `event.data`:** Treat incoming data as untrusted.
+- **Validate and sanitize `event.data`:** Treat incoming data as untrusted.
   Validate its structure and content. Sanitize before rendering in HTML to
   prevent XSS.
 
@@ -355,7 +358,7 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 
 - Use HTTPS for all communication.
 - Authenticate and authorize all API calls.
-- Securely manage and store API keys/secrets.
+- Securely manage and store API keys and secrets.
 - Implement input validation, rate limiting, and robust error handling.
 
 ### 6.4. Testing
@@ -364,14 +367,14 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
   - Successful onboarding.
   - Various failure scenarios (e.g., invalid documents, technical errors, user
     cancellation).
-  - "REVIEW_IN_PROGRESS" and loading statuses.
+  - 'REVIEW_IN_PROGRESS' and loading statuses.
 - Use test environments and test data/scenario triggers provided by the
   Onboarding Service.
 - Optional: Test `postMessage` communication: ensure messages from incorrect
   origins are rejected and messages to incorrect target origins are not sent (or
-  handled appropriately).
-- Test iframe security attributes: verify they restrict capabilities as
+  are handled appropriately).
+- Test iframe security attributes: verify that they restrict capabilities as
   intended.
-- Conduct security testing (e.g., penetration testing) focusing on the iframe
+- Conduct security testing (e.g., penetration testing), focusing on the iframe
   boundary, session management, and API interactions. Check for OWASP Top 10
   vulnerabilities.
