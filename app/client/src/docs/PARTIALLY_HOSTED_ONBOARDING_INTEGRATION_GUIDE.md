@@ -1,4 +1,28 @@
+⚠️ DRAFT - UNDER REVIEW ⚠️
+
+This document is a draft and is currently being updated. Information contained
+herein may be incomplete or subject to change.
+
 # Hosted Onboarding UI Integration Guide
+
+## Table of Contents
+
+- [1. Integration Overview](#1-integration-overview)
+- [2. API Reference: Session Transfer](#2-api-reference-session-transfer)
+- [3. Frontend Implementation: Embedding the Onboarding UI](#3-frontend-implementation-embedding-the-onboarding-ui)
+  - [3.1. Triggering Session Transfer and Receiving Token](#31-triggering-session-transfer-and-receiving-token)
+  - [3.2. Rendering the Iframe](#32-rendering-the-iframe)
+  - [3.3. Iframe Security Attributes](#33-iframe-security-attributes)
+  - [3.4. Optional: Communication with Iframe (using window.postMessage)](#34-optional-communication-with-iframe-using-windowpostmessage)
+- [4. Platform Implementation Guidance (Your Responsibilities)](#4-platform-implementation-guidance-your-responsibilities)
+  - [4.1. Service Layer (Your Platform's Backend)](#41-service-layer-your-platforms-backend)
+  - [4.2. Representation Layer (Your Platform's Frontend UI)](#42-representation-layer-your-platforms-frontend-ui)
+- [5. Handling Onboarding Results & Session State](#5-handling-onboarding-results--session-state)
+- [6. Security & Testing Considerations](#6-security--testing-considerations)
+  - [6.1. Iframe Security Best Practices](#61-iframe-security-best-practices)
+  - [6.2. postMessage Security](#62-postmessage-security)
+  - [6.3. API Security (Your Backend & Calls to Onboarding Service)](#63-api-security-your-backend--calls-to-onboarding-service)
+  - [6.4. Testing](#64-testing)
 
 This guide outlines the process for integrating the hosted Onboarding UI into
 your platform.
@@ -295,10 +319,10 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
   - Once the final KYC/onboarding status is confirmed (ideally via webhook or
     backend-to-backend verification):
 - Store the status (e.g., NEW, APPROVED, DECLINED, REVIEW_IN_PROGRESS,
-      INFORMATION_REQUESTED).
-    - Store any relevant identifiers from the Onboarding Service (e.g.,
-      verification ID, report ID).
-    - Timestamp the verification.
+  INFORMATION_REQUESTED).
+  - Store any relevant identifiers from the Onboarding Service (e.g.,
+    verification ID, report ID).
+  - Timestamp the verification.
   - Update the user's access or UI on your platform based on their new status.
 - **Handling Re-entry and Different Statuses:**
   - If a user re-enters the onboarding flow, your system (and potentially the
@@ -341,12 +365,13 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
   - Various failure scenarios (e.g., invalid documents, technical errors, user
     cancellation).
   - "REVIEW_IN_PROGRESS" and loading statuses.
-- Use test environments and test data/scenario triggers provided by
-  the Onboarding Service.
+- Use test environments and test data/scenario triggers provided by the
+  Onboarding Service.
 - Optional: Test `postMessage` communication: ensure messages from incorrect
-  origins are rejected and messages to incorrect target origins are not sent
-  (or handled appropriately).
-- Test iframe security attributes: verify they restrict capabilities as intended.
+  origins are rejected and messages to incorrect target origins are not sent (or
+  handled appropriately).
+- Test iframe security attributes: verify they restrict capabilities as
+  intended.
 - Conduct security testing (e.g., penetration testing) focusing on the iframe
   boundary, session management, and API interactions. Check for OWASP Top 10
   vulnerabilities.

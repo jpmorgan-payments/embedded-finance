@@ -26,7 +26,7 @@ import {
 import { API_URL } from 'data/constants';
 import { useMutation } from '@tanstack/react-query';
 import Markdown from 'react-markdown';
-import onboardingIntegrationGuideText from '../docs/partially-hosted-onboarding-integration-guide.md?raw';
+import onboardingIntegrationGuideText from '../docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md?raw';
 import styles from './SampleDashboard.module.css';
 
 interface SessionTransferResponse {
