@@ -66,8 +66,8 @@ sequenceDiagram
     participant OnboardingService as Hosted Onboarding UI/Service
 
     User->>PlatformFrontend: Trigger page with onboarding UI
-    PlatformFrontend->>PlatformBackend: Request Session Token (e.g., POST /sessions with userId)
-    PlatformBackend->>OnboardingService: Initiate Session (for userId)
+    PlatformFrontend->>PlatformBackend: Request Session Token (e.g., POST /sessions with clientId)
+    PlatformBackend->>OnboardingService: Initiate Session (for clientId)
     OnboardingService-->>PlatformBackend: Returns JWT Token
     PlatformBackend-->>PlatformFrontend: Returns JWT Token
     PlatformFrontend->>PlatformFrontend: Construct Iframe URL with Token
@@ -89,38 +89,45 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Method:** `POST`
 - **Description:** Called by your frontend to initiate an onboarding session for
   a user and retrieve a session token required to load the hosted Onboarding UI.
-- **Example Request Payload (from your frontend to your backend):**
+- **Example Request Payload (from your backend to the Onboarding Service):**
   ```json
   {
     "type": "HOSTED_UI",
-    "targetId": "1000000000", // clientId
-    "hostedUi": {
-      "sessionTransferUrl": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
-      "token": "jwt_token"
-    }
+    "targetId": "1000000000" // clientId
   }
   ```
 - **Backend Logic (on your platform's backend):**
   1.  Authenticate the request from your frontend (ensure the user is logged in
       on your platform).
-  2.  Retrieve your platform's API credentials for the hosted Onboarding
-      Service.
-  3.  Make a secure server-to-server call to the Onboarding Service's API
+  2.  Make a secure server-to-server call to the Onboarding Service's API
       endpoint (provided by the Onboarding Service) to create a session for the
       given `clientId`. This request might include passing user details to
       pre-fill information.
-  4.  The Onboarding Service's API typically responds with:
-      - A unique session ID or inquiry ID.
-      - A short-lived JWT token (or similar) to authenticate the user session
-        within the iframe.
-      - The URL (or components to build the URL) for the hosted Onboarding UI.
-  5.  Your backend securely returns the necessary information (e.g., the JWT
+  3.  The Onboarding Service's API typically responds with:
+      - The URL (or components to build the URL) for the hosted Onboarding UI
+        with a short-lived JWT token (or similar) to authenticate the user
+        session within the iframe.
+  4.  Your backend securely returns the necessary information (e.g., the JWT
       token) to your frontend.
-- **Example Response (from your backend to your frontend):**
+- **Example Response (from the Onboarding Service to your backend):**
   ```json
   {
-    "sessionTransferUrl": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
-    "token": "jwt_token"
+    "metadata": {
+      "page": 1,
+      "size": 1,
+      "limit": 10,
+      "total": 1
+    },
+    "sessions": [
+      {
+        "type": "HOSTED_UI",
+        "targetId": "1000000000", // clientId
+        "hostedUi": {
+          "url": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
+          "token": "jwt_token"
+        }
+      }
+    ]
   }
   ```
 
