@@ -1,9 +1,9 @@
-# ⚠️ DRAFT - UNDER REVIEW ⚠️
+# Hosted Onboarding UI Integration Guide
+
+⚠️ DRAFT - UNDER REVIEW ⚠️
 
 > **Note:** Information contained herein may be incomplete and is subject to
 > change.
-
-# Hosted Onboarding UI Integration Guide
 
 ## Table of Contents
 
@@ -119,8 +119,8 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Example Response (from your backend to your frontend):**
   ```json
   {
-    "token": "jwt_token",
-    "clientId": "1000000000"
+    "sessionTransferUrl": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
+    "token": "jwt_token"
   }
   ```
 
