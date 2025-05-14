@@ -78,10 +78,10 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: UserIcon,
       statusResolver: (sessionData, clientData, allStepsValid) => {
         if (sessionData.mockedKycCompleted) {
-          return 'done_disabled';
+          return 'hidden';
         }
         if (clientData?.status === 'INFORMATION_REQUESTED') {
-          return 'done_disabled';
+          return 'hidden';
         }
         if (allStepsValid) {
           return 'done_editable';
@@ -142,10 +142,10 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: BuildingIcon,
       statusResolver: (sessionData, clientData, allStepsValid) => {
         if (sessionData.mockedKycCompleted) {
-          return 'done_disabled';
+          return 'hidden';
         }
         if (clientData?.status === 'INFORMATION_REQUESTED') {
-          return 'done_disabled';
+          return 'hidden';
         }
         if (allStepsValid) {
           return 'done_editable';
@@ -224,7 +224,7 @@ const sectionScreens: SectionScreenConfig[] = [
           sessionData.mockedKycCompleted ||
           clientData?.status === 'INFORMATION_REQUESTED'
         ) {
-          return 'done_disabled';
+          return 'hidden';
         }
 
         if (sessionData.isOwnersSectionDone && allOwnersValid) {
@@ -249,7 +249,7 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'INFORMATION_REQUESTED' ||
           sessionData.mockedKycCompleted
         ) {
-          return 'done_disabled';
+          return 'hidden';
         }
         if (sectionCompleted) {
           return 'done_editable';
@@ -269,7 +269,7 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (sessionData, clientData) => {
         const completed = clientData?.status === 'INFORMATION_REQUESTED';
         if (completed || sessionData.mockedKycCompleted) {
-          return 'done_disabled';
+          return 'hidden';
         }
         return 'not_started';
       },
@@ -304,7 +304,10 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: UploadIcon,
       helpText: 'Supporting documents are only needed in some cases',
       statusResolver: (sessionData, clientData) => {
-        if (clientData?.status === 'INFORMATION_REQUESTED') {
+        if (
+          clientData?.status === 'INFORMATION_REQUESTED' &&
+          clientData.outstanding.documentRequestIds?.length
+        ) {
           return 'not_started';
         }
         if (clientData?.status === 'NEW') {
