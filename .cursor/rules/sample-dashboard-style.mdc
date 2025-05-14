@@ -1,0 +1,30 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# SampleDashboard Layout and Styling Rule
+
+The [SampleDashboard.tsx](mdc:app/client/src/pages/SampleDashboard.tsx) page uses the following layout and styling conventions:
+
+- **Header:**
+  - Built with Mantine's `Paper`, `Group`, `Avatar`, and `Text` components.
+  - White background, sticky, subtle shadow, and app branding (logo + name) on the left.
+  - Profile, language, and settings controls on the right.
+
+- **Sidebar Navigation:**
+  - Uses Mantine's `Paper` and a vertical `Stack`.
+  - Each menu item is a Mantine `UnstyledButton` for full control over alignment and spacing.
+  - Icon and text are wrapped in a `Group` with `align="center"` and `spacing={8}` for true left alignment.
+  - Active item is highlighted with a background color and bold text.
+  - The "SellSense Wallet" item uses alert styling: yellow background, border, alert icon, and bold text to indicate action is required.
+  - Section labels (e.g., Wallet, Analytics) use Mantine `Text` with uppercase and spacing.
+
+- **Main Content Panel:**
+  - The main content area is wrapped in a Mantine `Box` with an outer margin (e.g., `margin: '32px 32px 32px 32px'`) to ensure content does not touch the viewport edges.
+
+- **General:**
+  - All layout and styling is handled via Mantine components and the `sx` prop for custom styles.
+  - No Tailwind, custom CSS classes, or external style sheets are used for layout or navigation.
+
+Refer to [SampleDashboard.tsx](mdc:app/client/src/pages/SampleDashboard.tsx) for implementation details and further examples.
