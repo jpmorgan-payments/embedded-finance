@@ -81,6 +81,10 @@ export const OverviewScreen = () => {
               section.stepperConfig?.associatedPartyFilters
             );
 
+            if (sectionStatus === 'hidden') {
+              return null;
+            }
+
             return (
               <div key={section.id}>
                 <Button

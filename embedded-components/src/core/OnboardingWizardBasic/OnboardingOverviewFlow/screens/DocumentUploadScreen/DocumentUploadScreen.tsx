@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { UploadIcon } from 'lucide-react';
+import { Loader2Icon, UploadIcon } from 'lucide-react';
 
+import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 import {
   Badge,
@@ -21,15 +22,26 @@ import { DocumentUploadForm } from './DocumentUploadForm';
 export const DocumentUploadScreen = () => {
   const { clientData } = useOnboardingOverviewContext();
 
-  const partiesWithDocumentRequests = clientData?.parties
-    ?.filter((party) =>
-      party.validationResponse?.some((v) => v.documentRequestIds)
-    )
-    .map((party) => party.id);
+  // const partiesWithDocumentRequests = clientData?.parties
+  //   ?.filter((party) =>
+  //     party.validationResponse?.some((v) => v.documentRequestIds)
+  //   )
+  //   .map((party) => party.id);
 
   const { goBack } = useFlowContext();
 
   const [open, setOpen] = useState(false);
+
+  const {
+    data: documentRequestListResponse,
+    status: documentRequestGetListStatus,
+  } = useSmbdoListDocumentRequests({
+    clientId: clientData?.id,
+    // @ts-ignore
+    includeRelatedParty: true,
+  });
+
+  const documentRequests = documentRequestListResponse?.documentRequests;
 
   return (
     <StepLayout title="Upload documents">
@@ -79,7 +91,18 @@ export const DocumentUploadScreen = () => {
                 </div>
               </div>
               <div>
-                {partiesWithDocumentRequests?.includes(party.id) ? (
+                {documentRequestGetListStatus !== 'success' ? (
+                  <div className="eb-mt-2 eb-inline-flex eb-h-8 eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+                    <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
+                    Loading
+                  </div>
+                ) : documentRequests?.some(
+                    (req) =>
+                      (!req.partyId &&
+                        req.clientId === clientData.id &&
+                        party.partyType === 'ORGANIZATION') ||
+                      req.partyId === party.id
+                  ) ? (
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline">
@@ -111,7 +134,7 @@ export const DocumentUploadScreen = () => {
                     </DialogContent>
                   </Dialog>
                 ) : (
-                  <div className="eb-italic eb-text-muted-foreground">
+                  <div className="eb-inline-flex eb-h-8 eb-items-center eb-italic eb-text-muted-foreground">
                     No documents required
                   </div>
                 )}

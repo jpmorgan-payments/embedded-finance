@@ -123,7 +123,8 @@ export type SectionStatus =
   | 'done_editable'
   | 'done_disabled'
   | 'missing_details'
-  | 'on_hold';
+  | 'on_hold'
+  | 'hidden';
 
 export type FlowProgress = {
   sectionStatuses: Record<SectionScreenId, SectionStatus>;
