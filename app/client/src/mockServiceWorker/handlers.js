@@ -546,4 +546,38 @@ export const createHandlers = (apiUrl) => [
       return HttpResponse.json(verificationResponse);
     },
   ),
+
+  // --- Onboarding Session Transfer Mock Endpoint ---
+  http.post(
+    `${API_URL}/api/onboarding/session-transfer`,
+    async ({ request }) => {
+      // Simulate reading a payload (e.g., { userId: '123' })
+      const { userId } = await request.json();
+      // Return a mock JWT token
+      return HttpResponse.json(
+        {
+          token: 'mock-jwt-token-12345',
+          userId,
+          expiresIn: 3600,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        },
+      );
+    },
+  ),
+
+  // Add OPTIONS handler for CORS preflight
+  http.options(`${API_URL}/api/onboarding/session-transfer`, () => {
+    return new HttpResponse(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }),
 ];

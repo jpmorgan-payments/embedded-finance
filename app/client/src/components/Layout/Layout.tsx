@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams, Outlet } from 'react-router-dom';
 import {
   AppShell,
   Box,
@@ -38,7 +38,7 @@ export const Layout = ({
   const isFullScreen = searchParams.get('fullScreen') === 'true';
 
   if (isFullScreen) {
-    return <>{children}</>;
+    return <Outlet />;
   }
 
   // Close navbar on mobile view if route changes
@@ -144,7 +144,7 @@ export const Layout = ({
         </Header>
       }
     >
-      {children}
+      <Outlet />
     </AppShell>
   );
 };
