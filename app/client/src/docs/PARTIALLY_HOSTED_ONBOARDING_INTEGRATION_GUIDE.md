@@ -112,22 +112,12 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Example Response (from the Onboarding Service to your backend):**
   ```json
   {
-    "metadata": {
-      "page": 1,
-      "size": 1,
-      "limit": 10,
-      "total": 1
-    },
-    "sessions": [
-      {
-        "type": "HOSTED_UI",
-        "targetId": "1000000000", // clientId
-        "hostedUi": {
-          "url": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
-          "token": "jwt_token"
-        }
-      }
-    ]
+    "type": "HOSTED_UI",
+    "targetId": "1000000000", // clientId
+    "hostedUi": {
+      "url": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
+      "token": "jwt_token"
+    }
   }
   ```
 
