@@ -540,39 +540,39 @@ export const SampleDashboard: FC = () => {
               >
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
-                    Active Users
+                    Active Vendors
                   </Text>
-                  <Title order={3}>1,482</Title>
+                  <Title order={3}>245</Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
-                    Revenue (This Month)
+                    Active Buyers
                   </Text>
-                  <Title order={3}>$28,430</Title>
+                  <Title order={3}>3,120</Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
-                    New Signups
+                    Total Products
                   </Text>
-                  <Title order={3}>412</Title>
+                  <Title order={3}>8,540</Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
-                    Conversion Rate
+                    Orders Today
                   </Text>
-                  <Title order={3}>4.7%</Title>
+                  <Title order={3}>312</Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
-                    Avg. Order Value
+                    GMV (This Month)
                   </Text>
-                  <Title order={3}>$67.20</Title>
+                  <Title order={3}>$92,430</Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
-                    Refunds (This Month)
+                    Returns (This Month)
                   </Text>
-                  <Title order={3}>$1,120</Title>
+                  <Title order={3}>$2,340</Title>
                 </Card>
               </SimpleGrid>
 
@@ -582,31 +582,30 @@ export const SampleDashboard: FC = () => {
                 </Title>
                 <Stack spacing="xs">
                   <Text size="sm" color="dimmed">
-                    [09:12 AM] <b>Order #10432</b> placed by <b>Jane Smith</b>{' '}
-                    ($129.99)
+                    [10:05 AM] <b>Vendor</b> <b>Urban Styles</b> listed new
+                    product <b>Canvas Tote Bag</b>
                   </Text>
                   <Text size="sm" color="dimmed">
-                    [08:57 AM] <b>Refund</b> issued for <b>Order #10421</b>{' '}
-                    ($49.99)
+                    [09:52 AM] <b>Order #20567</b> placed by <b>Lisa Wong</b>{' '}
+                    ($59.99)
                   </Text>
                   <Text size="sm" color="dimmed">
-                    [08:45 AM] <b>Product review</b> submitted for{' '}
-                    <b>Bluetooth Speaker</b>
+                    [09:40 AM] <b>Order #20566</b> shipped by <b>GadgetHub</b>
                   </Text>
                   <Text size="sm" color="dimmed">
-                    [08:30 AM] <b>Inventory alert:</b> <b>Smart Watch</b> stock
-                    below 10
+                    [09:25 AM] <b>Buyer</b> <b>Samuel Green</b> signed up
                   </Text>
                   <Text size="sm" color="dimmed">
-                    [08:10 AM] <b>Order #10430</b> placed by <b>Michael Lee</b>{' '}
-                    ($89.00)
+                    [09:10 AM] <b>Order #20565</b> delivered to{' '}
+                    <b>Priya Patel</b>
                   </Text>
                   <Text size="sm" color="dimmed">
-                    [07:55 AM] <b>New user</b> <b>Emily Chen</b> signed up
+                    [08:55 AM] <b>Return</b> initiated for <b>Order #20560</b>{' '}
+                    (Bluetooth Headphones)
                   </Text>
                   <Text size="sm" color="dimmed">
-                    [07:40 AM] <b>Order #10429</b> placed by <b>David Kim</b>{' '}
-                    ($59.50)
+                    [08:40 AM] <b>Vendor</b> <b>KitchenPro</b> joined the
+                    marketplace
                   </Text>
                 </Stack>
               </Card>
@@ -635,7 +634,7 @@ export const SampleDashboard: FC = () => {
                             fontWeight: 600,
                           }}
                         >
-                          Customer
+                          Buyer
                         </th>
                         <th
                           style={{
@@ -645,6 +644,15 @@ export const SampleDashboard: FC = () => {
                           }}
                         >
                           Product
+                        </th>
+                        <th
+                          style={{
+                            textAlign: 'left',
+                            padding: '8px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Vendor
                         </th>
                         <th
                           style={{
@@ -677,11 +685,12 @@ export const SampleDashboard: FC = () => {
                     </thead>
                     <tbody>
                       <tr>
-                        <td style={{ padding: '8px' }}>10432</td>
-                        <td style={{ padding: '8px' }}>Jane Smith</td>
-                        <td style={{ padding: '8px' }}>Wireless Earbuds</td>
+                        <td style={{ padding: '8px' }}>20567</td>
+                        <td style={{ padding: '8px' }}>Lisa Wong</td>
+                        <td style={{ padding: '8px' }}>Canvas Tote Bag</td>
+                        <td style={{ padding: '8px' }}>Urban Styles</td>
                         <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$129.99</td>
+                        <td style={{ padding: '8px' }}>$59.99</td>
                         <td
                           style={{
                             padding: '8px',
@@ -693,11 +702,12 @@ export const SampleDashboard: FC = () => {
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ padding: '8px' }}>10431</td>
-                        <td style={{ padding: '8px' }}>Emily Chen</td>
-                        <td style={{ padding: '8px' }}>Smart Watch</td>
+                        <td style={{ padding: '8px' }}>20566</td>
+                        <td style={{ padding: '8px' }}>Priya Patel</td>
+                        <td style={{ padding: '8px' }}>Bluetooth Headphones</td>
+                        <td style={{ padding: '8px' }}>GadgetHub</td>
                         <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$199.00</td>
+                        <td style={{ padding: '8px' }}>$120.00</td>
                         <td
                           style={{
                             padding: '8px',
@@ -705,15 +715,16 @@ export const SampleDashboard: FC = () => {
                             fontWeight: 500,
                           }}
                         >
-                          Pending
+                          Shipped
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ padding: '8px' }}>10430</td>
-                        <td style={{ padding: '8px' }}>Michael Lee</td>
-                        <td style={{ padding: '8px' }}>Bluetooth Speaker</td>
+                        <td style={{ padding: '8px' }}>20565</td>
+                        <td style={{ padding: '8px' }}>Samuel Green</td>
+                        <td style={{ padding: '8px' }}>Stainless Steel Pan</td>
+                        <td style={{ padding: '8px' }}>KitchenPro</td>
                         <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$89.00</td>
+                        <td style={{ padding: '8px' }}>$45.50</td>
                         <td
                           style={{
                             padding: '8px',
@@ -721,15 +732,16 @@ export const SampleDashboard: FC = () => {
                             fontWeight: 500,
                           }}
                         >
-                          Paid
+                          Delivered
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ padding: '8px' }}>10429</td>
-                        <td style={{ padding: '8px' }}>David Kim</td>
-                        <td style={{ padding: '8px' }}>USB-C Charger</td>
-                        <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$59.50</td>
+                        <td style={{ padding: '8px' }}>20564</td>
+                        <td style={{ padding: '8px' }}>Lisa Wong</td>
+                        <td style={{ padding: '8px' }}>Ceramic Vase</td>
+                        <td style={{ padding: '8px' }}>Urban Styles</td>
+                        <td style={{ padding: '8px' }}>2024-08-06</td>
+                        <td style={{ padding: '8px' }}>$32.00</td>
                         <td
                           style={{
                             padding: '8px',
@@ -737,15 +749,16 @@ export const SampleDashboard: FC = () => {
                             fontWeight: 500,
                           }}
                         >
-                          Refunded
+                          Returned
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ padding: '8px' }}>10428</td>
-                        <td style={{ padding: '8px' }}>Sofia Patel</td>
+                        <td style={{ padding: '8px' }}>20563</td>
+                        <td style={{ padding: '8px' }}>Priya Patel</td>
                         <td style={{ padding: '8px' }}>Wireless Mouse</td>
+                        <td style={{ padding: '8px' }}>GadgetHub</td>
                         <td style={{ padding: '8px' }}>2024-08-06</td>
-                        <td style={{ padding: '8px' }}>$34.99</td>
+                        <td style={{ padding: '8px' }}>$24.99</td>
                         <td
                           style={{
                             padding: '8px',
