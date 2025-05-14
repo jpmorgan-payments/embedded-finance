@@ -10,7 +10,7 @@ const availableOrganizationTypes = [
 export const onboardingScenarios = [
   {
     id: 'scenario1',
-    name: 'Sole Proprietor (US/Embedded Payments mocked data)',
+    name: 'Wizard Layout - US Sole Proprietor (onboarding is in progress)',
     clientId: '0030000131',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -21,7 +21,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario2',
-    name: 'LLC (US/Embedded Payments mocked data)',
+    name: 'Wizard Layout - US LLC (onboarding is in progress)',
     clientId: '0030000132',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -32,7 +32,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario3',
-    name: 'LLC (US/Embedded Payments) - Outstanding Documents',
+    name: 'Wizard Layout - US LLC (outstanding documents requested)',
     clientId: '0030000133',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -43,7 +43,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario4',
-    name: 'LLC (US/Embedded Payments) - review in progress',
+    name: 'Wizard Layout - US LLC (review in progress)',
     clientId: '0030000134',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -54,7 +54,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario5',
-    name: 'New Client (US/Embedded Payments, no mocked data)',
+    name: 'Wizard Layout - New Client (US/Embedded Payments, no mocked data)',
     clientId: undefined,
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -65,7 +65,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario6',
-    name: 'Overview Layout - Existing Client - Sole Proprietor',
+    name: 'Flow Layout - US Sole Proprietor (onboarding is in progress)',
     clientId: '0030000131',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -76,7 +76,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario7',
-    name: 'Overview Layout - Existing Client - LLC',
+    name: 'Flow Layout - US LLC (onboarding is in progress)',
     clientId: '0030000132',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -87,7 +87,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario8',
-    name: 'Overview Layout - no client',
+    name: 'Flow Layout - New Client (US/Embedded Payments, no mocked data)',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
     baseURL: '/ef/do/v1/',
@@ -97,7 +97,7 @@ export const onboardingScenarios = [
   },
   {
     id: 'scenario9',
-    name: 'Overview Layout - Existing Client with Docs Requested',
+    name: 'Flow Layout - US LLC (outstanding documents requested)',
     clientId: '0030000133',
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],

@@ -18,6 +18,7 @@ import {
   Avatar,
   UnstyledButton,
   SegmentedControl,
+  Select,
 } from '@mantine/core';
 import {
   IconAlertTriangle,
@@ -42,6 +43,7 @@ import { API_URL } from 'data/constants';
 import { useMutation } from '@tanstack/react-query';
 import Markdown from 'react-markdown';
 import onboardingIntegrationGuideText from '../docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md?raw';
+import { onboardingScenarios } from 'data/onboardingScenarios';
 import styles from './SampleDashboard.module.css';
 
 interface SessionTransferResponse {
@@ -65,12 +67,6 @@ const analyticsMenu = [
   { key: 'Analytics', label: 'Analytics', icon: IconChartPie },
   { key: 'Growth', label: 'Growth', icon: IconTrendingUp },
 ];
-
-const scenarioDescriptions: Record<'1' | '2' | '3', string> = {
-  '1': 'Start onboarding for a brand new client (no prior data).',
-  '2': 'Continue onboarding for a client with existing data or onboarding already in progress.',
-  '3': 'Resume onboarding when additional documents are requested from the client.',
-};
 
 // Session transfer API call
 async function initiateSessionTransfer(userId: string) {
@@ -264,9 +260,9 @@ const Header: FC = () => (
       <Text size="xl" weight={600} color="orange" ml={4}>
         SellSense
       </Text>
-    <Text size="sm" color="gray" weight={500}>
-      (Sample/Demo Platform Dashboard)
-    </Text>
+      <Text size="sm" color="gray" weight={500}>
+        (Sample/Demo Platform Dashboard)
+      </Text>
     </Group>
     <Group spacing={12} align="center">
       <Button
@@ -307,9 +303,13 @@ export const SampleDashboard: FC = () => {
   const [isFrameLoading, setIsFrameLoading] = useState(true);
   const [iframeKey, setIframeKey] = useState(0);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
-  const [selectedScenario, setSelectedScenario] = useState<'1' | '2' | '3'>(
-    '3',
-  );
+  const defaultScenario =
+    onboardingScenarios.find(
+      (s) =>
+        s.name === 'Wizard Layout - US LLC (outstanding documents requested)',
+    )?.id || onboardingScenarios[0].id;
+  const [selectedScenario, setSelectedScenario] =
+    useState<string>(defaultScenario);
 
   // Simulate userId for session transfer
   const userId = 'sample-user-001';
@@ -344,7 +344,7 @@ export const SampleDashboard: FC = () => {
 
   // Construct iframe URL
   const iframeUrl = onboardingToken
-    ? `/ep/onboarding?scenario=scenario${selectedScenario}&fullScreen=true&token=${onboardingToken}`
+    ? `/ep/onboarding?scenario=${selectedScenario}&fullScreen=true&token=${onboardingToken}`
     : '';
 
   return (
@@ -370,22 +370,37 @@ export const SampleDashboard: FC = () => {
                   <Title order={4} mb={8}>
                     Onboarding Integration
                   </Title>
-                  <SegmentedControl
+                  <Text size="sm" color="gray" weight={500} mb={4}>
+                    Demo Scenarios (emulate various client statuses):
+                  </Text>
+                  <Select
                     value={selectedScenario}
-                    onChange={(value) =>
-                      setSelectedScenario(value as '1' | '2' | '3')
-                    }
-                    data={[
-                      { label: 'Scenario 1', value: '1' },
-                      { label: 'Scenario 2', value: '2' },
-                      { label: 'Scenario 3', value: '3' },
-                    ]}
-                    color="orange"
+                    onChange={(value) => value && setSelectedScenario(value)}
+                    data={Object.entries(
+                      onboardingScenarios.reduce(
+                        (acc, s) => {
+                          const group = s.component || 'Other';
+                          if (!acc[group]) acc[group] = [];
+                          acc[group].push({ value: s.id, label: s.name });
+                          return acc;
+                        },
+                        {} as Record<
+                          string,
+                          { label: string; value: string }[]
+                        >,
+                      ),
+                    ).flatMap(([group, items]) => [
+                      { value: group, label: group, disabled: true },
+                      ...items,
+                    ])}
+                    placeholder="Select a scenario"
                     size="md"
                     radius="md"
                     sx={{
                       marginTop: 4,
-                      minWidth: 320,
+                      minWidth: 580,
+                      maxWidth: 600,
+                      width: '100%',
                       background: '#f8fafc',
                       borderRadius: 8,
                       boxShadow: '0 1px 4px 0 #f1f3f5',
@@ -404,7 +419,39 @@ export const SampleDashboard: FC = () => {
                   </Button>
                 )}
               </Group>
-
+              <Group align="center" spacing={8} mb={8}>
+                <Button
+                  variant="light"
+                  size="xs"
+                  color="orange"
+                  leftIcon={
+                    instructionsOpen ? (
+                      <IconChevronUp size={20} />
+                    ) : (
+                      <IconChevronDown size={20} />
+                    )
+                  }
+                  onClick={() => setInstructionsOpen((open) => !open)}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 14,
+                    color: '#ff922b',
+                    background: instructionsOpen ? '#fff4e6' : '#fffbe6',
+                    border: '1px solid #ffe066',
+                    borderRadius: 8,
+                    boxShadow: '0 1px 4px 0 #ffe066',
+                    transition: 'background 0.2s',
+                    '&:hover': {
+                      background: '#fff4e6',
+                      color: '#d97706',
+                    },
+                  }}
+                >
+                  {instructionsOpen
+                    ? 'Hide Integration Instructions'
+                    : 'Show Integration Instructions'}
+                </Button>
+              </Group>
               <Collapse in={instructionsOpen}>
                 <Box
                   className={styles.ebMarkdownContainer}
@@ -413,23 +460,6 @@ export const SampleDashboard: FC = () => {
                   <Markdown>{onboardingIntegrationGuideText}</Markdown>
                 </Box>
               </Collapse>
-
-              <Box
-                mt="sm"
-                mb="md"
-                p="md"
-                sx={{
-                  background: '#f8fafc',
-                  borderRadius: 8,
-                  border: '1px solid #f1f3f5',
-                  minHeight: 56,
-                }}
-              >
-                <Text size="sm" color="gray.8" weight={500}>
-                  {scenarioDescriptions[selectedScenario]}
-                </Text>
-              </Box>
-
               {isLoading && (
                 <Center py="xl">
                   <Stack align="center" spacing="xs">
@@ -440,7 +470,6 @@ export const SampleDashboard: FC = () => {
                   </Stack>
                 </Center>
               )}
-
               {mutationError && (
                 <Text color="red" weight={500} mt="md">
                   {mutationError instanceof Error
@@ -448,7 +477,6 @@ export const SampleDashboard: FC = () => {
                     : 'Session transfer failed'}
                 </Text>
               )}
-
               {onboardingToken && (
                 <Box mt="md">
                   <Text size="sm" weight={500} color="dimmed" mb="xs">
