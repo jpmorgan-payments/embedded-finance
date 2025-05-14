@@ -11,10 +11,9 @@ export const DevelopmentNotice = () => {
       mb="md"
     >
       <Text size="sm">
-        🚧 Preview Environment: Safe Testing Space This is a development preview
-        environment designed for UI testing. All interactions are simulated
-        locally in your browser - no data is transmitted or stored on any
-        external servers. Feel free to explore and test with sample information
+        🚧 Preview Environment: Safe Testing Space This environment is for UI
+        testing, with interactions simulated locally. No data is transmitted or
+        stored externally. Feel free to explore and test.
       </Text>
     </Alert>
   );
