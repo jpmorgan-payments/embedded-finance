@@ -97,7 +97,7 @@ export const getStepperValidation = (
     } else {
       stepValidationMap[step.id] = {
         result: undefined,
-        isValid: true,
+        isValid: false,
       };
     }
   }
