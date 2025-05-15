@@ -58,7 +58,7 @@ export const GatewayScreen = () => {
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
   const handleNext = () => {
-    goTo('checklist');
+    goTo('overview');
   };
 
   useEffect(() => {
@@ -250,8 +250,8 @@ export const GatewayScreen = () => {
         </Alert>
         <StepLayout
           subTitle={t('welcomeText')}
-          title={t('steps.gateway.title')}
-          description={t('steps.gateway.description')}
+          title={t('screens.gateway.title')}
+          description={t('screens.gateway.description')}
         >
           <div className="eb-mt-6 eb-flex-auto">
             <OnboardingFormField
@@ -275,7 +275,7 @@ export const GatewayScreen = () => {
           </div>
 
           <div className="eb-mt-6 eb-space-y-6">
-            {t('steps.gateway.alerts', { returnObjects: true }).map(
+            {/* {t('screens.gateway.alerts', { returnObjects: true }).map(
               (alert, index) => (
                 <Alert variant="informative" key={index} className="eb-pb-3">
                   <InfoIcon className="eb-h-4 eb-w-4" />
@@ -285,7 +285,7 @@ export const GatewayScreen = () => {
                   )}
                 </Alert>
               )
-            )}
+            )} */}
 
             <ServerErrorAlert
               error={partyUpdateError || clientUpdateError || clientPostError}
@@ -302,7 +302,7 @@ export const GatewayScreen = () => {
               {isFormSubmitting ? (
                 <Loader2Icon className="eb-animate-spin" />
               ) : null}
-              {t('steps.gateway.nextButton')}
+              {t('screens.gateway.nextButton')}
             </Button>
           </div>
         </StepLayout>

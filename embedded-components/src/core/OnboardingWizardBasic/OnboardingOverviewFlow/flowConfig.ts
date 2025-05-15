@@ -74,8 +74,13 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: 'Personal details',
+      label: 'Your personal details',
       icon: UserIcon,
+      requirementsList: [
+        'Your name and job title',
+        'Government issued identifier (e.g. social security number)',
+        'Address and contact details',
+      ],
       statusResolver: (sessionData, clientData, allStepsValid) => {
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
@@ -140,6 +145,11 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Business details',
       icon: BuildingIcon,
+      requirementsList: [
+        'Industry classification code',
+        'Registration ID details (e.g. employer identification number)',
+        'Location and contact details',
+      ],
       statusResolver: (sessionData, clientData, allStepsValid) => {
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
@@ -210,6 +220,11 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Owners and key roles',
       icon: Users2Icon,
+      requirementsList: [
+        'Name and job titles for all individuals',
+        'Government issued identifier (e.g. social security number)',
+        'Address and contact details',
+      ],
       statusResolver: (sessionData, clientData) => {
         const activeOwners = getActiveOwners(clientData);
         const allOwnersValid = activeOwners?.every((owner) => {
@@ -242,6 +257,10 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Operational details',
       icon: TagIcon,
+      requirementsList: [
+        'Total annual revenue',
+        'Additional questions based on your business profile',
+      ],
       statusResolver: (sessionData, clientData) => {
         const sectionCompleted =
           clientData?.outstanding?.questionIds?.length === 0;
@@ -266,6 +285,10 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Review and attest',
       icon: FileIcon,
+      requirementsList: [
+        'Check and confirm details',
+        'Read terms and conditions',
+      ],
       statusResolver: (sessionData, clientData) => {
         const completed = clientData?.status === 'INFORMATION_REQUESTED';
         if (completed || sessionData.mockedKycCompleted) {
