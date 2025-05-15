@@ -38,6 +38,7 @@ import {
   IconSettings,
   IconWorld,
   IconUser,
+  IconStar,
 } from '@tabler/icons';
 import { API_URL } from 'data/constants';
 import { useMutation } from '@tanstack/react-query';
@@ -536,59 +537,239 @@ export const SampleDashboard: FC = () => {
             </Card>
           ) : (
             <>
+              <Title order={2} mb="lg" weight={900} sx={{ letterSpacing: 1 }}>
+                Welcome, John!
+              </Title>
               <SimpleGrid
                 cols={3}
                 spacing="md"
                 mb="lg"
                 breakpoints={[{ maxWidth: 'sm', cols: 1 }]}
               >
-                <Card shadow="sm" p="lg">
-                  <Text size="sm" color="dimmed">
-                    Active Vendors
-                  </Text>
-                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
-                    245
-                  </Title>
+                <Card
+                  shadow="md"
+                  p="xl"
+                  radius={12}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 20,
+                    background: '#f8fafc',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      background: SECONDARY_COLOR,
+                      borderRadius: 8,
+                      padding: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconShoppingCart size={36} color="#fff" />
+                  </Box>
+                  <Box>
+                    <Text
+                      size="md"
+                      color="dimmed"
+                      weight={500}
+                      mb={2}
+                      style={{ letterSpacing: 1 }}
+                    >
+                      Today's Orders
+                    </Text>
+                    <Title
+                      order={2}
+                      style={{
+                        color: SECONDARY_COLOR,
+                        fontWeight: 600,
+                        fontSize: 30,
+                      }}
+                    >
+                      12
+                    </Title>
+                  </Box>
                 </Card>
-                <Card shadow="sm" p="lg">
-                  <Text size="sm" color="dimmed">
-                    Active Buyers
-                  </Text>
-                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
-                    3,120
-                  </Title>
+                <Card
+                  shadow="md"
+                  p="xl"
+                  radius={12}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 20,
+                    background: '#f8fafc',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      background: SECONDARY_COLOR,
+                      borderRadius: 8,
+                      padding: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconTag size={36} color="#fff" />
+                  </Box>
+                  <Box>
+                    <Text
+                      size="md"
+                      color="dimmed"
+                      weight={500}
+                      mb={2}
+                      style={{ letterSpacing: 1 }}
+                    >
+                      Unshipped Orders
+                    </Text>
+                    <Title
+                      order={2}
+                      style={{
+                        color: SECONDARY_COLOR,
+                        fontWeight: 600,
+                        fontSize: 30,
+                      }}
+                    >
+                      3
+                    </Title>
+                  </Box>
                 </Card>
-                <Card shadow="sm" p="lg">
-                  <Text size="sm" color="dimmed">
-                    Total Products
-                  </Text>
-                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
-                    8,540
-                  </Title>
+                <Card
+                  shadow="md"
+                  p="xl"
+                  radius={12}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 20,
+                    background: '#f8fafc',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      background: SECONDARY_COLOR,
+                      borderRadius: 8,
+                      padding: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconStar size={36} color="#fff" />
+                  </Box>
+                  <Box>
+                    <Text
+                      size="md"
+                      color="dimmed"
+                      weight={500}
+                      mb={2}
+                      style={{ letterSpacing: 1 }}
+                    >
+                      Avg. Rating
+                    </Text>
+                    <Title
+                      order={2}
+                      style={{
+                        color: SECONDARY_COLOR,
+                        fontWeight: 600,
+                        fontSize: 30,
+                      }}
+                    >
+                      4.8
+                    </Title>
+                  </Box>
                 </Card>
-                <Card shadow="sm" p="lg">
-                  <Text size="sm" color="dimmed">
-                    Orders Today
-                  </Text>
-                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
-                    312
-                  </Title>
+                <Card
+                  shadow="md"
+                  p="xl"
+                  radius={12}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 20,
+                    background: '#f8fafc',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      background: SECONDARY_COLOR,
+                      borderRadius: 8,
+                      padding: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconWallet size={36} color="#fff" />
+                  </Box>
+                  <Box>
+                    <Text
+                      size="md"
+                      color="dimmed"
+                      weight={500}
+                      mb={2}
+                      style={{ letterSpacing: 1 }}
+                    >
+                      Current Balance
+                    </Text>
+                    <Title
+                      order={2}
+                      style={{
+                        color: SECONDARY_COLOR,
+                        fontWeight: 600,
+                        fontSize: 30,
+                      }}
+                    >
+                      $2,430.00
+                    </Title>
+                  </Box>
                 </Card>
-                <Card shadow="sm" p="lg">
-                  <Text size="sm" color="dimmed">
-                    GMV (This Month)
-                  </Text>
-                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
-                    $92,430
-                  </Title>
-                </Card>
-                <Card shadow="sm" p="lg">
-                  <Text size="sm" color="dimmed">
-                    Returns (This Month)
-                  </Text>
-                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
-                    $2,340
-                  </Title>
+                <Card
+                  shadow="md"
+                  p="xl"
+                  radius={12}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 20,
+                    background: '#f8fafc',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      background: SECONDARY_COLOR,
+                      borderRadius: 8,
+                      padding: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconCreditCard size={36} color="#fff" />
+                  </Box>
+                  <Box>
+                    <Text
+                      size="md"
+                      color="dimmed"
+                      weight={500}
+                      mb={2}
+                      style={{ letterSpacing: 1 }}
+                    >
+                      Next Payout
+                    </Text>
+                    <Title
+                      order={2}
+                      style={{
+                        color: SECONDARY_COLOR,
+                        fontWeight: 600,
+                        fontSize: 30,
+                      }}
+                    >
+                      $1,200.00
+                    </Title>
+                  </Box>
                 </Card>
               </SimpleGrid>
 
