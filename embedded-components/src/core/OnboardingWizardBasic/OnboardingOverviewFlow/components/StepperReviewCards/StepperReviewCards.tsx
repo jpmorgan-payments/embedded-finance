@@ -34,7 +34,7 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
   );
 
   return (
-    <>
+    <div className="eb-space-y-4">
       {steps
         .filter((step) => step.stepType !== 'check-answers')
         .map((step) => {
@@ -147,6 +147,6 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
             </Card>
           );
         })}
-    </>
+    </div>
   );
 };

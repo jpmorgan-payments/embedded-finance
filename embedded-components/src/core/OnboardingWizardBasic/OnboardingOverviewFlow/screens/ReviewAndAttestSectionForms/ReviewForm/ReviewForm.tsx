@@ -394,7 +394,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                           )}
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent>{content}</AccordionContent>
+                      <AccordionContent className="eb-mt-4">
+                        {content}
+                      </AccordionContent>
                     </AccordionItem>
                   );
                 })}
