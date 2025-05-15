@@ -91,6 +91,9 @@ interface SidebarButtonProps {
   onClick: () => void;
 }
 
+const CTA_COLOR = '#F55727';
+const SECONDARY_COLOR = '#5AC8BE';
+
 const SidebarButton: FC<SidebarButtonProps> = ({
   label,
   icon: Icon,
@@ -104,19 +107,19 @@ const SidebarButton: FC<SidebarButtonProps> = ({
       width: '100%',
       padding: '10px 16px',
       borderRadius: 6,
-      background: selected ? '#fff4e6' : 'transparent',
-      color: selected ? theme.colors.orange[7] : theme.colors.gray[7],
+      color: selected ? CTA_COLOR : theme.colors.gray[7],
       fontWeight: selected ? 600 : 400,
       cursor: 'pointer',
       textAlign: 'left',
+      background: selected ? '#fff4e6' : 'transparent',
       '&:hover': {
         background: '#fff4e6',
-        color: theme.colors.orange[7],
+        color: CTA_COLOR,
       },
     })}
   >
     <Group spacing={8} align="center" noWrap>
-      <Icon size={18} />
+      <Icon size={18} color={selected ? CTA_COLOR : undefined} />
       <span>{label}</span>
     </Group>
   </UnstyledButton>
@@ -133,18 +136,18 @@ const WalletSidebarButton: FC<{ selected: boolean; onClick: () => void }> = ({
       width: '100%',
       padding: '10px 16px',
       borderRadius: 6,
-      background: '#fffbe6',
-      border: '1px solid #ffe066',
-      color: '#b08900',
+      color: CTA_COLOR,
       fontWeight: 600,
       textAlign: 'left',
-      boxShadow: selected ? '0 0 0 2px #ffe066' : undefined,
-      cursor: 'pointer',
-      '&:hover': { background: '#fff9db' },
+      '&:hover': {
+        background: '#fff4e6',
+        color: CTA_COLOR,
+      },
+      background: selected ? '#fff4e6' : 'transparent',
     }}
   >
     <Group spacing={8} align="center" noWrap>
-      <IconAlertTriangle size={18} color="#eab308" />
+      <IconAlertTriangle size={18} color={CTA_COLOR} />
       <span>SellSense Wallet</span>
     </Group>
   </UnstyledButton>
@@ -247,17 +250,17 @@ const Header: FC = () => (
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#fff4e6',
+          background: CTA_COLOR + '22',
           borderRadius: 6,
           width: 32,
           height: 32,
         }}
       >
-        <Text color="orange" weight={700} size="xl">
+        <Text color={CTA_COLOR} weight={700} size="xl">
           S
         </Text>
       </Box>
-      <Text size="xl" weight={600} color="orange" ml={4}>
+      <Text size="xl" weight={600} color={CTA_COLOR} ml={4}>
         SellSense
       </Text>
       <Text size="sm" color="gray" weight={500}>
@@ -267,26 +270,26 @@ const Header: FC = () => (
     <Group spacing={12} align="center">
       <Button
         variant="subtle"
-        color="gray"
+        color={CTA_COLOR}
         radius="xl"
-        px={8}
+        px={4}
         py={4}
         style={{ minWidth: 0 }}
       >
-        <IconWorld size={22} />
+        <IconWorld size={22} color={CTA_COLOR} />
       </Button>
       <Button
         variant="subtle"
-        color="gray"
+        color={CTA_COLOR}
         radius="xl"
-        px={8}
+        px={4}
         py={4}
         style={{ minWidth: 0 }}
       >
-        <IconSettings size={22} />
+        <IconSettings size={22} color={CTA_COLOR} />
       </Button>
       <Group spacing={8} align="center">
-        <Avatar radius="xl" color="blue" size={32}>
+        <Avatar radius="xl" size={32} color="red">
           JD
         </Avatar>
         <Text weight={500} size="sm">
@@ -422,7 +425,7 @@ export const SampleDashboard: FC = () => {
               <Group align="center" spacing={8} mb={8}>
                 <Button
                   variant="light"
-                  size="xs"
+                  size="md"
                   color="orange"
                   leftIcon={
                     instructionsOpen ? (
@@ -433,13 +436,14 @@ export const SampleDashboard: FC = () => {
                   }
                   onClick={() => setInstructionsOpen((open) => !open)}
                   sx={{
-                    fontWeight: 700,
-                    fontSize: 14,
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 16px',
+                    borderRadius: 6,
                     color: '#ff922b',
-                    background: instructionsOpen ? '#fff4e6' : '#fffbe6',
-                    border: '1px solid #ffe066',
-                    borderRadius: 8,
-                    boxShadow: '0 1px 4px 0 #ffe066',
+                    fontWeight: 600,
+                    textAlign: 'left',
+                    background: instructionsOpen ? '#fff4e6' : 'transparent',
                     transition: 'background 0.2s',
                     '&:hover': {
                       background: '#fff4e6',
@@ -542,37 +546,49 @@ export const SampleDashboard: FC = () => {
                   <Text size="sm" color="dimmed">
                     Active Vendors
                   </Text>
-                  <Title order={3}>245</Title>
+                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
+                    245
+                  </Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
                     Active Buyers
                   </Text>
-                  <Title order={3}>3,120</Title>
+                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
+                    3,120
+                  </Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
                     Total Products
                   </Text>
-                  <Title order={3}>8,540</Title>
+                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
+                    8,540
+                  </Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
                     Orders Today
                   </Text>
-                  <Title order={3}>312</Title>
+                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
+                    312
+                  </Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
                     GMV (This Month)
                   </Text>
-                  <Title order={3}>$92,430</Title>
+                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
+                    $92,430
+                  </Title>
                 </Card>
                 <Card shadow="sm" p="lg">
                   <Text size="sm" color="dimmed">
                     Returns (This Month)
                   </Text>
-                  <Title order={3}>$2,340</Title>
+                  <Title order={3} style={{ color: SECONDARY_COLOR }}>
+                    $2,340
+                  </Title>
                 </Card>
               </SimpleGrid>
 
