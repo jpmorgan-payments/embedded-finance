@@ -105,5 +105,6 @@ export const onboardingScenarios = [
     gatewayID: '',
     availableOrganizationTypes,
     component: 'OnboardingOverviewFlow',
+    docUploadOnlyMode: true,
   },
 ];
