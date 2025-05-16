@@ -40,6 +40,8 @@ import {
   IconUser,
   IconStar,
 } from '@tabler/icons';
+// Import SVG directly using Vite's import capabilities
+import sellSenseLogo from './../assets/sellSense.svg';
 import { API_URL } from 'data/constants';
 import { useMutation } from '@tanstack/react-query';
 import Markdown from 'react-markdown';
@@ -245,29 +247,13 @@ const Header: FC = () => (
       borderBottom: '1px solid #f1f3f5',
     }}
   >
-    <Group spacing={8} align="center">
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: CTA_COLOR + '22',
-          borderRadius: 6,
-          width: 32,
-          height: 32,
-        }}
-      >
-        <Text color={CTA_COLOR} weight={700} size="xl">
-          S
-        </Text>
-      </Box>
-      <Text size="xl" weight={600} color={CTA_COLOR} ml={4}>
-        SellSense
-      </Text>
+    <Group spacing={12} align="center">
+      <img src={sellSenseLogo} alt="SellSense Logo" height={28} width={184} />
       <Text size="sm" color="gray" weight={500}>
         (Sample/Demo Platform Dashboard)
       </Text>
     </Group>
+
     <Group spacing={12} align="center">
       <Button
         variant="subtle"
