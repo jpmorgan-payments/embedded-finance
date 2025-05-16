@@ -61,6 +61,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 }) => {
   const { clientData } = useOnboardingOverviewContext();
 
+  console.log(clientData);
+
   const {
     currentScreenId,
     originScreenId,
@@ -360,7 +362,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
 
         // Check if the form is dirty - if not, skip the update
-        if (!form.getFieldState('isDirty')) {
+        if (!form.formState.isDirty) {
           handleNext();
           return;
         }
@@ -375,9 +377,11 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               onPostPartyResponse?.(data, error?.response?.data);
             },
             onSuccess: (response) => {
+              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+
               // Update client cache with party data
               queryClient.setQueryData(
-                getSmbdoGetClientQueryKey(clientData.id),
+                queryKey,
                 (prev: ClientResponse | undefined) => ({
                   ...prev,
                   parties: prev?.parties?.map((party) => {
@@ -388,6 +392,9 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                   }),
                 })
               );
+              queryClient.invalidateQueries({
+                queryKey,
+              });
               setExistingPartyData(response);
               handleNext();
             },
@@ -427,10 +434,16 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               const newParty = response.parties?.find(
                 (party) => !oldPartyIds?.includes(party.id)
               );
-
               if (newParty) {
                 setExistingPartyData(newParty);
               }
+
+              // Set query data
+              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+              queryClient.setQueryData(queryKey, response);
+              queryClient.invalidateQueries({
+                queryKey,
+              });
 
               handleNext();
             },

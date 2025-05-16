@@ -164,7 +164,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 };
 
 const FlowRenderer: React.FC = () => {
-  const { clientData, organizationType } = useOnboardingOverviewContext();
+  const { clientData, organizationType, docUploadOnlyMode } =
+    useOnboardingOverviewContext();
   const { currentScreenId, goTo, sessionData, updateSessionData } =
     useFlowContext();
 
@@ -200,7 +201,9 @@ const FlowRenderer: React.FC = () => {
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
 
-  const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
+  const screen = docUploadOnlyMode
+    ? flowConfig.screens.find((s) => s.id === 'upload-documents-section')
+    : flowConfig.screens.find((s) => s.id === currentScreenId);
 
   const renderScreen = () => {
     if (!screen) {
