@@ -147,6 +147,7 @@ Default.args = {
     name: 'enUS',
   },
   alertOnExit: false,
+  docUploadOnlyMode: false,
 };
 
 export const STheme = Default.bind({});
