@@ -388,6 +388,22 @@ export const createHandlers = (apiUrl) => [
     );
   }),
 
+  http.get('/ef/do/v1/document-requests', (req) => {  
+    const url = new URL(req.request.url);
+    const clientId = url.searchParams.get('clientId');
+    const includeRelatedParty = url.searchParams.get('includeRelatedParty');
+    
+    if (!clientId) {
+      return new HttpResponse(null, { status: 400, statusText: 'Bad Request: Missing clientId parameter' });
+    }
+    
+    return HttpResponse.json({
+      documentRequests: db.documentRequest.findMany({  
+        where: { clientId: { equals: clientId } },
+      })
+    });
+  }),
+
   http.get('/ef/do/v1/document-requests/:documentRequestId', (req) => {
     const { documentRequestId } = req.params;
     const documentRequest = db.documentRequest.findFirst({
