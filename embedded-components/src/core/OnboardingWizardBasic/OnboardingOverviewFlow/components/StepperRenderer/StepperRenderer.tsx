@@ -61,8 +61,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 }) => {
   const { clientData } = useOnboardingOverviewContext();
 
-  console.log(clientData);
-
   const {
     currentScreenId,
     originScreenId,
