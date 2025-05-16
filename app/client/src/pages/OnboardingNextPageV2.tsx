@@ -286,6 +286,11 @@ export const OnboardingNextPageV2 = () => {
               if (error) setError(error.title);
             }}
             height="100vh"
+            {...(scenario?.docUploadOnlyMode
+              ? {
+                  docUploadOnlyMode: true,
+                }
+              : {})}
           />
         ) : (
           <OnboardingWizardBasic
