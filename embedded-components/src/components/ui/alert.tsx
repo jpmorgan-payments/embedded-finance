@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
-  'eb-relative eb-w-full eb-rounded-lg eb-border eb-p-4 [&>svg+div]:eb-translate-y-[-3px] [&>svg]:eb-absolute [&>svg]:eb-left-4 [&>svg]:eb-top-4 [&>svg]:eb-text-foreground [&>svg~*]:eb-pl-7',
+  'eb-relative eb-w-full eb-rounded-lg eb-border [&>svg]:eb-absolute [&>svg]:eb-text-foreground',
   {
     variants: {
       variant: {
@@ -16,9 +16,15 @@ const alertVariants = cva(
         warning:
           'eb-border-[#C75300] eb-bg-[#FFECD9] [&>svg]:eb-text-[#C75300]',
       },
+      density: {
+        default:
+          'eb-p-4 [&>svg+div]:eb-translate-y-[-3px] [&>svg]:eb-left-4 [&>svg]:eb-top-4 [&>svg~*]:eb-pl-7',
+        sm: 'eb-p-3 [&>svg+div]:eb-translate-y-[-2px] [&>svg]:eb-left-3 [&>svg]:eb-top-3 [&>svg~*]:eb-pl-6',
+      },
     },
     defaultVariants: {
       variant: 'default',
+      density: 'default',
     },
   }
 );
@@ -26,11 +32,11 @@ const alertVariants = cva(
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
+>(({ className, variant, density, ...props }, ref) => (
   <div
     ref={ref}
     role="alert"
-    className={cn(alertVariants({ variant }), className)}
+    className={cn(alertVariants({ variant, density }), className)}
     {...props}
   />
 ));

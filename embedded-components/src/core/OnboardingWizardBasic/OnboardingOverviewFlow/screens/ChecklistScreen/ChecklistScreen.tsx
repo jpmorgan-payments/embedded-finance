@@ -1,7 +1,6 @@
-import { DownloadIcon, InfoIcon, PencilIcon } from 'lucide-react';
+import { DownloadIcon, PencilIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button, Card, CardTitle } from '@/components/ui';
 
 import { StepLayout } from '../../components/StepLayout/StepLayout';
@@ -29,8 +28,8 @@ export const ChecklistScreen = () => {
           </Button>
         </div>
       }
-      title={t('steps.checklist.title')}
-      description={t('steps.checklist.description')}
+      title={t('screens.checklist.title')}
+      description={t('screens.checklist.description')}
     >
       <div className="eb-mt-1">
         <Button variant="ghost">
@@ -113,21 +112,6 @@ export const ChecklistScreen = () => {
       </div>
 
       <div className="eb-mt-6 eb-space-y-6">
-        {t('steps.checklist.alerts', { returnObjects: true }).map(
-          (alert, index) => (
-            <Alert
-              variant="informative"
-              key={index}
-              className="eb-pb-3 eb-text-foreground"
-            >
-              <InfoIcon className="eb-h-4 eb-w-4" />
-              {alert.title && <AlertTitle>{alert.title}</AlertTitle>}
-              {alert.description && (
-                <AlertDescription>{alert.description}</AlertDescription>
-              )}
-            </Alert>
-          )
-        )}
         <div className="eb-flex eb-justify-between eb-gap-4">
           <Button
             variant="secondary"
@@ -135,14 +119,14 @@ export const ChecklistScreen = () => {
             className="eb-w-full eb-text-lg"
             onClick={() => goTo('gateway')}
           >
-            {t('steps.checklist.prevButton')}
+            {t('screens.checklist.prevButton')}
           </Button>
           <Button
             size="lg"
             className="eb-w-full eb-text-lg"
             onClick={() => goTo('overview')}
           >
-            {t('steps.checklist.nextButton')}
+            {t('screens.checklist.nextButton')}
           </Button>
         </div>
       </div>

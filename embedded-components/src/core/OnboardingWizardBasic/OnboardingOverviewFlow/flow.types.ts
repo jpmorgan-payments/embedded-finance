@@ -66,6 +66,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     icon: LucideIcon;
     label: string;
     helpText?: string;
+    requirementsList?: string[];
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,

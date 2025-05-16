@@ -141,17 +141,17 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const form = useFormContext();
 
   // temporary workaround to get clientId and flowType from different contexts
-  let clientId;
+  let clientData;
   let isOverviewFlow = false;
   try {
     const context = useOnboardingContext();
-    clientId = context.clientId;
+    const { data } = useSmbdoGetClient(context.clientId ?? '');
+    clientData = data;
   } catch (error) {
     const context = useOnboardingOverviewContext();
-    clientId = context.clientData?.id;
+    clientData = context.clientData;
     isOverviewFlow = true;
   }
-  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);

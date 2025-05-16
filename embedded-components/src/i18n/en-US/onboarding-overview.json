@@ -1,34 +1,21 @@
 {
   "welcomeText": "Welcome!",
-  "steps": {
+  "screens": {
     "gateway": {
       "title": "Let's help you get started",
       "description": "Select your business type and we'll explain what information you'll need to complete this application.",
-      "nextButton": "Show me what's needed",
-      "alerts": [
-        {
-          "title": null,
-          "description": "Please ensure you make the correct selection before continuing. If you change this later, you may lose your saved progress. "
-        }
-      ]
+      "nextButton": "Show me what's needed"
     },
     "checklist": {
       "title": "Here is what you'll need",
       "description": "Below is a checklist of what you'll need on hand.",
       "prevButton": "Back",
-      "nextButton": "Get Started",
-      "alerts": [
-        {
-          "title": "Ready to get started?",
-          "description": "The application will take about 20 minutes. Your data will be saved as you go, so don't worry if you need to take a few breaks."
-        }
-      ]
+      "nextButton": "Get Started"
     },
     "overview": {
       "title": "Overview",
       "description": "",
-      "infoAlert": "Complete steps in any order. Your data will be saved as you go.",
-      "prevButton": "Back to checklist"
+      "infoAlert": "Your data will be saved as you go."
     }
   },
   "fields": {
