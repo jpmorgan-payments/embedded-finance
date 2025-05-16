@@ -19,6 +19,7 @@ import {
   UnstyledButton,
   SegmentedControl,
   Select,
+  Anchor,
 } from '@mantine/core';
 import {
   IconAlertTriangle,
@@ -39,6 +40,7 @@ import {
   IconWorld,
   IconUser,
   IconStar,
+  IconInfoCircle,
 } from '@tabler/icons';
 // Import SVG directly using Vite's import capabilities
 import sellSenseLogo from './../assets/sellSense.svg';
@@ -249,9 +251,6 @@ const Header: FC = () => (
   >
     <Group spacing={12} align="center">
       <img src={sellSenseLogo} alt="SellSense Logo" height={28} width={184} />
-      <Text size="sm" color="gray" weight={500}>
-        (Sample/Demo Platform Dashboard)
-      </Text>
     </Group>
 
     <Group spacing={12} align="center">
@@ -338,7 +337,7 @@ export const SampleDashboard: FC = () => {
     : '';
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <Box sx={{ minHeight: '100vh', background: '#f8fafc', position: 'relative' }}>
       <Header />
       <Group
         align="flex-start"
@@ -1029,6 +1028,41 @@ export const SampleDashboard: FC = () => {
           )}
         </Box>
       </Group>
+      
+      {/* Demo information tooltip */}
+      <Paper
+        shadow="sm"
+        p="xs"
+        sx={{
+          position: 'fixed',
+          bottom: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          maxWidth: '500px',
+          width: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          opacity: 0.85,
+          '&:hover': {
+            opacity: 1,
+          },
+        }}
+      >
+        <IconInfoCircle size={16} color="#666" />
+        <Text size="xs" color="dimmed">
+          This is a Sample/Demo Platform Dashboard. View the{' '}
+          <Anchor
+            href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/pages/SampleDashboard.tsx"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="xs"
+          >
+            source code on GitHub
+          </Anchor>
+        </Text>
+      </Paper>
     </Box>
   );
 };
