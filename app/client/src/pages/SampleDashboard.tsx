@@ -559,7 +559,7 @@ export const SampleDashboard: FC = () => {
                 >
                   <Box
                     sx={{
-                      background: SECONDARY_COLOR,
+                      background: '#e0f7fa',
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -567,7 +567,7 @@ export const SampleDashboard: FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <IconShoppingCart size={36} color="#fff" />
+                    <IconShoppingCart size={36} color={SECONDARY_COLOR} />
                   </Box>
                   <Box>
                     <Text
@@ -604,7 +604,7 @@ export const SampleDashboard: FC = () => {
                 >
                   <Box
                     sx={{
-                      background: SECONDARY_COLOR,
+                      background: '#e0f7fa',
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -612,7 +612,7 @@ export const SampleDashboard: FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <IconTag size={36} color="#fff" />
+                    <IconTag size={36} color={SECONDARY_COLOR} />
                   </Box>
                   <Box>
                     <Text
@@ -649,7 +649,7 @@ export const SampleDashboard: FC = () => {
                 >
                   <Box
                     sx={{
-                      background: SECONDARY_COLOR,
+                      background: '#e0f7fa',
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -657,7 +657,7 @@ export const SampleDashboard: FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <IconStar size={36} color="#fff" />
+                    <IconStar size={36} color={SECONDARY_COLOR} />
                   </Box>
                   <Box>
                     <Text
@@ -694,7 +694,7 @@ export const SampleDashboard: FC = () => {
                 >
                   <Box
                     sx={{
-                      background: SECONDARY_COLOR,
+                      background: '#e0f7fa',
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -702,7 +702,7 @@ export const SampleDashboard: FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <IconWallet size={36} color="#fff" />
+                    <IconWallet size={36} color={SECONDARY_COLOR} />
                   </Box>
                   <Box>
                     <Text
@@ -739,7 +739,7 @@ export const SampleDashboard: FC = () => {
                 >
                   <Box
                     sx={{
-                      background: SECONDARY_COLOR,
+                      background: '#e0f7fa',
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -747,7 +747,7 @@ export const SampleDashboard: FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <IconCreditCard size={36} color="#fff" />
+                    <IconCreditCard size={36} color={SECONDARY_COLOR} />
                   </Box>
                   <Box>
                     <Text
@@ -773,203 +773,272 @@ export const SampleDashboard: FC = () => {
                 </Card>
               </SimpleGrid>
 
-              <Card shadow="xs" p="lg" mb="lg">
-                <Title order={4} mb="sm">
-                  Recent Activity
-                </Title>
-                <Stack spacing="xs">
-                  <Text size="sm" color="dimmed">
-                    [10:05 AM] <b>Vendor</b> <b>Urban Styles</b> listed new
-                    product <b>Canvas Tote Bag</b>
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    [09:52 AM] <b>Order #20567</b> placed by <b>Lisa Wong</b>{' '}
-                    ($59.99)
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    [09:40 AM] <b>Order #20566</b> shipped by <b>GadgetHub</b>
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    [09:25 AM] <b>Buyer</b> <b>Samuel Green</b> signed up
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    [09:10 AM] <b>Order #20565</b> delivered to{' '}
-                    <b>Priya Patel</b>
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    [08:55 AM] <b>Return</b> initiated for <b>Order #20560</b>{' '}
-                    (Bluetooth Headphones)
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    [08:40 AM] <b>Vendor</b> <b>KitchenPro</b> joined the
-                    marketplace
-                  </Text>
-                </Stack>
-              </Card>
-
-              <Card shadow="xs" p="lg">
-                <Title order={4} mb="sm">
-                  Recent Orders
-                </Title>
-                <Box sx={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f8fafc' }}>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Order #
-                        </th>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Buyer
-                        </th>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Product
-                        </th>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Vendor
-                        </th>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Date
-                        </th>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Amount
-                        </th>
-                        <th
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Status
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td style={{ padding: '8px' }}>20567</td>
-                        <td style={{ padding: '8px' }}>Lisa Wong</td>
-                        <td style={{ padding: '8px' }}>Canvas Tote Bag</td>
-                        <td style={{ padding: '8px' }}>Urban Styles</td>
-                        <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$59.99</td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            color: '#22c55e',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Paid
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '8px' }}>20566</td>
-                        <td style={{ padding: '8px' }}>Priya Patel</td>
-                        <td style={{ padding: '8px' }}>Bluetooth Headphones</td>
-                        <td style={{ padding: '8px' }}>GadgetHub</td>
-                        <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$120.00</td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            color: '#f59e42',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Shipped
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '8px' }}>20565</td>
-                        <td style={{ padding: '8px' }}>Samuel Green</td>
-                        <td style={{ padding: '8px' }}>Stainless Steel Pan</td>
-                        <td style={{ padding: '8px' }}>KitchenPro</td>
-                        <td style={{ padding: '8px' }}>2024-08-07</td>
-                        <td style={{ padding: '8px' }}>$45.50</td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            color: '#22c55e',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Delivered
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '8px' }}>20564</td>
-                        <td style={{ padding: '8px' }}>Lisa Wong</td>
-                        <td style={{ padding: '8px' }}>Ceramic Vase</td>
-                        <td style={{ padding: '8px' }}>Urban Styles</td>
-                        <td style={{ padding: '8px' }}>2024-08-06</td>
-                        <td style={{ padding: '8px' }}>$32.00</td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            color: '#ef4444',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Returned
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '8px' }}>20563</td>
-                        <td style={{ padding: '8px' }}>Priya Patel</td>
-                        <td style={{ padding: '8px' }}>Wireless Mouse</td>
-                        <td style={{ padding: '8px' }}>GadgetHub</td>
-                        <td style={{ padding: '8px' }}>2024-08-06</td>
-                        <td style={{ padding: '8px' }}>$24.99</td>
-                        <td
-                          style={{
-                            padding: '8px',
-                            color: '#22c55e',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Paid
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </Box>
-              </Card>
+              <Group
+                align="flex-start"
+                spacing="lg"
+                grow
+                noWrap
+                sx={{
+                  width: '100%',
+                  height: 440,
+                  flexWrap: 'nowrap',
+                  '@media (max-width: 900px)': {
+                    flexDirection: 'column',
+                    height: 'auto',
+                  },
+                }}
+              >
+                <Card
+                  shadow="xs"
+                  p="lg"
+                  sx={{
+                    width: '35%',
+                    minWidth: 260,
+                    maxWidth: 420,
+                    height: 340,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    '@media (max-width: 900px)': {
+                      width: '100%',
+                      minWidth: 0,
+                    },
+                  }}
+                >
+                  <Title order={4} mb="sm">
+                    Orders per Day
+                  </Title>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 320,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg
+                      width="100%"
+                      height="200"
+                      viewBox="0 0 320 200"
+                      style={{ maxWidth: 340 }}
+                    >
+                      <polyline
+                        fill="none"
+                        stroke={SECONDARY_COLOR}
+                        strokeWidth="3"
+                        points="10,180 60,120 110,140 160,80 210,100 260,60 310,40"
+                      />
+                      {/* Dots */}
+                      <circle cx="10" cy="180" r="5" fill={SECONDARY_COLOR} />
+                      <circle cx="60" cy="120" r="5" fill={SECONDARY_COLOR} />
+                      <circle cx="110" cy="140" r="5" fill={SECONDARY_COLOR} />
+                      <circle cx="160" cy="80" r="5" fill={SECONDARY_COLOR} />
+                      <circle cx="210" cy="100" r="5" fill={SECONDARY_COLOR} />
+                      <circle cx="260" cy="60" r="5" fill={SECONDARY_COLOR} />
+                      <circle cx="310" cy="40" r="5" fill={SECONDARY_COLOR} />
+                      {/* X axis labels */}
+                      <text x="10" y="195" fontSize="12" fill="#888">
+                        Aug 1
+                      </text>
+                      <text x="60" y="195" fontSize="12" fill="#888">
+                        Aug 2
+                      </text>
+                      <text x="110" y="195" fontSize="12" fill="#888">
+                        Aug 3
+                      </text>
+                      <text x="160" y="195" fontSize="12" fill="#888">
+                        Aug 4
+                      </text>
+                      <text x="210" y="195" fontSize="12" fill="#888">
+                        Aug 5
+                      </text>
+                      <text x="260" y="195" fontSize="12" fill="#888">
+                        Aug 6
+                      </text>
+                      <text x="310" y="195" fontSize="12" fill="#888">
+                        Aug 7
+                      </text>
+                      {/* Y axis label */}
+                      <text x="0" y="20" fontSize="12" fill="#888">
+                        Orders
+                      </text>
+                    </svg>
+                  </Box>
+                </Card>
+                <Card
+                  shadow="xs"
+                  p="lg"
+                  sx={{
+                    width: '65%',
+                    minWidth: 400,
+                    maxWidth: '100%',
+                    height: 340,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    '@media (max-width: 900px)': {
+                      width: '100%',
+                      minWidth: 0,
+                      marginBottom: 24,
+                    },
+                  }}
+                >
+                  <Title order={4} mb="sm">
+                    Recent Orders
+                  </Title>
+                  <Box sx={{ overflowX: 'auto', flex: 1 }}>
+                    <table
+                      style={{ width: '100%', borderCollapse: 'collapse' }}
+                    >
+                      <thead>
+                        <tr style={{ background: '#f8fafc' }}>
+                          <th
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Order #
+                          </th>
+                          <th
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Buyer
+                          </th>
+                          <th
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Product
+                          </th>
+                          <th
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Date
+                          </th>
+                          <th
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Amount
+                          </th>
+                          <th
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: '8px' }}>20567</td>
+                          <td style={{ padding: '8px' }}>Lisa Wong</td>
+                          <td style={{ padding: '8px' }}>Canvas Tote Bag</td>
+                          <td style={{ padding: '8px' }}>2024-08-07</td>
+                          <td style={{ padding: '8px' }}>$59.99</td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              color: '#22c55e',
+                              fontWeight: 500,
+                            }}
+                          >
+                            Paid
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '8px' }}>20566</td>
+                          <td style={{ padding: '8px' }}>Priya Patel</td>
+                          <td style={{ padding: '8px' }}>
+                            Bluetooth Headphones
+                          </td>
+                          <td style={{ padding: '8px' }}>2024-08-07</td>
+                          <td style={{ padding: '8px' }}>$120.00</td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              color: '#f59e42',
+                              fontWeight: 500,
+                            }}
+                          >
+                            Shipped
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '8px' }}>20565</td>
+                          <td style={{ padding: '8px' }}>Samuel Green</td>
+                          <td style={{ padding: '8px' }}>
+                            Stainless Steel Pan
+                          </td>
+                          <td style={{ padding: '8px' }}>2024-08-07</td>
+                          <td style={{ padding: '8px' }}>$45.50</td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              color: '#22c55e',
+                              fontWeight: 500,
+                            }}
+                          >
+                            Delivered
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '8px' }}>20564</td>
+                          <td style={{ padding: '8px' }}>Lisa Wong</td>
+                          <td style={{ padding: '8px' }}>Ceramic Vase</td>
+                          <td style={{ padding: '8px' }}>2024-08-06</td>
+                          <td style={{ padding: '8px' }}>$32.00</td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              color: '#ef4444',
+                              fontWeight: 500,
+                            }}
+                          >
+                            Returned
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '8px' }}>20563</td>
+                          <td style={{ padding: '8px' }}>Priya Patel</td>
+                          <td style={{ padding: '8px' }}>Wireless Mouse</td>
+                          <td style={{ padding: '8px' }}>2024-08-06</td>
+                          <td style={{ padding: '8px' }}>$24.99</td>
+                          <td
+                            style={{
+                              padding: '8px',
+                              color: '#22c55e',
+                              fontWeight: 500,
+                            }}
+                          >
+                            Paid
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </Box>
+                </Card>
+              </Group>
             </>
           )}
         </Box>
