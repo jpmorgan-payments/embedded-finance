@@ -292,13 +292,9 @@ export const SampleDashboard: FC = () => {
   const [isFrameLoading, setIsFrameLoading] = useState(true);
   const [iframeKey, setIframeKey] = useState(0);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
-  const defaultScenario =
-    onboardingScenarios.find(
-      (s) =>
-        s.name === 'Wizard Layout - US LLC (outstanding documents requested)',
-    )?.id || onboardingScenarios[0].id;
+
   const [selectedScenario, setSelectedScenario] =
-    useState<string>(defaultScenario);
+    useState<string>('scenario9'); // Default scenario
 
   // Simulate userId for session transfer
   const userId = 'sample-user-001';
