@@ -208,6 +208,22 @@ MockDocumentsRequested.parameters = {
           status: 'INFORMATION_REQUESTED',
         });
       }),
+      http.get('/document-requests', (req) => {
+        const url = new URL(req.request.url);
+        const clientId = url.searchParams.get('clientId');
+
+        if (!clientId) {
+          return new HttpResponse(null, {
+            status: 400,
+            statusText: 'Bad Request: Missing clientId parameter',
+          });
+        }
+
+        return HttpResponse.json({
+          documentRequests: [efOrganizationDocumentRequestDetails],
+        });
+      }),
+
       http.get('/document-requests/68805', () => {
         return HttpResponse.json({
           ...efDocumentRequestDetails,

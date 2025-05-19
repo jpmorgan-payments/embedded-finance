@@ -610,7 +610,7 @@ export const DocumentUploadForm = ({
                 </h3>
               )}
               <Card className="eb-mb-4 eb-w-full eb-overflow-hidden eb-shadow-sm">
-                <div className="eb-border-l-4 eb-border-amber-500 eb-bg-amber-50 eb-p-3 eb-text-amber-800">
+                <div className="eb-border-l-[5px] eb-border-[#2CB9AC] eb-bg-gray-100 eb-p-3 eb-text-gray-800">
                   {documentRequest?.description
                     ?.split('\n')
                     .map((item, key) => (
@@ -826,7 +826,7 @@ export const DocumentUploadForm = ({
                                     className="eb-mb-6"
                                   >
                                     <div className="eb-mb-2 eb-flex eb-items-center">
-                                      <span className="eb-rounded-full eb-bg-amber-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-amber-800">
+                                      <span className="eb-rounded-full eb-bg-[#f0fffd] eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-[#2CB9AC]">
                                         Document {uploadIndex + 1} of{' '}
                                         {numFieldsToShowForReq}
                                       </span>
@@ -957,19 +957,6 @@ export const DocumentUploadForm = ({
         <div className="eb-mt-2 eb-flex eb-w-full eb-items-center eb-justify-end">
           {filteredDocumentRequests?.length !== 0 && (
             <>
-              <div className="eb-mr-auto eb-flex eb-items-center">
-                {allRequirementsSatisfied ? (
-                  <div className="eb-flex eb-items-center eb-text-sm eb-text-green-600">
-                    <CheckCircle className="eb-mr-1 eb-h-4 eb-w-4" />
-                    All required documents ready to upload
-                  </div>
-                ) : (
-                  <div className="eb-flex eb-items-center eb-text-sm eb-text-amber-600">
-                    <CircleDashed className="eb-mr-1 eb-h-4 eb-w-4" />
-                    Please complete all required documents
-                  </div>
-                )}
-              </div>
               <Button
                 type="submit"
                 disabled={
