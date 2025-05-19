@@ -19,6 +19,7 @@ import {
   UnstyledButton,
   SegmentedControl,
   Select,
+  Anchor,
 } from '@mantine/core';
 import {
   IconAlertTriangle,
@@ -39,7 +40,10 @@ import {
   IconWorld,
   IconUser,
   IconStar,
+  IconInfoCircle,
 } from '@tabler/icons';
+// Import SVG directly using Vite's import capabilities
+import sellSenseLogo from './../assets/sellSense.svg';
 import { API_URL } from 'data/constants';
 import { useMutation } from '@tanstack/react-query';
 import Markdown from 'react-markdown';
@@ -245,29 +249,10 @@ const Header: FC = () => (
       borderBottom: '1px solid #f1f3f5',
     }}
   >
-    <Group spacing={8} align="center">
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: CTA_COLOR + '22',
-          borderRadius: 6,
-          width: 32,
-          height: 32,
-        }}
-      >
-        <Text color={CTA_COLOR} weight={700} size="xl">
-          S
-        </Text>
-      </Box>
-      <Text size="xl" weight={600} color={CTA_COLOR} ml={4}>
-        SellSense
-      </Text>
-      <Text size="sm" color="gray" weight={500}>
-        (Sample/Demo Platform Dashboard)
-      </Text>
+    <Group spacing={12} align="center">
+      <img src={sellSenseLogo} alt="SellSense Logo" height={28} width={184} />
     </Group>
+
     <Group spacing={12} align="center">
       <Button
         variant="subtle"
@@ -307,13 +292,9 @@ export const SampleDashboard: FC = () => {
   const [isFrameLoading, setIsFrameLoading] = useState(true);
   const [iframeKey, setIframeKey] = useState(0);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
-  const defaultScenario =
-    onboardingScenarios.find(
-      (s) =>
-        s.name === 'Wizard Layout - US LLC (outstanding documents requested)',
-    )?.id || onboardingScenarios[0].id;
+
   const [selectedScenario, setSelectedScenario] =
-    useState<string>(defaultScenario);
+    useState<string>('scenario9'); // Default scenario
 
   // Simulate userId for session transfer
   const userId = 'sample-user-001';
@@ -352,7 +333,7 @@ export const SampleDashboard: FC = () => {
     : '';
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <Box sx={{ minHeight: '100vh', background: '#f8fafc', position: 'relative' }}>
       <Header />
       <Group
         align="flex-start"
@@ -1043,6 +1024,41 @@ export const SampleDashboard: FC = () => {
           )}
         </Box>
       </Group>
+      
+      {/* Demo information tooltip */}
+      <Paper
+        shadow="sm"
+        p="xs"
+        sx={{
+          position: 'fixed',
+          bottom: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          maxWidth: '500px',
+          width: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          opacity: 0.85,
+          '&:hover': {
+            opacity: 1,
+          },
+        }}
+      >
+        <IconInfoCircle size={16} color="#666" />
+        <Text size="xs" color="dimmed">
+          This is a Sample/Demo Platform Dashboard. View the{' '}
+          <Anchor
+            href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/pages/SampleDashboard.tsx"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="xs"
+          >
+            source code on GitHub
+          </Anchor>
+        </Text>
+      </Paper>
     </Box>
   );
 };
