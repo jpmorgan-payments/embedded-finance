@@ -44,6 +44,7 @@ import {
 } from '@tabler/icons';
 // Import SVG directly using Vite's import capabilities
 import sellSenseLogo from './../assets/sellSense.svg';
+import sllSenseWalletLogo from './../assets/sellSenseWallet.svg';
 import { API_URL } from 'data/constants';
 import { useMutation } from '@tanstack/react-query';
 import Markdown from 'react-markdown';
@@ -96,8 +97,15 @@ interface SidebarButtonProps {
   onClick: () => void;
 }
 
-const CTA_COLOR = '#F55727';
-const SECONDARY_COLOR = '#5AC8BE';
+// Main color scheme
+const SECONDARY_COLOR = '#2CB9AC';
+const SECONDARY_BACKGROUND_COLOR = '#f0fffd';
+const PRIMARY_COLOR = '#f55727';
+const PRIMARY_BACKGROUND_COLOR = '#fff4e6';
+const STATUS_SUCCESS = '#22A06B'; // Accessible green
+const STATUS_WARNING = '#F0A03C'; // Accessible orange/yellow
+const STATUS_ERROR = '#E53E3E'; // Accessible red
+const BACKGROUND_LIGHT = '#F8FAFC'; // Light background
 
 const SidebarButton: FC<SidebarButtonProps> = ({
   label,
@@ -111,20 +119,22 @@ const SidebarButton: FC<SidebarButtonProps> = ({
       display: 'block',
       width: '100%',
       padding: '10px 16px',
-      borderRadius: 6,
-      color: selected ? CTA_COLOR : theme.colors.gray[7],
+      color: selected ? PRIMARY_COLOR : '#4A5568',
       fontWeight: selected ? 600 : 400,
       cursor: 'pointer',
       textAlign: 'left',
-      background: selected ? '#fff4e6' : 'transparent',
+      background: selected ? PRIMARY_BACKGROUND_COLOR : 'transparent',
+      borderLeft: selected
+        ? `5px solid ${PRIMARY_COLOR}`
+        : '5px solid transparent',
       '&:hover': {
-        background: '#fff4e6',
-        color: CTA_COLOR,
+        background: PRIMARY_BACKGROUND_COLOR,
+        color: PRIMARY_COLOR,
       },
     })}
   >
     <Group spacing={8} align="center" noWrap>
-      <Icon size={18} color={selected ? CTA_COLOR : undefined} />
+      <Icon size={18} color={selected ? PRIMARY_COLOR : undefined} />
       <span>{label}</span>
     </Group>
   </UnstyledButton>
@@ -136,23 +146,30 @@ const WalletSidebarButton: FC<{ selected: boolean; onClick: () => void }> = ({
 }) => (
   <UnstyledButton
     onClick={onClick}
-    sx={{
+    sx={(theme) => ({
       display: 'block',
       width: '100%',
       padding: '10px 16px',
-      borderRadius: 6,
-      color: CTA_COLOR,
-      fontWeight: 600,
+
+      color: selected ? PRIMARY_COLOR : '#4A5568',
+      fontWeight: selected ? 600 : 400,
+      cursor: 'pointer',
       textAlign: 'left',
+      background: selected ? PRIMARY_BACKGROUND_COLOR : 'transparent',
+      borderLeft: selected
+        ? `5px solid ${PRIMARY_COLOR}`
+        : '5px solid transparent',
       '&:hover': {
-        background: '#fff4e6',
-        color: CTA_COLOR,
+        background: PRIMARY_BACKGROUND_COLOR,
+        color: PRIMARY_COLOR,
       },
-      background: selected ? '#fff4e6' : 'transparent',
-    }}
+    })}
   >
     <Group spacing={8} align="center" noWrap>
-      <IconAlertTriangle size={18} color={CTA_COLOR} />
+      <IconAlertTriangle
+        size={18}
+        color={selected ? PRIMARY_COLOR : undefined}
+      />
       <span>SellSense Wallet</span>
     </Group>
   </UnstyledButton>
@@ -256,26 +273,31 @@ const Header: FC = () => (
     <Group spacing={12} align="center">
       <Button
         variant="subtle"
-        color={CTA_COLOR}
+        color="orange"
         radius="xl"
         px={4}
         py={4}
         style={{ minWidth: 0 }}
       >
-        <IconWorld size={22} color={CTA_COLOR} />
+        <IconWorld size={22} color={PRIMARY_COLOR} />
       </Button>
       <Button
         variant="subtle"
-        color={CTA_COLOR}
+        color="orange"
         radius="xl"
         px={4}
         py={4}
         style={{ minWidth: 0 }}
       >
-        <IconSettings size={22} color={CTA_COLOR} />
+        <IconSettings size={22} color={PRIMARY_COLOR} />
       </Button>
       <Group spacing={8} align="center">
-        <Avatar radius="xl" size={32} color="red">
+        <Avatar
+          radius="xl"
+          size={32}
+          color="orange"
+          style={{ backgroundColor: PRIMARY_COLOR }}
+        >
           JD
         </Avatar>
         <Text weight={500} size="sm">
@@ -293,8 +315,7 @@ export const SampleDashboard: FC = () => {
   const [iframeKey, setIframeKey] = useState(0);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
 
-  const [selectedScenario, setSelectedScenario] =
-    useState<string>('scenario9'); // Default scenario
+  const [selectedScenario, setSelectedScenario] = useState<string>('scenario9'); // Default scenario
 
   // Simulate userId for session transfer
   const userId = 'sample-user-001';
@@ -333,7 +354,9 @@ export const SampleDashboard: FC = () => {
     : '';
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#f8fafc', position: 'relative' }}>
+    <Box
+      sx={{ minHeight: '100vh', background: '#f8fafc', position: 'relative' }}
+    >
       <Header />
       <Group
         align="flex-start"
@@ -350,6 +373,14 @@ export const SampleDashboard: FC = () => {
         <Box sx={{ flex: 1, margin: '32px 32px 32px 32px' }}>
           {selectedMenu === 'Wallet' ? (
             <Card shadow="sm" p="lg" mb="md">
+              <Group align="center" spacing={12} mb="xl">
+                <img
+                  src={sllSenseWalletLogo}
+                  alt="SellSense Wallet Logo"
+                  height={72}
+                  width={230}
+                />
+              </Group>
               <Group position="apart" mb="md" align="flex-end">
                 <Box>
                   <Title order={4} mb={8}>
@@ -408,7 +439,7 @@ export const SampleDashboard: FC = () => {
                 <Button
                   variant="light"
                   size="md"
-                  color="orange"
+                  color="teal"
                   leftIcon={
                     instructionsOpen ? (
                       <IconChevronUp size={20} />
@@ -422,14 +453,16 @@ export const SampleDashboard: FC = () => {
                     width: '100%',
                     padding: '10px 16px',
                     borderRadius: 6,
-                    color: '#ff922b',
+                    color: SECONDARY_COLOR,
                     fontWeight: 600,
                     textAlign: 'left',
-                    background: instructionsOpen ? '#fff4e6' : 'transparent',
+                    background: instructionsOpen
+                      ? SECONDARY_BACKGROUND_COLOR
+                      : 'transparent',
                     transition: 'background 0.2s',
                     '&:hover': {
-                      background: '#fff4e6',
-                      color: '#d97706',
+                      background: SECONDARY_BACKGROUND_COLOR,
+                      color: SECONDARY_COLOR,
                     },
                   }}
                 >
@@ -535,12 +568,12 @@ export const SampleDashboard: FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 20,
-                    background: '#f8fafc',
+                    background: BACKGROUND_LIGHT,
                   }}
                 >
                   <Box
                     sx={{
-                      background: '#e0f7fa',
+                      background: SECONDARY_BACKGROUND_COLOR,
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -580,12 +613,12 @@ export const SampleDashboard: FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 20,
-                    background: '#f8fafc',
+                    background: BACKGROUND_LIGHT,
                   }}
                 >
                   <Box
                     sx={{
-                      background: '#e0f7fa',
+                      background: SECONDARY_BACKGROUND_COLOR,
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -625,12 +658,12 @@ export const SampleDashboard: FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 20,
-                    background: '#f8fafc',
+                    background: BACKGROUND_LIGHT,
                   }}
                 >
                   <Box
                     sx={{
-                      background: '#e0f7fa',
+                      background: SECONDARY_BACKGROUND_COLOR,
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -670,12 +703,12 @@ export const SampleDashboard: FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 20,
-                    background: '#f8fafc',
+                    background: BACKGROUND_LIGHT,
                   }}
                 >
                   <Box
                     sx={{
-                      background: '#e0f7fa',
+                      background: SECONDARY_BACKGROUND_COLOR,
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -715,12 +748,12 @@ export const SampleDashboard: FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 20,
-                    background: '#f8fafc',
+                    background: BACKGROUND_LIGHT,
                   }}
                 >
                   <Box
                     sx={{
-                      background: '#e0f7fa',
+                      background: SECONDARY_BACKGROUND_COLOR,
                       borderRadius: 8,
                       padding: 12,
                       display: 'flex',
@@ -873,7 +906,7 @@ export const SampleDashboard: FC = () => {
                       style={{ width: '100%', borderCollapse: 'collapse' }}
                     >
                       <thead>
-                        <tr style={{ background: '#f8fafc' }}>
+                        <tr style={{ background: BACKGROUND_LIGHT }}>
                           <th
                             style={{
                               textAlign: 'left',
@@ -940,7 +973,7 @@ export const SampleDashboard: FC = () => {
                           <td
                             style={{
                               padding: '8px',
-                              color: '#22c55e',
+                              color: STATUS_SUCCESS,
                               fontWeight: 500,
                             }}
                           >
@@ -958,7 +991,7 @@ export const SampleDashboard: FC = () => {
                           <td
                             style={{
                               padding: '8px',
-                              color: '#f59e42',
+                              color: STATUS_WARNING,
                               fontWeight: 500,
                             }}
                           >
@@ -976,7 +1009,7 @@ export const SampleDashboard: FC = () => {
                           <td
                             style={{
                               padding: '8px',
-                              color: '#22c55e',
+                              color: STATUS_SUCCESS,
                               fontWeight: 500,
                             }}
                           >
@@ -992,7 +1025,7 @@ export const SampleDashboard: FC = () => {
                           <td
                             style={{
                               padding: '8px',
-                              color: '#ef4444',
+                              color: STATUS_ERROR,
                               fontWeight: 500,
                             }}
                           >
@@ -1008,7 +1041,7 @@ export const SampleDashboard: FC = () => {
                           <td
                             style={{
                               padding: '8px',
-                              color: '#22c55e',
+                              color: STATUS_SUCCESS,
                               fontWeight: 500,
                             }}
                           >
@@ -1024,7 +1057,7 @@ export const SampleDashboard: FC = () => {
           )}
         </Box>
       </Group>
-      
+
       {/* Demo information tooltip */}
       <Paper
         shadow="sm"

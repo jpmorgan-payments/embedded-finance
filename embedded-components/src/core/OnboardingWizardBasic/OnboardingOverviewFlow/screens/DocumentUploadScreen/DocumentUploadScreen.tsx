@@ -129,7 +129,7 @@ export const DocumentUploadScreen = () => {
                       {party.roles?.includes('CLIENT') && (
                         <Badge
                           variant="outline"
-                          className="eb-border-transparent eb-bg-[#E6F7FF] eb-text-[#005EB8]"
+                          className="eb-border-transparent eb-bg-gray-100 eb-text-gray-700"
                         >
                           Client
                         </Badge>
@@ -137,7 +137,7 @@ export const DocumentUploadScreen = () => {
                       {party.roles?.includes('BENEFICIAL_OWNER') && (
                         <Badge
                           variant="outline"
-                          className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                          className="eb-border-transparent eb-bg-gray-100 eb-text-gray-700"
                         >
                           Owner
                         </Badge>
@@ -145,7 +145,7 @@ export const DocumentUploadScreen = () => {
                       {party.roles?.includes('CONTROLLER') && (
                         <Badge
                           variant="outline"
-                          className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                          className="eb-border-transparent eb-bg-gray-100 eb-text-gray-700"
                         >
                           Controller
                         </Badge>
