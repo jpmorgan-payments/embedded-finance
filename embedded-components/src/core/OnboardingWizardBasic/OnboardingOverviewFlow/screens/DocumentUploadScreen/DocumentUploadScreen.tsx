@@ -116,14 +116,13 @@ export const DocumentUploadScreen = () => {
                 >
                   <div className="eb-space-y-1">
                     <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                      {party.individualDetails
-                        ? [
-                            party.individualDetails?.firstName,
-                            party.individualDetails?.middleName,
-                            party.individualDetails?.lastName,
-                            party.individualDetails?.nameSuffix,
-                          ].join(' ')
-                        : party.organizationDetails?.organizationName}
+                      {party.organizationDetails?.organizationName ||
+                        [
+                          party.individualDetails?.firstName,
+                          party.individualDetails?.middleName,
+                          party.individualDetails?.lastName,
+                          party.individualDetails?.nameSuffix,
+                        ].join(' ')}
                     </CardTitle>
                     <div className="eb-flex eb-gap-2 eb-pt-2">
                       {party.roles?.includes('CLIENT') && (
