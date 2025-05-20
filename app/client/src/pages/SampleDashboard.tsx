@@ -370,7 +370,7 @@ export const SampleDashboard: FC = () => {
 
   // Construct iframe URL
   const iframeUrl = onboardingToken
-    ? `/ep/onboarding?scenario=${selectedScenario}&fullScreen=true&token=${onboardingToken}`
+    ? `/ep/onboarding?scenario=${selectedScenario}&fullScreen=true&token=${onboardingToken}&theme=CUSTOM2`
     : '';
 
   return (
