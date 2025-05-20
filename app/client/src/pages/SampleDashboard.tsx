@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import {
   Box,
   Group,
@@ -20,6 +20,7 @@ import {
   SegmentedControl,
   Select,
   Anchor,
+  Tooltip,
 } from '@mantine/core';
 import {
   IconAlertTriangle,
@@ -143,37 +144,56 @@ const SidebarButton: FC<SidebarButtonProps> = ({
 const WalletSidebarButton: FC<{ selected: boolean; onClick: () => void }> = ({
   selected,
   onClick,
-}) => (
-  <UnstyledButton
-    onClick={onClick}
-    sx={(theme) => ({
-      display: 'block',
-      width: '100%',
-      padding: '10px 16px',
+}) => {
+  const [tooltipOpened, setTooltipOpened] = useState(false);
 
-      color: selected ? PRIMARY_COLOR : '#4A5568',
-      fontWeight: selected ? 600 : 400,
-      cursor: 'pointer',
-      textAlign: 'left',
-      background: selected ? PRIMARY_BACKGROUND_COLOR : 'transparent',
-      borderLeft: selected
-        ? `5px solid ${PRIMARY_COLOR}`
-        : '5px solid transparent',
-      '&:hover': {
-        background: PRIMARY_BACKGROUND_COLOR,
-        color: PRIMARY_COLOR,
-      },
-    })}
-  >
-    <Group spacing={8} align="center" noWrap>
-      <IconAlertTriangle
-        size={18}
-        color={selected ? PRIMARY_COLOR : undefined}
-      />
-      <span>SellSense Wallet</span>
-    </Group>
-  </UnstyledButton>
-);
+  useEffect(() => {
+    const timer1 = setTimeout(() => setTooltipOpened(true), 3000); // Show for 3 seconds
+    const timer2 = setTimeout(() => setTooltipOpened(false), 6000); // Show for 3 seconds
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
+  return (
+    <Tooltip
+      label="Action required: Complete onboarding"
+      withArrow
+      transitionProps={{ transition: 'pop', duration: 200 }}
+      events={{ hover: true, focus: true, touch: false }}
+      color="orange"
+      position="right"
+      opened={tooltipOpened}
+    >
+      <UnstyledButton
+        onClick={onClick}
+        sx={(theme) => ({
+          display: 'block',
+          width: '100%',
+          padding: '10px 16px',
+          color: selected ? PRIMARY_COLOR : '#4A5568',
+          fontWeight: selected ? 600 : 400,
+          cursor: 'pointer',
+          textAlign: 'left',
+          background: selected ? PRIMARY_BACKGROUND_COLOR : 'transparent',
+          borderLeft: selected
+            ? `5px solid ${PRIMARY_COLOR}`
+            : '5px solid transparent',
+          '&:hover': {
+            background: PRIMARY_BACKGROUND_COLOR,
+            color: PRIMARY_COLOR,
+          },
+        })}
+      >
+        <Group spacing={8} align="center" noWrap>
+          <IconAlertTriangle size={18} color={PRIMARY_COLOR} />
+          <span>SellSense Wallet</span>
+        </Group>
+      </UnstyledButton>
+    </Tooltip>
+  );
+};
 
 const Sidebar: FC<{
   selectedMenu: string;
