@@ -89,7 +89,7 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'hidden';
         }
         if (allStepsValid) {
-          return 'done_editable';
+          return 'completed';
         }
         return 'not_started';
       },
@@ -158,7 +158,7 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'hidden';
         }
         if (allStepsValid) {
-          return 'done_editable';
+          return 'completed';
         }
         return 'not_started';
       },
@@ -243,7 +243,7 @@ const sectionScreens: SectionScreenConfig[] = [
         }
 
         if (sessionData.isOwnersSectionDone && allOwnersValid) {
-          return 'done_editable';
+          return 'completed';
         }
         return 'not_started';
       },
@@ -271,7 +271,7 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'hidden';
         }
         if (sectionCompleted) {
-          return 'done_editable';
+          return 'completed';
         }
         return 'not_started';
       },
@@ -285,10 +285,6 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Review and attest',
       icon: FileIcon,
-      requirementsList: [
-        'Check and confirm details',
-        'Read terms and conditions',
-      ],
       statusResolver: (sessionData, clientData) => {
         const completed = clientData?.status === 'INFORMATION_REQUESTED';
         if (completed || sessionData.mockedKycCompleted) {
@@ -323,9 +319,9 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      label: 'Upload documents',
+      label: 'Supporting documents',
       icon: UploadIcon,
-      helpText: 'Supporting documents are only needed in some cases',
+      onHoldText: 'Supporting documents are only needed in some cases',
       statusResolver: (sessionData, clientData) => {
         if (
           clientData?.status === 'INFORMATION_REQUESTED' &&
@@ -336,7 +332,7 @@ const sectionScreens: SectionScreenConfig[] = [
         if (clientData?.status === 'NEW') {
           return 'on_hold';
         }
-        return 'done_disabled';
+        return 'completed';
       },
     },
     Component: DocumentUploadScreen,

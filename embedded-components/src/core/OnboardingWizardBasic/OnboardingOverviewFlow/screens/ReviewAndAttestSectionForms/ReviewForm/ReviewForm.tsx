@@ -117,7 +117,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   ];
 
   const isMissingDetails = sectionIdsToReview.some((sectionId) => {
-    return sectionStatuses[sectionId] !== 'done_editable';
+    return sectionStatuses[sectionId] !== 'completed';
   });
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
@@ -167,7 +167,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 .map((section) => {
                   let content = null;
                   const isSectionCompleted =
-                    sectionStatuses[section.id] === 'done_editable';
+                    sectionStatuses[section.id] === 'completed';
 
                   if (
                     section.type === 'stepper' &&

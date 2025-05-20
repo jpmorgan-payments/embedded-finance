@@ -66,6 +66,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     icon: LucideIcon;
     label: string;
     helpText?: string;
+    onHoldText?: string;
     requirementsList?: string[];
     statusResolver?: (
       sessionData: FlowSessionData,
@@ -121,8 +122,7 @@ export type SectionStatus =
   | 'not_started'
   | 'in_progress'
   | 'verifying'
-  | 'done_editable'
-  | 'done_disabled'
+  | 'completed'
   | 'missing_details'
   | 'on_hold'
   | 'hidden';
@@ -136,6 +136,7 @@ export type FlowSessionData = {
   isOwnersSectionDone?: boolean;
   mockedVerifyingSectionId?: ScreenId;
   mockedKycCompleted?: boolean;
+  hideOverviewInfoAlert?: boolean;
 };
 
 export type StepperStepProps = {

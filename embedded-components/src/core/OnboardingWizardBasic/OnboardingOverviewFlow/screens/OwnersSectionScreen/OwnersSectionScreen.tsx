@@ -298,7 +298,7 @@ export const OwnersSectionScreen = () => {
               ]}
               noOptionalLabel
             />
-            {sectionStatuses['personal-section'] !== 'done_editable' && (
+            {sectionStatuses['personal-section'] !== 'completed' && (
               <div className="eb-mt-2 eb-flex eb-items-center">
                 <p className="eb-flex eb-h-8 eb-items-center eb-text-sm eb-font-normal eb-text-orange-500">
                   {'\u24d8'}

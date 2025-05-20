@@ -370,7 +370,7 @@ export const SampleDashboard: FC = () => {
 
   // Construct iframe URL
   const iframeUrl = onboardingToken
-    ? `/ep/onboarding?scenario=${selectedScenario}&fullScreen=true&token=${onboardingToken}`
+    ? `/ep/onboarding?scenario=${selectedScenario}&fullScreen=true&token=${onboardingToken}&theme=CUSTOM2`
     : '';
 
   return (
@@ -533,7 +533,7 @@ export const SampleDashboard: FC = () => {
                       borderRadius: 8,
                       overflow: 'hidden',
                       position: 'relative',
-                      minHeight: 700,
+                      height: 'auto',
                     }}
                   >
                     {isFrameLoading && (
@@ -561,9 +561,63 @@ export const SampleDashboard: FC = () => {
                       title="Onboarding UI"
                       src={iframeUrl}
                       width="100%"
-                      height="700"
-                      style={{ border: 'none' }}
-                      onLoad={handleIframeLoad}
+                      style={{
+                        border: 'none',
+                        height: '100%',
+                        minHeight: '700px',
+                        display: 'block',
+                        overflow: 'hidden',
+                      }}
+                      allow="fullscreen"
+                      onLoad={(e) => {
+                        handleIframeLoad();
+
+                        // Add resize observer to handle iframe content height changes
+                        const iframe = e.currentTarget;
+                        const resizeObserver = new ResizeObserver((entries) => {
+                          // Use the entries parameter from ResizeObserver
+                          const entry = entries[0];
+                          if (!entry) return;
+
+                          try {
+                            // Check if we can access the iframe content
+                            const iframeDoc =
+                              iframe.contentDocument ||
+                              iframe.contentWindow?.document;
+                            if (iframeDoc) {
+                              const height = Math.max(
+                                iframeDoc.body.scrollHeight,
+                                entry.contentRect.height,
+                              );
+
+                              iframe.style.height = `${height}px`;
+                            }
+                          } catch (err) {
+                            // Handle cross-origin restrictions
+                            console.log(
+                              'Cannot access iframe content due to same-origin policy',
+                            );
+                          }
+                        });
+
+                        // Try to observe iframe body if accessible
+                        try {
+                          const iframeDoc =
+                            iframe.contentDocument ||
+                            iframe.contentWindow?.document;
+                          if (iframeDoc?.body) {
+                            resizeObserver.observe(iframeDoc.body);
+                          }
+                        } catch (err) {
+                          // For cross-origin iframes, we need to use postMessage
+                          const messageHandler = (event: MessageEvent) => {
+                            // Verify origin if needed
+                            // if (event.origin !== 'https://allowed-origin.com') return;
+                          };
+
+                          window.addEventListener('message', messageHandler);
+                        }
+                      }}
                     />
                   </Box>
                 </Box>
