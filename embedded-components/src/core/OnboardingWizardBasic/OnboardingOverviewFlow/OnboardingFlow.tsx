@@ -177,6 +177,9 @@ const FlowRenderer: React.FC = () => {
       initialRender.current = false;
       return;
     }
+    if (docUploadOnlyMode) {
+      return;
+    }
     mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [currentScreenId]);
 

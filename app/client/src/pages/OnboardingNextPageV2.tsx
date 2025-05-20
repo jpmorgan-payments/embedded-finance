@@ -229,12 +229,6 @@ export const OnboardingNextPageV2 = () => {
           right: 35,
           zIndex: 10,
           cursor: 'pointer',
-          [`@media (max-width: ${theme.breakpoints.sm})`]: {
-            position: 'static',
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: theme.spacing.md,
-          },
         })}
       >
         <Badge size="sm" variant="light">
