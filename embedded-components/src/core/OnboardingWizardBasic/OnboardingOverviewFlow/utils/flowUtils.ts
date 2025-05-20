@@ -56,7 +56,7 @@ export function getFlowProgress(
         allStepsValid
       );
     } else if (allStepsValid) {
-      status = 'done_editable';
+      status = 'completed';
     }
 
     sectionStatuses[section.id] = status;

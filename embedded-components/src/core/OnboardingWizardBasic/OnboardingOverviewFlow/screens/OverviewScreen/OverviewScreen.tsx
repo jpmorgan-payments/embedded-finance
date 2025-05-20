@@ -2,9 +2,11 @@ import {
   CheckCircle2Icon,
   CheckIcon,
   ChevronRightIcon,
+  CircleDashedIcon,
   InfoIcon,
   LockIcon,
   PencilIcon,
+  XIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +28,7 @@ import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
   const { organizationType, clientData } = useOnboardingOverviewContext();
-  const { sections, goTo, sessionData } = useFlowContext();
+  const { sections, goTo, sessionData, updateSessionData } = useFlowContext();
 
   const { sectionStatuses } = getFlowProgress(
     sections,
@@ -48,64 +50,73 @@ export const OverviewScreen = () => {
       title={t('screens.overview.title')}
       description={t('screens.overview.description')}
     >
-      <div className="eb-mt-2 eb-flex-auto eb-space-y-6">
+      <div className="eb-flex-auto eb-space-y-6">
+        {!sessionData.hideOverviewInfoAlert && (
+          <Alert variant="informative" density="sm" className="eb-mt-6 eb-pb-2">
+            <InfoIcon className="eb-h-4 eb-w-4" />
+            <AlertDescription>
+              {t('screens.overview.infoAlert')}
+            </AlertDescription>
+            <button
+              type="button"
+              className="eb-hover:eb-opacity-100 eb-focus:eb-outline-none eb-focus:eb-ring-2 eb-focus:eb-ring-ring eb-focus:eb-ring-offset-2 eb-disabled:eb-pointer-events-none eb-absolute eb-right-4 eb-top-3 eb-rounded-sm eb-opacity-70 eb-ring-offset-background eb-transition-opacity data-[state=open]:eb-bg-accent data-[state=open]:eb-text-muted-foreground [&&]:eb-pl-0"
+              onClick={() => {
+                updateSessionData({
+                  hideOverviewInfoAlert: true,
+                });
+              }}
+            >
+              <XIcon className="eb-h-4 eb-w-4 eb-pl-0 eb-text-foreground" />
+              <span className="eb-sr-only">Close</span>
+            </button>
+          </Alert>
+        )}
         <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
-          <CardHeader>
-            <CardTitle className="eb-text-xl">
-              <h2>Step 1</h2>
+          <CardHeader className="eb-p-3">
+            <CardTitle>
+              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                Verify your business
+              </h2>
             </CardTitle>
-            <p className="eb-text-sm eb-font-semibold">Verify your business</p>
-
-            <Alert variant="informative" density="sm" className="eb-pb-2">
-              <InfoIcon className="eb-h-4 eb-w-4" />
-              <AlertDescription>
-                {t('screens.overview.infoAlert')}
-              </AlertDescription>
-            </Alert>
           </CardHeader>
-          <CardContent>
-            <div className="eb-space-y-2">
-              <div className="eb-space-y-1 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
-                <label
-                  htmlFor="business-structure-button"
-                  className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground"
-                >
-                  Business structure
-                </label>
-                <Button
-                  id="business-structure-button"
-                  onClick={() => goTo('gateway')}
-                  aria-label={`Current business structure is ${organizationTypeText}. Click to change.`}
-                  variant="ghost"
-                  size="input"
-                  className="eb-flex eb-w-full eb-justify-between eb-gap-2 eb-rounded-md eb-border eb-text-sm hover:eb-bg-input/80"
-                >
-                  <span className="eb-flex eb-text-start eb-font-sans eb-text-sm eb-font-normal eb-normal-case eb-text-foreground">
-                    {organizationTypeText}
-                  </span>
-                  <span className="eb-inline-flex eb-items-center eb-gap-2 [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0">
-                    <PencilIcon />
-                    Change
-                  </span>
-                </Button>
-                <p className="eb-text-xs eb-italic eb-text-muted-foreground">
-                  If you change this after starting the application, you may
-                  lose your saved progress.
+          <CardContent className="eb-p-3 eb-pt-0">
+            <div className="eb-space-y-3">
+              <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
+                <p className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground">
+                  Your selected business structure
                 </p>
+                <div>
+                  <span
+                    id="business-structure"
+                    className="eb-inline-flex eb-h-10 eb-w-full eb-items-center eb-justify-between eb-gap-2 eb-rounded-input eb-border eb-py-2 eb-pl-3 eb-text-sm"
+                  >
+                    <span className="eb-flex eb-text-start eb-font-sans eb-text-sm eb-font-normal eb-normal-case eb-text-foreground">
+                      {organizationTypeText}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => goTo('gateway')}
+                      aria-label="Edit business structure"
+                      className="eb-rounded-input hover:eb-bg-black/5"
+                    >
+                      <PencilIcon />
+                      Edit
+                    </Button>
+                  </span>
+
+                  <p className="eb-mt-1.5 eb-text-xs eb-italic eb-text-muted-foreground">
+                    If you change this after starting the application, you may
+                    lose your saved progress.
+                  </p>
+                </div>
               </div>
               {sections.map((section) => {
                 const sectionStatus = sectionStatuses?.[section.id];
-                const sectionCompleted = [
-                  'done_disabled',
-                  'done_editable',
-                ].includes(sectionStatus);
-                // && sessionData.mockedVerifyingSectionId !== section.id;
-                const sectionDisabled = ['done_disabled', 'on_hold'].includes(
-                  sectionStatus
-                );
-                const sectionVerifying =
-                  sectionStatus === 'verifying' ||
-                  sessionData.mockedVerifyingSectionId === section.id;
+                const sectionDisabled = sectionStatus === 'on_hold';
+                // const sectionVerifying =
+                //   sectionStatus === 'verifying' ||
+                //   sessionData.mockedVerifyingSectionId === section.id;
 
                 const existingPartyData = getPartyByAssociatedPartyFilters(
                   clientData,
@@ -118,38 +129,62 @@ export const OverviewScreen = () => {
 
                 return (
                   <div key={section.id}>
-                    <Button
-                      variant="ghost"
+                    {sectionStatus === 'on_hold' &&
+                      section.sectionConfig.onHoldText && (
+                        <p
+                          className={cn(
+                            'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-italic',
+                            {
+                              'eb-text-muted-foreground': sectionDisabled,
+                            }
+                          )}
+                        >
+                          <LockIcon className="eb-size-4" />
+                          {section.sectionConfig.onHoldText}
+                        </p>
+                      )}
+                    <Card
                       className={cn(
-                        'eb-flex eb-h-auto eb-w-full eb-flex-col eb-gap-1 eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-4',
+                        'eb-rounded-md eb-border eb-bg-card eb-p-3',
                         {
-                          'eb-italic': sectionDisabled,
+                          'eb-border-dashed eb-border-muted-foreground':
+                            sectionDisabled,
                         }
                       )}
-                      disabled={sectionDisabled}
-                      onClick={() => {
-                        goTo(section.id, {
-                          editingPartyId: existingPartyData.id,
-                          previouslyCompleted: sectionCompleted,
-                        });
-                      }}
                     >
                       <div className="eb-flex eb-w-full eb-justify-between">
-                        <div className="eb-flex eb-items-center eb-gap-2 eb-font-header eb-text-sm eb-font-medium eb-normal-case eb-tracking-normal">
-                          <section.sectionConfig.icon className="eb-size-4" />
-                          <h3>{section.sectionConfig.label}</h3>
-                        </div>
-
-                        <div className="eb-flex [&_svg]:eb-size-6">
-                          <CheckCircle2Icon
-                            aria-label="Completed"
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          <section.sectionConfig.icon
+                            className={cn('eb-size-4', {
+                              'eb-text-muted-foreground': sectionDisabled,
+                            })}
+                          />
+                          <h3
                             className={cn(
-                              'eb-duration-400 eb-hidden eb-stroke-green-600 eb-opacity-0 eb-transition-opacity eb-ease-in',
+                              'eb-font-header eb-text-lg eb-font-medium',
                               {
-                                'eb-block eb-opacity-100': sectionCompleted,
+                                'eb-text-muted-foreground': sectionDisabled,
                               }
                             )}
-                          />
+                          >
+                            {section.sectionConfig.label}
+                          </h3>
+                        </div>
+
+                        <div className="eb-flex [&_svg]:eb-size-4">
+                          {sectionStatus === 'completed' && (
+                            <>
+                              <CheckCircle2Icon className="eb-stroke-green-600" />
+                              <span className="eb-sr-only">Completed</span>
+                            </>
+                          )}
+                          {(sectionStatus === 'not_started' ||
+                            sectionStatus === 'on_hold') && (
+                            <>
+                              <CircleDashedIcon className="eb-stroke-gray-600" />
+                              <span className="eb-sr-only">Not started</span>
+                            </>
+                          )}
                           {/* <Loader2Icon
                       className={cn(
                         'eb-hidden eb-animate-spin eb-stroke-primary',
@@ -159,15 +194,28 @@ export const OverviewScreen = () => {
                       )}
                     /> */}
                         </div>
-                        <span
-                          className={cn(
-                            'eb-pointer-events-none eb-inline-flex eb-items-center eb-gap-2 eb-text-sm eb-text-primary [&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
-                            {
-                              'eb-font-normal eb-lowercase eb-italic':
-                                sectionStatus === 'on_hold',
-                              'eb-hidden': sectionCompleted || sectionVerifying,
-                            }
+                      </div>
+                      {section.sectionConfig.requirementsList && (
+                        <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
+                          {section.sectionConfig.requirementsList.map(
+                            (item, index) => (
+                              <li key={index}>{item}</li>
+                            )
                           )}
+                        </ul>
+                      )}
+                      <div className="eb-mt-3">
+                        <Button
+                          variant="outline"
+                          className="eb-border-primary eb-text-primary"
+                          disabled={sectionDisabled}
+                          onClick={() => {
+                            goTo(section.id, {
+                              editingPartyId: existingPartyData.id,
+                              previouslyCompleted:
+                                sectionStatus === 'completed',
+                            });
+                          }}
                         >
                           {sectionStatus === 'on_hold' ? (
                             'hold'
@@ -177,27 +225,9 @@ export const OverviewScreen = () => {
                               <ChevronRightIcon />
                             </>
                           )}
-                        </span>
+                        </Button>
                       </div>
-                      {section.sectionConfig.requirementsList && (
-                        <ul className="eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-12 eb-text-start eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
-                          {section.sectionConfig.requirementsList.map(
-                            (item, index) => (
-                              <li key={index}>{item}</li>
-                            )
-                          )}
-                        </ul>
-                      )}
-                    </Button>
-                    {section.sectionConfig.helpText && (
-                      <p
-                        className={cn('eb-mt-1 eb-text-sm eb-italic', {
-                          'eb-text-muted-foreground': sectionDisabled,
-                        })}
-                      >
-                        {section.sectionConfig.helpText}
-                      </p>
-                    )}
+                    </Card>
                   </div>
                 );
               })}
@@ -213,57 +243,94 @@ export const OverviewScreen = () => {
                 </Alert>
               )}
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <p className="eb-text-sm eb-font-semibold">
-                Let us know where to send payouts
-              </p>
-              {!kycCompleted && (
-                <p className="eb-mt-0.5 eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
-                  <LockIcon className="eb-size-3" /> Verify your business to
-                  unlock this step
-                </p>
-              )}
-              <Button
-                variant="ghost"
-                className={cn(
-                  'eb-mt-2 eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-text-sm'
-                )}
-                disabled={!kycCompleted}
-              >
-                <div className="eb-flex eb-items-center eb-gap-2 eb-font-sans eb-font-normal eb-normal-case eb-tracking-normal">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5.5 4V3H6.5V4H5.5Z"
-                      fill="#4C5157"
-                      fillOpacity="0.4"
-                    />
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
-                      fill="#4C5157"
-                      fillOpacity={kycCompleted ? '1' : '0.8'}
-                    />
-                  </svg>
-
-                  <span>Link a bank account</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn('eb-pointer-events-none eb-text-primary')}
+        <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
+          <CardHeader className="eb-p-3">
+            <CardTitle>
+              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                Link a bank account for payouts
+              </h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="eb-p-3 eb-pt-0">
+            <div className="eb-space-y-3">
+              <div>
+                <p
+                  className={cn(
+                    'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-italic',
+                    {
+                      'eb-text-muted-foreground': !kycCompleted,
+                    }
+                  )}
                 >
-                  {t('common:start')}
-                  <ChevronRightIcon />
-                </Button>
-              </Button>
+                  <LockIcon className="eb-size-4" />
+                  Available after business verification
+                </p>
+                <Card
+                  className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
+                    'eb-border-dashed eb-border-muted-foreground':
+                      !kycCompleted,
+                  })}
+                >
+                  <div className="eb-flex eb-w-full eb-justify-between">
+                    <div className="eb-flex eb-items-center eb-gap-2">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5.5 4V3H6.5V4H5.5Z"
+                          fill="#4C5157"
+                          fillOpacity="0.4"
+                        />
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
+                          fill="#4C5157"
+                          fillOpacity={kycCompleted ? '1' : '0.8'}
+                        />
+                      </svg>
+                      <h3
+                        className={cn(
+                          'eb-font-header eb-text-lg eb-font-medium',
+                          {
+                            'eb-text-muted-foreground': !kycCompleted,
+                          }
+                        )}
+                      >
+                        Link an account
+                      </h3>
+                    </div>
+
+                    <div className="eb-flex [&_svg]:eb-size-4">
+                      <CircleDashedIcon className="eb-stroke-gray-600" />
+                      <span className="eb-sr-only">Not started</span>
+                    </div>
+                  </div>
+                  <div className="eb-mt-3">
+                    <Button
+                      variant="outline"
+                      className="eb-border-primary eb-text-primary"
+                      disabled={!kycCompleted}
+                    >
+                      {!kycCompleted ? (
+                        'hold'
+                      ) : (
+                        <>
+                          {t('common:start')}
+                          <ChevronRightIcon />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </Card>
+              </div>
             </div>
           </CardContent>
         </Card>
