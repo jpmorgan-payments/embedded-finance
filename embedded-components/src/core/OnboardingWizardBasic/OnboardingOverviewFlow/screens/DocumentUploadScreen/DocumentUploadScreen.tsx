@@ -38,8 +38,7 @@ export const DocumentUploadScreen = () => {
     status: documentRequestGetListStatus,
   } = useSmbdoListDocumentRequests({
     clientId: clientData?.id,
-    // @ts-ignore
-    includeRelatedParty: true,
+    ...{ includeRelatedParty: true },
   });
 
   const [open, setOpen] = useState(false);
@@ -68,9 +67,25 @@ export const DocumentUploadScreen = () => {
               Your onboarding has been approved. No documents are required.
             </AlertDescription>
           </Alert>
-        ) : clientData && documentRequestGetListStatus !== 'success' ? (
+        ) : clientData && documentRequestGetListStatus === 'pending' ? (
           <FormLoadingState message="Loading document requests" />
-        ) : !clientData || (clientData && !documentRequests.length) ? (
+        ) : clientData && documentRequestGetListStatus === 'error' ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="eb-h-4 eb-w-4" />
+            <AlertTitle>There was a problem</AlertTitle>
+            <AlertDescription>
+              Unable to load document requests. Please try again later.
+            </AlertDescription>
+          </Alert>
+        ) : !clientData ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="eb-h-4 eb-w-4" />
+            <AlertTitle>There was a problem</AlertTitle>
+            <AlertDescription>
+              Unable to load client data. Please try again later.
+            </AlertDescription>
+          </Alert>
+        ) : clientData && !documentRequests?.length ? (
           <Alert variant="warning">
             <AlertTriangle className="eb-h-4 eb-w-4" />
             <AlertTitle>There is a problem</AlertTitle>
@@ -103,7 +118,7 @@ export const DocumentUploadScreen = () => {
                 </div>
               </DialogContent>
             </Dialog>
-            {documentRequests.map((docRequest) => {
+            {documentRequests?.map((docRequest) => {
               const party = docRequest.partyId
                 ? clientData?.parties?.find((p) => p.id === docRequest.partyId)
                 : clientData?.parties?.find((p) => p.roles?.includes('CLIENT'));

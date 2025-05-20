@@ -1,10 +1,6 @@
 /* eslint-disable no-console */
 import { useEffect, useState } from 'react';
-import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
-import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
-import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
 import type { Meta, StoryFn } from '@storybook/react';
-import { http, HttpResponse } from 'msw';
 import { useDarkMode } from 'storybook-dark-mode';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
@@ -14,11 +10,10 @@ import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { handlers } from './msw.handlers';
 import { OnboardingFlow, OnboardingFlowProps } from './OnboardingFlow';
 
-export type OnboardingWizardBasicWithProviderProps = OnboardingFlowProps &
-  EBConfig;
+export type OnboardingFlowWithProviderProps = OnboardingFlowProps & EBConfig;
 
-const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
-  title: 'Onboarding Overview Flow / Appearance & Theme',
+const meta: Meta<OnboardingFlowWithProviderProps> = {
+  title: 'Onboarding Flow / Appearance & Theme',
   component: OnboardingFlow,
   parameters: {
     layout: 'fullscreen',
@@ -102,7 +97,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
 
 export default meta;
 
-const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => {
+const Template: StoryFn<OnboardingFlowWithProviderProps> = (args) => {
   const [containerHeight, setContainerHeight] = useState(window.innerHeight);
 
   useEffect(() => {
@@ -191,76 +186,4 @@ MockExistingClient.storyName = 'Mocked Existing LLC Client';
 MockExistingClient.args = {
   ...SThemeWithMock.args,
   initialClientId: '0030000132',
-};
-
-export const MockDocumentsRequested = Default.bind({});
-MockDocumentsRequested.storyName = 'Mocked Documents Requested';
-MockDocumentsRequested.args = {
-  ...SThemeWithMock.args,
-  initialClientId: '0030000133',
-};
-MockDocumentsRequested.parameters = {
-  msw: {
-    handlers: [
-      http.get('/clients/0030000133', () => {
-        return HttpResponse.json({
-          ...efClientCorpEBMock,
-          status: 'INFORMATION_REQUESTED',
-        });
-      }),
-      http.get('/document-requests', (req) => {
-        const url = new URL(req.request.url);
-        const clientId = url.searchParams.get('clientId');
-
-        if (!clientId) {
-          return new HttpResponse(null, {
-            status: 400,
-            statusText: 'Bad Request: Missing clientId parameter',
-          });
-        }
-
-        return HttpResponse.json({
-          documentRequests: [efOrganizationDocumentRequestDetails],
-        });
-      }),
-
-      http.get('/document-requests/68805', () => {
-        return HttpResponse.json({
-          ...efDocumentRequestDetails,
-          partyId: '2000000112',
-        });
-      }),
-      http.get('/document-requests/68804', () => {
-        return HttpResponse.json({
-          ...efDocumentRequestDetails,
-          partyId: '2000000113',
-        });
-      }),
-      http.get('/document-requests/68803', () => {
-        return HttpResponse.json(efOrganizationDocumentRequestDetails);
-      }),
-      http.post('/documents', () => {
-        return HttpResponse.json({
-          requestId: Math.random().toString(36).substring(7),
-          traceId: `doc-${Math.random().toString(36).substring(7)}`,
-        });
-      }),
-      http.post('/document-requests/:requestId/submit', ({ params }) => {
-        console.log(
-          `Document request ${params.requestId} submitted successfully`
-        );
-        return new HttpResponse(
-          JSON.stringify({
-            acceptedAt: new Date().toISOString(),
-          }),
-          {
-            status: 202,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-      }),
-    ],
-  },
 };
