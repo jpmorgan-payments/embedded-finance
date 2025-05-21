@@ -56,7 +56,7 @@ The integration involves the following key steps:
     - The Onboarding UI is then loaded within an `<iframe>` on your platform's
       page.
 5.  **Communication (Optional):** The iframe can communicate events (e.g.,
-    completion, errors, specific steps) back to the parent window using
+    status changes, errors, other events) back to the parent window using
     `window.postMessage`.
 
 ```mermaid
@@ -74,8 +74,8 @@ sequenceDiagram
     PlatformFrontend->>PlatformFrontend: Construct Iframe URL with Token
     PlatformFrontend->>OnboardingService: Load Onboarding UI in Iframe (src="...&token={jwt}")
     Note over OnboardingService, PlatformFrontend: Onboarding UI loads and user interacts
-    OnboardingService->>PlatformFrontend: (Optional) postMessage (e.g., ONBOARDING_COMPLETED, ONBOARDING_ERROR)
-    PlatformFrontend->>PlatformBackend: (Optional) Notify Backend of status update
+    OnboardingService->>PlatformFrontend: (Optional) postMessage (e.g. status changes, errors, other events)
+    PlatformFrontend->>PlatformBackend: (Optional) Notify Backend of status changes, errors, other events
     PlatformBackend->>PlatformBackend: (Optional) Verify status with Onboarding Service / Update User Record
 ```
 
