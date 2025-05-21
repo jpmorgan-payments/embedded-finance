@@ -45,7 +45,8 @@ The integration involves the following key steps:
     - Your backend authenticates this request.
     - It then communicates with the Onboarding Service's API to create a session
       or obtain a session token. This might involve passing user identifiers.
-    - The Onboarding Service responds with a short-lived JWT token.
+    - The Onboarding Service responds with a short-lived JWT token (expected to
+      be valid for 60 seconds).
     - Your backend securely returns this token to your frontend.
 4.  **Frontend Iframe Embedding:**
     - The frontend receives the session token.
@@ -92,7 +93,7 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Example Request Payload (from your backend to the Onboarding Service):**
   ```json
   {
-    "type": "HOSTED_UI",
+    "type": "DOCUMENT_UPLOAD",
     "targetId": "1000000000" // clientId
   }
   ```
@@ -102,8 +103,12 @@ backend** to manage session transfer to the hosted Onboarding UI.
   2.  Make a secure server-to-server call to the Onboarding Service's API
       endpoint (provided by the Onboarding Service) to create a session for the
       given `clientId`. This request might include passing user details to
-      pre-fill information.
-  3.  The Onboarding Service's API typically responds with:
+      pre-fill information. 2.1. In case of error try to retry the request.
+      Possible errors:
+  - `404`: The clientId is not found.
+  - `422`: The clientId is not valid.
+  - `500`: Server error.
+  3.  The Onboarding Service's API responds with:
       - The URL (or components to build the URL) for the hosted Onboarding UI
         with a short-lived JWT token (or similar) to authenticate the user
         session within the iframe.
@@ -112,7 +117,7 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Example Response (from the Onboarding Service to your backend):**
   ```json
   {
-    "type": "HOSTED_UI",
+    "type": "DOCUMENT_UPLOAD",
     "targetId": "1000000000", // clientId
     "hostedUi": {
       "url": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
@@ -155,7 +160,7 @@ When the user initiates onboarding on your platform:
         src="YOUR_CONSTRUCTED_IFRAME_URL"
         width="100%"
         height="700" <!-- Adjust as needed, or manage height dynamically -->
-        style="border:none; display:block;" <!-- Initially 'display:none' or visibility hidden until loaded to prevent FOUC -->
+        style="border:none; display:block;" <!-- Initially 'display:none' or visibility hidden until loaded -->
         allowfullscreen
         referrerpolicy="no-referrer" <!-- Recommended for security -->
         onload="document.getElementById('iframe-loader').style.display='none'; this.style.visibility='visible';"
@@ -200,7 +205,7 @@ When the user initiates onboarding on your platform:
 If the Onboarding UI needs to communicate events (e.g., completion, errors,
 specific steps, readiness) back to your host platform:
 
-**Receiving Messages from Iframe (in your platform's frontend):**
+**optional: Receiving Messages from Iframe (in your platform's frontend):**
 
 ```javascript
 window.addEventListener('message', function (event) {
@@ -240,8 +245,8 @@ window.addEventListener('message', function (event) {
   UI provider. It might be a JSON string that needs parsing or an object. Always
   validate and sanitize the data.
 
-**Sending Messages to Iframe (less common if token is passed in `src`):** If you
-need to send information to the iframe after it has loaded:
+**Optional: Sending Messages to Iframe (less common if token is passed in
+`src`):** If you need to send information to the iframe after it has loaded:
 
 ```javascript
 const onboardingIframe = document.getElementById('onboarding-iframe'); // Get the iframe element
