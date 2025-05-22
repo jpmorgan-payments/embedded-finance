@@ -85,7 +85,10 @@ const sectionScreens: SectionScreenConfig[] = [
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
         }
-        if (clientData?.status === 'INFORMATION_REQUESTED') {
+        if (
+          clientData?.status === 'INFORMATION_REQUESTED' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS'
+        ) {
           return 'hidden';
         }
         if (allStepsValid) {
@@ -154,7 +157,10 @@ const sectionScreens: SectionScreenConfig[] = [
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
         }
-        if (clientData?.status === 'INFORMATION_REQUESTED') {
+        if (
+          clientData?.status === 'INFORMATION_REQUESTED' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS'
+        ) {
           return 'hidden';
         }
         if (allStepsValid) {
@@ -237,6 +243,7 @@ const sectionScreens: SectionScreenConfig[] = [
         });
         if (
           sessionData.mockedKycCompleted ||
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'INFORMATION_REQUESTED'
         ) {
           return 'hidden';
@@ -266,6 +273,7 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.outstanding?.questionIds?.length === 0;
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
           sessionData.mockedKycCompleted
         ) {
           return 'hidden';
@@ -286,7 +294,9 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Review and attest',
       icon: FileIcon,
       statusResolver: (sessionData, clientData) => {
-        const completed = clientData?.status === 'INFORMATION_REQUESTED';
+        const completed =
+          clientData?.status === 'INFORMATION_REQUESTED' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS';
         if (completed || sessionData.mockedKycCompleted) {
           return 'hidden';
         }

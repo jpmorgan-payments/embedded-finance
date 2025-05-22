@@ -81,36 +81,39 @@ export const OverviewScreen = () => {
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
             <div className="eb-space-y-3">
-              <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
-                <p className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground">
-                  Your selected business structure
-                </p>
-                <div>
-                  <span
-                    id="business-structure"
-                    className="eb-inline-flex eb-h-10 eb-w-full eb-items-center eb-justify-between eb-gap-2 eb-rounded-input eb-border eb-py-2 eb-pl-3 eb-text-sm"
-                  >
-                    <span className="eb-flex eb-text-start eb-font-sans eb-text-sm eb-font-normal eb-normal-case eb-text-foreground">
-                      {organizationTypeText}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => goTo('gateway')}
-                      aria-label="Edit business structure"
-                      className="eb-rounded-input hover:eb-bg-black/5"
-                    >
-                      <PencilIcon />
-                      Edit
-                    </Button>
-                  </span>
-
-                  <p className="eb-mt-1.5 eb-text-xs eb-italic eb-text-muted-foreground">
-                    If you change this after starting the application, you may
-                    lose your saved progress.
+              {clientData?.status === 'NEW' && (
+                <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
+                  <p className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground">
+                    Your selected business structure
                   </p>
+                  <div>
+                    <span
+                      id="business-structure"
+                      className="eb-inline-flex eb-h-10 eb-w-full eb-items-center eb-justify-between eb-gap-2 eb-rounded-input eb-border eb-py-2 eb-pl-3 eb-text-sm"
+                    >
+                      <span className="eb-flex eb-text-start eb-font-sans eb-text-sm eb-font-normal eb-normal-case eb-text-foreground">
+                        {organizationTypeText}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => goTo('gateway')}
+                        aria-label="Edit business structure"
+                        className="eb-rounded-input hover:eb-bg-black/5"
+                      >
+                        <PencilIcon />
+                        Edit
+                      </Button>
+                    </span>
+
+                    <p className="eb-mt-1.5 eb-text-xs eb-italic eb-text-muted-foreground">
+                      If you change this after starting the application, you may
+                      lose your saved progress.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
+
               {sections.map((section) => {
                 const sectionStatus = sectionStatuses?.[section.id];
                 const sectionDisabled = sectionStatus === 'on_hold';
@@ -245,7 +248,6 @@ export const OverviewScreen = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
           <CardHeader className="eb-p-3">
             <CardTitle>
