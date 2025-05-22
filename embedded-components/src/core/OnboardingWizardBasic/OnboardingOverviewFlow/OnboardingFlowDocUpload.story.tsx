@@ -15,22 +15,27 @@ const meta: Meta<OnboardingFlowWithProviderProps> = {
 };
 export default meta;
 
+const CLIENT_ID = '0030000133';
+
 const docRequestOne = {
   ...efDocumentRequestDetails,
   id: '68805',
   partyId: '2000000112',
+  clientId: CLIENT_ID,
 };
 const docRequestTwo = {
   ...efDocumentRequestDetails,
   id: '68804',
   partyId: '2000000113',
+  clientId: CLIENT_ID,
 };
 const docRequestThree = {
   ...efOrganizationDocumentRequestDetails,
+  clientId: CLIENT_ID,
 };
 
 const defaultHandlers = [
-  http.get('/clients/0030000133', () => {
+  http.get(`/clients/${CLIENT_ID}`, () => {
     return HttpResponse.json({
       ...efClientCorpEBMock,
       status: 'INFORMATION_REQUESTED',
@@ -65,7 +70,7 @@ export const DocsRequested = SThemeWithMock.bind({});
 DocsRequested.storyName = 'Documents requested';
 DocsRequested.args = {
   ...SThemeWithMock.args,
-  initialClientId: '0030000133',
+  initialClientId: CLIENT_ID,
   docUploadOnlyMode: true,
 };
 DocsRequested.parameters = {
