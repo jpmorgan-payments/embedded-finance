@@ -1,7 +1,7 @@
 export const efOrganizationDocumentRequestDetails = {
   createdAt: '2025-01-10T14:32:21.456Z',
   id: '68803',
-  partyId: '2000000111',
+  clientId: '0030000133',
   status: 'ACTIVE',
   description:
     'To verify your identity, please provide requested documents.\n1. Formation Document - Listing the legal name and address of the company. Acceptable documents are Articles of Incorporation [OR] Certificate of Good Standing [OR] Certificate of Incumbency [OR] Memorandum/Articles of Association [OR] Constitutional document [OR] LLC Agreement [OR] Filing receipt from state of organization [OR] Operating Agreement',
