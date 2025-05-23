@@ -60,7 +60,7 @@ const PartyCard: FC<PartyCardProps> = ({
       .join(' ');
 
   return (
-    <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6">
+    <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
       <div className="eb-space-y-1.5">
         <div className="eb-flex eb-items-center eb-justify-between">
           <h3 className="eb-font-header eb-text-lg eb-font-medium">
@@ -260,56 +260,64 @@ export const DocumentUploadScreen: FC = () => {
         </Dialog>
 
         <div className="eb-space-y-6">
-          <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-            For the business
-          </h2>
-          {clientDocumentRequests.length > 0 ? (
-            clientDocumentRequests.map((docRequest) => {
-              const party = clientData.parties?.find((p) =>
-                p.roles?.includes('CLIENT')
-              );
+          <div className="eb-space-y-3">
+            <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+              For the business
+            </h2>
+            {clientDocumentRequests.length > 0 ? (
+              clientDocumentRequests.map((docRequest) => {
+                const party = clientData.parties?.find((p) =>
+                  p.roles?.includes('CLIENT')
+                );
 
-              if (!party) return null;
+                if (!party) return null;
 
-              return (
-                <PartyCard
-                  key={party.id}
-                  party={party}
-                  docRequestStatus={docRequest.status}
-                  onUploadClick={handlePartySelect}
-                />
-              );
-            })
-          ) : (
-            <p className="eb-text-muted-foreground">
-              No document requests found for the business.
-            </p>
-          )}
-          <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-            For owners and key roles
-          </h2>
-          {otherDocumentRequests.length > 0 ? (
-            otherDocumentRequests.map((docRequest) => {
-              const party = clientData.parties?.find(
-                (p) => p.id === docRequest.partyId
-              );
+                return (
+                  <PartyCard
+                    key={party.id}
+                    party={party}
+                    docRequestStatus={docRequest.status}
+                    onUploadClick={handlePartySelect}
+                  />
+                );
+              })
+            ) : (
+              <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
+                <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
+                  No documents required
+                </p>
+              </Card>
+            )}
+          </div>
+          <div className="eb-space-y-2">
+            <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+              For owners and key roles
+            </h2>
+            {otherDocumentRequests.length > 0 ? (
+              otherDocumentRequests.map((docRequest) => {
+                const party = clientData.parties?.find(
+                  (p) => p.id === docRequest.partyId
+                );
 
-              if (!party) return null;
+                if (!party) return null;
 
-              return (
-                <PartyCard
-                  key={party.id}
-                  party={party}
-                  docRequestStatus={docRequest.status}
-                  onUploadClick={handlePartySelect}
-                />
-              );
-            })
-          ) : (
-            <p className="eb-text-sm eb-text-muted-foreground">
-              No document requests found for owners and key roles.
-            </p>
-          )}
+                return (
+                  <PartyCard
+                    key={party.id}
+                    party={party}
+                    docRequestStatus={docRequest.status}
+                    onUploadClick={handlePartySelect}
+                  />
+                );
+              })
+            ) : (
+              <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
+                <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
+                  No documents required
+                </p>
+              </Card>
+            )}
+          </div>
         </div>
       </>
     );
