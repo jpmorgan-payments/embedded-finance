@@ -128,6 +128,11 @@ backend** to manage session transfer to the hosted Onboarding UI.
 
 ## 3. Frontend Implementation: Embedding the Onboarding UI
 
+**Note:** All code samples provided in this guide are for reference purposes
+only and are intended to serve as a starting point for your implementation. They
+are provided "as is" without warranty of any kind, and you should adapt and test
+them according to your specific requirements.
+
 ### 3.1. Triggering Session Transfer and Receiving Token
 
 When the user initiates onboarding on your platform:
@@ -146,47 +151,133 @@ When the user initiates onboarding on your platform:
     URL for the iframe, e.g.
     `https://<onboarding-provider-domain>/onboarding?token=${sessionToken}`
 
-2.  **Create and mount the iframe (HTML/JS example):**
+2.  **Create and mount the iframe**
+
+    - **React Implementation:** In React applications, manage iframe state,
+      loading indicators, and resize handling using `useEffect`, `useState`, and
+      proper event cleanup.
+    - **Loading State:** Display accessible loading indicators with
+      `role="status"` and `aria-live="polite"` attributes.
+    - **Responsiveness:** Use container queries and viewport-relative sizing for
+      optimal display across devices.
+    - **Error Handling:** Implement comprehensive error handling with
+      `role="alert"` for screen reader announcements.
+
+    **HTML/CSS/JS Implementation**
+
     ```html
     <!-- Responsive container for the iframe -->
-    <div style="position:relative; width:100%; min-height:700px;">
+    <section
+      class="iframe-container"
+      role="region"
+      aria-labelledby="onboarding-title"
+      style="position:relative; width:100%; min-height:600px; container-type: inline-size;"
+    >
+      <h2 id="onboarding-title" class="sr-only">Onboarding Application</h2>
+
       <!-- Loader shown while iframe content is loading -->
-      <div id="iframe-loader" style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); z-index:1; align-items:center; justify-content:center;">
-        Loading Onboarding UI...
+      <div
+        id="iframe-loader"
+        style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); z-index:1; align-items:center; justify-content:center;"
+      >
+        <div role="status" aria-live="polite">Loading Onboarding UI...</div>
       </div>
+
       <iframe
         id="onboarding-iframe"
-        title="Onboarding UI" <!-- Crucial for accessibility -->
+        title="Complete your account onboarding - interactive form"
         src="YOUR_CONSTRUCTED_IFRAME_URL"
         width="100%"
-        height="700" <!-- Adjust as needed, or manage height dynamically -->
-        style="border:none; display:block;" <!-- Initially 'display:none' or visibility hidden until loaded -->
+        height="600"
+        style="border:none; display:block; width:100%;"
         allowfullscreen
-        referrerpolicy="no-referrer" <!-- Recommended for security -->
-        onload="document.getElementById('iframe-loader').style.display='none'; this.style.visibility='visible';"
-        onerror="handleIframeError()" <!-- Optional: Implement iframe error handling -->
+        referrerpolicy="no-referrer"
+        loading="lazy"
+        aria-describedby="iframe-instructions"
+        onload="handleIframeLoad()"
+        onerror="handleIframeError()"
       ></iframe>
-    </div>
+
+      <div id="iframe-instructions" class="sr-only">
+        Interactive onboarding form. Use Tab to navigate between fields. Press
+        Escape while focused in the form to return to main page navigation.
+      </div>
+    </section>
+
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Responsive iframe container using container queries */
+      @container (max-width: 768px) {
+        #onboarding-iframe {
+          min-height: 500px;
+        }
+      }
+
+      @container (min-width: 769px) {
+        #onboarding-iframe {
+          min-height: 700px;
+        }
+      }
+
+      /* Accessibility and performance optimizations */
+      @media (prefers-reduced-motion: reduce) {
+        #onboarding-iframe {
+          transition: none;
+        }
+      }
+    </style>
+
     <script>
+      function handleIframeLoad() {
+        document.getElementById('iframe-loader').style.display = 'none';
+        document.getElementById('onboarding-iframe').style.visibility =
+          'visible';
+      }
+
       function handleIframeError() {
-        // Your error handling logic, e.g., display a message to the user
-        document.getElementById('iframe-loader').innerHTML = 'Failed to load Onboarding UI. Please try again later.';
+        const loader = document.getElementById('iframe-loader');
+        loader.innerHTML =
+          '<div role="alert">Failed to load Onboarding UI. Please try again later.</div>';
+        loader.style.background = 'rgba(255, 245, 245, 0.9)';
       }
     </script>
     ```
-    - **React Implementation:** In a React application such as
-      `SampleDashboard.tsx`, manage the iframe's `src`, loading state
-      (`isFrameLoading`), and visibility conditionally using component state and
-      the `onLoad` prop of the `iframe` element.
-    - **Loading State:** Show a loader (such as `iframe-loader` above or the
-      `Loader` component in `SampleDashboard.tsx`) until the iframe's `onload`
-      event fires.
-    - **Responsiveness:** Ensure that the iframe and its container are
-      responsive.
-    - **Error Handling:** Implement an `onerror` handler or use a timeout
-      mechanism to detect if the iframe fails to load.
 
-### 3.3. Iframe Security Attributes
+### 3.3. Iframe Responsiveness Best Practices
+
+- **Container Queries:** Use CSS container queries (`@container`) for responsive
+  behavior that adapts to the iframe's container size rather than the viewport.
+- **Dynamic Height:** Implement postMessage communication between iframe and
+  parent to adjust height based on content.
+- **Viewport Considerations:** Limit iframe height to a percentage of viewport
+  height (e.g., 85%) to ensure usability on small screens.
+- **Flexible Width:** Always use `width="100%"` and responsive CSS to ensure the
+  iframe adapts to its container.
+
+### 3.4. Accessibility Note
+
+> **Accessibility (a11y) Notice:**
+>
+> Each platform is responsible for implementing accessibility (a11y) for the
+> iframe integration according to their own standards and requirements. We
+> recommend following the latest industry best practices and standards, such as
+> [WCAG 2.1 or newer](https://www.w3.org/WAI/standards-guidelines/wcag/), to
+> ensure the onboarding experience is accessible to all users. This includes,
+> but is not limited to, proper semantic markup, keyboard navigation, screen
+> reader support, and sufficient color contrast.
+
+### 3.5. Iframe Security Attributes
 
 - **`sandbox`**: Restricts the capabilities of the content within the iframe.
   This is a critical security feature. Start with the most restrictive set of
@@ -200,50 +291,15 @@ When the user initiates onboarding on your platform:
   practice for privacy and security, unless the provider specifically requires
   it.
 
-### 3.4. Optional: Communication with Iframe (using `window.postMessage`)
+### 3.6. Optional: Communication with Iframe (using `window.postMessage`)
+
+> **Note:** All postMessage communication options are subject to discussion
+> during the integration implementation and are optional. The structure and
+> types of messages should be agreed upon by both parties as part of the
+> integration process.
 
 If the Onboarding UI needs to communicate events (e.g., completion, errors,
 specific steps, readiness) back to your host platform:
-
-**optional: Receiving Messages from Iframe (in your platform's frontend):**
-
-```javascript
-window.addEventListener('message', function (event) {
-  // CRITICAL: Always verify the origin of the message
-  // Replace 'https://onboarding-provider-domain.com' with the actual origin of the Onboarding UI
-  const EXPECTED_ORIGIN = 'https://onboarding-provider-domain.com'; // Store this securely or derive it
-  if (event.origin !== EXPECTED_ORIGIN) {
-    console.warn(
-      `Message received from unexpected origin: ${event.origin}. Expected: ${EXPECTED_ORIGIN}`,
-    );
-    return;
-  }
-
-  const data = event.data; // Data can be a string or an object. Parse if necessary.
-
-  // Process data based on message type or content as defined by the Onboarding UI provider
-  if (data && data.type === 'IFRAME_LOADED') {
-    console.log('Onboarding Iframe Loaded and Ready (via postMessage)');
-    // You can use this signal to hide your primary loader if it's more reliable than iframe.onload
-  } else if (data && data.type === 'ONBOARDING_COMPLETED') {
-    console.log('Onboarding Completed:', data.payload);
-    // Handle success: update UI on your platform, notify your backend to update status
-  } else if (data && data.type === 'ONBOARDING_STEP_CHANGED') {
-    console.log('Onboarding Step Changed:', data.payload);
-    // Optionally react to step changes
-  } else if (data && data.type === 'ONBOARDING_ERROR') {
-    console.error('Onboarding Error reported from iframe:', data.payload);
-    // Handle error: show an error message to the user, allow retry, notify backend
-  }
-  // ... other event types as defined in the Onboarding UI documentation
-});
-```
-
-- **Origin Verification:** `event.origin` **MUST** be strictly checked against
-  the expected origin of the Onboarding UI. Do not use the wildcard `*`.
-- **Data Handling:** The structure of `event.data` is defined by the Onboarding
-  UI provider. It might be a JSON string that needs parsing or an object. Always
-  validate and sanitize the data.
 
 **Optional: Sending Messages to Iframe (less common if token is passed in
 `src`):** If you need to send information to the iframe after it has loaded:
