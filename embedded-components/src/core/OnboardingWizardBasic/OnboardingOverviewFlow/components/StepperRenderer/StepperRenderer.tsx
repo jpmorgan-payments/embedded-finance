@@ -8,6 +8,7 @@ import {
   Loader2Icon,
   TextSearchIcon,
 } from 'lucide-react';
+import { useFormState } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
 import {
@@ -347,6 +348,8 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     disabled: isFormSubmitting,
   });
 
+  const { isDirty } = useFormState({ control: form.control });
+
   const onSubmit = form.handleSubmit((values) => {
     // Perform step-defined transformations on the form values
     const modifiedValues = Component.modifyFormValuesBeforeSubmit
@@ -360,7 +363,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
 
         // Check if the form is dirty - if not, skip the update
-        if (!form.formState.isDirty) {
+        if (!isDirty) {
           handleNext();
           return;
         }
