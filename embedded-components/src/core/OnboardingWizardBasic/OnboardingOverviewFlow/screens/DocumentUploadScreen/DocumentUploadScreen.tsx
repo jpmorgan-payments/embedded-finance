@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import {
   AlertTriangle,
   CheckCircle2Icon,
@@ -15,21 +15,13 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import { AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  Alert,
-  Badge,
-  Card,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui';
+import { Alert, Badge, Card } from '@/components/ui';
 import { FormLoadingState } from '@/core/OnboardingWizardBasic/FormLoadingState/FormLoadingState';
 
 import { StepLayout } from '../../components/StepLayout/StepLayout';
 import { useFlowContext } from '../../context/FlowContext';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
-import { DocumentUploadForm } from './DocumentUploadForm';
+import { getPartyName } from '../../utils/dataUtils';
 
 /**
  * Interface for the PartyCardProps component
@@ -48,23 +40,12 @@ const PartyCard: FC<PartyCardProps> = ({
   docRequestStatus,
   onUploadClick,
 }) => {
-  const partyName =
-    party.organizationDetails?.organizationName ||
-    [
-      party.individualDetails?.firstName,
-      party.individualDetails?.middleName,
-      party.individualDetails?.lastName,
-      party.individualDetails?.nameSuffix,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
   return (
     <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
       <div className="eb-space-y-1.5">
         <div className="eb-flex eb-items-center eb-justify-between">
           <h3 className="eb-font-header eb-text-lg eb-font-medium">
-            {partyName}
+            {getPartyName(party)}
           </h3>
           {docRequestStatus === 'ACTIVE' && (
             <span>
@@ -128,12 +109,7 @@ const PartyCard: FC<PartyCardProps> = ({
  */
 export const DocumentUploadScreen: FC = () => {
   const { clientData, docUploadOnlyMode } = useOnboardingOverviewContext();
-  const { goBack } = useFlowContext();
-
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [selectedParty, setSelectedParty] = useState<PartyResponse | undefined>(
-    undefined
-  );
+  const { goBack, goTo } = useFlowContext();
 
   const {
     data: documentRequestListResponse,
@@ -146,12 +122,9 @@ export const DocumentUploadScreen: FC = () => {
   const documentRequests = documentRequestListResponse?.documentRequests;
 
   const handlePartySelect = (party: PartyResponse) => {
-    setSelectedParty(party);
-    setIsDialogOpen(true);
-  };
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
+    goTo('document-upload-form', {
+      editingPartyId: party.id,
+    });
   };
 
   /**
@@ -219,107 +192,84 @@ export const DocumentUploadScreen: FC = () => {
       );
     }
 
+    const clientPartyId = clientData.parties?.find((p) =>
+      p.roles?.includes('CLIENT')
+    )?.id;
+
     const clientDocumentRequests = documentRequests.filter(
       (docRequest) =>
-        !docRequest.partyId && docRequest.clientId === clientData.id
+        (!docRequest.partyId && docRequest.clientId === clientData.id) ||
+        (docRequest.partyId && docRequest.partyId === clientPartyId)
     );
 
     const otherDocumentRequests = documentRequests.filter(
       (docRequest) =>
-        docRequest.partyId && docRequest.clientId === clientData.id
+        docRequest.partyId &&
+        docRequest.clientId === clientData.id &&
+        docRequest.partyId !== clientPartyId
     );
 
     return (
-      <>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="eb-max-h-[90vh] eb-max-w-4xl eb-overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="eb-text-xl eb-font-semibold">
-                Upload supporting documents for{' '}
-                <b>
-                  {selectedParty?.individualDetails
-                    ? [
-                        selectedParty.individualDetails.firstName,
-                        selectedParty.individualDetails.middleName,
-                        selectedParty.individualDetails.lastName,
-                        selectedParty.individualDetails.nameSuffix,
-                      ]
-                        .filter(Boolean)
-                        .join(' ')
-                    : selectedParty?.organizationDetails?.organizationName}
-                </b>
-              </DialogTitle>
-            </DialogHeader>
-            <div className="eb-mt-4">
-              <DocumentUploadForm
-                partyFilter={selectedParty?.id}
-                onComplete={handleDialogClose}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div className="eb-space-y-6">
+        <div className="eb-space-y-3">
+          <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+            For the business
+          </h2>
+          {clientDocumentRequests.length > 0 ? (
+            clientDocumentRequests.map((docRequest) => {
+              const party = clientData.parties?.find((p) =>
+                p.roles?.includes('CLIENT')
+              );
 
-        <div className="eb-space-y-6">
-          <div className="eb-space-y-3">
-            <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-              For the business
-            </h2>
-            {clientDocumentRequests.length > 0 ? (
-              clientDocumentRequests.map((docRequest) => {
-                const party = clientData.parties?.find((p) =>
-                  p.roles?.includes('CLIENT')
-                );
+              if (!party) return null;
 
-                if (!party) return null;
-
-                return (
-                  <PartyCard
-                    key={party.id}
-                    party={party}
-                    docRequestStatus={docRequest.status}
-                    onUploadClick={handlePartySelect}
-                  />
-                );
-              })
-            ) : (
-              <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
-                <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
-                  No documents required
-                </p>
-              </Card>
-            )}
-          </div>
-          <div className="eb-space-y-2">
-            <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-              For owners and key roles
-            </h2>
-            {otherDocumentRequests.length > 0 ? (
-              otherDocumentRequests.map((docRequest) => {
-                const party = clientData.parties?.find(
-                  (p) => p.id === docRequest.partyId
-                );
-
-                if (!party) return null;
-
-                return (
-                  <PartyCard
-                    key={party.id}
-                    party={party}
-                    docRequestStatus={docRequest.status}
-                    onUploadClick={handlePartySelect}
-                  />
-                );
-              })
-            ) : (
-              <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
-                <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
-                  No documents required
-                </p>
-              </Card>
-            )}
-          </div>
+              return (
+                <PartyCard
+                  key={party.id}
+                  party={party}
+                  docRequestStatus={docRequest.status}
+                  onUploadClick={handlePartySelect}
+                />
+              );
+            })
+          ) : (
+            <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
+              <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
+                No documents required
+              </p>
+            </Card>
+          )}
         </div>
-      </>
+        <div className="eb-space-y-3">
+          <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+            For owners and key roles
+          </h2>
+          {otherDocumentRequests.length > 0 ? (
+            otherDocumentRequests.map((docRequest) => {
+              const party = clientData.parties?.find(
+                (p) => p.id === docRequest.partyId
+              );
+
+              if (!party) return null;
+
+              return (
+                <PartyCard
+                  key={party.id}
+                  party={party}
+                  docRequestStatus={docRequest.status}
+                  onUploadClick={handlePartySelect}
+                />
+              );
+            })
+          ) : (
+            <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
+              <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
+                No documents required
+              </p>
+            </Card>
+          )}
+        </div>
+      </div>
     );
   };
 

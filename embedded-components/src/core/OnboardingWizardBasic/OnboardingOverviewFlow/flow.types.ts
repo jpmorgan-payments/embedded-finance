@@ -41,7 +41,8 @@ export type StaticScreenId =
   | 'gateway'
   | 'checklist'
   | 'overview'
-  | 'owner-stepper';
+  | 'owner-stepper'
+  | 'document-upload-form';
 
 export type SectionScreenId =
   | 'personal-section'

@@ -28,6 +28,7 @@ import { LearnMorePopoverTrigger } from '../../components/LearnMorePopover/Learn
 import { StepLayout } from '../../components/StepLayout/StepLayout';
 import { useFlowContext } from '../../context/FlowContext';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
+import { getPartyName } from '../../utils/dataUtils';
 import { getFlowProgress, getStepperValidations } from '../../utils/flowUtils';
 import { ownerSteps } from './ownerSteps';
 
@@ -374,12 +375,7 @@ export const OwnersSectionScreen = () => {
             >
               <div className="eb-space-y-1">
                 <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                  {[
-                    owner.individualDetails?.firstName,
-                    owner.individualDetails?.middleName,
-                    owner.individualDetails?.lastName,
-                    owner.individualDetails?.nameSuffix,
-                  ].join(' ')}
+                  {getPartyName(owner)}
                 </CardTitle>
                 <p className="eb-text-sm eb-font-medium">
                   {owner.individualDetails?.jobTitle === 'Other'
