@@ -41,6 +41,7 @@ import { StepperReviewCards } from '../../../components/StepperReviewCards/Stepp
 import { useFlowContext } from '../../../context/FlowContext';
 import { SectionScreenId, StepperStepProps } from '../../../flow.types';
 import { useOnboardingOverviewContext } from '../../../OnboardingContext/OnboardingContext';
+import { getPartyName } from '../../../utils/dataUtils';
 import {
   getFlowProgress,
   getStepperValidations,
@@ -254,12 +255,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             >
                               <div className="eb-space-y-1">
                                 <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                                  {[
-                                    owner.individualDetails?.firstName,
-                                    owner.individualDetails?.middleName,
-                                    owner.individualDetails?.lastName,
-                                    owner.individualDetails?.nameSuffix,
-                                  ].join(' ')}
+                                  {getPartyName(owner)}
                                 </CardTitle>
                                 <p className="eb-text-sm eb-font-medium">
                                   {owner.individualDetails?.jobTitle === 'Other'

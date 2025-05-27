@@ -17,6 +17,7 @@ import { CompanyIdentificationForm } from './screens/BusinessSectionForms/Compan
 import { CustomerFacingDetailsForm } from './screens/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm';
 import { IndustryForm } from './screens/BusinessSectionForms/IndustryForm/IndustryForm';
 import { ChecklistScreen } from './screens/ChecklistScreen/ChecklistScreen';
+import { DocumentUploadForm } from './screens/DocumentUploadScreen/DocumentUploadForm';
 import { DocumentUploadScreen } from './screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from './screens/GatewayScreen/GatewayScreen';
 import { OperationalDetailsForm } from './screens/OperationalDetailsForm/OperationalDetailsForm';
@@ -65,6 +66,12 @@ const staticScreens: StaticScreenConfig[] = [
       },
       steps: ownerSteps,
     },
+  },
+  {
+    id: 'document-upload-form',
+    isSection: false,
+    type: 'component',
+    Component: DocumentUploadForm,
   },
 ];
 

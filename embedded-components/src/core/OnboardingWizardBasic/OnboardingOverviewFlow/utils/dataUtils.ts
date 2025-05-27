@@ -1,4 +1,4 @@
-import { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
 
 import { ClientContext } from '../../utils/types';
 import { AssociatedPartyFilters } from '../flow.types';
@@ -47,4 +47,22 @@ export const getPartyByAssociatedPartyFilters = (
       );
     }) ?? {}
   );
+};
+
+export const getPartyName = (partyData?: PartyResponse) => {
+  if (!partyData) return '';
+
+  const { individualDetails, organizationDetails } = partyData;
+
+  const { firstName, middleName, lastName, nameSuffix } =
+    individualDetails || {};
+
+  if (organizationDetails?.organizationName) {
+    return organizationDetails.organizationName;
+  }
+
+  return [firstName, middleName, lastName, nameSuffix]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
 };
