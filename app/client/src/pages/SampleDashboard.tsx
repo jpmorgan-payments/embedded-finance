@@ -21,6 +21,7 @@ import {
   Select,
   Anchor,
   Tooltip,
+  Alert,
 } from '@mantine/core';
 import {
   IconAlertTriangle,
@@ -61,18 +62,18 @@ interface SessionTransferResponse {
 
 // Sidebar menu data
 const sidebarMenu = [
-  { key: 'Overview', label: 'Home', icon: IconHome },
-  { key: 'Catalog', label: 'Catalog', icon: IconBook },
-  { key: 'Pricing', label: 'Pricing', icon: IconTag },
-  { key: 'Orders', label: 'Orders', icon: IconShoppingCart },
-  { key: 'Payments', label: 'Payments', icon: IconCreditCard },
-  { key: 'Transactions', label: 'Transactions', icon: IconArrowsLeftRight },
+  { key: 'Overview', label: 'Home' },
+  { key: 'Catalog', label: 'Catalog' },
+  { key: 'Pricing', label: 'Pricing' },
+  { key: 'Orders', label: 'Orders' },
+  { key: 'Payments', label: 'Payments' },
+  { key: 'Transactions', label: 'Transactions' },
 ];
 
 const analyticsMenu = [
-  { key: 'Performance', label: 'Performance', icon: IconChartBar },
-  { key: 'Analytics', label: 'Analytics', icon: IconChartPie },
-  { key: 'Growth', label: 'Growth', icon: IconTrendingUp },
+  { key: 'Performance', label: 'Performance' },
+  { key: 'Analytics', label: 'Analytics' },
+  { key: 'Growth', label: 'Growth' },
 ];
 
 // Session transfer API call
@@ -93,7 +94,7 @@ async function initiateSessionTransfer(userId: string) {
 
 interface SidebarButtonProps {
   label: string;
-  icon: React.ElementType;
+  icon?: React.ElementType;
   selected: boolean;
   onClick: () => void;
 }
@@ -135,7 +136,7 @@ const SidebarButton: FC<SidebarButtonProps> = ({
     })}
   >
     <Group spacing={8} align="center" noWrap>
-      <Icon size={18} color={selected ? PRIMARY_COLOR : undefined} />
+      {Icon && <Icon size={18} color={selected ? PRIMARY_COLOR : undefined} />}
       <span>{label}</span>
     </Group>
   </UnstyledButton>
@@ -145,53 +146,32 @@ const WalletSidebarButton: FC<{ selected: boolean; onClick: () => void }> = ({
   selected,
   onClick,
 }) => {
-  const [tooltipOpened, setTooltipOpened] = useState(false);
-
-  useEffect(() => {
-    const timer1 = setTimeout(() => setTooltipOpened(true), 3000); // Show for 3 seconds
-    const timer2 = setTimeout(() => setTooltipOpened(false), 6000); // Show for 3 seconds
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, []);
-
   return (
-    <Tooltip
-      label="Action required: Complete onboarding"
-      withArrow
-      transitionProps={{ transition: 'pop', duration: 200 }}
-      events={{ hover: true, focus: true, touch: false }}
-      color="orange"
-      position="right"
-      opened={tooltipOpened}
+    <UnstyledButton
+      onClick={onClick}
+      sx={(theme) => ({
+        display: 'block',
+        width: '100%',
+        padding: '10px 16px',
+        color: selected ? PRIMARY_COLOR : '#4A5568',
+        fontWeight: selected ? 600 : 400,
+        cursor: 'pointer',
+        textAlign: 'left',
+        background: selected ? PRIMARY_BACKGROUND_COLOR : 'transparent',
+        borderLeft: selected
+          ? `5px solid ${PRIMARY_COLOR}`
+          : '5px solid transparent',
+        '&:hover': {
+          background: PRIMARY_BACKGROUND_COLOR,
+          color: PRIMARY_COLOR,
+        },
+      })}
     >
-      <UnstyledButton
-        onClick={onClick}
-        sx={(theme) => ({
-          display: 'block',
-          width: '100%',
-          padding: '10px 16px',
-          color: selected ? PRIMARY_COLOR : '#4A5568',
-          fontWeight: selected ? 600 : 400,
-          cursor: 'pointer',
-          textAlign: 'left',
-          background: selected ? PRIMARY_BACKGROUND_COLOR : 'transparent',
-          borderLeft: selected
-            ? `5px solid ${PRIMARY_COLOR}`
-            : '5px solid transparent',
-          '&:hover': {
-            background: PRIMARY_BACKGROUND_COLOR,
-            color: PRIMARY_COLOR,
-          },
-        })}
-      >
-        <Group spacing={8} align="center" noWrap>
-          <IconAlertTriangle size={18} color={PRIMARY_COLOR} />
-          <span>SellSense Wallet</span>
-        </Group>
-      </UnstyledButton>
-    </Tooltip>
+      <Group spacing={8} align="center" noWrap>
+        <IconAlertTriangle size={18} color={PRIMARY_COLOR} />
+        <span>SellSense Wallet</span>
+      </Group>
+    </UnstyledButton>
   );
 };
 
@@ -220,7 +200,6 @@ const Sidebar: FC<{
         <SidebarButton
           key={item.key}
           label={item.label}
-          icon={item.icon}
           selected={selectedMenu === item.key}
           onClick={() => setSelectedMenu(item.key)}
         />
@@ -261,7 +240,6 @@ const Sidebar: FC<{
         <SidebarButton
           key={item.key}
           label={item.label}
-          icon={item.icon}
           selected={selectedMenu === item.key}
           onClick={() => setSelectedMenu(item.key)}
         />
@@ -334,7 +312,6 @@ export const SampleDashboard: FC = () => {
   const [isFrameLoading, setIsFrameLoading] = useState(true);
   const [iframeKey, setIframeKey] = useState(0);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
-
   const [selectedScenario, setSelectedScenario] = useState<string>('scenario9'); // Default scenario
 
   // Simulate userId for session transfer
@@ -391,6 +368,59 @@ export const SampleDashboard: FC = () => {
         />
         {/* Main Content */}
         <Box sx={{ flex: 1, margin: '32px 32px 32px 32px' }}>
+          {selectedMenu !== 'Wallet' && (
+            <>
+              <Title order={2} mb="lg" weight={900} sx={{ letterSpacing: 1 }}>
+                Welcome, John!
+              </Title>
+              <Alert
+                color={PRIMARY_COLOR}
+                icon={<IconAlertTriangle size={20} />}
+                radius="lg"
+                title="Action Required for SellSense Wallet"
+                sx={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  marginBottom: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 24,
+                  boxShadow: '0 4px 24px 0 rgba(44, 185, 172, 0.10)',
+                  background: '#fff8f1',
+                  border: '1.5px solid #ffe0b2',
+                  color: '#7c4700',
+                  padding: '24px 32px',
+                }}
+              >
+                <Box
+                  sx={{
+                    flex: 1,
+                  }}
+                >
+                  You need to provide additional information to access all
+                  features.
+                </Box>
+                <Button
+                  color="orange"
+                  variant="filled"
+                  radius="md"
+                  size="md"
+                  onClick={() => {
+                    setSelectedMenu('Wallet');
+                    startSessionTransfer();
+                  }}
+                  sx={{
+                    minWidth: 180,
+                    fontWeight: 600,
+                    boxShadow: '0 2px 8px 0 rgba(245, 87, 39, 0.10)',
+                    marginTop: 16,
+                  }}
+                >
+                  Complete Onboarding
+                </Button>
+              </Alert>
+            </>
+          )}
           {selectedMenu === 'Wallet' ? (
             <Card shadow="sm" p="lg" mb="md">
               <Group align="center" spacing={12} mb="xl">
@@ -401,70 +431,17 @@ export const SampleDashboard: FC = () => {
                   width={230}
                 />
               </Group>
-              <Group position="apart" mb="md" align="flex-end">
-                <Box>
-                  <Title order={4} mb={8}>
-                    Onboarding Integration
-                  </Title>
-                  <Text size="sm" color="gray" weight={500} mb={4}>
-                    Demo Scenarios (emulate various client statuses):
-                  </Text>
-                  <Select
-                    value={selectedScenario}
-                    onChange={(value) => value && setSelectedScenario(value)}
-                    data={Object.entries(
-                      onboardingScenarios.reduce(
-                        (acc, s) => {
-                          const group = s.component || 'Other';
-                          if (!acc[group]) acc[group] = [];
-                          acc[group].push({ value: s.id, label: s.name });
-                          return acc;
-                        },
-                        {} as Record<
-                          string,
-                          { label: string; value: string }[]
-                        >,
-                      ),
-                    ).flatMap(([group, items]) => [
-                      { value: group, label: group, disabled: true },
-                      ...items,
-                    ])}
-                    placeholder="Select a scenario"
-                    size="md"
-                    radius="md"
-                    sx={{
-                      marginTop: 4,
-                      minWidth: 580,
-                      maxWidth: 600,
-                      width: '100%',
-                      background: '#f8fafc',
-                      borderRadius: 8,
-                      boxShadow: '0 1px 4px 0 #f1f3f5',
-                    }}
-                  />
-                </Box>
-                {onboardingToken && (
-                  <Button
-                    variant="subtle"
-                    size="sm"
-                    leftIcon={<IconRefresh size={16} />}
-                    onClick={handleRefresh}
-                    loading={isLoading}
-                  >
-                    Refresh Session
-                  </Button>
-                )}
-              </Group>
+
               <Group align="center" spacing={8} mb={8}>
                 <Button
                   variant="light"
-                  size="md"
+                  size="sm"
                   color="teal"
                   leftIcon={
                     instructionsOpen ? (
-                      <IconChevronUp size={20} />
+                      <IconChevronUp size={14} />
                     ) : (
-                      <IconChevronDown size={20} />
+                      <IconChevronDown size={14} />
                     )
                   }
                   onClick={() => setInstructionsOpen((open) => !open)}
@@ -487,8 +464,8 @@ export const SampleDashboard: FC = () => {
                   }}
                 >
                   {instructionsOpen
-                    ? 'Hide Integration Instructions'
-                    : 'Show Integration Instructions'}
+                    ? 'Hide Technical Integration Instructions'
+                    : 'Show Technical Integration Instructions'}
                 </Button>
               </Group>
               <Collapse in={instructionsOpen}>
@@ -496,6 +473,62 @@ export const SampleDashboard: FC = () => {
                   className={styles.ebMarkdownContainer}
                   sx={{ padding: 'xs', maxWidth: '80vw' }}
                 >
+                  <Group position="apart" mb="md" align="flex-end">
+                    <Box>
+                      <Title order={4} mb={8}>
+                        Onboarding Integration
+                      </Title>
+                      <Text size="sm" color="gray" weight={500} mb={4}>
+                        Demo Scenarios (emulate various client statuses):
+                      </Text>
+                      <Select
+                        value={selectedScenario}
+                        onChange={(value) =>
+                          value && setSelectedScenario(value)
+                        }
+                        data={Object.entries(
+                          onboardingScenarios.reduce(
+                            (acc, s) => {
+                              const group = s.component || 'Other';
+                              if (!acc[group]) acc[group] = [];
+                              acc[group].push({ value: s.id, label: s.name });
+                              return acc;
+                            },
+                            {} as Record<
+                              string,
+                              { label: string; value: string }[]
+                            >,
+                          ),
+                        ).flatMap(([group, items]) => [
+                          { value: group, label: group, disabled: true },
+                          ...items,
+                        ])}
+                        placeholder="Select a scenario"
+                        size="md"
+                        radius="md"
+                        sx={{
+                          marginTop: 4,
+                          minWidth: 580,
+                          maxWidth: 600,
+                          width: '100%',
+                          background: '#f8fafc',
+                          borderRadius: 8,
+                          boxShadow: '0 1px 4px 0 #f1f3f5',
+                        }}
+                      />
+                    </Box>
+                    {onboardingToken && (
+                      <Button
+                        variant="subtle"
+                        size="sm"
+                        leftIcon={<IconRefresh size={16} />}
+                        onClick={handleRefresh}
+                        loading={isLoading}
+                      >
+                        Refresh Session
+                      </Button>
+                    )}
+                  </Group>
                   <Markdown>{onboardingIntegrationGuideText}</Markdown>
                 </Box>
               </Collapse>
@@ -625,9 +658,6 @@ export const SampleDashboard: FC = () => {
             </Card>
           ) : (
             <>
-              <Title order={2} mb="lg" weight={900} sx={{ letterSpacing: 1 }}>
-                Welcome, John!
-              </Title>
               <SimpleGrid
                 cols={3}
                 spacing="md"

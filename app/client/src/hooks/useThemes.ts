@@ -50,9 +50,13 @@ export const useThemes = () => {
         name: 'Create Commerce',
         // TODO: Add Create Commerce theme following embedded-components\src\core\EBComponentsProvider\convert-theme-to-css-variables.ts
       },
+
       {
         id: 'CUSTOM4',
         name: 'SellSense',
+        primaryColor: '#f55727',
+        buttonTextTransform: 'uppercase',
+        secondaryActiveColor: '#2CB9AC',
         // TODO: Add SellSense theme following embedded-components\src\core\EBComponentsProvider\convert-theme-to-css-variables.ts
       },
       {
