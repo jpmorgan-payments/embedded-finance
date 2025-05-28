@@ -186,7 +186,7 @@ export const DocumentUploadForm = () => {
   const { clientData } = useOnboardingOverviewContext();
   const queryClient = useQueryClient();
 
-  const { goBack, editingPartyIds } = useFlowContext();
+  const { goTo, editingPartyIds } = useFlowContext();
 
   const partyId = editingPartyIds['document-upload-form'];
 
@@ -580,7 +580,7 @@ export const DocumentUploadForm = () => {
       // Invalidate both client and document request queries
       queryClient.invalidateQueries();
 
-      goBack();
+      goTo('upload-documents-section');
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error uploading documents:', error);
@@ -1074,7 +1074,7 @@ export const DocumentUploadForm = () => {
             </Button>
             <Button
               variant="ghost"
-              onClick={() => goBack()}
+              onClick={() => goTo('upload-documents-section')}
               className="eb-text-primary hover:eb-bg-primary/5 hover:eb-text-primary"
             >
               Cancel

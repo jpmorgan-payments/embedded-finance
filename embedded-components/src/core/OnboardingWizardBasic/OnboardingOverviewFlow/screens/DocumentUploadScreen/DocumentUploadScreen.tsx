@@ -109,7 +109,7 @@ const PartyCard: FC<PartyCardProps> = ({
  */
 export const DocumentUploadScreen: FC = () => {
   const { clientData, docUploadOnlyMode } = useOnboardingOverviewContext();
-  const { goBack, goTo } = useFlowContext();
+  const { goTo } = useFlowContext();
 
   const {
     data: documentRequestListResponse,
@@ -288,7 +288,7 @@ export const DocumentUploadScreen: FC = () => {
               variant="default"
               size="lg"
               className="eb-w-full eb-text-lg"
-              onClick={() => goBack()}
+              onClick={() => goTo('overview')}
             >
               Return to overview
             </Button>
