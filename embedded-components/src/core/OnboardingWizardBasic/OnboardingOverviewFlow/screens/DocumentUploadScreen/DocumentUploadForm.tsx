@@ -1059,24 +1059,26 @@ export const DocumentUploadForm = () => {
             );
           })}
 
-          <div className="eb-mt-2 eb-flex eb-w-full eb-items-center eb-justify-end">
-            {filteredDocumentRequests?.length !== 0 && (
-              <>
-                <Button
-                  type="submit"
-                  disabled={
-                    form.formState.isSubmitting || !allRequirementsSatisfied
-                  }
-                  className="eb-ml-4"
-                >
-                  {form.formState.isSubmitting
-                    ? 'Uploading...'
-                    : !allRequirementsSatisfied
-                      ? 'Complete All Required Documents'
-                      : 'Upload Documents'}
-                </Button>
-              </>
-            )}
+          <div className="eb-mt-6 eb-flex eb-flex-col eb-gap-3">
+            <Button
+              type="submit"
+              disabled={
+                form.formState.isSubmitting || !allRequirementsSatisfied
+              }
+            >
+              {form.formState.isSubmitting
+                ? 'Uploading...'
+                : !allRequirementsSatisfied
+                  ? 'Complete All Required Documents'
+                  : 'Upload Documents'}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => goBack()}
+              className="eb-text-primary hover:eb-bg-primary/5 hover:eb-text-primary"
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </Form>
