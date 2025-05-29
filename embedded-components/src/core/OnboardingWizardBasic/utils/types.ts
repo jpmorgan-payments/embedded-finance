@@ -11,6 +11,7 @@ import { BeneficialOwnerStepFormSchema } from '../BeneficialOwnerStepForm/Benefi
 import { ControllerStepFormSchema } from '../ControllerStepForm/ControllerStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
 import { CustomerFacingDetailsFormSchema } from '../OnboardingOverviewFlow/screens/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm.schema';
+import { GatewayScreenFormSchema } from '../OnboardingOverviewFlow/screens/GatewayScreen/GatewayScreen.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
 // TODO: add more form schemas here
@@ -20,7 +21,8 @@ export type OnboardingFormValuesSubmit = z.output<
   z.output<typeof OrganizationStepFormSchema> &
   z.output<typeof ControllerStepFormSchema> &
   z.output<typeof BeneficialOwnerStepFormSchema> &
-  z.output<typeof CustomerFacingDetailsFormSchema>;
+  z.output<typeof CustomerFacingDetailsFormSchema> &
+  z.output<typeof GatewayScreenFormSchema>;
 
 export type OnboardingFormValuesInitial = z.input<
   typeof InitialStepFormSchema
@@ -28,7 +30,8 @@ export type OnboardingFormValuesInitial = z.input<
   z.input<typeof OrganizationStepFormSchema> &
   z.input<typeof ControllerStepFormSchema> &
   z.input<typeof BeneficialOwnerStepFormSchema> &
-  z.input<typeof CustomerFacingDetailsFormSchema>;
+  z.input<typeof CustomerFacingDetailsFormSchema> &
+  z.input<typeof GatewayScreenFormSchema>;
 
 export type OnboardingTopLevelArrayFieldNames = Extract<
   FieldArrayPath<OnboardingFormValuesSubmit>,
@@ -108,7 +111,7 @@ export type OptionalDefaults<
   : Rule;
 
 type FieldConfigurationGeneric<
-  K extends string,
+  K extends keyof OnboardingFormValuesInitial,
   T,
   IsSubfield extends boolean = false,
 > =
@@ -117,7 +120,7 @@ type FieldConfigurationGeneric<
       excludeFromMapping?: false;
       path: string;
       fromResponseFn?: (val: any) => T;
-      toRequestFn?: (val: T) => any;
+      toRequestFn?: (val: OnboardingFormValuesSubmit[K]) => any;
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
       key?: K; // phantom property
@@ -128,7 +131,7 @@ type FieldConfigurationGeneric<
     } & BaseFieldConfiguration<T, IsSubfield>);
 
 interface ArrayFieldConfigurationGeneric<
-  K extends string,
+  K extends keyof OnboardingFormValuesInitial,
   T extends readonly unknown[],
   IsSubfield extends boolean = false,
 > extends Omit<
@@ -143,7 +146,7 @@ interface ArrayFieldConfigurationGeneric<
   subFields: {
     [P in Extract<
       keyof T[number],
-      string
+      keyof OnboardingFormValuesInitial
     >]: T[number][P] extends readonly unknown[]
       ? Pick<
           ArrayFieldConfigurationGeneric<P, T[number][P], true>,
@@ -158,7 +161,10 @@ interface ArrayFieldConfigurationGeneric<
 
 export function isArrayFieldConfiguration<T extends readonly unknown[]>(
   config: AnyFieldConfiguration
-): config is ArrayFieldConfigurationGeneric<string, T> {
+): config is ArrayFieldConfigurationGeneric<
+  keyof OnboardingFormValuesInitial,
+  T
+> {
   return 'subFields' in config;
 }
 
@@ -166,7 +172,10 @@ export type AnyFieldConfiguration =
   | FieldConfigurationGeneric<any, any>
   | ArrayFieldConfigurationGeneric<any, any>;
 
-type CombinedFieldConfigurationFor<T, K extends string> = [T] extends [boolean]
+type CombinedFieldConfigurationFor<
+  T,
+  K extends keyof OnboardingFormValuesInitial,
+> = [T] extends [boolean]
   ? FieldConfigurationGeneric<K, boolean>
   : T extends readonly unknown[]
     ? ArrayFieldConfigurationGeneric<K, T>

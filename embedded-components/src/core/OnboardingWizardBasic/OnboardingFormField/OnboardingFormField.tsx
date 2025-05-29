@@ -91,6 +91,7 @@ interface BaseProps<
   maskFormat?: string;
   maskChar?: string;
   valueOverride?: string;
+  onChange?: (...value: any[]) => void;
 }
 
 interface SelectOrRadioGroupProps<
@@ -137,6 +138,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   maskChar,
   shouldUnregister,
   valueOverride,
+  onChange: onChangeProp,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
 
@@ -236,7 +238,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
       disabled={fieldInteraction === 'disabled'}
       shouldUnregister={shouldUnregister}
       render={({ field }) => {
-        const { onBlur, onChange, ...fieldWithoutBlur } = field;
+        const { onBlur, ...fieldWithoutBlur } = field;
         const [open, setOpen] = useState(false);
 
         return (
@@ -276,6 +278,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           international={false}
                           defaultCountry="US"
                           data-dtrum-tracking={field.name}
+                          onChange={(value) => {
+                            onChangeProp?.(value);
+                            field.onChange(value);
+                          }}
                         />
                       </FormControl>
                     );
@@ -285,6 +291,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         field={field}
                         data-dtrum-tracking={field.name}
                         placeholder={fieldPlaceholder}
+                        onChange={(value) => {
+                          onChangeProp?.(value);
+                          field.onChange(value);
+                          field.onBlur();
+                        }}
                       />
                     );
                   case 'combobox':
@@ -322,7 +333,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                     key={`combobox-option-${option.value}`}
                                     value={option.value}
                                     onSelect={(currentValue) => {
-                                      onChange(
+                                      onChangeProp?.(currentValue);
+                                      field.onChange(
                                         currentValue === field.value
                                           ? ''
                                           : currentValue
@@ -353,7 +365,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                     return (
                       <Select
                         onValueChange={(value) => {
-                          onChange(value);
+                          onChangeProp?.(value);
+                          field.onChange(value);
                           onBlur();
                         }}
                         value={field.value}
@@ -383,8 +396,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           {...field}
                           value={field.value}
                           onValueChange={(value) => {
+                            onChangeProp?.(value);
                             field.onChange(value);
-                            field.onBlur();
+                            onBlur();
                           }}
                           className="eb-flex eb-flex-col eb-space-y-1"
                           data-dtrum-tracking={field.name}
@@ -412,8 +426,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           {...field}
                           value={field.value}
                           onValueChange={(value) => {
+                            onChangeProp?.(value);
                             field.onChange(value);
-                            field.onBlur();
+                            onBlur();
                           }}
                           className="eb-grid eb-gap-3"
                           data-dtrum-tracking={field.name}
@@ -450,7 +465,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           <Checkbox
                             {...field}
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              onChangeProp?.(checked);
+                              field.onChange(checked);
+                            }}
                             data-dtrum-tracking={field.name}
                           />
                         </FormControl>
@@ -475,7 +493,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              onChangeProp?.(checked);
+                              field.onChange(checked);
+                            }}
                           />
                         </FormControl>
                         <div className="eb-flex eb-items-center eb-space-x-2">
@@ -496,7 +517,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           {...field}
                           value={valueOverride ?? field.value}
                           placeholder={fieldPlaceholder}
-                          onChange={(e) => field.onChange(e)}
+                          onChange={(e) => {
+                            onChangeProp?.(e.target.value);
+                            field.onChange(e);
+                          }}
                         />
                       </FormControl>
                     );
@@ -513,6 +537,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             defaultValue={field.value}
                             value={valueOverride ?? field.value}
                             placeholder={fieldPlaceholder}
+                            onChange={(e) => {
+                              onChangeProp?.(e.target.value);
+                              field.onChange(e);
+                            }}
                           />
                         </FormControl>
                         {inputButton}
@@ -527,6 +555,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             value={valueOverride ?? field.value}
                             placeholder={fieldPlaceholder}
                             data-dtrum-tracking={field.name}
+                            onChange={(e) => {
+                              onChangeProp?.(e.target.value);
+                              field.onChange(e);
+                            }}
                           />
                         </FormControl>
                         {inputButton}
@@ -545,6 +577,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           }
                           onChange={async (date, errorMsg) => {
                             if (errorMsg && form) {
+                              onChangeProp?.('');
                               field.onChange('');
                               form.setError(field.name, {
                                 type: 'manual',
@@ -553,9 +586,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               await form.trigger(field.name);
                             } else {
                               form?.clearErrors(field.name);
+                              onChangeProp?.(date?.toISOString().split('T')[0]);
                               field.onChange(date?.toISOString().split('T')[0]);
                             }
-                            field.onBlur();
+                            onBlur();
                           }}
                           data-dtrum-tracking={field.name}
                         />
