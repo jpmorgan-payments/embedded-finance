@@ -14,7 +14,6 @@ import { z } from 'zod';
 
 import {
   smbdoGetDocumentRequest,
-  useGetParty,
   useSmbdoSubmitDocumentRequest,
   useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
@@ -207,7 +206,7 @@ export const DocumentUploadForm = () => {
     Record<string, Record<number, DocumentTypeSmbdo[]>>
   >({});
 
-  const { data: currentPartyData } = useGetParty(partyId || '');
+  const currentPartyData = clientData?.parties?.find((p) => p.id === partyId);
 
   const partiesDocumentRequests = Array.from(
     new Set(
