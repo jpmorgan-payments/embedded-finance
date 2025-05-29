@@ -20,6 +20,7 @@
   },
   "fields": {
     "organizationType": {
+      "label": "Select business type",
       "description": ""
     },
     "controllerFirstName": {
@@ -172,6 +173,23 @@
       "label": "Business description",
       "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don’t use special characters (e.g. * @ %, etc).",
       "tooltip": ""
+    },
+    "organizationTypeHierarchy.generalOrganizationType": {
+      "label": "Select your general business type",
+      "description": "",
+      "tooltip": ""
+    },
+    "organizationTypeHierarchy.specificOrganizationType": {
+      "label": {
+        "REGISTERED_BUSINESS": "Select the specific legal structure",
+        "OTHER": "Select your specific business structure"
+      },
+      "description": {
+        "REGISTERED_BUSINESS": "E.g. $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
+        "OTHER": "E.g. $t(organizationTypes.NON_PROFIT_CORPORATION)"
+      },
+      "placeholder": "Select or search",
+      "tooltip": ""
     }
   },
   "idValueLabels": {
@@ -212,5 +230,15 @@
     "GOVERNMENT_ENTITY": "Government Entity",
     "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
     "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+  },
+  "generalOrganizationTypes": {
+    "SOLE_PROPRIETORSHIP": "Sole proprietorship",
+    "REGISTERED_BUSINESS": "Registered business",
+    "OTHER": "Other organization"
+  },
+  "generalOrganizationTypeDescriptions": {
+    "SOLE_PROPRIETORSHIP": "I'm the sole owner of my business",
+    "REGISTERED_BUSINESS": "I manage a registered business, like a $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
+    "OTHER": "I work in a different organizational, like a non-profit or state-owned entity"
   }
 }

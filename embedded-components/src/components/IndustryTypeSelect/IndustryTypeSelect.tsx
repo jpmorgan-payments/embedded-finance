@@ -30,15 +30,17 @@ export interface NAICSCode {
 interface IndustryTypeSelectProps {
   field: ControllerRenderProps<any, string>;
   placeholder?: string;
+  onChange: (...value: any[]) => void;
 }
 
 export const IndustryTypeSelect = ({
   field,
   placeholder,
+  onChange,
 }: IndustryTypeSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { onBlur, onChange, ...fieldWithoutBlur } = field;
+  const { onBlur, ...fieldWithoutBlur } = field;
 
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -209,7 +211,6 @@ export const IndustryTypeSelect = ({
                         value={item.code}
                         onSelect={(value) => {
                           onChange(value);
-                          onBlur();
                           setOpen(false);
                         }}
                         className="eb-cursor-pointer eb-text-xs sm:eb-text-sm"
