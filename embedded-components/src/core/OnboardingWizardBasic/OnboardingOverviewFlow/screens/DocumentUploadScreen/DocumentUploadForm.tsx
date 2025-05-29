@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui';
+import { ServerErrorAlert } from '@/core/OnboardingWizardBasic/ServerErrorAlert/ServerErrorAlert';
 
 import { FormLoadingState } from '../../../FormLoadingState/FormLoadingState';
 import { DOCUMENT_TYPE_MAPPING } from '../../../utils/documentTypeMapping';
@@ -860,13 +861,13 @@ export const DocumentUploadForm = () => {
                               });
 
                             // Get only document types that haven't been satisfied yet for display
-                            const unsatisfiedDocTypes =
-                              requirement.documentTypes.filter(
-                                (docType) =>
-                                  !isDocTypeSatisfied(
-                                    docType as DocumentTypeSmbdo
-                                  )
-                              );
+                            // const unsatisfiedDocTypes =
+                            //   requirement.documentTypes.filter(
+                            //     (docType) =>
+                            //       !isDocTypeSatisfied(
+                            //         docType as DocumentTypeSmbdo
+                            //       )
+                            //   );
 
                             return (
                               <div
@@ -877,20 +878,21 @@ export const DocumentUploadForm = () => {
                                   <div className="eb-flex eb-items-center">
                                     <ArrowRight className="eb-mr-2 eb-h-4 eb-w-4 eb-text-amber-600" />
                                     <span className="eb-font-medium">
-                                      Step {requirementIndex + 1}.
+                                      Step {requirementIndex + 1}
                                     </span>
                                     {numFieldsToShow > 0 ? (
                                       <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
                                         {requirement.minRequired === 0 ? (
                                           <>
-                                            Optional: Upload any of the
-                                            following document types
+                                            {/* Optional: Upload any of the
+                                            following document types */}
                                             <span className="eb-ml-2 eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-500">
                                               Optional
                                             </span>
                                           </>
                                         ) : (
-                                          `Upload ${numFieldsToShow} of the following document types`
+                                          // `Upload ${numFieldsToShow} of the following document types`
+                                          ''
                                         )}
                                       </span>
                                     ) : (
@@ -900,7 +902,7 @@ export const DocumentUploadForm = () => {
                                     )}
                                   </div>
 
-                                  <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
+                                  {/* <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
                                     {unsatisfiedDocTypes.map((docType) => (
                                       <span
                                         key={docType}
@@ -911,7 +913,7 @@ export const DocumentUploadForm = () => {
                                         ]?.label || docType}
                                       </span>
                                     ))}
-                                  </div>
+                                  </div> */}
                                 </h4>
 
                                 {/* Only show the form if there are still document types to choose from and documents needed */}
@@ -932,12 +934,12 @@ export const DocumentUploadForm = () => {
                                           key={`upload-section-${uploadIndex}`}
                                           className="eb-mb-6"
                                         >
-                                          <div className="eb-mb-2 eb-flex eb-items-center">
+                                          {/* <div className="eb-mb-2 eb-flex eb-items-center">
                                             <span className="eb-rounded-full eb-bg-[#f0fffd] eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-[#2CB9AC]">
                                               Document {uploadIndex + 1} of{' '}
                                               {numFieldsToShowForReq}
                                             </span>
-                                          </div>
+                                          </div> */}
 
                                           {/* Document Type Selection */}
                                           <FormField
@@ -1077,6 +1079,20 @@ export const DocumentUploadForm = () => {
           </div>
 
           <div className="eb-mt-6 eb-flex eb-flex-col eb-gap-3">
+            <ServerErrorAlert
+              error={
+                uploadDocumentMutation.error || submitDocumentMutation.error
+              }
+              customErrorMessage={
+                uploadDocumentMutation.error
+                  ? 'There was an unexpected error uploading documents. Please try again.'
+                  : submitDocumentMutation.error
+                    ? 'There was an unexpected error submitting document requests. Please try again.'
+                    : undefined
+              }
+              className="eb-border-[#E52135] eb-bg-[#FFECEA]"
+            />
+
             <Button
               type="submit"
               disabled={
