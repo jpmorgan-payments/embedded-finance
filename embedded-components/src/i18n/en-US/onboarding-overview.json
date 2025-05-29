@@ -238,7 +238,7 @@
   },
   "generalOrganizationTypeDescriptions": {
     "SOLE_PROPRIETORSHIP": "I'm the sole owner of my business",
-    "REGISTERED_BUSINESS": "I manage a registered business, like a $t(organizationTypes.LIMITED_LIABILITY_COMPANY) or $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
+    "REGISTERED_BUSINESS": "I manage a registered business, like a $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
     "OTHER": "I work in a different organizational, like a non-profit or state-owned entity"
   }
 }
