@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { InfoIcon, Loader2Icon } from 'lucide-react';
+import { InfoIcon, Loader2Icon, XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -69,7 +69,7 @@ export const GatewayScreen = () => {
     onPostPartyResponse,
     availableOrganizationTypes,
   } = useOnboardingOverviewContext();
-  const { goTo } = useFlowContext();
+  const { goTo, sessionData, updateSessionData } = useFlowContext();
 
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
@@ -310,16 +310,30 @@ export const GatewayScreen = () => {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-flex eb-min-h-full eb-flex-col">
-        <Alert variant="informative" className="eb-mb-4 eb-text-foreground">
-          <InfoIcon className="eb-h-4 eb-w-4" />
-          <AlertTitle>Is this you?</AlertTitle>
-          <AlertDescription>
-            To keep your account details safe, we expect that the person
-            completing this application holds primary control over financial and
-            business operations for the business. If this is not you, please
-            don&apos;t proceed below.
-          </AlertDescription>
-        </Alert>
+        {!sessionData.hideGatewayInfoAlert && (
+          <Alert variant="informative" className="eb-mb-4 eb-text-foreground">
+            <InfoIcon className="eb-h-4 eb-w-4" />
+            <AlertTitle>Is this you?</AlertTitle>
+            <AlertDescription>
+              To keep your account details safe, we expect that the person
+              completing this application holds primary control over financial
+              and business operations for the business. If this is not you,
+              please don&apos;t proceed below.
+            </AlertDescription>
+            <button
+              type="button"
+              className="eb-hover:eb-opacity-100 eb-focus:eb-outline-none eb-focus:eb-ring-2 eb-focus:eb-ring-ring eb-focus:eb-ring-offset-2 eb-disabled:eb-pointer-events-none eb-absolute eb-right-4 eb-top-3 eb-rounded-sm eb-opacity-70 eb-ring-offset-background eb-transition-opacity data-[state=open]:eb-bg-accent data-[state=open]:eb-text-muted-foreground [&&]:eb-pl-0"
+              onClick={() => {
+                updateSessionData({
+                  hideGatewayInfoAlert: true,
+                });
+              }}
+            >
+              <XIcon className="eb-h-4 eb-w-4 eb-pl-0 eb-text-foreground" />
+              <span className="eb-sr-only">Close</span>
+            </button>
+          </Alert>
+        )}
         <StepLayout
           subTitle={t('welcomeText')}
           title={t('screens.gateway.title')}
