@@ -170,20 +170,3 @@ STheme.args = {
     },
   },
 };
-
-export const SThemeWithMock = Default.bind({});
-SThemeWithMock.storyName = 'Mocked New Client';
-SThemeWithMock.args = {
-  ...STheme.args,
-  apiBaseUrl: '',
-  headers: {
-    api_gateway_client_id: 'test',
-  },
-};
-
-export const MockExistingClient = Default.bind({});
-MockExistingClient.storyName = 'Mocked Existing LLC Client';
-MockExistingClient.args = {
-  ...SThemeWithMock.args,
-  initialClientId: '0030000132',
-};

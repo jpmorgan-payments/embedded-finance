@@ -94,7 +94,9 @@ const sectionScreens: SectionScreenConfig[] = [
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS'
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
@@ -166,7 +168,9 @@ const sectionScreens: SectionScreenConfig[] = [
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS'
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
@@ -248,10 +252,15 @@ const sectionScreens: SectionScreenConfig[] = [
           );
           return allStepsValid;
         });
+
+        if (sessionData.mockedKycCompleted) {
+          return 'hidden';
+        }
         if (
-          sessionData.mockedKycCompleted ||
+          clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
-          clientData?.status === 'INFORMATION_REQUESTED'
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
@@ -282,10 +291,14 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (sessionData, clientData) => {
         const sectionCompleted =
           clientData?.outstanding?.questionIds?.length === 0;
+        if (sessionData.mockedKycCompleted) {
+          return 'hidden';
+        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
-          sessionData.mockedKycCompleted
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
@@ -305,10 +318,15 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Review and attest',
       icon: FileIcon,
       statusResolver: (sessionData, clientData) => {
-        const completed =
+        if (sessionData.mockedKycCompleted) {
+          return 'hidden';
+        }
+        if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS';
-        if (completed || sessionData.mockedKycCompleted) {
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
+        ) {
           return 'hidden';
         }
         return 'not_started';
@@ -350,8 +368,17 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'not_started';
         }
-        if (clientData?.status === 'NEW') {
+        if (
+          clientData?.status === 'NEW' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS'
+        ) {
           return 'on_hold';
+        }
+        if (
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
+        ) {
+          return 'hidden';
         }
         return 'completed';
       },

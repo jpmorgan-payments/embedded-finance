@@ -1,11 +1,14 @@
 import {
+  AlertCircleIcon,
   AlertTriangleIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronRightIcon,
   CircleDashedIcon,
+  Clock9Icon,
   DownloadIcon,
   InfoIcon,
+  Loader2Icon,
   LockIcon,
   PencilIcon,
   XIcon,
@@ -13,7 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Button,
   Card,
@@ -58,9 +61,9 @@ export const OverviewScreen = () => {
         </div>
       }
       subTitle={
-        !sessionData.hideOverviewInfoAlert ? (
+        !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
           <Alert variant="informative" density="sm" className="eb-pb-2">
-            <InfoIcon className="eb-h-4 eb-w-4" />
+            <InfoIcon className="eb-size-4" />
             <AlertDescription>
               {t('screens.overview.infoAlert')}
             </AlertDescription>
@@ -73,7 +76,7 @@ export const OverviewScreen = () => {
                 });
               }}
             >
-              <XIcon className="eb-h-4 eb-w-4 eb-pl-0 eb-text-foreground" />
+              <XIcon className="eb-size-4 eb-pl-0 eb-text-foreground" />
               <span className="eb-sr-only">Close</span>
             </button>
           </Alert>
@@ -91,6 +94,59 @@ export const OverviewScreen = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
+            {clientData?.status === 'REVIEW_IN_PROGRESS' && (
+              <Alert
+                variant="informative"
+                density="sm"
+                className="eb-mb-6 eb-pt-2.5"
+              >
+                <Clock9Icon className="eb-size-4" />
+                <AlertTitle className="eb-text-sm eb-text-foreground">
+                  Great work!
+                </AlertTitle>
+                <AlertDescription>
+                  Please hang tight while we verify your details. This should
+                  only take a moment.
+                  <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {clientData?.status === 'INFORMATION_REQUESTED' && (
+              <Alert variant="warning" density="sm" className="eb-mb-6 eb-pb-2">
+                <AlertTriangleIcon className="eb-size-4" />
+                <AlertDescription>
+                  We&apos;re having trouble verifying your business. Please
+                  provide supporting documentation.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {clientData?.status === 'DECLINED' && (
+              <Alert variant="destructive" density="sm" className="eb-pt-2.5">
+                <AlertCircleIcon className="eb-size-4" />
+                <AlertTitle className="eb-text-sm eb-text-foreground">
+                  Application declined
+                </AlertTitle>
+                <AlertDescription>
+                  We&apos;re sorry, but we cannot proceed with your application
+                  at this time.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {clientData?.status === 'APPROVED' && (
+              <Alert variant="success" density="sm" className="eb-pt-2.5">
+                <CheckIcon className="eb-size-4" />
+                <AlertTitle className="eb-text-sm eb-text-foreground">
+                  All set!
+                </AlertTitle>
+                <AlertDescription>
+                  Your business details have been verified
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="eb-space-y-3">
               {clientData?.status === 'NEW' && (
                 <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
@@ -267,17 +323,6 @@ export const OverviewScreen = () => {
                   </div>
                 );
               })}
-
-              {kycCompleted && (
-                <Alert className="eb-border-[#00875D] eb-bg-[#EAF5F2] eb-pb-3">
-                  <CheckIcon className="eb-size-4 eb-stroke-[#00875D]" />
-                  <AlertDescription>
-                    Success! Your business has been verified and your account
-                    has been activated. Please continue below to link a bank
-                    account.
-                  </AlertDescription>
-                </Alert>
-              )}
             </div>
           </CardContent>
         </Card>

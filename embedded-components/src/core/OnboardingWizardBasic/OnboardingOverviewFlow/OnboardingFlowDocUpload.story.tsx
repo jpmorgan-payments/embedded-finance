@@ -6,8 +6,8 @@ import { http, HttpResponse } from 'msw';
 
 import defaultMeta, {
   OnboardingFlowWithProviderProps,
-  SThemeWithMock,
 } from './OnboardingFlow.story';
+import { SThemeWithMock } from './OnboardingFlowMocks.story';
 
 const meta: Meta<OnboardingFlowWithProviderProps> = {
   ...defaultMeta,
