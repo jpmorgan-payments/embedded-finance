@@ -41,7 +41,7 @@ import { StepperReviewCards } from '../../../components/StepperReviewCards/Stepp
 import { useFlowContext } from '../../../context/FlowContext';
 import { SectionScreenId, StepperStepProps } from '../../../flow.types';
 import { useOnboardingOverviewContext } from '../../../OnboardingContext/OnboardingContext';
-import { getPartyName } from '../../../utils/dataUtils';
+import { formatQuestionResponse, getPartyName } from '../../../utils/dataUtils';
 import {
   getFlowProgress,
   getStepperValidations,
@@ -55,7 +55,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const { clientData } = useOnboardingOverviewContext();
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation(['onboarding', 'common']);
 
   const { sections, goTo, sessionData, reviewScreenOpenedSectionId } =
     useFlowContext();
@@ -313,15 +313,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             Change
                           </Button>
                         </div>
-                        {clientData?.outstanding?.questionIds?.map(
-                          (questionId) => {
-                            const question = questionsDetails?.questions?.find(
-                              (q) => q.id === questionId
-                            );
+                        {questionsDetails?.questions?.map((question) => {
+                          if (
+                            question.id &&
+                            clientData?.outstanding.questionIds?.includes(
+                              question.id
+                            )
+                          ) {
                             return (
-                              <div className="eb-space-y-0.5" key={questionId}>
+                              <div className="eb-space-y-0.5" key={question.id}>
                                 <p className="eb-text-sm eb-font-medium">
-                                  {question?.description}
+                                  {question.description}
                                 </p>
                                 <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
                                   <TriangleAlertIcon className="eb-size-4" />
@@ -332,27 +334,27 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               </div>
                             );
                           }
-                        )}
-                        {clientData?.questionResponses?.map(
-                          (questionResponse) => (
-                            <div
-                              className="eb-space-y-0.5"
-                              key={questionResponse.questionId}
-                            >
+                          const response = clientData?.questionResponses?.find(
+                            (r) => r.questionId === question.id
+                          );
+
+                          if (!response) return null;
+                          return (
+                            <div className="eb-space-y-0.5" key={question.id}>
                               <p className="eb-text-sm eb-font-medium">
-                                {
-                                  questionsDetails?.questions?.find(
-                                    (q) => q.id === questionResponse.questionId
-                                  )?.description
-                                }
+                                {question.description}
                               </p>
                               <div>
                                 <b>{t('reviewAndAttest.response')}:</b>{' '}
-                                {questionResponse?.values?.join(', ')}
+                                {formatQuestionResponse(response) || (
+                                  <span className="eb-italic eb-text-muted-foreground">
+                                    {t('common:empty')}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                          )
-                        )}
+                          );
+                        })}
                       </Card>
                     );
                   }
@@ -407,9 +409,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               name="attested"
               render={({ field }) => (
                 <FormItem>
-                  <div className="eb-flex eb-items-center eb-space-x-2">
+                  <div className="eb-flex eb-items-start eb-space-x-3">
                     <FormControl>
                       <Checkbox
+                        className="eb-mt-0.5 eb-rounded-sm"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />

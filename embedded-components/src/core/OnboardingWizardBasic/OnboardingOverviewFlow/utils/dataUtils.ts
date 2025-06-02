@@ -1,4 +1,10 @@
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import { i18n } from '@/i18n/config';
+
+import {
+  ClientQuestionResponse,
+  ClientResponse,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
 
 import { ClientContext } from '../../utils/types';
 import { AssociatedPartyFilters } from '../flow.types';
@@ -65,4 +71,26 @@ export const getPartyName = (partyData?: PartyResponse) => {
     .filter(Boolean)
     .join(' ')
     .trim();
+};
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+export const formatQuestionResponse = (response: ClientQuestionResponse) => {
+  if (response.questionId === '30005') {
+    return currencyFormatter.format(Number(response.values?.[0]) || 0);
+  }
+  const formattedResponse = response.values?.join(', ') || '';
+
+  if (formattedResponse === 'false') {
+    return i18n.t('common:no');
+  }
+  if (formattedResponse === 'true') {
+    return i18n.t('common:yes');
+  }
+  return formattedResponse;
 };
