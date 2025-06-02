@@ -23,6 +23,8 @@ const buttonVariants = cva(
         link: 'eb-text-primary eb-underline-offset-4 hover:eb-underline eb-button-text-transform eb-tracking-button',
         input:
           'active:eb-translate-y-0 eb-font-sm disabled:eb-pointer-events-auto disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 eb-font-normal eb-text-foreground eb-w-full eb-rounded-input eb-bg-input eb-border eb-border-inputBorder',
+        'outline-primary':
+          'eb-border eb-border-primary eb-bg-transparent eb-button-text-transform eb-tracking-button eb-text-primary',
       },
       size: {
         default: 'eb-h-10 eb-px-4 eb-py-2',

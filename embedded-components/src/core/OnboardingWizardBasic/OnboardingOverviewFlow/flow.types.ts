@@ -121,7 +121,6 @@ export type StepValidationMap = Record<
 
 export type SectionStatus =
   | 'not_started'
-  | 'in_progress'
   | 'verifying'
   | 'completed'
   | 'missing_details'

@@ -1,8 +1,10 @@
 import {
+  AlertTriangleIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronRightIcon,
   CircleDashedIcon,
+  DownloadIcon,
   InfoIcon,
   LockIcon,
   PencilIcon,
@@ -47,12 +49,17 @@ export const OverviewScreen = () => {
 
   return (
     <StepLayout
-      title={t('screens.overview.title')}
-      description={t('screens.overview.description')}
-    >
-      <div className="eb-flex-auto eb-space-y-6">
-        {!sessionData.hideOverviewInfoAlert && (
-          <Alert variant="informative" density="sm" className="eb-mt-6 eb-pb-2">
+      title={
+        <div className="eb-flex eb-items-center eb-justify-between">
+          <p>{t('screens.overview.title')}</p>
+          <Button variant="outline" size="sm">
+            <DownloadIcon /> Download Checklist
+          </Button>
+        </div>
+      }
+      subTitle={
+        !sessionData.hideOverviewInfoAlert ? (
+          <Alert variant="informative" density="sm" className="eb-pb-2">
             <InfoIcon className="eb-h-4 eb-w-4" />
             <AlertDescription>
               {t('screens.overview.infoAlert')}
@@ -70,7 +77,11 @@ export const OverviewScreen = () => {
               <span className="eb-sr-only">Close</span>
             </button>
           </Alert>
-        )}
+        ) : undefined
+      }
+      description={t('screens.overview.description')}
+    >
+      <div className="eb-flex-auto eb-space-y-6">
         <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
           <CardHeader className="eb-p-3">
             <CardTitle>
@@ -84,7 +95,7 @@ export const OverviewScreen = () => {
               {clientData?.status === 'NEW' && (
                 <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
                   <p className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground">
-                    Your selected business structure
+                    Your selected business type
                   </p>
                   <div>
                     <span
@@ -98,7 +109,7 @@ export const OverviewScreen = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => goTo('gateway')}
-                        aria-label="Edit business structure"
+                        aria-label="Edit business type"
                         className="eb-rounded-input hover:eb-bg-black/5"
                       >
                         <PencilIcon />
@@ -106,9 +117,10 @@ export const OverviewScreen = () => {
                       </Button>
                     </span>
 
-                    <p className="eb-mt-1.5 eb-text-xs eb-italic eb-text-muted-foreground">
-                      If you change this after starting the application, you may
-                      lose your saved progress.
+                    <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
+                      <AlertTriangleIcon className="eb-size-4" /> If you change
+                      this after starting the application, you may lose your
+                      saved progress.
                     </p>
                   </div>
                 </div>
@@ -181,11 +193,20 @@ export const OverviewScreen = () => {
                               <span className="eb-sr-only">Completed</span>
                             </>
                           )}
-                          {(sectionStatus === 'not_started' ||
-                            sectionStatus === 'on_hold') && (
+                          {['not_started', 'on_hold'].includes(
+                            sectionStatus
+                          ) && (
                             <>
                               <CircleDashedIcon className="eb-stroke-gray-600" />
                               <span className="eb-sr-only">Not started</span>
+                            </>
+                          )}
+                          {sectionStatus === 'missing_details' && (
+                            <>
+                              <AlertTriangleIcon className="eb-stroke-[#C75300]" />
+                              <span className="eb-sr-only">
+                                Missing details
+                              </span>
                             </>
                           )}
                           {/* <Loader2Icon
@@ -207,29 +228,41 @@ export const OverviewScreen = () => {
                           )}
                         </ul>
                       )}
-                      <div className="eb-mt-3">
-                        <Button
-                          variant="outline"
-                          className="eb-border-primary eb-text-primary"
-                          disabled={sectionDisabled}
-                          onClick={() => {
-                            goTo(section.id, {
-                              editingPartyId: existingPartyData.id,
-                              previouslyCompleted:
-                                sectionStatus === 'completed',
-                            });
-                          }}
-                        >
-                          {sectionStatus === 'on_hold' ? (
-                            'hold'
-                          ) : (
-                            <>
-                              {t('common:start')}
-                              <ChevronRightIcon />
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <Button
+                        variant={
+                          ['completed', 'on_hold'].includes(sectionStatus)
+                            ? 'outline-primary'
+                            : 'default'
+                        }
+                        size="sm"
+                        className="eb-mt-3 eb-w-full"
+                        disabled={sectionDisabled}
+                        onClick={() => {
+                          goTo(section.id, {
+                            editingPartyId: existingPartyData.id,
+                            previouslyCompleted: sectionStatus === 'completed',
+                          });
+                        }}
+                      >
+                        {['on_hold', 'not_started'].includes(sectionStatus) && (
+                          <>
+                            {t('common:start')}
+                            <ChevronRightIcon />
+                          </>
+                        )}
+                        {sectionStatus === 'completed' && (
+                          <>
+                            {t('common:edit')}
+                            <PencilIcon />
+                          </>
+                        )}
+                        {sectionStatus === 'missing_details' && (
+                          <>
+                            {t('common:continue')}
+                            <ChevronRightIcon />
+                          </>
+                        )}
+                      </Button>
                     </Card>
                   </div>
                 );

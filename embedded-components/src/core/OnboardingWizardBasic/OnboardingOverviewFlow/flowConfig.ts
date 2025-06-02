@@ -256,7 +256,11 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'hidden';
         }
 
-        if (sessionData.isOwnersSectionDone && allOwnersValid) {
+        if (!allOwnersValid) {
+          return 'missing_details';
+        }
+
+        if (sessionData.isOwnersSectionDone) {
           return 'completed';
         }
         return 'not_started';
