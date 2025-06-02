@@ -11,6 +11,8 @@
   "no": "No",
   "cancel": "Cancel",
   "start": "Start",
+  "edit": "Edit",
+  "continue": "Continue",
   "empty": "empty",
   "validation": {
     "required": "This field is required",

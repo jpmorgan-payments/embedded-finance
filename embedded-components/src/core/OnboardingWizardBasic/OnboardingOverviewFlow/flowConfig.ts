@@ -82,25 +82,44 @@ const sectionScreens: SectionScreenConfig[] = [
     type: 'stepper',
     sectionConfig: {
       label: 'Your personal details',
+      shortLabel: 'Personal details',
       icon: UserIcon,
       requirementsList: [
         'Your name and job title',
         'Government issued identifier (e.g. social security number)',
         'Address and contact details',
       ],
-      statusResolver: (sessionData, clientData, allStepsValid) => {
+      statusResolver: (
+        sessionData,
+        clientData,
+        allStepsValid,
+        stepValidationMap
+      ) => {
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS'
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
         if (allStepsValid) {
           return 'completed';
         }
+
+        const isAnyStepValid = Object.entries(stepValidationMap).some(
+          ([, stepValidation]) => {
+            return stepValidation.isValid;
+          }
+        );
+
+        if (isAnyStepValid) {
+          return 'missing_details';
+        }
+
         return 'not_started';
       },
     },
@@ -116,7 +135,7 @@ const sectionScreens: SectionScreenConfig[] = [
       steps: [
         {
           id: 'personal-details',
-          title: 'Personal details',
+          title: 'Your personal details',
           stepType: 'form',
           description:
             'We collect your personal information as the primary person controlling business operations for the company.',
@@ -166,7 +185,9 @@ const sectionScreens: SectionScreenConfig[] = [
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS'
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
@@ -248,15 +269,24 @@ const sectionScreens: SectionScreenConfig[] = [
           );
           return allStepsValid;
         });
+
+        if (sessionData.mockedKycCompleted) {
+          return 'hidden';
+        }
         if (
-          sessionData.mockedKycCompleted ||
+          clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
-          clientData?.status === 'INFORMATION_REQUESTED'
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
 
-        if (sessionData.isOwnersSectionDone && allOwnersValid) {
+        if (!allOwnersValid) {
+          return 'missing_details';
+        }
+
+        if (sessionData.isOwnersSectionDone) {
           return 'completed';
         }
         return 'not_started';
@@ -278,10 +308,14 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (sessionData, clientData) => {
         const sectionCompleted =
           clientData?.outstanding?.questionIds?.length === 0;
+        if (sessionData.mockedKycCompleted) {
+          return 'hidden';
+        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
-          sessionData.mockedKycCompleted
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
         }
@@ -301,10 +335,15 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Review and attest',
       icon: FileIcon,
       statusResolver: (sessionData, clientData) => {
-        const completed =
+        if (sessionData.mockedKycCompleted) {
+          return 'hidden';
+        }
+        if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS';
-        if (completed || sessionData.mockedKycCompleted) {
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
+        ) {
           return 'hidden';
         }
         return 'not_started';
@@ -338,7 +377,7 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Supporting documents',
       icon: UploadIcon,
-      onHoldText: 'Supporting documents are only needed in some cases',
+      onHoldText: "We'll let you know if any documents are needed",
       statusResolver: (sessionData, clientData) => {
         if (
           clientData?.status === 'INFORMATION_REQUESTED' &&
@@ -346,8 +385,17 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'not_started';
         }
-        if (clientData?.status === 'NEW') {
+        if (
+          clientData?.status === 'NEW' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS'
+        ) {
           return 'on_hold';
+        }
+        if (
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
+        ) {
+          return 'hidden';
         }
         return 'completed';
       },

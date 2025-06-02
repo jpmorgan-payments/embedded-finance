@@ -66,13 +66,15 @@ export type SectionScreenConfig = BaseScreenConfig & {
   sectionConfig: {
     icon: LucideIcon;
     label: string;
+    shortLabel?: string;
     helpText?: string;
     onHoldText?: string;
     requirementsList?: string[];
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
-      allStepsValid: boolean
+      allStepsValid: boolean,
+      stepValidationMap: StepValidationMap
     ) => SectionStatus;
   };
 };
@@ -121,7 +123,6 @@ export type StepValidationMap = Record<
 
 export type SectionStatus =
   | 'not_started'
-  | 'in_progress'
   | 'verifying'
   | 'completed'
   | 'missing_details'

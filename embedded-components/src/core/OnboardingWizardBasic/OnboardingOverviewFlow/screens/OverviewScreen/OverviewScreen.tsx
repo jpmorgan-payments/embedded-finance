@@ -1,9 +1,14 @@
 import {
+  AlertCircleIcon,
+  AlertTriangleIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronRightIcon,
   CircleDashedIcon,
+  Clock9Icon,
+  DownloadIcon,
   InfoIcon,
+  Loader2Icon,
   LockIcon,
   PencilIcon,
   XIcon,
@@ -11,7 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Button,
   Card,
@@ -30,7 +35,7 @@ export const OverviewScreen = () => {
   const { organizationType, clientData } = useOnboardingOverviewContext();
   const { sections, goTo, sessionData, updateSessionData } = useFlowContext();
 
-  const { sectionStatuses } = getFlowProgress(
+  const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
     clientData
@@ -40,20 +45,24 @@ export const OverviewScreen = () => {
 
   // TODO:
   const kycCompleted =
-    sessionData.mockedKycCompleted ||
-    clientData?.status === 'REVIEW_IN_PROGRESS';
+    sessionData.mockedKycCompleted || clientData?.status === 'APPROVED';
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
   return (
     <StepLayout
-      title={t('screens.overview.title')}
-      description={t('screens.overview.description')}
-    >
-      <div className="eb-flex-auto eb-space-y-6">
-        {!sessionData.hideOverviewInfoAlert && (
-          <Alert variant="informative" density="sm" className="eb-mt-6 eb-pb-2">
-            <InfoIcon className="eb-h-4 eb-w-4" />
+      title={
+        <div className="eb-flex eb-items-center eb-justify-between">
+          <p>{t('screens.overview.title')}</p>
+          <Button variant="outline" size="sm">
+            <DownloadIcon /> Download Checklist
+          </Button>
+        </div>
+      }
+      subTitle={
+        !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
+          <Alert variant="informative" density="sm" className="eb-pb-2">
+            <InfoIcon className="eb-size-4" />
             <AlertDescription>
               {t('screens.overview.infoAlert')}
             </AlertDescription>
@@ -66,11 +75,15 @@ export const OverviewScreen = () => {
                 });
               }}
             >
-              <XIcon className="eb-h-4 eb-w-4 eb-pl-0 eb-text-foreground" />
+              <XIcon className="eb-size-4 eb-pl-0 eb-text-foreground" />
               <span className="eb-sr-only">Close</span>
             </button>
           </Alert>
-        )}
+        ) : undefined
+      }
+      description={t('screens.overview.description')}
+    >
+      <div className="eb-flex-auto eb-space-y-6">
         <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
           <CardHeader className="eb-p-3">
             <CardTitle>
@@ -80,11 +93,64 @@ export const OverviewScreen = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
+            {clientData?.status === 'REVIEW_IN_PROGRESS' && (
+              <Alert
+                variant="informative"
+                density="sm"
+                className="eb-mb-6 eb-pt-2.5"
+              >
+                <Clock9Icon className="eb-size-4" />
+                <AlertTitle className="eb-text-sm eb-text-foreground">
+                  Great work!
+                </AlertTitle>
+                <AlertDescription>
+                  Please hang tight while we verify your details. This should
+                  only take a moment.
+                  <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {clientData?.status === 'INFORMATION_REQUESTED' && (
+              <Alert variant="warning" density="sm" className="eb-mb-6 eb-pb-2">
+                <AlertTriangleIcon className="eb-size-4" />
+                <AlertDescription>
+                  We&apos;re having trouble verifying your business. Please
+                  provide supporting documentation.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {clientData?.status === 'DECLINED' && (
+              <Alert variant="destructive" density="sm" className="eb-pt-2.5">
+                <AlertCircleIcon className="eb-size-4" />
+                <AlertTitle className="eb-text-sm eb-text-foreground">
+                  Application declined
+                </AlertTitle>
+                <AlertDescription>
+                  We&apos;re sorry, but we cannot proceed with your application
+                  at this time.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {clientData?.status === 'APPROVED' && (
+              <Alert variant="success" density="sm" className="eb-pt-2.5">
+                <CheckIcon className="eb-size-4" />
+                <AlertTitle className="eb-text-sm eb-text-foreground">
+                  All set!
+                </AlertTitle>
+                <AlertDescription>
+                  Your business details have been verified
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="eb-space-y-3">
               {clientData?.status === 'NEW' && (
                 <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
                   <p className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground">
-                    Your selected business structure
+                    Your selected business type
                   </p>
                   <div>
                     <span
@@ -98,7 +164,7 @@ export const OverviewScreen = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => goTo('gateway')}
-                        aria-label="Edit business structure"
+                        aria-label="Edit business type"
                         className="eb-rounded-input hover:eb-bg-black/5"
                       >
                         <PencilIcon />
@@ -106,9 +172,10 @@ export const OverviewScreen = () => {
                       </Button>
                     </span>
 
-                    <p className="eb-mt-1.5 eb-text-xs eb-italic eb-text-muted-foreground">
-                      If you change this after starting the application, you may
-                      lose your saved progress.
+                    <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
+                      <AlertTriangleIcon className="eb-size-4" /> If you change
+                      this after starting the application, you may lose your
+                      saved progress.
                     </p>
                   </div>
                 </div>
@@ -117,6 +184,12 @@ export const OverviewScreen = () => {
               {sections.map((section) => {
                 const sectionStatus = sectionStatuses?.[section.id];
                 const sectionDisabled = sectionStatus === 'on_hold';
+                const firstInvalidStep = stepValidations[section.id]
+                  ? Object.entries(stepValidations[section.id]).find(
+                      ([, validation]) => !validation.isValid
+                    )?.[0]
+                  : undefined;
+
                 // const sectionVerifying =
                 //   sectionStatus === 'verifying' ||
                 //   sessionData.mockedVerifyingSectionId === section.id;
@@ -136,7 +209,7 @@ export const OverviewScreen = () => {
                       section.sectionConfig.onHoldText && (
                         <p
                           className={cn(
-                            'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-italic',
+                            'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
                             {
                               'eb-text-muted-foreground': sectionDisabled,
                             }
@@ -155,7 +228,7 @@ export const OverviewScreen = () => {
                         }
                       )}
                     >
-                      <div className="eb-flex eb-w-full eb-justify-between">
+                      <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
                         <div className="eb-flex eb-items-center eb-gap-2">
                           <section.sectionConfig.icon
                             className={cn('eb-size-4', {
@@ -181,11 +254,20 @@ export const OverviewScreen = () => {
                               <span className="eb-sr-only">Completed</span>
                             </>
                           )}
-                          {(sectionStatus === 'not_started' ||
-                            sectionStatus === 'on_hold') && (
+                          {['not_started', 'on_hold'].includes(
+                            sectionStatus
+                          ) && (
                             <>
                               <CircleDashedIcon className="eb-stroke-gray-600" />
                               <span className="eb-sr-only">Not started</span>
+                            </>
+                          )}
+                          {sectionStatus === 'missing_details' && (
+                            <>
+                              <AlertTriangleIcon className="eb-stroke-[#C75300]" />
+                              <span className="eb-sr-only">
+                                Missing details
+                              </span>
                             </>
                           )}
                           {/* <Loader2Icon
@@ -207,44 +289,46 @@ export const OverviewScreen = () => {
                           )}
                         </ul>
                       )}
-                      <div className="eb-mt-3">
-                        <Button
-                          variant="outline"
-                          className="eb-border-primary eb-text-primary"
-                          disabled={sectionDisabled}
-                          onClick={() => {
-                            goTo(section.id, {
-                              editingPartyId: existingPartyData.id,
-                              previouslyCompleted:
-                                sectionStatus === 'completed',
-                            });
-                          }}
-                        >
-                          {sectionStatus === 'on_hold' ? (
-                            'hold'
-                          ) : (
-                            <>
-                              {t('common:start')}
-                              <ChevronRightIcon />
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <Button
+                        variant={
+                          ['completed', 'on_hold'].includes(sectionStatus)
+                            ? 'secondary'
+                            : 'default'
+                        }
+                        size="sm"
+                        className="eb-mt-3 eb-w-full"
+                        disabled={sectionDisabled}
+                        onClick={() => {
+                          goTo(section.id, {
+                            editingPartyId: existingPartyData.id,
+                            previouslyCompleted: sectionStatus === 'completed',
+                            initialStepperStepId: firstInvalidStep,
+                          });
+                        }}
+                      >
+                        {['on_hold', 'not_started'].includes(sectionStatus) && (
+                          <>
+                            {t('common:start')}
+                            <ChevronRightIcon />
+                          </>
+                        )}
+                        {sectionStatus === 'completed' && (
+                          <>
+                            {t('common:edit')}
+                            <PencilIcon />
+                          </>
+                        )}
+                        {sectionStatus === 'missing_details' && (
+                          <>
+                            {t('common:continue')}
+                            <ChevronRightIcon />
+                          </>
+                        )}
+                      </Button>
                     </Card>
                   </div>
                 );
               })}
-
-              {kycCompleted && (
-                <Alert className="eb-border-[#00875D] eb-bg-[#EAF5F2] eb-pb-3">
-                  <CheckIcon className="eb-size-4 eb-stroke-[#00875D]" />
-                  <AlertDescription>
-                    Success! Your business has been verified and your account
-                    has been activated. Please continue below to link a bank
-                    account.
-                  </AlertDescription>
-                </Alert>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -261,7 +345,7 @@ export const OverviewScreen = () => {
               <div>
                 <p
                   className={cn(
-                    'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-italic',
+                    'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
                     {
                       'eb-text-muted-foreground': !kycCompleted,
                     }
@@ -315,22 +399,15 @@ export const OverviewScreen = () => {
                       <span className="eb-sr-only">Not started</span>
                     </div>
                   </div>
-                  <div className="eb-mt-3">
-                    <Button
-                      variant="outline"
-                      className="eb-border-primary eb-text-primary"
-                      disabled={!kycCompleted}
-                    >
-                      {!kycCompleted ? (
-                        'hold'
-                      ) : (
-                        <>
-                          {t('common:start')}
-                          <ChevronRightIcon />
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="eb-mt-3 eb-w-full"
+                    disabled={!kycCompleted}
+                  >
+                    {t('common:start')}
+                    <ChevronRightIcon />
+                  </Button>
                 </Card>
               </div>
             </div>

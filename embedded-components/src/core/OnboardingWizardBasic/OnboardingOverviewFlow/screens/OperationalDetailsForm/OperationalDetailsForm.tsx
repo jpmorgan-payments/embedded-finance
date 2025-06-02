@@ -6,6 +6,7 @@ import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
   useSmbdoListQuestions,
@@ -154,6 +155,24 @@ export const OperationalDetailsForm = () => {
     const itemType = question?.responseSchema?.items?.type ?? 'string';
     const itemEnum = question?.responseSchema?.items?.enum;
 
+    const questionLabel = (
+      <div className="">
+        {question.description?.split('\n')?.map((line, index) => (
+          <div>
+            <FormLabel
+              key={index}
+              asterisk={index === 0}
+              className={cn({
+                'eb-ml-4': index > 0,
+              })}
+            >
+              {line}
+            </FormLabel>
+          </div>
+        ))}
+      </div>
+    );
+
     // Check if the question should use a datepicker
     if (question.id && DATE_QUESTION_IDS.includes(question.id)) {
       return (
@@ -162,7 +181,7 @@ export const OperationalDetailsForm = () => {
           name={fieldName}
           render={({ field }) => (
             <FormItem>
-              <FormLabel asterisk>{question.description}</FormLabel>
+              {questionLabel}
               <FormControl>
                 <Input
                   {...field}
@@ -184,7 +203,7 @@ export const OperationalDetailsForm = () => {
           name={fieldName}
           render={({ field }) => (
             <FormItem>
-              <FormLabel asterisk>{question.description}</FormLabel>
+              {questionLabel}
               <FormControl>
                 <div className="eb-relative">
                   <span className="eb-absolute eb-left-3 eb-translate-y-2 eb-text-gray-500">
@@ -228,7 +247,7 @@ export const OperationalDetailsForm = () => {
             name={fieldName}
             render={({ field }) => (
               <FormItem className="eb-space-y-3">
-                <FormLabel asterisk>{question.description}</FormLabel>
+                {questionLabel}
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => field.onChange([value])}
@@ -267,7 +286,7 @@ export const OperationalDetailsForm = () => {
                 name={fieldName}
                 render={() => (
                   <FormItem>
-                    <FormLabel asterisk>{question.description}</FormLabel>
+                    {questionLabel}
                     {itemEnum.map((option: string) => (
                       <FormField
                         key={option}
@@ -313,7 +332,7 @@ export const OperationalDetailsForm = () => {
               name={fieldName}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel asterisk>{question.description}</FormLabel>
+                  {questionLabel}
                   <Select
                     onValueChange={(value) => field.onChange([value])}
                     defaultValue={field?.value?.[0]}
@@ -343,7 +362,7 @@ export const OperationalDetailsForm = () => {
             name={fieldName}
             render={({ field }) => (
               <FormItem>
-                <FormLabel asterisk>{question.description}</FormLabel>
+                {questionLabel}
                 <FormControl>
                   <Input
                     {...field}
@@ -363,7 +382,7 @@ export const OperationalDetailsForm = () => {
             name={fieldName}
             render={({ field }) => (
               <FormItem>
-                <FormLabel asterisk>{question.description}</FormLabel>
+                {questionLabel}
                 <FormControl>
                   <Input
                     type="number"
@@ -384,7 +403,7 @@ export const OperationalDetailsForm = () => {
             name={fieldName}
             render={({ field }) => (
               <FormItem>
-                <FormLabel asterisk>{question.description}</FormLabel>
+                {questionLabel}
                 <FormControl>
                   <Input
                     {...field}

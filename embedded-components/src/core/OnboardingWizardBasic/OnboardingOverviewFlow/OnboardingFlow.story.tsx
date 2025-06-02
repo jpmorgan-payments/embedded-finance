@@ -167,23 +167,7 @@ STheme.args = {
       secondaryColor: 'white',
       secondaryForegroundColor: '#1B7F9E',
       secondaryBorderWidth: '1px',
+      secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
     },
   },
-};
-
-export const SThemeWithMock = Default.bind({});
-SThemeWithMock.storyName = 'Mocked New Client';
-SThemeWithMock.args = {
-  ...STheme.args,
-  apiBaseUrl: '',
-  headers: {
-    api_gateway_client_id: 'test',
-  },
-};
-
-export const MockExistingClient = Default.bind({});
-MockExistingClient.storyName = 'Mocked Existing LLC Client';
-MockExistingClient.args = {
-  ...SThemeWithMock.args,
-  initialClientId: '0030000132',
 };

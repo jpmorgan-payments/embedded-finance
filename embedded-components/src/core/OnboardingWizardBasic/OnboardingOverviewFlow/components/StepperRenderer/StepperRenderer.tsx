@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowRightIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  Loader2Icon,
-  TextSearchIcon,
-} from 'lucide-react';
+import { Loader2Icon, MenuIcon } from 'lucide-react';
 import { useFormState } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
@@ -17,12 +11,6 @@ import {
   useUpdateParty,
 } from '@/api/generated/smbdo';
 import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button, Form } from '@/components/ui';
 import { ServerErrorAlert } from '@/core/OnboardingWizardBasic/ServerErrorAlert/ServerErrorAlert';
 import {
@@ -64,12 +52,13 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const {
     currentScreenId,
+    goTo,
     originScreenId,
-    goBack,
     editingPartyIds,
     previouslyCompletedScreens,
     updateSessionData,
     initialStepperStepId,
+    sections,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -92,10 +81,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     next: stepperNext,
     prev: stepperPrev,
   } = useStepper({
-    initialStep:
-      initialStepperStepId || previouslyCompleted
-        ? steps[steps.length - 1].id
-        : steps[0].id,
+    initialStep: previouslyCompleted
+      ? steps[steps.length - 1].id
+      : (initialStepperStepId ?? steps[0].id),
   });
 
   if (!currentStep) {
@@ -103,17 +91,20 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   }
 
   const currentStepNumber = stepperUtils.getIndex(currentStep.id) + 1;
+  const currentSection = sections.find(
+    (section) => section.id === currentScreenId
+  );
 
   const handleNext = () => {
     if (checkAnswersMode) {
       stepperGoTo(checkAnswersStepId);
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
-      goBack();
+      goTo('review-attest-section');
     } else if (currentStepNumber < steps.length) {
       stepperNext();
     } else {
-      goBack();
+      goTo('overview');
       updateSessionData({
         mockedVerifyingSectionId: currentScreenId,
       });
@@ -127,7 +118,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       return null;
     }
-    return 'Next';
+    return 'Continue';
   };
 
   const handlePrev = () => {
@@ -135,12 +126,12 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       stepperGoTo(checkAnswersStepId);
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
-      goBack();
+      goTo('review-attest-section');
     } else if (
       currentStepNumber === 1 ||
       (currentStep.stepType === 'check-answers' && previouslyCompleted)
     ) {
-      goBack();
+      goTo('overview');
     } else {
       stepperPrev();
     }
@@ -155,14 +146,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         (currentStep.stepType === 'check-answers' && previouslyCompleted)) &&
       originScreenId
     ) {
-      if (originScreenId === 'overview') {
-        return 'Back to overview';
-      }
       if (originScreenId === 'owners-section') {
         return 'Back to all owners';
       }
     }
-    return 'Back';
+    return 'Previous';
   };
 
   const { stepValidationMap } = getStepperValidation(
@@ -199,67 +187,23 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         description={currentStep.description}
         subTitle={
           !checkAnswersMode && !previouslyCompleted && !reviewMode ? (
-            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
-              <p className="eb-font-semibold">
-                Step {currentStepNumber} of {steps.length}
-              </p>
+            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-text-sm">
               <div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      size="sm"
-                      className="eb-h-6 eb-gap-1 eb-rounded-none eb-p-1 eb-text-xs"
-                    >
-                      Step menu
-                      <ChevronDownIcon />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="eb-w-54 eb-component"
-                    side="bottom"
-                    align="end"
-                  >
-                    {steps.map((step, index) => (
-                      <DropdownMenuItem
-                        key={step.id}
-                        disabled={
-                          (!stepValidationMap[step.id].isValid ||
-                            step.stepType === 'check-answers') &&
-                          index > stepperUtils.getIndex(currentStep.id) &&
-                          !stepValidationMap[stepperUtils.getPrev(step.id)?.id]
-                            .isValid
-                        }
-                        className={cn({
-                          'eb-pointer-events-none eb-font-semibold':
-                            step.id === currentStep.id,
-                        })}
-                        onClick={() => {
-                          if (step.id !== currentStep.id) {
-                            stepperGoTo(step.id);
-                          }
-                        }}
-                      >
-                        <div className="eb-flex eb-items-center eb-gap-2">
-                          {step.stepType === 'check-answers' ? (
-                            <TextSearchIcon className="eb-size-4 eb-stroke-muted-foreground" />
-                          ) : stepValidationMap[step.id].isValid ? (
-                            <CheckIcon className="eb-size-4 eb-stroke-green-600" />
-                          ) : step.id === currentStep.id ? (
-                            <ArrowRightIcon className="eb-size-4 eb-stroke-primary" />
-                          ) : (
-                            <div className="eb-size-4"></div>
-                          )}
-                          <p>
-                            {index + 1}. {step.title}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <span className="eb-mr-2 eb-border-r eb-border-r-foreground eb-pr-2">
+                  {currentSection?.sectionConfig.shortLabel}
+                </span>
+                <span className="eb-font-medium">
+                  Step {currentStepNumber} of {steps.length}
+                </span>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => goTo('overview')}
+              >
+                Overview
+                <MenuIcon />
+              </Button>
             </div>
           ) : undefined
         }
@@ -267,6 +211,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         {currentStep.stepType === 'form' && (
           <StepperFormStep
             key={currentStep.id}
+            currentStepNumber={currentStepNumber}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
             defaultPartyRequestBody={defaultPartyRequestBody}
@@ -298,6 +243,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
 interface StepperFormStepProps extends StepperStepProps {
   currentStepId: string;
+  currentStepNumber: number;
   Component: FormStepComponent;
   existingPartyData: PartyResponse | undefined;
   setExistingPartyData: (partyData: PartyResponse | undefined) => void;
@@ -306,6 +252,7 @@ interface StepperFormStepProps extends StepperStepProps {
 
 const StepperFormStep: React.FC<StepperFormStepProps> = ({
   currentStepId,
+  currentStepNumber,
   Component,
   existingPartyData,
   setExistingPartyData,
@@ -479,18 +426,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             error={clientUpdateError || partyUpdateError}
             className="eb-border-[#E52135] eb-bg-[#FFECEA]"
           />
-          <div className="eb-flex eb-justify-between eb-gap-4">
-            <Button
-              onClick={handlePrev}
-              variant="secondary"
-              size="lg"
-              disabled={isFormSubmitting}
-              className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getPrevButtonLabel() === null,
-              })}
-            >
-              {getPrevButtonLabel()}
-            </Button>
+          <div className="eb-flex eb-flex-col eb-gap-3">
             <Button
               type="submit"
               variant="default"
@@ -502,6 +438,17 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             >
               {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
               {getNextButtonLabel()}
+            </Button>
+            <Button
+              onClick={handlePrev}
+              variant="secondary"
+              size="lg"
+              disabled={isFormSubmitting || currentStepNumber === 1}
+              className={cn('eb-w-full eb-text-lg', {
+                'eb-hidden': getPrevButtonLabel() === null,
+              })}
+            >
+              {getPrevButtonLabel()}
             </Button>
           </div>
         </div>

@@ -53,7 +53,8 @@ export function getFlowProgress(
       status = section.sectionConfig.statusResolver(
         sessionData,
         clientData,
-        allStepsValid
+        allStepsValid,
+        stepValidations[section.id] || {}
       );
     } else if (allStepsValid) {
       status = 'completed';
