@@ -28,6 +28,7 @@ import { LearnMorePopoverTrigger } from '../../components/LearnMorePopover/Learn
 import { StepLayout } from '../../components/StepLayout/StepLayout';
 import { useFlowContext } from '../../context/FlowContext';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
+import { getPartyName } from '../../utils/dataUtils';
 import { getFlowProgress, getStepperValidations } from '../../utils/flowUtils';
 import { ownerSteps } from './ownerSteps';
 
@@ -298,7 +299,7 @@ export const OwnersSectionScreen = () => {
               ]}
               noOptionalLabel
             />
-            {sectionStatuses['personal-section'] !== 'done_editable' && (
+            {sectionStatuses['personal-section'] !== 'completed' && (
               <div className="eb-mt-2 eb-flex eb-items-center">
                 <p className="eb-flex eb-h-8 eb-items-center eb-text-sm eb-font-normal eb-text-orange-500">
                   {'\u24d8'}
@@ -374,12 +375,7 @@ export const OwnersSectionScreen = () => {
             >
               <div className="eb-space-y-1">
                 <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                  {[
-                    owner.individualDetails?.firstName,
-                    owner.individualDetails?.middleName,
-                    owner.individualDetails?.lastName,
-                    owner.individualDetails?.nameSuffix,
-                  ].join(' ')}
+                  {getPartyName(owner)}
                 </CardTitle>
                 <p className="eb-text-sm eb-font-medium">
                   {owner.individualDetails?.jobTitle === 'Other'

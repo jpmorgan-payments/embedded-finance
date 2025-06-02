@@ -199,9 +199,17 @@ export const OnboardingNextPageV2 = () => {
   />
 </EBComponentsProvider>
 `;
+  const theme = mapToEBTheme(
+    listThemes()?.find((t) => t.id === selectedThemeId),
+  );
 
   const Component = (
-    <div style={{ position: 'relative' }}>
+    <div
+      style={{
+        position: 'relative',
+        backgroundColor: theme.variables?.backgroundColor ?? 'white',
+      }}
+    >
       {!fullScreen && (
         <div
           style={{
@@ -229,12 +237,6 @@ export const OnboardingNextPageV2 = () => {
           right: 35,
           zIndex: 10,
           cursor: 'pointer',
-          [`@media (max-width: ${theme.breakpoints.sm})`]: {
-            position: 'static',
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: theme.spacing.md,
-          },
         })}
       >
         <Badge size="sm" variant="light">
@@ -250,9 +252,7 @@ export const OnboardingNextPageV2 = () => {
           api_gateway_client_id: scenario?.gatewayID ?? '',
           ...urlHeaders,
         }}
-        theme={mapToEBTheme(
-          listThemes()?.find((t) => t.id === selectedThemeId),
-        )}
+        theme={theme}
         contentTokens={{
           name: selectedLocale,
         }}

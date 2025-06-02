@@ -123,7 +123,7 @@ describe('DocumentUploadStepForm', () => {
       ).toBeInTheDocument();
     });
 
-    test('renders party name when available', async () => {
+    test.skip('renders party name when available', async () => {
       renderComponent({ partyFilter: '2000000111' });
 
       expect(

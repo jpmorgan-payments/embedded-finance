@@ -128,7 +128,7 @@ graph TD
 - **Properties**:
   - `label`: Display name of the section.
   - `icon`: Icon associated with the section.
-  - `statusResolver`: (Optional) A function `(sessionData, clientData) => status` that dynamically calculates the completion status ('not_started', 'done_editable', 'on_hold', etc.) of the section based on current `sessionData` and fetched `clientData`. This allows the Overview screen to reflect real-time progress.
+  - `statusResolver`: (Optional) A function `(sessionData, clientData) => status` that dynamically calculates the completion status ('not_started', 'completed', 'on_hold', etc.) of the section based on current `sessionData` and fetched `clientData`. This allows the Overview screen to reflect real-time progress.
   - `helpText`: Optional additional descriptive text.
 
 ### Stepper Configuration (`stepperConfig`)

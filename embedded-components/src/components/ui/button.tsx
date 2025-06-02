@@ -15,7 +15,7 @@ const buttonVariants = cva(
         destructive:
           'eb-bg-destructive eb-button-text-transform eb-tracking-button eb-font-button-destructive eb-text-button eb-text-destructive-foreground eb-shadow-border-destructive [--tw-shadow-color:theme(colors.destructive.foreground.DEFAULT)] hover:eb-bg-destructive-hover hover:eb-text-destructive-foreground-hover hover:[--tw-shadow-color:theme(colors.destructive.foreground.hover)] active:eb-bg-destructive-active active:eb-text-destructive-foreground-active active:[--tw-shadow-color:theme(colors.destructive.foreground.active)]',
         outline:
-          'eb-border eb-border-inputBorder eb-bg-input eb-button-text-transform eb-tracking-button eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
+          'eb-border eb-border-border eb-bg-transparent eb-button-text-transform eb-tracking-button eb-text-foreground hover:eb-bg-accent hover:eb-text-accent-foreground',
         secondary:
           'eb-bg-secondary eb-font-button-secondary eb-button-text-transform eb-tracking-button eb-text-button eb-text-secondary-foreground eb-shadow-border-secondary [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:eb-bg-secondary-hover hover:eb-text-secondary-foreground-hover hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:eb-bg-secondary-active active:eb-text-secondary-foreground-active active:[--tw-shadow-color:theme(colors.secondary.foreground.active)]',
         ghost:

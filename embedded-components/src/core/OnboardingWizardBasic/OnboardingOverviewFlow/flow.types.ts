@@ -41,7 +41,8 @@ export type StaticScreenId =
   | 'gateway'
   | 'checklist'
   | 'overview'
-  | 'owner-stepper';
+  | 'owner-stepper'
+  | 'document-upload-form';
 
 export type SectionScreenId =
   | 'personal-section'
@@ -65,12 +66,15 @@ export type SectionScreenConfig = BaseScreenConfig & {
   sectionConfig: {
     icon: LucideIcon;
     label: string;
+    shortLabel?: string;
     helpText?: string;
+    onHoldText?: string;
     requirementsList?: string[];
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
-      allStepsValid: boolean
+      allStepsValid: boolean,
+      stepValidationMap: StepValidationMap
     ) => SectionStatus;
   };
 };
@@ -119,10 +123,8 @@ export type StepValidationMap = Record<
 
 export type SectionStatus =
   | 'not_started'
-  | 'in_progress'
   | 'verifying'
-  | 'done_editable'
-  | 'done_disabled'
+  | 'completed'
   | 'missing_details'
   | 'on_hold'
   | 'hidden';
@@ -136,6 +138,8 @@ export type FlowSessionData = {
   isOwnersSectionDone?: boolean;
   mockedVerifyingSectionId?: ScreenId;
   mockedKycCompleted?: boolean;
+  hideGatewayInfoAlert?: boolean;
+  hideOverviewInfoAlert?: boolean;
 };
 
 export type StepperStepProps = {

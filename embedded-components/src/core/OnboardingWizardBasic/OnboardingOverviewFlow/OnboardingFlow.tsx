@@ -137,22 +137,27 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     >
       <div
         id="embedded-component-layout"
-        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-p-4 eb-pb-6 sm:eb-max-w-screen-sm sm:eb-p-10 sm:eb-pb-12"
+        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-sm sm:eb-p-10 sm:eb-pb-12"
         style={{ minHeight: height }}
         key={initialClientId}
       >
-        {/* TODO: replace with actual screens */}
-        {clientGetError && (
+        {/* TODO: replace with actual screens / skeletons */}
+        {clientGetError ? (
           <ServerErrorAlert
             error={clientGetError}
             className="eb-border-[#E52135] eb-bg-[#FFECEA]"
           />
-        )}
-        {clientGetStatus === 'pending' && initialClientId ? (
+        ) : clientGetStatus === 'pending' && initialClientId ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (
           <FlowProvider
-            initialScreenId={organizationType ? 'overview' : 'gateway'}
+            initialScreenId={
+              props.docUploadOnlyMode
+                ? 'upload-documents-section'
+                : organizationType
+                  ? 'overview'
+                  : 'gateway'
+            }
             flowConfig={flowConfig}
           >
             <FlowRenderer />
@@ -182,10 +187,21 @@ const FlowRenderer: React.FC = () => {
 
   // Redirect to gateway if organization type is not set
   useEffect(() => {
-    if (!organizationType && currentScreenId !== 'gateway') {
+    if (
+      docUploadOnlyMode &&
+      !['upload-documents-section', 'document-upload-form'].includes(
+        currentScreenId
+      )
+    ) {
+      goTo('upload-documents-section', { resetHistory: true });
+    } else if (
+      !docUploadOnlyMode &&
+      !organizationType &&
+      currentScreenId !== 'gateway'
+    ) {
       goTo('gateway', { resetHistory: true });
     }
-  }, [organizationType, currentScreenId]);
+  }, [currentScreenId, docUploadOnlyMode, organizationType]);
 
   // Clear mocked verifying state after a timeout
   useEffect(() => {
@@ -201,9 +217,7 @@ const FlowRenderer: React.FC = () => {
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
 
-  const screen = docUploadOnlyMode
-    ? flowConfig.screens.find((s) => s.id === 'upload-documents-section')
-    : flowConfig.screens.find((s) => s.id === currentScreenId);
+  const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
 
   const renderScreen = () => {
     if (!screen) {

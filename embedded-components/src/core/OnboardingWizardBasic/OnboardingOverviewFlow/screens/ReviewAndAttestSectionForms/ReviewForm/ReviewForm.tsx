@@ -16,6 +16,7 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
+import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionContent,
@@ -41,6 +42,7 @@ import { StepperReviewCards } from '../../../components/StepperReviewCards/Stepp
 import { useFlowContext } from '../../../context/FlowContext';
 import { SectionScreenId, StepperStepProps } from '../../../flow.types';
 import { useOnboardingOverviewContext } from '../../../OnboardingContext/OnboardingContext';
+import { formatQuestionResponse, getPartyName } from '../../../utils/dataUtils';
 import {
   getFlowProgress,
   getStepperValidations,
@@ -54,7 +56,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const { clientData } = useOnboardingOverviewContext();
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation(['onboarding', 'common']);
 
   const { sections, goTo, sessionData, reviewScreenOpenedSectionId } =
     useFlowContext();
@@ -95,6 +97,37 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     questionIds: allQuestionIds.join(','),
   });
 
+  const isQuestionVisible = (question: QuestionResponse) => {
+    if (!question.parentQuestionId) return true;
+
+    const parentQuestion = questionsDetails?.questions?.find(
+      (q) => q.id === question.parentQuestionId
+    );
+    if (!parentQuestion) return false;
+
+    const parentResponse = existingQuestionResponses.find(
+      (r) => r.questionId === parentQuestion.id
+    )?.values;
+
+    if (!parentResponse) return false;
+
+    const subQuestion = parentQuestion?.subQuestions?.find((sq) =>
+      sq.questionIds?.includes(question.id ?? '')
+    );
+
+    if (typeof subQuestion?.anyValuesMatch === 'string') {
+      return parentResponse.includes(subQuestion.anyValuesMatch);
+    }
+
+    if (Array.isArray(subQuestion?.anyValuesMatch)) {
+      return parentResponse.some((value: any) => {
+        return subQuestion.anyValuesMatch?.includes(value);
+      });
+    }
+
+    return false;
+  };
+
   const activeOwners =
     clientData?.parties?.filter(
       (party) =>
@@ -117,7 +150,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   ];
 
   const isMissingDetails = sectionIdsToReview.some((sectionId) => {
-    return sectionStatuses[sectionId] !== 'done_editable';
+    return sectionStatuses[sectionId] !== 'completed';
   });
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
@@ -167,7 +200,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 .map((section) => {
                   let content = null;
                   const isSectionCompleted =
-                    sectionStatuses[section.id] === 'done_editable';
+                    sectionStatuses[section.id] === 'completed';
 
                   if (
                     section.type === 'stepper' &&
@@ -254,12 +287,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             >
                               <div className="eb-space-y-1">
                                 <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                                  {[
-                                    owner.individualDetails?.firstName,
-                                    owner.individualDetails?.middleName,
-                                    owner.individualDetails?.lastName,
-                                    owner.individualDetails?.nameSuffix,
-                                  ].join(' ')}
+                                  {getPartyName(owner)}
                                 </CardTitle>
                                 <p className="eb-text-sm eb-font-medium">
                                   {owner.individualDetails?.jobTitle === 'Other'
@@ -317,16 +345,33 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             Change
                           </Button>
                         </div>
-                        {clientData?.outstanding?.questionIds?.map(
-                          (questionId) => {
-                            const question = questionsDetails?.questions?.find(
-                              (q) => q.id === questionId
-                            );
+                        {questionsDetails?.questions?.map((question) => {
+                          if (!isQuestionVisible(question)) return null;
+
+                          const questionText = question.description
+                            ?.split('\n')
+                            .map((line, index) => (
+                              <p
+                                key={index}
+                                className={cn({
+                                  'eb-ml-4': index > 0,
+                                })}
+                              >
+                                {line}
+                              </p>
+                            ));
+
+                          if (
+                            question.id &&
+                            clientData?.outstanding.questionIds?.includes(
+                              question.id
+                            )
+                          ) {
                             return (
-                              <div className="eb-space-y-0.5" key={questionId}>
-                                <p className="eb-text-sm eb-font-medium">
-                                  {question?.description}
-                                </p>
+                              <div className="eb-space-y-0.5" key={question.id}>
+                                <div className="eb-text-sm eb-font-medium">
+                                  {questionText}
+                                </div>
                                 <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
                                   <TriangleAlertIcon className="eb-size-4" />
                                   <p className="eb-italic">
@@ -336,27 +381,27 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               </div>
                             );
                           }
-                        )}
-                        {clientData?.questionResponses?.map(
-                          (questionResponse) => (
-                            <div
-                              className="eb-space-y-0.5"
-                              key={questionResponse.questionId}
-                            >
-                              <p className="eb-text-sm eb-font-medium">
-                                {
-                                  questionsDetails?.questions?.find(
-                                    (q) => q.id === questionResponse.questionId
-                                  )?.description
-                                }
-                              </p>
+                          const response = existingQuestionResponses?.find(
+                            (r) => r.questionId === question.id
+                          );
+
+                          return (
+                            <div className="eb-space-y-0.5" key={question.id}>
+                              <div className="eb-text-sm eb-font-medium">
+                                {questionText}
+                              </div>
                               <div>
                                 <b>{t('reviewAndAttest.response')}:</b>{' '}
-                                {questionResponse?.values?.join(', ')}
+                                {(response &&
+                                  formatQuestionResponse(response)) || (
+                                  <span className="eb-italic eb-text-muted-foreground">
+                                    {t('common:empty')}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                          )
-                        )}
+                          );
+                        })}
                       </Card>
                     );
                   }
@@ -402,7 +447,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          <div className="eb-space-y-1">
+          <div className="eb-space-y-2">
             <p className="eb-text-sm eb-font-medium">
               Data accuracy attestation
             </p>
@@ -411,9 +456,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               name="attested"
               render={({ field }) => (
                 <FormItem>
-                  <div className="eb-flex eb-items-center eb-space-x-2">
+                  <div className="eb-flex eb-items-start eb-space-x-3">
                     <FormControl>
                       <Checkbox
+                        className="eb-mt-0.5 eb-rounded-sm"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />

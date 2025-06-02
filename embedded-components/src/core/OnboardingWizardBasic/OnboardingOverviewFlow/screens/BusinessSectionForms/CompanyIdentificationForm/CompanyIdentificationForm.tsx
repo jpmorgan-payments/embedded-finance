@@ -81,7 +81,7 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
           ),
         }))}
       />
-      {currentIdType && (
+      {form.watch('countryOfFormation') === 'US' && (
         <div className="eb-space-y-2">
           <OnboardingFormField
             key={currentIdType}
