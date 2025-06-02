@@ -167,7 +167,7 @@ export const OverviewScreen = () => {
                         }
                       )}
                     >
-                      <div className="eb-flex eb-w-full eb-justify-between">
+                      <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
                         <div className="eb-flex eb-items-center eb-gap-2">
                           <section.sectionConfig.icon
                             className={cn('eb-size-4', {
