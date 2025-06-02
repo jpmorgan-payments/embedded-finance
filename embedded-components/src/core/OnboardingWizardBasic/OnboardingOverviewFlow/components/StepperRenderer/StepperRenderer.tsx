@@ -81,10 +81,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     next: stepperNext,
     prev: stepperPrev,
   } = useStepper({
-    initialStep:
-      initialStepperStepId || previouslyCompleted
-        ? steps[steps.length - 1].id
-        : steps[0].id,
+    initialStep: previouslyCompleted
+      ? steps[steps.length - 1].id
+      : (initialStepperStepId ?? steps[0].id),
   });
 
   if (!currentStep) {

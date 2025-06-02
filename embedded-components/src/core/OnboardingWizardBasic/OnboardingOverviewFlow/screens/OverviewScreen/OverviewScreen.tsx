@@ -35,7 +35,7 @@ export const OverviewScreen = () => {
   const { organizationType, clientData } = useOnboardingOverviewContext();
   const { sections, goTo, sessionData, updateSessionData } = useFlowContext();
 
-  const { sectionStatuses } = getFlowProgress(
+  const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
     clientData
@@ -184,6 +184,12 @@ export const OverviewScreen = () => {
               {sections.map((section) => {
                 const sectionStatus = sectionStatuses?.[section.id];
                 const sectionDisabled = sectionStatus === 'on_hold';
+                const firstInvalidStep = stepValidations[section.id]
+                  ? Object.entries(stepValidations[section.id]).find(
+                      ([, validation]) => !validation.isValid
+                    )?.[0]
+                  : undefined;
+
                 // const sectionVerifying =
                 //   sectionStatus === 'verifying' ||
                 //   sessionData.mockedVerifyingSectionId === section.id;
@@ -286,7 +292,7 @@ export const OverviewScreen = () => {
                       <Button
                         variant={
                           ['completed', 'on_hold'].includes(sectionStatus)
-                            ? 'outline-primary'
+                            ? 'secondary'
                             : 'default'
                         }
                         size="sm"
@@ -296,6 +302,7 @@ export const OverviewScreen = () => {
                           goTo(section.id, {
                             editingPartyId: existingPartyData.id,
                             previouslyCompleted: sectionStatus === 'completed',
+                            initialStepperStepId: firstInvalidStep,
                           });
                         }}
                       >
@@ -393,7 +400,8 @@ export const OverviewScreen = () => {
                     </div>
                   </div>
                   <Button
-                    variant="outline-primary"
+                    variant="secondary"
+                    size="sm"
                     className="eb-mt-3 eb-w-full"
                     disabled={!kycCompleted}
                   >
