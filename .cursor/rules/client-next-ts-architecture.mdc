@@ -1,0 +1,251 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Client Next.js SellSense Demo Architecture Rules
+
+## Project Overview
+
+The `client-next-ts` project is a showcase application demonstrating embedded finance components through a SellSense marketplace demo. It follows modern React patterns with TanStack Router, comprehensive theming, and URL-driven state management.
+
+## Key Architecture Patterns
+
+### 1. TanStack Router with Schema Validation
+
+**Pattern**: All routes use Zod schemas for search parameter validation with comprehensive type safety.
+
+```typescript
+// Example from [sellsense-demo.tsx](mdc:app/client-next-ts/src/routes/sellsense-demo.tsx)
+const sellsenseDemoSearchSchema = z.object({
+  scenario: z.enum(['New Seller - Onboarding', ...]).optional(),
+  theme: z.enum(['Default', 'Dark', 'Partner A', ...]).optional(),
+  contentTone: z.enum(['Standard', 'Friendly']).optional(),
+  fullscreen: z.boolean().optional(),
+});
+
+export const Route = createFileRoute('/route-name')({
+  component: ComponentName,
+  validateSearch: routeSearchSchema,
+});
+```
+
+**Rules**:
+- Always define search schemas with validation
+- Use `Route.useSearch()` instead of manual URLSearchParams
+- Provide meaningful defaults for all optional parameters
+- Keep parameter names consistent across routes
+
+### 2. Theme System with Design Tokens
+
+**Pattern**: Comprehensive theming system with CSS custom properties and design tokens.
+
+**Key Files**:
+- [use-sellsense-themes.ts](mdc:app/client-next-ts/src/components/sellsense/use-sellsense-themes.ts) - Theme mapping hook
+- [tailwind.config.js](mdc:app/client-next-ts/tailwind.config.js) - Design token configuration
+
+**Rules**:
+- Use theme hook for component styling: `const { themeVariables } = useSellsenseThemes(theme)`
+- Apply CSS custom properties via `style` prop for dynamic theming
+- Follow design token hierarchy: colors, typography, spacing, borders
+- Include hover/active states for interactive elements
+- Use semantic color names (primary, secondary, destructive)
+
+### 3. URL-Driven State Management
+
+**Pattern**: Bidirectional synchronization between component state and URL parameters.
+
+```typescript
+// Pattern from dashboard-layout.tsx
+const search = Route.useSearch();
+const navigate = Route.useNavigate();
+
+// Initialize state from URL
+const [scenario, setScenario] = useState(search.scenario || defaultScenario);
+
+// Update URL when state changes
+useEffect(() => {
+  const newSearch = { ...search, scenario };
+  navigate({ search: newSearch, replace: true });
+}, [scenario]);
+```
+
+**Rules**:
+- Sync all user-configurable state with URL parameters
+- Use `replace: true` for state updates to avoid cluttering history
+- Validate and provide fallbacks for invalid URL parameters
+- Ensure sharable URLs for specific demo configurations
+
+### 4. Conditional Rendering for Demo Modes
+
+**Pattern**: Support both embedded demo mode and fullscreen component mode.
+
+```typescript
+// Pattern from multiple components
+const { fullscreen } = Route.useSearch();
+
+return (
+  <div>
+    {fullscreen ? (
+      // Pure component without demo chrome
+      <OnboardingFlow {...componentProps} />
+    ) : (
+      // Wrapped in demo UI with controls
+      <ComponentWrapper>
+        <OnboardingFlow {...componentProps} />
+        <ControlIcons />
+      </ComponentWrapper>
+    )}
+  </div>
+);
+```
+
+**Rules**:
+- Always check for fullscreen mode in component layouts
+- Hide navigation, headers, and demo controls in fullscreen
+- Preserve component functionality in both modes
+- Use URL parameters to control fullscreen state
+
+### 5. Component Widget Visualization
+
+**Pattern**: Wrap embedded components with visual indicators and controls.
+
+**Key Elements**:
+- Card borders with theme-specific styling
+- Control icons (Maximize2, Info) in top-right corner
+- Hover states that respect current theme
+- Tech details dialog with component information
+
+**Rules**:
+- Use card wrapper pattern for component visualization
+- Apply theme-specific border and background colors
+- Position control icons consistently (top-right)
+- Implement tech details dialog for component metadata
+
+### 6. Context-Aware Navigation
+
+**Pattern**: Sidebar content changes based on user scenario and current view.
+
+```typescript
+// Pattern from sidebar.tsx
+const isOnboardingScenario = scenario?.includes('Onboarding');
+const menuItems = isOnboardingScenario ? onboardingMenu : fullSidebarMenu;
+```
+
+**Rules**:
+- Adapt navigation based on user context
+- Show relevant menu items for current scenario
+- Include scenario indicators in UI
+- Maintain consistent navigation patterns
+
+### 7. MSW API Mocking
+
+**Pattern**: Comprehensive API mocking with Mock Service Worker for development.
+
+**Key Files**:
+- [handlers.js](mdc:app/client-next-ts/src/msw/handlers.js) - MSW request handlers
+- [db.js](mdc:app/client-next-ts/src/msw/db.js) - In-memory database simulation
+
+**Rules**:
+- Use MSW for all API interactions during development
+- Implement realistic data persistence between requests
+- Support magic values for testing different scenarios
+- Provide database reset and status endpoints
+
+## File Organization Patterns
+
+### Route Structure
+```
+src/routes/
+├── __root.tsx           # Root layout
+├── index.tsx            # Landing page
+├── sellsense-demo.tsx   # Main SellSense demo
+└── [other-routes].tsx   # Additional showcase routes
+```
+
+### Component Structure
+```
+src/components/
+├── sellsense/           # SellSense-specific components
+│   ├── dashboard-layout.tsx
+│   ├── use-sellsense-themes.ts
+│   └── [feature-components].tsx
+├── ui/                  # Reusable UI components
+└── landing/             # Landing page components
+```
+
+## Development Guidelines
+
+### Theme Development
+1. Add new themes to `use-sellsense-themes.ts`
+2. Follow existing design token patterns
+3. Test across all demo scenarios
+4. Ensure accessibility compliance
+
+### Route Development
+1. Always define search schema with Zod
+2. Use `Route.useSearch()` for parameter access
+3. Implement proper validation and fallbacks
+4. Test URL sharing functionality
+
+### Component Integration
+1. Wrap embedded components with demo chrome
+2. Support both demo and fullscreen modes
+3. Implement tech details dialog
+4. Ensure theme compatibility
+
+### API Integration
+1. Add MSW handlers for new endpoints
+2. Implement realistic data persistence
+3. Support error scenarios and edge cases
+4. Test with different magic values
+
+## Testing Patterns
+
+### URL Parameter Testing
+- Test parameter validation and fallbacks
+- Verify URL synchronization
+- Test shared URL functionality
+- Validate schema enforcement
+
+### Theme Testing
+- Test all theme variants
+- Verify design token application
+- Test hover/active states
+- Ensure accessibility compliance
+
+### Component Integration Testing
+- Test both demo and fullscreen modes
+- Verify control functionality
+- Test theme switching
+- Validate responsive behavior
+
+## Performance Considerations
+
+### Code Splitting
+- Use React.lazy for route-level components
+- Implement proper loading states
+- Optimize bundle size impact
+
+### State Management
+- Minimize unnecessary re-renders
+- Use proper dependency arrays in effects
+- Implement memoization where beneficial
+
+### API Optimization
+- Use MSW efficiently in development
+- Implement proper error boundaries
+- Handle loading states gracefully
+
+## Security Considerations
+
+### URL Parameter Validation
+- Always validate search parameters
+- Sanitize user inputs
+- Implement proper error handling
+- Use TypeScript for type safety
+
+### Component Isolation
+- Ensure embedded components are properly sandboxed
+- Validate props and data flow
+- Implement proper error boundaries

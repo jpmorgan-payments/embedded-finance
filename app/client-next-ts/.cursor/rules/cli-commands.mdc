@@ -1,0 +1,274 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# CLI Commands & PowerShell Best Practices
+
+## Environment Context
+
+- **OS**: Windows 10/11
+- **Shell**: PowerShell (C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe)
+- **Project**: client-next-ts within embedded-banking monorepo
+- **Package Manager**: npm (primary), yarn (for monorepo root)
+
+## PowerShell Command Syntax Rules
+
+### Critical Syntax Differences
+
+**❌ DON'T USE**: `&&` (not supported in PowerShell)
+**✅ USE INSTEAD**: `;` or separate commands
+
+```powershell
+# Wrong - will fail
+cd app/client-next-ts && npm run build
+
+# Correct options
+cd app/client-next-ts; npm run build
+# OR (preferred for reliability)
+cd app/client-next-ts
+npm run build
+```
+
+### Path Navigation
+```powershell
+# Both work in PowerShell
+cd app/client-next-ts
+cd app\client-next-ts
+
+# Always verify current location
+pwd  # Shows current directory
+```
+
+## Project-Specific Commands
+
+### client-next-ts Development
+```powershell
+# Navigate to project
+cd app/client-next-ts
+
+# Start development server (localhost:3000)
+npm run dev
+
+# Build for production
+npm run build
+
+# Type checking
+npm run typecheck
+
+# Preview production build
+npm run preview
+```
+
+### SellSense Demo Specific
+```powershell
+# Start dev server and navigate to demo
+cd app/client-next-ts
+npm run dev
+# Then open: http://localhost:3000/sellsense-demo
+```
+
+### Route Generation (TanStack Router)
+```powershell
+# Routes auto-generate during build
+cd app/client-next-ts
+npm run build  # Triggers route tree generation
+
+# Force route regeneration after route file changes
+rm src/routeTree.gen.ts
+npm run build
+```
+
+## MSW Development Commands
+
+### Database Management
+```powershell
+# Access MSW database endpoints (while dev server is running)
+# Reset database
+curl -X POST http://localhost:3000/ef/do/v1/_reset
+
+# Check database status  
+curl http://localhost:3000/ef/do/v1/_status
+
+# Or use PowerShell's Invoke-RestMethod
+Invoke-RestMethod -Uri "http://localhost:3000/ef/do/v1/_reset" -Method POST
+```
+
+## Multi-Command Execution Strategies
+
+### Sequential Commands (Recommended)
+```powershell
+# Reliable approach - stops on errors
+cd app/client-next-ts
+npm install
+npm run typecheck
+npm run build
+```
+
+### Using Semicolons (Use with caution)
+```powershell
+# Commands continue even if one fails
+cd app/client-next-ts; npm run typecheck; npm run build
+```
+
+### Background Processes
+```powershell
+# Start dev server in background (for automation)
+cd app/client-next-ts
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm run dev"
+
+# Or let AI assistant handle with is_background parameter
+```
+
+## Error Handling & Troubleshooting
+
+### Common PowerShell Issues
+```powershell
+# 1. Command chaining failures
+# Solution: Use separate commands or proper error handling
+
+# 2. Path resolution issues
+# Check current directory
+Get-Location
+# Navigate explicitly
+Set-Location "app/client-next-ts"
+
+# 3. Permission issues
+# May need to run as administrator for global installs
+```
+
+### TypeScript & Build Errors
+```powershell
+# Check TypeScript errors explicitly
+cd app/client-next-ts
+npm run typecheck  # Shows detailed TS errors
+
+# Clear build cache
+rm -rf node_modules/.vite
+npm run build
+
+# Full clean reinstall
+rm -rf node_modules, package-lock.json
+npm install
+```
+
+### Route-Related Issues
+```powershell
+# Route not found after changes
+cd app/client-next-ts
+rm src/routeTree.gen.ts  # Remove generated routes
+npm run build            # Regenerate routes
+
+# Clear all caches
+rm -rf node_modules/.vite, dist
+npm run build
+```
+
+### MSW Issues
+```powershell
+# MSW not intercepting requests
+# Check if worker is started (should see console message)
+# Restart dev server
+npm run dev
+
+# Check MSW registration in main.tsx
+```
+
+## Development Workflow Commands
+
+### Pre-commit Checks
+```powershell
+cd app/client-next-ts
+
+# Run all quality checks
+npm run typecheck
+npm run build  # Verifies no build errors
+
+# Optional: Preview build locally
+npm run preview
+```
+
+### Debugging Commands
+```powershell
+# Verbose npm output
+npm run build --verbose
+
+# Check package info
+npm list
+npm outdated
+
+# Clear npm cache
+npm cache clean --force
+```
+
+## Monorepo Context Commands
+
+### When working across packages
+```powershell
+# Install dependencies for all packages (from root)
+cd C:\code\embedded-banking
+yarn install
+
+# Build all packages (from root)
+yarn build
+
+# Run client-next-ts specifically
+cd app/client-next-ts
+npm run dev
+```
+
+### Cross-package Development
+```powershell
+# embedded-components package (if needed)
+cd embedded-components
+yarn dev        # Storybook
+yarn build      # Build components
+
+# Then back to client-next-ts
+cd ../app/client-next-ts
+npm run dev
+```
+
+## PowerShell Performance Tips
+
+### Efficient Navigation
+```powershell
+# Set up aliases for frequent paths
+New-Alias -Name "cdclient" -Value "Set-Location C:\code\embedded-banking\app\client-next-ts"
+
+# Use tab completion
+cd app/cl<TAB>  # Completes to client-next-ts
+```
+
+### Command History
+```powershell
+# Search command history
+Get-History
+# Or use Ctrl+R for reverse search
+```
+
+## Environment Variables
+
+### Common Development Variables
+```powershell
+# Check Node.js version
+node --version
+
+# Check npm version  
+npm --version
+
+# Set environment for debugging
+$env:NODE_ENV = "development"
+npm run build
+```
+
+## Best Practices Summary
+
+1. **Always use separate commands** instead of `&&` chaining
+2. **Verify current directory** with `pwd` before running commands
+3. **Use full paths** when relative paths cause issues
+4. **Run typecheck** before builds to catch TS errors early
+5. **Clear caches** when experiencing build issues
+6. **Use background processes** for long-running servers
+7. **Leverage PowerShell completion** for efficiency
+
