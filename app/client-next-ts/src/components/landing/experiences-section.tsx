@@ -17,6 +17,8 @@ export function ExperiencesSection() {
         'Upload documents',
         'Review and approve',
       ],
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
     },
     {
       id: 'link-account',
@@ -31,6 +33,8 @@ export function ExperiencesSection() {
         'Verify account',
         'Confirm connection',
       ],
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/LINKED_ACCOUNTS_RECIPE.md',
     },
     {
       id: 'transactions',
@@ -38,7 +42,7 @@ export function ExperiencesSection() {
       description:
         'View, filter, and manage transaction records with detailed insights',
       icon: <List className="h-5 w-5" />,
-      status: 'live',
+      status: 'coming soon',
       steps: [
         'Fetch transactions',
         'Apply filters',
@@ -101,14 +105,17 @@ export function ExperiencesSection() {
                     </ol>
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold"
-                  >
-                    View Recipe
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  {exp.recipeUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold"
+                      onClick={() => window.open(exp.recipeUrl, '_blank')}
+                    >
+                      View Recipe
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
