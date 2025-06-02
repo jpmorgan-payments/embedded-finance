@@ -16,6 +16,7 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
+import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionContent,
@@ -95,6 +96,37 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: allQuestionIds.join(','),
   });
+
+  const isQuestionVisible = (question: QuestionResponse) => {
+    if (!question.parentQuestionId) return true;
+
+    const parentQuestion = questionsDetails?.questions?.find(
+      (q) => q.id === question.parentQuestionId
+    );
+    if (!parentQuestion) return false;
+
+    const parentResponse = existingQuestionResponses.find(
+      (r) => r.questionId === parentQuestion.id
+    )?.values;
+
+    if (!parentResponse) return false;
+
+    const subQuestion = parentQuestion?.subQuestions?.find((sq) =>
+      sq.questionIds?.includes(question.id ?? '')
+    );
+
+    if (typeof subQuestion?.anyValuesMatch === 'string') {
+      return parentResponse.includes(subQuestion.anyValuesMatch);
+    }
+
+    if (Array.isArray(subQuestion?.anyValuesMatch)) {
+      return parentResponse.some((value: any) => {
+        return subQuestion.anyValuesMatch?.includes(value);
+      });
+    }
+
+    return false;
+  };
 
   const activeOwners =
     clientData?.parties?.filter(
@@ -314,6 +346,21 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                           </Button>
                         </div>
                         {questionsDetails?.questions?.map((question) => {
+                          if (!isQuestionVisible(question)) return null;
+
+                          const questionText = question.description
+                            ?.split('\n')
+                            .map((line, index) => (
+                              <p
+                                key={index}
+                                className={cn({
+                                  'eb-ml-4': index > 0,
+                                })}
+                              >
+                                {line}
+                              </p>
+                            ));
+
                           if (
                             question.id &&
                             clientData?.outstanding.questionIds?.includes(
@@ -322,9 +369,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                           ) {
                             return (
                               <div className="eb-space-y-0.5" key={question.id}>
-                                <p className="eb-text-sm eb-font-medium">
-                                  {question.description}
-                                </p>
+                                <div className="eb-text-sm eb-font-medium">
+                                  {questionText}
+                                </div>
                                 <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
                                   <TriangleAlertIcon className="eb-size-4" />
                                   <p className="eb-italic">
@@ -334,19 +381,19 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               </div>
                             );
                           }
-                          const response = clientData?.questionResponses?.find(
+                          const response = existingQuestionResponses?.find(
                             (r) => r.questionId === question.id
                           );
 
-                          if (!response) return null;
                           return (
                             <div className="eb-space-y-0.5" key={question.id}>
-                              <p className="eb-text-sm eb-font-medium">
-                                {question.description}
-                              </p>
+                              <div className="eb-text-sm eb-font-medium">
+                                {questionText}
+                              </div>
                               <div>
                                 <b>{t('reviewAndAttest.response')}:</b>{' '}
-                                {formatQuestionResponse(response) || (
+                                {(response &&
+                                  formatQuestionResponse(response)) || (
                                   <span className="eb-italic eb-text-muted-foreground">
                                     {t('common:empty')}
                                   </span>
@@ -400,7 +447,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          <div className="eb-space-y-1">
+          <div className="eb-space-y-2">
             <p className="eb-text-sm eb-font-medium">
               Data accuracy attestation
             </p>
