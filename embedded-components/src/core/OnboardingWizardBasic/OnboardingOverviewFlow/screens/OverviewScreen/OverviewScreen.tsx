@@ -45,8 +45,7 @@ export const OverviewScreen = () => {
 
   // TODO:
   const kycCompleted =
-    sessionData.mockedKycCompleted ||
-    clientData?.status === 'REVIEW_IN_PROGRESS';
+    sessionData.mockedKycCompleted || clientData?.status === 'APPROVED';
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
