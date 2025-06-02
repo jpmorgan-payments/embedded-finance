@@ -82,13 +82,19 @@ const sectionScreens: SectionScreenConfig[] = [
     type: 'stepper',
     sectionConfig: {
       label: 'Your personal details',
+      shortLabel: 'Personal details',
       icon: UserIcon,
       requirementsList: [
         'Your name and job title',
         'Government issued identifier (e.g. social security number)',
         'Address and contact details',
       ],
-      statusResolver: (sessionData, clientData, allStepsValid) => {
+      statusResolver: (
+        sessionData,
+        clientData,
+        allStepsValid,
+        stepValidationMap
+      ) => {
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
         }
@@ -103,6 +109,17 @@ const sectionScreens: SectionScreenConfig[] = [
         if (allStepsValid) {
           return 'completed';
         }
+
+        const isAnyStepValid = Object.entries(stepValidationMap).some(
+          ([, stepValidation]) => {
+            return stepValidation.isValid;
+          }
+        );
+
+        if (isAnyStepValid) {
+          return 'missing_details';
+        }
+
         return 'not_started';
       },
     },
@@ -118,7 +135,7 @@ const sectionScreens: SectionScreenConfig[] = [
       steps: [
         {
           id: 'personal-details',
-          title: 'Personal details',
+          title: 'Your personal details',
           stepType: 'form',
           description:
             'We collect your personal information as the primary person controlling business operations for the company.',

@@ -66,13 +66,15 @@ export type SectionScreenConfig = BaseScreenConfig & {
   sectionConfig: {
     icon: LucideIcon;
     label: string;
+    shortLabel?: string;
     helpText?: string;
     onHoldText?: string;
     requirementsList?: string[];
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
-      allStepsValid: boolean
+      allStepsValid: boolean,
+      stepValidationMap: StepValidationMap
     ) => SectionStatus;
   };
 };
