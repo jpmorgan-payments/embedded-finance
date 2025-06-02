@@ -342,7 +342,7 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: 'Supporting documents',
       icon: UploadIcon,
-      onHoldText: 'Supporting documents are only needed in some cases',
+      onHoldText: "We'll let you know if any documents are needed",
       statusResolver: (sessionData, clientData) => {
         if (
           clientData?.status === 'INFORMATION_REQUESTED' &&

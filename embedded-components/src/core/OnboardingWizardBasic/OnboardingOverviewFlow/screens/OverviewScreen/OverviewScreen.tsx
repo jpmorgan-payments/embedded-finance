@@ -148,7 +148,7 @@ export const OverviewScreen = () => {
                       section.sectionConfig.onHoldText && (
                         <p
                           className={cn(
-                            'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-italic',
+                            'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
                             {
                               'eb-text-muted-foreground': sectionDisabled,
                             }
@@ -294,7 +294,7 @@ export const OverviewScreen = () => {
               <div>
                 <p
                   className={cn(
-                    'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-italic',
+                    'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
                     {
                       'eb-text-muted-foreground': !kycCompleted,
                     }
@@ -348,22 +348,14 @@ export const OverviewScreen = () => {
                       <span className="eb-sr-only">Not started</span>
                     </div>
                   </div>
-                  <div className="eb-mt-3">
-                    <Button
-                      variant="outline"
-                      className="eb-border-primary eb-text-primary"
-                      disabled={!kycCompleted}
-                    >
-                      {!kycCompleted ? (
-                        'hold'
-                      ) : (
-                        <>
-                          {t('common:start')}
-                          <ChevronRightIcon />
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline-primary"
+                    className="eb-mt-3 eb-w-full"
+                    disabled={!kycCompleted}
+                  >
+                    {t('common:start')}
+                    <ChevronRightIcon />
+                  </Button>
                 </Card>
               </div>
             </div>
