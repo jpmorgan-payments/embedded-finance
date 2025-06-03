@@ -17,14 +17,13 @@ export const PersonalDetailsForm: FormStepComponent = () => {
   const jobTitle = form.watch('controllerJobTitle');
 
   return (
-    <div className="eb-mt-6 eb-space-y-9">
-      <fieldset className="eb-grid eb-gap-y-6">
-        <legend className="eb-mb-1 eb-text-base eb-font-medium">
+    <div className="eb-mt-6 eb-space-y-6">
+      <fieldset className="eb-grid eb-gap-y-3">
+        <legend className="eb-mb-1.5 eb-text-lg eb-font-medium">
           Legal name
         </legend>
-        <p className="eb-text-sm eb-italic eb-text-muted-foreground">
-          Please provide your full name exactly as recorded with government
-          agencies
+        <p className="eb-text-sm">
+          Your full name as recorded with government agencies
         </p>
         <OnboardingFormField
           control={form.control}
