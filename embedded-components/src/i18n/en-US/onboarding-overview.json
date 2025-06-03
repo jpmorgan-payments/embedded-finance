@@ -95,10 +95,10 @@
         "tooltip": ""
       }
     },
-    "controllerPhone": {
+    "controllerPhone.phoneNumber": {
       "label": "Phone number"
     },
-    "organizationPhone": {
+    "organizationPhone.phoneNumber": {
       "label": "Phone number"
     },
     "organizationEmail": {
