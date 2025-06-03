@@ -29,4 +29,5 @@ module.exports = {
     '',
     '^[./]',
   ],
+  tailwindFunctions: ['clsx', 'cva'],
 };
