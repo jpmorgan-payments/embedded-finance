@@ -146,8 +146,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         (currentStep.stepType === 'check-answers' && previouslyCompleted)) &&
       originScreenId
     ) {
+      if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
+        return 'Return to overview';
+      }
       if (originScreenId === 'owners-section') {
-        return 'Back to all owners';
+        return 'Back to all owners overview';
       }
     }
     return 'Previous';
@@ -416,7 +419,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
       <form
         id={currentStepId}
         onSubmit={onSubmit}
-        className="eb-flex eb-max-h-[840px] eb-flex-auto eb-flex-col"
+        className="eb-flex eb-flex-auto eb-flex-col"
       >
         <div className="eb-flex-auto">
           <Component currentPartyData={existingPartyData} />
