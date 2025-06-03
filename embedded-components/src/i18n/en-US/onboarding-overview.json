@@ -121,7 +121,7 @@
       },
       "city": {
         "label": "Town/City",
-        "description": ""
+        "description": "Locality, Settlement, etc."
       },
       "state": {
         "label": "State/Province",

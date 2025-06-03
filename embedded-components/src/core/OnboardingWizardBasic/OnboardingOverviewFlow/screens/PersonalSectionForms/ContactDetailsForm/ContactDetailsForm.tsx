@@ -14,21 +14,19 @@ export const ContactDetailsForm: FormStepComponent = () => {
   const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
 
   return (
-    <div className="eb-mt-6 eb-space-y-8">
-      <div className="eb-space-y-4">
-        <OnboardingFormField
-          control={form.control}
-          name="controllerEmail"
-          type="email"
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="controllerPhone.phoneNumber"
-          type="phone"
-        />
-      </div>
-      <fieldset className="eb-grid eb-gap-4">
-        <legend className="eb-mb-4 eb-text-base eb-font-medium">
+    <div className="eb-mt-6 eb-space-y-6">
+      <OnboardingFormField
+        control={form.control}
+        name="controllerEmail"
+        type="email"
+      />
+      <OnboardingFormField
+        control={form.control}
+        name="controllerPhone.phoneNumber"
+        type="phone"
+      />
+      <fieldset className="eb-grid eb-gap-3">
+        <legend className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
           Personal address
         </legend>
         <OnboardingFormField
