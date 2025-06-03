@@ -36,9 +36,9 @@ export const useSellSenseThemes = () => {
           primaryForegroundActiveColor: '#f1f5f9',
 
           // Secondary colors - Enhanced outline button support
-          secondaryColor: 'transparent', // Modern transparent secondary
-          secondaryHoverColor: 'rgba(99, 102, 241, 0.08)', // Subtle primary tint
-          secondaryActiveColor: 'rgba(99, 102, 241, 0.12)', // Slightly more prominent
+          secondaryColor: '#00000000', // Transparent
+          secondaryHoverColor: '#6366f114', // Subtle primary tint (8% opacity)
+          secondaryActiveColor: '#6366f11f', // Slightly more prominent (12% opacity)
           secondaryForegroundColor: '#6366f1', // Primary color for text
           secondaryForegroundHoverColor: '#4f46e5', // Hover state
           secondaryForegroundActiveColor: '#4338ca', // Active state
@@ -96,56 +96,58 @@ export const useSellSenseThemes = () => {
         // Enhanced SellSense theme with v0.6.13 improvements
         return {
           fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          headerFontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          buttonFontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          
+          headerFontFamily:
+            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+          buttonFontFamily:
+            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+
           // SellSense brand colors
           primaryColor: '#f55727', // SellSense orange
           primaryHoverColor: '#e14d1f', // Darker orange for hover
           primaryActiveColor: '#cc4319', // Even darker for active
           primaryForegroundColor: '#ffffff',
-          
+
           // Enhanced secondary button with outline support
-          secondaryColor: 'transparent',
-          secondaryHoverColor: 'rgba(245, 87, 39, 0.08)', // Orange tint
+          secondaryColor: '#00000000', // Transparent
+          secondaryHoverColor: '#f5572714', // Orange tint (8% opacity)
           secondaryActiveColor: '#2CB9AC', // SellSense teal for active
           secondaryForegroundColor: '#f55727', // Orange text
           secondaryForegroundHoverColor: '#e14d1f',
           secondaryForegroundActiveColor: '#2CB9AC',
           secondaryBorderWidth: '1px', // Outline button border
-          
+
           // Background and layout
           backgroundColor: '#F8FAFC',
           foregroundColor: '#1e293b',
           cardColor: '#ffffff',
           cardForegroundColor: '#1e293b',
-          
+
           // Enhanced input styling
           inputColor: '#FFFFFF',
-          inputBorderColor: 'rgba(0, 0, 0, 0.3)', // More subtle border
-          borderColor: 'rgba(0, 0, 0, 0.3)',
-          
+          inputBorderColor: '#0000004d', // Black with 30% opacity
+          borderColor: '#0000004d',
+
           // Modern border radius
           borderRadius: '6px',
           inputBorderRadius: '4px',
           buttonBorderRadius: '8px',
-          
+
           // Enhanced button styling
           buttonFontWeight: '600', // SellSense brand weight
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
           buttonTextTransform: 'uppercase', // Brand style
           buttonLetterSpacing: '0.6px', // Brand spacing
-          
+
           // Button weights
           primaryButtonFontWeight: '600',
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
-          
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
-          
+
           // Spacing and effects
           spacingUnit: '0.25rem',
           shiftButtonOnActive: false,
@@ -157,54 +159,54 @@ export const useSellSenseThemes = () => {
           fontFamily: 'Open Sans',
           headerFontFamily: 'Amplitude',
           buttonFontFamily: 'Amplitude',
-          
+
           // S&P brand colors
           primaryColor: '#1B7F9E', // S&P teal
           primaryHoverColor: '#166b85', // Darker teal
           primaryActiveColor: '#145a71', // Even darker
           primaryForegroundColor: '#ffffff',
-          
+
           // Enhanced secondary styling with proper outline button support
-          secondaryColor: 'white',
-          secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)', // Subtle gray hover
-          secondaryActiveColor: 'hsla(240, 4.8%, 95.9%, 0.8)', // More prominent active
+          secondaryColor: '#ffffff',
+          secondaryHoverColor: '#f1f2f480', // Subtle gray hover (50% opacity)
+          secondaryActiveColor: '#f1f2f4cc', // More prominent active (80% opacity)
           secondaryForegroundColor: '#1B7F9E', // S&P teal text
           secondaryForegroundHoverColor: '#166b85',
           secondaryForegroundActiveColor: '#145a71',
           secondaryBorderWidth: '1px', // Outline button border
-          
+
           // Background and layout
           backgroundColor: '#f6f7f8',
           foregroundColor: '#1e293b',
           cardColor: '#ffffff',
           cardForegroundColor: '#1e293b',
-          
+
           // Input styling
           inputColor: '#FFFFFF',
-          inputBorderColor: 'rgba(0, 0, 0, 0.3)',
-          borderColor: 'rgba(0, 0, 0, 0.3)',
-          
+          inputBorderColor: '#0000004d', // Black with 30% opacity
+          borderColor: '#0000004d',
+
           // Border radius
           borderRadius: '6px',
           inputBorderRadius: '4px',
           buttonBorderRadius: '8px',
-          
+
           // Enhanced button styling
           buttonFontWeight: '600', // S&P brand weight
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
           buttonTextTransform: 'uppercase', // Brand style
           buttonLetterSpacing: '0.6px', // Brand spacing
-          
+
           // Button weights
           primaryButtonFontWeight: '600',
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
-          
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
-          
+
           // Spacing and effects
           spacingUnit: '0.25rem',
           shiftButtonOnActive: false,
@@ -214,9 +216,11 @@ export const useSellSenseThemes = () => {
         // Enhanced Dark theme with v0.6.13 improvements
         return {
           fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          headerFontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          buttonFontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          
+          headerFontFamily:
+            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+          buttonFontFamily:
+            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+
           // Dark theme colors
           backgroundColor: '#1e293b', // slate-800
           foregroundColor: '#f1f5f9', // slate-100
@@ -224,55 +228,55 @@ export const useSellSenseThemes = () => {
           cardForegroundColor: '#f1f5f9',
           popoverColor: '#334155',
           popoverForegroundColor: '#f1f5f9',
-          
+
           // Primary colors (keeping SellSense orange for brand consistency)
           primaryColor: '#f55727',
           primaryHoverColor: '#e14d1f',
           primaryActiveColor: '#cc4319',
           primaryForegroundColor: '#ffffff',
-          
+
           // Enhanced secondary for dark mode
-          secondaryColor: 'transparent',
-          secondaryHoverColor: 'rgba(245, 87, 39, 0.1)', // Subtle orange in dark
+          secondaryColor: '#00000000', // Transparent
+          secondaryHoverColor: '#f557271a', // Subtle orange in dark (10% opacity)
           secondaryActiveColor: '#2CB9AC', // SellSense teal
           secondaryForegroundColor: '#f55727',
           secondaryForegroundHoverColor: '#e14d1f',
           secondaryForegroundActiveColor: '#2CB9AC',
           secondaryBorderWidth: '1px',
-          
+
           // Muted colors for dark theme
           mutedColor: '#475569', // slate-600
           mutedForegroundColor: '#94a3b8', // slate-400
           accentColor: '#475569',
           accentForegroundColor: '#f1f5f9',
-          
+
           // Enhanced dark theme inputs
           inputColor: '#475569', // slate-600
           inputBorderColor: '#64748b', // slate-500
           borderColor: '#64748b',
           ringColor: '#f55727', // Orange focus ring
-          
+
           // Border radius
           borderRadius: '6px',
           inputBorderRadius: '4px',
           buttonBorderRadius: '8px',
-          
+
           // Enhanced button styling
           buttonFontWeight: '600',
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
           buttonTextTransform: 'uppercase',
           buttonLetterSpacing: '0.6px',
-          
+
           // Button weights
           primaryButtonFontWeight: '600',
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
-          
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
-          
+
           // Spacing and effects
           spacingUnit: '0.25rem',
           shiftButtonOnActive: false,
@@ -282,56 +286,58 @@ export const useSellSenseThemes = () => {
         // Enhanced Partner A theme with v0.6.13 improvements
         return {
           fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          headerFontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          buttonFontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          
+          headerFontFamily:
+            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+          buttonFontFamily:
+            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+
           // JP Morgan brand colors
           primaryColor: '#1c2752', // JP Morgan blue
           primaryHoverColor: '#15203d', // Darker blue
           primaryActiveColor: '#0f1729', // Even darker
           primaryForegroundColor: '#ffffff',
-          
+
           // Enhanced secondary with JP Morgan brown accent
-          secondaryColor: 'transparent',
-          secondaryHoverColor: 'rgba(28, 39, 82, 0.08)', // Blue tint
+          secondaryColor: '#00000000', // Transparent
+          secondaryHoverColor: '#1c275214', // Blue tint (8% opacity)
           secondaryActiveColor: '#936846', // JP Morgan brown
           secondaryForegroundColor: '#1c2752', // Blue text
           secondaryForegroundHoverColor: '#15203d',
           secondaryForegroundActiveColor: '#936846',
           secondaryBorderWidth: '1px',
-          
+
           // Background and layout
           backgroundColor: '#f0f2f8', // Light blue-gray
           foregroundColor: '#1e293b',
           cardColor: '#ffffff',
           cardForegroundColor: '#1e293b',
-          
+
           // Input styling
           inputColor: '#FFFFFF',
-          inputBorderColor: 'rgba(0, 0, 0, 0.3)',
-          borderColor: 'rgba(0, 0, 0, 0.3)',
-          
+          inputBorderColor: '#0000004d', // Black with 30% opacity
+          borderColor: '#0000004d',
+
           // Border radius
           borderRadius: '6px',
           inputBorderRadius: '4px',
           buttonBorderRadius: '8px',
-          
+
           // Enhanced button styling
           buttonFontWeight: '600',
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
           buttonTextTransform: 'uppercase',
           buttonLetterSpacing: '0.6px',
-          
+
           // Button weights
           primaryButtonFontWeight: '600',
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
-          
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
-          
+
           // Spacing and effects
           spacingUnit: '0.25rem',
           shiftButtonOnActive: false,
