@@ -49,10 +49,9 @@ The integration involves the following key steps:
       be valid for 60 seconds).
     - Your backend securely returns this token to your frontend.
 4.  **Frontend Iframe Embedding:**
-    - The frontend receives the session token.
-    - It dynamically constructs the URL for the hosted Onboarding UI, appending
-      the token as a query parameter (e.g.,
-      `https://<onboarding-provider-domain>/onboarding?token={jwt_token}`).
+    - The frontend receives the session token.    - It uses the provided URL from the response, which already contains the embedded
+      authentication token (e.g., 
+      `https://url.jpmorgan.com/t/17465629080405AI41`).
     - The Onboarding UI is then loaded within an `<iframe>` on your platform's
       page.
 5.  **Communication (Optional):** The iframe can communicate events (e.g.,
@@ -69,10 +68,8 @@ sequenceDiagram
     User->>PlatformFrontend: Trigger page with onboarding UI
     PlatformFrontend->>PlatformBackend: Request Session Token (e.g., POST /sessions with clientId)
     PlatformBackend->>OnboardingService: Initiate Session (for clientId)
-    OnboardingService-->>PlatformBackend: Returns JWT Token
-    PlatformBackend-->>PlatformFrontend: Returns JWT Token
-    PlatformFrontend->>PlatformFrontend: Construct Iframe URL with Token
-    PlatformFrontend->>OnboardingService: Load Onboarding UI in Iframe (src="...&token={jwt}")
+    OnboardingService-->>PlatformBackend: Returns JWT Token    PlatformBackend-->>PlatformFrontend: Returns Session Response (url & token)
+    PlatformFrontend->>OnboardingService: Load Onboarding UI in Iframe using provided URL
     Note over OnboardingService, PlatformFrontend: Onboarding UI loads and user interacts
     OnboardingService->>PlatformFrontend: (Optional) postMessage (e.g. status changes, errors, other events)
     PlatformFrontend->>PlatformBackend: (Optional) Notify Backend of status changes, errors, other events
@@ -93,8 +90,11 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Example Request Payload (from your backend to the Onboarding Service):**
   ```json
   {
-    "type": "DOCUMENT_UPLOAD",
-    "targetId": "1000000000" // clientId
+    "type": "EMBEDDED_UI",
+    "target": {
+      "id": "1000000000", // clientId
+      "type": "CLIENT"
+    }
   }
   ```
 - **Backend Logic (on your platform's backend):**
@@ -102,9 +102,11 @@ backend** to manage session transfer to the hosted Onboarding UI.
       on your platform).
   2.  Make a secure server-to-server call to the Onboarding Service's API
       endpoint (provided by the Onboarding Service) to create a session for the
-      given `clientId`. This request might include passing user details to
-      pre-fill information. 2.1. In case of error try to retry the request.
+      given `clientId`. This request requires specifying both the session type (`EMBEDDED_UI`) 
+      and the target object with ID and type (`CLIENT` or `PARTY`).
+      2.1. In case of error try to retry the request.
       Possible errors:
+  - `400`: Bad Request - Invalid input parameters.
   - `404`: The clientId is not found.
   - `422`: The clientId is not valid.
   - `500`: Server error.
@@ -117,12 +119,14 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Example Response (from the Onboarding Service to your backend):**
   ```json
   {
-    "type": "DOCUMENT_UPLOAD",
-    "targetId": "1000000000", // clientId
-    "hostedUi": {
-      "url": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
-      "token": "jwt_token"
-    }
+    "id": "9000005555",
+    "type": "EMBEDDED_UI",
+    "target": {
+      "id": "1000000000", // clientId
+      "type": "CLIENT"
+    },
+    "url": "https://<onboarding-provider-domain>/onboarding?token={jwt_token}",
+    "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2aXJ0dWFsY2FyZF9xYTAxX"
   }
   ```
 
@@ -147,9 +151,9 @@ When the user initiates onboarding on your platform:
 
 ### 3.2. Rendering the Iframe
 
-1.  **Dynamically construct the URL:** Use the received token to build the `src`
-    URL for the iframe, e.g.
-    `https://<onboarding-provider-domain>/onboarding?token=${sessionToken}`
+1.  **Use the provided URL:** The response includes a complete `url` field that should be
+    used directly as the iframe's `src` attribute. The token is already embedded in this URL.
+    For example: `https://url.jpmorgan.com/t/17465629080405AI41`
 
 2.  **Create and mount the iframe**
 
@@ -181,12 +185,10 @@ When the user initiates onboarding on your platform:
         style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); z-index:1; align-items:center; justify-content:center;"
       >
         <div role="status" aria-live="polite">Loading Onboarding UI...</div>
-      </div>
-
-      <iframe
+      </div>      <iframe
         id="onboarding-iframe"
         title="Complete your account onboarding - interactive form"
-        src="YOUR_CONSTRUCTED_IFRAME_URL"
+        src="YOUR_PROVIDED_SESSION_URL" <!-- Use the url directly from the session response -->
         width="100%"
         height="600"
         style="border:none; display:block; width:100%;"
@@ -356,9 +358,8 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 - **Responsibilities:**
   - Provide a UI element (e.g., a button) for the user to initiate the
     onboarding process.
-  - Call your platform's backend to obtain the session token.
-  - Dynamically create and render the `<iframe>` with the correct `src` URL
-    (including the token) and appropriate security attributes.
+  - Call your platform's backend to obtain the session token.  - Create and render the `<iframe>` using the complete `url` provided in the session 
+    response and appropriate security attributes.
   - Manage loading states:
     - While waiting for the session token from your backend.
     - While the `<iframe>` content is loading (e.g., using the `onLoad` event
