@@ -49,7 +49,8 @@ The integration involves the following key steps:
       be valid for 60 seconds).
     - Your backend securely returns this token to your frontend.
 4.  **Frontend Iframe Embedding:**
-    - The frontend receives the session token.    - It uses the provided URL from the response, which already contains the embedded
+    - The frontend receives the session token.    
+    - It uses the provided URL from the response, which already contains the embedded
       authentication token (e.g., 
       `https://url.jpmorgan.com/t/17465629080405AI41`).
     - The Onboarding UI is then loaded within an `<iframe>` on your platform's
