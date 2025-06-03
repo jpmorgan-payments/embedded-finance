@@ -25,7 +25,7 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  'eb-group eb-pointer-events-auto eb-relative eb-flex eb-w-full eb-items-center eb-justify-between eb-space-x-2 eb-overflow-hidden eb-rounded-md eb-border eb-p-4 eb-pr-6 eb-shadow-lg eb-transition-all data-[swipe=cancel]:eb-translate-x-0  data-[swipe=end]:eb-translate-x-[var(--radix-toast-swipe-end-x)]  data-[swipe=move]:eb-translate-x-[var(--radix-toast-swipe-move-x)]  data-[swipe=move]:eb-transition-none  data-[state=open]:eb-animate-in  data-[state=closed]:eb-animate-out  data-[swipe=end]:eb-animate-out  data-[state=closed]:eb-fade-out-80  data-[state=closed]:eb-slide-out-to-right-full  data-[state=open]:eb-slide-in-from-top-full  data-[state=open]:sm:eb-slide-in-from-bottom-full',
+  'eb-group eb-pointer-events-auto eb-relative eb-flex eb-w-full eb-items-center eb-justify-between eb-space-x-2 eb-overflow-hidden eb-rounded-md eb-border eb-p-4 eb-pr-6 eb-shadow-lg eb-transition-all data-[swipe=cancel]:eb-translate-x-0 data-[swipe=end]:eb-translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:eb-translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:eb-transition-none data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[swipe=end]:eb-animate-out data-[state=closed]:eb-fade-out-80 data-[state=closed]:eb-slide-out-to-right-full data-[state=open]:eb-slide-in-from-top-full data-[state=open]:sm:eb-slide-in-from-bottom-full',
   {
     variants: {
       variant: {
