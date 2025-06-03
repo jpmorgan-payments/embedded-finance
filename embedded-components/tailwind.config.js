@@ -75,6 +75,18 @@ module.exports = {
               'hsl(var(--eb-destructive-foreground-active, var(--eb-destructive-foreground)))',
           },
         },
+        informative: {
+          DEFAULT: 'hsl(var(--eb-informative))',
+          accent: 'hsl(var(--eb-informative-accent))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--eb-warning))',
+          accent: 'hsl(var(--eb-warning-accent))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--eb-success))',
+          accent: 'hsl(var(--eb-success-accent))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
           foreground: 'hsl(var(--eb-muted-foreground))',
@@ -90,6 +102,10 @@ module.exports = {
         card: {
           DEFAULT: 'hsl(var(--eb-card))',
           foreground: 'hsl(var(--eb-card-foreground))',
+        },
+        alert: {
+          DEFAULT: 'hsl(var(--eb-alert))',
+          foreground: 'hsl(var(--eb-alert-foreground))',
         },
       },
       borderRadius: {

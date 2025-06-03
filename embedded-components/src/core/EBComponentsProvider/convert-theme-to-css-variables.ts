@@ -76,6 +76,13 @@ const convertThemeVariablesToCssVariables = (
     '--eb-destructive-foreground-active': colorToHsl(
       variables.destructiveForegroundActiveColor
     ),
+    '--eb-informative': colorToHsl(variables.informativeColor),
+    '--eb-informative-accent': colorToHsl(variables.informativeAccentColor),
+    '--eb-warning': colorToHsl(variables.warningColor),
+    '--eb-warning-accent': colorToHsl(variables.warningAccentColor),
+    '--eb-success': colorToHsl(variables.successColor),
+    '--eb-success-accent': colorToHsl(variables.successAccentColor),
+    '--eb-alert-foreground': colorToHsl(variables.alertForegroundColor),
     '--eb-radius': variables.borderRadius,
     '--eb-button-radius':
       variables.buttonBorderRadius ?? variables.borderRadius,

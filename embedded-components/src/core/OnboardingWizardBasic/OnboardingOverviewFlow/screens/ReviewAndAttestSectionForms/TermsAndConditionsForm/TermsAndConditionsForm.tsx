@@ -217,10 +217,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       >
         <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
           {!allDocumentsOpened && shouldDisplayAlert && (
-            <Alert
-              variant="destructive"
-              className="eb-border-[#E52135] eb-bg-[#FFECEA] eb-pb-3"
-            >
+            <Alert variant="destructive" className="eb-pb-3">
               <AlertCircleIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
                 Please open the document links and confirm that you have read
@@ -237,7 +234,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                   className={cn(
                     'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-font-sans eb-text-sm eb-font-normal eb-shadow-md',
                     {
-                      'eb-border-[#00875D] eb-bg-[#EAF5F2] hover:eb-bg-[#e0ebe8]':
+                      'eb-border-success eb-bg-success-accent hover:eb-bg-success-accent/80':
                         query.data?.id && termsDocumentsOpened[query.data.id],
                     }
                   )}
@@ -254,7 +251,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                   </span>
                   <span>
                     {query.data?.id && termsDocumentsOpened[query.data.id] && (
-                      <CheckCircleIcon className="eb-text-[#00875D]" />
+                      <CheckCircleIcon className="eb-text-success" />
                     )}
                     {query.data?.id &&
                       loadingDocuments[query.data.id] &&
@@ -301,7 +298,6 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           )}
           <ServerErrorAlert
             error={updateClientError || clientVerificationsError}
-            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
           />
         </div>
         <div className="eb-mt-6 eb-space-y-6">
