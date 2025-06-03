@@ -59,6 +59,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     updateSessionData,
     initialStepperStepId,
     sections,
+    shortLabelOverride,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -184,6 +185,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     prevButtonDisabled,
   };
 
+  console.log(shortLabelOverride);
+
   return (
     <div
       ref={mainRef}
@@ -197,7 +200,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
             <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-text-sm">
               <div>
                 <span className="eb-mr-2 eb-border-r eb-border-r-foreground eb-pr-2">
-                  {currentSection?.sectionConfig.shortLabel}
+                  {shortLabelOverride ??
+                    currentSection?.sectionConfig.shortLabel ??
+                    currentSection?.sectionConfig.label}
                 </span>
                 <span className="eb-font-medium">
                   Step {currentStepNumber} of {steps.length}

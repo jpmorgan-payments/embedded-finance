@@ -186,9 +186,12 @@ export const OwnersSectionScreen = () => {
       goTo('owner-stepper', {
         editingPartyId: beneficialOwnerId,
         previouslyCompleted: ownersValidation[beneficialOwnerId].allStepsValid,
+        shortLabelOverride: 'Edit owner',
       });
     } else {
-      goTo('owner-stepper');
+      goTo('owner-stepper', {
+        shortLabelOverride: 'Add owner',
+      });
     }
   };
 

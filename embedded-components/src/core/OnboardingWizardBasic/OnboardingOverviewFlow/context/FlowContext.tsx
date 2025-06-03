@@ -21,6 +21,7 @@ type GoToConfig = {
   previouslyCompleted?: boolean;
   reviewScreenOpenedSectionId?: SectionScreenId;
   initialStepperStepId?: string;
+  shortLabelOverride?: string;
 };
 
 const FlowContext = createContext<{
@@ -35,6 +36,7 @@ const FlowContext = createContext<{
   previouslyCompletedScreens: PreviouslyCompletedScreens;
   reviewScreenOpenedSectionId: SectionScreenId | null;
   initialStepperStepId: string | null;
+  shortLabelOverride: string | null;
 }>({
   currentScreenId: 'overview',
   originScreenId: null,
@@ -53,6 +55,7 @@ const FlowContext = createContext<{
   previouslyCompletedScreens: {},
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
+  shortLabelOverride: null,
 });
 
 export const FlowProvider: React.FC<{
@@ -69,6 +72,9 @@ export const FlowProvider: React.FC<{
   const [initialStepperStepId, setInitialStepperStepId] = useState<
     string | null
   >(null);
+  const [shortLabelOverride, setShortLabelOverride] = useState<string | null>(
+    null
+  );
   const [sessionData, setSessionData] = useState<FlowSessionData>({});
 
   const currentScreenId = history[history.length - 1];
@@ -87,6 +93,7 @@ export const FlowProvider: React.FC<{
     setReviewScreenOpenedSectionId(config?.reviewScreenOpenedSectionId ?? null);
     setInitialStepperStepId(config?.initialStepperStepId ?? null);
     setHistory((prev) => [...(config?.resetHistory ? [] : prev), id]);
+    setShortLabelOverride(config?.shortLabelOverride ?? null);
   };
 
   const originScreenId =
@@ -114,6 +121,7 @@ export const FlowProvider: React.FC<{
         previouslyCompletedScreens,
         reviewScreenOpenedSectionId,
         initialStepperStepId,
+        shortLabelOverride,
       }}
     >
       {children}
