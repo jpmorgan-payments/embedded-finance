@@ -125,7 +125,7 @@ export function ImportantDateSelector({
   const [year, setYear] = useState(() => value?.getFullYear().toString() ?? '');
 
   const [isValid, setIsValid] = useState(true);
-  const [isTouched, setIsTouched] = useState(false);
+  const [isTouched, setIsTouched] = useState(!!value);
 
   const { t } = useTranslation();
 
