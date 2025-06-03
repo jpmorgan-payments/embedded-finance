@@ -156,6 +156,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     return 'Previous';
   };
 
+  const prevButtonDisabled =
+    currentStepNumber === 1 && !checkAnswersMode && !reviewMode;
+
   const { stepValidationMap } = getStepperValidation(
     steps,
     existingPartyData,
@@ -178,6 +181,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     handleNext,
     getPrevButtonLabel,
     getNextButtonLabel,
+    prevButtonDisabled,
   };
 
   return (
@@ -214,7 +218,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         {currentStep.stepType === 'form' && (
           <StepperFormStep
             key={currentStep.id}
-            currentStepNumber={currentStepNumber}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
             defaultPartyRequestBody={defaultPartyRequestBody}
@@ -246,7 +249,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
 interface StepperFormStepProps extends StepperStepProps {
   currentStepId: string;
-  currentStepNumber: number;
   Component: FormStepComponent;
   existingPartyData: PartyResponse | undefined;
   setExistingPartyData: (partyData: PartyResponse | undefined) => void;
@@ -255,7 +257,6 @@ interface StepperFormStepProps extends StepperStepProps {
 
 const StepperFormStep: React.FC<StepperFormStepProps> = ({
   currentStepId,
-  currentStepNumber,
   Component,
   existingPartyData,
   setExistingPartyData,
@@ -264,6 +265,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   handleNext,
   getPrevButtonLabel,
   getNextButtonLabel,
+  prevButtonDisabled = false,
 }) => {
   const queryClient = useQueryClient();
   const { clientData, onPostClientResponse, onPostPartyResponse } =
@@ -446,7 +448,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               onClick={handlePrev}
               variant="secondary"
               size="lg"
-              disabled={isFormSubmitting || currentStepNumber === 1}
+              disabled={isFormSubmitting || prevButtonDisabled}
               className={cn('eb-w-full eb-text-lg', {
                 'eb-hidden': getPrevButtonLabel() === null,
               })}
