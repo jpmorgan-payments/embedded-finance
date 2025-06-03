@@ -151,7 +151,7 @@ const sectionScreens: SectionScreenConfig[] = [
         },
         {
           id: 'contact-details',
-          title: 'Contact details',
+          title: 'Your contact details',
           stepType: 'form',
           description:
             'We need some additional details to confirm your identity.',
