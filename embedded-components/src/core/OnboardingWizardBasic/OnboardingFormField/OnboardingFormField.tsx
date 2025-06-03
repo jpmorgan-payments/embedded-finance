@@ -618,7 +618,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             )}
 
             {fieldDescription && isOverviewFlow && type !== 'checkbox' && (
-              <FormDescription className="eb-text-xs eb-text-gray-500">
+              <FormDescription className="eb-text-xs eb-italic eb-text-muted-foreground">
                 {fieldDescription}
               </FormDescription>
             )}

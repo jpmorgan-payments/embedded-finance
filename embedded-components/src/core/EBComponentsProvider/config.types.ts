@@ -57,6 +57,9 @@ export type EBThemeVariables = {
   zIndexOverlay?: number;
   buttonTextTransform?: string;
   buttonLetterSpacing?: string;
+  formLabelFontSize?: string;
+  formLabelFontWeight?: string;
+  formLabelLineHeight?: string;
 };
 
 export type EBTheme = {

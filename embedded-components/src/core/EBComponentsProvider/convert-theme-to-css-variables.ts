@@ -104,6 +104,9 @@ const convertThemeVariablesToCssVariables = (
       : undefined,
     '--eb-button-text-transform': variables.buttonTextTransform,
     '--eb-button-letter-spacing': variables.buttonLetterSpacing,
+    '--eb-form-label-font-size': variables.formLabelFontSize,
+    '--eb-form-label-line-height': variables.formLabelLineHeight,
+    '--eb-form-label-font-weight': variables.formLabelFontWeight,
   };
 
   Object.keys(cssVariablesObject).forEach(

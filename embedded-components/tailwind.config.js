@@ -127,11 +127,16 @@ module.exports = {
       },
       fontSize: {
         button: ['var(--eb-button-font-size)', 'var(--eb-button-line-height)'],
+        label: [
+          'var(--eb-form-label-font-size)',
+          'var(--eb-form-label-line-height)',
+        ],
       },
       fontWeight: {
         'button-primary': 'var(--eb-button-primary-font-weight)',
         'button-secondary': 'var(--eb-button-secondary-font-weight)',
         'button-destructive': 'var(--eb-button-destructive-font-weight)',
+        label: 'var(--eb-form-label-font-weight)',
       },
       boxShadow: {
         'border-primary':

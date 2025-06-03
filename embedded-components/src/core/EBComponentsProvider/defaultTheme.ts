@@ -16,6 +16,9 @@ export const defaultTheme: EBTheme = {
     shiftButtonOnActive: true,
     buttonTextTransform: 'none',
     buttonLetterSpacing: '0em',
+    formLabelFontSize: '0.875rem',
+    formLabelLineHeight: '1.25rem',
+    formLabelFontWeight: '500',
   },
   light: {
     backgroundColor: 'hsl(0 0% 100%)',
