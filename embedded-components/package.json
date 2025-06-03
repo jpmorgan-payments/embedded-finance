@@ -19,8 +19,7 @@
       "require": {
         "types": "./dist/index.d.ts",
         "default": "./dist/umd/ef-components.js"
-      },
-      "types": "./dist/index.d.ts"
+      }
     }
   },
   "scripts": {
