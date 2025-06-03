@@ -30,4 +30,5 @@ module.exports = {
     '^[./]',
   ],
   tailwindFunctions: ['clsx', 'cva'],
+  tailwindAttributes: ['labelClassName'],
 };
