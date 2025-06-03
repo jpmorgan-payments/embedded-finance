@@ -143,7 +143,7 @@ const sectionScreens: SectionScreenConfig[] = [
         },
         {
           id: 'identity-document',
-          title: 'Individual identity',
+          title: 'Your ID details',
           stepType: 'form',
           description:
             'We need some additional details to confirm your identity.',
