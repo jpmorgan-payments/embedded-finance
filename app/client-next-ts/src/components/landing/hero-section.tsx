@@ -3,29 +3,20 @@ import { Link } from '@tanstack/react-router';
 
 export function HeroSection() {
   return (
-    <section className="bg-jpm-gray-100 py-16 lg:py-20">
+    <section className="bg-jpm-gray-100 py-6 lg:py-10">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-4xl">
-          <h1 className="text-page-hero font-bold text-jpm-gray-900 leading-tight mb-6">
-            Embedded Finance
-            <span className="block font-bold text-jpm-brown mt-2">
-              Solutions Showcase
-            </span>
+          <h1 className="text-page-hero text-jpm-gray-900 leading-tight mb-6">
+            Embedded Finance and Solutions
+            <span className="block font-bold text-jpm-brown">Showcase</span>
           </h1>
 
           <p className="text-page-body text-jpm-gray leading-relaxed mb-8 max-w-3xl">
-            In the world of APIs, individual calls rarely stand alone. More
-            often, business capabilities require a series of steps - a workflow.
-            But how can API providers help consumers create user-friendly,
-            efficient experiences tailored to their specific business needs?
+            In the world of APIs, individual calls rarely stand alone. This
+            Showcase is a collection of API workflow recipes and demo platforms
+            that demonstrate how our APIs can be used to create powerful and
+            efficient experiences.
           </p>
-
-          <blockquote className="mb-10 pl-4 border-l-2 border-jpm-brown/30">
-            <p className="text-xl lg:text-2xl font-medium text-jpm-gray-900 leading-relaxed italic">
-              "Our Showcase is a collection of demos that showcase how our APIs
-              can be used to create powerful and efficient experiences."
-            </p>
-          </blockquote>
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link to="/demos">
