@@ -13,7 +13,6 @@ function LandingPage() {
   return (
     <div>
       <HeroSection />
-      <ContentSection />
       <DemoCarousel />
       <ExperiencesSection />
       <ComponentsSection />

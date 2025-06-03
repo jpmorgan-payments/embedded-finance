@@ -31,7 +31,7 @@ export function HeroSection() {
             <Link to="/demos">
               <Button
                 size="lg"
-                className="bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white font-semibold px-8 py-4 text-page-body rounded-page-md shadow-page-card border-0"
+                className="bg-jpm-brown hover:bg-jpm-brown-700 !text-jpm-white font-semibold px-8 py-4 text-page-body rounded-page-md shadow-page-card border-0"
               >
                 Explore Demos
               </Button>
