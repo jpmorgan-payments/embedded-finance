@@ -477,8 +477,8 @@ const verticalStepVariants = cva(
     variants: {
       variant: {
         circle: cn(
-          '[&:not(:last-child)]:eb-pb-[var(--step-gap)] [&:not(:last-child)]:eb-gap-[var(--step-gap)]',
-          "[&:not(:last-child)]:after:eb-content-[''] [&:not(:last-child)]:after:eb-w-[2px] [&:not(:last-child)]:after:eb-bg-border",
+          '[&:not(:last-child)]:eb-gap-[var(--step-gap)] [&:not(:last-child)]:eb-pb-[var(--step-gap)]',
+          "[&:not(:last-child)]:after:eb-w-[2px] [&:not(:last-child)]:after:eb-bg-border [&:not(:last-child)]:after:eb-content-['']",
           '[&:not(:last-child)]:after:eb-inset-x-[calc(var(--step-icon-size)/2)]',
           '[&:not(:last-child)]:after:eb-absolute',
           '[&:not(:last-child)]:after:eb-top-[calc(var(--step-icon-size)+var(--step-gap))]',

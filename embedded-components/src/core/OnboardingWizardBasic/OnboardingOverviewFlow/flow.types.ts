@@ -147,4 +147,5 @@ export type StepperStepProps = {
   handlePrev: () => void;
   getPrevButtonLabel: () => string | null;
   getNextButtonLabel: () => string | null;
+  prevButtonDisabled?: boolean;
 };

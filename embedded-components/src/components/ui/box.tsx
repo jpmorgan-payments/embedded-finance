@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-const boxVariants = cva('eb-leading-7 eb-text-gray-900  sm:eb-tracking-tight', {
+const boxVariants = cva('eb-leading-7 eb-text-gray-900 sm:eb-tracking-tight', {
   variants: {
     size: {
       sm: `eb-p-1`,

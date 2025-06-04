@@ -99,7 +99,7 @@ const CountrySelect = ({
           type="button"
           variant="outline"
           className={cn(
-            'eb-flex eb-gap-1 eb-rounded-e-none eb-rounded-s-lg eb-px-3'
+            'eb-flex eb-gap-1 eb-rounded-e-none eb-rounded-s-lg eb-bg-input eb-px-3'
           )}
           disabled={disabled}
         >

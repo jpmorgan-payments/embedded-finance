@@ -12,11 +12,12 @@ const twMerge = extendTailwindMerge({
       borderRadius: ['button', 'input'],
     },
     classGroups: {
-      'font-size': ['text-button'],
+      'font-size': ['text-button', 'text-label'],
       'font-weight': [
         'font-button-primary',
         'font-button-secondary',
         'font-button-destructive',
+        'font-label',
       ],
       shadow: [
         'shadow-border-primary',
