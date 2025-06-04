@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,32 +34,40 @@ const demos = [
     link: '#',
     active: false,
   },
+  {
+    id: 'banking',
+    title: 'Digital Banking',
+    description:
+      'A modern banking interface with account management and transaction capabilities.',
+    image: '/digital-banking-concept.png',
+    link: '#',
+    active: false,
+  },
+  {
+    id: 'fintech',
+    title: 'FinTech Suite',
+    description:
+      'Complete financial technology solution with payments, lending, and analytics.',
+    image: '/fintech-suite-concept.png',
+    link: '#',
+    active: false,
+  },
 ];
 
 export function DemoCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  const VISIBLE_DEMOS = 3;
+  const maxIndex = Math.max(0, demos.length - VISIBLE_DEMOS);
+
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % demos.length);
+    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, maxIndex));
   };
 
   const prevSlide = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + demos.length) % demos.length,
-    );
+    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
   };
-
-  useEffect(() => {
-    if (carouselRef.current) {
-      const scrollAmount =
-        currentIndex * (carouselRef.current.scrollWidth / demos.length);
-      carouselRef.current.scrollTo({
-        left: scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  }, [currentIndex]);
 
   return (
     <section className="py-12 bg-jpm-white">
@@ -77,12 +85,17 @@ export function DemoCarousel() {
             <div className="overflow-hidden">
               <div
                 ref={carouselRef}
-                className="flex transition-transform duration-300 ease-in-out gap-8 snap-x snap-mandatory"
+                className="flex transition-transform duration-300 ease-in-out"
+                style={{
+                  transform: `translateX(-${(currentIndex * 100) / VISIBLE_DEMOS}%)`,
+                  width: `${(demos.length * 100) / VISIBLE_DEMOS}%`,
+                }}
               >
-                {demos.map((demo, _index) => (
+                {demos.map((demo) => (
                   <div
                     key={demo.id}
-                    className="min-w-full md:min-w-[calc(50%-16px)] lg:min-w-[calc(33.333%-22px)] snap-center"
+                    className="flex-shrink-0 px-4"
+                    style={{ width: `${100 / demos.length}%` }}
                   >
                     <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">
                       <div className="aspect-video w-full overflow-hidden">
@@ -122,39 +135,49 @@ export function DemoCarousel() {
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hidden md:flex hover:bg-jpm-gray-100"
-              onClick={prevSlide}
-            >
-              <ChevronLeft className="h-6 w-6 text-jpm-gray" />
-              <span className="sr-only">Previous</span>
-            </Button>
+            {/* Navigation buttons - only show if we can navigate */}
+            {demos.length > VISIBLE_DEMOS && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={prevSlide}
+                  disabled={currentIndex === 0}
+                >
+                  <ChevronLeft className="h-6 w-6 text-jpm-gray" />
+                  <span className="sr-only">Previous</span>
+                </Button>
 
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hidden md:flex hover:bg-jpm-gray-100"
-              onClick={nextSlide}
-            >
-              <ChevronRight className="h-6 w-6 text-jpm-gray" />
-              <span className="sr-only">Next</span>
-            </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={nextSlide}
+                  disabled={currentIndex === maxIndex}
+                >
+                  <ChevronRight className="h-6 w-6 text-jpm-gray" />
+                  <span className="sr-only">Next</span>
+                </Button>
+              </>
+            )}
           </div>
 
-          <div className="flex justify-center mt-8 gap-3">
-            {demos.map((_, index) => (
-              <button
-                key={index}
-                className={`h-2 w-2 rounded-full transition-colors ${
-                  currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
-                }`}
-                onClick={() => setCurrentIndex(index)}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
+          {/* Position indicators - only show if we can navigate */}
+          {demos.length > VISIBLE_DEMOS && (
+            <div className="flex justify-center mt-8 gap-3">
+              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+                <button
+                  key={index}
+                  className={`h-2 w-2 rounded-full transition-colors ${
+                    currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
+                  }`}
+                  onClick={() => setCurrentIndex(index)}
+                  aria-label={`Go to position ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

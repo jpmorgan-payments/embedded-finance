@@ -89,54 +89,43 @@ export function ComponentsSection() {
       description:
         'Configurable input for different tax ID formats with validation',
       icon: <FileText className="h-5 w-5" />,
-      status: 'live',
+      status: 'coming-soon',
       preview: (
-        <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
+        <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100 opacity-50">
           <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
             Tax ID Format
           </label>
           <div className="flex gap-2 mb-2">
             <Button
               size="sm"
-              variant={taxIdFormat === 'EIN' ? 'default' : 'outline'}
-              onClick={() => setTaxIdFormat('EIN')}
-              className={`text-page-small rounded-page-sm ${
-                taxIdFormat === 'EIN'
-                  ? 'bg-jpm-brown text-jpm-white hover:bg-jpm-brown-700'
-                  : 'border-jpm-gray-300 text-jpm-gray hover:bg-jpm-gray-100'
-              }`}
+              variant="outline"
+              disabled
+              className="text-page-small rounded-page-sm border-jpm-gray-300 text-jpm-gray bg-jpm-gray-200 cursor-not-allowed"
             >
               EIN
             </Button>
             <Button
               size="sm"
-              variant={taxIdFormat === 'SSN' ? 'default' : 'outline'}
-              onClick={() => setTaxIdFormat('SSN')}
-              className={`text-page-small rounded-page-sm ${
-                taxIdFormat === 'SSN'
-                  ? 'bg-jpm-brown text-jpm-white hover:bg-jpm-brown-700'
-                  : 'border-jpm-gray-300 text-jpm-gray hover:bg-jpm-gray-100'
-              }`}
+              variant="outline"
+              disabled
+              className="text-page-small rounded-page-sm border-jpm-gray-300 text-jpm-gray bg-jpm-gray-200 cursor-not-allowed"
             >
               SSN
             </Button>
             <Button
               size="sm"
-              variant={taxIdFormat === 'ITIN' ? 'default' : 'outline'}
-              onClick={() => setTaxIdFormat('ITIN')}
-              className={`text-page-small rounded-page-sm ${
-                taxIdFormat === 'ITIN'
-                  ? 'bg-jpm-brown text-jpm-white hover:bg-jpm-brown-700'
-                  : 'border-jpm-gray-300 text-jpm-gray hover:bg-jpm-gray-100'
-              }`}
+              variant="outline"
+              disabled
+              className="text-page-small rounded-page-sm border-jpm-gray-300 text-jpm-gray bg-jpm-gray-200 cursor-not-allowed"
             >
               ITIN
             </Button>
           </div>
           <input
             type="text"
-            placeholder={taxIdFormat === 'EIN' ? 'XX-XXXXXXX' : 'XXX-XX-XXXX'}
-            className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small w-full focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
+            placeholder="XX-XXXXXXX"
+            disabled
+            className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small w-full bg-jpm-gray-200 cursor-not-allowed"
           />
         </div>
       ),
@@ -180,26 +169,20 @@ export function ComponentsSection() {
     },
   ];
 
+  const VISIBLE_COMPONENTS = 3;
+  const maxIndex = Math.max(0, components.length - VISIBLE_COMPONENTS);
+
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % components.length);
+    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, maxIndex));
   };
 
   const prevSlide = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + components.length) % components.length,
-    );
+    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
   };
 
-  useEffect(() => {
-    if (carouselRef.current) {
-      const scrollAmount =
-        currentIndex * (carouselRef.current.scrollWidth / components.length);
-      carouselRef.current.scrollTo({
-        left: scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  }, [currentIndex]);
+  const getVisibleComponents = () => {
+    return components.slice(currentIndex, currentIndex + VISIBLE_COMPONENTS);
+  };
 
   return (
     <section className="py-16 bg-jpm-gray-100">
@@ -213,14 +196,19 @@ export function ComponentsSection() {
             <div className="overflow-hidden">
               <div
                 ref={carouselRef}
-                className="flex transition-transform duration-300 ease-in-out gap-6 snap-x snap-mandatory"
+                className="flex transition-transform duration-300 ease-in-out"
+                style={{
+                  transform: `translateX(-${(currentIndex * 100) / VISIBLE_COMPONENTS}%)`,
+                  width: `${(components.length * 100) / VISIBLE_COMPONENTS}%`,
+                }}
               >
                 {components.map((comp) => (
                   <div
                     key={comp.id}
-                    className="min-w-full md:min-w-[calc(50%-12px)] lg:min-w-[calc(25%-18px)] snap-center"
+                    className="flex-shrink-0 px-3"
+                    style={{ width: `${100 / components.length}%` }}
                   >
-                    <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
+                    <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg h-full">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between mb-2">
                           <CardTitle className="flex items-center text-page-h4">
@@ -298,39 +286,49 @@ fetch('https://api.embedded-finance.com/v1/${comp.id}', {
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hidden md:flex hover:bg-jpm-gray-100"
-              onClick={prevSlide}
-            >
-              <ChevronLeft className="h-6 w-6 text-jpm-gray" />
-              <span className="sr-only">Previous</span>
-            </Button>
+            {/* Navigation buttons - only show if we can navigate */}
+            {components.length > VISIBLE_COMPONENTS && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={prevSlide}
+                  disabled={currentIndex === 0}
+                >
+                  <ChevronLeft className="h-6 w-6 text-jpm-gray" />
+                  <span className="sr-only">Previous</span>
+                </Button>
 
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hidden md:flex hover:bg-jpm-gray-100"
-              onClick={nextSlide}
-            >
-              <ChevronRight className="h-6 w-6 text-jpm-gray" />
-              <span className="sr-only">Next</span>
-            </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={nextSlide}
+                  disabled={currentIndex === maxIndex}
+                >
+                  <ChevronRight className="h-6 w-6 text-jpm-gray" />
+                  <span className="sr-only">Next</span>
+                </Button>
+              </>
+            )}
           </div>
 
-          <div className="flex justify-center mt-8 gap-3">
-            {components.map((_, index) => (
-              <button
-                key={index}
-                className={`h-2 w-2 rounded-full transition-colors ${
-                  currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
-                }`}
-                onClick={() => setCurrentIndex(index)}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
+          {/* Position indicators - only show if we can navigate */}
+          {components.length > VISIBLE_COMPONENTS && (
+            <div className="flex justify-center mt-8 gap-3">
+              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+                <button
+                  key={index}
+                  className={`h-2 w-2 rounded-full transition-colors ${
+                    currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
+                  }`}
+                  onClick={() => setCurrentIndex(index)}
+                  aria-label={`Go to position ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
