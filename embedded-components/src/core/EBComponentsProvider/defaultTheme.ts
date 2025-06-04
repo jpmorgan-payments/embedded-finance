@@ -23,6 +23,7 @@ export const defaultTheme: EBTheme = {
   light: {
     backgroundColor: 'hsl(0 0% 100%)',
     foregroundColor: 'hsl(240 10% 3.9%)',
+    formLabelForegroundColor: 'hsl(240 10% 3.9%)',
     cardColor: 'hsl(0 0% 100%)',
     cardForegroundColor: 'hsl(240 10% 3.9%)',
     popoverColor: 'hsl(0 0% 100%)',

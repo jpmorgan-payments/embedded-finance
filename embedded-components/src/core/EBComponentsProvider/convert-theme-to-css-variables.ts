@@ -115,6 +115,9 @@ const convertThemeVariablesToCssVariables = (
     '--eb-form-label-font-size': variables.formLabelFontSize,
     '--eb-form-label-line-height': variables.formLabelLineHeight,
     '--eb-form-label-font-weight': variables.formLabelFontWeight,
+    '--eb-form-label-foreground': colorToHsl(
+      variables.formLabelForegroundColor
+    ),
   };
 
   Object.keys(cssVariablesObject).forEach(

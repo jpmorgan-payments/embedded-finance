@@ -171,6 +171,7 @@ STheme.args = {
       formLabelFontSize: '0.75rem',
       formLabelLineHeight: '1rem',
       formLabelFontWeight: '600',
+      formLabelForegroundColor: '#4C5157',
     },
   },
 };

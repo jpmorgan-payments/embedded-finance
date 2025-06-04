@@ -42,7 +42,7 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
 
           return (
             <Card className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4">
-              <div className="eb-flex eb-items-start eb-justify-between">
+              <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
                 <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
                   {step.title}
                 </h2>
@@ -120,7 +120,9 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
 
                   return (
                     <div className="eb-space-y-0.5" key={field}>
-                      <p className="eb-text-sm eb-font-medium">{labelString}</p>
+                      <p className="eb-text-label eb-font-label eb-text-label-foreground">
+                        {labelString}
+                      </p>
                       <div className="eb-flex eb-flex-col">
                         {result?.error?.issues
                           .map((issue) => issue.path?.[0])
@@ -131,10 +133,12 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
                           </div>
                         ) : Array.isArray(valueString) ? (
                           valueString.map((val, index) => (
-                            <p key={index}>{val}</p>
+                            <p className="eb-text-sm" key={index}>
+                              {val}
+                            </p>
                           ))
                         ) : valueString ? (
-                          <p>{valueString}</p>
+                          <p className="eb-text-sm">{valueString}</p>
                         ) : (
                           <span className="eb-italic eb-text-muted-foreground">
                             {t('common:empty')}

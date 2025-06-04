@@ -92,6 +92,9 @@ module.exports = {
           DEFAULT: 'hsl(var(--eb-muted))',
           foreground: 'hsl(var(--eb-muted-foreground))',
         },
+        label: {
+          foreground: 'hsl(var(--eb-form-label-foreground))',
+        },
         accent: {
           DEFAULT: 'hsl(var(--eb-accent))',
           foreground: 'hsl(var(--eb-accent-foreground))',
