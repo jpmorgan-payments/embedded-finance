@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Box,
   ExternalLink,
+  UserCog,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -37,6 +38,23 @@ export function ExperiencesSection() {
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
+    },
+    {
+      id: 'partially-hosted-onboarding',
+      title: 'Partially Hosted Onboarding Integration',
+      description:
+        'Implement a hybrid onboarding approach where parts of the client verification process are handled by your application while leveraging embedded components for specific workflows.',
+      icon: <UserCog className="h-5 w-5" />,
+      status: 'live',
+      hasComponents: false,
+      steps: [
+        'Configure your application to handle initial client data collection',
+        'Integrate embedded components for specific onboarding steps',
+        'Implement seamless handoff between hosted and embedded flows',
+        'Customize the user experience to match your brand requirements',
+      ],
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md',
     },
     {
       id: 'link-account',
