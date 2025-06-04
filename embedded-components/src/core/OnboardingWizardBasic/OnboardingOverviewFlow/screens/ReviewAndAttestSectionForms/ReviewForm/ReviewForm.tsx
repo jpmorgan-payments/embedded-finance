@@ -258,7 +258,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               variant="default"
                               type="button"
                               size="sm"
-                              className="eb-bg-[#C75300] eb-text-sm hover:eb-bg-[#C75300]/90"
+                              className="eb-bg-warning eb-text-sm hover:eb-bg-warning/90"
                               onClick={goToOwners}
                             >
                               <PencilIcon />
@@ -372,7 +372,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                 <div className="eb-text-sm eb-font-medium">
                                   {questionText}
                                 </div>
-                                <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
+                                <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
                                   <TriangleAlertIcon className="eb-size-4" />
                                   <p className="eb-italic">
                                     This field is missing
@@ -411,14 +411,14 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       key={section.id}
                       value={section.id}
                       className={cn({
-                        'eb-border-[#00875D]': isSectionCompleted,
-                        'eb-border-[#C75300]': !isSectionCompleted,
+                        'eb-border-success': isSectionCompleted,
+                        'eb-border-warning': !isSectionCompleted,
                       })}
                     >
                       <AccordionTrigger
                         className={cn({
-                          'eb-bg-[#EAF5F2]': isSectionCompleted,
-                          'eb-bg-[#FFECD9]': !isSectionCompleted,
+                          'eb-bg-success-accent': isSectionCompleted,
+                          'eb-bg-warning-accent': !isSectionCompleted,
                         })}
                       >
                         <ChevronDownIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200" />
@@ -429,12 +429,12 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                           {isSectionCompleted ? (
                             <>
                               <p>Complete</p>
-                              <CheckIcon className="eb-size-4 eb-text-[#00875D]" />
+                              <CheckIcon className="eb-size-4 eb-text-success" />
                             </>
                           ) : (
                             <>
                               <p>Missing details</p>
-                              <AlertTriangleIcon className="eb-size-4 eb-text-[#C75300]" />
+                              <AlertTriangleIcon className="eb-size-4 eb-text-warning" />
                             </>
                           )}
                         </div>

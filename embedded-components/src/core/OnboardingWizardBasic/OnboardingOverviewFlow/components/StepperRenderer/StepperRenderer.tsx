@@ -59,6 +59,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     updateSessionData,
     initialStepperStepId,
     sections,
+    shortLabelOverride,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -146,12 +147,18 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         (currentStep.stepType === 'check-answers' && previouslyCompleted)) &&
       originScreenId
     ) {
+      if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
+        return 'Return to overview';
+      }
       if (originScreenId === 'owners-section') {
-        return 'Back to all owners';
+        return 'Back to all owners overview';
       }
     }
     return 'Previous';
   };
+
+  const prevButtonDisabled =
+    currentStepNumber === 1 && !checkAnswersMode && !reviewMode;
 
   const { stepValidationMap } = getStepperValidation(
     steps,
@@ -175,7 +182,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     handleNext,
     getPrevButtonLabel,
     getNextButtonLabel,
+    prevButtonDisabled,
   };
+
+  console.log(shortLabelOverride);
 
   return (
     <div
@@ -190,7 +200,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
             <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-text-sm">
               <div>
                 <span className="eb-mr-2 eb-border-r eb-border-r-foreground eb-pr-2">
-                  {currentSection?.sectionConfig.shortLabel}
+                  {shortLabelOverride ??
+                    currentSection?.sectionConfig.shortLabel ??
+                    currentSection?.sectionConfig.label}
                 </span>
                 <span className="eb-font-medium">
                   Step {currentStepNumber} of {steps.length}
@@ -211,7 +223,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         {currentStep.stepType === 'form' && (
           <StepperFormStep
             key={currentStep.id}
-            currentStepNumber={currentStepNumber}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
             defaultPartyRequestBody={defaultPartyRequestBody}
@@ -243,7 +254,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
 interface StepperFormStepProps extends StepperStepProps {
   currentStepId: string;
-  currentStepNumber: number;
   Component: FormStepComponent;
   existingPartyData: PartyResponse | undefined;
   setExistingPartyData: (partyData: PartyResponse | undefined) => void;
@@ -252,7 +262,6 @@ interface StepperFormStepProps extends StepperStepProps {
 
 const StepperFormStep: React.FC<StepperFormStepProps> = ({
   currentStepId,
-  currentStepNumber,
   Component,
   existingPartyData,
   setExistingPartyData,
@@ -261,6 +270,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   handleNext,
   getPrevButtonLabel,
   getNextButtonLabel,
+  prevButtonDisabled = false,
 }) => {
   const queryClient = useQueryClient();
   const { clientData, onPostClientResponse, onPostPartyResponse } =
@@ -416,7 +426,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
       <form
         id={currentStepId}
         onSubmit={onSubmit}
-        className="eb-flex eb-max-h-[840px] eb-flex-auto eb-flex-col"
+        className="eb-flex eb-flex-auto eb-flex-col"
       >
         <div className="eb-flex-auto">
           <Component currentPartyData={existingPartyData} />
@@ -443,7 +453,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               onClick={handlePrev}
               variant="secondary"
               size="lg"
-              disabled={isFormSubmitting || currentStepNumber === 1}
+              disabled={isFormSubmitting || prevButtonDisabled}
               className={cn('eb-w-full eb-text-lg', {
                 'eb-hidden': getPrevButtonLabel() === null,
               })}

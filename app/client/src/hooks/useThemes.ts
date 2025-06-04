@@ -44,6 +44,9 @@ export const useThemes = () => {
         secondaryColor: 'white',
         secondaryForegroundColor: '#1B7F9E',
         secondaryBorderWidth: '1px',
+        formLabelFontSize: '0.75rem',
+        formLabelLineHeight: '1rem',
+        formLabelFontWeight: '600',
       },
       {
         id: 'CUSTOM3',
@@ -69,6 +72,7 @@ export const useThemes = () => {
         accentColor: '#38474E',
         mutedForegroundColor: '#98A2CD',
         cardForegroundColor: '#EDEFF7',
+        alertForegroundColor: 'hsl(240 10% 3.9%)',
       },
       {
         id: 'CUSTOM4',

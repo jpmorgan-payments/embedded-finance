@@ -311,7 +311,7 @@ export const GatewayScreen = () => {
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-flex eb-min-h-full eb-flex-col">
         {!sessionData.hideGatewayInfoAlert && (
-          <Alert variant="informative" className="eb-mb-4 eb-text-foreground">
+          <Alert variant="informative" className="eb-mb-4">
             <InfoIcon className="eb-h-4 eb-w-4" />
             <AlertTitle>Is this you?</AlertTitle>
             <AlertDescription>

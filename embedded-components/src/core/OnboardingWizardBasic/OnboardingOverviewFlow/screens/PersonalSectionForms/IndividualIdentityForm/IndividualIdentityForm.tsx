@@ -46,6 +46,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         control={form.control}
         name="birthDate"
         type="importantDate"
+        labelClassName="eb-mb-1 eb-font-header eb-text-lg eb-font-medium"
       />
       <OnboardingFormField
         control={form.control}
@@ -64,7 +65,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         }))}
       />
       {form.watch('countryOfResidence') === 'US' && (
-        <div className="eb-space-y-2">
+        <div className="eb-space-y-3">
           <OnboardingFormField
             control={form.control}
             name="controllerIds.0.value"

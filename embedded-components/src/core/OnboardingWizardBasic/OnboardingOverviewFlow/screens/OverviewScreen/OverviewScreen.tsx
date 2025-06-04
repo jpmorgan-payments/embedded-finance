@@ -250,7 +250,7 @@ export const OverviewScreen = () => {
                         <div className="eb-flex [&_svg]:eb-size-4">
                           {sectionStatus === 'completed' && (
                             <>
-                              <CheckCircle2Icon className="eb-stroke-green-600" />
+                              <CheckCircle2Icon className="eb-stroke-success" />
                               <span className="eb-sr-only">Completed</span>
                             </>
                           )}
@@ -258,13 +258,13 @@ export const OverviewScreen = () => {
                             sectionStatus
                           ) && (
                             <>
-                              <CircleDashedIcon className="eb-stroke-gray-600" />
+                              <CircleDashedIcon className="eb-stroke-muted-foreground" />
                               <span className="eb-sr-only">Not started</span>
                             </>
                           )}
                           {sectionStatus === 'missing_details' && (
                             <>
-                              <AlertTriangleIcon className="eb-stroke-[#C75300]" />
+                              <AlertTriangleIcon className="eb-stroke-warning" />
                               <span className="eb-sr-only">
                                 Missing details
                               </span>

@@ -6,22 +6,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-const textVariants = cva(
-  'eb-leading-7 eb-text-gray-900  sm:eb-tracking-tight',
-  {
-    variants: {
-      size: {
-        sm: `eb-text-sm`,
-        md: `eb-text-base`,
-        lg: `eb-text-lg`,
-        xl: `eb-text-xl`,
-      },
+const textVariants = cva('eb-leading-7 eb-text-gray-900 sm:eb-tracking-tight', {
+  variants: {
+    size: {
+      sm: `eb-text-sm`,
+      md: `eb-text-base`,
+      lg: `eb-text-lg`,
+      xl: `eb-text-xl`,
     },
-    defaultVariants: {
-      size: 'sm',
-    },
-  }
-);
+  },
+  defaultVariants: {
+    size: 'sm',
+  },
+});
 
 type tText = {
   asChild?: boolean;

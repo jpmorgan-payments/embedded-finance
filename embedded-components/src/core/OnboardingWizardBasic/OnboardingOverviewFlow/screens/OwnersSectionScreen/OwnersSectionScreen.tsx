@@ -186,9 +186,12 @@ export const OwnersSectionScreen = () => {
       goTo('owner-stepper', {
         editingPartyId: beneficialOwnerId,
         previouslyCompleted: ownersValidation[beneficialOwnerId].allStepsValid,
+        shortLabelOverride: 'Edit owner',
       });
     } else {
-      goTo('owner-stepper');
+      goTo('owner-stepper', {
+        shortLabelOverride: 'Add owner',
+      });
     }
   };
 
@@ -440,7 +443,6 @@ export const OwnersSectionScreen = () => {
       <div className="eb-mt-6 eb-space-y-6">
         <ServerErrorAlert
           error={controllerUpdateError || partyActiveUpdateError}
-          className="eb-border-[#E52135] eb-bg-[#FFECEA]"
         />
         <div className="eb-flex eb-justify-between eb-gap-4">
           <Button

@@ -168,6 +168,9 @@ STheme.args = {
       secondaryForegroundColor: '#1B7F9E',
       secondaryBorderWidth: '1px',
       secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
+      formLabelFontSize: '0.75rem',
+      formLabelLineHeight: '1rem',
+      formLabelFontWeight: '600',
     },
   },
 };
