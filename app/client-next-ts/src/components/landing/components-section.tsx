@@ -9,15 +9,78 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight,
+  ChevronsUpDown,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export function ComponentsSection() {
-  const [selectedDate, setSelectedDate] = useState('2023-05-15');
   const [selectedIndustry, setSelectedIndustry] = useState('Technology');
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Date selector state
+  const [day, setDay] = useState('15');
+  const [month, setMonth] = useState('05');
+  const [year, setYear] = useState('2023');
+
+  // Industry selector state
+  const [industryOpen, setIndustryOpen] = useState(false);
+
+  const monthOptions = [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' },
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ];
+
+  const industryOptions = [
+    {
+      code: '541511',
+      description: 'Custom Computer Programming Services',
+      sector: 'Professional, Scientific, and Technical Services',
+    },
+    {
+      code: '522110',
+      description: 'Commercial Banking',
+      sector: 'Finance and Insurance',
+    },
+    {
+      code: '621111',
+      description: 'Offices of Physicians (except Mental Health Specialists)',
+      sector: 'Health Care and Social Assistance',
+    },
+    {
+      code: '445110',
+      description: 'Supermarkets and Other Grocery (except Convenience) Stores',
+      sector: 'Retail Trade',
+    },
+    {
+      code: '311111',
+      description: 'Dog and Cat Food Manufacturing',
+      sector: 'Manufacturing',
+    },
+  ];
+
+  const selectedIndustryData = industryOptions.find(
+    (opt) => opt.description === selectedIndustry,
+  );
 
   const components = [
     {
@@ -29,27 +92,66 @@ export function ComponentsSection() {
       status: 'live',
       preview: (
         <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
-          <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
-            Select Important Date
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small w-full focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-jpm-gray-300 text-jpm-gray hover:bg-jpm-gray-100 rounded-page-sm"
+          <div className="space-y-1">
+            <div
+              className="flex flex-nowrap items-end gap-1"
+              role="group"
+              aria-label="Date input"
             >
-              Today
-            </Button>
+              {/* Month Field */}
+              <div className="flex w-28 shrink-0 flex-col gap-1">
+                <label htmlFor="birth-month" className="text-xs">
+                  Month
+                </label>
+                <Select value={month} onValueChange={setMonth}>
+                  <SelectTrigger id="birth-month" className="w-full">
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 max-h-60">
+                    {monthOptions.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Day Field */}
+              <div className="flex w-12 shrink-0 flex-col gap-1">
+                <label htmlFor="birth-day" className="text-xs">
+                  Day
+                </label>
+                <input
+                  id="birth-day"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={2}
+                  placeholder="DD"
+                  value={day}
+                  onChange={(e) => setDay(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-3 py-1.5 text-page-small border border-jpm-gray-300 rounded-page-sm focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
+                />
+              </div>
+
+              {/* Year Field */}
+              <div className="flex w-16 shrink-0 flex-col gap-1">
+                <label htmlFor="birth-year" className="text-xs">
+                  Year
+                </label>
+                <input
+                  id="birth-year"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="YYYY"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-3 py-1.5 text-page-small border border-jpm-gray-300 rounded-page-sm focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
+                />
+              </div>
+            </div>
           </div>
-          <p className="text-page-small text-jpm-gray mt-2">
-            Selected: {selectedDate}
-          </p>
         </div>
       ),
     },
@@ -62,23 +164,74 @@ export function ComponentsSection() {
       status: 'live',
       preview: (
         <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
-          <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
-            Select Industry
-          </label>
-          <select
-            value={selectedIndustry}
-            onChange={(e) => setSelectedIndustry(e.target.value)}
-            className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small w-full focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
-          >
-            <option value="Technology">Technology</option>
-            <option value="Finance">Finance</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Retail">Retail</option>
-            <option value="Manufacturing">Manufacturing</option>
-          </select>
-          <p className="text-page-small text-jpm-gray mt-2">
-            Selected: {selectedIndustry}
-          </p>
+          <div className="w-full">
+            <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
+              Select Industry
+            </label>
+            <div className="relative">
+              <button
+                type="button"
+                role="combobox"
+                aria-expanded={industryOpen}
+                onClick={() => setIndustryOpen(!industryOpen)}
+                className="w-full justify-between font-normal px-3 py-1.5 text-page-small border border-jpm-gray-300 rounded-page-sm focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown bg-white hover:bg-jpm-gray-50 flex items-center"
+              >
+                {selectedIndustryData ? (
+                  <div className="flex w-[calc(100%-2rem)] text-left">
+                    <span className="font-medium">
+                      [{selectedIndustryData.code}]
+                    </span>
+                    <span className="overflow-hidden text-ellipsis pl-1 text-jpm-gray-600">
+                      {selectedIndustryData.sector}
+                    </span>
+                    <span className="overflow-hidden text-ellipsis pl-2">
+                      {selectedIndustryData.description}
+                    </span>
+                  </div>
+                ) : (
+                  'Select industry type'
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </button>
+
+              {industryOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-jpm-gray-300 rounded-page-sm shadow-lg max-h-60 overflow-auto">
+                  <div className="p-2">
+                    <input
+                      type="text"
+                      placeholder="Search industry type..."
+                      className="w-full px-2 py-1 text-page-small border border-jpm-gray-300 rounded"
+                    />
+                  </div>
+                  {industryOptions.map((option) => (
+                    <button
+                      key={option.code}
+                      type="button"
+                      onClick={() => {
+                        setSelectedIndustry(option.description);
+                        setIndustryOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-jpm-gray-100 flex items-center"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${
+                          selectedIndustry === option.description
+                            ? 'opacity-100'
+                            : 'opacity-0'
+                        }`}
+                      />
+                      <span className="flex w-full items-center justify-between">
+                        [{option.sector}] {option.description}
+                        <span className="pl-2 text-jpm-gray-600">
+                          {option.code}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       ),
     },
@@ -188,7 +341,10 @@ export function ComponentsSection() {
           </h2>
 
           <div className="relative">
-            <div className="overflow-x-hidden overflow-y-visible">
+            <div
+              className="overflow-x-hidden overflow-y-visible"
+              style={{ isolation: 'isolate' }}
+            >
               <div
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out"
