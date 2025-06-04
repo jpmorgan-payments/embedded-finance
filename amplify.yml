@@ -22,8 +22,8 @@ applications:
         build:
           commands:
             - ls
-            - yarn install
-            - yarn run build
+            - npm install
+            - npm run build
       artifacts:
         # IMPORTANT - Please verify your build output directory
         baseDirectory: /app/client-next-ts/dist
