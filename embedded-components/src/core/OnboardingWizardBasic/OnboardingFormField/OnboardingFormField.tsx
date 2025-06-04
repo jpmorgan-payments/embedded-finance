@@ -442,7 +442,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             <FormItem
                               key={`radio-group-option-${option.value}`}
                             >
-                              <FormLabel className="eb-flex eb-cursor-pointer eb-select-none eb-items-start eb-gap-3 eb-rounded-input eb-border eb-bg-input eb-p-4 eb-text-sm eb-font-medium eb-leading-none eb-shadow-md hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5">
+                              <FormLabel className="eb-flex eb-cursor-pointer eb-select-none eb-items-start eb-gap-3 eb-rounded-input eb-border eb-bg-input eb-p-6 eb-text-sm eb-font-medium eb-leading-none eb-shadow-md hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5">
                                 <FormControl>
                                   <RadioGroupItem
                                     value={option.value}
