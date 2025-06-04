@@ -9,7 +9,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import {
@@ -20,7 +20,7 @@ import {
 import {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
-  PostUploadDocument,
+  // PostUploadDocument,
 } from '@/api/generated/smbdo.schemas';
 import { AlertDescription } from '@/components/ui/alert';
 import Dropzone from '@/components/ui/dropzone';
@@ -66,11 +66,11 @@ export const ACCEPTED_FILE_TYPES = {
   'image/webp': ['.webp'],
 };
 
-const generateRequestId = () => {
-  return uuidv4()
-    .replace(/[^a-zA-Z0-9_-]/g, '')
-    .slice(0, 32);
-};
+// const generateRequestId = () => {
+//   return uuidv4()
+//     .replace(/[^a-zA-Z0-9_-]/g, '')
+//     .slice(0, 32);
+// };
 
 // Helper function to format document request descriptions
 const formatDocumentDescription = (description?: string) => {
@@ -541,26 +541,28 @@ export const DocumentUploadForm = () => {
 
         // Upload each document individually
         for (const { documentType, file } of documentUploads) {
-          const base64Content = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64 = reader.result as string;
-              resolve(base64.split(',')[1]); // Remove data URL prefix
-            };
-            reader.readAsDataURL(file);
-          });
+          // const base64Content = await new Promise<string>((resolve) => {
+          //   const reader = new FileReader();
+          //   reader.onloadend = () => {
+          //     const base64 = reader.result as string;
+          //     resolve(base64.split(',')[1]); // Remove data URL prefix
+          //   };
+          //   reader.readAsDataURL(file);
+          // });
 
-          const documentData: PostUploadDocument = {
-            requestId: generateRequestId(),
-            documentContent: base64Content,
+          const documentData = {
+            // requestId: generateRequestId(),
+            // documentContent: base64Content,
             documentName: file.name,
             documentType,
-            documentMetadata: {
-              documentRequestId,
-            },
+            // documentMetadata: {
+            //   documentRequestId,
+            // },
           };
 
-          await uploadDocumentMutation.mutateAsync({ data: documentData });
+          await uploadDocumentMutation.mutateAsync({
+            data: { documentData: JSON.stringify(documentData), file },
+          });
         }
       }
 
@@ -1090,7 +1092,6 @@ export const DocumentUploadForm = () => {
                     ? 'There was an unexpected error submitting document requests. Please try again.'
                     : undefined
               }
-              className="eb-border-[#E52135] eb-bg-[#FFECEA]"
             />
 
             <Button

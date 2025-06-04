@@ -451,7 +451,9 @@ export const DocumentUploadStepForm = ({
             },
           };
 
-          await uploadDocumentMutation.mutateAsync({ data: documentData });
+          await uploadDocumentMutation.mutateAsync({
+            data: { documentData: JSON.stringify(documentData), file },
+          });
         }
       }
 
