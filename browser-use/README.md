@@ -90,4 +90,4 @@ Logs and reports will be saved in the `logs/` directory.
 
 - If `uv` is not recognized, install it with `pip install uv` or see [uv installation guide](https://github.com/astral-sh/uv#installation).
 - Ensure Python 3.11 is available in your PATH.
-- For Playwright issues, see [Playwright troubleshooting](https://playwright.dev/python/docs/troubleshooting).
+- For Playwright issues, see [Playwright troubleshooting]([https://playwright.dev/python/docs/troubleshooting](https://playwright.dev/docs/debug)).
