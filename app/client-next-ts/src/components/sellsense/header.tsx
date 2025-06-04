@@ -10,11 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Globe, Settings } from 'lucide-react';
-import type {
-  ClientScenario,
-  ThemeOption,
-  ContentTone,
-} from './dashboard-layout';
+import type { ClientScenario, ContentTone } from './dashboard-layout';
+import type { ThemeOption } from './use-sellsense-themes';
+import { useThemeStyles } from './theme-utils';
 
 interface HeaderProps {
   clientScenario: ClientScenario;
@@ -33,17 +31,11 @@ export function Header({
   contentTone,
   setContentTone,
 }: HeaderProps) {
+  const themeStyles = useThemeStyles(theme);
+
   return (
     <header
-      className={`border-b px-6 py-3 shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 ${
-        theme === 'Dark'
-          ? 'bg-slate-800 border-slate-700'
-          : theme === 'Partner A'
-            ? 'bg-blue-900 border-blue-800'
-            : theme === 'S&P Theme'
-              ? 'bg-gray-50 border-gray-300'
-              : 'bg-white border-gray-200'
-      }`}
+      className={`border-b px-6 py-3 shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 ${themeStyles.getHeaderStyles()}`}
     >
       {/* Logo */}
       <div className="flex items-center">
@@ -61,15 +53,7 @@ export function Header({
         <div className="flex items-center space-x-4">
           <div className="flex flex-col">
             <label
-              className={`text-xs mb-1 ${
-                theme === 'Dark'
-                  ? 'text-slate-400'
-                  : theme === 'Partner A'
-                    ? 'text-blue-300'
-                    : theme === 'S&P Theme'
-                      ? 'text-gray-600'
-                      : 'text-gray-500'
-              }`}
+              className={`text-xs mb-1 ${themeStyles.getHeaderLabelStyles()}`}
             >
               Client View:
             </label>
@@ -79,7 +63,9 @@ export function Header({
                 setClientScenario(value as ClientScenario)
               }
             >
-              <SelectTrigger className="w-[220px] h-8 text-sm border-gray-300">
+              <SelectTrigger
+                className={`w-[220px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
+              >
                 <SelectValue placeholder="Select client scenario" />
               </SelectTrigger>
               <SelectContent>
@@ -104,15 +90,7 @@ export function Header({
 
           <div className="flex flex-col">
             <label
-              className={`text-xs mb-1 ${
-                theme === 'Dark'
-                  ? 'text-slate-400'
-                  : theme === 'Partner A'
-                    ? 'text-blue-300'
-                    : theme === 'S&P Theme'
-                      ? 'text-gray-600'
-                      : 'text-gray-500'
-              }`}
+              className={`text-xs mb-1 ${themeStyles.getHeaderLabelStyles()}`}
             >
               Theme:
             </label>
@@ -120,30 +98,24 @@ export function Header({
               value={theme}
               onValueChange={(value) => setTheme(value as ThemeOption)}
             >
-              <SelectTrigger className="w-[140px] h-8 text-sm border-gray-300">
+              <SelectTrigger
+                className={`w-[140px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
+              >
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Default">Default</SelectItem>
+                <SelectItem value="Default Blue">Default Blue</SelectItem>
                 <SelectItem value="SellSense">SellSense</SelectItem>
                 <SelectItem value="S&P Theme">S&P Theme</SelectItem>
-                <SelectItem value="Dark">Dark</SelectItem>
-                <SelectItem value="Partner A">Partner A</SelectItem>
+                <SelectItem value="Create Commerce">Create Commerce</SelectItem>
+                <SelectItem value="PayFicient">PayFicient</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex flex-col">
             <label
-              className={`text-xs mb-1 ${
-                theme === 'Dark'
-                  ? 'text-slate-400'
-                  : theme === 'Partner A'
-                    ? 'text-blue-300'
-                    : theme === 'S&P Theme'
-                      ? 'text-gray-600'
-                      : 'text-gray-500'
-              }`}
+              className={`text-xs mb-1 ${themeStyles.getHeaderLabelStyles()}`}
             >
               Tone:
             </label>
@@ -151,7 +123,9 @@ export function Header({
               value={contentTone}
               onValueChange={(value) => setContentTone(value as ContentTone)}
             >
-              <SelectTrigger className="w-[120px] h-8 text-sm border-gray-300">
+              <SelectTrigger
+                className={`w-[120px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
+              >
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>
               <SelectContent>
@@ -167,30 +141,14 @@ export function Header({
           <Button
             variant="ghost"
             size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${
-              theme === 'Dark'
-                ? 'text-blue-400 hover:text-blue-300 hover:bg-slate-700'
-                : theme === 'Partner A'
-                  ? 'text-blue-200 hover:text-blue-100 hover:bg-blue-800'
-                  : theme === 'S&P Theme'
-                    ? 'text-teal-600 hover:text-teal-500 hover:bg-teal-50'
-                    : 'text-sellsense-primary hover:text-sellsense-primary hover:bg-sellsense-primary-bg'
-            }`}
+            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
           >
             <Globe className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${
-              theme === 'Dark'
-                ? 'text-blue-400 hover:text-blue-300 hover:bg-slate-700'
-                : theme === 'Partner A'
-                  ? 'text-blue-200 hover:text-blue-100 hover:bg-blue-800'
-                  : theme === 'S&P Theme'
-                    ? 'text-teal-600 hover:text-teal-500 hover:bg-teal-50'
-                    : 'text-sellsense-primary hover:text-sellsense-primary hover:bg-sellsense-primary-bg'
-            }`}
+            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
           >
             <Settings className="h-5 w-5" />
           </Button>
@@ -201,15 +159,7 @@ export function Header({
               </AvatarFallback>
             </Avatar>
             <span
-              className={`text-sm font-medium ${
-                theme === 'Dark'
-                  ? 'text-white'
-                  : theme === 'Partner A'
-                    ? 'text-white'
-                    : theme === 'S&P Theme'
-                      ? 'text-gray-900'
-                      : 'text-gray-900'
-              }`}
+              className={`text-sm font-medium ${themeStyles.getHeaderTextStyles()}`}
             >
               John Doe
             </span>

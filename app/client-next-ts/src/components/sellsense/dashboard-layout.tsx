@@ -10,6 +10,7 @@ import { WalletOverview } from './wallet-overview';
 import { TransactionHistory } from './transaction-history';
 import { LinkedAccounts } from './linked-accounts';
 import { PayoutSettings } from './payout-settings';
+import type { ThemeOption } from './use-sellsense-themes';
 
 export type ClientScenario =
   | 'New Seller - Onboarding'
@@ -18,12 +19,6 @@ export type ClientScenario =
   | 'Active Seller - Fresh Start'
   | 'Active Seller - Established';
 
-export type ThemeOption =
-  | 'Default'
-  | 'Dark'
-  | 'Partner A'
-  | 'SellSense'
-  | 'S&P Theme';
 export type ContentTone = 'Standard' | 'Friendly';
 export type View =
   | 'onboarding'

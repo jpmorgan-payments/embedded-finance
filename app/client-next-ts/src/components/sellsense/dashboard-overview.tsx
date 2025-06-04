@@ -1,11 +1,7 @@
 'use client';
 
-import type {
-  ClientScenario,
-  ThemeOption,
-  ContentTone,
-  View,
-} from './dashboard-layout';
+import type { ClientScenario, ContentTone, View } from './dashboard-layout';
+import type { ThemeOption } from './use-sellsense-themes';
 
 interface DashboardOverviewProps {
   onViewChange: (view: View) => void;

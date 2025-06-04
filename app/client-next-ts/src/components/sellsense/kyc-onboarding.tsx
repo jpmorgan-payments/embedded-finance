@@ -7,8 +7,10 @@ import {
 } from '@jpmorgan-payments/embedded-finance-components';
 import { Maximize2, Info, X } from 'lucide-react';
 import { useSearch } from '@tanstack/react-router';
-import type { ClientScenario, ThemeOption } from './dashboard-layout';
+import type { ClientScenario } from './dashboard-layout';
+import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
+import { useThemeStyles } from './theme-utils';
 import {
   getClientIdFromScenario,
   getScenarioData,
@@ -30,25 +32,14 @@ function ComponentTechDetailsDialog({
   onClose,
   theme,
 }: ComponentTechDetailsDialogProps) {
-  if (!isOpen) return null;
+  const themeStyles = useThemeStyles(theme);
 
-  const getDialogStyles = () => {
-    switch (theme) {
-      case 'Dark':
-        return 'bg-slate-800 text-white border-slate-600';
-      case 'Partner A':
-        return 'bg-blue-900 text-white border-blue-700';
-      case 'S&P Theme':
-        return 'bg-gray-50 text-gray-900 border-gray-300';
-      default:
-        return 'bg-white text-gray-900 border-gray-200';
-    }
-  };
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div
-        className={`max-w-2xl w-full mx-4 rounded-lg border p-6 ${getDialogStyles()}`}
+        className={`max-w-2xl w-full mx-4 rounded-lg border p-6 ${themeStyles.getDialogStyles()}`}
       >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">
@@ -121,6 +112,7 @@ export function KycOnboarding({
   theme = 'SellSense',
 }: KycOnboardingProps) {
   const { mapThemeOption } = useSellSenseThemes();
+  const themeStyles = useThemeStyles(theme);
   const [showTechDetails, setShowTechDetails] = useState(false);
 
   // Use TanStack Router's search and navigation APIs
@@ -178,32 +170,6 @@ export function KycOnboarding({
     // Here you could integrate with analytics services
   };
 
-  const getCardStyles = () => {
-    switch (theme) {
-      case 'Dark':
-        return 'bg-slate-900 border-slate-700';
-      case 'Partner A':
-        return 'bg-blue-950 border-blue-800';
-      case 'S&P Theme':
-        return 'bg-white border-gray-300';
-      default:
-        return 'bg-white border-gray-200';
-    }
-  };
-
-  const getIconStyles = () => {
-    switch (theme) {
-      case 'Dark':
-        return 'text-gray-300 hover:text-white hover:bg-slate-700';
-      case 'Partner A':
-        return 'text-blue-200 hover:text-white hover:bg-blue-800';
-      case 'S&P Theme':
-        return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
-      default:
-        return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
-    }
-  };
-
   // Render the core component
   const renderOnboardingComponent = () => (
     <EBComponentsProvider
@@ -254,20 +220,20 @@ export function KycOnboarding({
     <>
       <div className="h-full p-6">
         <div
-          className={`relative h-full border-2 rounded-lg ${getCardStyles()}`}
+          className={`relative h-full border-2 rounded-lg ${themeStyles.getCardStyles()}`}
         >
           {/* Component Control Icons */}
           <div className="absolute top-3 right-3 z-10 flex gap-2">
             <button
               onClick={() => setShowTechDetails(true)}
-              className={`p-2 rounded transition-colors ${getIconStyles()}`}
+              className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
               title="Component Details"
             >
               <Info size={18} />
             </button>
             <button
               onClick={handleFullScreen}
-              className={`p-2 rounded transition-colors ${getIconStyles()}`}
+              className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
               title="Open in Full Screen"
             >
               <Maximize2 size={18} />

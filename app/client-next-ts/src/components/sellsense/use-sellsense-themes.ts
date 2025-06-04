@@ -1,147 +1,84 @@
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
-import type { ThemeOption } from './dashboard-layout';
+
+// Updated ThemeOption type to match useThemes.ts
+export type ThemeOption =
+  | 'Default Blue'
+  | 'S&P Theme'
+  | 'Create Commerce'
+  | 'SellSense'
+  | 'PayFicient';
 
 export const useSellSenseThemes = () => {
   const getThemeVariables = (themeOption: ThemeOption): EBThemeVariables => {
     switch (themeOption) {
-      case 'Default':
-        // Enhanced Modern Purple/Indigo theme with v0.6.13 improvements
+      case 'Default Blue':
+        // Default Blue theme with v0.6.14 design tokens
         return {
-          // Typography - using modern font stack
-          fontFamily:
-            'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          headerFontFamily:
-            'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          buttonFontFamily:
-            'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-
-          // Main colors - Enhanced modern palette
-          backgroundColor: '#fafafa',
-          foregroundColor: '#0f172a',
-
-          // Card styling
-          cardColor: '#ffffff',
-          cardForegroundColor: '#1e293b',
-
-          // Popover styling
-          popoverColor: '#ffffff',
-          popoverForegroundColor: '#1e293b',
-
-          // Primary colors - Modern indigo with enhanced states
-          primaryColor: '#6366f1', // indigo-500
-          primaryHoverColor: '#4f46e5', // indigo-600
-          primaryActiveColor: '#4338ca', // indigo-700
-          primaryForegroundColor: '#ffffff',
-          primaryForegroundHoverColor: '#f8fafc',
-          primaryForegroundActiveColor: '#f1f5f9',
-
-          // Secondary colors - Enhanced outline button support
-          secondaryColor: '#00000000', // Transparent
-          secondaryHoverColor: '#6366f114', // Subtle primary tint (8% opacity)
-          secondaryActiveColor: '#6366f11f', // Slightly more prominent (12% opacity)
-          secondaryForegroundColor: '#6366f1', // Primary color for text
-          secondaryForegroundHoverColor: '#4f46e5', // Hover state
-          secondaryForegroundActiveColor: '#4338ca', // Active state
-          secondaryBorderWidth: '1px', // Enhanced outline button border
-
-          // Muted colors
-          mutedColor: '#f8fafc', // slate-50
-          mutedForegroundColor: '#64748b', // slate-500
-
-          // Accent colors - For hover states and highlights
-          accentColor: '#f1f5f9', // slate-100
-          accentForegroundColor: '#475569', // slate-600
-
-          // Destructive colors - Enhanced with better states
-          destructiveColor: '#ef4444', // red-500
-          destructiveHoverColor: '#dc2626', // red-600
-          destructiveActiveColor: '#b91c1c', // red-700
-          destructiveForegroundColor: '#ffffff',
-          destructiveForegroundHoverColor: '#fef2f2',
-          destructiveForegroundActiveColor: '#fee2e2',
-
-          // Border and input styling
-          borderRadius: '8px',
-          buttonBorderRadius: '6px',
-          inputBorderRadius: '6px',
-          borderColor: '#e2e8f0', // slate-200
-          inputColor: '#ffffff',
-          inputBorderColor: '#d1d5db', // gray-300
-          ringColor: '#6366f1', // indigo-500 (matches primary)
-
-          // Spacing and layout
-          spacingUnit: '0.25rem', // 4px base unit
-          zIndexOverlay: 1000,
-
-          // Enhanced button styling with v0.6.13 improvements
-          buttonFontWeight: '500', // medium
-          buttonFontSize: '0.875rem', // 14px
-          buttonLineHeight: '1.25rem', // 20px
-          buttonTextTransform: 'none', // Modern clean style
-          buttonLetterSpacing: '0px', // No letter spacing
-
-          // Button weights for different variants
-          primaryButtonFontWeight: '600', // semibold for primary
-          secondaryButtonFontWeight: '500', // medium for secondary
-          destructiveButtonFontWeight: '600', // semibold for destructive
-
-          // Border widths - Enhanced outline button support
-          primaryBorderWidth: '0px', // No border for filled primary
-          destructiveBorderWidth: '0px', // No border for filled destructive
-
-          // Modern interaction effects
-          shiftButtonOnActive: false, // Flat modern design
-        };
-      case 'SellSense':
-        // Enhanced SellSense theme with v0.6.13 improvements
-        return {
+          // Typography - modern font stack
           fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
           headerFontFamily:
             'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
           buttonFontFamily:
             'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
 
-          // SellSense brand colors
-          primaryColor: '#f55727', // SellSense orange
-          primaryHoverColor: '#e14d1f', // Darker orange for hover
-          primaryActiveColor: '#cc4319', // Even darker for active
-          primaryForegroundColor: '#ffffff',
-
-          // Enhanced secondary button with outline support
-          secondaryColor: '#00000000', // Transparent
-          secondaryHoverColor: '#f5572714', // Orange tint (8% opacity)
-          secondaryActiveColor: '#2CB9AC', // SellSense teal for active
-          secondaryForegroundColor: '#f55727', // Orange text
-          secondaryForegroundHoverColor: '#e14d1f',
-          secondaryForegroundActiveColor: '#2CB9AC',
-          secondaryBorderWidth: '1px', // Outline button border
-
-          // Background and layout
-          backgroundColor: '#F8FAFC',
+          // Main colors
+          backgroundColor: '#ffffff',
           foregroundColor: '#1e293b',
           cardColor: '#ffffff',
           cardForegroundColor: '#1e293b',
+          popoverColor: '#ffffff',
+          popoverForegroundColor: '#1e293b',
 
-          // Enhanced input styling
-          inputColor: '#FFFFFF',
-          inputBorderColor: '#0000004d', // Black with 30% opacity
-          borderColor: '#0000004d',
+          // Primary colors - Default Blue
+          primaryColor: '#0060f0',
+          primaryHoverColor: '#0a4386',
+          primaryActiveColor: '#083366',
+          primaryForegroundColor: '#ffffff',
+          primaryForegroundHoverColor: '#f8fafc',
+          primaryForegroundActiveColor: '#f1f5f9',
 
-          // Modern border radius
-          borderRadius: '6px',
-          inputBorderRadius: '4px',
-          buttonBorderRadius: '8px',
+          // Secondary colors - Enhanced outline button support
+          secondaryColor: '#00000000', // Transparent
+          secondaryHoverColor: '#0060f014', // Blue tint (8% opacity)
+          secondaryActiveColor: '#0060f01f', // Slightly more prominent (12% opacity)
+          secondaryForegroundColor: '#0060f0',
+          secondaryForegroundHoverColor: '#0a4386',
+          secondaryForegroundActiveColor: '#083366',
+          secondaryBorderWidth: '1px',
 
-          // Enhanced button styling
-          buttonFontWeight: '600', // SellSense brand weight
+          // Muted colors
+          mutedColor: '#f8fafc',
+          mutedForegroundColor: '#64748b',
+          accentColor: '#f1f5f9',
+          accentForegroundColor: '#475569',
+
+          // Destructive colors
+          destructiveColor: '#ef4444',
+          destructiveHoverColor: '#dc2626',
+          destructiveActiveColor: '#b91c1c',
+          destructiveForegroundColor: '#ffffff',
+          destructiveForegroundHoverColor: '#fef2f2',
+          destructiveForegroundActiveColor: '#fee2e2',
+
+          // Border and input styling
+          borderRadius: '8px',
+          buttonBorderRadius: '.313em', // Matching useThemes.ts
+          inputBorderRadius: '6px',
+          borderColor: '#e2e8f0',
+          inputColor: '#ffffff',
+          inputBorderColor: '#d1d5db',
+          ringColor: '#0060f0',
+
+          // Enhanced button styling with v0.6.14 improvements
+          buttonFontWeight: '500',
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
-          buttonTextTransform: 'uppercase', // Brand style
-          buttonLetterSpacing: '0.6px', // Brand spacing
+          buttonTextTransform: 'none',
+          buttonLetterSpacing: '0em',
 
-          // Button weights
+          // Button weights for different variants
           primaryButtonFontWeight: '600',
-          secondaryButtonFontWeight: '600',
+          secondaryButtonFontWeight: '500',
           destructiveButtonFontWeight: '600',
 
           // Border widths
@@ -150,30 +87,31 @@ export const useSellSenseThemes = () => {
 
           // Spacing and effects
           spacingUnit: '0.25rem',
-          shiftButtonOnActive: false,
+          shiftButtonOnActive: true, // Matching useThemes.ts
           zIndexOverlay: 1000,
         };
+
       case 'S&P Theme':
-        // Enhanced S&P Theme with v0.6.13 improvements (matching the new story)
+        // S&P Theme with v0.6.14 design tokens (matching useThemes.ts)
         return {
           fontFamily: 'Open Sans',
           headerFontFamily: 'Amplitude',
           buttonFontFamily: 'Amplitude',
 
           // S&P brand colors
-          primaryColor: '#1B7F9E', // S&P teal
-          primaryHoverColor: '#166b85', // Darker teal
-          primaryActiveColor: '#145a71', // Even darker
+          primaryColor: '#1B7F9E',
+          primaryHoverColor: '#166b85',
+          primaryActiveColor: '#145a71',
           primaryForegroundColor: '#ffffff',
 
-          // Enhanced secondary styling with proper outline button support
-          secondaryColor: '#ffffff',
-          secondaryHoverColor: '#f1f2f480', // Subtle gray hover (50% opacity)
-          secondaryActiveColor: '#f1f2f4cc', // More prominent active (80% opacity)
-          secondaryForegroundColor: '#1B7F9E', // S&P teal text
+          // Secondary styling with proper outline button support
+          secondaryColor: 'white', // Matching useThemes.ts
+          secondaryHoverColor: '#f1f2f480',
+          secondaryActiveColor: '#f1f2f4cc',
+          secondaryForegroundColor: '#1B7F9E',
           secondaryForegroundHoverColor: '#166b85',
           secondaryForegroundActiveColor: '#145a71',
-          secondaryBorderWidth: '1px', // Outline button border
+          secondaryBorderWidth: '1px',
 
           // Background and layout
           backgroundColor: '#f6f7f8',
@@ -183,8 +121,8 @@ export const useSellSenseThemes = () => {
 
           // Input styling
           inputColor: '#FFFFFF',
-          inputBorderColor: '#0000004d', // Black with 30% opacity
-          borderColor: '#0000004d',
+          inputBorderColor: '#0000004D', // Matching useThemes.ts
+          borderColor: '#0000004D',
 
           // Border radius
           borderRadius: '6px',
@@ -192,11 +130,11 @@ export const useSellSenseThemes = () => {
           buttonBorderRadius: '8px',
 
           // Enhanced button styling
-          buttonFontWeight: '600', // S&P brand weight
+          buttonFontWeight: '600',
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
-          buttonTextTransform: 'uppercase', // Brand style
-          buttonLetterSpacing: '0.6px', // Brand spacing
+          buttonTextTransform: 'uppercase',
+          buttonLetterSpacing: '0.6px',
 
           // Button weights
           primaryButtonFontWeight: '600',
@@ -212,113 +150,116 @@ export const useSellSenseThemes = () => {
           shiftButtonOnActive: false,
           zIndexOverlay: 1000,
         };
-      case 'Dark':
-        // Enhanced Dark theme with v0.6.13 improvements
+
+      case 'Create Commerce':
+        // Create Commerce theme with v0.6.14 design tokens (matching useThemes.ts)
         return {
-          fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          headerFontFamily:
-            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          buttonFontFamily:
-            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+          fontFamily: 'Open Sans',
+          headerFontFamily: 'Open Sans',
+          buttonFontFamily: 'Open Sans',
 
-          // Dark theme colors
-          backgroundColor: '#1e293b', // slate-800
-          foregroundColor: '#f1f5f9', // slate-100
-          cardColor: '#334155', // slate-700
-          cardForegroundColor: '#f1f5f9',
-          popoverColor: '#334155',
-          popoverForegroundColor: '#f1f5f9',
+          // Create Commerce brand colors
+          primaryColor: '#FD8172',
+          primaryHoverColor: '#fd6b5a',
+          primaryActiveColor: '#fc5441',
+          primaryForegroundColor: '#ffffff', // Changed to white for better contrast
 
-          // Primary colors (keeping SellSense orange for brand consistency)
+          // Secondary styling with improved contrast
+          secondaryColor: '#4A5568', // Improved secondary background
+          secondaryHoverColor: '#2D3748', // Darker hover for better contrast
+          secondaryActiveColor: '#2CB9AC', // Keeping the accent color
+          secondaryForegroundColor: '#E2E8F0', // Light text for dark backgrounds
+          secondaryForegroundHoverColor: '#F7FAFC', // Even lighter on hover
+          secondaryForegroundActiveColor: '#2CB9AC',
+          secondaryBorderWidth: '1px',
+
+          // Background and layout (improved dark theme)
+          backgroundColor: '#2D3748', // Lighter dark background for better readability
+          foregroundColor: '#F7FAFC', // Very light text for maximum contrast
+          cardColor: '#4A5568', // Card background with good contrast
+          cardForegroundColor: '#F7FAFC', // Light text on cards
+
+          // Muted and accent colors with better contrast
+          mutedColor: '#4A5568', // Consistent with card color
+          mutedForegroundColor: '#CBD5E0', // Better contrast for muted text
+          accentColor: '#4A5568',
+          accentForegroundColor: '#F7FAFC',
+
+          // Input styling with improved visibility
+          inputColor: '#4A5568', // Dark but readable input background
+          inputBorderColor: '#718096', // Visible border
+          borderColor: '#718096', // Consistent border color
+
+          // Enhanced destructive colors for dark theme
+          destructiveColor: '#FC8181', // Lighter red for dark backgrounds
+          destructiveHoverColor: '#F56565',
+          destructiveActiveColor: '#E53E3E',
+          destructiveForegroundColor: '#ffffff',
+          destructiveForegroundHoverColor: '#2D3748',
+          destructiveForegroundActiveColor: '#1A202C',
+
+          // Border radius
+          borderRadius: '8px',
+          inputBorderRadius: '4px',
+          buttonBorderRadius: '8px',
+
+          // Enhanced button styling
+          buttonFontWeight: '600',
+          buttonFontSize: '0.875rem',
+          buttonLineHeight: '1.25rem',
+          buttonTextTransform: 'uppercase',
+          buttonLetterSpacing: '0.6px',
+
+          // Button weights
+          primaryButtonFontWeight: '600',
+          secondaryButtonFontWeight: '600',
+          destructiveButtonFontWeight: '600',
+
+          // Border widths
+          primaryBorderWidth: '0px',
+          destructiveBorderWidth: '0px',
+
+          // Spacing and effects
+          spacingUnit: '0.25rem',
+          shiftButtonOnActive: false,
+          zIndexOverlay: 1000,
+        };
+
+      case 'SellSense':
+        // SellSense theme with v0.6.14 design tokens (matching useThemes.ts)
+        return {
+          fontFamily: 'Inter', // Matching useThemes.ts
+          headerFontFamily: 'Inter',
+          buttonFontFamily: 'Inter',
+
+          // SellSense brand colors
           primaryColor: '#f55727',
           primaryHoverColor: '#e14d1f',
           primaryActiveColor: '#cc4319',
           primaryForegroundColor: '#ffffff',
 
-          // Enhanced secondary for dark mode
-          secondaryColor: '#00000000', // Transparent
-          secondaryHoverColor: '#f557271a', // Subtle orange in dark (10% opacity)
-          secondaryActiveColor: '#2CB9AC', // SellSense teal
+          // Enhanced secondary button with outline support
+          secondaryColor: '#FDF7F0', // Matching useThemes.ts
+          secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)', // Matching useThemes.ts
+          secondaryActiveColor: '#2CB9AC',
           secondaryForegroundColor: '#f55727',
           secondaryForegroundHoverColor: '#e14d1f',
           secondaryForegroundActiveColor: '#2CB9AC',
           secondaryBorderWidth: '1px',
 
-          // Muted colors for dark theme
-          mutedColor: '#475569', // slate-600
-          mutedForegroundColor: '#94a3b8', // slate-400
-          accentColor: '#475569',
-          accentForegroundColor: '#f1f5f9',
-
-          // Enhanced dark theme inputs
-          inputColor: '#475569', // slate-600
-          inputBorderColor: '#64748b', // slate-500
-          borderColor: '#64748b',
-          ringColor: '#f55727', // Orange focus ring
-
-          // Border radius
-          borderRadius: '6px',
-          inputBorderRadius: '4px',
-          buttonBorderRadius: '8px',
-
-          // Enhanced button styling
-          buttonFontWeight: '600',
-          buttonFontSize: '0.875rem',
-          buttonLineHeight: '1.25rem',
-          buttonTextTransform: 'uppercase',
-          buttonLetterSpacing: '0.6px',
-
-          // Button weights
-          primaryButtonFontWeight: '600',
-          secondaryButtonFontWeight: '600',
-          destructiveButtonFontWeight: '600',
-
-          // Border widths
-          primaryBorderWidth: '0px',
-          destructiveBorderWidth: '0px',
-
-          // Spacing and effects
-          spacingUnit: '0.25rem',
-          shiftButtonOnActive: false,
-          zIndexOverlay: 1000,
-        };
-      case 'Partner A':
-        // Enhanced Partner A theme with v0.6.13 improvements
-        return {
-          fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          headerFontFamily:
-            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-          buttonFontFamily:
-            'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-
-          // JP Morgan brand colors
-          primaryColor: '#1c2752', // JP Morgan blue
-          primaryHoverColor: '#15203d', // Darker blue
-          primaryActiveColor: '#0f1729', // Even darker
-          primaryForegroundColor: '#ffffff',
-
-          // Enhanced secondary with JP Morgan brown accent
-          secondaryColor: '#00000000', // Transparent
-          secondaryHoverColor: '#1c275214', // Blue tint (8% opacity)
-          secondaryActiveColor: '#936846', // JP Morgan brown
-          secondaryForegroundColor: '#1c2752', // Blue text
-          secondaryForegroundHoverColor: '#15203d',
-          secondaryForegroundActiveColor: '#936846',
-          secondaryBorderWidth: '1px',
-
           // Background and layout
-          backgroundColor: '#f0f2f8', // Light blue-gray
+          backgroundColor: '#FAF9F7', // Matching useThemes.ts
           foregroundColor: '#1e293b',
-          cardColor: '#ffffff',
+          cardColor: '#F7F3F0', // Matching useThemes.ts
           cardForegroundColor: '#1e293b',
 
           // Input styling
           inputColor: '#FFFFFF',
-          inputBorderColor: '#0000004d', // Black with 30% opacity
+          inputBorderColor: '#0000004d',
           borderColor: '#0000004d',
 
           // Border radius
-          borderRadius: '6px',
+          borderRadius: '8px',
           inputBorderRadius: '4px',
           buttonBorderRadius: '8px',
 
@@ -343,21 +284,81 @@ export const useSellSenseThemes = () => {
           shiftButtonOnActive: false,
           zIndexOverlay: 1000,
         };
+
+      case 'PayFicient':
+        // PayFicient theme with v0.6.14 design tokens (matching useThemes.ts)
+        return {
+          fontFamily: 'Manrope',
+          headerFontFamily: 'Manrope',
+          buttonFontFamily: 'Manrope',
+
+          // PayFicient brand colors
+          primaryColor: '#177556',
+          primaryHoverColor: '#145f47',
+          primaryActiveColor: '#114a38',
+          primaryForegroundColor: '#ffffff',
+
+          // Secondary styling
+          secondaryColor: '#FFFCF6', // Matching useThemes.ts
+          secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)', // Matching useThemes.ts
+          secondaryActiveColor: '#d6e8d1',
+          secondaryForegroundColor: '#177556',
+          secondaryForegroundHoverColor: '#145f47',
+          secondaryForegroundActiveColor: '#114a38',
+          secondaryBorderWidth: '1px',
+
+          // Background and layout
+          backgroundColor: '#FFFCF6',
+          foregroundColor: '#1e293b',
+          cardColor: '#F7F3F0', // Matching useThemes.ts
+          cardForegroundColor: '#1e293b',
+
+          // Input styling
+          inputColor: '#FFFFFF',
+          inputBorderColor: '#0000004d',
+          borderColor: '#0000004d',
+
+          // Border radius
+          borderRadius: '5px', // Matching useThemes.ts
+          inputBorderRadius: '4px',
+          buttonBorderRadius: '8px',
+
+          // Enhanced button styling
+          buttonFontWeight: '600',
+          buttonFontSize: '0.875rem',
+          buttonLineHeight: '1.25rem',
+          buttonTextTransform: 'uppercase',
+          buttonLetterSpacing: '0.6px',
+
+          // Button weights
+          primaryButtonFontWeight: '600',
+          secondaryButtonFontWeight: '600',
+          destructiveButtonFontWeight: '600',
+
+          // Border widths
+          primaryBorderWidth: '0px',
+          destructiveBorderWidth: '0px',
+
+          // Spacing and effects
+          spacingUnit: '0.25rem',
+          shiftButtonOnActive: false,
+          zIndexOverlay: 1000,
+        };
+
       default:
         // Enhanced default fallback
         return {
-          fontFamily:
-            'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          primaryColor: '#6366f1',
-          primaryHoverColor: '#4f46e5',
+          fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+          primaryColor: '#0060f0',
+          primaryHoverColor: '#0a4386',
           primaryForegroundColor: '#ffffff',
-          backgroundColor: '#fafafa',
-          foregroundColor: '#0f172a',
-          buttonBorderRadius: '6px',
+          backgroundColor: '#ffffff',
+          foregroundColor: '#1e293b',
+          buttonBorderRadius: '.313em',
           borderRadius: '8px',
           buttonFontWeight: '500',
           buttonTextTransform: 'none',
-          shiftButtonOnActive: false,
+          shiftButtonOnActive: true,
           spacingUnit: '0.25rem',
         };
     }
@@ -366,8 +367,7 @@ export const useSellSenseThemes = () => {
   const mapThemeOption = (themeOption: ThemeOption) => {
     const variables = getThemeVariables(themeOption);
     return {
-      colorScheme:
-        themeOption === 'Dark' ? ('dark' as const) : ('light' as const),
+      colorScheme: 'light' as const, // All themes are light mode for now
       variables,
     };
   };
@@ -376,4 +376,17 @@ export const useSellSenseThemes = () => {
     getThemeVariables,
     mapThemeOption,
   };
+};
+
+// Helper function to get theme variables directly
+export const getThemeVariables = (
+  themeOption: ThemeOption,
+): EBThemeVariables => {
+  const { getThemeVariables } = useSellSenseThemes();
+  return getThemeVariables(themeOption);
+};
+
+// Helper to check if theme supports dark mode
+export const isDarkTheme = (themeOption: ThemeOption): boolean => {
+  return themeOption === 'Create Commerce';
 };

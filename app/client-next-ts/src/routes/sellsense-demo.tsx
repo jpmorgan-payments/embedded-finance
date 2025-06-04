@@ -16,7 +16,13 @@ const sellsenseDemoSearchSchema = z.object({
     ])
     .optional(),
   theme: z
-    .enum(['Default', 'Dark', 'Partner A', 'SellSense', 'S&P Theme'])
+    .enum([
+      'Default Blue',
+      'S&P Theme',
+      'Create Commerce',
+      'SellSense',
+      'PayFicient',
+    ])
     .optional(),
   contentTone: z.enum(['Standard', 'Friendly']).optional(),
   view: z
