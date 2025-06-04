@@ -34,24 +34,6 @@ const demos = [
     link: '#',
     active: false,
   },
-  {
-    id: 'banking',
-    title: 'Digital Banking',
-    description:
-      'A modern banking interface with account management and transaction capabilities.',
-    image: '/digital-banking-concept.png',
-    link: '#',
-    active: false,
-  },
-  {
-    id: 'fintech',
-    title: 'FinTech Suite',
-    description:
-      'Complete financial technology solution with payments, lending, and analytics.',
-    image: '/fintech-suite-concept.png',
-    link: '#',
-    active: false,
-  },
 ];
 
 export function DemoCarousel() {
@@ -70,19 +52,19 @@ export function DemoCarousel() {
   };
 
   return (
-    <section className="py-12 bg-jpm-white">
+    <section className="py-8 bg-jpm-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
             Explore Demo Applications
           </h2>
-          <p className="text-page-body text-jpm-gray text-center mb-12 max-w-3xl mx-auto">
+          <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
             Interactive demonstrations showcasing different embedded finance use
             cases and implementation patterns.
           </p>
 
           <div className="relative">
-            <div className="overflow-hidden">
+            <div className="overflow-x-hidden overflow-y-visible">
               <div
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out"
@@ -94,7 +76,7 @@ export function DemoCarousel() {
                 {demos.map((demo) => (
                   <div
                     key={demo.id}
-                    className="flex-shrink-0 px-4"
+                    className="flex-shrink-0 px-4 pb-4"
                     style={{ width: `${100 / demos.length}%` }}
                   >
                     <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">

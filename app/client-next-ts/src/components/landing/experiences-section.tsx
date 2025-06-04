@@ -9,6 +9,8 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
+  Box,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -19,77 +21,94 @@ export function ExperiencesSection() {
   const experiences = [
     {
       id: 'onboarding',
-      title: 'Client Onboarding',
+      title: 'Client Onboarding (KYC/KYB)',
       description:
-        'Complete KYC/KYB process with document collection and verification',
+        'Complete client verification with staggered data collection, due diligence questions, and document requests.',
       icon: <Users className="h-5 w-5" />,
       status: 'live',
+      hasComponents: true,
       steps: [
-        'Collect business details',
-        'Verify identity',
-        'Upload documents',
-        'Review and approve',
+        'Create client with basic business information',
+        'Collect party details and due diligence responses',
+        'Handle document requests and attestations',
+        'Submit for verification and monitor status',
       ],
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
     {
       id: 'link-account',
-      title: 'Link Bank Account',
+      title: 'Link External Bank Account',
       description:
-        'Securely connect external bank accounts for payments and transfers',
+        'Connect external bank accounts using Account Validation Service with microdeposits verification.',
       icon: <Link className="h-5 w-5" />,
       status: 'live',
+      hasComponents: true,
       steps: [
-        'Select bank',
-        'Authenticate',
-        'Verify account',
-        'Confirm connection',
+        'Add recipient with account details and party information',
+        'Trigger Account Validation Service (AVS) checks',
+        'Complete microdeposits verification if required',
+        'Activate linked account for payments',
       ],
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/LINKED_ACCOUNTS_RECIPE.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
     },
     {
       id: 'transactions',
-      title: 'Transaction History',
+      title: 'Transaction History & Management',
       description:
-        'View, filter, and manage transaction records with detailed insights',
+        'View, filter, and manage transaction records with detailed insights and comprehensive reporting.',
       icon: <List className="h-5 w-5" />,
       status: 'coming soon',
+      hasComponents: false,
       steps: [
-        'Fetch transactions',
-        'Apply filters',
-        'Display results',
-        'Export data',
+        'Fetch transaction data with filtering options',
+        'Display transaction details and status',
+        'Provide search and sorting capabilities',
+        'Export transaction data for reporting',
       ],
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/TRANSACTIONS_DISPLAY_RECIPE.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2',
     },
     {
       id: 'payments',
-      title: 'Payment Processing',
+      title: 'Make Payouts',
       description:
-        'Process payments with real-time status updates and reconciliation',
+        'Process ACH, Wire, and RTP payments from Embedded Banking accounts to client bank accounts.',
       icon: <ArrowRight className="h-5 w-5" />,
       status: 'coming soon',
+      hasComponents: false,
       steps: [
-        'Initiate payment',
-        'Validate details',
-        'Process transaction',
-        'Confirm completion',
+        'Get debtor account ID from your Embedded account',
+        'Create payment request with recipient and amount',
+        'Submit transaction with reference ID and memo',
+        'Monitor payment status and completion',
       ],
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
     },
     {
-      id: 'reporting',
-      title: 'Financial Reporting',
+      id: 'notifications',
+      title: 'Notifications & Webhooks',
       description:
-        'Generate comprehensive financial reports and analytics dashboards',
+        'Receive real-time notifications about transaction, client, account, and recipient events.',
       icon: <List className="h-5 w-5" />,
       status: 'coming soon',
+      hasComponents: false,
       steps: [
-        'Collect data',
-        'Process metrics',
-        'Generate reports',
-        'Export insights',
+        'Set up webhook subscription endpoints',
+        'Configure event types for notifications',
+        'Handle real-time event notifications',
+        'Update UI based on event data',
       ],
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions',
     },
   ];
 
@@ -105,19 +124,19 @@ export function ExperiencesSection() {
   };
 
   return (
-    <section className="py-12 bg-jpm-white">
+    <section className="py-8 bg-jpm-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
-            Explore Embedded Experiences and Recipes
+            Explore Embedded Components, Experiences and Recipes
           </h2>
-          <p className="text-page-body text-jpm-gray text-center mb-12 max-w-3xl mx-auto">
+          <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
             Pre-built workflows and implementation patterns for common embedded
             finance use cases.
           </p>
 
           <div className="relative">
-            <div className="overflow-hidden">
+            <div className="overflow-x-hidden overflow-y-visible">
               <div
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out"
@@ -129,10 +148,10 @@ export function ExperiencesSection() {
                 {experiences.map((exp) => (
                   <div
                     key={exp.id}
-                    className="flex-shrink-0 px-4"
+                    className="flex-shrink-0 px-4 pb-4"
                     style={{ width: `${100 / experiences.length}%` }}
                   >
-                    <Card className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-full">
+                    <Card className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-full flex flex-col">
                       <CardHeader className="bg-jpm-brown-100 pb-2">
                         <div className="flex items-center justify-between mb-2">
                           <CardTitle className="flex items-center text-page-h4">
@@ -141,23 +160,28 @@ export function ExperiencesSection() {
                             </div>
                             {exp.title}
                           </CardTitle>
-                          <span
-                            className={`px-2 py-1 text-page-small font-medium rounded-page-sm ${
-                              exp.status === 'live'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-orange-100 text-orange-800'
-                            }`}
-                          >
-                            {exp.status === 'live' ? 'Live' : 'Coming Soon'}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`px-2 py-1 text-page-small font-medium rounded-page-sm ${
+                                exp.status === 'live'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-orange-100 text-orange-800'
+                              }`}
+                            >
+                              {exp.status === 'live' ? 'Live' : 'Coming Soon'}
+                            </span>
+                            {exp.hasComponents && (
+                              <Box className="h-4 w-4 text-blue-600" />
+                            )}
+                          </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-8">
+                      <CardContent className="p-8 flex-1 flex flex-col">
                         <p className="text-page-body text-jpm-gray leading-relaxed mb-6">
                           {exp.description}
                         </p>
 
-                        <div className="mb-6">
+                        <div className="mb-6 flex-1">
                           <h4 className="text-page-small font-semibold mb-3 text-jpm-gray-900">
                             Implementation Steps:
                           </h4>
@@ -168,17 +192,48 @@ export function ExperiencesSection() {
                           </ol>
                         </div>
 
-                        {exp.recipeUrl && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold"
-                            onClick={() => window.open(exp.recipeUrl, '_blank')}
-                          >
-                            View Recipe
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        )}
+                        <div className="space-y-3 mt-auto">
+                          {exp.recipeUrl && (
+                            <Button
+                              variant="outline"
+                              className="w-full border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold"
+                              onClick={() =>
+                                window.open(exp.recipeUrl, '_blank')
+                              }
+                            >
+                              View Implementation Recipe
+                              <ExternalLink className="ml-2 h-4 w-4" />
+                            </Button>
+                          )}
+
+                          {exp.docsUrl && (
+                            <Button
+                              variant="outline"
+                              className="w-full border-jpm-blue text-jpm-blue hover:bg-blue-50 rounded-page-md font-semibold"
+                              onClick={() => window.open(exp.docsUrl, '_blank')}
+                            >
+                              View API Documentation
+                              <ExternalLink className="ml-2 h-4 w-4" />
+                            </Button>
+                          )}
+
+                          {exp.hasComponents && (
+                            <Button
+                              variant="outline"
+                              className="w-full border-blue-500 text-blue-600 hover:bg-blue-50 rounded-page-md font-semibold"
+                              onClick={() =>
+                                window.open(
+                                  'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
+                                  '_blank',
+                                )
+                              }
+                            >
+                              <Box className="mr-2 h-4 w-4" />
+                              View NPM Components
+                              <ExternalLink className="ml-2 h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>

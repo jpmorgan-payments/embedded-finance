@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export function ComponentsSection() {
   const [selectedDate, setSelectedDate] = useState('2023-05-15');
   const [selectedIndustry, setSelectedIndustry] = useState('Technology');
-  const [taxIdFormat, setTaxIdFormat] = useState('EIN');
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -180,20 +179,16 @@ export function ComponentsSection() {
     setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
   };
 
-  const getVisibleComponents = () => {
-    return components.slice(currentIndex, currentIndex + VISIBLE_COMPONENTS);
-  };
-
   return (
-    <section className="py-16 bg-jpm-gray-100">
+    <section className="py-8 bg-jpm-gray-100">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-page-h2 mb-8 text-center text-jpm-gray-900">
-            Explore Embedded Components and Microinteractions
+          <h2 className="text-page-h2 mb-4 text-center text-jpm-gray-900">
+            Explore Utility Components and Microinteractions
           </h2>
 
           <div className="relative">
-            <div className="overflow-hidden">
+            <div className="overflow-x-hidden overflow-y-visible">
               <div
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out"
@@ -205,7 +200,7 @@ export function ComponentsSection() {
                 {components.map((comp) => (
                   <div
                     key={comp.id}
-                    className="flex-shrink-0 px-3"
+                    className="flex-shrink-0 px-3 pb-4"
                     style={{ width: `${100 / components.length}%` }}
                   >
                     <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg h-full">
