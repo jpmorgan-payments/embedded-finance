@@ -9,7 +9,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
-// import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import {
@@ -66,11 +66,11 @@ export const ACCEPTED_FILE_TYPES = {
   'image/webp': ['.webp'],
 };
 
-// const generateRequestId = () => {
-//   return uuidv4()
-//     .replace(/[^a-zA-Z0-9_-]/g, '')
-//     .slice(0, 32);
-// };
+const generateRequestId = () => {
+  return uuidv4()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 32);
+};
 
 // Helper function to format document request descriptions
 const formatDocumentDescription = (description?: string) => {
@@ -551,9 +551,9 @@ export const DocumentUploadForm = () => {
           // });
 
           const documentData = {
-            // requestId: generateRequestId(),
+            documentRequestId: generateRequestId(),
             // documentContent: base64Content,
-            documentName: file.name,
+            // documentName: file.name,
             documentType,
             // documentMetadata: {
             //   documentRequestId,
