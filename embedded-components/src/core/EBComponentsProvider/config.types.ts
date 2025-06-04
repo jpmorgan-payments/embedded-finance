@@ -41,6 +41,14 @@ export type EBThemeVariables = {
   destructiveForegroundColor?: string;
   destructiveForegroundHoverColor?: string;
   destructiveForegroundActiveColor?: string;
+  informativeColor?: string;
+  informativeAccentColor?: string;
+  warningColor?: string;
+  warningAccentColor?: string;
+  successColor?: string;
+  successAccentColor?: string;
+  alertColor?: string;
+  alertForegroundColor?: string;
   mutedColor?: string;
   mutedForegroundColor?: string;
   accentColor?: string;
@@ -57,6 +65,9 @@ export type EBThemeVariables = {
   zIndexOverlay?: number;
   buttonTextTransform?: string;
   buttonLetterSpacing?: string;
+  formLabelFontSize?: string;
+  formLabelFontWeight?: string;
+  formLabelLineHeight?: string;
 };
 
 export type EBTheme = {

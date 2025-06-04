@@ -92,6 +92,7 @@ interface BaseProps<
   maskChar?: string;
   valueOverride?: string;
   onChange?: (...value: any[]) => void;
+  labelClassName?: string;
 }
 
 interface SelectOrRadioGroupProps<
@@ -139,6 +140,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   shouldUnregister,
   valueOverride,
   onChange: onChangeProp,
+  labelClassName,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
 
@@ -246,7 +248,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             {type !== 'checkbox' && type !== 'checkbox-basic' ? (
               <>
                 <div className="eb-flex eb-items-center eb-space-x-2">
-                  <FormLabel asterisk={fieldRequired && !isOverviewFlow}>
+                  <FormLabel
+                    asterisk={fieldRequired && !isOverviewFlow}
+                    className={labelClassName}
+                  >
                     {fieldLabel}
                   </FormLabel>
                   <InfoPopover>{fieldTooltip}</InfoPopover>
@@ -618,7 +623,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             )}
 
             {fieldDescription && isOverviewFlow && type !== 'checkbox' && (
-              <FormDescription className="eb-text-xs eb-text-gray-500">
+              <FormDescription className="eb-text-xs eb-italic eb-text-muted-foreground">
                 {fieldDescription}
               </FormDescription>
             )}
