@@ -9,7 +9,6 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import {
@@ -64,12 +63,6 @@ export const ACCEPTED_FILE_TYPES = {
   'image/bmp': ['.bmp'],
   'image/tiff': ['.tiff', '.tif'],
   'image/webp': ['.webp'],
-};
-
-const generateRequestId = () => {
-  return uuidv4()
-    .replace(/[^a-zA-Z0-9_-]/g, '')
-    .slice(0, 32);
 };
 
 // Helper function to format document request descriptions
@@ -541,23 +534,9 @@ export const DocumentUploadForm = () => {
 
         // Upload each document individually
         for (const { documentType, file } of documentUploads) {
-          // const base64Content = await new Promise<string>((resolve) => {
-          //   const reader = new FileReader();
-          //   reader.onloadend = () => {
-          //     const base64 = reader.result as string;
-          //     resolve(base64.split(',')[1]); // Remove data URL prefix
-          //   };
-          //   reader.readAsDataURL(file);
-          // });
-
           const documentData = {
-            documentRequestId: generateRequestId(),
-            // documentContent: base64Content,
-            // documentName: file.name,
+            documentRequestId,
             documentType,
-            // documentMetadata: {
-            //   documentRequestId,
-            // },
           };
 
           await uploadDocumentMutation.mutateAsync({
