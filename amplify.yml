@@ -2,6 +2,7 @@ version: 1
 applications:
   - appRoot: app/client
     frontend:
+      buildPath: / # Run install and build from the monorepo project root
       phases:
         build:
           commands:
@@ -17,6 +18,7 @@ applications:
           - node_modules/**/*
   - appRoot: app/client-next-ts
     frontend:
+      buildPath: / # Run install and build from the monorepo project root
       phases:
         build:
           commands:
