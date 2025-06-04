@@ -143,10 +143,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       >
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
-          <ServerErrorAlert
-            error={clientGetError}
-            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
-          />
+          <ServerErrorAlert error={clientGetError} />
         ) : clientGetStatus === 'pending' && initialClientId ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (

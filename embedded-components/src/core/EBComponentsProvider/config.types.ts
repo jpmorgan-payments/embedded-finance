@@ -41,6 +41,7 @@ export type EBThemeVariables = {
   destructiveForegroundColor?: string;
   destructiveForegroundHoverColor?: string;
   destructiveForegroundActiveColor?: string;
+  destructiveAccentColor?: string;
   informativeColor?: string;
   informativeAccentColor?: string;
   warningColor?: string;

@@ -432,10 +432,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
           <Component currentPartyData={existingPartyData} />
         </div>
         <div className="eb-mt-6 eb-space-y-6">
-          <ServerErrorAlert
-            error={clientUpdateError || partyUpdateError}
-            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
-          />
+          <ServerErrorAlert error={clientUpdateError || partyUpdateError} />
           <div className="eb-flex eb-flex-col eb-gap-3">
             <Button
               type="submit"

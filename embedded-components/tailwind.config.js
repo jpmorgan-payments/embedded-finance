@@ -64,6 +64,7 @@ module.exports = {
         },
         destructive: {
           DEFAULT: 'hsl(var(--eb-destructive))',
+          accent: 'hsl(var(--eb-destructive-accent))',
           hover: 'hsl(var(--eb-destructive-hover))',
           active:
             'hsl(var(--eb-destructive-active, var(--eb-destructive-hover)))',

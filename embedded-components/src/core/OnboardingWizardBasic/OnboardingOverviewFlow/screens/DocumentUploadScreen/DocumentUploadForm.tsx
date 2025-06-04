@@ -1090,7 +1090,6 @@ export const DocumentUploadForm = () => {
                     ? 'There was an unexpected error submitting document requests. Please try again.'
                     : undefined
               }
-              className="eb-border-[#E52135] eb-bg-[#FFECEA]"
             />
 
             <Button

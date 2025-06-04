@@ -76,6 +76,7 @@ const convertThemeVariablesToCssVariables = (
     '--eb-destructive-foreground-active': colorToHsl(
       variables.destructiveForegroundActiveColor
     ),
+    '--eb-destructive-accent': colorToHsl(variables.destructiveAccentColor),
     '--eb-informative': colorToHsl(variables.informativeColor),
     '--eb-informative-accent': colorToHsl(variables.informativeAccentColor),
     '--eb-warning': colorToHsl(variables.warningColor),

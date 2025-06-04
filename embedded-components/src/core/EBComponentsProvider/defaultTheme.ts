@@ -67,6 +67,7 @@ export const defaultTheme: EBTheme = {
     accentForegroundColor: 'hsl(0 0% 98%)',
     destructiveColor: 'hsl(0 74% 54%)',
     destructiveForegroundColor: 'hsl(0 0% 98%)',
+    destructiveAccentColor: '#FFECEA',
     informativeColor: '#0078CF',
     informativeAccentColor: '#EAF6FF',
     warningColor: '#C75300',

@@ -393,7 +393,6 @@ export const GatewayScreen = () => {
           <div className="eb-mt-6 eb-space-y-6">
             <ServerErrorAlert
               error={partyUpdateError || clientUpdateError || clientPostError}
-              className="eb-border-[#E52135] eb-bg-[#FFECEA]"
             />
 
             <Button
