@@ -279,18 +279,26 @@ Citations:
 [6] https://forum.katalon.com/t/date-picker-showing-errors/58863
 <!-- markdown-link-check-disable -->
 [7] https://www.reddit.com/r/UXDesign/comments/16ctze5/are_datepickers_bad_ux_design/
-<!-- markdown-link-check-enable -->
 [8] https://uxdesign.cc/rethinking-the-date-picker-ui-99b9dcb303ad?gi=a02bd8575964
+<!-- markdown-link-check-disable -->
 [9] https://stackoverflow.com/questions/75923936/inconsistent-error-behaviour-with-mui-datetimepicker-and-react-hook-form
 [10] https://ux.stackexchange.com/questions/7915/what-is-the-best-way-to-display-date-validation-errors
+<!-- markdown-link-check-enable -->
+
 [11] https://news.ycombinator.com/item?id=34145216
 [12] https://github.com/mui/mui-x/issues/4923
 [13] https://answers.laserfiche.com/questions/165803/Date-Picker-Error--JQuery
+<!-- markdown-link-check-disable -->
 [14] https://ux.stackexchange.com/questions/92563/are-there-any-ux-problems-with-date-pickers
 [15] https://stackoverflow.com/questions/71263501/unable-to-show-error-and-error-message-on-material-ui-datepicker
+<!-- markdown-link-check-enable -->
+
 [16] https://www.carletondesign.com/2024/05/03/date-input/
 [17] https://www.nngroup.com/articles/date-input/
+<!-- markdown-link-check-disable -->
 [18] https://stackoverflow.com/questions/79071544/possible-accessibility-issues-when-restricting-manual-date-entry-in-a-date-picke
+<!-- markdown-link-check-enable -->
+
 [19] https://www.bunnyfoot.com/2024/01/13-best-practices-to-design-error-friendly-forms/
 [20] https://app.uxcel.com/courses/ui-components-n-patterns/common-ui-components-ii-795/pickers-6600
 
