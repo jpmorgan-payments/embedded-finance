@@ -30,6 +30,7 @@ const FlowContext = createContext<{
   goTo: (id: ScreenId, config?: GoToConfig) => void;
   goBack: (config?: GoToConfig) => void;
   editingPartyIds: EditingPartyIds;
+  updateEditingPartyId: (screenId: ScreenId, partyId: string | null) => void;
   sections: SectionScreenConfig[];
   sessionData: FlowSessionData;
   updateSessionData: (updates: Partial<FlowSessionData>) => void;
@@ -47,6 +48,9 @@ const FlowContext = createContext<{
     throw new Error('goBack() must be used within FlowProvider');
   },
   editingPartyIds: {},
+  updateEditingPartyId: () => {
+    throw new Error('updateEditingPartyId() must be used within FlowProvider');
+  },
   sections: [],
   sessionData: {},
   updateSessionData: () => {
@@ -107,6 +111,13 @@ export const FlowProvider: React.FC<{
     setSessionData((prev) => ({ ...prev, ...updates }));
   };
 
+  const updateEditingPartyId = (screenId: ScreenId, partyId: string | null) => {
+    setEditingPartyIds((prev) => ({
+      ...prev,
+      [screenId]: partyId,
+    }));
+  };
+
   return (
     <FlowContext.Provider
       value={{
@@ -115,6 +126,7 @@ export const FlowProvider: React.FC<{
         goBack,
         originScreenId,
         editingPartyIds,
+        updateEditingPartyId,
         sections,
         sessionData,
         updateSessionData,

@@ -291,7 +291,7 @@ export const OverviewScreen = () => {
                         onClick={() => {
                           goTo(section.id, {
                             editingPartyId: existingPartyData.id,
-                            previouslyCompleted: sectionStatus === 'completed',
+                            // previouslyCompleted: sectionStatus === 'completed',
                             initialStepperStepId: firstInvalidStep,
                           });
                         }}
