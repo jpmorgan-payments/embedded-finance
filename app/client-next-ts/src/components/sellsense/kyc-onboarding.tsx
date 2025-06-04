@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   EBComponentsProvider,
   OnboardingFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
 import { Maximize2, Info, X } from 'lucide-react';
-import { useSearch, useNavigate } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 import type { ClientScenario, ThemeOption } from './dashboard-layout';
 import { useSellSenseThemes } from './use-sellsense-themes';
 import {
@@ -125,7 +125,6 @@ export function KycOnboarding({
 
   // Use TanStack Router's search and navigation APIs
   const searchParams = useSearch({ from: '/sellsense-demo' });
-  const navigate = useNavigate({ from: '/sellsense-demo' });
 
   const clientId = getClientIdFromScenario(clientScenario);
   const scenarioData = getScenarioData(clientScenario);
@@ -177,11 +176,6 @@ export function KycOnboarding({
       `SellSense User action: ${actionName} (Scenario: ${scenarioData.scenarioId})`,
     );
     // Here you could integrate with analytics services
-  };
-
-  const handleSetClientId = async (newClientId: string) => {
-    console.log('Client ID set to:', newClientId);
-    // Here you could save to external state management
   };
 
   const getCardStyles = () => {

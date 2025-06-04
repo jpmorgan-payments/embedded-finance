@@ -1,72 +1,10 @@
 import { http, HttpResponse } from 'msw';
-import {
-  accountBalanceMock,
-  accountsMock,
-  casesMock,
-  debitCardsMock,
-  industryCategoriesMock,
-  jobTitlesMock,
-  recipientsMock,
-  transactionDetailsMock,
-  transactionsMock,
-  efClientQuestionsMock,
-  efDocumentClientDetail,
-} from '../mocks';
+import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 
 import { db, handleMagicValues, resetDb, getDbStatus, logDbState } from './db';
 import merge from 'lodash/merge';
 
 export const createHandlers = (apiUrl) => [
-  http.get(`${apiUrl}/api/transactions`, () => {
-    return HttpResponse.json(transactionsMock);
-  }),
-  http.get(`${apiUrl}/api/transactions/:selectedTxnId`, () => {
-    return HttpResponse.json(transactionDetailsMock);
-  }),
-  http.get(`${apiUrl}/api/recipients`, () => {
-    return HttpResponse.json(recipientsMock);
-  }),
-
-  // EF Recipients endpoint with linked account support
-  http.get(`${apiUrl}/ef/do/v1/recipients`, ({ request }) => {
-    const url = new URL(request.url);
-    const type = url.searchParams.get('type');
-
-    // If requesting linked accounts, return linked account mock data
-    if (type === 'LINKED_ACCOUNT') {
-      // You can customize which mock to return based on scenario
-      // For now, returning the active linked account mock
-      return HttpResponse.json(linkedAccountListMock, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-        },
-      });
-    }
-
-    // For other recipient types, return the general recipients mock
-    return HttpResponse.json(recipientsMock);
-  }),
-
-  http.get(`${apiUrl}/api/accounts`, () => {
-    return HttpResponse.json(accountsMock);
-  }),
-  http.get(`${apiUrl}/api/accounts/:accountId/balances`, () => {
-    return HttpResponse.json(accountBalanceMock);
-  }),
-  http.get(`${apiUrl}/api/debit-cards`, () => {
-    return HttpResponse.json(debitCardsMock);
-  }),
-  http.get(`${apiUrl}/api/cases`, () => {
-    return HttpResponse.json(casesMock);
-  }),
-  http.get(`${apiUrl}/api/industry-categories`, () => {
-    return HttpResponse.json(industryCategoriesMock);
-  }),
-  http.get(`${apiUrl}/api/job-titles`, () => {
-    return HttpResponse.json(jobTitlesMock);
-  }),
-
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params;
     const client = db.client.findFirst({

@@ -79,7 +79,7 @@ export function DemoCarousel() {
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out gap-8 snap-x snap-mandatory"
               >
-                {demos.map((demo, index) => (
+                {demos.map((demo, _index) => (
                   <div
                     key={demo.id}
                     className="min-w-full md:min-w-[calc(50%-16px)] lg:min-w-[calc(33.333%-22px)] snap-center"

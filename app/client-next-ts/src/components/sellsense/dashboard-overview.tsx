@@ -15,10 +15,10 @@ interface DashboardOverviewProps {
 }
 
 export function DashboardOverview({
-  onViewChange,
+  onViewChange: _onViewChange,
   clientScenario,
-  contentTone,
-  theme,
+  contentTone: _contentTone,
+  theme: _theme,
 }: DashboardOverviewProps) {
   return (
     <div className="p-8 bg-sellsense-background-light min-h-screen">
