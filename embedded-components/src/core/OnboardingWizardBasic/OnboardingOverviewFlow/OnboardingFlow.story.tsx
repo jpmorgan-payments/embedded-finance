@@ -164,7 +164,7 @@ STheme.args = {
       buttonTextTransform: 'uppercase',
       buttonLetterSpacing: '0.6px',
       primaryColor: '#1B7F9E',
-      secondaryColor: 'white',
+      secondaryColor: 'transparent',
       secondaryForegroundColor: '#1B7F9E',
       secondaryBorderWidth: '1px',
       secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
