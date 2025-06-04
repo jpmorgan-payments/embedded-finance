@@ -5,7 +5,7 @@ applications:
       phases:
         build:
           commands:
-            - cd app/client
+            - ls
             - yarn install
             - yarn run build
       artifacts:
@@ -21,7 +21,7 @@ applications:
       phases:
         build:
           commands:
-            - cd app/client-next-ts
+            - ls
             - yarn install
             - yarn run build
       artifacts:
