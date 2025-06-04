@@ -21,7 +21,7 @@ const alertVariants = cva(
       density: {
         default:
           'eb-p-4 [&>svg+div]:eb-translate-y-[-3px] [&>svg]:eb-left-4 [&>svg]:eb-top-4 [&>svg~*]:eb-pl-7',
-        sm: 'eb-p-3 [&>svg+div]:eb-translate-y-[-2px] [&>svg]:eb-left-3 [&>svg]:eb-top-3 [&>svg~*]:eb-pl-6',
+        sm: 'eb-p-3 eb-pt-2.5 eb-text-sm [&>svg+div]:eb-translate-y-[-2px] [&>svg]:eb-left-3 [&>svg]:eb-top-3 [&>svg~*]:eb-pl-6',
       },
     },
     defaultVariants: {

@@ -311,9 +311,11 @@ export const GatewayScreen = () => {
     <Form {...form}>
       <form onSubmit={onSubmit} className="eb-flex eb-min-h-full eb-flex-col">
         {!sessionData.hideGatewayInfoAlert && (
-          <Alert variant="informative" className="eb-mb-4">
+          <Alert variant="informative" density="sm" className="eb-mb-4">
             <InfoIcon className="eb-h-4 eb-w-4" />
-            <AlertTitle>Is this you?</AlertTitle>
+            <AlertTitle className="eb-text-sm eb-font-semibold">
+              Is this you?
+            </AlertTitle>
             <AlertDescription>
               To keep your account details safe, we expect that the person
               completing this application holds primary control over financial
