@@ -11,7 +11,7 @@ import { LearnMorePopoverTrigger } from '@/core/OnboardingWizardBasic/Onboarding
 
 interface InfoPopoverProps {
   children: React.ReactNode;
-  popoutTooltip: boolean;
+  popoutTooltip?: boolean;
 }
 
 export const InfoPopover = ({ children, popoutTooltip }: InfoPopoverProps) => {
