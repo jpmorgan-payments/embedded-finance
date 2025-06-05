@@ -28,7 +28,7 @@ module.exports = {
     },
   },
   smbdo: {
-    input: './api-specs/embedded-finance-pub-smbdo-1.0.12-mp.yaml',
+    input: './api-specs/embedded-finance-pub-smbdo-1.0.12.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/smbdo.ts',

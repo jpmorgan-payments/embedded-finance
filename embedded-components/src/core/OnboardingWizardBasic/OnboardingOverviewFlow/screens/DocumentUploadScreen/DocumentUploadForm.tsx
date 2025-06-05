@@ -9,9 +9,9 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
-import { compressImage } from '@/lib/utils';
 import {
   smbdoGetDocumentRequest,
   useSmbdoSubmitDocumentRequest,
@@ -20,7 +20,7 @@ import {
 import {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
-  // PostUploadDocument,
+  PostUploadDocument,
 } from '@/api/generated/smbdo.schemas';
 import { AlertDescription } from '@/components/ui/alert';
 import Dropzone from '@/components/ui/dropzone';
@@ -64,6 +64,12 @@ export const ACCEPTED_FILE_TYPES = {
   'image/bmp': ['.bmp'],
   'image/tiff': ['.tiff', '.tif'],
   'image/webp': ['.webp'],
+};
+
+const generateRequestId = () => {
+  return uuidv4()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 32);
 };
 
 // Helper function to format document request descriptions
@@ -535,43 +541,26 @@ export const DocumentUploadForm = () => {
 
         // Upload each document individually
         for (const { documentType, file } of documentUploads) {
-          const documentData = {
-            documentRequestId,
+          const base64Content = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result as string;
+              resolve(base64.split(',')[1]); // Remove data URL prefix
+            };
+            reader.readAsDataURL(file);
+          });
+
+          const documentData: PostUploadDocument = {
+            requestId: generateRequestId(),
+            documentContent: base64Content,
+            documentName: file.name,
             documentType,
+            documentMetadata: {
+              documentRequestId,
+            },
           };
 
-          // Check if the file is an image (png, jpg, jpeg) that can be compressed
-          const isCompressibleImage = /\.(jpe?g|png)$/i.test(file.name);
-
-          let fileToUpload = file;
-
-          // Compress image files before upload
-          if (isCompressibleImage) {
-            try {
-              const compressedDataUrl = await compressImage(file, 1000);
-
-              // Convert data URL back to a File object
-              const base64Response = await fetch(compressedDataUrl);
-              const compressedBlob = await base64Response.blob();
-
-              fileToUpload = new File([compressedBlob], file.name, {
-                type: file.type,
-              });
-            } catch (compressionError) {
-              console.error(
-                'Image compression failed, using original file:',
-                compressionError
-              );
-              // Fall back to original file if compression fails
-            }
-          }
-
-          await uploadDocumentMutation.mutateAsync({
-            data: {
-              documentData: JSON.stringify(documentData),
-              file: fileToUpload,
-            },
-          });
+          await uploadDocumentMutation.mutateAsync({ data: documentData });
         }
       }
 
@@ -724,7 +713,7 @@ export const DocumentUploadForm = () => {
               {documentRequestsQueries?.data?.map((documentRequest, index) => {
                 return (
                   <div key={`${documentRequest?.id}-${index}`}>
-                    <Alert variant="informative" noTitle>
+                    <Alert variant="informative" className="eb-pb-3">
                       <InfoIcon className="eb-h-4 eb-w-4" />
                       <AlertDescription>
                         {formatDocumentDescription(
