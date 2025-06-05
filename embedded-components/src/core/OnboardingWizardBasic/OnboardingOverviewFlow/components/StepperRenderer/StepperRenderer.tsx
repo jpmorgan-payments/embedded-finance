@@ -32,6 +32,7 @@ import {
   StepValidationMap,
 } from '../../flow.types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
+import { getPartyByAssociatedPartyFilters } from '../../utils/dataUtils';
 import { getStepperValidation } from '../../utils/flowUtils';
 import { StepLayout } from '../StepLayout/StepLayout';
 import { StepperReviewCards } from '../StepperReviewCards/StepperReviewCards';
@@ -104,6 +105,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     (section) => section.id === currentScreenId
   );
   const nextSection = sections[currentSectionIndex + 1];
+  const nextSectionPartyData = getPartyByAssociatedPartyFilters(
+    clientData,
+    nextSection.stepperConfig?.associatedPartyFilters
+  );
 
   const handleNext = () => {
     if (checkAnswersMode) {
@@ -122,7 +127,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         mockedVerifyingSectionId: currentScreenId,
       });
     } else {
-      goTo(nextSection?.id ?? 'overview');
+      goTo(nextSection?.id ?? 'overview', {
+        editingPartyId: nextSectionPartyData.id,
+      });
       stepperGoTo(steps[0].id);
     }
   };
