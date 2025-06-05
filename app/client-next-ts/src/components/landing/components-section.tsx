@@ -21,10 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useResponsiveCarousel } from '@/hooks/use-responsive-carousel';
 
 export function ComponentsSection() {
   const [selectedIndustry, setSelectedIndustry] = useState('Technology');
-  const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Date selector state
@@ -321,16 +321,21 @@ export function ComponentsSection() {
     },
   ];
 
-  const VISIBLE_COMPONENTS = 3;
-  const maxIndex = Math.max(0, components.length - VISIBLE_COMPONENTS);
-
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, maxIndex));
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-  };
+  const {
+    currentIndex,
+    nextSlide,
+    prevSlide,
+    goToSlide,
+    transformPercent,
+    containerWidthPercent,
+    itemWidthPercent,
+    canNavigate,
+    canGoNext,
+    canGoPrev,
+    totalSlides,
+  } = useResponsiveCarousel({
+    totalItems: components.length,
+  });
 
   return (
     <section className="py-8 bg-jpm-gray-100">
@@ -349,20 +354,20 @@ export function ComponentsSection() {
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out"
                 style={{
-                  transform: `translateX(-${(currentIndex * 100) / VISIBLE_COMPONENTS}%)`,
-                  width: `${(components.length * 100) / VISIBLE_COMPONENTS}%`,
+                  transform: `translateX(-${transformPercent}%)`,
+                  width: `${containerWidthPercent}%`,
                 }}
               >
                 {components.map((comp) => (
                   <div
                     key={comp.id}
-                    className="flex-shrink-0 px-3 pb-4"
-                    style={{ width: `${100 / components.length}%` }}
+                    className="flex-shrink-0 px-2 sm:px-3 md:px-3 pb-4"
+                    style={{ width: `${itemWidthPercent}%` }}
                   >
                     <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg h-full">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between mb-2">
-                          <CardTitle className="flex items-center text-page-h4">
+                          <CardTitle className="flex items-center text-lg sm:text-xl md:text-page-h4">
                             <div className="bg-jpm-brown-100 p-1.5 rounded-page-md mr-3 text-jpm-brown">
                               {comp.icon}
                             </div>
@@ -379,8 +384,8 @@ export function ComponentsSection() {
                           </span>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-6">
-                        <p className="text-page-body text-jpm-gray mb-4">
+                      <CardContent className="p-4 sm:p-5 md:p-6">
+                        <p className="text-sm sm:text-base md:text-page-body text-jpm-gray mb-4">
                           {comp.description}
                         </p>
 
@@ -438,27 +443,27 @@ fetch('https://api.embedded-finance.com/v1/${comp.id}', {
             </div>
 
             {/* Navigation buttons - only show if we can navigate */}
-            {components.length > VISIBLE_COMPONENTS && (
+            {canNavigate && (
               <>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-3 md:-translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed z-10"
                   onClick={prevSlide}
-                  disabled={currentIndex === 0}
+                  disabled={!canGoPrev}
                 >
-                  <ChevronLeft className="h-6 w-6 text-jpm-gray" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-jpm-gray" />
                   <span className="sr-only">Previous</span>
                 </Button>
 
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-3 md:translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed z-10"
                   onClick={nextSlide}
-                  disabled={currentIndex === maxIndex}
+                  disabled={!canGoNext}
                 >
-                  <ChevronRight className="h-6 w-6 text-jpm-gray" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-jpm-gray" />
                   <span className="sr-only">Next</span>
                 </Button>
               </>
@@ -466,15 +471,15 @@ fetch('https://api.embedded-finance.com/v1/${comp.id}', {
           </div>
 
           {/* Position indicators - only show if we can navigate */}
-          {components.length > VISIBLE_COMPONENTS && (
-            <div className="flex justify-center mt-8 gap-3">
-              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+          {canNavigate && (
+            <div className="flex justify-center mt-6 md:mt-8 gap-2 md:gap-3">
+              {Array.from({ length: totalSlides }).map((_, index) => (
                 <button
                   key={index}
                   className={`h-2 w-2 rounded-full transition-colors ${
                     currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
                   }`}
-                  onClick={() => setCurrentIndex(index)}
+                  onClick={() => goToSlide(index)}
                   aria-label={`Go to position ${index + 1}`}
                 />
               ))}

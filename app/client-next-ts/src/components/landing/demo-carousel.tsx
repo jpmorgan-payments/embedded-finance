@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useResponsiveCarousel } from '@/hooks/use-responsive-carousel';
 
 const demos = [
   {
@@ -37,19 +38,23 @@ const demos = [
 ];
 
 export function DemoCarousel() {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const VISIBLE_DEMOS = 3;
-  const maxIndex = Math.max(0, demos.length - VISIBLE_DEMOS);
-
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, maxIndex));
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-  };
+  const {
+    currentIndex,
+    nextSlide,
+    prevSlide,
+    goToSlide,
+    transformPercent,
+    containerWidthPercent,
+    itemWidthPercent,
+    canNavigate,
+    canGoNext,
+    canGoPrev,
+    totalSlides,
+  } = useResponsiveCarousel({
+    totalItems: demos.length,
+  });
 
   return (
     <section className="py-8 bg-jpm-white">
@@ -69,15 +74,15 @@ export function DemoCarousel() {
                 ref={carouselRef}
                 className="flex transition-transform duration-300 ease-in-out"
                 style={{
-                  transform: `translateX(-${(currentIndex * 100) / VISIBLE_DEMOS}%)`,
-                  width: `${(demos.length * 100) / VISIBLE_DEMOS}%`,
+                  transform: `translateX(-${transformPercent}%)`,
+                  width: `${containerWidthPercent}%`,
                 }}
               >
                 {demos.map((demo) => (
                   <div
                     key={demo.id}
-                    className="flex-shrink-0 px-4 pb-4"
-                    style={{ width: `${100 / demos.length}%` }}
+                    className="flex-shrink-0 px-2 sm:px-3 md:px-4 pb-4"
+                    style={{ width: `${itemWidthPercent}%` }}
                   >
                     <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">
                       <div className="aspect-video w-full overflow-hidden">
@@ -87,17 +92,17 @@ export function DemoCarousel() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <CardContent className="p-8">
-                        <h3 className="text-page-h4 text-jpm-gray-900 mb-4">
+                      <CardContent className="p-4 sm:p-6 md:p-8">
+                        <h3 className="text-lg sm:text-xl md:text-page-h4 text-jpm-gray-900 mb-2 sm:mb-3 md:mb-4">
                           {demo.title}
                         </h3>
-                        <p className="text-page-body text-jpm-gray leading-relaxed mb-6">
+                        <p className="text-sm sm:text-base md:text-page-body text-jpm-gray leading-relaxed mb-4 sm:mb-5 md:mb-6">
                           {demo.description}
                         </p>
                         <Button
                           asChild={demo.active}
                           variant={demo.active ? 'default' : 'outline'}
-                          className={`w-full rounded-page-md font-semibold ${
+                          className={`w-full rounded-page-md font-semibold text-sm sm:text-base ${
                             demo.active
                               ? 'bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white shadow-page-card'
                               : 'border-jpm-gray-300 text-jpm-gray opacity-50 cursor-not-allowed'
@@ -118,27 +123,27 @@ export function DemoCarousel() {
             </div>
 
             {/* Navigation buttons - only show if we can navigate */}
-            {demos.length > VISIBLE_DEMOS && (
+            {canNavigate && (
               <>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-3 md:-translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed z-10"
                   onClick={prevSlide}
-                  disabled={currentIndex === 0}
+                  disabled={!canGoPrev}
                 >
-                  <ChevronLeft className="h-6 w-6 text-jpm-gray" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-jpm-gray" />
                   <span className="sr-only">Previous</span>
                 </Button>
 
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-jpm-white rounded-full h-12 w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-3 md:translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed z-10"
                   onClick={nextSlide}
-                  disabled={currentIndex === maxIndex}
+                  disabled={!canGoNext}
                 >
-                  <ChevronRight className="h-6 w-6 text-jpm-gray" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-jpm-gray" />
                   <span className="sr-only">Next</span>
                 </Button>
               </>
@@ -146,15 +151,15 @@ export function DemoCarousel() {
           </div>
 
           {/* Position indicators - only show if we can navigate */}
-          {demos.length > VISIBLE_DEMOS && (
-            <div className="flex justify-center mt-8 gap-3">
-              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+          {canNavigate && (
+            <div className="flex justify-center mt-6 md:mt-8 gap-2 md:gap-3">
+              {Array.from({ length: totalSlides }).map((_, index) => (
                 <button
                   key={index}
                   className={`h-2 w-2 rounded-full transition-colors ${
                     currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
                   }`}
-                  onClick={() => setCurrentIndex(index)}
+                  onClick={() => goToSlide(index)}
                   aria-label={`Go to position ${index + 1}`}
                 />
               ))}
