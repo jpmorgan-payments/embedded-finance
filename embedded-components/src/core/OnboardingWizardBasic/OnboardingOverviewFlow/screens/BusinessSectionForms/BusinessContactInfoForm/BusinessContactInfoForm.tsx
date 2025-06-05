@@ -14,28 +14,26 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
   const form = useFormContext<z.input<typeof BusinessContactInfoFormSchema>>();
 
   return (
-    <div className="eb-mt-6 eb-space-y-8">
-      <div className="eb-space-y-4">
-        <OnboardingFormField
-          control={form.control}
-          name="organizationEmail"
-          type="email"
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="organizationPhone.phoneNumber"
-          type="phone"
-        />
-      </div>
+    <div className="eb-mt-6 eb-space-y-6">
+      <OnboardingFormField
+        control={form.control}
+        name="organizationEmail"
+        type="email"
+      />
+      <OnboardingFormField
+        control={form.control}
+        name="organizationPhone.phoneNumber"
+        type="phone"
+      />
       <fieldset>
-        <legend className="eb-text-base eb-font-medium">
+        <legend className="eb-font-header eb-text-lg eb-font-medium">
           Registered address
         </legend>
-        <p className="eb-mt-1 eb-text-sm">
+        <p className="eb-mt-1.5 eb-text-sm">
           Please provide the address registered to your company with your local
           authority
         </p>
-        <div className="eb-mt-4 eb-space-y-4">
+        <div className="eb-mt-3 eb-space-y-3">
           <OnboardingFormField
             control={form.control}
             name="addresses.0.country"
@@ -61,7 +59,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="addresses.0.additionalAddressLines.0.value"
             type="text"
-            description="Flat, Apt, Suite, Floor, Building, etc."
+            description="Apt, Suite, Unit, Building etc."
+          />
+          <OnboardingFormField
+            control={form.control}
+            name="addresses.0.additionalAddressLines.1.value"
+            type="text"
+            description=""
           />
           <OnboardingFormField
             control={form.control}

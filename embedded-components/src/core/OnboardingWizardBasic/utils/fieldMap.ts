@@ -300,7 +300,7 @@ export const partyFieldMap: PartyFieldMap = {
           display: 'visible',
           minItems: 1,
           requiredItems: 0,
-          maxItems: 1,
+          maxItems: 2,
         },
         subFields: {
           value: {
@@ -993,7 +993,7 @@ export const partyFieldMap: PartyFieldMap = {
           display: 'visible',
           minItems: 1,
           requiredItems: 0,
-          maxItems: 1,
+          maxItems: 2,
         },
         subFields: {
           value: {

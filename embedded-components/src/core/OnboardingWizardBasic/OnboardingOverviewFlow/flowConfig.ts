@@ -233,7 +233,7 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'contact-info',
           stepType: 'form',
-          title: 'Contact info',
+          title: 'Contact information',
           description: 'Please let us know how to get in touch.',
           Component: BusinessContactInfoForm,
         },
