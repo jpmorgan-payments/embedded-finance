@@ -4,6 +4,7 @@ import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, CheckCircle, CircleDashed, RefreshCw } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import {
@@ -15,6 +16,7 @@ import {
 import {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
+  PostUploadDocument,
 } from '@/api/generated/smbdo.schemas';
 import Dropzone from '@/components/ui/dropzone';
 import { useStepper } from '@/components/ui/stepper';
@@ -60,6 +62,12 @@ export const ACCEPTED_FILE_TYPES = {
   'image/bmp': ['.bmp'],
   'image/tiff': ['.tiff', '.tif'],
   'image/webp': ['.webp'],
+};
+
+const generateRequestId = () => {
+  return uuidv4()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 32);
 };
 
 export const DocumentUploadStepForm = ({
@@ -424,14 +432,26 @@ export const DocumentUploadStepForm = ({
 
         // Upload each document individually
         for (const { documentType, file } of documentUploads) {
-          const documentData = {
+          const base64Content = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result as string;
+              resolve(base64.split(',')[1]); // Remove data URL prefix
+            };
+            reader.readAsDataURL(file);
+          });
+
+          const documentData: PostUploadDocument = {
+            requestId: generateRequestId(),
+            documentContent: base64Content,
+            documentName: file.name,
             documentType,
-            documentRequestId,
+            documentMetadata: {
+              documentRequestId,
+            },
           };
 
-          await uploadDocumentMutation.mutateAsync({
-            data: { documentData: JSON.stringify(documentData), file },
-          });
+          await uploadDocumentMutation.mutateAsync({ data: documentData });
         }
       }
 
