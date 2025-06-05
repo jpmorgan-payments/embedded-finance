@@ -235,7 +235,8 @@
     "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
     "GOVERNMENT_ENTITY": "Government Entity",
     "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
-    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association",
+    "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company"
   },
   "generalOrganizationTypes": {
     "SOLE_PROPRIETORSHIP": "Sole proprietorship",
