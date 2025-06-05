@@ -4,9 +4,6 @@
 
 /* Simulate embedded components font injection */
 :root {
-  --eb-font-family: 'Amplitude';
-  --eb-header-font-family: 'Amplitude';
-  --eb-button-font-family: 'Amplitude';
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
