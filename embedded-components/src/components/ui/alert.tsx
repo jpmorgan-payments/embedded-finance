@@ -10,13 +10,13 @@ const alertVariants = cva(
       variant: {
         default: 'eb-bg-alert eb-text-alert-foreground',
         destructive:
-          'eb-border-destructive/50 eb-bg-destructive-accent eb-text-foreground dark:eb-border-destructive [&>svg]:eb-text-destructive',
+          'eb-border-destructive/50 eb-bg-destructive-accent eb-text-alert-foreground dark:eb-border-destructive [&>svg]:eb-text-destructive',
         informative:
-          'eb-border-informative/50 eb-bg-informative-accent eb-text-foreground dark:eb-border-informative [&>svg]:eb-text-informative',
+          'eb-border-informative/50 eb-bg-informative-accent eb-text-alert-foreground dark:eb-border-informative [&>svg]:eb-text-informative',
         warning:
-          'eb-border-warning/50 eb-bg-warning-accent eb-text-foreground dark:eb-border-warning [&>svg]:eb-text-warning',
+          'eb-border-warning/50 eb-bg-warning-accent eb-text-alert-foreground dark:eb-border-warning [&>svg]:eb-text-warning',
         success:
-          'eb-border-success/50 eb-bg-success-accent eb-text-foreground dark:eb-border-success [&>svg]:eb-text-success',
+          'eb-border-success/50 eb-bg-success-accent eb-text-alert-foreground dark:eb-border-success [&>svg]:eb-text-success',
       },
       density: {
         default:
