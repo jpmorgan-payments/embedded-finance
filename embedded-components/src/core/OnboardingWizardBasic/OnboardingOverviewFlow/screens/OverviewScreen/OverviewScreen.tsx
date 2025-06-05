@@ -61,7 +61,7 @@ export const OverviewScreen = () => {
       }
       subTitle={
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
-          <Alert variant="informative" density="sm" className="eb-pb-2">
+          <Alert variant="informative" density="sm" className="eb-pb-2 eb-pt-3">
             <InfoIcon className="eb-size-4" />
             <AlertDescription>
               {t('screens.overview.infoAlert')}
@@ -94,15 +94,9 @@ export const OverviewScreen = () => {
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
             {clientData?.status === 'REVIEW_IN_PROGRESS' && (
-              <Alert
-                variant="informative"
-                density="sm"
-                className="eb-mb-6 eb-pt-2.5"
-              >
+              <Alert variant="informative" density="sm" className="eb-mb-6">
                 <Clock9Icon className="eb-size-4" />
-                <AlertTitle className="eb-text-sm eb-text-foreground">
-                  Great work!
-                </AlertTitle>
+                <AlertTitle>Great work!</AlertTitle>
                 <AlertDescription>
                   Please hang tight while we verify your details. This should
                   only take a moment.
@@ -122,11 +116,9 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'DECLINED' && (
-              <Alert variant="destructive" density="sm" className="eb-pt-2.5">
+              <Alert variant="destructive" density="sm">
                 <AlertCircleIcon className="eb-size-4" />
-                <AlertTitle className="eb-text-sm eb-text-foreground">
-                  Application declined
-                </AlertTitle>
+                <AlertTitle>Application declined</AlertTitle>
                 <AlertDescription>
                   We&apos;re sorry, but we cannot proceed with your application
                   at this time.
@@ -135,11 +127,9 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'APPROVED' && (
-              <Alert variant="success" density="sm" className="eb-pt-2.5">
+              <Alert variant="success" density="sm">
                 <CheckIcon className="eb-size-4" />
-                <AlertTitle className="eb-text-sm eb-text-foreground">
-                  All set!
-                </AlertTitle>
+                <AlertTitle>All set!</AlertTitle>
                 <AlertDescription>
                   Your business details have been verified
                 </AlertDescription>
@@ -301,7 +291,7 @@ export const OverviewScreen = () => {
                         onClick={() => {
                           goTo(section.id, {
                             editingPartyId: existingPartyData.id,
-                            previouslyCompleted: sectionStatus === 'completed',
+                            // previouslyCompleted: sectionStatus === 'completed',
                             initialStepperStepId: firstInvalidStep,
                           });
                         }}

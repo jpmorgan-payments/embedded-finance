@@ -162,7 +162,7 @@ const sectionScreens: SectionScreenConfig[] = [
           title: 'Check your answers',
           stepType: 'check-answers',
           description:
-            'Please review the information you provided before we proceed.',
+            'Please ensure your answers are accurate and complete anything you may have missed.',
         },
       ],
     },

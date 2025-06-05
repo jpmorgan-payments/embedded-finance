@@ -95,11 +95,17 @@
         "tooltip": ""
       }
     },
-    "controllerPhone.phoneNumber": {
-      "label": "Phone number"
+    "controllerPhone": {
+      "label": "Phone number",
+      "phoneNumber": {
+        "label": "Phone number"
+      }
     },
-    "organizationPhone.phoneNumber": {
-      "label": "Phone number"
+    "organizationPhone": {
+      "label": "Phone number",
+      "phoneNumber": {
+        "label": "Phone number"
+      }
     },
     "organizationEmail": {
       "label": "Company email address",

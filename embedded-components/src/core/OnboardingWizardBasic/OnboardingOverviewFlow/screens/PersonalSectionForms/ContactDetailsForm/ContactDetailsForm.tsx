@@ -13,6 +13,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
 
+  console.log(form.formState.errors);
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
@@ -54,7 +55,13 @@ export const ContactDetailsForm: FormStepComponent = () => {
           control={form.control}
           name="controllerAddresses.0.additionalAddressLines.0.value"
           type="text"
-          description="Flat, Apt, Suite, Floor, Building, etc."
+          description="Apt, Suite, Unit, Building etc."
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="controllerAddresses.0.additionalAddressLines.1.value"
+          type="text"
+          description=""
         />
         <OnboardingFormField
           control={form.control}
@@ -70,7 +77,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
         <OnboardingFormField
           control={form.control}
           name="controllerAddresses.0.state"
-          type="select"
+          type="combobox"
           options={stateOptions}
         />
       </fieldset>

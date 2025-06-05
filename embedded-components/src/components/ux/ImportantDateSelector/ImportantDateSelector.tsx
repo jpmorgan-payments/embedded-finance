@@ -125,7 +125,8 @@ export function ImportantDateSelector({
   const [year, setYear] = useState(() => value?.getFullYear().toString() ?? '');
 
   const [isValid, setIsValid] = useState(true);
-  const [isTouched, setIsTouched] = useState(!!value);
+  const [isTouched, setIsTouched] = useState(false);
+  const [isPrepopulated, setIsPrepopulated] = useState(!!value);
 
   const { t } = useTranslation();
 
@@ -147,22 +148,23 @@ export function ImportantDateSelector({
           Number.parseInt(newMonth, 10) - 1,
           Number.parseInt(newDay, 10)
         );
-        isTouched && onChange?.(newDate);
+        onChange?.(newDate);
       } else {
-        isTouched && onChange?.(null, errorMessage);
+        onChange?.(null, errorMessage);
       }
     },
     [minDate, maxDate, onChange] // Added onChange to dependencies
   );
 
   useEffect(() => {
-    if (day && month && year) {
+    if (day && month && year && (isTouched || isPrepopulated)) {
       updateDate(day, month, year);
+      setIsPrepopulated(false);
     } else {
       setIsValid(true);
       isTouched && onChange?.(null);
     }
-  }, [day, month, year, isTouched]);
+  }, [day, month, year, isTouched, isPrepopulated]);
 
   useEffect(() => {
     if (!value) {
