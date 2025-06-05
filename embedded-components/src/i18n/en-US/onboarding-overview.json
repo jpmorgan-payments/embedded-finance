@@ -54,9 +54,9 @@
       "description": "Please select your current country of residence"
     },
     "industry": {
-      "label": "Business classification",
-      "description": "Select the classification that best matches the goods or services your customers will buy. Search by keyword (e.g. “automotive dealership”) or the North American Industry Classification System code (e.g. “123456”).",
-      "placeholder": "Search by keyword or NAICS code",
+      "label": "Industry classification",
+      "description": "e.g. “Boat dealers” or “441222”.",
+      "placeholder": "Search by keyword or 6-digit NAICS code",
       "tooltip": ""
     },
     "countryOfFormation": {

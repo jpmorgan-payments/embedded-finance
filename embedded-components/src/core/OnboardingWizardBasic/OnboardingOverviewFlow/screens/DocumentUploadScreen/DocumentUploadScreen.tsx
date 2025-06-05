@@ -145,7 +145,7 @@ export const DocumentUploadScreen: FC = () => {
 
     if (clientData?.status === 'APPROVED') {
       return (
-        <Alert variant="informative">
+        <Alert variant="informative" noTitle>
           <CheckIcon className="eb-h-4 eb-w-4" />
           <AlertDescription>
             Your onboarding has been approved. No documents are required.

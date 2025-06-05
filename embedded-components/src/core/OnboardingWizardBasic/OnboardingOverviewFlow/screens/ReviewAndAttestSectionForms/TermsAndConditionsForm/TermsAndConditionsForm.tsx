@@ -217,7 +217,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       >
         <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
           {!allDocumentsOpened && shouldDisplayAlert && (
-            <Alert variant="destructive" className="eb-pb-3">
+            <Alert variant="destructive" noTitle>
               <AlertCircleIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
                 Please open the document links and confirm that you have read
@@ -288,7 +288,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             />
           </div>
           {!allDocumentsOpened && (
-            <Alert variant="informative" className="eb-pb-3">
+            <Alert variant="informative" noTitle>
               <InfoIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
                 You must open and review all documents before selecting the

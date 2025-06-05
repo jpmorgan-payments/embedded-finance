@@ -713,7 +713,7 @@ export const DocumentUploadForm = () => {
               {documentRequestsQueries?.data?.map((documentRequest, index) => {
                 return (
                   <div key={`${documentRequest?.id}-${index}`}>
-                    <Alert variant="informative" className="eb-pb-3">
+                    <Alert variant="informative" noTitle>
                       <InfoIcon className="eb-h-4 eb-w-4" />
                       <AlertDescription>
                         {formatDocumentDescription(

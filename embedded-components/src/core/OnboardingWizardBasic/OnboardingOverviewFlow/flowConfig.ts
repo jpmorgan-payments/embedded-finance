@@ -210,9 +210,9 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'industry',
           stepType: 'form',
-          title: 'Business classification',
+          title: 'Industry classification',
           description:
-            'Selecting your business classification helps satisfy important risk and compliance obligations.',
+            'Choose a classification that best describes your income-producing lines of business.',
           Component: IndustryForm,
         },
         {

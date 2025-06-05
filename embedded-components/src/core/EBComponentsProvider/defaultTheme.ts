@@ -55,6 +55,7 @@ export const defaultTheme: EBTheme = {
   dark: {
     backgroundColor: 'hsl(240 10% 3.9%)',
     foregroundColor: 'hsl(0 0% 98%)',
+    formLabelForegroundColor: 'hsl(0 0% 98%)',
     cardColor: 'hsl(240 10% 3.9%)',
     cardForegroundColor: 'hsl(0 0% 98%)',
     popoverColor: 'hsl(240 10% 3.9%)',
