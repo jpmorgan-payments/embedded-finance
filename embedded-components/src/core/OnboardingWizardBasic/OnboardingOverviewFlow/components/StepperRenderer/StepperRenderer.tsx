@@ -215,7 +215,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   return (
     <div
       ref={mainRef}
-      className="eb-flex eb-min-h-full eb-scroll-mt-4 eb-flex-col sm:eb-scroll-mt-10"
+      className="eb-flex eb-min-h-full eb-scroll-mt-44 eb-flex-col sm:eb-scroll-mt-48"
     >
       <StepLayout
         title={currentStep.title}

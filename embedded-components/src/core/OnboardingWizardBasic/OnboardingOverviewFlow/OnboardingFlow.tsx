@@ -235,7 +235,7 @@ const FlowRenderer: React.FC = () => {
 
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-4 sm:eb-scroll-mt-10"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >
