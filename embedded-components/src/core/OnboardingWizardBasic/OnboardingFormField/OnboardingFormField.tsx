@@ -420,7 +420,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               <FormControl>
                                 <RadioGroupItem value={option.value} />
                               </FormControl>
-                              <FormLabel className="eb-font-normal">
+                              <FormLabel className="eb-font-normal eb-text-foreground">
                                 {option.label}
                               </FormLabel>
                             </FormItem>
@@ -485,6 +485,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           <div className="eb-flex eb-items-center eb-space-x-2">
                             <FormLabel
                               asterisk={fieldRequired && !isOverviewFlow}
+                              className="eb-text-foreground"
                             >
                               {fieldLabel}
                             </FormLabel>
@@ -513,7 +514,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <FormLabel
                             asterisk={fieldRequired && !isOverviewFlow}
-                            className="eb-text-sm eb-font-medium eb-leading-none peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
+                            className="eb-text-sm eb-leading-none eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
                           >
                             {fieldLabel}
                           </FormLabel>
