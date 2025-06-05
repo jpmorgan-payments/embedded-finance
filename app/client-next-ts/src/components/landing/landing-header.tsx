@@ -39,6 +39,12 @@ export function LandingHeader() {
               Documentation
             </Link>
             <Link
+              to="/blog"
+              className="text-jpm-gray hover:text-jpm-brown font-medium text-page-small transition-colors duration-200"
+            >
+              Blog
+            </Link>
+            <Link
               to="/github"
               className="text-jpm-gray hover:text-jpm-brown font-medium text-page-small transition-colors duration-200"
             >

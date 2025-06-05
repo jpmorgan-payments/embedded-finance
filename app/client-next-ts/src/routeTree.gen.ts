@@ -17,7 +17,10 @@ import { Route as MswTestImport } from './routes/msw-test'
 import { Route as GithubImport } from './routes/github'
 import { Route as DocumentationImport } from './routes/documentation'
 import { Route as DemosImport } from './routes/demos'
+import { Route as BlogImport } from './routes/blog'
 import { Route as IndexImport } from './routes/index'
+import { Route as BlogIndexImport } from './routes/blog.index'
+import { Route as BlogPostIdImport } from './routes/blog.$postId'
 
 // Create/Update Routes
 
@@ -57,10 +60,28 @@ const DemosRoute = DemosImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const BlogRoute = BlogImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const BlogIndexRoute = BlogIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BlogRoute,
+} as any)
+
+const BlogPostIdRoute = BlogPostIdImport.update({
+  id: '/$postId',
+  path: '/$postId',
+  getParentRoute: () => BlogRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -72,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogImport
       parentRoute: typeof rootRoute
     }
     '/demos': {
@@ -116,19 +144,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsImport
       parentRoute: typeof rootRoute
     }
+    '/blog/$postId': {
+      id: '/blog/$postId'
+      path: '/$postId'
+      fullPath: '/blog/$postId'
+      preLoaderRoute: typeof BlogPostIdImport
+      parentRoute: typeof BlogImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexImport
+      parentRoute: typeof BlogImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface BlogRouteChildren {
+  BlogPostIdRoute: typeof BlogPostIdRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogPostIdRoute: BlogPostIdRoute,
+  BlogIndexRoute: BlogIndexRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/blog': typeof BlogRouteWithChildren
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/blog/$postId': typeof BlogPostIdRoute
+  '/blog/': typeof BlogIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -139,29 +196,37 @@ export interface FileRoutesByTo {
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/blog/$postId': typeof BlogPostIdRoute
+  '/blog': typeof BlogIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/blog': typeof BlogRouteWithChildren
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/blog/$postId': typeof BlogPostIdRoute
+  '/blog/': typeof BlogIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/blog'
     | '/demos'
     | '/documentation'
     | '/github'
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
+    | '/blog/$postId'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,20 +236,26 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
+    | '/blog/$postId'
+    | '/blog'
   id:
     | '__root__'
     | '/'
+    | '/blog'
     | '/demos'
     | '/documentation'
     | '/github'
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
+    | '/blog/$postId'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BlogRoute: typeof BlogRouteWithChildren
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
   GithubRoute: typeof GithubRoute
@@ -195,6 +266,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BlogRoute: BlogRouteWithChildren,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
   GithubRoute: GithubRoute,
@@ -214,6 +286,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/blog",
         "/demos",
         "/documentation",
         "/github",
@@ -224,6 +297,13 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/blog": {
+      "filePath": "blog.tsx",
+      "children": [
+        "/blog/$postId",
+        "/blog/"
+      ]
     },
     "/demos": {
       "filePath": "demos.tsx"
@@ -242,6 +322,14 @@ export const routeTree = rootRoute
     },
     "/solutions": {
       "filePath": "solutions.tsx"
+    },
+    "/blog/$postId": {
+      "filePath": "blog.$postId.tsx",
+      "parent": "/blog"
+    },
+    "/blog/": {
+      "filePath": "blog.index.tsx",
+      "parent": "/blog"
     }
   }
 }

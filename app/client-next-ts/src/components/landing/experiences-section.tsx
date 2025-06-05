@@ -40,6 +40,25 @@ export function ExperiencesSection() {
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
     {
+      id: 'document-upload',
+      title: 'Documents Requests Management',
+      description:
+        'Guided document upload component with progressive disclosure, real-time validation, and multi-party support for fulfilling document requirements.',
+      icon: <Box className="h-5 w-5" />,
+      status: 'live',
+      hasComponents: true,
+      steps: [
+        'Load document requests with ACTIVE status validation',
+        'Progressive disclosure of requirements with step-by-step interface',
+        'Handle both required and optional documents with validation',
+        'Upload documents and submit requests',
+      ],
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/OnboardingWizardBasic/DocumentUploadStepForm/IMPLEMENTATION_GUIDE.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/upload-documents',
+    },
+    {
       id: 'partially-hosted-onboarding',
       title: 'Partially Hosted Onboarding Integration',
       description:
