@@ -218,16 +218,16 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'company-identification',
           stepType: 'form',
-          title: 'Company identification',
-          description: 'Please provide details about your company.',
+          title: 'Business identity',
+          description: 'Please provide details about your business.',
           Component: CompanyIdentificationForm,
         },
         {
           id: 'customer-facing-details',
           stepType: 'form',
-          title: 'Customer facing details',
+          title: 'Description & website',
           description:
-            'Please help us understand how you present your company to customers.',
+            'Please help us understand the products and services you offer.',
           Component: CustomerFacingDetailsForm,
         },
         {

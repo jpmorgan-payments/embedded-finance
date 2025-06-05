@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OrganizationIdentityDtoIdType } from '@/api/generated/smbdo.schemas';
+import { AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Alert } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingWizardBasic/utils/COUNTRIES_OF_FORMATION';
 
@@ -65,24 +67,33 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
         type="text"
         inputProps={{ maxLength: 4 }}
       />
-      <OnboardingFormField
-        control={form.control}
-        name="countryOfFormation"
-        type="combobox"
-        options={COUNTRIES_OF_FORMATION.map((code) => ({
-          value: code,
-          label: (
-            <span>
-              <span className="eb-font-medium">[{code}]</span>{' '}
-              {t([
-                `common:countries.${code}`,
-              ] as unknown as TemplateStringsArray)}
-            </span>
-          ),
-        }))}
-      />
+      <div className="eb-space-y-3">
+        <OnboardingFormField
+          control={form.control}
+          name="countryOfFormation"
+          type="combobox"
+          options={COUNTRIES_OF_FORMATION.map((code) => ({
+            value: code,
+            label: (
+              <span>
+                <span className="eb-font-medium">[{code}]</span>{' '}
+                {t([
+                  `common:countries.${code}`,
+                ] as unknown as TemplateStringsArray)}
+              </span>
+            ),
+          }))}
+        />
+        <Alert variant="informative" density="sm" noTitle>
+          <InfoIcon className="eb-size-4" />
+          <AlertDescription>
+            If your business is outside of the United States, please contact
+            Platform operator.
+          </AlertDescription>
+        </Alert>
+      </div>
       {form.watch('countryOfFormation') === 'US' && (
-        <div className="eb-space-y-2">
+        <div className="eb-space-y-3">
           <OnboardingFormField
             key={currentIdType}
             control={form.control}
