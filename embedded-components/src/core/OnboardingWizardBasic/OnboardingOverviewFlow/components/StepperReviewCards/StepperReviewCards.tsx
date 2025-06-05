@@ -140,7 +140,7 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
                         ) : valueString ? (
                           <p className="eb-text-sm">{valueString}</p>
                         ) : (
-                          <span className="eb-italic eb-text-muted-foreground">
+                          <span className="eb-text-sm eb-italic eb-text-muted-foreground">
                             {t('common:empty')}
                           </span>
                         )}
