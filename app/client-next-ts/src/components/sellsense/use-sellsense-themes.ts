@@ -1,18 +1,23 @@
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
-// Updated ThemeOption type to match useThemes.ts
+// Updated ThemeOption type to include Empty theme for showing defaults
 export type ThemeOption =
   | 'Default Blue'
   | 'S&P Theme'
   | 'Create Commerce'
   | 'SellSense'
-  | 'PayFicient';
+  | 'PayFicient'
+  | 'Empty';
 
 export const useSellSenseThemes = () => {
   const getThemeVariables = (themeOption: ThemeOption): EBThemeVariables => {
     switch (themeOption) {
+      case 'Empty':
+        // Empty theme - no design tokens to show component defaults
+        return {};
+
       case 'Default Blue':
-        // Default Blue theme with v0.6.14 design tokens
+        // Default Blue theme with v0.6.15 design tokens
         return {
           // Typography - modern font stack
           fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
@@ -60,6 +65,16 @@ export const useSellSenseThemes = () => {
           destructiveForegroundHoverColor: '#fef2f2',
           destructiveForegroundActiveColor: '#fee2e2',
 
+          // Enhanced alert system colors (v0.6.15)
+          alertColor: '#f1f5f9', // Default alert background
+          alertForegroundColor: '#1e293b', // Default alert text
+          informativeColor: '#0ea5e9', // Information alerts
+          informativeAccentColor: '#e0f2fe', // Information alert background
+          warningColor: '#f59e0b', // Warning alerts
+          warningAccentColor: '#fef3c7', // Warning alert background
+          successColor: '#10b981', // Success alerts
+          successAccentColor: '#d1fae5', // Success alert background
+
           // Border and input styling
           borderRadius: '8px',
           buttonBorderRadius: '.313em', // Matching useThemes.ts
@@ -69,7 +84,7 @@ export const useSellSenseThemes = () => {
           inputBorderColor: '#d1d5db',
           ringColor: '#0060f0',
 
-          // Enhanced button styling with v0.6.14 improvements
+          // Enhanced button styling with v0.6.15 improvements
           buttonFontWeight: '500',
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
@@ -80,6 +95,11 @@ export const useSellSenseThemes = () => {
           primaryButtonFontWeight: '600',
           secondaryButtonFontWeight: '500',
           destructiveButtonFontWeight: '600',
+
+          // New v0.6.15 form label design tokens
+          formLabelFontSize: '0.875rem', // 14px - consistent label sizing
+          formLabelFontWeight: '500', // Medium weight for readability
+          formLabelLineHeight: '1.25rem', // Proper line height for labels
 
           // Border widths
           primaryBorderWidth: '0px',
@@ -92,7 +112,7 @@ export const useSellSenseThemes = () => {
         };
 
       case 'S&P Theme':
-        // S&P Theme with v0.6.14 design tokens (matching useThemes.ts)
+        // S&P Theme with v0.6.15 design tokens (matching useThemes.ts)
         return {
           fontFamily: 'Open Sans',
           headerFontFamily: 'Amplitude',
@@ -119,6 +139,30 @@ export const useSellSenseThemes = () => {
           cardColor: '#ffffff',
           cardForegroundColor: '#1e293b',
 
+          // Enhanced muted colors
+          mutedColor: '#f8fafc',
+          mutedForegroundColor: '#64748b',
+          accentColor: '#f1f5f9',
+          accentForegroundColor: '#475569',
+
+          // Enhanced alert system colors (v0.6.15)
+          alertColor: '#f6f7f8', // S&P themed alert background
+          alertForegroundColor: '#1e293b',
+          informativeColor: '#1B7F9E', // Using S&P primary for info
+          informativeAccentColor: '#e6f3f7', // S&P themed info background
+          warningColor: '#f59e0b',
+          warningAccentColor: '#fef3c7',
+          successColor: '#10b981',
+          successAccentColor: '#d1fae5',
+
+          // Destructive colors
+          destructiveColor: '#ef4444',
+          destructiveHoverColor: '#dc2626',
+          destructiveActiveColor: '#b91c1c',
+          destructiveForegroundColor: '#ffffff',
+          destructiveForegroundHoverColor: '#fef2f2',
+          destructiveForegroundActiveColor: '#fee2e2',
+
           // Input styling
           inputColor: '#FFFFFF',
           inputBorderColor: '#0000004D', // Matching useThemes.ts
@@ -141,6 +185,11 @@ export const useSellSenseThemes = () => {
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
 
+          // New v0.6.15 form label design tokens - S&P styling
+          formLabelFontSize: '0.875rem',
+          formLabelFontWeight: '600', // Slightly heavier for S&P brand
+          formLabelLineHeight: '1.25rem',
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
@@ -152,7 +201,7 @@ export const useSellSenseThemes = () => {
         };
 
       case 'Create Commerce':
-        // Create Commerce theme with v0.6.14 design tokens (matching useThemes.ts)
+        // Create Commerce theme with v0.6.15 design tokens (matching useThemes.ts)
         return {
           fontFamily: 'Open Sans',
           headerFontFamily: 'Open Sans',
@@ -185,6 +234,16 @@ export const useSellSenseThemes = () => {
           accentColor: '#4A5568',
           accentForegroundColor: '#F7FAFC',
 
+          // Enhanced alert system colors for dark theme (v0.6.15)
+          alertColor: '#4A5568', // Dark theme alert background
+          alertForegroundColor: '#F7FAFC',
+          informativeColor: '#60A5FA', // Lighter blue for dark theme
+          informativeAccentColor: '#1E3A8A', // Dark blue background
+          warningColor: '#FBBF24', // Lighter yellow for dark theme
+          warningAccentColor: '#92400E', // Dark yellow background
+          successColor: '#34D399', // Lighter green for dark theme
+          successAccentColor: '#065F46', // Dark green background
+
           // Input styling with improved visibility
           inputColor: '#4A5568', // Dark but readable input background
           inputBorderColor: '#718096', // Visible border
@@ -215,6 +274,11 @@ export const useSellSenseThemes = () => {
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
 
+          // New v0.6.15 form label design tokens - Dark theme optimized
+          formLabelFontSize: '0.875rem',
+          formLabelFontWeight: '500', // Medium weight for dark theme readability
+          formLabelLineHeight: '1.25rem',
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
@@ -226,7 +290,7 @@ export const useSellSenseThemes = () => {
         };
 
       case 'SellSense':
-        // SellSense theme with v0.6.14 design tokens (matching useThemes.ts)
+        // SellSense theme with v0.6.15 design tokens (matching useThemes.ts)
         return {
           fontFamily: 'Inter', // Matching useThemes.ts
           headerFontFamily: 'Inter',
@@ -253,6 +317,30 @@ export const useSellSenseThemes = () => {
           cardColor: '#F7F3F0', // Matching useThemes.ts
           cardForegroundColor: '#1e293b',
 
+          // Enhanced muted and accent colors
+          mutedColor: '#f8fafc',
+          mutedForegroundColor: '#64748b',
+          accentColor: '#f1f5f9',
+          accentForegroundColor: '#475569',
+
+          // Enhanced alert system colors (v0.6.15) - SellSense themed
+          alertColor: '#FDF7F0', // SellSense themed alert background
+          alertForegroundColor: '#1e293b',
+          informativeColor: '#0ea5e9',
+          informativeAccentColor: '#e0f2fe',
+          warningColor: '#f59e0b',
+          warningAccentColor: '#fef3c7',
+          successColor: '#10b981',
+          successAccentColor: '#d1fae5',
+
+          // Destructive colors
+          destructiveColor: '#ef4444',
+          destructiveHoverColor: '#dc2626',
+          destructiveActiveColor: '#b91c1c',
+          destructiveForegroundColor: '#ffffff',
+          destructiveForegroundHoverColor: '#fef2f2',
+          destructiveForegroundActiveColor: '#fee2e2',
+
           // Input styling
           inputColor: '#FFFFFF',
           inputBorderColor: '#0000004d',
@@ -275,6 +363,11 @@ export const useSellSenseThemes = () => {
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
 
+          // New v0.6.15 form label design tokens - SellSense styling
+          formLabelFontSize: '0.875rem',
+          formLabelFontWeight: '600', // Bold for SellSense brand consistency
+          formLabelLineHeight: '1.25rem',
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
@@ -286,7 +379,7 @@ export const useSellSenseThemes = () => {
         };
 
       case 'PayFicient':
-        // PayFicient theme with v0.6.14 design tokens (matching useThemes.ts)
+        // PayFicient theme with v0.6.15 design tokens (matching useThemes.ts)
         return {
           fontFamily: 'Manrope',
           headerFontFamily: 'Manrope',
@@ -313,6 +406,30 @@ export const useSellSenseThemes = () => {
           cardColor: '#F7F3F0', // Matching useThemes.ts
           cardForegroundColor: '#1e293b',
 
+          // Enhanced muted and accent colors
+          mutedColor: '#f8fafc',
+          mutedForegroundColor: '#64748b',
+          accentColor: '#f1f5f9',
+          accentForegroundColor: '#475569',
+
+          // Enhanced alert system colors (v0.6.15) - PayFicient themed
+          alertColor: '#FFFCF6', // PayFicient themed alert background
+          alertForegroundColor: '#1e293b',
+          informativeColor: '#177556', // Using PayFicient primary for info
+          informativeAccentColor: '#e6f2ed', // PayFicient themed info background
+          warningColor: '#f59e0b',
+          warningAccentColor: '#fef3c7',
+          successColor: '#177556', // Using brand green for success
+          successAccentColor: '#d6e8d1', // PayFicient themed success background
+
+          // Destructive colors
+          destructiveColor: '#ef4444',
+          destructiveHoverColor: '#dc2626',
+          destructiveActiveColor: '#b91c1c',
+          destructiveForegroundColor: '#ffffff',
+          destructiveForegroundHoverColor: '#fef2f2',
+          destructiveForegroundActiveColor: '#fee2e2',
+
           // Input styling
           inputColor: '#FFFFFF',
           inputBorderColor: '#0000004d',
@@ -335,6 +452,11 @@ export const useSellSenseThemes = () => {
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
 
+          // New v0.6.15 form label design tokens - PayFicient styling
+          formLabelFontSize: '0.875rem',
+          formLabelFontWeight: '500', // Medium weight for PayFicient's clean aesthetic
+          formLabelLineHeight: '1.25rem',
+
           // Border widths
           primaryBorderWidth: '0px',
           destructiveBorderWidth: '0px',
@@ -346,7 +468,7 @@ export const useSellSenseThemes = () => {
         };
 
       default:
-        // Enhanced default fallback
+        // Enhanced default fallback with v0.6.15 design tokens
         return {
           fontFamily: 'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
           primaryColor: '#0060f0',
@@ -360,6 +482,21 @@ export const useSellSenseThemes = () => {
           buttonTextTransform: 'none',
           shiftButtonOnActive: true,
           spacingUnit: '0.25rem',
+
+          // New v0.6.15 form label defaults
+          formLabelFontSize: '0.875rem',
+          formLabelFontWeight: '500',
+          formLabelLineHeight: '1.25rem',
+
+          // Enhanced alert defaults
+          alertColor: '#f1f5f9',
+          alertForegroundColor: '#1e293b',
+          informativeColor: '#0ea5e9',
+          informativeAccentColor: '#e0f2fe',
+          warningColor: '#f59e0b',
+          warningAccentColor: '#fef3c7',
+          successColor: '#10b981',
+          successAccentColor: '#d1fae5',
         };
     }
   };

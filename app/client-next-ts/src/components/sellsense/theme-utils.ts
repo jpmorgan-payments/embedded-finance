@@ -25,6 +25,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     // Header component styles
     getHeaderStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'bg-gray-50 border-gray-200'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'bg-slate-800 border-slate-700';
         case 'S&P Theme':
@@ -36,6 +38,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getHeaderLabelStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'text-gray-600'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'text-slate-400';
         case 'S&P Theme':
@@ -47,6 +51,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getHeaderSelectStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'bg-white border-gray-300 text-gray-900'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'bg-slate-700 border-slate-600 text-slate-100';
         default:
@@ -56,6 +62,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getHeaderButtonStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'text-blue-400 hover:text-blue-300 hover:bg-slate-700';
         case 'S&P Theme':
@@ -67,6 +75,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getHeaderTextStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'text-gray-900'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'text-white';
         case 'S&P Theme':
@@ -79,6 +89,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     // Sidebar component styles
     getSidebarStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'bg-gray-50 border-gray-200'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'bg-slate-800 border-slate-700';
         case 'S&P Theme':
@@ -91,6 +103,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarButtonStyles: (selected: boolean) => {
       if (selected) {
         switch (theme) {
+          case 'Empty':
+            return 'text-gray-900 font-semibold bg-gray-200 border-l-4 border-gray-600'; // Neutral for showing defaults
           case 'Create Commerce':
             return 'text-blue-300 font-semibold bg-slate-700 border-l-4 border-blue-300';
           case 'S&P Theme':
@@ -100,6 +114,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         }
       } else {
         switch (theme) {
+          case 'Empty':
+            return 'text-gray-600 font-normal border-l-4 border-transparent hover:bg-gray-200 hover:text-gray-900'; // Neutral for showing defaults
           case 'Create Commerce':
             return 'text-slate-100 font-normal border-l-4 border-transparent hover:bg-slate-700 hover:text-blue-300';
           case 'S&P Theme':
@@ -112,6 +128,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getSidebarLabelStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'text-gray-500'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'text-slate-300';
         case 'S&P Theme':
@@ -123,6 +141,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getSidebarTextStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'text-gray-700'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'text-slate-100';
         case 'S&P Theme':
@@ -135,6 +155,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     // Component widget styles (for demo wrapping)
     getCardStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'bg-white border-gray-300'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'bg-slate-900 border-slate-700';
         case 'S&P Theme':
@@ -146,6 +168,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     getIconStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'text-gray-300 hover:text-white hover:bg-slate-700';
         case 'S&P Theme':
@@ -158,6 +182,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     // Dialog styles (for component tech details)
     getDialogStyles: () => {
       switch (theme) {
+        case 'Empty':
+          return 'bg-white text-gray-900 border-gray-300'; // Neutral for showing defaults
         case 'Create Commerce':
           return 'bg-slate-800 text-white border-slate-600';
         case 'S&P Theme':

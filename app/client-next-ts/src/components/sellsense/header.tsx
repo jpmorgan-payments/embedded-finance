@@ -104,6 +104,7 @@ export function Header({
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="Empty">Empty (Defaults)</SelectItem>
                 <SelectItem value="Default Blue">Default Blue</SelectItem>
                 <SelectItem value="SellSense">SellSense</SelectItem>
                 <SelectItem value="S&P Theme">S&P Theme</SelectItem>
