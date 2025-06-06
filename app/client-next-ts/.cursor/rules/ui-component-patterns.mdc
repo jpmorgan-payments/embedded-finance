@@ -1,0 +1,329 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# UI Component Patterns & Best Practices
+
+## Component Architecture
+
+UI components follow a layered architecture with clear separation of concerns:
+
+### Component Layers
+1. **Base UI** - [src/components/ui/](mdc:src/components/ui/) - Reusable shadcn/ui components
+2. **Feature Components** - [src/components/sellsense/](mdc:src/components/sellsense/) - SellSense-specific components  
+3. **Layout Components** - Root layouts and page wrappers
+
+## shadcn/ui Integration
+
+### Core Components Implemented
+- [button.tsx](mdc:src/components/ui/button.tsx) - Button variants with theme support
+- [card.tsx](mdc:src/components/ui/card.tsx) - Card layouts with consistent styling
+- [select.tsx](mdc:src/components/ui/select.tsx) - Custom controlled select with Context API
+- [avatar.tsx](mdc:src/components/ui/avatar.tsx) - Avatar with fallback support
+
+### Component Pattern
+```typescript
+// shadcn/ui pattern with theme integration
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
+    return (
+      <button
+        className={cn(buttonVariants({ variant, size }), className)}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+```
+
+## SellSense-Specific Components
+
+### Theme-Aware Components
+All SellSense components integrate with the theme system:
+
+```typescript
+// Component with theme integration
+import { useSellsenseThemes } from './use-sellsense-themes';
+
+export const ThemedComponent: React.FC<Props> = ({ theme, children }) => {
+  const { themeVariables } = useSellsenseThemes(theme);
+  
+  return (
+    <div 
+      style={themeVariables}
+      className="border-[var(--border)] bg-[var(--background)]"
+    >
+      {children}
+    </div>
+  );
+};
+```
+
+### Component Widget Pattern
+Components wrapped for demo visualization:
+
+```typescript
+// Widget wrapper pattern for embedded components
+export const ComponentWidget: React.FC<{ theme: ThemeOption }> = ({ theme }) => {
+  const { themeVariables } = useSellsenseThemes(theme);
+  const { fullscreen } = Route.useSearch();
+  
+  if (fullscreen) {
+    return <EmbeddedComponent />;
+  }
+  
+  return (
+    <div 
+      className="relative rounded-lg border p-1" 
+      style={themeVariables}
+    >
+      <EmbeddedComponent />
+      
+      {/* Control icons positioned consistently */}
+      <div className="absolute top-2 right-2 flex gap-1">
+        <IconButton icon={Maximize2} onClick={handleFullscreen} />
+        <IconButton icon={Info} onClick={handleInfo} />
+      </div>
+    </div>
+  );
+};
+```
+
+## State Management Patterns
+
+### Controlled Component Pattern
+```typescript
+// Custom Select with Context API
+const SelectContext = React.createContext<SelectContextType | null>(null);
+
+export const Select: React.FC<SelectProps> = ({ 
+  value = '', 
+  onValueChange, 
+  children 
+}) => {
+  const [open, setOpen] = React.useState(false);
+  
+  return (
+    <SelectContext.Provider value={{ value, onValueChange, open, setOpen }}>
+      <div className="relative">
+        {children}
+      </div>
+    </SelectContext.Provider>
+  );
+};
+
+// Usage pattern
+<Select value={selectedValue} onValueChange={setSelectedValue}>
+  <SelectTrigger>
+    <SelectValue placeholder="Choose option..." />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="option1">Option 1</SelectItem>
+    <SelectItem value="option2">Option 2</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+### URL-Driven Component State
+```typescript
+// Components that sync state with URL parameters
+export const StatefulComponent: React.FC = () => {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  
+  // Initialize from URL
+  const [state, setState] = useState(search.param || defaultValue);
+  
+  // Sync changes to URL
+  useEffect(() => {
+    navigate({ 
+      search: { ...search, param: state }, 
+      replace: true 
+    });
+  }, [state]);
+  
+  return <ComponentUI state={state} onChange={setState} />;
+};
+```
+
+## Styling Patterns
+
+### CSS Custom Properties with Tailwind
+```typescript
+// Theme-aware styling with CSS custom properties
+const component = (
+  <div 
+    style={themeVariables} 
+    className={cn(
+      // Base styles
+      'rounded-lg border p-4',
+      // Theme-aware colors
+      'bg-[var(--background)] border-[var(--border)]',
+      // Interactive states
+      'hover:bg-[var(--background-hover)]',
+      // Conditional classes
+      isActive && 'border-[var(--primary)]'
+    )}
+  >
+    Content
+  </div>
+);
+```
+
+### Responsive Design Patterns
+```typescript
+// Consistent responsive breakpoints
+<div className={cn(
+  // Mobile first
+  'grid grid-cols-1 gap-4',
+  // Tablet
+  'md:grid-cols-2 md:gap-6',
+  // Desktop
+  'lg:grid-cols-3 lg:gap-8'
+)}>
+  {items.map(item => <Card key={item.id} {...item} />)}
+</div>
+```
+
+## Utility Functions
+
+### className Merging
+```typescript
+// Core utility from lib/utils.ts
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+// Usage in components
+const buttonClass = cn(
+  'base-button-styles',
+  variant === 'primary' && 'primary-styles',
+  isDisabled && 'disabled-styles',
+  className // Allow override
+);
+```
+
+### Type-Safe Props
+```typescript
+// Component with proper TypeScript typing
+interface ComponentProps {
+  variant: 'default' | 'featured' | 'compact';
+  data: DataType;
+  onAction?: (item: DataType) => void;
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export const Component: React.FC<ComponentProps> = ({
+  variant,
+  data,
+  onAction,
+  className,
+  children,
+}) => {
+  // Implementation with proper typing
+};
+```
+
+## Icon Integration
+
+### Lucide React Icons
+```typescript
+import { 
+  Maximize2, 
+  Info, 
+  ChevronDown, 
+  User,
+  Settings 
+} from 'lucide-react';
+
+// Icon with consistent sizing
+<Icon 
+  className="h-4 w-4 text-[var(--foreground)]" 
+  aria-label="Action description"
+/>
+```
+
+## Accessibility Patterns
+
+### ARIA Attributes
+```typescript
+// Proper accessibility implementation
+<button
+  aria-expanded={isOpen}
+  aria-haspopup="listbox"
+  aria-label="Select option"
+  className="select-trigger"
+>
+  <span>{selectedValue || 'Choose option'}</span>
+  <ChevronDown className="h-4 w-4" aria-hidden="true" />
+</button>
+```
+
+### Keyboard Navigation
+```typescript
+// Handle keyboard interactions
+const handleKeyDown = (e: React.KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+    case ' ':
+      e.preventDefault();
+      toggleOpen();
+      break;
+    case 'Escape':
+      setOpen(false);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      // Navigate to next option
+      break;
+  }
+};
+```
+
+## Dependencies & Tools
+
+### Required Packages
+```json
+{
+  "clsx": "^2.0.0",           // Conditional className logic
+  "tailwind-merge": "^2.0.0", // Tailwind class deduplication  
+  "lucide-react": "^0.400.0", // Consistent icon library
+  "@radix-ui/react-*": "*"    // Accessible primitives (optional)
+}
+```
+
+### Development Tools
+- **Tailwind IntelliSense** - VS Code extension for class completion
+- **Headless UI** - Alternative to Radix for accessible components
+- **Storybook** - Component development and documentation (in embedded-components package)
+
+## Best Practices
+
+### Component Design
+1. **Single Responsibility** - Each component has one clear purpose
+2. **Composition over Inheritance** - Use composition patterns
+3. **Prop Drilling Avoidance** - Use Context for deeply nested state
+4. **Accessible by Default** - Include ARIA attributes and keyboard support
+
+### Performance
+1. **React.memo** - Memoize expensive components
+2. **useCallback** - Memoize event handlers
+3. **Lazy Loading** - Use React.lazy for route-level components
+4. **Bundle Size** - Tree-shake unused icon imports
+
+### Testing
+1. **Component Testing** - Test user interactions and state changes
+2. **Accessibility Testing** - Use tools like axe-core
+3. **Visual Regression** - Screenshot testing for UI consistency
+4. **Type Safety** - Ensure props are properly typed

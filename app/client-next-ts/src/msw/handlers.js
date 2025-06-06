@@ -1,50 +1,10 @@
 import { http, HttpResponse } from 'msw';
-import {
-  accountBalanceMock,
-  accountsMock,
-  casesMock,
-  debitCardsMock,
-  industryCategoriesMock,
-  jobTitlesMock,
-  recipientsMock,
-  transactionDetailsMock,
-  transactionsMock,
-  efClientQuestionsMock,
-  efDocumentClientDetail,
-} from 'mocks';
+import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 
 import { db, handleMagicValues, resetDb, getDbStatus, logDbState } from './db';
 import merge from 'lodash/merge';
 
 export const createHandlers = (apiUrl) => [
-  http.get(`${apiUrl}/api/transactions`, () => {
-    return HttpResponse.json(transactionsMock);
-  }),
-  http.get(`${apiUrl}/api/transactions/:selectedTxnId`, () => {
-    return HttpResponse.json(transactionDetailsMock);
-  }),
-  http.get(`${apiUrl}/api/recipients`, () => {
-    return HttpResponse.json(recipientsMock);
-  }),
-  http.get(`${apiUrl}/api/accounts`, () => {
-    return HttpResponse.json(accountsMock);
-  }),
-  http.get(`${apiUrl}/api/accounts/:accountId/balances`, () => {
-    return HttpResponse.json(accountBalanceMock);
-  }),
-  http.get(`${apiUrl}/api/debit-cards`, () => {
-    return HttpResponse.json(debitCardsMock);
-  }),
-  http.get(`${apiUrl}/api/cases`, () => {
-    return HttpResponse.json(casesMock);
-  }),
-  http.get(`${apiUrl}/api/industry-categories`, () => {
-    return HttpResponse.json(industryCategoriesMock);
-  }),
-  http.get(`${apiUrl}/api/job-titles`, () => {
-    return HttpResponse.json(jobTitlesMock);
-  }),
-
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params;
     const client = db.client.findFirst({
@@ -606,6 +566,115 @@ export const createHandlers = (apiUrl) => [
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }),
+
+  // EF Linked Account Creation
+  http.post(`${apiUrl}/ef/do/v1/recipients`, async ({ request }) => {
+    const data = await request.json();
+
+    // Generate a mock recipient ID
+    const recipientId =
+      'c0712fc9-b7d5-4ee2-81bb-' + Math.random().toString(36).substring(2, 15);
+
+    // Create a mock linked account recipient response
+    const mockRecipient = {
+      id: recipientId,
+      type: 'LINKED_ACCOUNT',
+      status: 'MICRODEPOSITS_INITIATED', // Start with microdeposits initiated
+      partyDetails: data.partyDetails,
+      account: data.account,
+      createdAt: new Date().toISOString(),
+    };
+
+    return HttpResponse.json(mockRecipient, {
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }),
+
+  // EF Microdeposit Verification
+  http.post(
+    `${apiUrl}/ef/do/v1/recipients/:recipientId/verify-microdeposit`,
+    async ({ params, request }) => {
+      const { recipientId } = params;
+      const data = await request.json();
+
+      // Mock verification logic - in real app this would validate the amounts
+      const isValid = data.amounts && data.amounts.length === 2;
+
+      if (isValid) {
+        // Return success response
+        return HttpResponse.json(
+          {
+            id: recipientId,
+            status: 'ACTIVE',
+            message: 'Microdeposit verification successful',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+      } else {
+        // Return error response
+        return HttpResponse.json(
+          {
+            error: 'Invalid microdeposit amounts',
+            message: 'The amounts provided do not match our records',
+          },
+          {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+      }
+    },
+  ),
+
+  // EF Get specific recipient
+  http.get(`${apiUrl}/ef/do/v1/recipients/:recipientId`, ({ params }) => {
+    const { recipientId } = params;
+
+    // For demo purposes, return a mock recipient based on ID
+    const mockRecipient = {
+      id: recipientId,
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      partyDetails: {
+        type: 'INDIVIDUAL',
+        firstName: 'Alex',
+        lastName: 'James',
+        contacts: [
+          {
+            contactType: 'EMAIL',
+            value: 'alex.james@example.com',
+          },
+        ],
+      },
+      account: {
+        number: '****7971423204567',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '154135115',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+    };
+
+    return HttpResponse.json(mockRecipient, {
+      headers: {
+        'Content-Type': 'application/json',
       },
     });
   }),

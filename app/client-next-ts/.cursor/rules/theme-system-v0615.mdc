@@ -1,0 +1,301 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Theme System v0.6.15 - Enhanced Design Tokens & Empty Theme
+
+## Overview
+
+This documents the v0.6.15 theme system enhancements implemented for the SellSense demo, including comprehensive design token support, Empty theme functionality, and modern theming patterns.
+
+## Key Files
+
+- **Theme Implementation**: [use-sellsense-themes.ts](mdc:src/components/sellsense/use-sellsense-themes.ts)
+- **Theme Utilities**: [theme-utils.ts](mdc:src/components/sellsense/theme-utils.ts)
+- **Route Schema**: [sellsense-demo.tsx](mdc:src/routes/sellsense-demo.tsx)
+- **Header Component**: [header.tsx](mdc:src/components/sellsense/header.tsx)
+
+## v0.6.15 Design Token Enhancements
+
+### New Form Label Design Tokens
+```typescript
+// Enhanced form styling with proper typography
+formLabelFontSize: '0.875rem',      // 14px consistent sizing
+formLabelFontWeight: '500',         // Medium weight for readability
+formLabelLineHeight: '1.25rem',     // 20px proper spacing
+```
+
+### Enhanced Alert System
+```typescript
+// Comprehensive alert color system
+alertColor: '#ef4444',              // Base alert/error red
+alertForegroundColor: '#ffffff',    // White text on alerts
+informativeColor: '#3b82f6',        // Blue for info alerts
+informativeAccentColor: '#dbeafe',  // Light blue backgrounds
+warningColor: '#f59e0b',            // Amber for warnings
+warningAccentColor: '#fef3c7',      // Light amber backgrounds
+successColor: '#10b981',            // Green for success
+successAccentColor: '#d1fae5',      // Light green backgrounds
+```
+
+### Missing Design Token Completion
+```typescript
+// Previously missing tokens now supported
+mutedColor: '#6b7280',              // Gray-500 for muted text
+mutedForegroundColor: '#374151',    // Gray-700 for muted content
+accentColor: '#8b5cf6',             // Purple accent color
+accentForegroundColor: '#ffffff',   // White text on accents
+```
+
+### Enhanced Destructive Color Families
+```typescript
+// Complete destructive color system for all themes
+destructiveColor: '#dc2626',        // Primary destructive red
+destructiveForegroundColor: '#ffffff', // White text
+destructiveHoverColor: '#b91c1c',   // Darker red on hover
+destructiveActiveColor: '#991b1b',  // Even darker on active
+destructiveBorderColor: '#dc2626',  // Matching border
+```
+
+## Theme Options & Configuration
+
+### Available Themes
+```typescript
+type ThemeOption = 
+  | 'Empty'           // NEW: Shows component defaults without design tokens
+  | 'Default Blue'    // Renamed from 'Default'
+  | 'S&P Theme'       // Enhanced with new design tokens
+  | 'Create Commerce' // Enhanced dark theme
+  | 'SellSense'       // Primary brand theme
+  | 'PayFicient';     // Enhanced with brand colors
+```
+
+### Empty Theme Implementation
+```typescript
+// Empty theme returns empty object to show component defaults
+export const EMPTY_THEME = {}; // No design tokens applied
+
+// Theme utilities handle Empty theme specifically
+export function getThemeStyles(theme: ThemeOption) {
+  if (theme === 'Empty') {
+    return {
+      background: 'bg-white',
+      text: 'text-gray-900',
+      border: 'border-gray-200',
+      // ... neutral styling
+    };
+  }
+  // ... other theme logic
+}
+```
+
+## Theme Integration Patterns
+
+### Component Theming Pattern
+```typescript
+// Standard pattern for theme-aware components
+import { useSellSenseThemes } from './use-sellsense-themes';
+import { useThemeStyles } from './theme-utils';
+
+function MyComponent({ theme }: { theme: ThemeOption }) {
+  const { mapThemeOption } = useSellSenseThemes();
+  const themeStyles = useThemeStyles(theme);
+  const ebTheme = mapThemeOption(theme);
+
+  return (
+    <EBComponentsProvider theme={ebTheme}>
+      <div className={`${themeStyles.getCardStyles()}`}>
+        {/* Component content */}
+      </div>
+    </EBComponentsProvider>
+  );
+}
+```
+
+### Header Control Integration
+```typescript
+// Theme selector in header with Empty option
+<Select value={theme} onValueChange={setTheme}>
+  <SelectContent>
+    <SelectItem value="Empty">Empty (Defaults)</SelectItem>
+    <SelectItem value="Default Blue">Default Blue</SelectItem>
+    <SelectItem value="SellSense">SellSense</SelectItem>
+    <SelectItem value="S&P Theme">S&P Theme</SelectItem>
+    <SelectItem value="Create Commerce">Create Commerce</SelectItem>
+    <SelectItem value="PayFicient">PayFicient</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+### URL State Management
+```typescript
+// Zod schema validation for theme parameter
+const sellsenseDemoSearchSchema = z.object({
+  theme: z.enum([
+    'Empty',
+    'Default Blue', 
+    'S&P Theme',
+    'Create Commerce', 
+    'SellSense', 
+    'PayFicient'
+  ]).optional(),
+  // ... other parameters
+});
+```
+
+## Brand-Specific Theme Enhancements
+
+### S&P Theme
+```typescript
+{
+  // Primary teal brand color from S&P design system
+  primaryColor: '#14b8a6',
+  primaryHoverColor: '#0d9488',
+  primaryActiveColor: '#0f766e',
+  
+  // Alert colors using primary teal
+  alertColor: '#14b8a6',
+  informativeColor: '#14b8a6',
+  
+  // Enhanced typography
+  formLabelFontWeight: '600',  // Bold for S&P brand
+  headerFontFamily: '"Inter", system-ui, sans-serif',
+}
+```
+
+### PayFicient Theme
+```typescript
+{
+  // PayFicient brand green
+  primaryColor: '#059669',
+  primaryHoverColor: '#047857',
+  primaryActiveColor: '#065f46',
+  
+  // Brand-consistent alert colors
+  successColor: '#059669',     // Using brand green
+  alertColor: '#dc2626',       // Standard red for errors
+  
+  // Professional typography
+  formLabelFontWeight: '500',
+  buttonFontWeight: '600',
+}
+```
+
+### Create Commerce Dark Theme
+```typescript
+{
+  // Dark theme with enhanced contrast
+  backgroundColor: '#0f172a',    // Slate-900
+  foregroundColor: '#f1f5f9',   // Slate-100
+  cardColor: '#1e293b',         // Slate-800
+  
+  // Improved readability
+  mutedColor: '#94a3b8',        // Slate-400 for better contrast
+  borderColor: '#334155',       // Slate-700 for subtle borders
+  
+  // Accessible alert colors for dark backgrounds
+  alertColor: '#f87171',        // Lighter red for dark bg
+  successColor: '#4ade80',      // Lighter green for dark bg
+}
+```
+
+## Validation Error Resolution
+
+### Route Tree Generation Issue
+```typescript
+// Problem: Cached route tree with old theme enum
+// Error: "Invalid enum value. Expected '...' received 'Empty'"
+
+// Solution: Delete cached route tree and rebuild
+// PowerShell commands:
+// Remove-Item src\routeTree.gen.ts
+// npm run build
+```
+
+### TanStack Router Schema Updates
+```typescript
+// Always update Zod schema when adding new theme options
+const themeSchema = z.enum([
+  'Empty',        // ← NEW: Must be added to schema
+  'Default Blue',
+  'S&P Theme',
+  'Create Commerce',
+  'SellSense',
+  'PayFicient'
+]);
+```
+
+## Testing Theme Implementation
+
+### Theme Switching Test
+```typescript
+// Verify all themes load without errors
+const themes: ThemeOption[] = [
+  'Empty', 'Default Blue', 'S&P Theme', 
+  'Create Commerce', 'SellSense', 'PayFicient'
+];
+
+themes.forEach(theme => {
+  // Should not throw errors
+  const ebTheme = mapThemeOption(theme);
+  const styles = getThemeStyles(theme);
+});
+```
+
+### URL Parameter Test
+```typescript
+// Test theme persistence in URL
+// http://localhost:3000/sellsense-demo?theme=Empty
+// http://localhost:3000/sellsense-demo?theme=SellSense&scenario=New%20Seller%20-%20Onboarding
+```
+
+## Development Workflow
+
+### Adding New Design Tokens
+1. Add to embedded-components config.types.ts interface
+2. Implement in all theme configurations in use-sellsense-themes.ts
+3. Add theme-specific values based on brand guidelines
+4. Test across all themes to ensure consistency
+5. Update theme utilities if needed for new styling patterns
+
+### Adding New Themes
+1. Add to ThemeOption type definition
+2. Implement theme configuration with all v0.6.15 design tokens
+3. Update Zod schema in sellsense-demo.tsx
+4. Add to header select options
+5. Delete route tree and rebuild: `rm src\routeTree.gen.ts && npm run build`
+6. Test theme switching and URL persistence
+
+### Debugging Theme Issues
+```powershell
+# Check for TypeScript errors
+npm run typecheck
+
+# Rebuild route tree after schema changes  
+Remove-Item src\routeTree.gen.ts
+npm run build
+
+# Restart dev server after theme changes
+npm run dev
+```
+
+## Best Practices
+
+### Design Token Implementation
+- Always provide all v0.6.15 design tokens for complete functionality
+- Use brand-specific colors for primary/alert colors when appropriate
+- Ensure sufficient contrast ratios for accessibility
+- Test both light and dark theme variants
+
+### Theme State Management
+- Keep theme state in URL for shareability
+- Provide meaningful defaults for optional parameters
+- Handle Empty theme as special case showing component defaults
+- Use theme utilities for consistent styling patterns
+
+### Component Integration
+- Wrap embedded components in EBComponentsProvider with mapped theme
+- Apply theme styles through utility classes and CSS custom properties
+- Test all themes for visual consistency and accessibility
+- Provide theme controls in demo interfaces for easy testing

@@ -1,0 +1,410 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# MSW API Mocking Patterns
+
+## Overview
+
+The client-next-ts project uses Mock Service Worker (MSW) for comprehensive API mocking during development. This enables realistic API interactions without requiring a backend server.
+
+## Core MSW Setup
+
+### Main Files
+- [handlers.js](mdc:src/msw/handlers.js) - Request handlers and API endpoints
+- [db.js](mdc:src/msw/db.js) - In-memory database simulation with persistence
+- [main.tsx](mdc:src/main.tsx) - MSW worker initialization
+
+### Handler Creation Pattern
+
+**Core Structure**:
+```javascript
+export const createHandlers = (apiUrl) => [
+  // GET endpoints
+  http.get(`${apiUrl}/api/endpoint`, () => {
+    return HttpResponse.json(mockData);
+  }),
+  
+  // POST endpoints with validation
+  http.post(`${apiUrl}/api/endpoint`, async ({ request }) => {
+    const data = await request.json();
+    // Process and return response
+    return HttpResponse.json(responseData, { status: 201 });
+  }),
+  
+  // Dynamic endpoints with parameters
+  http.get(`${apiUrl}/api/resource/:id`, ({ params }) => {
+    const { id } = params;
+    return HttpResponse.json(findById(id));
+  }),
+];
+```
+
+## Database Simulation Patterns
+
+### In-Memory Database Structure
+
+**Implementation**: [db.js](mdc:src/msw/db.js)
+
+**Pattern**: Realistic data persistence with relationship management
+```javascript
+const db = {
+  client: factory({
+    id: primaryKey(() => generateClientId()),
+    status: () => 'NEW',
+    parties: () => [],
+    products: () => ['EMBEDDED_PAYMENTS'],
+    outstanding: () => ({
+      documentRequestIds: [],
+      questionIds: [],
+      attestationDocumentIds: [],
+    }),
+  }),
+  
+  party: factory({
+    id: primaryKey(() => generatePartyId()),
+    active: () => true,
+    partyType: () => 'ORGANIZATION',
+    roles: () => ['OWNER'],
+  }),
+};
+```
+
+**Rules**:
+- Use realistic ID generation patterns (00XXXXXXXX for clients, 2XXXXXXXXX for parties)
+- Maintain referential integrity between entities
+- Support both creation and updates with proper merging
+- Include timestamp tracking for created/updated records
+
+### CRUD Operations Pattern
+
+**Create Operations**:
+```javascript
+http.post(`${apiUrl}/ef/do/v1/clients`, async ({ request }) => {
+  const data = await request.json();
+  const newClientId = generateClientId();
+  
+  // Create related entities first (parties)
+  const partyIds = [];
+  if (data.parties) {
+    for (const partyData of data.parties) {
+      const partyId = generatePartyId();
+      db.party.create({ id: partyId, ...partyData });
+      partyIds.push(partyId);
+    }
+  }
+  
+  // Create main entity with relationships
+  const client = db.client.create({
+    id: newClientId,
+    parties: partyIds,
+    ...data,
+  });
+  
+  return HttpResponse.json(expandedClient, { status: 201 });
+});
+```
+
+**Update Operations**:
+```javascript
+http.post(`${apiUrl}/ef/do/v1/clients/:clientId`, async ({ request, params }) => {
+  const { clientId } = params;
+  const data = await request.json();
+  
+  const existingClient = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  
+  // Merge updates with existing data
+  const updatedClient = db.client.update({
+    where: { id: { equals: clientId } },
+    data: merge(existingClient, data),
+  });
+  
+  return HttpResponse.json(updatedClient);
+});
+```
+
+**Rules**:
+- Always check for entity existence before operations
+- Use proper HTTP status codes (201 for creation, 404 for not found)
+- Implement realistic relationship handling
+- Support partial updates with deep merging
+
+## API Endpoint Patterns
+
+### Embedded Finance Endpoints
+
+**Client Management**:
+```javascript
+// Get client with expanded parties
+http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
+  const { clientId } = req.params;
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  
+  // Expand party references to full objects
+  const expandedClient = {
+    ...client,
+    parties: client.parties.map(partyId => 
+      db.party.findFirst({ where: { id: { equals: partyId } } })
+    ).filter(Boolean),
+  };
+  
+  return HttpResponse.json(expandedClient);
+});
+```
+
+**Document Management**:
+```javascript
+// Document requests with client filtering
+http.get(`${apiUrl}/ef/do/v1/document-requests`, (req) => {
+  const url = new URL(req.request.url);
+  const clientId = url.searchParams.get('clientId');
+  
+  return HttpResponse.json({
+    documentRequests: db.documentRequest.findMany({
+      where: { clientId: { equals: clientId } },
+    }),
+  });
+});
+
+// Document submission with status updates
+http.post(`${apiUrl}/ef/do/v1/document-requests/:documentRequestId/submit`, 
+  async ({ params }) => {
+    const { documentRequestId } = params;
+    
+    // Update document request status
+    const updatedRequest = db.documentRequest.update({
+      where: { id: { equals: documentRequestId } },
+      data: { status: 'SUBMITTED' },
+    });
+    
+    // Update related client outstanding items
+    updateClientOutstanding(documentRequestId);
+    
+    return HttpResponse.json(updatedRequest);
+  }
+);
+```
+
+### Linked Account Endpoints
+
+**Pattern**: Support different account states and verification flows
+```javascript
+// Create linked account recipient
+http.post(`${apiUrl}/ef/do/v1/recipients`, async ({ request }) => {
+  const data = await request.json();
+  
+  const mockRecipient = {
+    id: generateRecipientId(),
+    type: 'LINKED_ACCOUNT',
+    status: 'MICRODEPOSITS_INITIATED',
+    partyDetails: data.partyDetails,
+    account: data.account,
+    createdAt: new Date().toISOString(),
+  };
+  
+  return HttpResponse.json(mockRecipient, { status: 201 });
+});
+
+// Microdeposit verification
+http.post(`${apiUrl}/ef/do/v1/recipients/:recipientId/verify-microdeposit`,
+  async ({ params, request }) => {
+    const { recipientId } = params;
+    const { amounts } = await request.json();
+    
+    const isValid = amounts && amounts.length === 2;
+    
+    if (isValid) {
+      return HttpResponse.json({
+        id: recipientId,
+        status: 'ACTIVE',
+        message: 'Microdeposit verification successful',
+      });
+    } else {
+      return HttpResponse.json({
+        error: 'Invalid microdeposit amounts',
+      }, { status: 400 });
+    }
+  }
+);
+```
+
+## Magic Values and Testing Support
+
+### Magic Value Pattern
+
+**Implementation**: Support special test values for different scenarios
+```javascript
+// Magic value handling for verification endpoints
+http.post(`${apiUrl}/ef/do/v1/clients/:clientId/verifications`, 
+  async ({ request, params }) => {
+    const { clientId } = params;
+    const data = await request.json();
+    
+    const verificationResponse = handleMagicValues(clientId, data);
+    if (!verificationResponse) {
+      return new HttpResponse(null, { status: 404 });
+    }
+    
+    return HttpResponse.json(verificationResponse);
+  }
+);
+```
+
+**Magic Values**:
+- Use specific patterns to trigger different response scenarios
+- Support error states, validation failures, and edge cases
+- Document magic values for testing purposes
+
+### Development Utilities
+
+**Database Management**:
+```javascript
+// Reset database endpoint
+http.post(`${apiUrl}/ef/do/v1/_reset`, () => {
+  return HttpResponse.json(resetDb());
+});
+
+// Database status endpoint
+http.get(`${apiUrl}/ef/do/v1/_status`, () => {
+  return HttpResponse.json(getDbStatus());
+});
+```
+
+**Rules**:
+- Prefix utility endpoints with underscore (_reset, _status)
+- Provide database introspection for debugging
+- Include logging for database state changes
+- Support data seeding for specific test scenarios
+
+## File Upload Simulation
+
+### PDF Document Handling
+
+**Pattern**: Return realistic file responses
+```javascript
+http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
+  // Return base64-encoded PDF with proper headers
+  const pdfBase64 = 'JVBERi0xLjcK...'; // Minimal valid PDF
+  
+  return new HttpResponse(
+    Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0)),
+    {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="sample.pdf"',
+      },
+    }
+  );
+});
+```
+
+### Document Upload
+
+**Pattern**: Simulate document creation and storage
+```javascript
+http.post(`${apiUrl}/ef/do/v1/documents`, async ({ request }) => {
+  const data = await request.json();
+  
+  const documentResponse = {
+    id: generateDocumentId(),
+    status: 'ACTIVE',
+    documentType: data.documentType,
+    fileName: data.fileName,
+    mimeType: data.mimeType,
+    createdAt: new Date().toISOString(),
+    metadata: data.metadata || {},
+  };
+  
+  return HttpResponse.json(documentResponse, { status: 201 });
+});
+```
+
+## Error Handling Patterns
+
+### HTTP Status Codes
+
+**Rules**:
+- 200: Successful GET/PUT operations
+- 201: Successful POST creation
+- 400: Validation errors, bad request format
+- 404: Resource not found
+- 500: Server errors (for testing error states)
+
+### Error Response Format
+
+**Pattern**: Consistent error response structure
+```javascript
+// Validation error
+return HttpResponse.json({
+  error: 'Invalid microdeposit amounts',
+  message: 'The amounts provided do not match our records',
+  code: 'VALIDATION_ERROR',
+}, { status: 400 });
+
+// Not found error
+return new HttpResponse(null, { status: 404 });
+
+// Server error for testing
+return HttpResponse.json({
+  error: 'Internal server error',
+  message: 'Something went wrong processing your request',
+}, { status: 500 });
+```
+
+## CORS and Headers
+
+### CORS Support
+
+**Pattern**: Include proper CORS headers for cross-origin requests
+```javascript
+// CORS preflight handler
+http.options(`${apiUrl}/api/endpoint`, () => {
+  return new HttpResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+});
+
+// Include CORS in main responses
+return HttpResponse.json(data, {
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+  },
+});
+```
+
+## Best Practices
+
+### Handler Organization
+- Group related endpoints together
+- Use consistent naming patterns
+- Include comprehensive parameter validation
+- Implement realistic data relationships
+
+### Data Persistence
+- Maintain state between requests during session
+- Use proper primary key generation
+- Support cascading updates and deletes
+- Include audit fields (createdAt, updatedAt)
+
+### Testing Support
+- Implement magic values for edge cases
+- Provide database reset functionality
+- Include logging for debugging
+- Support different response scenarios
+
+### Performance
+- Use efficient data lookup patterns
+- Minimize response payload size
+- Implement proper caching headers
+- Avoid unnecessary data processing
