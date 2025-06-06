@@ -43,7 +43,10 @@ client-next-ts/
 ## Development Commands
 
 ### Quick Start
-```bash
+```powershell
+# IMPORTANT: Must be run from correct directory
+cd C:\code\embedded-banking\app\client-next-ts
+
 # Start development server (runs on localhost:3000)
 npm run dev
 
@@ -96,8 +99,8 @@ import { cn } from '@/lib/utils';
 - Follow established patterns for theme integration
 
 ### 3. Code Quality Checks
-```bash
-# Run before committing
+```powershell
+# Run before committing (from C:\code\embedded-banking\app\client-next-ts)
 npm run typecheck  # TypeScript validation
 npm run build      # Verify build works
 ```
@@ -191,12 +194,12 @@ return <ComponentWithDemoChrome />;
 4. **Type errors**: Run `npm run typecheck` for detailed errors
 
 ### Build Issues
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
+```powershell
+# Clear node_modules and reinstall (PowerShell)
+Remove-Item -Recurse -Force node_modules, package-lock.json
 npm install
 
 # Clear Vite cache
-rm -rf node_modules/.vite
+Remove-Item -Recurse -Force node_modules\.vite
 npm run build
 ```
