@@ -1,0 +1,32 @@
+# Client-Next-TS Project Rules
+
+This is the client-next-ts application within the embedded-banking monorepo.
+
+## Project-Specific Rules
+
+Follow these rules for consistent development patterns:
+
+- [TanStack Router Patterns](.cursor/rules/tanstack-router-patterns.mdc) - Route
+  structure and conditional layouts
+- [UI Component Patterns](.cursor/rules/ui-component-patterns.mdc) - Custom UI
+  library and controlled components
+- [Sellsense Demo Patterns](.cursor/rules/sellsense-demo-patterns.mdc) -
+  Application architecture and branding
+- [Development Workflow](.cursor/rules/development-workflow.mdc) - Project
+  structure and development server
+
+## shadcn/ui Instructions
+
+Use the latest version of Shadcn to install new components, like this command to
+add a button component:
+
+```bash
+pnpx shadcn@latest add button
+```
+
+## Quick Start
+
+1. Run development server: `npm run dev`
+2. Server runs on `localhost:3000`
+3. Use path aliases: `@/components/ui/component`
+4. Static assets go in `public/` with absolute paths

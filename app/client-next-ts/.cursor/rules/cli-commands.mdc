@@ -1,0 +1,310 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# CLI Commands & PowerShell Best Practices
+
+## Environment Context
+
+- **OS**: Windows 10/11
+- **Shell**: PowerShell (C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe)
+- **Project**: client-next-ts within embedded-banking monorepo
+- **Package Manager**: npm (for client-next-ts), yarn (for monorepo root)
+- **Working Directory**: C:\code\embedded-banking\app\client-next-ts
+
+## CRITICAL: PowerShell Command Syntax Rules
+
+### ❌ COMMON MISTAKES TO AVOID
+
+**NEVER use `&&` in PowerShell** - This will always fail!
+```powershell
+# ❌ THIS WILL FAIL - && is not supported in PowerShell
+cd app/client-next-ts && npm run dev
+
+# ❌ THIS WILL FAIL - Bash-style command chaining  
+cd embedded-components && yarn build && cd ../app/client-next-ts && npm run dev
+```
+
+**✅ CORRECT PowerShell Syntax**
+```powershell
+# Option 1: Use semicolon (commands continue even if one fails)
+cd app/client-next-ts; npm run dev
+
+# Option 2: Separate commands (RECOMMENDED - stops on errors)
+cd app/client-next-ts
+npm run dev
+
+# Option 3: For multiple operations
+cd embedded-components
+yarn build
+cd ../app/client-next-ts  
+npm run dev
+```
+
+## Project-Specific Development Commands
+
+### Starting the client-next-ts Development Server
+
+**IMPORTANT**: The npm run dev command must be run from the correct directory!
+
+```powershell
+# Method 1: Navigate then run (RECOMMENDED)
+cd C:\code\embedded-banking\app\client-next-ts
+npm run dev
+
+# Method 2: If already in monorepo root
+cd app\client-next-ts
+npm run dev
+
+# Method 3: Full path from anywhere
+Set-Location "C:\code\embedded-banking\app\client-next-ts"
+npm run dev
+```
+
+**Expected Output**: Development server starts on http://localhost:3000
+**SellSense Demo URL**: http://localhost:3000/sellsense-demo
+
+### Client-Next-TS Development Commands
+```powershell
+# Must be run from: C:\code\embedded-banking\app\client-next-ts
+
+# Start development server (localhost:3000)
+npm run dev
+
+# Build for production
+npm run build
+
+# Type checking only
+npm run typecheck
+
+# Start preview server for production build
+npm run preview
+
+# Install/update dependencies
+npm install
+```
+
+### Theme System & Route Development
+
+```powershell
+# After updating themes or route schemas
+cd C:\code\embedded-banking\app\client-next-ts
+
+# Delete generated route tree (if schema validation errors)
+Remove-Item src\routeTree.gen.ts
+npm run build  # This regenerates the route tree
+
+# Or using short aliases
+rm src\routeTree.gen.ts
+npm run build
+```
+
+### SellSense Demo Specific Commands
+```powershell
+# Start development and navigate to demo
+cd C:\code\embedded-banking\app\client-next-ts
+npm run dev
+# Then open browser to: http://localhost:3000/sellsense-demo
+
+# Test specific theme/scenario combinations
+# Demo supports URL parameters: ?theme=SellSense&scenario=New%20Seller%20-%20Onboarding
+```
+
+## Embedded Components Development
+
+```powershell
+# If working on embedded-components package
+cd C:\code\embedded-banking\embedded-components
+
+# Start Storybook (for component development)
+yarn storybook
+
+# Build components library
+yarn build
+
+# Run component tests
+yarn test
+
+# Then return to client development
+cd ..\app\client-next-ts
+npm run dev
+```
+
+## MSW (Mock Service Worker) Commands
+
+```powershell
+# MSW runs automatically with npm run dev
+# For manual database operations (while dev server is running):
+
+# Reset MSW database
+Invoke-RestMethod -Uri "http://localhost:3000/ef/do/v1/_reset" -Method POST
+
+# Check database status
+Invoke-RestMethod -Uri "http://localhost:3000/ef/do/v1/_status" -Method GET
+
+# Alternative using curl (if available)
+curl -X POST http://localhost:3000/ef/do/v1/_reset
+curl http://localhost:3000/ef/do/v1/_status
+```
+
+## Monorepo Root Commands
+
+```powershell
+# From monorepo root: C:\code\embedded-banking
+
+# Install all dependencies for all packages
+yarn install
+
+# Build all packages in correct order
+yarn build
+
+# Run workspaces commands (if configured)
+yarn workspace client-next-ts dev
+yarn workspace embedded-components build
+```
+
+## Error Handling & Troubleshooting
+
+### Command Not Found Errors
+```powershell
+# If "npm run dev" fails with "Missing script: dev"
+# You're probably in the wrong directory!
+
+# Check current location
+Get-Location
+# or
+pwd
+
+# Navigate to correct directory
+cd C:\code\embedded-banking\app\client-next-ts
+
+# Verify package.json has dev script
+Get-Content package.json | Select-String "dev"
+```
+
+### PowerShell Path Issues
+```powershell
+# If paths with spaces cause issues, use quotes
+cd "C:\code\embedded-banking\app\client-next-ts"
+
+# Or use escape characters
+cd C:\code\embedded-banking\app\client-next-ts
+
+# Verify you're in the right place
+ls package.json  # Should exist in client-next-ts
+```
+
+### TypeScript & Build Errors
+```powershell
+# Check TypeScript errors in detail
+cd C:\code\embedded-banking\app\client-next-ts
+npm run typecheck
+
+# Clear build caches
+Remove-Item -Recurse -Force node_modules\.vite
+npm run build
+
+# Nuclear option - full clean reinstall
+Remove-Item -Recurse -Force node_modules, package-lock.json
+npm install
+npm run build
+```
+
+### Route Generation Issues (TanStack Router)
+```powershell
+# After adding new routes or changing schemas
+cd C:\code\embedded-banking\app\client-next-ts
+
+# Remove generated routes and rebuild
+Remove-Item src\routeTree.gen.ts
+npm run build
+
+# If still having issues, check for TypeScript errors
+npm run typecheck
+```
+
+### Theme System Issues
+```powershell
+# After updating use-sellsense-themes.ts
+cd C:\code\embedded-banking\app\client-next-ts
+
+# Restart dev server to pick up theme changes
+# Ctrl+C to stop, then:
+npm run dev
+
+# Verify no TypeScript errors
+npm run typecheck
+```
+
+## Performance & Best Practices
+
+### Efficient PowerShell Navigation
+```powershell
+# Create aliases for frequent paths (add to PowerShell profile)
+New-Alias -Name "cdeb" -Value "Set-Location C:\code\embedded-banking"
+New-Alias -Name "cdclient" -Value "Set-Location C:\code\embedded-banking\app\client-next-ts"
+
+# Use tab completion aggressively
+cd C:\code\emb<TAB>\app\cl<TAB>
+```
+
+### Command History
+```powershell
+# Search command history
+Get-History | Where-Object { $_.CommandLine -like "*npm*" }
+
+# Use Ctrl+R for reverse search in PowerShell
+```
+
+### Environment Verification
+```powershell
+# Verify development environment
+node --version     # Should be 18+ for Next.js
+npm --version      # npm version
+yarn --version     # yarn version (for monorepo)
+
+# Check if in correct directory
+Test-Path package.json  # Should return True in client-next-ts
+```
+
+## Background Processes
+
+```powershell
+# Start development server in background (for automation)
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd C:\code\embedded-banking\app\client-next-ts; npm run dev"
+
+# Or let AI assistant handle with is_background: true parameter
+# The assistant can run commands in background automatically
+```
+
+## Windows-Specific Considerations
+
+```powershell
+# If having permission issues
+# May need to run PowerShell as Administrator for:
+# - Global npm installs
+# - Modifying system-wide configs
+# - Installing new tools
+
+# For development work, regular user permissions are fine
+```
+
+## Debug Commands
+
+```powershell
+# Verbose npm output for debugging
+npm run build --verbose
+
+# Check installed packages
+npm list
+npm outdated
+
+# Clear npm cache if needed
+npm cache clean --force
+
+# Verify project structure
+tree /f  # Shows full file tree (if tree command available)
+dir /s package.json  # Find all package.json files
+```
+

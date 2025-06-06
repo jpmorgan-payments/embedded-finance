@@ -1,0 +1,205 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development Workflow & Project Structure
+
+## Project Overview
+
+This is the `client-next-ts` application within the embedded-banking monorepo - a showcase application for embedded finance components with focus on the SellSense marketplace demo.
+
+## Project Structure
+
+```
+client-next-ts/
+├── src/
+│   ├── components/
+│   │   ├── ui/           # shadcn/ui reusable components
+│   │   ├── landing/      # Landing page components  
+│   │   └── sellsense/    # SellSense demo components (main focus)
+│   ├── routes/           # TanStack Router file-based routes
+│   ├── msw/              # Mock Service Worker setup
+│   ├── mocks/            # Mock data for development
+│   ├── lib/              # Utility functions
+│   └── styles/           # Global CSS styles
+├── public/               # Static assets (logos, images)
+├── .cursor/rules/        # Project-specific Cursor rules
+├── tailwind.config.js    # Tailwind with custom theme tokens
+├── vite.config.js        # Vite configuration with path aliases
+└── package.json          # Dependencies and scripts
+```
+
+## Key Technologies Stack
+
+- **TanStack Router v1** - File-based routing with Zod validation
+- **Vite** - Build tool and dev server with HMR
+- **Tailwind CSS** - Utility-first styling with custom design tokens
+- **TypeScript** - Strict type safety
+- **React 18** - UI framework with concurrent features
+- **MSW (Mock Service Worker)** - API mocking for development
+- **Zod** - Schema validation for URL parameters
+
+## Development Commands
+
+### Quick Start
+```powershell
+# IMPORTANT: Must be run from correct directory
+cd C:\code\embedded-banking\app\client-next-ts
+
+# Start development server (runs on localhost:3000)
+npm run dev
+
+# Build for production
+npm run build
+
+# Type checking
+npm run typecheck
+```
+
+### Asset Management
+
+**Static Assets**: Place in [public/](mdc:public/) directory
+```typescript
+// Reference with absolute paths
+<img src="/sellSense.svg" alt="SellSense Logo" />
+<img src="/sellSenseWallet.svg" alt="Wallet Logo" />
+```
+
+**Path Aliases**: Configured in [vite.config.js](mdc:vite.config.js)
+```typescript
+// Use @ alias for src directory
+import { DashboardLayout } from '@/components/sellsense/dashboard-layout';
+import { cn } from '@/lib/utils';
+```
+
+## Development Workflow
+
+### 1. Starting Development
+1. Ensure you're in `app/client-next-ts` directory
+2. Run `npm run dev` to start development server
+3. Open browser to `http://localhost:3000`
+4. Navigate to `/sellsense-demo` for main demo application
+
+### 2. Making Changes
+
+**SellSense Demo Development**:
+- Main entry: [sellsense-demo.tsx](mdc:src/routes/sellsense-demo.tsx)
+- Layout orchestrator: [dashboard-layout.tsx](mdc:src/components/sellsense/dashboard-layout.tsx)
+- Theme system: [use-sellsense-themes.ts](mdc:src/components/sellsense/use-sellsense-themes.ts)
+
+**Route Changes**:
+- Add routes in `src/routes/` following TanStack Router conventions
+- Routes auto-generate during build process
+- Use Zod schemas for URL parameter validation
+
+**Component Changes**:
+- UI components go in `src/components/ui/`
+- SellSense-specific components go in `src/components/sellsense/`
+- Follow established patterns for theme integration
+
+### 3. Code Quality Checks
+```powershell
+# Run before committing (from C:\code\embedded-banking\app\client-next-ts)
+npm run typecheck  # TypeScript validation
+npm run build      # Verify build works
+```
+
+## MSW Development Setup
+
+### Mock Server
+- Handlers: [handlers.js](mdc:src/msw/handlers.js)
+- Database simulation: [db.js](mdc:src/msw/db.js)
+- Automatic startup in development mode
+
+### Testing Different Scenarios
+- Use magic values in API calls for specific test cases
+- Database reset endpoint: `POST /ef/do/v1/_reset`
+- Database status endpoint: `GET /ef/do/v1/_status`
+
+## Code Organization Best Practices
+
+### File Naming
+- Use kebab-case for files: `dashboard-layout.tsx`
+- Use PascalCase for components: `DashboardLayout`
+- Use camelCase for hooks: `useSellsenseThemes`
+
+### Component Structure
+```typescript
+// Component file structure
+export interface ComponentProps {
+  // Props definition
+}
+
+export const Component: React.FC<ComponentProps> = ({ prop }) => {
+  // Implementation
+};
+```
+
+### Import Organization
+```typescript
+// 1. React and external libraries
+import React from 'react';
+import { Link } from '@tanstack/react-router';
+
+// 2. Internal components and hooks
+import { DashboardLayout } from '@/components/sellsense/dashboard-layout';
+import { useSellsenseThemes } from '@/components/sellsense/use-sellsense-themes';
+
+// 3. Types and utilities
+import { type ThemeOption } from '@/lib/types';
+import { cn } from '@/lib/utils';
+```
+
+## Common Patterns
+
+### Theme Integration
+```typescript
+const { themeVariables } = useSellsenseThemes(theme);
+return (
+  <div style={themeVariables} className="bg-[var(--background)]">
+    Content
+  </div>
+);
+```
+
+### URL State Management
+```typescript
+const search = Route.useSearch();
+const navigate = Route.useNavigate();
+
+// Update URL when state changes
+useEffect(() => {
+  navigate({ search: { ...search, newParam }, replace: true });
+}, [newParam]);
+```
+
+### Conditional Rendering for Demo Modes
+```typescript
+const { fullscreen } = Route.useSearch();
+
+if (fullscreen) {
+  return <ComponentOnly />;
+}
+
+return <ComponentWithDemoChrome />;
+```
+
+## Troubleshooting
+
+### Common Issues
+1. **Route not found**: Rebuild after adding new routes
+2. **Theme not applying**: Check CSS custom property syntax
+3. **MSW not working**: Verify worker is started in main.tsx
+4. **Type errors**: Run `npm run typecheck` for detailed errors
+
+### Build Issues
+```powershell
+# Clear node_modules and reinstall (PowerShell)
+Remove-Item -Recurse -Force node_modules, package-lock.json
+npm install
+
+# Clear Vite cache
+Remove-Item -Recurse -Force node_modules\.vite
+npm run build
+```
