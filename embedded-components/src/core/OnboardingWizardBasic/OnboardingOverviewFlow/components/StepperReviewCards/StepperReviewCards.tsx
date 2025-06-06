@@ -75,7 +75,7 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
                 )}
               </div>
               {!isValid && (
-                <Alert variant="warning" className="eb-mb-4 eb-pb-3">
+                <Alert variant="warning" className="eb-mb-4" noTitle>
                   <AlertTriangleIcon className="eb-mt-0.5 eb-size-5" />
                   <AlertTitle className="eb-text-base eb-font-semibold">
                     Provide missing details
@@ -140,7 +140,7 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
                         ) : valueString ? (
                           <p className="eb-text-sm">{valueString}</p>
                         ) : (
-                          <span className="eb-italic eb-text-muted-foreground">
+                          <span className="eb-text-sm eb-italic eb-text-muted-foreground">
                             {t('common:empty')}
                           </span>
                         )}

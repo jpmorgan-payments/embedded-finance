@@ -4,41 +4,51 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
-  'eb-relative eb-w-full eb-rounded-lg eb-border [&>svg]:eb-absolute [&>svg]:eb-text-foreground',
+  'eb-relative eb-w-full eb-rounded-lg eb-border [&>svg]:eb-absolute [&>svg]:eb-text-alert-foreground',
   {
     variants: {
       variant: {
         default: 'eb-bg-alert eb-text-alert-foreground',
         destructive:
-          'eb-border-destructive/50 eb-bg-destructive-accent eb-text-foreground dark:eb-border-destructive [&>svg]:eb-text-destructive',
+          'eb-border-destructive/50 eb-bg-destructive-accent eb-text-alert-foreground dark:eb-border-destructive [&>svg]:eb-text-destructive',
         informative:
-          'eb-border-informative/50 eb-bg-informative-accent eb-text-foreground dark:eb-border-informative [&>svg]:eb-text-informative',
+          'eb-border-informative/50 eb-bg-informative-accent eb-text-alert-foreground dark:eb-border-informative [&>svg]:eb-text-informative',
         warning:
-          'eb-border-warning/50 eb-bg-warning-accent eb-text-foreground dark:eb-border-warning [&>svg]:eb-text-warning',
+          'eb-border-warning/50 eb-bg-warning-accent eb-text-alert-foreground dark:eb-border-warning [&>svg]:eb-text-warning',
         success:
-          'eb-border-success/50 eb-bg-success-accent eb-text-foreground dark:eb-border-success [&>svg]:eb-text-success',
+          'eb-border-success/50 eb-bg-success-accent eb-text-alert-foreground dark:eb-border-success [&>svg]:eb-text-success',
       },
       density: {
         default:
           'eb-p-4 [&>svg+div]:eb-translate-y-[-3px] [&>svg]:eb-left-4 [&>svg]:eb-top-4 [&>svg~*]:eb-pl-7',
         sm: 'eb-p-3 eb-pt-2.5 eb-text-sm [&>svg+div]:eb-translate-y-[-2px] [&>svg]:eb-left-3 [&>svg]:eb-top-3 [&>svg~*]:eb-pl-6',
       },
+      noTitle: {
+        true: 'eb-pb-3',
+      },
     },
     defaultVariants: {
       variant: 'default',
       density: 'default',
     },
+    compoundVariants: [
+      {
+        density: 'sm',
+        noTitle: true,
+        className: 'eb-pb-2 eb-pt-3',
+      },
+    ],
   }
 );
 
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, density, ...props }, ref) => (
+>(({ className, variant, density, noTitle, ...props }, ref) => (
   <div
     ref={ref}
     role="alert"
-    className={cn(alertVariants({ variant, density }), className)}
+    className={cn(alertVariants({ variant, density, noTitle }), className)}
     {...props}
   />
 ));
@@ -67,7 +77,7 @@ const AlertDescription = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'eb-text-sm eb-text-foreground [&_p]:eb-leading-relaxed',
+      'eb-text-sm eb-text-alert-foreground [&_p]:eb-leading-relaxed',
       className
     )}
     {...props}

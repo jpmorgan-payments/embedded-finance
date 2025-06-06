@@ -116,7 +116,8 @@ export const DocumentUploadScreen: FC = () => {
     status: documentRequestGetListStatus,
   } = useSmbdoListDocumentRequests({
     clientId: clientData?.id,
-    // includeRelatedParty: true,
+    // @ts-ignore
+    includeRelatedParty: true,
   });
 
   const documentRequests = documentRequestListResponse?.documentRequests;
@@ -145,7 +146,7 @@ export const DocumentUploadScreen: FC = () => {
 
     if (clientData?.status === 'APPROVED') {
       return (
-        <Alert variant="informative">
+        <Alert variant="informative" noTitle>
           <CheckIcon className="eb-h-4 eb-w-4" />
           <AlertDescription>
             Your onboarding has been approved. No documents are required.
@@ -166,6 +167,7 @@ export const DocumentUploadScreen: FC = () => {
       );
     }
 
+    // @ts-ignore
     if (documentRequestGetListStatus === 'pending') {
       return <FormLoadingState message="Loading document requests" />;
     }
@@ -203,10 +205,7 @@ export const DocumentUploadScreen: FC = () => {
     );
 
     const otherDocumentRequests = documentRequests.filter(
-      (docRequest) =>
-        docRequest.partyId &&
-        docRequest.clientId === clientData.id &&
-        docRequest.partyId !== clientPartyId
+      (docRequest) => docRequest.partyId && docRequest.partyId !== clientPartyId
     );
 
     return (

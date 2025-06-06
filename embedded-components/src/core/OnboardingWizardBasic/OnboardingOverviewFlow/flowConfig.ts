@@ -210,30 +210,30 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'industry',
           stepType: 'form',
-          title: 'Business classification',
+          title: 'Industry classification',
           description:
-            'Selecting your business classification helps satisfy important risk and compliance obligations.',
+            'Choose a classification that best describes your income-producing lines of business.',
           Component: IndustryForm,
         },
         {
           id: 'company-identification',
           stepType: 'form',
-          title: 'Company identification',
-          description: 'Please provide details about your company.',
+          title: 'Business identity',
+          description: 'Please provide details about your business.',
           Component: CompanyIdentificationForm,
         },
         {
           id: 'customer-facing-details',
           stepType: 'form',
-          title: 'Customer facing details',
+          title: 'Description & website',
           description:
-            'Please help us understand how you present your company to customers.',
+            'Please help us understand the products and services you offer.',
           Component: CustomerFacingDetailsForm,
         },
         {
           id: 'contact-info',
           stepType: 'form',
-          title: 'Contact info',
+          title: 'Contact information',
           description: 'Please let us know how to get in touch.',
           Component: BusinessContactInfoForm,
         },

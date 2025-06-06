@@ -61,7 +61,7 @@ export const OverviewScreen = () => {
       }
       subTitle={
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
-          <Alert variant="informative" density="sm" className="eb-pb-2 eb-pt-3">
+          <Alert variant="informative" density="sm" noTitle>
             <InfoIcon className="eb-size-4" />
             <AlertDescription>
               {t('screens.overview.infoAlert')}
@@ -106,7 +106,7 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'INFORMATION_REQUESTED' && (
-              <Alert variant="warning" density="sm" className="eb-mb-6 eb-pb-2">
+              <Alert variant="warning" density="sm" className="eb-mb-6" noTitle>
                 <AlertTriangleIcon className="eb-size-4" />
                 <AlertDescription>
                   We&apos;re having trouble verifying your business. Please
@@ -291,7 +291,7 @@ export const OverviewScreen = () => {
                         onClick={() => {
                           goTo(section.id, {
                             editingPartyId: existingPartyData.id,
-                            // previouslyCompleted: sectionStatus === 'completed',
+                            previouslyCompleted: sectionStatus === 'completed',
                             initialStepperStepId: firstInvalidStep,
                           });
                         }}

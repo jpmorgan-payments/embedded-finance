@@ -48,7 +48,6 @@ export const OwnersSectionScreen = () => {
     currentScreenId,
     originScreenId,
     goTo,
-    goBack,
     previouslyCompletedScreens,
     sections,
     sessionData,
@@ -462,11 +461,11 @@ export const OwnersSectionScreen = () => {
               }
 
               if (reviewMode) {
-                goBack({
+                goTo('review-attest-section', {
                   reviewScreenOpenedSectionId: 'owners-section',
                 });
               } else {
-                goBack();
+                goTo('overview');
               }
             }}
             disabled={isFormDisabled}

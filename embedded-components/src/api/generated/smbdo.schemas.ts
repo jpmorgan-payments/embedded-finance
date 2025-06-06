@@ -436,15 +436,6 @@ export interface DocumentRequestOutstanding {
    * @maxItems 100
    */
   documentTypes: DocumentTypeSmbdo[];
-  /**
-   * List of outstanding requirements that need to be fulfilled.
-   * @minItems 0
-   * @maxItems 10
-   */
-  requirements: {
-    documentTypes: DocumentTypeSmbdo[];
-    missing: number;
-  }[];
 }
 
 export interface DocumentRequestResponse {
@@ -1145,6 +1136,7 @@ export const OrganizationType = {
   C_CORPORATION: 'C_CORPORATION',
   S_CORPORATION: 'S_CORPORATION',
   PARTNERSHIP: 'PARTNERSHIP',
+  PUBLICLY_TRADED_COMPANY: 'PUBLICLY_TRADED_COMPANY',
   NON_PROFIT_CORPORATION: 'NON_PROFIT_CORPORATION',
   GOVERNMENT_ENTITY: 'GOVERNMENT_ENTITY',
   SOLE_PROPRIETORSHIP: 'SOLE_PROPRIETORSHIP',

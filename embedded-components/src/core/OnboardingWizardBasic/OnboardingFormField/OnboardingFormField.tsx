@@ -77,10 +77,10 @@ interface BaseProps<
     'render' | 'rules' | 'defaultValue'
   > {
   type?: FieldType;
-  label?: string | JSX.Element;
+  label?: string | React.ReactNode;
   placeholder?: string;
   description?: string;
-  tooltip?: string;
+  tooltip?: string | React.ReactNode;
   required?: boolean;
   readonly?: boolean;
   className?: string;
@@ -93,6 +93,7 @@ interface BaseProps<
   valueOverride?: string;
   onChange?: (...value: any[]) => void;
   labelClassName?: string;
+  popoutTooltip?: boolean;
 }
 
 interface SelectOrRadioGroupProps<
@@ -101,7 +102,7 @@ interface SelectOrRadioGroupProps<
 > extends BaseProps<TFieldValues, TName> {
   type: 'select' | 'radio-group' | 'radio-group-blocks' | 'combobox';
   options: Array<{
-    label: JSX.Element | string;
+    label: React.ReactNode | string;
     value: string;
     description?: string;
   }>;
@@ -141,6 +142,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   valueOverride,
   onChange: onChangeProp,
   labelClassName,
+  popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
 
@@ -254,7 +256,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                   >
                     {fieldLabel}
                   </FormLabel>
-                  <InfoPopover>{fieldTooltip}</InfoPopover>
+                  <InfoPopover popoutTooltip={popoutTooltip}>
+                    {fieldTooltip}
+                  </InfoPopover>
                 </div>
                 {fieldDescription && !isOverviewFlow && (
                   <FormDescription className="eb-text-xs eb-text-gray-500">
@@ -416,7 +420,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               <FormControl>
                                 <RadioGroupItem value={option.value} />
                               </FormControl>
-                              <FormLabel className="eb-font-normal">
+                              <FormLabel className="eb-font-normal eb-text-foreground">
                                 {option.label}
                               </FormLabel>
                             </FormItem>
@@ -481,10 +485,13 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           <div className="eb-flex eb-items-center eb-space-x-2">
                             <FormLabel
                               asterisk={fieldRequired && !isOverviewFlow}
+                              className="eb-text-foreground"
                             >
                               {fieldLabel}
                             </FormLabel>
-                            <InfoPopover>{fieldTooltip}</InfoPopover>
+                            <InfoPopover popoutTooltip={popoutTooltip}>
+                              {fieldTooltip}
+                            </InfoPopover>
                           </div>
                           <FormDescription className="eb-text-xs eb-text-gray-500">
                             {fieldDescription}
@@ -507,11 +514,13 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <div className="eb-flex eb-items-center eb-space-x-2">
                           <FormLabel
                             asterisk={fieldRequired && !isOverviewFlow}
-                            className="eb-text-sm eb-font-medium eb-leading-none peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
+                            className="eb-text-sm eb-leading-none eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
                           >
                             {fieldLabel}
                           </FormLabel>
-                          <InfoPopover>{fieldTooltip}</InfoPopover>
+                          <InfoPopover popoutTooltip={popoutTooltip}>
+                            {fieldTooltip}
+                          </InfoPopover>
                         </div>
                       </div>
                     );
