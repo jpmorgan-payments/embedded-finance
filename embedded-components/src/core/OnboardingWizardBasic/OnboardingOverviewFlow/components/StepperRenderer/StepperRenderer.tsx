@@ -104,10 +104,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const currentSectionIndex = sections.findIndex(
     (section) => section.id === currentScreenId
   );
-  const nextSection = sections[currentSectionIndex + 1];
+  const nextSection =
+    currentSectionIndex !== -1 ? sections[currentSectionIndex + 1] : undefined;
   const nextSectionPartyData = getPartyByAssociatedPartyFilters(
     clientData,
-    nextSection.stepperConfig?.associatedPartyFilters
+    nextSection?.stepperConfig?.associatedPartyFilters
   );
 
   const handleNext = () => {
@@ -126,6 +127,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       updateSessionData({
         mockedVerifyingSectionId: currentScreenId,
       });
+    } else if (originScreenId === 'owners-section') {
+      goTo('owners-section');
     } else {
       goTo(nextSection?.id ?? 'overview', {
         editingPartyId: nextSectionPartyData.id,
@@ -141,6 +144,12 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       return null;
     }
+    if (
+      currentStep.stepType === 'check-answers' &&
+      originScreenId === 'owners-section'
+    ) {
+      return 'Return to all owners overview';
+    }
     if (currentStep.stepType === 'check-answers') {
       return nextSection
         ? `Continue to ${nextSection.sectionConfig.label}`
@@ -155,6 +164,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
       goTo('review-attest-section');
+    } else if (
+      originScreenId === 'owners-section' &&
+      (currentStepNumber === 1 || currentStep.stepType === 'check-answers')
+    ) {
+      goTo('owners-section');
     } else if (
       currentStepNumber === 1 ||
       (currentStep.stepType === 'check-answers' && previouslyCompleted)
@@ -175,6 +189,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       originScreenId
     ) {
       if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
+        if (originScreenId === 'owners-section') {
+          return 'Back to all owners overview';
+        }
         return 'Return to overview';
       }
       if (originScreenId === 'owners-section') {
@@ -185,7 +202,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   };
 
   const prevButtonDisabled =
-    currentStepNumber === 1 && !checkAnswersMode && !reviewMode;
+    currentStepNumber === 1 &&
+    !checkAnswersMode &&
+    !reviewMode &&
+    originScreenId !== 'owners-section';
 
   const { stepValidationMap } = getStepperValidation(
     steps,

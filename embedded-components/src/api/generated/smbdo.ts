@@ -32,7 +32,6 @@ import type {
   DocumentRequestListResponse,
   DocumentRequestResponse,
   DocumentResponse,
-  DocumentUploadAccepted,
   GetAllPartiesParams,
   ListDocumentsResponse,
   ListPartyResponse,
@@ -42,11 +41,11 @@ import type {
   N401Response,
   N403Response,
   N404Response,
+  N409Response,
   N422Response,
   N500Response,
   N503Response,
   PartyResponse,
-  PostUploadDocument,
   QuestionListResponse,
   QuestionResponse,
   SmbdoDownloadDocument200Six,
@@ -54,6 +53,7 @@ import type {
   SmbdoListClientsParams,
   SmbdoListDocumentRequestsParams,
   SmbdoListQuestionsParams,
+  SmbdoUploadDocumentBody,
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from './smbdo.schemas';
@@ -1642,15 +1642,19 @@ export const useSmbdoSubmitDocumentRequest = <
  * @summary Upload document
  */
 export const smbdoUploadDocument = (
-  postUploadDocument: BodyType<PostUploadDocument>,
+  smbdoUploadDocumentBody: BodyType<SmbdoUploadDocumentBody>,
   options?: SecondParameter<typeof ebInstance>
 ) => {
-  return ebInstance<DocumentUploadAccepted>(
+  const formData = new FormData();
+  formData.append('file', smbdoUploadDocumentBody.file);
+  formData.append('documentData', smbdoUploadDocumentBody.documentData);
+
+  return ebInstance<DocumentResponse>(
     {
       url: `/documents`,
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: postUploadDocument,
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
     },
     options
   );
@@ -1658,28 +1662,34 @@ export const smbdoUploadDocument = (
 
 export const getSmbdoUploadDocumentMutationOptions = <
   TError = ErrorType<
-    N400Response | N401Response | N403Response | N500Response | N503Response
+    | N400Response
+    | N401Response
+    | N403Response
+    | N409Response
+    | N422Response
+    | N500Response
+    | N503Response
   >,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof smbdoUploadDocument>>,
     TError,
-    { data: BodyType<PostUploadDocument> },
+    { data: BodyType<SmbdoUploadDocumentBody> },
     TContext
   >;
   request?: SecondParameter<typeof ebInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof smbdoUploadDocument>>,
   TError,
-  { data: BodyType<PostUploadDocument> },
+  { data: BodyType<SmbdoUploadDocumentBody> },
   TContext
 > => {
   const { mutation: mutationOptions, request: requestOptions } = options ?? {};
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof smbdoUploadDocument>>,
-    { data: BodyType<PostUploadDocument> }
+    { data: BodyType<SmbdoUploadDocumentBody> }
   > = (props) => {
     const { data } = props ?? {};
 
@@ -1692,9 +1702,15 @@ export const getSmbdoUploadDocumentMutationOptions = <
 export type SmbdoUploadDocumentMutationResult = NonNullable<
   Awaited<ReturnType<typeof smbdoUploadDocument>>
 >;
-export type SmbdoUploadDocumentMutationBody = BodyType<PostUploadDocument>;
+export type SmbdoUploadDocumentMutationBody = BodyType<SmbdoUploadDocumentBody>;
 export type SmbdoUploadDocumentMutationError = ErrorType<
-  N400Response | N401Response | N403Response | N500Response | N503Response
+  | N400Response
+  | N401Response
+  | N403Response
+  | N409Response
+  | N422Response
+  | N500Response
+  | N503Response
 >;
 
 /**
@@ -1702,21 +1718,27 @@ export type SmbdoUploadDocumentMutationError = ErrorType<
  */
 export const useSmbdoUploadDocument = <
   TError = ErrorType<
-    N400Response | N401Response | N403Response | N500Response | N503Response
+    | N400Response
+    | N401Response
+    | N403Response
+    | N409Response
+    | N422Response
+    | N500Response
+    | N503Response
   >,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof smbdoUploadDocument>>,
     TError,
-    { data: BodyType<PostUploadDocument> },
+    { data: BodyType<SmbdoUploadDocumentBody> },
     TContext
   >;
   request?: SecondParameter<typeof ebInstance>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof smbdoUploadDocument>>,
   TError,
-  { data: BodyType<PostUploadDocument> },
+  { data: BodyType<SmbdoUploadDocumentBody> },
   TContext
 > => {
   const mutationOptions = getSmbdoUploadDocumentMutationOptions(options);

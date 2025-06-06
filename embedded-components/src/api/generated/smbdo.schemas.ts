@@ -7,20 +7,22 @@
  */
 export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
 
+export type SmbdoUploadDocumentBody = {
+  /** The document metadata. */
+  documentData: string;
+  file: Blob;
+};
+
 /**
  * Number of records per page.
  */
 export type PageSizeParameter = number;
 
-export type SmbdoGetAllDocumentDetailsParams = {
+export type GetAllPartiesParams = {
   /**
-   * Unique Client identifier.
+   * Unique party identifier.
    */
-  clientId?: ClientIdQueryParameter;
-  /**
-   * Unique Party identifier.
-   */
-  partyId?: PartyIdQueryParameter;
+  parentPartyId?: ParentPartyIdInQueryParameter;
   /**
    * Page number.
    */
@@ -69,6 +71,25 @@ export type SmbdoListDocumentRequestsParams = {
  */
 export type PageNumberParameter = number;
 
+export type SmbdoGetAllDocumentDetailsParams = {
+  /**
+   * Unique Client identifier.
+   */
+  clientId?: ClientIdQueryParameter;
+  /**
+   * Unique Party identifier.
+   */
+  partyId?: PartyIdQueryParameter;
+  /**
+   * Page number.
+   */
+  page?: PageNumberParameter;
+  /**
+   * Number of records per page.
+   */
+  limit?: PageSizeParameter;
+};
+
 export type SmbdoListClientsParams = {
   /**
    * Number of records per page.
@@ -84,21 +105,6 @@ export type SmbdoListClientsParams = {
  * Unique party identifier.
  */
 export type ParentPartyIdInQueryParameter = string;
-
-export type GetAllPartiesParams = {
-  /**
-   * Unique party identifier.
-   */
-  parentPartyId?: ParentPartyIdInQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-};
 
 /**
  * Bad Request
@@ -129,6 +135,11 @@ export type N500Response = SchemasApiError;
  * Request could not be processed due to semantic errors. Check error response.
  */
 export type N422Response = SchemasApiError;
+
+/**
+ * Conflict - Concurrent request detected
+ */
+export type N409Response = SchemasApiError;
 
 /**
  * No data found for the criteria specified
@@ -346,6 +357,20 @@ export const DocumentRequestRequirementLevel = {
   SECONDARY: 'SECONDARY',
 } as const;
 
+export interface DocumentRequestRequirement {
+  /**
+   * @minItems 1
+   * @maxItems 100
+   */
+  documentTypes: DocumentTypeSmbdo[];
+  level?: DocumentRequestRequirementLevel;
+  /**
+   * @minimum 1
+   * @maximum 10
+   */
+  minRequired?: number;
+}
+
 /**
  * Unique Document Request identifier.
  * @maxLength 10
@@ -411,20 +436,6 @@ export const DocumentTypeSmbdo = {
   TRUST_DEED: 'TRUST_DEED',
   UTILITY_BILL: 'UTILITY_BILL',
 } as const;
-
-export interface DocumentRequestRequirement {
-  /**
-   * @minItems 1
-   * @maxItems 100
-   */
-  documentTypes: DocumentTypeSmbdo[];
-  level?: DocumentRequestRequirementLevel;
-  /**
-   * @minimum 1
-   * @maximum 10
-   */
-  minRequired?: number;
-}
 
 /**
  * Outstanding items on the document request.

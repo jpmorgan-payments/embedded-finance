@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRightIcon,
@@ -18,9 +18,19 @@ import {
 } from '@/api/generated/smbdo';
 import { ClientResponse, Role } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Badge, Card, CardTitle } from '@/components/ui';
+import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '@/core/OnboardingWizardBasic/ServerErrorAlert/ServerErrorAlert';
 
@@ -33,8 +43,9 @@ import { getFlowProgress, getStepperValidations } from '../../utils/flowUtils';
 import { ownerSteps } from './ownerSteps';
 
 export const OwnersSectionScreen = () => {
-  const { clientData, onPostPartyResponse } = useOnboardingOverviewContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { clientData, onPostPartyResponse, organizationType } =
+    useOnboardingOverviewContext();
+  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
   const queryClient = useQueryClient();
 
   const controllerParty = clientData?.parties?.find(
@@ -221,12 +232,15 @@ export const OwnersSectionScreen = () => {
                 }),
               })
             );
+            setOpenedRemoveDialog(false);
             queryClient.invalidateQueries({ queryKey });
           }
         },
       }
     );
   };
+
+  const [openedRemoveDialog, setOpenedRemoveDialog] = useState(false);
 
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
@@ -244,14 +258,13 @@ export const OwnersSectionScreen = () => {
         <Alert variant="informative">
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription className="eb-flex eb-flex-col">
-            <p className="eb-mb-2 eb-font-semibold">Organization roles:</p>
-            <p className="eb-text-lg eb-font-bold">Owners</p>
-            <p>
-              Please add <span className="eb-font-semibold">all owners</span>{' '}
-              holding 25% or more of the business
+            <p className="eb-mb-2 eb-text-sm eb-font-semibold">
+              For a{' '}
+              {organizationType &&
+                t(`onboarding-overview:organizationTypes.${organizationType}`)}
             </p>
-
-            <div className="eb-mt-4">
+            <div className="eb-flex eb-items-center eb-space-x-2">
+              <span className="eb-text-lg eb-font-bold">Owners</span>
               <LearnMorePopoverTrigger
                 content={
                   <div className="eb-space-y-3">
@@ -267,15 +280,15 @@ export const OwnersSectionScreen = () => {
                   </div>
                 }
               >
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="eb-rounded-md eb-border hover:eb-bg-black/5"
-                >
-                  <InfoIcon /> Learn more
+                <Button variant="ghost" size="icon">
+                  <InfoIcon className="eb-size-6 eb-stroke-primary" />
                 </Button>
               </LearnMorePopoverTrigger>
             </div>
+            <p>
+              Please add <span className="eb-font-semibold">all owners</span>{' '}
+              holding 25% or more of the business
+            </p>
           </AlertDescription>
         </Alert>
 
@@ -405,17 +418,39 @@ export const OwnersSectionScreen = () => {
               </div>
               <div className="eb-flex eb-gap-2 eb-pt-4">
                 {!owner.roles?.includes('CONTROLLER') && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="eb-hidden"
-                    onClick={() =>
-                      owner.id && deactivateBeneficialOwner(owner.id)
-                    }
+                  <AlertDialog
+                    open={openedRemoveDialog}
+                    onOpenChange={setOpenedRemoveDialog}
                   >
-                    <TrashIcon />
-                    Remove
-                  </Button>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <TrashIcon />
+                        Remove
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="eb-component">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Owner?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to remove{' '}
+                          <b>{getPartyName(owner)}</b> as an owner?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() =>
+                            owner.id && deactivateBeneficialOwner(owner.id)
+                          }
+                        >
+                          {partyActiveUpdateStatus === 'pending' && (
+                            <Loader2Icon className="eb-size-4 eb-animate-spin" />
+                          )}
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
 
                 <Button

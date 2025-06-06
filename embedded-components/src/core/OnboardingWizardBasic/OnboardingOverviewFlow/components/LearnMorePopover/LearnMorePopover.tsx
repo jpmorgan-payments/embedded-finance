@@ -52,7 +52,7 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
       <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent className="eb-px-12">
         <div>{content}</div>
-        <DrawerFooter>
+        <DrawerFooter className="eb-px-0">
           <DrawerClose asChild>
             <Button
               variant="secondary"
