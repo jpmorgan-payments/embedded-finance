@@ -379,9 +379,16 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: UploadIcon,
       onHoldText: "We'll let you know if any documents are needed",
       statusResolver: (sessionData, clientData) => {
+        // Check if any party has document requests
+        const partyHasDocRequests = clientData?.parties?.some((party) => {
+          return party.validationResponse?.some((validation) => {
+            return !!validation.documentRequestIds?.length;
+          });
+        });
         if (
           clientData?.status === 'INFORMATION_REQUESTED' &&
-          clientData.outstanding.documentRequestIds?.length
+          (clientData.outstanding.documentRequestIds?.length ||
+            partyHasDocRequests)
         ) {
           return 'not_started';
         }
