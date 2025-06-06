@@ -218,9 +218,9 @@ export function KycOnboarding({
   // Normal mode with card wrapper and controls
   return (
     <>
-      <div className="h-full p-6">
+      <div className="p-6">
         <div
-          className={`relative h-full border-2 rounded-lg ${themeStyles.getCardStyles()}`}
+          className={`relative min-h-fit border-2 rounded-lg ${themeStyles.getCardStyles()}`}
         >
           {/* Component Control Icons */}
           <div className="absolute top-3 right-3 z-10 flex gap-2">
@@ -241,7 +241,7 @@ export function KycOnboarding({
           </div>
 
           {/* Component Content */}
-          <div className="h-full">{renderOnboardingComponent()}</div>
+          <div className="w-full">{renderOnboardingComponent()}</div>
         </div>
       </div>
 
