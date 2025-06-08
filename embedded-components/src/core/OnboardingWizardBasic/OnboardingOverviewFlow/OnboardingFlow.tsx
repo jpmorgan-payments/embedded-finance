@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { useContentTokens } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import {
+  useContentTokens,
+  useInterceptorStatus,
+} from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
@@ -33,6 +36,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
+  const { interceptorReady } = useInterceptorStatus();
 
   const {
     data: clientData,
@@ -40,7 +44,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     error: clientGetError,
   } = useSmbdoGetClient(clientId, {
     query: {
-      enabled: !!clientId, // Only fetch if clientId is defined
+      enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
       refetchOnWindowFocus: false, // Avoid refetching on window focus
     },
   });

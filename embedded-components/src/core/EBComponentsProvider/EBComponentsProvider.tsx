@@ -26,6 +26,13 @@ const ContentTokensContext = createContext<
   EBConfig['contentTokens'] | undefined
 >(undefined);
 
+// Create a context to track interceptor ready state
+const InterceptorContext = createContext<{
+  interceptorReady: boolean;
+}>({
+  interceptorReady: false,
+});
+
 // Only import devtools in development
 const ReactQueryDevtoolsProduction =
   process.env.NODE_ENV === 'development'
@@ -74,6 +81,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   contentTokens = {},
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
+  const [interceptorReady, setInterceptorReady] = useState(false);
 
   const { i18n } = useTranslation();
 
@@ -110,10 +118,14 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     // Save the interceptor ID to remove it on unmount
     setCurrentInterceptor(ebInterceptor);
 
+    // Mark interceptor as ready
+    setInterceptorReady(true);
+
     return () => {
       AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
+      setInterceptorReady(false);
     };
-  }, [JSON.stringify(headers), apiBaseUrl]);
+  }, [apiBaseUrl, JSON.stringify(headers), JSON.stringify(queryParams)]);
 
   // Reset all queries when the interceptor changes
   useEffect(() => {
@@ -186,7 +198,9 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
         <QueryClientProvider client={queryClient}>
           <ContentTokensContext.Provider value={contentTokens}>
-            {children}
+            <InterceptorContext.Provider value={{ interceptorReady }}>
+              {children}
+            </InterceptorContext.Provider>
           </ContentTokensContext.Provider>
           <Toaster closeButton expand position="bottom-left" />
           {process.env.NODE_ENV === 'development' &&
@@ -203,6 +217,18 @@ export const useContentTokens = () => {
   if (context === undefined) {
     throw new Error(
       'useContentTokens must be used within a ContentTokensProvider'
+    );
+  }
+
+  return context;
+};
+
+export const useInterceptorStatus = () => {
+  const context = useContext(InterceptorContext);
+
+  if (context === undefined) {
+    throw new Error(
+      'useInterceptorStatus must be used within an EBComponentsProvider'
     );
   }
 
