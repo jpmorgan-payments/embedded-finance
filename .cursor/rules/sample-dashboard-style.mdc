@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: SampleDashboard.tsx
+globs: 
 alwaysApply: false
 ---
 # SampleDashboard Layout and Styling Rule
