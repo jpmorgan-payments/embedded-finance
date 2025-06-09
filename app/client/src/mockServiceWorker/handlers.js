@@ -598,15 +598,4 @@ export const createHandlers = (apiUrl) => [
       );
     },
   ),
-
-  // Add OPTIONS handler for CORS preflight
-  http.options(`${apiUrl}/api/onboarding/session-transfer`, () => {
-    return new HttpResponse(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
-  }),
 ];
