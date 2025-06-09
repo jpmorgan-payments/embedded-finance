@@ -78,7 +78,7 @@ const analyticsMenu = [
 
 // Session transfer API call
 async function initiateSessionTransfer(userId: string) {
-  const res = await fetch(`${API_URL}/api/onboarding/session-transfer`, {
+  const res = await fetch(`/api/onboarding/session-transfer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId }),
