@@ -7,7 +7,7 @@ export const CLIENT_ID = import.meta.env.CLIENT_ID ?? '1234567890';
 export const PLATFORM_ID = import.meta.env.PLATFORM_ID ?? '0000123456';
 
 // JWT Client token
-export const CLIENT_TOKEN = import.meta.env.CLIENT_TOKEN ??'fake-token';
+export const CLIENT_TOKEN = import.meta.env.CLIENT_TOKEN ?? 'fake-token';
 
 export const GITHUB_REPO =
   'https://github.com/jpmorgan-payments/embedded-finance';
