@@ -100,7 +100,7 @@ export const Route = createRootRoute({
 
 The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
 
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
+More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/routing/routing-concepts#layout-routes).
 
 
 ## Data Fetching

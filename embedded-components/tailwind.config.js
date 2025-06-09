@@ -64,6 +64,7 @@ module.exports = {
         },
         destructive: {
           DEFAULT: 'hsl(var(--eb-destructive))',
+          accent: 'hsl(var(--eb-destructive-accent))',
           hover: 'hsl(var(--eb-destructive-hover))',
           active:
             'hsl(var(--eb-destructive-active, var(--eb-destructive-hover)))',
@@ -90,6 +91,9 @@ module.exports = {
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
           foreground: 'hsl(var(--eb-muted-foreground))',
+        },
+        label: {
+          foreground: 'hsl(var(--eb-form-label-foreground))',
         },
         accent: {
           DEFAULT: 'hsl(var(--eb-accent))',

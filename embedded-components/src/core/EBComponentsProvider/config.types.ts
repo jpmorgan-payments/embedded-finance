@@ -41,6 +41,7 @@ export type EBThemeVariables = {
   destructiveForegroundColor?: string;
   destructiveForegroundHoverColor?: string;
   destructiveForegroundActiveColor?: string;
+  destructiveAccentColor?: string;
   informativeColor?: string;
   informativeAccentColor?: string;
   warningColor?: string;
@@ -68,6 +69,7 @@ export type EBThemeVariables = {
   formLabelFontSize?: string;
   formLabelFontWeight?: string;
   formLabelLineHeight?: string;
+  formLabelForegroundColor?: string;
 };
 
 export type EBTheme = {

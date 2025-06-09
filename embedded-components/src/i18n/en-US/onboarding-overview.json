@@ -54,15 +54,14 @@
       "description": "Please select your current country of residence"
     },
     "industry": {
-      "label": "Business classification",
-      "description": "Select the classification that best matches the goods or services your customers will buy. Search by keyword (e.g. “automotive dealership”) or the North American Industry Classification System code (e.g. “123456”).",
-      "placeholder": "Search by keyword or NAICS code",
+      "label": "Industry classification",
+      "description": "e.g. “Boat dealers” or “441222”.",
+      "placeholder": "Search by keyword or 6-digit NAICS code",
       "tooltip": ""
     },
     "countryOfFormation": {
-      "reviewLabel": "Country of registration",
-      "label": "Where is your business located?",
-      "description": "Please select your country of registration",
+      "label": "Country of registration",
+      "description": "",
       "tooltip": ""
     },
     "organizationName": {
@@ -95,11 +94,17 @@
         "tooltip": ""
       }
     },
-    "controllerPhone.phoneNumber": {
-      "label": "Phone number"
+    "controllerPhone": {
+      "label": "Phone number",
+      "phoneNumber": {
+        "label": "Phone number"
+      }
     },
-    "organizationPhone.phoneNumber": {
-      "label": "Phone number"
+    "organizationPhone": {
+      "label": "Phone number",
+      "phoneNumber": {
+        "label": "Phone number"
+      }
     },
     "organizationEmail": {
       "label": "Company email address",
@@ -143,7 +148,7 @@
       },
       "city": {
         "label": "Town/City",
-        "description": ""
+        "description": "Locality, Settlement, etc."
       },
       "state": {
         "label": "State/Province",
@@ -229,7 +234,8 @@
     "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
     "GOVERNMENT_ENTITY": "Government Entity",
     "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
-    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association"
+    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association",
+    "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company"
   },
   "generalOrganizationTypes": {
     "SOLE_PROPRIETORSHIP": "Sole proprietorship",

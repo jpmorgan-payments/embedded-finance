@@ -79,6 +79,10 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
     [key: string]: boolean;
   }>({});
 
+  const [documentErrors, setDocumentErrors] = useState<{
+    [key: string]: string | null;
+  }>({});
+
   // Update client attestation
   const { mutateAsync: updateClientAsync, error: updateClientError } =
     useSmbdoUpdateClient();
@@ -96,10 +100,14 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
     })),
   });
 
-  const allDocumentsOpened = Object.values(termsDocumentsOpened).every(Boolean);
+  const allDocumentsOpened = documentIds.every(
+    (id) => termsDocumentsOpened[id] || documentErrors[id]
+  );
 
   const handleDocumentOpen = (documentId: string) => async () => {
     try {
+      // Clear previous errors for this document
+      setDocumentErrors((prev) => ({ ...prev, [documentId]: null }));
       setLoadingDocuments((prev) => ({ ...prev, [documentId]: true }));
 
       // Fetch the document
@@ -113,10 +121,23 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       });
       const url = URL.createObjectURL(blob);
 
-      window.open(url, '_blank')?.focus();
+      const newWindow = window.open(url, '_blank');
+      if (!newWindow) {
+        throw new Error(
+          'Failed to open document. Please check your popup blocker settings.'
+        );
+      }
+      newWindow.focus();
+
       setTermsDocumentsOpened((prev) => ({ ...prev, [documentId]: true }));
     } catch (error) {
-      console.error('Error downloading document:', error);
+      setDocumentErrors((prev) => ({
+        ...prev,
+        [documentId]:
+          error instanceof Error
+            ? error.message
+            : 'Failed to download document',
+      }));
     } finally {
       setLoadingDocuments((prev) => ({ ...prev, [documentId]: false }));
     }
@@ -217,7 +238,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       >
         <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
           {!allDocumentsOpened && shouldDisplayAlert && (
-            <Alert variant="destructive" className="eb-pb-3">
+            <Alert variant="destructive" noTitle>
               <AlertCircleIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
                 Please open the document links and confirm that you have read
@@ -227,7 +248,10 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           )}
           <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
             {documentQueries.map((query) => (
-              <div key={query.data?.id}>
+              <div
+                key={query.data?.id}
+                className="eb-flex eb-flex-col eb-gap-1"
+              >
                 <Button
                   onClick={handleDocumentOpen(query.data?.id ?? '')}
                   variant="ghost"
@@ -239,13 +263,16 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                     }
                   )}
                   disabled={
-                    query.data?.id ? loadingDocuments[query.data.id] : false
+                    query.isLoading ||
+                    (query.data?.id ? loadingDocuments[query.data.id] : false)
                   }
                 >
                   <span className="eb-flex eb-items-center eb-gap-2">
                     <FileIcon />
                     <p className="eb-text-[#12647E] eb-underline">
-                      {query.data?.documentType}
+                      {query.isLoading
+                        ? 'Loading...'
+                        : query.data?.documentType}
                     </p>
                     <ExternalLinkIcon className="eb-text-[#12647E]" />
                   </span>
@@ -258,6 +285,11 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                       t('reviewAndAttest.termsAndConditions.downloading')}
                   </span>
                 </Button>
+                {query.data?.id && documentErrors[query.data.id] && (
+                  <div className="eb-ml-1 eb-text-sm eb-text-destructive">
+                    Failed to fetch document: {documentErrors[query.data.id]}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -277,7 +309,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                         disabled={field.disabled}
                       />
                     </FormControl>
-                    <FormLabel className="eb-text-sm eb-font-normal peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                    <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
                       I have read and agree to all of the documents listed on
                       this page
                     </FormLabel>
@@ -288,7 +320,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             />
           </div>
           {!allDocumentsOpened && (
-            <Alert variant="informative" className="eb-pb-3">
+            <Alert variant="informative" noTitle>
               <InfoIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
                 You must open and review all documents before selecting the

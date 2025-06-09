@@ -283,9 +283,10 @@ Citations:
 <!-- markdown-link-check-disable -->
 [9] https://stackoverflow.com/questions/75923936/inconsistent-error-behaviour-with-mui-datetimepicker-and-react-hook-form
 [10] https://ux.stackexchange.com/questions/7915/what-is-the-best-way-to-display-date-validation-errors
-<!-- markdown-link-check-enable -->
 
 [11] https://news.ycombinator.com/item?id=34145216
+<!-- markdown-link-check-enable -->
+
 [12] https://github.com/mui/mui-x/issues/4923
 [13] https://answers.laserfiche.com/questions/165803/Date-Picker-Error--JQuery
 <!-- markdown-link-check-disable -->

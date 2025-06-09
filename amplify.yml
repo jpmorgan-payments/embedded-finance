@@ -1,21 +1,32 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - nvm use 18
-        - cd app
-        - yarn install
-    build:
-      commands:
-        - cd client
-        - yarn install
-        - yarn run build
-  artifacts:
-    # IMPORTANT - Please verify your build output directory
-    baseDirectory: /app/client/dist
-    files:
-      - "**/*"
-  cache:
-    paths:
-      - node_modules/**/*
+applications:
+  - appRoot: app/client
+    frontend:
+      phases:
+        build:
+          commands:
+            - yarn install
+            - yarn run build
+      artifacts:
+        # IMPORTANT - Please verify your build output directory
+        baseDirectory: dist
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - node_modules/**/*
+  - appRoot: app/client-next-ts
+    frontend:
+      phases:
+        build:
+          commands:
+            - npm install
+            - npm run build
+      artifacts:
+        # IMPORTANT - Please verify your build output directory
+        baseDirectory: dist
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - node_modules/**/*

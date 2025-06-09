@@ -27,7 +27,7 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
   children,
 }) => {
   const [open, setOpen] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDesktop = useMediaQuery('(min-width: 640px)');
 
   if (isDesktop) {
     return (
@@ -35,7 +35,7 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:eb-max-w-[425px]">
           {content}
-          <DialogFooter className="eb-pt-2">
+          <DialogFooter>
             <DialogClose asChild>
               <Button variant="secondary" className="eb-w-full">
                 Close
@@ -50,9 +50,9 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent>
-        <div className="eb-px-4">{content}</div>
-        <DrawerFooter className="eb-pt-2">
+      <DrawerContent className="eb-px-12">
+        <div>{content}</div>
+        <DrawerFooter className="eb-px-0">
           <DrawerClose asChild>
             <Button
               variant="secondary"

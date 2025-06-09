@@ -32,6 +32,7 @@ import {
   StepValidationMap,
 } from '../../flow.types';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
+import { getPartyByAssociatedPartyFilters } from '../../utils/dataUtils';
 import { getStepperValidation } from '../../utils/flowUtils';
 import { StepLayout } from '../StepLayout/StepLayout';
 import { StepperReviewCards } from '../StepperReviewCards/StepperReviewCards';
@@ -55,6 +56,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     goTo,
     originScreenId,
     editingPartyIds,
+    updateEditingPartyId,
     previouslyCompletedScreens,
     updateSessionData,
     initialStepperStepId,
@@ -64,9 +66,13 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const editingPartyId = editingPartyIds[currentScreenId];
 
-  const [existingPartyData, setExistingPartyData] = useState(
-    clientData?.parties?.find((party) => party.id === editingPartyId)
+  const existingPartyData = clientData?.parties?.find(
+    (party) => party.id === editingPartyId
   );
+
+  const setExistingPartyData = (partyData: PartyResponse | undefined) => {
+    updateEditingPartyId(currentScreenId, partyData?.id ?? null);
+  };
 
   const [checkAnswersStepId, setCheckAnswersStepId] = useState<string | null>(
     null
@@ -95,6 +101,15 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const currentSection = sections.find(
     (section) => section.id === currentScreenId
   );
+  const currentSectionIndex = sections.findIndex(
+    (section) => section.id === currentScreenId
+  );
+  const nextSection =
+    currentSectionIndex !== -1 ? sections[currentSectionIndex + 1] : undefined;
+  const nextSectionPartyData = getPartyByAssociatedPartyFilters(
+    clientData,
+    nextSection?.stepperConfig?.associatedPartyFilters
+  );
 
   const handleNext = () => {
     if (checkAnswersMode) {
@@ -104,11 +119,21 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       goTo('review-attest-section');
     } else if (currentStepNumber < steps.length) {
       stepperNext();
-    } else {
+    } else if (
+      currentStep.stepType === 'check-answers' &&
+      previouslyCompleted
+    ) {
       goTo('overview');
       updateSessionData({
         mockedVerifyingSectionId: currentScreenId,
       });
+    } else if (originScreenId === 'owners-section') {
+      goTo('owners-section');
+    } else {
+      goTo(nextSection?.id ?? 'overview', {
+        editingPartyId: nextSectionPartyData.id,
+      });
+      stepperGoTo(steps[0].id);
     }
   };
 
@@ -119,6 +144,17 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       return null;
     }
+    if (
+      currentStep.stepType === 'check-answers' &&
+      originScreenId === 'owners-section'
+    ) {
+      return 'Return to all owners overview';
+    }
+    if (currentStep.stepType === 'check-answers') {
+      return nextSection
+        ? `Continue to ${nextSection.sectionConfig.label}`
+        : 'Continue to next section';
+    }
     return 'Continue';
   };
 
@@ -128,6 +164,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
       goTo('review-attest-section');
+    } else if (
+      originScreenId === 'owners-section' &&
+      (currentStepNumber === 1 || currentStep.stepType === 'check-answers')
+    ) {
+      goTo('owners-section');
     } else if (
       currentStepNumber === 1 ||
       (currentStep.stepType === 'check-answers' && previouslyCompleted)
@@ -148,6 +189,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       originScreenId
     ) {
       if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
+        if (originScreenId === 'owners-section') {
+          return 'Back to all owners overview';
+        }
         return 'Return to overview';
       }
       if (originScreenId === 'owners-section') {
@@ -158,7 +202,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   };
 
   const prevButtonDisabled =
-    currentStepNumber === 1 && !checkAnswersMode && !reviewMode;
+    currentStepNumber === 1 &&
+    !checkAnswersMode &&
+    !reviewMode &&
+    originScreenId !== 'owners-section';
 
   const { stepValidationMap } = getStepperValidation(
     steps,
@@ -185,12 +232,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     prevButtonDisabled,
   };
 
-  console.log(shortLabelOverride);
-
   return (
     <div
       ref={mainRef}
-      className="eb-flex eb-min-h-full eb-scroll-mt-4 eb-flex-col sm:eb-scroll-mt-10"
+      className="eb-flex eb-min-h-full eb-scroll-mt-44 eb-flex-col sm:eb-scroll-mt-48"
     >
       <StepLayout
         title={currentStep.title}
@@ -432,10 +477,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
           <Component currentPartyData={existingPartyData} />
         </div>
         <div className="eb-mt-6 eb-space-y-6">
-          <ServerErrorAlert
-            error={clientUpdateError || partyUpdateError}
-            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
-          />
+          <ServerErrorAlert error={clientUpdateError || partyUpdateError} />
           <div className="eb-flex eb-flex-col eb-gap-3">
             <Button
               type="submit"
@@ -493,17 +535,7 @@ export const CheckAnswersStep: React.FC<CheckAnswersStepProps> = ({
         />
       </div>
       <div className="eb-mt-6 eb-space-y-6">
-        <div className="eb-flex eb-justify-between eb-gap-4">
-          <Button
-            onClick={handlePrev}
-            variant="secondary"
-            size="lg"
-            className={cn('eb-w-full eb-text-lg', {
-              'eb-hidden': getPrevButtonLabel() === null,
-            })}
-          >
-            {getPrevButtonLabel()}
-          </Button>
+        <div className="eb-flex eb-flex-col eb-gap-3">
           <Button
             onClick={handleNext}
             variant="default"
@@ -513,6 +545,16 @@ export const CheckAnswersStep: React.FC<CheckAnswersStepProps> = ({
             })}
           >
             {getNextButtonLabel()}
+          </Button>
+          <Button
+            onClick={handlePrev}
+            variant="secondary"
+            size="lg"
+            className={cn('eb-w-full eb-text-lg', {
+              'eb-hidden': getPrevButtonLabel() === null,
+            })}
+          >
+            {getPrevButtonLabel()}
           </Button>
         </div>
       </div>

@@ -171,7 +171,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         className="eb-flex eb-flex-auto eb-flex-col"
       >
         <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
-          <Alert variant="informative" className="eb-pb-3">
+          <Alert variant="informative" noTitle>
             <InfoIcon className="eb-h-4 eb-w-4" />
             <AlertDescription>
               Your application is not submitted yet. Review your data and
@@ -179,7 +179,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
             </AlertDescription>
           </Alert>
           {isMissingDetails && shouldDisplayAlert && (
-            <Alert variant="warning" className="eb-pb-3">
+            <Alert variant="warning">
               <AlertTriangle className="eb-h-4 eb-w-4" />
               <AlertTitle>There is a problem</AlertTitle>
               <AlertDescription>
@@ -464,7 +464,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="eb-text-sm eb-font-normal peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                    <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
                       The data I am providing is true, accurate and complete to
                       the best of my knowledge.
                     </FormLabel>

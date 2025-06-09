@@ -23,6 +23,7 @@ export const defaultTheme: EBTheme = {
   light: {
     backgroundColor: 'hsl(0 0% 100%)',
     foregroundColor: 'hsl(240 10% 3.9%)',
+    formLabelForegroundColor: 'hsl(240 10% 3.9%)',
     cardColor: 'hsl(0 0% 100%)',
     cardForegroundColor: 'hsl(240 10% 3.9%)',
     popoverColor: 'hsl(0 0% 100%)',
@@ -37,6 +38,7 @@ export const defaultTheme: EBTheme = {
     accentForegroundColor: 'hsl(240 5.9% 10%)',
     destructiveColor: 'hsl(0 84.2% 60.2%)',
     destructiveForegroundColor: 'hsl(0 0% 98%)',
+    destructiveAccentColor: '#FFECEA',
     informativeColor: '#0078CF',
     informativeAccentColor: '#EAF6FF',
     warningColor: '#C75300',
@@ -53,6 +55,7 @@ export const defaultTheme: EBTheme = {
   dark: {
     backgroundColor: 'hsl(240 10% 3.9%)',
     foregroundColor: 'hsl(0 0% 98%)',
+    formLabelForegroundColor: 'hsl(0 0% 98%)',
     cardColor: 'hsl(240 10% 3.9%)',
     cardForegroundColor: 'hsl(0 0% 98%)',
     popoverColor: 'hsl(240 10% 3.9%)',
@@ -67,6 +70,7 @@ export const defaultTheme: EBTheme = {
     accentForegroundColor: 'hsl(0 0% 98%)',
     destructiveColor: 'hsl(0 74% 54%)',
     destructiveForegroundColor: 'hsl(0 0% 98%)',
+    destructiveAccentColor: '#FFECEA',
     informativeColor: '#0078CF',
     informativeAccentColor: '#EAF6FF',
     warningColor: '#C75300',

@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { useContentTokens } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import {
+  useContentTokens,
+  useInterceptorStatus,
+} from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
@@ -33,6 +36,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
+  const { interceptorReady } = useInterceptorStatus();
 
   const {
     data: clientData,
@@ -40,7 +44,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     error: clientGetError,
   } = useSmbdoGetClient(clientId, {
     query: {
-      enabled: !!clientId, // Only fetch if clientId is defined
+      enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
       refetchOnWindowFocus: false, // Avoid refetching on window focus
     },
   });
@@ -143,10 +147,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       >
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
-          <ServerErrorAlert
-            error={clientGetError}
-            className="eb-border-[#E52135] eb-bg-[#FFECEA]"
-          />
+          <ServerErrorAlert error={clientGetError} />
         ) : clientGetStatus === 'pending' && initialClientId ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (
@@ -238,7 +239,7 @@ const FlowRenderer: React.FC = () => {
 
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-4 sm:eb-scroll-mt-10"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >

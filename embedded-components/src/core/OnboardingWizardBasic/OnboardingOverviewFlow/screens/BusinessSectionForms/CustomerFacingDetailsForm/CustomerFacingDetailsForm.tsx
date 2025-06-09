@@ -1,13 +1,10 @@
 import { useEffect } from 'react';
-import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 // import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { Button } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
 
-import { LearnMorePopoverTrigger } from '../../../components/LearnMorePopover/LearnMorePopover';
 import { FormStepComponent } from '../../../flow.types';
 import {
   CustomerFacingDetailsFormSchema,
@@ -42,7 +39,7 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
-      <div className="eb-space-y-2">
+      <div className="eb-space-y-3">
         <OnboardingFormField
           control={form.control}
           name="dbaName"
@@ -68,46 +65,32 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
           control={form.control}
           name="organizationDescription"
           type="textarea"
-        />
-        <LearnMorePopoverTrigger
-          content={
+          popoutTooltip
+          tooltip={
             <div className="eb-space-y-3">
-              <h2 className="eb-font-header eb-text-xl eb-font-medium">
-                What is a business description?
+              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                Description example
               </h2>
               <p className="eb-text-sm">
-                It&apos;s a snapshot of your business. A summary of your
-                company&apos;s operations, including the industry, the nature of
-                the business activities, and the specific products you offer,
-                including your top selling items.
+                {
+                  '{Business name} creates sustainable and affordable beauty and hair care products that are vegan and cruelty free. Our top selling products are our organic citrus shampoo and conditioner line as well as our paraben and sulfate free mascara.'
+                }
               </p>
               <p className="eb-pb-1 eb-text-sm">
                 Please ensure this aligns with the business classification you
                 have selected.
               </p>
-              <h2 className="eb-font-header eb-text-xl eb-font-medium">
-                Will this be shown to customers?
+              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                Will my customers see this?
               </h2>
               <p className="eb-pb-1 eb-text-sm">
-                No, this is only for this application.
-              </p>
-              <h2 className="eb-font-header eb-text-xl eb-font-medium">
-                Example
-              </h2>
-              <p className="eb-pb-1 eb-text-sm">
-                {
-                  '{Business name} creates sustainable and affordable beauty and hair care products that are vegan and cruelty free. Our top selling products are our organic citrus shampoo and conditioner line as well as our paraben and sulfate free mascara.'
-                }
+                No. This is used for compliance and regulatory purposes only.
               </p>
             </div>
           }
-        >
-          <Button className="eb-text-primary" size="sm" variant="ghost">
-            Learn more <InfoIcon />
-          </Button>
-        </LearnMorePopoverTrigger>
+        />
       </div>
-      <div className="eb-space-y-2">
+      <div className="eb-space-y-3">
         <OnboardingFormField
           control={form.control}
           name="website"
