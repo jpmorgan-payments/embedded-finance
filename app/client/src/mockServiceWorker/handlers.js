@@ -429,20 +429,43 @@ export const createHandlers = (apiUrl) => [
 
     return HttpResponse.json(documentRequest);
   }),
-
+  
   http.post(`${apiUrl}/ef/do/v1/documents`, async ({ request }) => {
-    const data = await request.json();
+    // Handle form data with file upload
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const documentDataStr = formData.get('documentData');
+    let documentData = {};
+    
+    try {
+      if (documentDataStr) {
+        documentData = JSON.parse(documentDataStr);
+      }
+    } catch (error) {
+      console.error('Error parsing documentData:', error);
+      return new HttpResponse(
+        JSON.stringify({ error: 'Invalid document data format' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const documentId = Math.random().toString(36).substring(7);
-
+    
+    // Extract file information if available
+    const fileName = file ? file.name : documentData.fileName || 'document.pdf';
+    const mimeType = file ? file.type : documentData.mimeType || 'application/pdf';
+    
     // Create a mock document response
     const documentResponse = {
       id: documentId,
       status: 'ACTIVE',
-      documentType: data.documentType,
-      fileName: data.fileName,
-      mimeType: data.mimeType,
+      documentType: documentData.documentType || 'UNKNOWN',
+      fileName: fileName,
+      mimeType: mimeType,
       createdAt: new Date().toISOString(),
-      metadata: data.metadata || {},
+      metadata: documentData.metadata || {},
+      // Include document request ID if provided
+      documentRequestId: documentData.documentRequestId || null
     };
 
     return HttpResponse.json(documentResponse, { status: 201 });
