@@ -73,7 +73,17 @@ export const useThemes = () => {
         accentColor: '#38474E',
         mutedForegroundColor: '#98A2CD',
         cardForegroundColor: '#EDEFF7',
-        alertForegroundColor: 'hsl(240 10% 3.9%)',
+        alertForegroundColor: '#0F171F', //'hsl(240 10% 3.9%)', // text
+        formLabelForegroundColor: '#EDEFF7', // text in the forms
+        inputColor: '#38474E', // input bg color
+        popoverColor: '#38474E', // dropdown bg color
+        popoverForegroundColor: '#EDEFF7', // dropdown text color
+        primaryForegroundHoverColor: '#EDEFF7',
+        accentForegroundColor: '#EDEFF7',
+        secondaryForegroundHoverColor: '#EDEFF7',
+        // informativeColor: '3D5C6B', border icon
+        // informativeAccentColor: '3D5C6B' background info / warning / error
+        //
       },
       {
         id: 'CUSTOM4',
