@@ -588,13 +588,7 @@ export const createHandlers = (apiUrl) => [
           token: 'mock-jwt-token-12345',
           userId,
           expiresIn: 3600,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        },
+        }
       );
     },
   ),
