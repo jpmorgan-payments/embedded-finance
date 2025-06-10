@@ -26,28 +26,40 @@ export const useThemes = () => {
         buttonBorderRadius: '.313em',
       },
       {
-        id: 'CUSTOM2',
-        name: 'S&P Theme',
+        id: 'CUSTOM3',
+        name: 'Create Commerce',
+        primaryColor: '#FD8172',
+        secondaryColor: '#EDEFF7',
+        buttonTextTransform: 'uppercase',
+        secondaryActiveColor: '#2CB9AC',
         fontFamily: 'Open Sans',
-        headerFontFamily: 'Amplitude',
-        backgroundColor: '#f6f7f8',
-        inputColor: '#FFFFFF',
-        inputBorderColor: '#0000004D',
+        headerFontFamily: 'Open Sans',
+        backgroundColor: '#3D5C6B',
         borderColor: '#0000004D',
-        borderRadius: '6px',
+        borderRadius: '8px',
         inputBorderRadius: '4px',
         buttonBorderRadius: '8px',
-        buttonFontFamily: 'Amplitude',
-        buttonTextTransform: 'uppercase',
+        buttonFontFamily: 'Open Sans',
         buttonLetterSpacing: '0.6px',
-        primaryColor: '#1B7F9E',
-        secondaryColor: 'transparent',
-        secondaryForegroundColor: '#1B7F9E',
         secondaryBorderWidth: '1px',
-        formLabelFontSize: '0.75rem',
-        formLabelLineHeight: '1rem',
-        formLabelFontWeight: '600',
-        formLabelForegroundColor: '#4C5157',
+        cardColor: '#3D5C6B',
+        foregroundColor: '#EDEFF7',
+        primaryForegroundColor: '#3D5C6B',
+        secondaryForegroundColor: '#3D5C6B',
+        accentColor: '#38474E',
+        mutedForegroundColor: '#98A2CD',
+        cardForegroundColor: '#EDEFF7',
+        alertForegroundColor: '#0F171F', //'hsl(240 10% 3.9%)', // text
+        formLabelForegroundColor: '#EDEFF7', // text in the forms
+        inputColor: '#38474E', // input bg color
+        popoverColor: '#38474E', // dropdown bg color
+        popoverForegroundColor: '#EDEFF7', // dropdown text color
+        primaryForegroundHoverColor: '#EDEFF7',
+        accentForegroundColor: '#EDEFF7',
+        secondaryForegroundHoverColor: '#EDEFF7',
+        // informativeColor: '3D5C6B', border icon
+        // informativeAccentColor: '3D5C6B' background info / warning / error
+        //
       },
       {
         id: 'CUSTOM3',
