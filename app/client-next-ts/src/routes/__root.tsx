@@ -3,6 +3,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import { LandingHeader } from '../components/landing/landing-header';
 import { Footer } from '../components/landing/footer';
+import { DemoNotice } from '../components/ui/demo-notice';
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -19,6 +20,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <TanStackRouterDevtools />
+        <DemoNotice />
       </>
     );
   }
@@ -31,6 +33,7 @@ function RootComponent() {
       </main>
       <Footer />
       <TanStackRouterDevtools />
+      <DemoNotice />
     </>
   );
 }

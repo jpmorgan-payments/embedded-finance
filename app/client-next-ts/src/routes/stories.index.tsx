@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ArrowRight } from 'lucide-react';
 
-export const Route = createFileRoute('/blog/')({
-  component: BlogIndex,
+export const Route = createFileRoute('/stories/')({
+  component: StoriesIndex,
 });
 
-const blogPosts = [
+const stories = [
   {
     id: 'date-selector-challenges' as const,
     title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
@@ -29,51 +29,51 @@ const blogPosts = [
   },
 ] as const;
 
-function BlogIndex() {
+function StoriesIndex() {
   return (
     <div className="py-8 bg-jpm-white">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="mb-12">
           <h1 className="text-page-hero text-jpm-gray-900 mb-4">
-            Engineering Blog
+            Engineering Stories
           </h1>
           <p className="text-page-body text-jpm-gray leading-relaxed max-w-2xl">
-            Insights from our engineering team on building embedded finance and
+            Insights from our engineering team on building embedded finance
             solutions, component design patterns, and user experience lessons
             learned.
           </p>
         </div>
 
         <div className="space-y-8">
-          {blogPosts.map((post) => (
+          {stories.map((story) => (
             <Card
-              key={post.id}
+              key={story.id}
               className="border-0 shadow-page-card bg-jpm-white rounded-page-lg"
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center text-page-small text-jpm-gray mb-2">
                   <Calendar className="h-4 w-4 mr-2" />
-                  <time dateTime={post.date}>
-                    {new Date(post.date).toLocaleDateString('en-US', {
+                  <time dateTime={story.date}>
+                    {new Date(story.date).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                     })}
                   </time>
                   <span className="mx-2">•</span>
-                  <span>{post.readTime}</span>
+                  <span>{story.readTime}</span>
                 </div>
                 <CardTitle className="text-page-h3 text-jpm-gray-900 mb-3">
-                  {post.title}
+                  {story.title}
                 </CardTitle>
                 <p className="text-page-body text-jpm-gray leading-relaxed">
-                  {post.excerpt}
+                  {story.excerpt}
                 </p>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
+                    {story.tags.map((tag) => (
                       <span
                         key={tag}
                         className="px-2 py-1 bg-jpm-brown-100 text-jpm-brown text-page-small rounded-page-sm"
@@ -82,7 +82,7 @@ function BlogIndex() {
                       </span>
                     ))}
                   </div>
-                  <Link to="/blog/$postId" params={{ postId: post.id }}>
+                  <Link to="/stories/$storyId" params={{ storyId: story.id }}>
                     <Button
                       variant="outline"
                       className="border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold flex items-center whitespace-nowrap"

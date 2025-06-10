@@ -40,10 +40,10 @@ export function LandingHeader() {
               Documentation
             </Link>
             <Link
-              to="/blog"
+              to="/stories"
               className="text-jpm-gray hover:text-jpm-brown font-medium text-sm lg:text-page-small transition-colors duration-200"
             >
-              Blog
+              Stories
             </Link>
             <Link
               to="/github"
@@ -84,10 +84,10 @@ export function LandingHeader() {
                     Documentation
                   </Link>
                   <Link
-                    to="/blog"
+                    to="/stories"
                     className="block text-jpm-gray hover:text-jpm-brown font-medium text-base transition-colors duration-200 py-2"
                   >
-                    Blog
+                    Stories
                   </Link>
                   <Link
                     to="/github"
