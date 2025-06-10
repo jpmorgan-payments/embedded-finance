@@ -68,7 +68,7 @@ export const useThemes = () => {
         secondaryBorderWidth: '1px',
         cardColor: '#3D5C6B',
         foregroundColor: '#EDEFF7',
-        primaryForegroundColor: '#3D5C6B',
+        primaryForegroundColor: '#EDEFF7', // button text color
         secondaryForegroundColor: '#3D5C6B',
         accentColor: '#38474E',
         mutedForegroundColor: '#98A2CD',
@@ -80,7 +80,7 @@ export const useThemes = () => {
         popoverForegroundColor: '#EDEFF7', // dropdown text color
         primaryForegroundHoverColor: '#EDEFF7',
         accentForegroundColor: '#EDEFF7',
-        secondaryForegroundHoverColor: '#EDEFF7',
+        secondaryForegroundHoverColor: '#3D5C6B', // sec button text hover
         // informativeColor: '3D5C6B', border icon
         // informativeAccentColor: '3D5C6B' background info / warning / error
         //
