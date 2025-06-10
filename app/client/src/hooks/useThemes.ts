@@ -68,12 +68,22 @@ export const useThemes = () => {
         secondaryBorderWidth: '1px',
         cardColor: '#3D5C6B',
         foregroundColor: '#EDEFF7',
-        primaryForegroundColor: '#3D5C6B',
+        primaryForegroundColor: '#EDEFF7', // button text color
         secondaryForegroundColor: '#3D5C6B',
         accentColor: '#38474E',
         mutedForegroundColor: '#98A2CD',
         cardForegroundColor: '#EDEFF7',
-        alertForegroundColor: 'hsl(240 10% 3.9%)',
+        alertForegroundColor: '#0F171F', //'hsl(240 10% 3.9%)', // text
+        formLabelForegroundColor: '#EDEFF7', // text in the forms
+        inputColor: '#38474E', // input bg color
+        popoverColor: '#38474E', // dropdown bg color
+        popoverForegroundColor: '#EDEFF7', // dropdown text color
+        primaryForegroundHoverColor: '#EDEFF7',
+        accentForegroundColor: '#EDEFF7',
+        secondaryForegroundHoverColor: '#3D5C6B', // sec button text hover
+        // informativeColor: '3D5C6B', border icon
+        // informativeAccentColor: '3D5C6B' background info / warning / error
+        //
       },
       {
         id: 'CUSTOM4',
