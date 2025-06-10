@@ -11,18 +11,24 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as StoriesImport } from './routes/stories'
 import { Route as SolutionsImport } from './routes/solutions'
 import { Route as SellsenseDemoImport } from './routes/sellsense-demo'
 import { Route as MswTestImport } from './routes/msw-test'
 import { Route as GithubImport } from './routes/github'
 import { Route as DocumentationImport } from './routes/documentation'
 import { Route as DemosImport } from './routes/demos'
-import { Route as BlogImport } from './routes/blog'
 import { Route as IndexImport } from './routes/index'
-import { Route as BlogIndexImport } from './routes/blog.index'
-import { Route as BlogPostIdImport } from './routes/blog.$postId'
+import { Route as StoriesIndexImport } from './routes/stories.index'
+import { Route as StoriesStoryIdImport } from './routes/stories.$storyId'
 
 // Create/Update Routes
+
+const StoriesRoute = StoriesImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const SolutionsRoute = SolutionsImport.update({
   id: '/solutions',
@@ -60,28 +66,22 @@ const DemosRoute = DemosImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const BlogRoute = BlogImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
 } as any)
 
-const BlogIndexRoute = BlogIndexImport.update({
+const StoriesIndexRoute = StoriesIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => BlogRoute,
+  getParentRoute: () => StoriesRoute,
 } as any)
 
-const BlogPostIdRoute = BlogPostIdImport.update({
-  id: '/$postId',
-  path: '/$postId',
-  getParentRoute: () => BlogRoute,
+const StoriesStoryIdRoute = StoriesStoryIdImport.update({
+  id: '/$storyId',
+  path: '/$storyId',
+  getParentRoute: () => StoriesRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -93,13 +93,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogImport
       parentRoute: typeof rootRoute
     }
     '/demos': {
@@ -144,48 +137,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsImport
       parentRoute: typeof rootRoute
     }
-    '/blog/$postId': {
-      id: '/blog/$postId'
-      path: '/$postId'
-      fullPath: '/blog/$postId'
-      preLoaderRoute: typeof BlogPostIdImport
-      parentRoute: typeof BlogImport
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesImport
+      parentRoute: typeof rootRoute
     }
-    '/blog/': {
-      id: '/blog/'
+    '/stories/$storyId': {
+      id: '/stories/$storyId'
+      path: '/$storyId'
+      fullPath: '/stories/$storyId'
+      preLoaderRoute: typeof StoriesStoryIdImport
+      parentRoute: typeof StoriesImport
+    }
+    '/stories/': {
+      id: '/stories/'
       path: '/'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexImport
-      parentRoute: typeof BlogImport
+      fullPath: '/stories/'
+      preLoaderRoute: typeof StoriesIndexImport
+      parentRoute: typeof StoriesImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface BlogRouteChildren {
-  BlogPostIdRoute: typeof BlogPostIdRoute
-  BlogIndexRoute: typeof BlogIndexRoute
+interface StoriesRouteChildren {
+  StoriesStoryIdRoute: typeof StoriesStoryIdRoute
+  StoriesIndexRoute: typeof StoriesIndexRoute
 }
 
-const BlogRouteChildren: BlogRouteChildren = {
-  BlogPostIdRoute: BlogPostIdRoute,
-  BlogIndexRoute: BlogIndexRoute,
+const StoriesRouteChildren: StoriesRouteChildren = {
+  StoriesStoryIdRoute: StoriesStoryIdRoute,
+  StoriesIndexRoute: StoriesIndexRoute,
 }
 
-const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+const StoriesRouteWithChildren =
+  StoriesRoute._addFileChildren(StoriesRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/blog': typeof BlogRouteWithChildren
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/blog/$postId': typeof BlogPostIdRoute
-  '/blog/': typeof BlogIndexRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/stories/': typeof StoriesIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -196,37 +197,37 @@ export interface FileRoutesByTo {
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/blog/$postId': typeof BlogPostIdRoute
-  '/blog': typeof BlogIndexRoute
+  '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/stories': typeof StoriesIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/blog': typeof BlogRouteWithChildren
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/blog/$postId': typeof BlogPostIdRoute
-  '/blog/': typeof BlogIndexRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/stories/': typeof StoriesIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/blog'
     | '/demos'
     | '/documentation'
     | '/github'
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
-    | '/blog/$postId'
-    | '/blog/'
+    | '/stories'
+    | '/stories/$storyId'
+    | '/stories/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -236,43 +237,43 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
-    | '/blog/$postId'
-    | '/blog'
+    | '/stories/$storyId'
+    | '/stories'
   id:
     | '__root__'
     | '/'
-    | '/blog'
     | '/demos'
     | '/documentation'
     | '/github'
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
-    | '/blog/$postId'
-    | '/blog/'
+    | '/stories'
+    | '/stories/$storyId'
+    | '/stories/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BlogRoute: typeof BlogRouteWithChildren
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
+  StoriesRoute: typeof StoriesRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BlogRoute: BlogRouteWithChildren,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
+  StoriesRoute: StoriesRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -286,24 +287,17 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/blog",
         "/demos",
         "/documentation",
         "/github",
         "/msw-test",
         "/sellsense-demo",
-        "/solutions"
+        "/solutions",
+        "/stories"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/blog": {
-      "filePath": "blog.tsx",
-      "children": [
-        "/blog/$postId",
-        "/blog/"
-      ]
     },
     "/demos": {
       "filePath": "demos.tsx"
@@ -323,13 +317,20 @@ export const routeTree = rootRoute
     "/solutions": {
       "filePath": "solutions.tsx"
     },
-    "/blog/$postId": {
-      "filePath": "blog.$postId.tsx",
-      "parent": "/blog"
+    "/stories": {
+      "filePath": "stories.tsx",
+      "children": [
+        "/stories/$storyId",
+        "/stories/"
+      ]
     },
-    "/blog/": {
-      "filePath": "blog.index.tsx",
-      "parent": "/blog"
+    "/stories/$storyId": {
+      "filePath": "stories.$storyId.tsx",
+      "parent": "/stories"
+    },
+    "/stories/": {
+      "filePath": "stories.index.tsx",
+      "parent": "/stories"
     }
   }
 }
