@@ -99,7 +99,7 @@ export function Header({
               onValueChange={(value) => setTheme(value as ThemeOption)}
             >
               <SelectTrigger
-                className={`w-[140px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
+                className={`w-[190px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
               >
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>

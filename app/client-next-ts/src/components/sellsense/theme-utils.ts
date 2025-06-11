@@ -1,4 +1,5 @@
-import type { ThemeOption } from './use-sellsense-themes';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import { getThemeVariables, type ThemeOption } from './use-sellsense-themes';
 
 /**
  * Centralized theme utilities for SellSense demo portal
@@ -18,71 +19,52 @@ export interface ThemeStyleUtils {
   getCardStyles: () => string;
   getIconStyles: () => string;
   getDialogStyles: () => string;
+  getContentAreaStyles: () => string;
 }
 
-export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
+export function createThemeStyleUtils(theme: ThemeOption, themeDesingTokens: EBThemeVariables): ThemeStyleUtils {
+
   return {
     // Header component styles
     getHeaderStyles: () => {
+      console.log('themeDesingTokens', themeDesingTokens);
       switch (theme) {
         case 'Empty':
           return 'bg-gray-50 border-gray-200'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'bg-slate-800 border-slate-700';
-        case 'S&P Theme':
-          return 'bg-gray-50 border-gray-300';
         default:
-          return 'bg-white border-gray-200';
+          return `bg-[${themeDesingTokens?.backgroundColor}] border-[${themeDesingTokens?.borderColor}]`;
       }
     },
-
     getHeaderLabelStyles: () => {
       switch (theme) {
         case 'Empty':
           return 'text-gray-600'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'text-slate-400';
-        case 'S&P Theme':
-          return 'text-gray-600';
         default:
-          return 'text-gray-500';
+          return `text-[${themeDesingTokens?.mutedForegroundColor}]`;
       }
     },
-
     getHeaderSelectStyles: () => {
       switch (theme) {
         case 'Empty':
           return 'bg-white border-gray-300 text-gray-900'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'bg-slate-700 border-slate-600 text-slate-100';
         default:
-          return 'border-gray-300';
+          return `bg-[${themeDesingTokens?.inputColor}] border-[${themeDesingTokens?.inputBorderColor}] text-[${themeDesingTokens?.foregroundColor}]`;
       }
     },
-
     getHeaderButtonStyles: () => {
       switch (theme) {
         case 'Empty':
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'text-blue-400 hover:text-blue-300 hover:bg-slate-700';
-        case 'S&P Theme':
-          return 'text-teal-600 hover:text-teal-500 hover:bg-teal-50';
         default:
-          return 'text-sellsense-primary hover:text-sellsense-primary hover:bg-sellsense-primary-bg';
+          return `text-[${themeDesingTokens?.primaryColor}] hover:text-[${themeDesingTokens?.primaryHoverColor}] hover:bg-[${themeDesingTokens?.secondaryColor}]`;
       }
     },
-
     getHeaderTextStyles: () => {
       switch (theme) {
         case 'Empty':
           return 'text-gray-900'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'text-white';
-        case 'S&P Theme':
-          return 'text-gray-900';
         default:
-          return 'text-gray-900';
+          return `text-[${themeDesingTokens?.foregroundColor}]`;
       }
     },
 
@@ -91,12 +73,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       switch (theme) {
         case 'Empty':
           return 'bg-gray-50 border-gray-200'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'bg-slate-800 border-slate-700';
-        case 'S&P Theme':
-          return 'bg-gray-50 border-gray-300';
         default:
-          return 'bg-white border-gray-200';
+          return `bg-[${themeDesingTokens?.backgroundColor}] border-[${themeDesingTokens?.borderColor}]`;
       }
     },
 
@@ -105,23 +83,15 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         switch (theme) {
           case 'Empty':
             return 'text-gray-900 font-semibold bg-gray-200 border-l-4 border-gray-600'; // Neutral for showing defaults
-          case 'Create Commerce':
-            return 'text-blue-300 font-semibold bg-slate-700 border-l-4 border-blue-300';
-          case 'S&P Theme':
-            return 'text-teal-600 font-semibold bg-teal-50 border-l-4 border-teal-600';
           default:
-            return 'text-sellsense-primary font-semibold bg-sellsense-primary-bg border-l-4 border-sellsense-primary';
+            return `text-[${themeDesingTokens?.primaryColor}] font-semibold bg-[${themeDesingTokens?.accentColor || themeDesingTokens?.mutedColor}] border-l-4 border-[${themeDesingTokens?.primaryColor}]`;
         }
       } else {
         switch (theme) {
           case 'Empty':
             return 'text-gray-600 font-normal border-l-4 border-transparent hover:bg-gray-200 hover:text-gray-900'; // Neutral for showing defaults
-          case 'Create Commerce':
-            return 'text-slate-100 font-normal border-l-4 border-transparent hover:bg-slate-700 hover:text-blue-300';
-          case 'S&P Theme':
-            return 'text-gray-600 font-normal border-l-4 border-transparent hover:bg-teal-50 hover:text-teal-600';
           default:
-            return 'text-gray-600 font-normal border-l-4 border-transparent hover:bg-sellsense-primary-bg hover:text-sellsense-primary';
+            return `text-[${themeDesingTokens?.foregroundColor}] font-normal border-l-4 border-transparent hover:bg-[${themeDesingTokens?.accentColor || themeDesingTokens?.mutedColor}] hover:text-[${themeDesingTokens?.primaryColor}]`;
         }
       }
     },
@@ -130,12 +100,8 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       switch (theme) {
         case 'Empty':
           return 'text-gray-500'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'text-slate-300';
-        case 'S&P Theme':
-          return 'text-gray-500';
         default:
-          return 'text-gray-500';
+          return `text-[${themeDesingTokens?.mutedForegroundColor}]`;
       }
     },
 
@@ -143,12 +109,9 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       switch (theme) {
         case 'Empty':
           return 'text-gray-700'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'text-slate-100';
-        case 'S&P Theme':
-          return 'text-gray-700';
+
         default:
-          return 'text-gray-700';
+          return `text-[${themeDesingTokens?.foregroundColor}]`;
       }
     },
 
@@ -157,12 +120,19 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       switch (theme) {
         case 'Empty':
           return 'bg-white border-gray-300'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'bg-slate-900 border-slate-700';
-        case 'S&P Theme':
-          return 'bg-white border-gray-300';
+
         default:
-          return 'bg-white border-gray-200';
+          return `h-fit bg-[${themeDesingTokens?.popoverColor}] border-[${themeDesingTokens?.borderColor}]`;
+      }
+    },
+
+     getContentAreaStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'bg-white border-gray-300'; // Neutral for showing defaults
+
+        default:
+          return `h-fit min-h-full bg-[${themeDesingTokens?.backgroundColor}] border-[${themeDesingTokens?.borderColor}]`;
       }
     },
 
@@ -170,12 +140,9 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       switch (theme) {
         case 'Empty':
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'text-gray-300 hover:text-white hover:bg-slate-700';
-        case 'S&P Theme':
-          return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
+
         default:
-          return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
+          return `text-[${themeDesingTokens?.primaryColor}] hover:text-[${themeDesingTokens?.primaryHoverColor}] hover:bg-[${themeDesingTokens?.secondaryColor}]`;
       }
     },
 
@@ -184,12 +151,9 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       switch (theme) {
         case 'Empty':
           return 'bg-white text-gray-900 border-gray-300'; // Neutral for showing defaults
-        case 'Create Commerce':
-          return 'bg-slate-800 text-white border-slate-600';
-        case 'S&P Theme':
-          return 'bg-gray-50 text-gray-900 border-gray-300';
+
         default:
-          return 'bg-white text-gray-900 border-gray-200';
+          return `bg-[${themeDesingTokens?.backgroundColor}] text-[${themeDesingTokens?.foregroundColor}] border-[${themeDesingTokens?.borderColor}]`;
       }
     },
   };
@@ -199,5 +163,5 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
  * Hook-style wrapper for easier use in components
  */
 export function useThemeStyles(theme: ThemeOption): ThemeStyleUtils {
-  return createThemeStyleUtils(theme);
+  return createThemeStyleUtils(theme, getThemeVariables(theme));
 }

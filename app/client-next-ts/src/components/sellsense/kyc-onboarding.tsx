@@ -218,7 +218,7 @@ export function KycOnboarding({
   // Normal mode with card wrapper and controls
   return (
     <>
-      <div className="p-6">
+      <div className={`p-6 ${themeStyles.getContentAreaStyles()}`}>
         <div
           className={`relative min-h-fit border-2 rounded-lg ${themeStyles.getCardStyles()}`}
         >
