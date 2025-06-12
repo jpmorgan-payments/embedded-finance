@@ -245,7 +245,7 @@ export const useSellSenseThemes = () => {
           alertColor: '#38474E', // Using accent color for alerts
           alertForegroundColor: '#0F171F', // Updated to match spec
           informativeColor: '#60A5FA', // Keeping blue for information
-          informativeAccentColor: '#38474E', // Using accent color for backgrounds
+          informativeAccentColor: '#B3C9CC', // Using accent color for backgrounds
           warningColor: '#FBBF24', // Keeping amber for warnings
           warningAccentColor: '#38474E', // Using accent color for backgrounds
           successColor: '#34D399', // Keeping green for success
