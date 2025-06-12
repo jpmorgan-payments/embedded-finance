@@ -21,6 +21,7 @@ export interface ThemeStyleUtils {
   getSidebarTextStyles: () => string;
   getCardStyles: () => string;
   getIconStyles: () => string;
+  getTagStyles: () => string;
   getDialogStyles: () => string;
   getContentAreaStyles: () => string;
   getLogoPath: () => string;
@@ -259,6 +260,26 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
           return 'text-[#177556] hover:text-[#145f47] hover:bg-[#FFFCF6]'; // primaryColor: '#177556', primaryHoverColor: '#145f47', secondaryColor: '#FFFCF6'
         default:
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
+      }
+    },
+
+    // Component tag styles (for component identification)
+    getTagStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'bg-gray-100 text-gray-700 border-gray-300'; // Neutral styling for showing component defaults
+        case 'Default Blue':
+          return 'bg-slate-50 text-[#0060f0] border-slate-200'; // accentColor: '#f1f5f9', primaryColor: '#0060f0', borderColor: '#e2e8f0'
+        case 'S&P Theme':
+          return 'bg-slate-50 text-[#1B7F9E] border-[#0000004D]'; // accentColor: '#f1f5f9', primaryColor: '#1B7F9E', borderColor: '#0000004D'
+        case 'Create Commerce':
+          return 'bg-[#38474E] text-[#FD8172] border-[#0000004D]'; // accentColor: '#38474E', primaryColor: '#FD8172', borderColor: '#0000004D'
+        case 'SellSense':
+          return 'bg-[#FDF7F0] text-[#f55727] border-[#0000004d]'; // secondaryColor: '#FDF7F0', primaryColor: '#f55727', borderColor: '#0000004d'
+        case 'PayFicient':
+          return 'bg-[#FFFCF6] text-[#177556] border-[#0000004d]'; // secondaryColor: '#FFFCF6', primaryColor: '#177556', borderColor: '#0000004d'
+        default:
+          return 'bg-gray-100 text-gray-700 border-gray-300';
       }
     },
 

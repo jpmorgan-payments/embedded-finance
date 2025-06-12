@@ -15,6 +15,7 @@ import {
   getClientIdFromScenario,
   getScenarioData,
 } from './sellsense-scenarios';
+import packageJson from '../../../package.json';
 
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
@@ -33,6 +34,8 @@ function ComponentTechDetailsDialog({
   theme,
 }: ComponentTechDetailsDialogProps) {
   const themeStyles = useThemeStyles(theme);
+  const componentVersion =
+    packageJson.dependencies['@jpmorgan-payments/embedded-finance-components'];
 
   if (!isOpen) return null;
 
@@ -65,7 +68,7 @@ function ComponentTechDetailsDialog({
                 <strong>Component:</strong> OnboardingFlow
               </p>
               <p>
-                <strong>Version:</strong> ^0.6.12
+                <strong>Version:</strong> {componentVersion}
               </p>
               <p>
                 <strong>Type:</strong> React Component
@@ -223,7 +226,13 @@ export function KycOnboarding({
           className={`relative min-h-fit border-2 rounded-lg ${themeStyles.getCardStyles()}`}
         >
           {/* Component Control Icons */}
-          <div className="absolute top-3 right-3 z-10 flex gap-2">
+          <div className="absolute top-3 right-3 z-10 flex gap-2 items-center">
+            {/* Component Tag */}
+            <div
+              className={`px-2 py-1 text-xs rounded-md border ${themeStyles.getTagStyles()}`}
+            >
+              @jpmorgan-payments/embedded-finance-components
+            </div>
             <button
               onClick={() => setShowTechDetails(true)}
               className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
