@@ -3,7 +3,10 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import {
+  useSmbdoGetClient,
+  useSmbdoListDocumentRequests,
+} from '@/api/generated/smbdo';
 import {
   useContentTokens,
   useInterceptorStatus,
@@ -36,6 +39,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
+
   const { interceptorReady } = useInterceptorStatus();
 
   const {
@@ -47,6 +51,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
       refetchOnWindowFocus: false, // Avoid refetching on window focus
     },
+  });
+
+  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests({
+    clientId,
   });
 
   // Set clientId when initialClientId prop changes
@@ -137,6 +145,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientData,
         setClientId,
         organizationType,
+        documentRequests,
       }}
     >
       <div

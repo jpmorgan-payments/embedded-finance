@@ -28,17 +28,22 @@ import {
 import { StepLayout } from '../../components/StepLayout/StepLayout';
 import { useFlowContext } from '../../context/FlowContext';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
-import { getPartyByAssociatedPartyFilters } from '../../utils/dataUtils';
+import {
+  checkDocumentRequestsClosed,
+  getPartyByAssociatedPartyFilters,
+} from '../../utils/dataUtils';
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
-  const { organizationType, clientData } = useOnboardingOverviewContext();
+  const { organizationType, clientData, documentRequests } =
+    useOnboardingOverviewContext();
   const { sections, goTo, sessionData, updateSessionData } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
-    clientData
+    clientData,
+    documentRequests
   );
 
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
@@ -48,6 +53,8 @@ export const OverviewScreen = () => {
     sessionData.mockedKycCompleted || clientData?.status === 'APPROVED';
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
+
+  const docRequestsClosed = checkDocumentRequestsClosed(documentRequests);
 
   return (
     <StepLayout
@@ -93,17 +100,30 @@ export const OverviewScreen = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
-            {clientData?.status === 'REVIEW_IN_PROGRESS' && (
-              <Alert variant="informative" density="sm" className="eb-mb-6">
-                <Clock9Icon className="eb-size-4" />
-                <AlertTitle>Great work!</AlertTitle>
-                <AlertDescription>
-                  Please hang tight while we verify your details. This should
-                  only take a moment.
-                  <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
-                </AlertDescription>
-              </Alert>
-            )}
+            {clientData?.status === 'REVIEW_IN_PROGRESS' &&
+              !docRequestsClosed && (
+                <Alert variant="informative" density="sm" className="eb-mb-6">
+                  <Clock9Icon className="eb-size-4" />
+                  <AlertTitle>Great work!</AlertTitle>
+                  <AlertDescription>
+                    Please hang tight while we verify your details. This should
+                    only take a moment.
+                    <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
+                  </AlertDescription>
+                </Alert>
+              )}
+
+            {clientData?.status === 'REVIEW_IN_PROGRESS' &&
+              docRequestsClosed && (
+                <Alert variant="informative" density="sm" className="eb-mb-6">
+                  <Clock9Icon className="eb-size-4" />
+                  <AlertTitle>We have your documents</AlertTitle>
+                  <AlertDescription>
+                    Please hang tight if you can while we verify your documents.
+                    <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
+                  </AlertDescription>
+                </Alert>
+              )}
 
             {clientData?.status === 'INFORMATION_REQUESTED' && (
               <Alert variant="warning" density="sm" className="eb-mb-6" noTitle>
@@ -173,7 +193,9 @@ export const OverviewScreen = () => {
 
               {sections.map((section) => {
                 const sectionStatus = sectionStatuses?.[section.id];
-                const sectionDisabled = sectionStatus === 'on_hold';
+                const sectionDisabled =
+                  sectionStatus === 'on_hold' ||
+                  sectionStatus === 'completed_disabled';
                 const firstInvalidStep = stepValidations[section.id]
                   ? Object.entries(stepValidations[section.id]).find(
                       ([, validation]) => !validation.isValid
@@ -238,7 +260,8 @@ export const OverviewScreen = () => {
                         </div>
 
                         <div className="eb-flex [&_svg]:eb-size-4">
-                          {sectionStatus === 'completed' && (
+                          {(sectionStatus === 'completed' ||
+                            sectionStatus === 'completed_disabled') && (
                             <>
                               <CheckCircle2Icon className="eb-stroke-success" />
                               <span className="eb-sr-only">Completed</span>
@@ -286,7 +309,9 @@ export const OverviewScreen = () => {
                             : 'default'
                         }
                         size="sm"
-                        className="eb-mt-3 eb-w-full"
+                        className={cn('eb-mt-3 eb-w-full', {
+                          'eb-hidden': sectionStatus === 'completed_disabled',
+                        })}
                         disabled={sectionDisabled}
                         onClick={() => {
                           goTo(section.id, {

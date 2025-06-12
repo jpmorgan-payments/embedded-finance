@@ -29,7 +29,10 @@ import { IndividualIdentityForm } from './screens/PersonalSectionForms/Individua
 import { PersonalDetailsForm } from './screens/PersonalSectionForms/PersonalDetailsForm/PersonalDetailsForm';
 import { ReviewForm } from './screens/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
 import { TermsAndConditionsForm } from './screens/ReviewAndAttestSectionForms/TermsAndConditionsForm/TermsAndConditionsForm';
-import { getActiveOwners } from './utils/dataUtils';
+import {
+  checkDocumentRequestsClosed,
+  getActiveOwners,
+} from './utils/dataUtils';
 import { getStepperValidation } from './utils/flowUtils';
 
 const staticScreens: StaticScreenConfig[] = [
@@ -378,13 +381,23 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Supporting documents',
       icon: UploadIcon,
       onHoldText: "We'll let you know if any documents are needed",
-      statusResolver: (sessionData, clientData) => {
+      statusResolver: (
+        _sessionData,
+        clientData,
+        _allStepsValid,
+        _stepValidationMap,
+        documentRequests
+      ) => {
         // Check if any party has document requests
         const partyHasDocRequests = clientData?.parties?.some((party) => {
           return party.validationResponse?.some((validation) => {
             return !!validation.documentRequestIds?.length;
           });
         });
+
+        const documentRequestsFulfilled =
+          checkDocumentRequestsClosed(documentRequests);
+
         if (
           clientData?.status === 'INFORMATION_REQUESTED' &&
           (clientData.outstanding.documentRequestIds?.length ||
@@ -396,6 +409,9 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'NEW' ||
           clientData?.status === 'REVIEW_IN_PROGRESS'
         ) {
+          if (documentRequestsFulfilled) {
+            return 'completed_disabled';
+          }
           return 'on_hold';
         }
         if (
@@ -404,7 +420,7 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'hidden';
         }
-        return 'completed';
+        return 'completed_disabled';
       },
     },
     Component: DocumentUploadScreen,

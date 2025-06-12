@@ -43,8 +43,12 @@ import { getFlowProgress, getStepperValidations } from '../../utils/flowUtils';
 import { ownerSteps } from './ownerSteps';
 
 export const OwnersSectionScreen = () => {
-  const { clientData, onPostPartyResponse, organizationType } =
-    useOnboardingOverviewContext();
+  const {
+    clientData,
+    onPostPartyResponse,
+    organizationType,
+    documentRequests,
+  } = useOnboardingOverviewContext();
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
   const queryClient = useQueryClient();
 
@@ -68,7 +72,8 @@ export const OwnersSectionScreen = () => {
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
-    clientData
+    clientData,
+    documentRequests
   );
 
   const reviewMode = originScreenId === 'review-attest-section';
