@@ -8,7 +8,7 @@ import {
 
 import { OnboardingConfigUsedInContext } from '../types';
 
-type OnboardingContextType = OnboardingConfigUsedInContext & {
+export type OnboardingContextType = OnboardingConfigUsedInContext & {
   clientData: ClientResponse | undefined;
   setClientId: (clientId: string) => void;
   organizationType: OrganizationType | undefined;
