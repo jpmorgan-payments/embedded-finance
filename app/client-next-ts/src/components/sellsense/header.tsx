@@ -39,12 +39,13 @@ export function Header({
     >
       {/* Logo */}
       <div className="flex items-center">
-        <img
-          src="/sellSense.svg"
-          alt="SellSense Logo"
-          className="h-7"
-          style={{ width: '184px' }}
-        />
+        {themeStyles.getLogoPath() && (
+          <img
+            src={themeStyles.getLogoPath()}
+            alt={themeStyles.getLogoAlt()}
+            className={themeStyles.getLogoStyles()}
+          />
+        )}
       </div>
 
       {/* Right side controls */}
