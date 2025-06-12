@@ -198,10 +198,21 @@ export const OwnersSectionScreen = () => {
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string | null) => {
     if (beneficialOwnerId) {
+      const firstInvalidStep = ownersValidation[beneficialOwnerId]
+        ? ownerSteps.find((step) => {
+            return (
+              ownersValidation[beneficialOwnerId].stepValidationMap[step.id] &&
+              !ownersValidation[beneficialOwnerId].stepValidationMap[step.id]
+                .isValid
+            );
+          })?.id
+        : undefined;
+
       goTo('owner-stepper', {
         editingPartyId: beneficialOwnerId,
         previouslyCompleted: ownersValidation[beneficialOwnerId].allStepsValid,
         shortLabelOverride: 'Edit owner',
+        initialStepperStepId: firstInvalidStep,
       });
     } else {
       goTo('owner-stepper', {

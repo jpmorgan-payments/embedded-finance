@@ -54,6 +54,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const {
     currentScreenId,
     goTo,
+    goBack,
     originScreenId,
     editingPartyIds,
     updateEditingPartyId,
@@ -71,7 +72,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   );
 
   const setExistingPartyData = (partyData: PartyResponse | undefined) => {
-    updateEditingPartyId(currentScreenId, partyData?.id ?? null);
+    updateEditingPartyId(currentScreenId, partyData?.id);
   };
 
   const [checkAnswersStepId, setCheckAnswersStepId] = useState<string | null>(
@@ -129,6 +130,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       });
     } else if (originScreenId === 'owners-section') {
       goTo('owners-section');
+    } else if (
+      currentSection?.id === 'review-attest-section' &&
+      currentStep.id === 'documents'
+    ) {
+      goTo('overview');
     } else {
       goTo(nextSection?.id ?? 'overview', {
         editingPartyId: nextSectionPartyData.id,
@@ -155,6 +161,12 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         ? `Continue to ${nextSection.sectionConfig.label}`
         : 'Continue to next section';
     }
+    if (
+      currentSection?.id === 'review-attest-section' &&
+      currentStep.id === 'documents'
+    ) {
+      return 'Agree and finish';
+    }
     return 'Continue';
   };
 
@@ -168,7 +180,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       originScreenId === 'owners-section' &&
       (currentStepNumber === 1 || currentStep.stepType === 'check-answers')
     ) {
-      goTo('owners-section');
+      goBack();
     } else if (
       currentStepNumber === 1 ||
       (currentStep.stepType === 'check-answers' && previouslyCompleted)

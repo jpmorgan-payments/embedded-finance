@@ -197,9 +197,12 @@ export const OverviewScreen = () => {
                   sectionStatus === 'on_hold' ||
                   sectionStatus === 'completed_disabled';
                 const firstInvalidStep = stepValidations[section.id]
-                  ? Object.entries(stepValidations[section.id]).find(
-                      ([, validation]) => !validation.isValid
-                    )?.[0]
+                  ? section.stepperConfig?.steps.find((step) => {
+                      return (
+                        stepValidations[section.id][step.id] &&
+                        !stepValidations[section.id][step.id].isValid
+                      );
+                    })?.id
                   : undefined;
 
                 // const sectionVerifying =

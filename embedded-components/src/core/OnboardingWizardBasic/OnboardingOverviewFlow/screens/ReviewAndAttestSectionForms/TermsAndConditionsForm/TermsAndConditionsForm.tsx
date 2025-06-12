@@ -105,6 +105,8 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   );
 
   const handleDocumentOpen = (documentId: string) => async () => {
+    setTermsDocumentsOpened((prev) => ({ ...prev, [documentId]: true }));
+
     try {
       // Clear previous errors for this document
       setDocumentErrors((prev) => ({ ...prev, [documentId]: null }));
@@ -138,6 +140,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             ? error.message
             : 'Failed to download document',
       }));
+      // TODO: temporarily set opened document
     } finally {
       setLoadingDocuments((prev) => ({ ...prev, [documentId]: false }));
     }
@@ -247,51 +250,54 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             </Alert>
           )}
           <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
-            {documentQueries.map((query) => (
-              <div
-                key={query.data?.id}
-                className="eb-flex eb-flex-col eb-gap-1"
-              >
-                <Button
-                  onClick={handleDocumentOpen(query.data?.id ?? '')}
-                  variant="ghost"
-                  className={cn(
-                    'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-font-sans eb-text-sm eb-font-normal eb-shadow-md',
-                    {
-                      'eb-border-success eb-bg-success-accent hover:eb-bg-success-accent/80':
-                        query.data?.id && termsDocumentsOpened[query.data.id],
-                    }
-                  )}
-                  disabled={
-                    query.isLoading ||
-                    (query.data?.id ? loadingDocuments[query.data.id] : false)
-                  }
-                >
-                  <span className="eb-flex eb-items-center eb-gap-2">
-                    <FileIcon />
-                    <p className="eb-text-[#12647E] eb-underline">
-                      {query.isLoading
-                        ? 'Loading...'
-                        : query.data?.documentType}
-                    </p>
-                    <ExternalLinkIcon className="eb-text-[#12647E]" />
-                  </span>
-                  <span>
-                    {query.data?.id && termsDocumentsOpened[query.data.id] && (
-                      <CheckCircleIcon className="eb-text-success" />
+            {documentIds.map((id) => {
+              const query = documentQueries.find((q) => q.data?.id === id);
+
+              return (
+                <div key={id} className="eb-flex eb-flex-col eb-gap-1">
+                  <Button
+                    type="button"
+                    onClick={handleDocumentOpen(id)}
+                    variant="ghost"
+                    className={cn(
+                      'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-font-sans eb-text-sm eb-font-normal eb-shadow-md',
+                      {
+                        'eb-border-success eb-bg-success-accent hover:eb-bg-success-accent/80':
+                          termsDocumentsOpened[id],
+                      }
                     )}
-                    {query.data?.id &&
-                      loadingDocuments[query.data.id] &&
-                      t('reviewAndAttest.termsAndConditions.downloading')}
-                  </span>
-                </Button>
-                {query.data?.id && documentErrors[query.data.id] && (
-                  <div className="eb-ml-1 eb-text-sm eb-text-destructive">
-                    Failed to fetch document: {documentErrors[query.data.id]}
-                  </div>
-                )}
-              </div>
-            ))}
+                    disabled={query?.isLoading || loadingDocuments[id]}
+                  >
+                    <span className="eb-flex eb-items-center eb-gap-2">
+                      <FileIcon />
+                      <p className="eb-text-[#12647E] eb-underline">
+                        {query?.isLoading
+                          ? 'Loading...'
+                          : query?.data?.documentType}
+                      </p>
+                      <ExternalLinkIcon className="eb-text-[#12647E]" />
+                    </span>
+                    <span>
+                      {termsDocumentsOpened[id] && (
+                        <CheckCircleIcon className="eb-text-success" />
+                      )}
+                      {loadingDocuments[id] &&
+                        t('reviewAndAttest.termsAndConditions.downloading')}
+                    </span>
+                  </Button>
+                  {query?.data?.id && documentErrors[query?.data.id] && (
+                    <div className="eb-ml-1 eb-text-sm eb-text-destructive">
+                      Failed to download document: {documentErrors[id]}
+                    </div>
+                  )}
+                  {!query && documentErrors[id] && (
+                    <div className="eb-ml-1 eb-text-sm eb-text-destructive">
+                      Failed to fetch document details: {documentErrors[id]}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="eb-space-y-1">
             <p className="eb-text-sm eb-font-medium">Document attestation</p>
