@@ -309,11 +309,11 @@ export const OnboardingNextPageV2 = () => {
             title="Onboarding Wizard"
             initialClientId={clientIdFromParams ?? scenario?.clientId}
             initialStep={initialStep - 1}
-            onPostClientSettled={(response, error) => {
+            onPostClientResponse={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
             }}
-            onPostClientVerificationsSettled={(response, error) => {
+            onPostClientVerificationsResponse={(response, error) => {
               console.log('@@clientId GET', response, error);
               if (error) setError(error.title);
             }}
