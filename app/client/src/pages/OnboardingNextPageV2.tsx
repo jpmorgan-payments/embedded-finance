@@ -277,11 +277,11 @@ export const OnboardingNextPageV2 = () => {
             }
             title="Onboarding Wizard"
             initialClientId={clientIdFromParams ?? scenario?.clientId}
-            onPostClientResponse={(response, error) => {
+            onPostClientSettled={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
             }}
-            onPostClientVerificationsResponse={(response, error) => {
+            onPostClientVerificationsSettled={(response, error) => {
               console.log('@@clientId GET', response, error);
               if (error) setError(error.title);
             }}
@@ -309,11 +309,11 @@ export const OnboardingNextPageV2 = () => {
             title="Onboarding Wizard"
             initialClientId={clientIdFromParams ?? scenario?.clientId}
             initialStep={initialStep - 1}
-            onPostClientResponse={(response, error) => {
+            onPostClientSettled={(response, error) => {
               console.log('@@clientId POST', response, error);
               if (error) setError(error.title);
             }}
-            onPostClientVerificationsResponse={(response, error) => {
+            onPostClientVerificationsSettled={(response, error) => {
               console.log('@@clientId GET', response, error);
               if (error) setError(error.title);
             }}
