@@ -201,82 +201,90 @@ export const useSellSenseThemes = () => {
         };
 
       case 'Create Commerce':
-        // Create Commerce theme with v0.6.15 design tokens (matching useThemes.ts)
+        // Create Commerce theme with aligned color palette
         return {
+          // Typography
           fontFamily: 'Open Sans',
           headerFontFamily: 'Open Sans',
           buttonFontFamily: 'Open Sans',
 
           // Create Commerce brand colors
           primaryColor: '#FD8172',
-          primaryHoverColor: '#fd6b5a',
-          primaryActiveColor: '#fc5441',
-          primaryForegroundColor: '#ffffff', // Changed to white for better contrast
+          primaryHoverColor: '#fd6b5a', // Calculated hover state
+          primaryActiveColor: '#fc5441', // Calculated active state
+          primaryForegroundColor: '#EDEFF7', // Updated to match spec
+          primaryForegroundHoverColor: '#EDEFF7', // Added to match spec
+          primaryForegroundActiveColor: '#EDEFF7', // Consistent with hover
 
-          // Secondary styling with improved contrast
-          secondaryColor: '#4A5568', // Improved secondary background
-          secondaryHoverColor: '#2D3748', // Darker hover for better contrast
-          secondaryActiveColor: '#2CB9AC', // Keeping the accent color
-          secondaryForegroundColor: '#E2E8F0', // Light text for dark backgrounds
-          secondaryForegroundHoverColor: '#F7FAFC', // Even lighter on hover
-          secondaryForegroundActiveColor: '#2CB9AC',
-          secondaryBorderWidth: '1px',
+          // Secondary styling aligned with spec
+          secondaryColor: '#EDEFF7', // Updated to match spec
+          secondaryHoverColor: '#d5d9e9', // Calculated hover (slightly darker)
+          secondaryActiveColor: '#2CB9AC', // Kept as specified
+          secondaryForegroundColor: '#3D5C6B', // Updated to match spec
+          secondaryForegroundHoverColor: '#3D5C6B', // Updated to match spec
+          secondaryForegroundActiveColor: '#2CB9AC', // Keeping accent color consistent
+          secondaryBorderWidth: '1px', // Keeping as specified
 
-          // Background and layout (improved dark theme)
-          backgroundColor: '#2D3748', // Lighter dark background for better readability
-          foregroundColor: '#F7FAFC', // Very light text for maximum contrast
-          cardColor: '#4A5568', // Card background with good contrast
-          cardForegroundColor: '#F7FAFC', // Light text on cards
+          // Background and layout (updated to teal palette)
+          backgroundColor: '#3D5C6B', // Updated to match spec
+          foregroundColor: '#EDEFF7', // Updated to match spec
+          cardColor: '#3D5C6B', // Updated to match spec
+          cardForegroundColor: '#EDEFF7', // Updated to match spec
+          
+          // Added popover styling from spec
+          popoverColor: '#38474E', 
+          popoverForegroundColor: '#EDEFF7',
 
-          // Muted and accent colors with better contrast
-          mutedColor: '#4A5568', // Consistent with card color
-          mutedForegroundColor: '#CBD5E0', // Better contrast for muted text
-          accentColor: '#4A5568',
-          accentForegroundColor: '#F7FAFC',
+          // Muted and accent colors updated
+          mutedColor: '#38474E', // Using accent color for muted background
+          mutedForegroundColor: '#98A2CD', // Updated to match spec
+          accentColor: '#38474E', // Updated to match spec
+          accentForegroundColor: '#EDEFF7', // Updated to match spec
 
-          // Enhanced alert system colors for dark theme (v0.6.15)
-          alertColor: '#4A5568', // Dark theme alert background
-          alertForegroundColor: '#F7FAFC',
-          informativeColor: '#60A5FA', // Lighter blue for dark theme
-          informativeAccentColor: '#1E3A8A', // Dark blue background
-          warningColor: '#FBBF24', // Lighter yellow for dark theme
-          warningAccentColor: '#92400E', // Dark yellow background
-          successColor: '#34D399', // Lighter green for dark theme
-          successAccentColor: '#065F46', // Dark green background
+          // Alert system colors (keeping enhanced system with new palette)
+          alertColor: '#38474E', // Using accent color for alerts
+          alertForegroundColor: '#0F171F', // Updated to match spec
+          informativeColor: '#60A5FA', // Keeping blue for information
+          informativeAccentColor: '#B3C9CC', // Using accent color for backgrounds
+          warningColor: '#FBBF24', // Keeping amber for warnings
+          warningAccentColor: '#38474E', // Using accent color for backgrounds
+          successColor: '#34D399', // Keeping green for success
+          successAccentColor: '#38474E', // Using accent color for backgrounds
 
-          // Input styling with improved visibility
-          inputColor: '#4A5568', // Dark but readable input background
-          inputBorderColor: '#718096', // Visible border
-          borderColor: '#718096', // Consistent border color
+          // Form and input styling
+          formLabelForegroundColor: '#EDEFF7', // Added from spec
+          inputColor: '#38474E', // Updated to match spec
+          inputBorderColor: '#0000004D', // Using borderColor from spec
+          borderColor: '#0000004D', // Updated to match spec
 
-          // Enhanced destructive colors for dark theme
-          destructiveColor: '#FC8181', // Lighter red for dark backgrounds
+          // Destructive colors (keeping with adjustments for new palette)
+          destructiveColor: '#FC8181', 
           destructiveHoverColor: '#F56565',
           destructiveActiveColor: '#E53E3E',
-          destructiveForegroundColor: '#ffffff',
-          destructiveForegroundHoverColor: '#2D3748',
-          destructiveForegroundActiveColor: '#1A202C',
+          destructiveForegroundColor: '#EDEFF7', // Updated to match theme
+          destructiveForegroundHoverColor: '#EDEFF7', // Updated to match theme
+          destructiveForegroundActiveColor: '#EDEFF7', // Updated to match theme
 
           // Border radius
-          borderRadius: '8px',
-          inputBorderRadius: '4px',
-          buttonBorderRadius: '8px',
+          borderRadius: '8px', // Already matches spec
+          inputBorderRadius: '4px', // Already matches spec
+          buttonBorderRadius: '8px', // Already matches spec
 
-          // Enhanced button styling
+          // Button styling
           buttonFontWeight: '600',
           buttonFontSize: '0.875rem',
           buttonLineHeight: '1.25rem',
-          buttonTextTransform: 'uppercase',
-          buttonLetterSpacing: '0.6px',
+          buttonTextTransform: 'uppercase', // Already matches spec
+          buttonLetterSpacing: '0.6px', // Already matches spec
 
           // Button weights
           primaryButtonFontWeight: '600',
           secondaryButtonFontWeight: '600',
           destructiveButtonFontWeight: '600',
 
-          // New v0.6.15 form label design tokens - Dark theme optimized
+          // Form label design tokens
           formLabelFontSize: '0.875rem',
-          formLabelFontWeight: '500', // Medium weight for dark theme readability
+          formLabelFontWeight: '500',
           formLabelLineHeight: '1.25rem',
 
           // Border widths

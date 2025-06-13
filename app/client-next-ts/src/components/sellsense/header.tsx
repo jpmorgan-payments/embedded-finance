@@ -39,12 +39,13 @@ export function Header({
     >
       {/* Logo */}
       <div className="flex items-center">
-        <img
-          src="/sellSense.svg"
-          alt="SellSense Logo"
-          className="h-7"
-          style={{ width: '184px' }}
-        />
+        {themeStyles.getLogoPath() && (
+          <img
+            src={themeStyles.getLogoPath()}
+            alt={themeStyles.getLogoAlt()}
+            className={themeStyles.getLogoStyles()}
+          />
+        )}
       </div>
 
       {/* Right side controls */}
@@ -99,7 +100,7 @@ export function Header({
               onValueChange={(value) => setTheme(value as ThemeOption)}
             >
               <SelectTrigger
-                className={`w-[140px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
+                className={`w-[190px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
               >
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
