@@ -217,6 +217,7 @@ const renderComponent = (
     ...mockOnboardingContext,
     clientData: client,
     ...onboardingContextOverride,
+    documentRequests,
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
     organizationType: 'LIMITED_LIABILITY_COMPANY',
