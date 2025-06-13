@@ -305,44 +305,49 @@ export const OverviewScreen = () => {
                           )}
                         </ul>
                       )}
-                      <Button
-                        variant={
-                          ['completed', 'on_hold'].includes(sectionStatus)
-                            ? 'secondary'
-                            : 'default'
-                        }
-                        size="sm"
-                        className={cn('eb-mt-3 eb-w-full', {
-                          'eb-hidden': sectionStatus === 'completed_disabled',
-                        })}
-                        disabled={sectionDisabled}
-                        onClick={() => {
-                          goTo(section.id, {
-                            editingPartyId: existingPartyData.id,
-                            previouslyCompleted: sectionStatus === 'completed',
-                            initialStepperStepId: firstInvalidStep,
-                          });
-                        }}
-                      >
-                        {['on_hold', 'not_started'].includes(sectionStatus) && (
-                          <>
-                            {t('common:start')}
-                            <ChevronRightIcon />
-                          </>
-                        )}
-                        {sectionStatus === 'completed' && (
-                          <>
-                            {t('common:edit')}
-                            <PencilIcon />
-                          </>
-                        )}
-                        {sectionStatus === 'missing_details' && (
-                          <>
-                            {t('common:continue')}
-                            <ChevronRightIcon />
-                          </>
-                        )}
-                      </Button>
+                      <div className="eb-flex eb-justify-end">
+                        <Button
+                          variant={
+                            ['completed', 'on_hold'].includes(sectionStatus)
+                              ? 'secondary'
+                              : 'default'
+                          }
+                          size="sm"
+                          className={cn('eb-mt-3', {
+                            'eb-hidden': sectionStatus === 'completed_disabled',
+                          })}
+                          disabled={sectionDisabled}
+                          onClick={() => {
+                            goTo(section.id, {
+                              editingPartyId: existingPartyData.id,
+                              previouslyCompleted:
+                                sectionStatus === 'completed',
+                              initialStepperStepId: firstInvalidStep,
+                            });
+                          }}
+                        >
+                          {['on_hold', 'not_started'].includes(
+                            sectionStatus
+                          ) && (
+                            <>
+                              {t('common:start')}
+                              <ChevronRightIcon />
+                            </>
+                          )}
+                          {sectionStatus === 'completed' && (
+                            <>
+                              {t('common:edit')}
+                              <PencilIcon />
+                            </>
+                          )}
+                          {sectionStatus === 'missing_details' && (
+                            <>
+                              {t('common:continue')}
+                              <ChevronRightIcon />
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </Card>
                   </div>
                 );
