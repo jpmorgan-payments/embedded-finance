@@ -50,7 +50,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData, onPostClientResponse } = useOnboardingOverviewContext();
+  const { clientData, onPostClientSettled } = useOnboardingOverviewContext();
   const { updateSessionData } = useFlowContext();
 
   const { t } = useTranslation('onboarding');
@@ -177,7 +177,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             },
             {
               onSettled: (data, error) => {
-                onPostClientResponse?.(data, error?.response?.data);
+                onPostClientSettled?.(data, error?.response?.data);
               },
             }
           );

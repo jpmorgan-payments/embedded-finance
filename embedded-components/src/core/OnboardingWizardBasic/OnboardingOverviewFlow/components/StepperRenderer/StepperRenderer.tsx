@@ -330,7 +330,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   prevButtonDisabled = false,
 }) => {
   const queryClient = useQueryClient();
-  const { clientData, onPostClientResponse, onPostPartyResponse } =
+  const { clientData, onPostClientSettled, onPostPartySettled } =
     useOnboardingOverviewContext();
 
   const formValuesFromResponse = existingPartyData
@@ -389,7 +389,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
           },
           {
             onSettled: (data, error) => {
-              onPostPartyResponse?.(data, error?.response?.data);
+              onPostPartySettled?.(data, error?.response?.data);
             },
             onSuccess: (response) => {
               const queryKey = getSmbdoGetClientQueryKey(clientData.id);
@@ -441,7 +441,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
           },
           {
             onSettled: (data, error) => {
-              onPostClientResponse?.(data, error?.response?.data);
+              onPostClientSettled?.(data, error?.response?.data);
             },
             onSuccess(response) {
               // Find the newly-created party

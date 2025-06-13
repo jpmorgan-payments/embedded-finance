@@ -22,21 +22,21 @@ const meta: Meta<OnboardingFlowWithProviderProps> = {
     },
   },
   args: {
-    onPostClientResponse: (data, error) => {
+    onPostClientSettled: (data, error) => {
       if (data) {
         console.log('@@POST client response data', data);
       } else if (error) {
         console.log('@@POST client response error', error);
       }
     },
-    onPostPartyResponse(response, error) {
+    onPostPartySettled(response, error) {
       if (response) {
         console.log('@@POST party response data', response);
       } else if (error) {
         console.log('@@POST party response error', error);
       }
     },
-    onPostClientVerificationsResponse: (data, error) => {
+    onPostClientVerificationsSettled: (data, error) => {
       if (data) {
         console.log('@@POST verifications response data', data);
       } else if (error) {
@@ -45,9 +45,9 @@ const meta: Meta<OnboardingFlowWithProviderProps> = {
     },
   },
   argTypes: {
-    onPostClientResponse: { table: { disable: true } },
-    onPostPartyResponse: { table: { disable: true } },
-    onPostClientVerificationsResponse: { table: { disable: true } },
+    onPostClientSettled: { table: { disable: true } },
+    onPostPartySettled: { table: { disable: true } },
+    onPostClientVerificationsSettled: { table: { disable: true } },
     availableProducts: {
       control: {
         type: 'check',

@@ -45,7 +45,7 @@ import { ownerSteps } from './ownerSteps';
 export const OwnersSectionScreen = () => {
   const {
     clientData,
-    onPostPartyResponse,
+    onPostPartySettled: onPostPartyResponse,
     organizationType,
     documentRequests,
   } = useOnboardingOverviewContext();

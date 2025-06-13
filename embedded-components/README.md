@@ -55,12 +55,13 @@ graph LR
    - Connect to parent app's monitoring via `userEventsHandler`
 
 2. **Component Configuration**
+
    - Configure API endpoints via provider
    - Customize component behavior through props
 
 3. **Client ID / Platform ID** (only for onboarding components)
    - Onboarding Embedded UI Components can be used in fully controlled (client ID is provided and managed by the parent app) or uncontrolled (client ID is created from scratch by the embedded component) mode
-   - In uncontrolled mode the embedded component will create a new client and it is recommended to manage its lifecycle via the `onPostClientResponse` callback prop
+   - In uncontrolled mode the embedded component will create a new client and it is recommended to manage its lifecycle via the `onPostClientSettled` callback prop
 
 #### Future Extensibility
 
@@ -197,25 +198,26 @@ The `OnboardingWizardBasic` component implements the client onboarding process a
 
 #### Props:
 
-| Prop Name                           | Type                                                                | Required | Description                                        |
-| ----------------------------------- | ------------------------------------------------------------------- | -------- | -------------------------------------------------- |
-| `initialClientId`                   | `string`                                                            | No       | Initial client ID for existing client onboarding   |
-| `onSetClientId`                     | `(clientId: string) => Promise<void>`                               | No       | Callback function when client ID is set            |
-| `onPostClientResponse`              | `(response?: ClientResponse, error?: ApiError) => void`             | No       | Callback function for client creation response     |
-| `onPostPartyResponse`               | `(response?: PartyResponse, error?: ApiError) => void`              | No       | Callback function for party creation response      |
-| `onPostClientVerificationsResponse` | `(response?: ClientVerificationResponse, error?: ApiError) => void` | No       | Callback function for client verification response |
-| `availableProducts`                 | `Array<ClientProduct>`                                              | Yes      | List of available products for onboarding          |
-| `availableJurisdictions`            | `Array<Jurisdiction>`                                               | Yes      | List of available jurisdictions for onboarding     |
-| `availableOrganizationTypes`        | `Array<OrganizationType>`                                           | No       | List of available organization types               |
-| `usePartyResource`                  | `boolean`                                                           | No       | Whether to use party resource for onboarding       |
-| `blockPostVerification`             | `boolean`                                                           | No       | Whether to block post-verification steps           |
-| `showLinkedAccountPanel`            | `boolean`                                                           | No       | Whether to show linked account panel               |
-| `initialStep`                       | `number`                                                            | No       | Initial step to start onboarding from              |
-| `variant`                           | `'circle' \| 'circle-alt' \| 'line'`                                | No       | Visual variant of the stepper component            |
-| `onboardingContentTokens`           | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`        | No       | Custom content tokens for onboarding               |
-| `alertOnExit`                       | `boolean`                                                           | No       | Whether to show alert when exiting onboarding      |
-| `userEventsToTrack`                 | `string[]`                                                          | No       | List of user events to track                       |
-| `userEventsHandler`                 | `({ actionName }: { actionName: string }) => void`                  | No       | Handler for user events                            |
+| Prop Name                          | Type                                                                                                                                      | Required | Description                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `initialClientId`                  | `string`                                                                                                                                  | No       | Initial client ID for existing client onboarding        |
+| `onSetClientId`                    | `(clientId: string) => Promise<void>`                                                                                                     | No       | Callback function when client ID is set                 |
+| `onGetClient`                      | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched |
+| `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response          |
+| `onPostPartySettled`               | `(response?: PartyResponse, error?: ApiError) => void`                                                                                    | No       | Callback function for party creation response           |
+| `onPostClientVerificationsSettled` | `(response?: ClientVerificationResponse, error?: ApiError) => void`                                                                       | No       | Callback function for client verification response      |
+| `availableProducts`                | `Array<ClientProduct>`                                                                                                                    | Yes      | List of available products for onboarding               |
+| `availableJurisdictions`           | `Array<Jurisdiction>`                                                                                                                     | Yes      | List of available jurisdictions for onboarding          |
+| `availableOrganizationTypes`       | `Array<OrganizationType>`                                                                                                                 | No       | List of available organization types                    |
+| `usePartyResource`                 | `boolean`                                                                                                                                 | No       | Whether to use party resource for onboarding            |
+| `blockPostVerification`            | `boolean`                                                                                                                                 | No       | Whether to block post-verification steps                |
+| `showLinkedAccountPanel`           | `boolean`                                                                                                                                 | No       | Whether to show linked account panel                    |
+| `initialStep`                      | `number`                                                                                                                                  | No       | Initial step to start onboarding from                   |
+| `variant`                          | `'circle' \| 'circle-alt' \| 'line'`                                                                                                      | No       | Visual variant of the stepper component                 |
+| `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
+| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Whether to show alert when exiting onboarding           |
+| `userEventsToTrack`                | `string[]`                                                                                                                                | No       | List of user events to track                            |
+| `userEventsHandler`                | `({ actionName }: { actionName: string }) => void`                                                                                        | No       | Handler for user events                                 |
 
 #### Usage:
 
@@ -242,8 +244,8 @@ const OnboardingSection = () => {
       <OnboardingWizardBasic
         title="Client Onboarding"
         initialClientId={clientId}
-        onPostClientResponse={handlePostClientResponse}
-        onPostClientVerificationResponse={handlePostClientVerificationsResponse}
+        onPostClientSettled={handlePostClientResponse}
+        onPostClientVerificationSettled={handlePostClientVerificationsResponse}
         availableProducts={['EMBEDDED_PAYMENTS']}
         availableJurisdictions={['US']}
         variant="circle-alt"

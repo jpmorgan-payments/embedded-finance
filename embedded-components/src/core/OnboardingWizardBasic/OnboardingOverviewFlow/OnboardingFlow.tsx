@@ -36,6 +36,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   userEventsToTrack = [],
   userEventsHandler,
   height,
+  onGetClient,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
@@ -52,6 +53,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       refetchOnWindowFocus: false, // Avoid refetching on window focus
     },
   });
+
+  // Call onGetClient callback if provided
+  useEffect(() => {
+    if (onGetClient) {
+      onGetClient(clientData, clientGetStatus, clientGetError);
+    }
+  }, [clientData, clientGetStatus, clientGetError, onGetClient]);
 
   const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests({
     clientId,
