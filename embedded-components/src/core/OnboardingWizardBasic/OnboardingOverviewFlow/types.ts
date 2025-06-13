@@ -1,6 +1,7 @@
 import { defaultResources } from '@/i18n/config';
 import { DeepPartial } from 'react-hook-form';
 
+import { ErrorType } from '@/api/axios-instance';
 import {
   ApiError,
   ClientProduct,
@@ -8,6 +9,7 @@ import {
   ClientVerificationResponse,
   OrganizationType,
   PartyResponse,
+  SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
 
 import { Jurisdiction } from '../utils/types';
@@ -24,9 +26,14 @@ export type OnboardingConfigDefault = {
 };
 
 export type OnboardingConfigUsedInContext = {
-  onPostClientResponse?: (response?: ClientResponse, error?: ApiError) => void;
-  onPostPartyResponse?: (response?: PartyResponse, error?: ApiError) => void;
-  onPostClientVerificationsResponse?: (
+  onGetClient?: (
+    clientData: ClientResponse | undefined,
+    status: 'success' | 'pending' | 'error',
+    error: ErrorType<SchemasApiError> | null
+  ) => void;
+  onPostClientSettled?: (response?: ClientResponse, error?: ApiError) => void;
+  onPostPartySettled?: (response?: PartyResponse, error?: ApiError) => void;
+  onPostClientVerificationsSettled?: (
     response?: ClientVerificationResponse,
     error?: ApiError
   ) => void;

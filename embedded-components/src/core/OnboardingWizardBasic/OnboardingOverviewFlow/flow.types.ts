@@ -1,7 +1,11 @@
 import { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
 
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  DocumentRequestResponse,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
 
 type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any>>>;
 
@@ -74,7 +78,8 @@ export type SectionScreenConfig = BaseScreenConfig & {
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
       allStepsValid: boolean,
-      stepValidationMap: StepValidationMap
+      stepValidationMap: StepValidationMap,
+      documentRequests: DocumentRequestResponse[] | undefined
     ) => SectionStatus;
   };
 };
@@ -125,6 +130,7 @@ export type SectionStatus =
   | 'not_started'
   | 'verifying'
   | 'completed'
+  | 'completed_disabled'
   | 'missing_details'
   | 'on_hold'
   | 'hidden';

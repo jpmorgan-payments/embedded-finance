@@ -65,8 +65,8 @@ export const GatewayScreen = () => {
   const {
     clientData,
     setClientId,
-    onPostClientResponse,
-    onPostPartyResponse,
+    onPostClientSettled,
+    onPostPartySettled,
     availableOrganizationTypes,
   } = useOnboardingOverviewContext();
   const { goTo, sessionData, updateSessionData } = useFlowContext();
@@ -145,7 +145,7 @@ export const GatewayScreen = () => {
         },
         {
           onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
+            onPostClientSettled?.(data, error?.response?.data);
           },
           onSuccess: (response) => {
             setClientId(response.id);
@@ -188,7 +188,7 @@ export const GatewayScreen = () => {
         { partyId: existingOrgParty.id, data: partyRequestBody },
         {
           onSettled: (data, error) => {
-            onPostPartyResponse?.(data, error?.response?.data);
+            onPostPartySettled?.(data, error?.response?.data);
           },
           onSuccess: (response) => {
             // Update the client data in the cache while it fetches the new data
@@ -234,7 +234,7 @@ export const GatewayScreen = () => {
         { id: clientData.id, data: clientRequestBody },
         {
           onSettled: (data, error) => {
-            onPostClientResponse?.(data, error?.response?.data);
+            onPostClientSettled?.(data, error?.response?.data);
           },
           onSuccess: () => {
             handleNext();

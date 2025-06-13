@@ -9,7 +9,7 @@ import {
 } from '../flow.types';
 
 type EditingPartyIds = {
-  [screenId: string]: string | null;
+  [screenId: string]: string | undefined;
 };
 type PreviouslyCompletedScreens = {
   [screenId: string]: boolean;
@@ -30,7 +30,10 @@ const FlowContext = createContext<{
   goTo: (id: ScreenId, config?: GoToConfig) => void;
   goBack: (config?: GoToConfig) => void;
   editingPartyIds: EditingPartyIds;
-  updateEditingPartyId: (screenId: ScreenId, partyId: string | null) => void;
+  updateEditingPartyId: (
+    screenId: ScreenId,
+    partyId: string | undefined
+  ) => void;
   sections: SectionScreenConfig[];
   sessionData: FlowSessionData;
   updateSessionData: (updates: Partial<FlowSessionData>) => void;
@@ -88,7 +91,7 @@ export const FlowProvider: React.FC<{
   const goTo = (id: ScreenId, config?: GoToConfig) => {
     setEditingPartyIds((prev) => ({
       ...prev,
-      [id]: config?.editingPartyId ?? null,
+      [id]: config?.editingPartyId,
     }));
     setPreviouslyCompletedScreens((prev) => ({
       ...prev,
@@ -111,7 +114,10 @@ export const FlowProvider: React.FC<{
     setSessionData((prev) => ({ ...prev, ...updates }));
   };
 
-  const updateEditingPartyId = (screenId: ScreenId, partyId: string | null) => {
+  const updateEditingPartyId = (
+    screenId: ScreenId,
+    partyId: string | undefined
+  ) => {
     setEditingPartyIds((prev) => ({
       ...prev,
       [screenId]: partyId,
