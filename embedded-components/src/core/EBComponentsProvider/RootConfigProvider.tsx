@@ -16,7 +16,7 @@ export interface RootConfig {
     clientId,
     clientResponse,
   }: onRegistrationProp) => void;
-  onGetClientsConfirmation: ({
+  onGetClientSettledSettledsConfirmation: ({
     clientId,
     clientResponse,
   }: onRegistrationProp) => void;

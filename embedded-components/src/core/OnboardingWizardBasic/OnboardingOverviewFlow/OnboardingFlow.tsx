@@ -36,7 +36,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   userEventsToTrack = [],
   userEventsHandler,
   height,
-  onGetClient,
+  onGetClientSettledSettled,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
@@ -54,12 +54,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     },
   });
 
-  // Call onGetClient callback if provided
+  // Call onGetClientSettledSettled callback if provided
   useEffect(() => {
-    if (onGetClient) {
-      onGetClient(clientData, clientGetStatus, clientGetError);
+    if (onGetClientSettledSettled) {
+      onGetClientSettledSettled(clientData, clientGetStatus, clientGetError);
     }
-  }, [clientData, clientGetStatus, clientGetError, onGetClient]);
+  }, [clientData, clientGetStatus, clientGetError, onGetClientSettledSettled]);
 
   const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests({
     clientId,
