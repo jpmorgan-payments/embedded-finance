@@ -43,8 +43,12 @@ import { getFlowProgress, getStepperValidations } from '../../utils/flowUtils';
 import { ownerSteps } from './ownerSteps';
 
 export const OwnersSectionScreen = () => {
-  const { clientData, onPostPartyResponse, organizationType } =
-    useOnboardingOverviewContext();
+  const {
+    clientData,
+    onPostPartySettled: onPostPartyResponse,
+    organizationType,
+    documentRequests,
+  } = useOnboardingOverviewContext();
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
   const queryClient = useQueryClient();
 
@@ -68,7 +72,8 @@ export const OwnersSectionScreen = () => {
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
-    clientData
+    clientData,
+    documentRequests
   );
 
   const reviewMode = originScreenId === 'review-attest-section';
@@ -193,10 +198,21 @@ export const OwnersSectionScreen = () => {
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string | null) => {
     if (beneficialOwnerId) {
+      const firstInvalidStep = ownersValidation[beneficialOwnerId]
+        ? ownerSteps.find((step) => {
+            return (
+              ownersValidation[beneficialOwnerId].stepValidationMap[step.id] &&
+              !ownersValidation[beneficialOwnerId].stepValidationMap[step.id]
+                .isValid
+            );
+          })?.id
+        : undefined;
+
       goTo('owner-stepper', {
         editingPartyId: beneficialOwnerId,
         previouslyCompleted: ownersValidation[beneficialOwnerId].allStepsValid,
         shortLabelOverride: 'Edit owner',
+        initialStepperStepId: firstInvalidStep,
       });
     } else {
       goTo('owner-stepper', {

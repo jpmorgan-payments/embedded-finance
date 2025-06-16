@@ -47,7 +47,7 @@ export const OperationalDetailsForm = () => {
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingOverviewContext();
 
-  const { originScreenId, goBack, updateSessionData } = useFlowContext();
+  const { originScreenId, goTo, updateSessionData } = useFlowContext();
 
   const reviewMode = originScreenId === 'review-attest-section';
 
@@ -137,11 +137,11 @@ export const OperationalDetailsForm = () => {
         queryClient.setQueryData(queryKey, response);
 
         if (reviewMode) {
-          goBack({
+          goTo('review-attest-section', {
             reviewScreenOpenedSectionId: 'additional-questions-section',
           });
         } else {
-          goBack();
+          goTo('overview');
           updateSessionData({
             mockedVerifyingSectionId: 'additional-questions-section',
           });

@@ -55,7 +55,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData } = useOnboardingOverviewContext();
+  const { clientData, documentRequests } = useOnboardingOverviewContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
   const { sections, goTo, sessionData, reviewScreenOpenedSectionId } =
@@ -78,7 +78,8 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
-    clientData
+    clientData,
+    documentRequests
   );
 
   // Get outstanding question IDs and existing question responses

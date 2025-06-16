@@ -187,11 +187,9 @@ export function KycOnboarding({
     >
       <OnboardingFlow
         initialClientId={clientId}
-        onPostClientResponse={handlePostClientResponse}
-        onPostPartyResponse={handlePostPartyResponse}
-        onPostClientVerificationsResponse={
-          handlePostClientVerificationsResponse
-        }
+        onPostClientSettled={handlePostClientResponse}
+        onPostPartySettled={handlePostPartyResponse}
+        onPostClientVerificationsSettled={handlePostClientVerificationsResponse}
         availableProducts={['EMBEDDED_PAYMENTS']}
         availableJurisdictions={['US']}
         availableOrganizationTypes={[

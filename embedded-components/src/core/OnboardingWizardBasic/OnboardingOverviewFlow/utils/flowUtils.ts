@@ -1,4 +1,8 @@
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  DocumentRequestResponse,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
 
 import {
   convertPartyResponseToFormValues,
@@ -20,7 +24,8 @@ import {
 export function getFlowProgress(
   sections: SectionScreenConfig[],
   sessionData: FlowSessionData,
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  documentRequests: DocumentRequestResponse[] | undefined
 ): FlowProgress {
   const sectionStatuses: Partial<FlowProgress['sectionStatuses']> = {};
   const stepValidations: Partial<FlowProgress['stepValidations']> = {};
@@ -54,7 +59,8 @@ export function getFlowProgress(
         sessionData,
         clientData,
         allStepsValid,
-        stepValidations[section.id] || {}
+        stepValidations[section.id] || {},
+        documentRequests
       );
     } else if (allStepsValid) {
       status = 'completed';
