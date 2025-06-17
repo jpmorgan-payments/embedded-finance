@@ -313,6 +313,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Default Blue':
         case 'S&P Theme':
         case 'Create Commerce':
+          return '/CreateCommerceLogo.svg'
         case 'SellSense':
         default:
           return '/sellSense.svg'; // SellSense logo for all other themes
@@ -328,6 +329,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Default Blue':
         case 'S&P Theme':
         case 'Create Commerce':
+          return 'Create Commerce Logo'; // Create Commerce alt text
         case 'SellSense':
         default:
           return 'SellSense Logo'; // SellSense alt text for all other themes
@@ -343,6 +345,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Default Blue':
         case 'S&P Theme':
         case 'Create Commerce':
+          return 'h-9 w-auto max-w-[250px]'
         case 'SellSense':
         default:
           return 'h-8 w-auto max-w-[150px] object-contain'; // Consistent responsive sizing for SellSense logo
