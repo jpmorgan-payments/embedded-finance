@@ -31,7 +31,7 @@ import {
   Card,
   Form,
   FormControl,
-  FormDescription,
+  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -60,10 +60,6 @@ export const ACCEPTED_FILE_TYPES = {
   'application/pdf': ['.pdf'],
   'image/jpeg': ['.jpeg', '.jpg'],
   'image/png': ['.png'],
-  'image/gif': ['.gif'],
-  'image/bmp': ['.bmp'],
-  'image/tiff': ['.tiff', '.tif'],
-  'image/webp': ['.webp'],
 };
 
 // Helper function to format document request descriptions
@@ -1018,10 +1014,10 @@ export const DocumentUploadForm = () => {
                                               },
                                             }) => {
                                               // Get the selected document type
-                                              const selectedDocType =
-                                                form.watch(
-                                                  `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
-                                                );
+                                              // const selectedDocType =
+                                              //   form.watch(
+                                              //     `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
+                                              //   );
 
                                               return (
                                                 <FormItem className="eb-space-y-2">
@@ -1040,13 +1036,13 @@ export const DocumentUploadForm = () => {
                                                       </span>
                                                     )}
                                                   </FormLabel>
-                                                  {selectedDocType && (
+                                                  {/* {selectedDocType && (
                                                     <FormDescription className="eb-text-xs eb-text-gray-500">
                                                       {DOCUMENT_TYPE_MAPPING[
                                                         selectedDocType as DocumentTypeSmbdo
                                                       ]?.description || ''}
                                                     </FormDescription>
-                                                  )}
+                                                  )} */}
                                                   <FormControl>
                                                     <Dropzone
                                                       containerClassName="eb-max-w-full"
