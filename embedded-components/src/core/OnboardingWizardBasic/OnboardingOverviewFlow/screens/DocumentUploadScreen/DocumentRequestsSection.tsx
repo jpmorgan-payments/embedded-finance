@@ -38,8 +38,6 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
 }) => {
   if (!clientData?.parties) return null;
 
-  console.log(documentRequests, clientData);
-
   return (
     <div className="eb-space-y-3">
       <h2 className="eb-font-header eb-text-2xl eb-font-medium">{title}</h2>

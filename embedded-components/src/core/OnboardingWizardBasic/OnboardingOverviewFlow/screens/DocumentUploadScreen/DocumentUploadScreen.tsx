@@ -3,6 +3,7 @@ import { FC } from 'react';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui';
 import { FormLoadingState } from '@/core/OnboardingWizardBasic/FormLoadingState/FormLoadingState';
 
 import { StepLayout } from '../../components/StepLayout/StepLayout';
@@ -48,7 +49,7 @@ export const DocumentUploadScreen: FC = () => {
     // Show loading state when requests are pending
     // @ts-ignore - Status can be 'pending'
     if (documentRequestGetListStatus === 'pending') {
-      return <FormLoadingState message="Loading document requests" />;
+      return <Skeleton className="eb-h-96 eb-w-full" />;
     }
 
     // Check for status messages that should be displayed

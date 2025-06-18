@@ -1,178 +1,32 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueries, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowRight,
-  CheckCircle,
-  CircleDashed,
-  InfoIcon,
-  RefreshCw,
-} from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
-import { compressImage } from '@/lib/utils';
 import {
-  smbdoGetDocumentRequest,
+  useSmbdoListDocumentRequests,
   useSmbdoSubmitDocumentRequest,
   useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
 import {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
-  // PostUploadDocument,
 } from '@/api/generated/smbdo.schemas';
-import { AlertDescription } from '@/components/ui/alert';
-import Dropzone from '@/components/ui/dropzone';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  Form,
-  FormControl,
-  // FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui';
+import { Badge, Button, Form } from '@/components/ui';
 import { ServerErrorAlert } from '@/core/OnboardingWizardBasic/ServerErrorAlert/ServerErrorAlert';
 
 import { FormLoadingState } from '../../../FormLoadingState/FormLoadingState';
-import { DOCUMENT_TYPE_MAPPING } from '../../../utils/documentTypeMapping';
 import { StepLayout } from '../../components/StepLayout/StepLayout';
 import { useFlowContext } from '../../context/FlowContext';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { getPartyName } from '../../utils/dataUtils';
+import { DocumentRequestCard } from './DocumentRequestCard';
+import { UploadedDocument } from './documentUploadUtils';
 
-interface UploadedDocument {
-  documentType: DocumentTypeSmbdo;
-  files: File[];
-}
-
-export const ACCEPTED_FILE_TYPES = {
-  'application/pdf': ['.pdf'],
-  'image/jpeg': ['.jpeg', '.jpg'],
-  'image/png': ['.png'],
-};
-
-export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 2MB
-
-// Helper function to format document request descriptions
-const formatDocumentDescription = (description?: string) => {
-  if (!description) return null;
-
-  // First split by newlines to get main sections
-  return description.split('\n').map((section, sectionIndex) => {
-    // Check if this section starts with a number (like "1. Formation Document")
-    const isNumberedSection = /^\d+\./.test(section.trim());
-
-    // Check if this section has OR conditions
-    if (section.includes('[OR]')) {
-      // Split by "Acceptable documents are" if present
-      let parts = section.split('Acceptable documents are');
-
-      if (parts.length === 2) {
-        // Handle the case with "Acceptable documents are" text
-        const [mainText, documentsList] = parts;
-
-        // Process the documents list by replacing [OR] with bullet points and removing [AND]
-        const documents = documentsList
-          .split(/\[AND\]|\[OR\]/g) // Split by [OR] or [AND]
-          .map((doc) => doc.trim()) // Trim whitespace
-          .filter((doc) => doc); // Filter empty items
-
-        return (
-          <div key={`section-${sectionIndex}`} className="eb-mb-2">
-            <p
-              className={`eb-text-sm ${isNumberedSection ? 'eb-font-medium' : ''}`}
-            >
-              {mainText}
-            </p>
-            <p className="eb-ml-4 eb-mt-1 eb-text-sm">
-              Acceptable documents are:
-            </p>
-            <ul className="eb-ml-12 eb-mt-1 eb-list-disc eb-text-sm">
-              {documents.map((doc, docIndex) => (
-                <li key={`doc-${docIndex}`} className="eb-mb-1">
-                  {doc}
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      }
-      // Process section with OR conditions but no "Acceptable documents are" text
-      // Replace [OR] with bullet points
-      parts = section
-        .split(/\[OR\]/g)
-        .map((part) => part.trim())
-        .filter((part) => part);
-
-      return (
-        <div key={`section-${sectionIndex}`} className="eb-mb-2">
-          <p
-            className={`eb-text-sm ${isNumberedSection ? 'eb-font-medium' : ''}`}
-          >
-            {parts[0]}
-          </p>
-          {parts.length > 1 && (
-            <>
-              <ul className="eb-ml-6 eb-list-disc eb-text-sm">
-                {parts.slice(1).map((part, partIndex) => (
-                  <li key={`part-${partIndex}`} className="eb-mb-1">
-                    {part}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      );
-    }
-    if (section.includes('[AND]')) {
-      // Handle [AND] sections - split and treat each part as a separate section with its own formatting
-      const parts = section
-        .split('[AND]')
-        .map((part) => part.trim())
-        .filter((part) => part);
-
-      return (
-        <div key={`section-${sectionIndex}`} className="eb-mb-2">
-          {parts.map((part, partIndex) => {
-            // Check if this part starts with a number (like "1. Formation Document")
-            const isPartNumbered = /^\d+\./.test(part.trim());
-
-            return (
-              <p
-                key={`and-part-${partIndex}`}
-                className={`eb-text-sm ${isPartNumbered || (isNumberedSection && partIndex === 0) ? 'eb-font-medium' : ''} ${partIndex > 0 ? 'eb-mt-2' : ''}`}
-              >
-                {part}
-              </p>
-            );
-          })}
-        </div>
-      );
-    }
-    // Simple text with no OR/AND conditions
-    return (
-      <p
-        key={`section-${sectionIndex}`}
-        className={`eb-mb-2 eb-text-sm ${isNumberedSection ? 'eb-font-medium' : ''}`}
-      >
-        {section}
-      </p>
-    );
-  });
-};
-
+/**
+ * Component for uploading documents for a specific party
+ */
 export const DocumentUploadForm = () => {
   const { clientData } = useOnboardingOverviewContext();
   const queryClient = useQueryClient();
@@ -236,30 +90,25 @@ export const DocumentUploadForm = () => {
       )
     : partiesDocumentRequests;
 
-  const documentRequestsQueries = useQueries({
-    queries: (filteredDocumentRequests ?? []).map((documentRequestId) => ({
-      queryKey: ['documentRequest', documentRequestId],
-      queryFn: () =>
-        documentRequestId && smbdoGetDocumentRequest(documentRequestId),
-    })),
-    combine: (results) => {
-      return {
-        data: results
-          .map((result) => result.data)
-          .filter(
-            (data): data is DocumentRequestResponse =>
-              !!data && data.status === 'ACTIVE'
-          ) as DocumentRequestResponse[],
-        pending: results.some((result) => result.isPending),
-      };
-    },
-  });
+  const { data: documentRequestList, status: documentRequestListStatus } =
+    useSmbdoListDocumentRequests({
+      clientId: clientData?.id,
+      // @ts-ignore - API expects this parameter
+      includeRelatedParty: true,
+    });
+
+  const activeDocumentRequests =
+    documentRequestList?.documentRequests?.filter(
+      (docRequest) =>
+        docRequest.status === 'ACTIVE' &&
+        filteredDocumentRequests.includes(docRequest.id)
+    ) || [];
 
   // Initialize active requirements when document requests are loaded
   useEffect(() => {
-    if (documentRequestsQueries?.data?.length) {
+    if (activeDocumentRequests?.length) {
       const initialActiveReqs: Record<string, number[]> = {};
-      documentRequestsQueries.data.forEach((docRequest) => {
+      activeDocumentRequests.forEach((docRequest) => {
         if (docRequest?.id && docRequest.requirements?.length) {
           // Only make the first requirement active initially
           initialActiveReqs[docRequest.id] = [0];
@@ -267,12 +116,12 @@ export const DocumentUploadForm = () => {
       });
       setActiveRequirements(initialActiveReqs);
     }
-  }, [JSON.stringify(documentRequestsQueries?.data)]);
+  }, [JSON.stringify(activeDocumentRequests)]);
 
   // zod schema, dynamically generated based on the document types
   const DocumentUploadSchema = useMemo(() => {
     const schema: Record<string, z.ZodType<any>> = {};
-    documentRequestsQueries?.data?.forEach((documentRequest) => {
+    activeDocumentRequests.forEach((documentRequest) => {
       if (!documentRequest?.id || !documentRequest.requirements) {
         return;
       }
@@ -313,7 +162,7 @@ export const DocumentUploadForm = () => {
     });
     return z.object(schema);
   }, [
-    JSON.stringify(documentRequestsQueries?.data),
+    JSON.stringify(activeDocumentRequests),
     JSON.stringify(satisfiedDocTypes),
   ]);
 
@@ -417,7 +266,7 @@ export const DocumentUploadForm = () => {
     // Evaluate which requirements should be active
     const newActiveReqs = { ...activeRequirements };
 
-    documentRequestsQueries?.data?.forEach((docRequest) => {
+    activeDocumentRequests?.forEach((docRequest) => {
       if (!docRequest?.id) return;
 
       const docId = docRequest.id;
@@ -483,7 +332,11 @@ export const DocumentUploadForm = () => {
     });
 
     setActiveRequirements(newActiveReqs);
-  }, [formValues, documentRequestsQueries?.data, form.formState.errors]);
+  }, [
+    formValues,
+    JSON.stringify(activeDocumentRequests),
+    form.formState.errors,
+  ]);
 
   const onSubmit = form.handleSubmit(async () => {
     // Clear any potential stale errors before submitting
@@ -583,7 +436,7 @@ export const DocumentUploadForm = () => {
 
     // Reset active requirements to initial state (first requirement active)
     const initialActiveReqs: Record<string, number[]> = {};
-    documentRequestsQueries.data.forEach((docRequest) => {
+    activeDocumentRequests.forEach((docRequest) => {
       if (docRequest?.id) {
         initialActiveReqs[docRequest.id] = [0];
       }
@@ -600,7 +453,7 @@ export const DocumentUploadForm = () => {
 
   // Additional check to see if all requirements are satisfied
   const allRequirementsSatisfied = useMemo(() => {
-    if (!documentRequestsQueries?.data?.length) return false;
+    if (!activeDocumentRequests?.length) return false;
 
     // Helper to determine if a requirement should be considered completed based on UI logic
     const isRequirementCompletedInUI = (
@@ -649,7 +502,7 @@ export const DocumentUploadForm = () => {
     };
 
     // Check if there are any document requests that have unsatisfied requirements
-    const result = documentRequestsQueries.data.every((docRequest) => {
+    const result = activeDocumentRequests.every((docRequest) => {
       if (!docRequest?.id || !docRequest.requirements?.length) return true;
 
       // For this document request, check each requirement
@@ -702,20 +555,16 @@ export const DocumentUploadForm = () => {
 
     return result;
   }, [
-    documentRequestsQueries?.data,
+    JSON.stringify(activeDocumentRequests),
+    JSON.stringify(activeRequirements),
     satisfiedDocTypes,
-    activeRequirements,
     form.formState.errors,
   ]);
 
-  if (documentRequestsQueries?.pending) {
-    return <FormLoadingState message="Fetching document requests..." />;
-  }
-
-  // Helper function to check if a document type is satisfied
-  const isDocTypeSatisfied = (docType: DocumentTypeSmbdo) => {
-    return satisfiedDocTypes.includes(docType);
-  };
+  // @ts-ignore - This is a workaround for the type error in the query
+  // if (documentRequestListStatus === 'pending') {
+  //   return <FormLoadingState message="Fetching document requests..." />;
+  // }
 
   return (
     <Form {...form}>
@@ -740,372 +589,23 @@ export const DocumentUploadForm = () => {
               )}
             </div>
             <div className="eb-space-y-4">
-              {documentRequestsQueries?.data?.map((documentRequest, index) => {
-                return (
-                  <div key={`${documentRequest?.id}-${index}`}>
-                    <Alert variant="informative" className="eb-pb-3">
-                      <InfoIcon className="eb-h-4 eb-w-4" />
-                      <AlertDescription>
-                        {formatDocumentDescription(
-                          documentRequest?.description
-                        )}
-                      </AlertDescription>
-                    </Alert>
-                    <Card className="eb-mt-6 eb-w-full eb-shadow-sm">
-                      <div className="eb-flex eb-justify-end eb-px-4 eb-pb-0 eb-pt-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={resetForm}
-                          className="eb-flex eb-items-center eb-gap-1 eb-text-xs"
-                        >
-                          <RefreshCw className="eb-h-3 eb-w-3" /> Reset form
-                        </Button>
-                      </div>
-                      <div className="eb-space-y-6 eb-p-4">
-                        {documentRequest?.requirements?.map(
-                          (requirement, requirementIndex) => {
-                            // Check if this requirement is active
-                            const docId = documentRequest?.id;
-                            const isActive =
-                              docId &&
-                              activeRequirements[docId]?.includes(
-                                requirementIndex
-                              );
-
-                            // Count how many document types are already satisfied
-                            const satisfiedCount =
-                              requirement.documentTypes.filter((docType) =>
-                                isDocTypeSatisfied(docType as DocumentTypeSmbdo)
-                              ).length;
-
-                            // Calculate how many document fields we need based on requirement
-                            const numFieldsToShow = Math.max(
-                              (requirement.minRequired || 1) - satisfiedCount,
-                              0
-                            );
-
-                            // Check if this is a past (completed) requirement or future requirement
-                            const isPastRequirement =
-                              satisfiedCount > 0 &&
-                              (satisfiedCount ===
-                                requirement.documentTypes.length ||
-                                numFieldsToShow === 0);
-
-                            // Get list of satisfied doc types for this requirement
-                            const allSatisfiedDocTypesForReq =
-                              requirement.documentTypes.filter((docType) =>
-                                isDocTypeSatisfied(docType as DocumentTypeSmbdo)
-                              );
-
-                            // For completed steps, ensure we show at least the satisfied documents
-                            // For active steps, use the calculated number
-                            let numFieldsToShowForReq: number;
-                            if (isPastRequirement) {
-                              numFieldsToShowForReq = Math.max(
-                                allSatisfiedDocTypesForReq.length,
-                                requirement.minRequired || 1
-                              );
-                            } else {
-                              numFieldsToShowForReq =
-                                numFieldsToShow +
-                                (allSatisfiedDocTypesForReq.length > 0
-                                  ? allSatisfiedDocTypesForReq.length - 1
-                                  : 0);
-                            }
-
-                            // Get document types that were specifically uploaded for this requirement
-                            const docTypesForThisRequirement =
-                              (documentRequest?.id &&
-                                requirementDocTypes[documentRequest.id]?.[
-                                  requirementIndex
-                                ]) ||
-                              [];
-
-                            // For display, show only document types specifically uploaded for this requirement
-                            // If none found, fall back to all satisfied doc types for this requirement
-                            const displayedDocTypes =
-                              docTypesForThisRequirement.length > 0
-                                ? docTypesForThisRequirement
-                                : allSatisfiedDocTypesForReq;
-
-                            // Only collapse future requirements, not completed ones
-                            if (!isActive && !isPastRequirement) {
-                              return (
-                                <div
-                                  key={`${requirementIndex}-summary`}
-                                  className="eb-rounded-md eb-border eb-border-gray-200 eb-p-3"
-                                >
-                                  <h4 className="eb-text-sm eb-font-medium eb-text-gray-700">
-                                    <div className="eb-flex eb-items-center">
-                                      <CircleDashed className="eb-mr-2 eb-h-4 eb-w-4 eb-text-gray-400" />
-                                      <span className="eb-font-medium">
-                                        Step {requirementIndex + 1}.
-                                      </span>
-                                      <span className="eb-ml-2 eb-text-gray-500">
-                                        Pending completion of previous steps
-                                      </span>
-                                    </div>
-                                  </h4>
-                                </div>
-                              );
-                            }
-
-                            // Filter document types to only include ones not yet satisfied
-                            const availableDocTypes =
-                              requirement.documentTypes.filter((docType) => {
-                                const docTypeStr = docType as DocumentTypeSmbdo;
-                                // Keep document types that:
-                                // 1. Are not yet satisfied globally, OR
-                                // 2. Are currently selected in this requirement's form fields
-
-                                // Check if this document type is currently selected in any field
-                                const isSelectedInForm = Array.from({
-                                  length: numFieldsToShowForReq,
-                                }).some((_, idx) => {
-                                  const fieldName = `${documentRequest?.id}.requirement_${requirementIndex}_docType${idx > 0 ? `_${idx}` : ''}`;
-                                  return form.watch(fieldName) === docTypeStr;
-                                });
-
-                                return (
-                                  !isDocTypeSatisfied(docTypeStr) ||
-                                  isSelectedInForm
-                                );
-                              });
-
-                            // Get only document types that haven't been satisfied yet for display
-                            // const unsatisfiedDocTypes =
-                            //   requirement.documentTypes.filter(
-                            //     (docType) =>
-                            //       !isDocTypeSatisfied(
-                            //         docType as DocumentTypeSmbdo
-                            //       )
-                            //   );
-
-                            return (
-                              <div
-                                key={`${requirementIndex}-active`}
-                                className="eb-rounded-md eb-border eb-border-gray-200 eb-p-4"
-                              >
-                                <h4 className="eb-mb-3 eb-text-sm eb-font-medium eb-text-gray-700">
-                                  <div className="eb-flex eb-items-center">
-                                    {isPastRequirement ? (
-                                      <CheckCircle className="eb-mr-2 eb-h-4 eb-w-4 eb-text-green-600" />
-                                    ) : (
-                                      <ArrowRight className="eb-mr-2 eb-h-4 eb-w-4 eb-text-amber-600" />
-                                    )}
-                                    <span className="eb-font-medium">
-                                      Step {requirementIndex + 1}
-                                    </span>
-                                    {isPastRequirement ? (
-                                      <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
-                                        Completed - Documents provided:
-                                        <span className="eb-ml-1 eb-inline-flex eb-flex-wrap eb-gap-1">
-                                          {displayedDocTypes.map((docType) => (
-                                            <span
-                                              key={docType}
-                                              className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-green-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-green-800"
-                                            >
-                                              {DOCUMENT_TYPE_MAPPING[
-                                                docType as DocumentTypeSmbdo
-                                              ]?.label || docType}
-                                            </span>
-                                          ))}
-                                        </span>
-                                      </span>
-                                    ) : numFieldsToShow > 0 ? (
-                                      <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
-                                        {requirement.minRequired === 0 ? (
-                                          <>
-                                            {/* Optional: Upload any of the
-                                            following document types */}
-                                            <span className="eb-ml-2 eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-500">
-                                              Optional
-                                            </span>
-                                          </>
-                                        ) : (
-                                          // `Upload ${numFieldsToShow} of the following document types`
-                                          ''
-                                        )}
-                                      </span>
-                                    ) : (
-                                      <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
-                                        All required documents provided
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
-                                    {unsatisfiedDocTypes.map((docType) => (
-                                      <span
-                                        key={docType}
-                                        className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-800"
-                                      >
-                                        {DOCUMENT_TYPE_MAPPING[
-                                          docType as DocumentTypeSmbdo
-                                        ]?.label || docType}
-                                      </span>
-                                    ))}
-                                  </div> */}
-                                </h4>
-
-                                {/* Show the form for active steps or completed steps (for viewing) */}
-                                {isPastRequirement ||
-                                (availableDocTypes.length > 0 &&
-                                  numFieldsToShowForReq > 0) ? (
-                                  <>
-                                    {/* Show fixed number of upload sections based on requirement */}
-                                    {Array.from({
-                                      length: numFieldsToShowForReq,
-                                    }).map((_, uploadIndex) => {
-                                      // Get the current field name to maintain selection state
-                                      const docTypeFieldName = `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
-
-                                      return (
-                                        <div
-                                          key={`upload-section-${uploadIndex}`}
-                                          className="eb-mb-6"
-                                        >
-                                          {/* <div className="eb-mb-2 eb-flex eb-items-center">
-                                            <span className="eb-rounded-full eb-bg-[#f0fffd] eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-[#2CB9AC]">
-                                              Document {uploadIndex + 1} of{' '}
-                                              {numFieldsToShowForReq}
-                                            </span>
-                                          </div> */}
-
-                                          {/* Document Type Selection */}
-                                          <FormField
-                                            key={`${docTypeFieldName}-${dropzoneResetKey}`}
-                                            control={form.control}
-                                            name={docTypeFieldName}
-                                            render={({ field }) => (
-                                              <FormItem className="eb-mb-4">
-                                                <FormLabel
-                                                  asterisk={
-                                                    requirement.minRequired !==
-                                                    0
-                                                  }
-                                                  className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                                >
-                                                  Select Document Type
-                                                  {requirement.minRequired ===
-                                                    0 && (
-                                                    <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
-                                                      (Optional)
-                                                    </span>
-                                                  )}
-                                                </FormLabel>
-                                                <FormControl>
-                                                  <Select
-                                                    onValueChange={
-                                                      field.onChange
-                                                    }
-                                                    value={field.value || ''}
-                                                    disabled={isPastRequirement}
-                                                  >
-                                                    <SelectTrigger className="eb-w-full">
-                                                      <SelectValue placeholder="Select a document type" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                      {availableDocTypes.map(
-                                                        (docType) => (
-                                                          <SelectItem
-                                                            key={docType}
-                                                            value={docType}
-                                                          >
-                                                            {DOCUMENT_TYPE_MAPPING[
-                                                              docType as DocumentTypeSmbdo
-                                                            ]?.label || docType}
-                                                          </SelectItem>
-                                                        )
-                                                      )}
-                                                    </SelectContent>
-                                                  </Select>
-                                                </FormControl>
-                                                <FormMessage className="eb-text-xs" />
-                                              </FormItem>
-                                            )}
-                                          />
-
-                                          {/* File Upload */}
-                                          <FormField
-                                            key={`${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}-${dropzoneResetKey}`}
-                                            control={form.control}
-                                            name={`${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`}
-                                            render={({
-                                              field: {
-                                                onChange,
-                                                ...fieldProps
-                                              },
-                                            }) => (
-                                              <FormItem className="eb-space-y-2">
-                                                <FormLabel
-                                                  asterisk={
-                                                    requirement.minRequired !==
-                                                    0
-                                                  }
-                                                  className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                                >
-                                                  Upload Document
-                                                  {requirement.minRequired ===
-                                                    0 && (
-                                                    <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
-                                                      (Optional)
-                                                    </span>
-                                                  )}
-                                                </FormLabel>
-
-                                                <FormControl>
-                                                  <Dropzone
-                                                    key={`${documentRequest?.id}-${requirementIndex}-${uploadIndex}-${dropzoneResetKey}`}
-                                                    containerClassName="eb-max-w-full"
-                                                    {...fieldProps}
-                                                    multiple
-                                                    accept={ACCEPTED_FILE_TYPES}
-                                                    onChange={onChange}
-                                                    compressionFunc={
-                                                      compressImage
-                                                    }
-                                                    compressibleExtensions={[
-                                                      '.jpeg',
-                                                      '.jpg',
-                                                      '.png',
-                                                    ]}
-                                                    fileMaxSize={
-                                                      MAX_FILE_SIZE_BYTES
-                                                    }
-                                                    compressionMaxDimension={
-                                                      1000
-                                                    }
-                                                    showCompressionInfo
-                                                  />
-                                                </FormControl>
-                                                <FormMessage className="eb-text-xs" />
-                                              </FormItem>
-                                            )}
-                                          />
-                                        </div>
-                                      );
-                                    })}
-                                  </>
-                                ) : (
-                                  // Show message when all requirements are met
-                                  <div className="eb-rounded-md eb-bg-green-50 eb-p-2 eb-text-sm eb-font-medium eb-text-green-700">
-                                    All document types for this requirement have
-                                    been provided. You can proceed to the next
-                                    step.
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          }
-                        )}
-                      </div>
-                    </Card>
-                  </div>
-                );
-              })}
+              {activeDocumentRequests?.map((documentRequest) => (
+                <DocumentRequestCard
+                  key={documentRequest.id}
+                  documentRequest={documentRequest}
+                  activeRequirements={
+                    activeRequirements[documentRequest.id || ''] || [0]
+                  }
+                  satisfiedDocTypes={satisfiedDocTypes}
+                  requirementDocTypes={
+                    requirementDocTypes[documentRequest.id || ''] || {}
+                  }
+                  control={form.control}
+                  watch={form.watch}
+                  resetKey={dropzoneResetKey}
+                  onReset={resetForm}
+                />
+              ))}
             </div>
           </div>
 

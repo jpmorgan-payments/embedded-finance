@@ -4,3 +4,7 @@ export * from './DocumentRequestsSection';
 export * from './PartyCard';
 export * from './StatusMessages';
 export * from './documentUtils';
+export * from './DocumentRequestCard';
+export * from './DocumentUploadField';
+export * from './RequirementStep';
+export * from './documentUploadUtils';
