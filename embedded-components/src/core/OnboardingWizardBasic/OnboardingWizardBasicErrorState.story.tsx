@@ -1,5 +1,4 @@
-import type { Meta, StoryFn } from '@storybook/react';
-import { useDarkMode } from 'storybook-dark-mode';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
@@ -20,7 +19,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
 
   decorators: [
     (Story, context) => {
-      const isDarkMode = useDarkMode();
       const {
         apiBaseUrl,
         headers,
@@ -33,7 +31,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
           apiBaseUrl={apiBaseUrl}
           headers={headers}
           theme={{
-            colorScheme: isDarkMode ? 'dark' : 'light',
+            colorScheme: 'light',
             ...theme,
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}

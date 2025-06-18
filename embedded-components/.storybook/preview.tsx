@@ -1,5 +1,5 @@
-import { Preview } from '@storybook/react';
-import { themes } from '@storybook/theming';
+import { Preview } from '@storybook/react-vite';
+import { themes } from 'storybook/theming';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 
 import '../src/index.css';
@@ -25,6 +25,10 @@ const preview: Preview = {
       dark: { ...themes.dark, appPreviewBg: 'dark' },
       light: { ...themes.normal },
     },
+
+    docs: {
+      codePanel: true
+    }
   },
 };
 export default preview;

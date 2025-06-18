@@ -1,7 +1,7 @@
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { Meta } from '@storybook/react';
+import { Meta } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import defaultMeta, {

@@ -1,6 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { useDarkMode } from 'storybook-dark-mode';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
@@ -38,7 +37,6 @@ const meta: Meta<MakePaymentWithProviderProps> = {
   },
   decorators: [
     (Story, context) => {
-      const isDarkMode = useDarkMode();
       const {
         apiBaseUrl,
         headers,
@@ -55,7 +53,7 @@ const meta: Meta<MakePaymentWithProviderProps> = {
             apiBaseUrl={apiBaseUrl}
             headers={headers}
             theme={{
-              colorScheme: isDarkMode ? 'dark' : 'light',
+              colorScheme: 'light',
               ...theme,
             }}
             reactQueryDefaultOptions={{
