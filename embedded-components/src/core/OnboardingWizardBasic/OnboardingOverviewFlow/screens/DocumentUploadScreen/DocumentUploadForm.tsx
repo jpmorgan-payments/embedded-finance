@@ -7,7 +7,6 @@ import {
   CircleDashed,
   InfoIcon,
   RefreshCw,
-  Sparkles,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -57,18 +56,13 @@ interface UploadedDocument {
   files: File[];
 }
 
-interface CompressionStatus {
-  isCompressing: boolean;
-  originalSize?: number;
-  compressedSize?: number;
-  compressionRatio?: number;
-}
-
 export const ACCEPTED_FILE_TYPES = {
   'application/pdf': ['.pdf'],
   'image/jpeg': ['.jpeg', '.jpg'],
   'image/png': ['.png'],
 };
+
+export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 2MB
 
 // Helper function to format document request descriptions
 const formatDocumentDescription = (description?: string) => {
@@ -205,11 +199,6 @@ export const DocumentUploadForm = () => {
     Record<string, Record<number, DocumentTypeSmbdo[]>>
   >({});
 
-  // State to track compression status for each form field
-  const [compressionStatus, setCompressionStatus] = useState<
-    Record<string, CompressionStatus>
-  >({});
-
   const currentPartyData = clientData?.parties?.find((p) => p.id === partyId);
 
   const partiesDocumentRequests = Array.from(
@@ -312,16 +301,6 @@ export const DocumentUploadForm = () => {
             // Add a field for file upload
             nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
               .array(z.instanceof(File))
-              .refine(
-                (files) => {
-                  if (!files?.length) return true;
-                  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 10MB in bytes
-                  return files.every((file) => file.size <= MAX_FILE_SIZE);
-                },
-                {
-                  message: 'Each file must be 2MB or less',
-                }
-              )
               .optional(); // Make optional instead of required
           }
         }
@@ -595,7 +574,6 @@ export const DocumentUploadForm = () => {
     form.reset();
     setSatisfiedDocTypes([]);
     setRequirementDocTypes({});
-    setCompressionStatus({});
 
     // Reset active requirements to initial state (first requirement active)
     const initialActiveReqs: Record<string, number[]> = {};
@@ -724,101 +702,6 @@ export const DocumentUploadForm = () => {
   // Helper function to check if a document type is satisfied
   const isDocTypeSatisfied = (docType: DocumentTypeSmbdo) => {
     return satisfiedDocTypes.includes(docType);
-  };
-
-  // Helper function to compress files and update compression status
-  const handleFileCompression = async (
-    files: File[],
-    fieldName: string
-  ): Promise<File[]> => {
-    if (!files || files.length === 0) {
-      // Clear compression status when no files
-      setCompressionStatus((prev) => {
-        const updated = { ...prev };
-        delete updated[fieldName];
-        return updated;
-      });
-      return files;
-    }
-
-    const file = files[0]; // Since we're using multiple={false}
-    const isCompressibleImage = /\.(jpe?g|png)$/i.test(file.name);
-
-    if (!isCompressibleImage) {
-      // Clear compression status for non-compressible files
-      setCompressionStatus((prev) => {
-        const updated = { ...prev };
-        delete updated[fieldName];
-        return updated;
-      });
-      return files;
-    }
-
-    // Set initial compression status
-    setCompressionStatus((prev) => ({
-      ...prev,
-      [fieldName]: {
-        isCompressing: true,
-        originalSize: file.size,
-      },
-    }));
-
-    try {
-      const compressedDataUrl = await compressImage(file, 1000);
-
-      // Convert data URL back to a File object
-      const base64Response = await fetch(compressedDataUrl);
-      const compressedBlob = await base64Response.blob();
-
-      const compressedFile = new File([compressedBlob], file.name, {
-        type: file.type,
-      });
-
-      // Calculate compression ratio
-      const compressionRatio = Math.round(
-        ((file.size - compressedFile.size) / file.size) * 100
-      );
-
-      // Update compression status with results
-      setCompressionStatus((prev) => ({
-        ...prev,
-        [fieldName]: {
-          isCompressing: false,
-          originalSize: file.size,
-          compressedSize: compressedFile.size,
-          compressionRatio,
-        },
-      }));
-
-      return [compressedFile];
-    } catch (compressionError) {
-      console.error(
-        'Image compression failed, using original file:',
-        compressionError
-      );
-
-      // Update status to show compression failed
-      setCompressionStatus((prev) => ({
-        ...prev,
-        [fieldName]: {
-          isCompressing: false,
-          originalSize: file.size,
-          compressedSize: file.size,
-          compressionRatio: 0,
-        },
-      }));
-
-      return files;
-    }
-  };
-
-  // Helper function to format file size
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   return (
@@ -1145,121 +1028,51 @@ export const DocumentUploadForm = () => {
                                                 onChange,
                                                 ...fieldProps
                                               },
-                                            }) => {
-                                              const fieldName = `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
-                                              const currentCompressionStatus =
-                                                compressionStatus[fieldName];
-
-                                              return (
-                                                <FormItem className="eb-space-y-2">
-                                                  <FormLabel
-                                                    asterisk={
-                                                      requirement.minRequired !==
-                                                      0
-                                                    }
-                                                    className="eb-text-sm eb-font-medium eb-text-gray-700"
-                                                  >
-                                                    Upload Document
-                                                    {requirement.minRequired ===
-                                                      0 && (
-                                                      <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
-                                                        (Optional)
-                                                      </span>
-                                                    )}
-                                                  </FormLabel>
-
-                                                  {/* Compression Info Alert */}
-                                                  {currentCompressionStatus && (
-                                                    <div className="eb-rounded-md eb-bg-blue-50 eb-p-3 eb-text-sm">
-                                                      {currentCompressionStatus.isCompressing ? (
-                                                        <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
-                                                          <Sparkles className="eb-h-4 eb-w-4 eb-animate-spin" />
-                                                          <span>
-                                                            Compressing image to
-                                                            1000px...
-                                                          </span>
-                                                        </div>
-                                                      ) : (
-                                                        <div className="eb-space-y-1">
-                                                          <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
-                                                            <Sparkles className="eb-h-4 eb-w-4" />
-                                                            <span className="eb-font-medium">
-                                                              Image Compressed
-                                                            </span>
-                                                          </div>
-                                                          <div className="eb-text-xs eb-text-blue-600">
-                                                            <div>
-                                                              Original:{' '}
-                                                              {formatFileSize(
-                                                                currentCompressionStatus.originalSize ||
-                                                                  0
-                                                              )}
-                                                            </div>
-                                                            <div>
-                                                              Compressed:{' '}
-                                                              {formatFileSize(
-                                                                currentCompressionStatus.compressedSize ||
-                                                                  0
-                                                              )}
-                                                            </div>
-                                                            {(currentCompressionStatus.compressionRatio ??
-                                                              0) > 0 && (
-                                                              <div className="eb-font-medium">
-                                                                Reduced by{' '}
-                                                                {
-                                                                  currentCompressionStatus.compressionRatio
-                                                                }
-                                                                %
-                                                              </div>
-                                                            )}
-                                                          </div>
-                                                        </div>
-                                                      )}
-                                                    </div>
+                                            }) => (
+                                              <FormItem className="eb-space-y-2">
+                                                <FormLabel
+                                                  asterisk={
+                                                    requirement.minRequired !==
+                                                    0
+                                                  }
+                                                  className="eb-text-sm eb-font-medium eb-text-gray-700"
+                                                >
+                                                  Upload Document
+                                                  {requirement.minRequired ===
+                                                    0 && (
+                                                    <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
+                                                      (Optional)
+                                                    </span>
                                                   )}
+                                                </FormLabel>
 
-                                                  <FormControl>
-                                                    <Dropzone
-                                                      containerClassName="eb-max-w-full"
-                                                      {...fieldProps}
-                                                      multiple={false}
-                                                      accept={
-                                                        ACCEPTED_FILE_TYPES
-                                                      }
-                                                      disabled={
-                                                        isPastRequirement
-                                                      }
-                                                      onChange={async (
-                                                        files
-                                                      ) => {
-                                                        const processedFiles =
-                                                          await handleFileCompression(
-                                                            files,
-                                                            fieldName
-                                                          );
-                                                        onChange(
-                                                          processedFiles
-                                                        );
-                                                      }}
-                                                    />
-                                                  </FormControl>
-
-                                                  {/* Compression info note */}
-                                                  <div className="eb-text-xs eb-text-gray-500">
-                                                    <div className="eb-flex eb-items-center eb-gap-1">
-                                                      <Sparkles className="eb-h-3 eb-w-3" />
-                                                      <span>
-                                                        PNG and JPEG images will
-                                                        be automatically
-                                                        compressed to 1000px for
-                                                        faster uploads
-                                                      </span>
-                                                    </div>
-                                                  </div>
-                                                  <FormMessage className="eb-text-xs" />
-                                                </FormItem>
-                                              );
-                                            }}
+                                                <FormControl>
+                                                  <Dropzone
+                                                    containerClassName="eb-max-w-full"
+                                                    {...fieldProps}
+                                                    multiple
+                                                    accept={ACCEPTED_FILE_TYPES}
+                                                    onChange={onChange}
+                                                    compressionFunc={
+                                                      compressImage
+                                                    }
+                                                    compressibleExtensions={[
+                                                      '.jpeg',
+                                                      '.jpg',
+                                                      '.png',
+                                                    ]}
+                                                    fileMaxSize={
+                                                      MAX_FILE_SIZE_BYTES
+                                                    }
+                                                    compressionMaxDimension={
+                                                      1000
+                                                    }
+                                                    showCompressionInfo
+                                                  />
+                                                </FormControl>
+                                                <FormMessage className="eb-text-xs" />
+                                              </FormItem>
+                                            )}
                                           />
                                         </div>
                                       );
