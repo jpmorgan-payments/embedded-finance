@@ -7,6 +7,7 @@ import {
   CircleDashed,
   InfoIcon,
   RefreshCw,
+  Sparkles,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -54,6 +55,13 @@ import { getPartyName } from '../../utils/dataUtils';
 interface UploadedDocument {
   documentType: DocumentTypeSmbdo;
   files: File[];
+}
+
+interface CompressionStatus {
+  isCompressing: boolean;
+  originalSize?: number;
+  compressedSize?: number;
+  compressionRatio?: number;
 }
 
 export const ACCEPTED_FILE_TYPES = {
@@ -195,6 +203,11 @@ export const DocumentUploadForm = () => {
   // State to track which document types were uploaded for each requirement
   const [requirementDocTypes, setRequirementDocTypes] = useState<
     Record<string, Record<number, DocumentTypeSmbdo[]>>
+  >({});
+
+  // State to track compression status for each form field
+  const [compressionStatus, setCompressionStatus] = useState<
+    Record<string, CompressionStatus>
   >({});
 
   const currentPartyData = clientData?.parties?.find((p) => p.id === partyId);
@@ -377,27 +390,38 @@ export const DocumentUploadForm = () => {
             const files = (requirementValues as any)[filesFieldName];
 
             if (files && files.length > 0) {
-              const docType = value as DocumentTypeSmbdo;
-              newUploadedDocs[docRequestId].push({
-                documentType: docType,
-                files,
-              });
+              // Check for validation errors on both document type and files fields
 
-              // Add to satisfied document types
-              if (!newSatisfiedDocTypes.includes(docType)) {
-                newSatisfiedDocTypes.push(docType);
-              }
+              const docRequestErrors = form.formState.errors?.[docRequestId] as
+                | Record<string, any>
+                | undefined;
+              const hasDocTypeError = !!docRequestErrors?.[fieldName];
+              const hasFilesError = !!docRequestErrors?.[filesFieldName];
 
-              // Track which document types were uploaded for each requirement
-              if (!newRequirementDocTypes[docRequestId][reqIndex]) {
-                newRequirementDocTypes[docRequestId][reqIndex] = [];
-              }
-              if (
-                !newRequirementDocTypes[docRequestId][reqIndex].includes(
-                  docType
-                )
-              ) {
-                newRequirementDocTypes[docRequestId][reqIndex].push(docType);
+              // Only consider documents as satisfied if there are no validation errors
+              if (!hasDocTypeError && !hasFilesError) {
+                const docType = value as DocumentTypeSmbdo;
+                newUploadedDocs[docRequestId].push({
+                  documentType: docType,
+                  files,
+                });
+
+                // Add to satisfied document types
+                if (!newSatisfiedDocTypes.includes(docType)) {
+                  newSatisfiedDocTypes.push(docType);
+                }
+
+                // Track which document types were uploaded for each requirement
+                if (!newRequirementDocTypes[docRequestId][reqIndex]) {
+                  newRequirementDocTypes[docRequestId][reqIndex] = [];
+                }
+                if (
+                  !newRequirementDocTypes[docRequestId][reqIndex].includes(
+                    docType
+                  )
+                ) {
+                  newRequirementDocTypes[docRequestId][reqIndex].push(docType);
+                }
               }
             }
           }
@@ -477,7 +501,7 @@ export const DocumentUploadForm = () => {
     });
 
     setActiveRequirements(newActiveReqs);
-  }, [formValues, documentRequestsQueries?.data]);
+  }, [formValues, documentRequestsQueries?.data, form.formState.errors]);
 
   const onSubmit = form.handleSubmit(async () => {
     // Clear any potential stale errors before submitting
@@ -529,43 +553,17 @@ export const DocumentUploadForm = () => {
           }
         );
 
-        // Upload each document individually
+        // Upload each document individually (files are already compressed if applicable)
         for (const { documentType, file } of documentUploads) {
           const documentData = {
             documentRequestId,
             documentType,
           };
 
-          // Check if the file is an image (png, jpg, jpeg) that can be compressed
-          const isCompressibleImage = /\.(jpe?g|png)$/i.test(file.name);
-
-          let fileToUpload = file;
-
-          // Compress image files before upload
-          if (isCompressibleImage) {
-            try {
-              const compressedDataUrl = await compressImage(file, 1000);
-
-              // Convert data URL back to a File object
-              const base64Response = await fetch(compressedDataUrl);
-              const compressedBlob = await base64Response.blob();
-
-              fileToUpload = new File([compressedBlob], file.name, {
-                type: file.type,
-              });
-            } catch (compressionError) {
-              console.error(
-                'Image compression failed, using original file:',
-                compressionError
-              );
-              // Fall back to original file if compression fails
-            }
-          }
-
           await uploadDocumentMutation.mutateAsync({
             data: {
               documentData: JSON.stringify(documentData),
-              file: fileToUpload,
+              file,
             },
           });
         }
@@ -597,6 +595,7 @@ export const DocumentUploadForm = () => {
     form.reset();
     setSatisfiedDocTypes([]);
     setRequirementDocTypes({});
+    setCompressionStatus({});
 
     // Reset active requirements to initial state (first requirement active)
     const initialActiveReqs: Record<string, number[]> = {};
@@ -621,7 +620,22 @@ export const DocumentUploadForm = () => {
 
       // Check if this requirement is active in the UI
       const isActive = activeRequirements[docRequest.id]?.includes(reqIndex);
-      if (isActive) return false; // Active requirements aren't considered completed yet
+      if (isActive) {
+        // For active requirements, also check if there are any validation errors
+        const docRequestErrors = form.formState.errors?.[docRequest.id] as
+          | Record<string, any>
+          | undefined;
+        if (docRequestErrors) {
+          // Check if any field for this requirement has validation errors
+          const hasValidationErrors = Object.keys(docRequestErrors).some(
+            (fieldName) => fieldName.includes(`requirement_${reqIndex}_`)
+          );
+          if (hasValidationErrors) {
+            return false; // Can't be considered completed if there are validation errors
+          }
+        }
+        return false; // Active requirements aren't considered completed yet
+      }
 
       const requirement = docRequest.requirements[reqIndex];
       if (!requirement) return false;
@@ -667,13 +681,26 @@ export const DocumentUploadForm = () => {
             reqIndex
           );
 
+          // Check for validation errors in this requirement
+          const docRequestErrors = docRequest.id
+            ? (form.formState.errors?.[docRequest.id] as
+                | Record<string, any>
+                | undefined)
+            : undefined;
+          const hasValidationErrors = docRequestErrors
+            ? Object.keys(docRequestErrors).some((fieldName) =>
+                fieldName.includes(`requirement_${reqIndex}_`)
+              )
+            : false;
+
           // A requirement is satisfied if:
-          // 1. It has enough satisfied document types to meet the missing requirement, OR
-          // 2. It's shown as completed in the UI
+          // 1. It has enough satisfied document types to meet the missing requirement, AND
+          // 2. There are no validation errors, AND
+          // 3. Either it's shown as completed in the UI OR it's not active
           const isSatisfied =
-            satisfiedDocCount >= (requirement.minRequired ?? 1) ||
-            isCompletedInUI ||
-            !isActive;
+            satisfiedDocCount >= (requirement.minRequired ?? 1) &&
+            !hasValidationErrors &&
+            (isCompletedInUI || !isActive);
 
           return isSatisfied;
         }
@@ -683,7 +710,12 @@ export const DocumentUploadForm = () => {
     });
 
     return result;
-  }, [documentRequestsQueries?.data, satisfiedDocTypes, activeRequirements]);
+  }, [
+    documentRequestsQueries?.data,
+    satisfiedDocTypes,
+    activeRequirements,
+    form.formState.errors,
+  ]);
 
   if (documentRequestsQueries?.pending) {
     return <FormLoadingState message="Fetching document requests..." />;
@@ -692,6 +724,101 @@ export const DocumentUploadForm = () => {
   // Helper function to check if a document type is satisfied
   const isDocTypeSatisfied = (docType: DocumentTypeSmbdo) => {
     return satisfiedDocTypes.includes(docType);
+  };
+
+  // Helper function to compress files and update compression status
+  const handleFileCompression = async (
+    files: File[],
+    fieldName: string
+  ): Promise<File[]> => {
+    if (!files || files.length === 0) {
+      // Clear compression status when no files
+      setCompressionStatus((prev) => {
+        const updated = { ...prev };
+        delete updated[fieldName];
+        return updated;
+      });
+      return files;
+    }
+
+    const file = files[0]; // Since we're using multiple={false}
+    const isCompressibleImage = /\.(jpe?g|png)$/i.test(file.name);
+
+    if (!isCompressibleImage) {
+      // Clear compression status for non-compressible files
+      setCompressionStatus((prev) => {
+        const updated = { ...prev };
+        delete updated[fieldName];
+        return updated;
+      });
+      return files;
+    }
+
+    // Set initial compression status
+    setCompressionStatus((prev) => ({
+      ...prev,
+      [fieldName]: {
+        isCompressing: true,
+        originalSize: file.size,
+      },
+    }));
+
+    try {
+      const compressedDataUrl = await compressImage(file, 1000);
+
+      // Convert data URL back to a File object
+      const base64Response = await fetch(compressedDataUrl);
+      const compressedBlob = await base64Response.blob();
+
+      const compressedFile = new File([compressedBlob], file.name, {
+        type: file.type,
+      });
+
+      // Calculate compression ratio
+      const compressionRatio = Math.round(
+        ((file.size - compressedFile.size) / file.size) * 100
+      );
+
+      // Update compression status with results
+      setCompressionStatus((prev) => ({
+        ...prev,
+        [fieldName]: {
+          isCompressing: false,
+          originalSize: file.size,
+          compressedSize: compressedFile.size,
+          compressionRatio,
+        },
+      }));
+
+      return [compressedFile];
+    } catch (compressionError) {
+      console.error(
+        'Image compression failed, using original file:',
+        compressionError
+      );
+
+      // Update status to show compression failed
+      setCompressionStatus((prev) => ({
+        ...prev,
+        [fieldName]: {
+          isCompressing: false,
+          originalSize: file.size,
+          compressedSize: file.size,
+          compressionRatio: 0,
+        },
+      }));
+
+      return files;
+    }
+  };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   return (
@@ -763,17 +890,34 @@ export const DocumentUploadForm = () => {
                               0
                             );
 
+                            // Check if this is a past (completed) requirement or future requirement
+                            const isPastRequirement =
+                              satisfiedCount > 0 &&
+                              (satisfiedCount ===
+                                requirement.documentTypes.length ||
+                                numFieldsToShow === 0);
+
                             // Get list of satisfied doc types for this requirement
                             const allSatisfiedDocTypesForReq =
                               requirement.documentTypes.filter((docType) =>
                                 isDocTypeSatisfied(docType as DocumentTypeSmbdo)
                               );
 
-                            const numFieldsToShowForReq =
-                              numFieldsToShow +
-                              (allSatisfiedDocTypesForReq.length > 0
-                                ? allSatisfiedDocTypesForReq.length - 1
-                                : 0);
+                            // For completed steps, ensure we show at least the satisfied documents
+                            // For active steps, use the calculated number
+                            let numFieldsToShowForReq: number;
+                            if (isPastRequirement) {
+                              numFieldsToShowForReq = Math.max(
+                                allSatisfiedDocTypesForReq.length,
+                                requirement.minRequired || 1
+                              );
+                            } else {
+                              numFieldsToShowForReq =
+                                numFieldsToShow +
+                                (allSatisfiedDocTypesForReq.length > 0
+                                  ? allSatisfiedDocTypesForReq.length - 1
+                                  : 0);
+                            }
 
                             // Get document types that were specifically uploaded for this requirement
                             const docTypesForThisRequirement =
@@ -790,56 +934,23 @@ export const DocumentUploadForm = () => {
                                 ? docTypesForThisRequirement
                                 : allSatisfiedDocTypesForReq;
 
-                            // If not active, show a summary instead
-                            if (!isActive) {
-                              // Check if this is a past (completed) requirement or future requirement
-                              const isPastRequirement =
-                                satisfiedCount > 0 &&
-                                (satisfiedCount ===
-                                  requirement.documentTypes.length ||
-                                  numFieldsToShow === 0);
-
+                            // Only collapse future requirements, not completed ones
+                            if (!isActive && !isPastRequirement) {
                               return (
                                 <div
                                   key={`${requirementIndex}-summary`}
                                   className="eb-rounded-md eb-border eb-border-gray-200 eb-p-3"
                                 >
                                   <h4 className="eb-text-sm eb-font-medium eb-text-gray-700">
-                                    {isPastRequirement ? (
-                                      // Past requirement (completed)
-                                      <span className="eb-flex eb-items-center">
-                                        <CheckCircle className="eb-mr-2 eb-h-4 eb-w-4 eb-text-green-600" />
-                                        <span className="eb-font-medium">
-                                          Step {requirementIndex + 1}.
-                                        </span>
-                                        <span className="eb-normal eb-ml-1">
-                                          Already provided:
-                                        </span>
-                                        <span className="eb-ml-1 eb-inline-flex eb-flex-wrap eb-gap-1">
-                                          {displayedDocTypes.map((docType) => (
-                                            <span
-                                              key={docType}
-                                              className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-green-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-green-800"
-                                            >
-                                              {DOCUMENT_TYPE_MAPPING[
-                                                docType as DocumentTypeSmbdo
-                                              ]?.label || docType}
-                                            </span>
-                                          ))}
-                                        </span>
+                                    <div className="eb-flex eb-items-center">
+                                      <CircleDashed className="eb-mr-2 eb-h-4 eb-w-4 eb-text-gray-400" />
+                                      <span className="eb-font-medium">
+                                        Step {requirementIndex + 1}.
                                       </span>
-                                    ) : (
-                                      // Future requirement
-                                      <div className="eb-flex eb-items-center">
-                                        <CircleDashed className="eb-mr-2 eb-h-4 eb-w-4 eb-text-gray-400" />
-                                        <span className="eb-font-medium">
-                                          Step {requirementIndex + 1}.
-                                        </span>
-                                        <span className="eb-ml-2 eb-text-gray-500">
-                                          Pending completion of previous steps
-                                        </span>
-                                      </div>
-                                    )}
+                                      <span className="eb-ml-2 eb-text-gray-500">
+                                        Pending completion of previous steps
+                                      </span>
+                                    </div>
                                   </h4>
                                 </div>
                               );
@@ -883,11 +994,31 @@ export const DocumentUploadForm = () => {
                               >
                                 <h4 className="eb-mb-3 eb-text-sm eb-font-medium eb-text-gray-700">
                                   <div className="eb-flex eb-items-center">
-                                    <ArrowRight className="eb-mr-2 eb-h-4 eb-w-4 eb-text-amber-600" />
+                                    {isPastRequirement ? (
+                                      <CheckCircle className="eb-mr-2 eb-h-4 eb-w-4 eb-text-green-600" />
+                                    ) : (
+                                      <ArrowRight className="eb-mr-2 eb-h-4 eb-w-4 eb-text-amber-600" />
+                                    )}
                                     <span className="eb-font-medium">
                                       Step {requirementIndex + 1}
                                     </span>
-                                    {numFieldsToShow > 0 ? (
+                                    {isPastRequirement ? (
+                                      <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
+                                        Completed - Documents provided:
+                                        <span className="eb-ml-1 eb-inline-flex eb-flex-wrap eb-gap-1">
+                                          {displayedDocTypes.map((docType) => (
+                                            <span
+                                              key={docType}
+                                              className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-green-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-green-800"
+                                            >
+                                              {DOCUMENT_TYPE_MAPPING[
+                                                docType as DocumentTypeSmbdo
+                                              ]?.label || docType}
+                                            </span>
+                                          ))}
+                                        </span>
+                                      </span>
+                                    ) : numFieldsToShow > 0 ? (
                                       <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
                                         {requirement.minRequired === 0 ? (
                                           <>
@@ -923,9 +1054,10 @@ export const DocumentUploadForm = () => {
                                   </div> */}
                                 </h4>
 
-                                {/* Only show the form if there are still document types to choose from and documents needed */}
-                                {availableDocTypes.length > 0 &&
-                                numFieldsToShowForReq > 0 ? (
+                                {/* Show the form for active steps or completed steps (for viewing) */}
+                                {isPastRequirement ||
+                                (availableDocTypes.length > 0 &&
+                                  numFieldsToShowForReq > 0) ? (
                                   <>
                                     {/* Show fixed number of upload sections based on requirement */}
                                     {Array.from({
@@ -978,6 +1110,7 @@ export const DocumentUploadForm = () => {
                                                       field.value ||
                                                       selectedValue
                                                     }
+                                                    disabled={isPastRequirement}
                                                   >
                                                     <SelectTrigger className="eb-w-full">
                                                       <SelectValue placeholder="Select a document type" />
@@ -1013,11 +1146,9 @@ export const DocumentUploadForm = () => {
                                                 ...fieldProps
                                               },
                                             }) => {
-                                              // Get the selected document type
-                                              // const selectedDocType =
-                                              //   form.watch(
-                                              //     `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`
-                                              //   );
+                                              const fieldName = `${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
+                                              const currentCompressionStatus =
+                                                compressionStatus[fieldName];
 
                                               return (
                                                 <FormItem className="eb-space-y-2">
@@ -1036,13 +1167,57 @@ export const DocumentUploadForm = () => {
                                                       </span>
                                                     )}
                                                   </FormLabel>
-                                                  {/* {selectedDocType && (
-                                                    <FormDescription className="eb-text-xs eb-text-gray-500">
-                                                      {DOCUMENT_TYPE_MAPPING[
-                                                        selectedDocType as DocumentTypeSmbdo
-                                                      ]?.description || ''}
-                                                    </FormDescription>
-                                                  )} */}
+
+                                                  {/* Compression Info Alert */}
+                                                  {currentCompressionStatus && (
+                                                    <div className="eb-rounded-md eb-bg-blue-50 eb-p-3 eb-text-sm">
+                                                      {currentCompressionStatus.isCompressing ? (
+                                                        <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
+                                                          <Sparkles className="eb-h-4 eb-w-4 eb-animate-spin" />
+                                                          <span>
+                                                            Compressing image to
+                                                            1000px...
+                                                          </span>
+                                                        </div>
+                                                      ) : (
+                                                        <div className="eb-space-y-1">
+                                                          <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
+                                                            <Sparkles className="eb-h-4 eb-w-4" />
+                                                            <span className="eb-font-medium">
+                                                              Image Compressed
+                                                            </span>
+                                                          </div>
+                                                          <div className="eb-text-xs eb-text-blue-600">
+                                                            <div>
+                                                              Original:{' '}
+                                                              {formatFileSize(
+                                                                currentCompressionStatus.originalSize ||
+                                                                  0
+                                                              )}
+                                                            </div>
+                                                            <div>
+                                                              Compressed:{' '}
+                                                              {formatFileSize(
+                                                                currentCompressionStatus.compressedSize ||
+                                                                  0
+                                                              )}
+                                                            </div>
+                                                            {(currentCompressionStatus.compressionRatio ??
+                                                              0) > 0 && (
+                                                              <div className="eb-font-medium">
+                                                                Reduced by{' '}
+                                                                {
+                                                                  currentCompressionStatus.compressionRatio
+                                                                }
+                                                                %
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )}
+
                                                   <FormControl>
                                                     <Dropzone
                                                       containerClassName="eb-max-w-full"
@@ -1051,11 +1226,36 @@ export const DocumentUploadForm = () => {
                                                       accept={
                                                         ACCEPTED_FILE_TYPES
                                                       }
-                                                      onChange={(files) => {
-                                                        onChange(files);
+                                                      disabled={
+                                                        isPastRequirement
+                                                      }
+                                                      onChange={async (
+                                                        files
+                                                      ) => {
+                                                        const processedFiles =
+                                                          await handleFileCompression(
+                                                            files,
+                                                            fieldName
+                                                          );
+                                                        onChange(
+                                                          processedFiles
+                                                        );
                                                       }}
                                                     />
                                                   </FormControl>
+
+                                                  {/* Compression info note */}
+                                                  <div className="eb-text-xs eb-text-gray-500">
+                                                    <div className="eb-flex eb-items-center eb-gap-1">
+                                                      <Sparkles className="eb-h-3 eb-w-3" />
+                                                      <span>
+                                                        PNG and JPEG images will
+                                                        be automatically
+                                                        compressed to 1000px for
+                                                        faster uploads
+                                                      </span>
+                                                    </div>
+                                                  </div>
                                                   <FormMessage className="eb-text-xs" />
                                                 </FormItem>
                                               );
