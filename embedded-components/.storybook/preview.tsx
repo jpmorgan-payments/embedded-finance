@@ -1,6 +1,6 @@
 import { Preview } from '@storybook/react-vite';
-import { themes } from 'storybook/theming';
 import { initialize, mswLoader } from 'msw-storybook-addon';
+import { themes } from 'storybook/theming';
 
 import '../src/index.css';
 
@@ -27,8 +27,8 @@ const preview: Preview = {
     },
 
     docs: {
-      codePanel: true
-    }
+      codePanel: true,
+    },
   },
 };
 export default preview;

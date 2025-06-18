@@ -113,7 +113,6 @@ const Trash = ({ className }: { className?: string }) => (
   </svg>
 );
 
-
 const Dropzone = ({
   containerClassName,
   dropZoneClassName,
