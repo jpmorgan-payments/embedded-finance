@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Control, Controller } from 'react-hook-form';
+import { Control } from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
 import { DocumentTypeSmbdo } from '@/api/generated/smbdo.schemas';

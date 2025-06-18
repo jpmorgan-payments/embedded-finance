@@ -562,9 +562,9 @@ export const DocumentUploadForm = () => {
   ]);
 
   // @ts-ignore - This is a workaround for the type error in the query
-  // if (documentRequestListStatus === 'pending') {
-  //   return <FormLoadingState message="Fetching document requests..." />;
-  // }
+  if (documentRequestListStatus === 'pending') {
+    return <FormLoadingState message="Fetching document requests..." />;
+  }
 
   return (
     <Form {...form}>
