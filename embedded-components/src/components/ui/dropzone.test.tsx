@@ -206,4 +206,30 @@ describe('Dropzone', () => {
       });
     }
   });
+
+  test('resets internal state when key changes', () => {
+    const mockOnChange = vi.fn();
+
+    const { rerender } = render(
+      <Dropzone
+        key="test-1"
+        onChange={mockOnChange}
+        fileMaxSize={5 * 1024 * 1024}
+      />
+    );
+
+    // First render with one key
+    expect(screen.getByText(/Drag and drop a file/)).toBeInTheDocument();
+
+    // Rerender with different key should reset internal state
+    rerender(
+      <Dropzone
+        key="test-2"
+        onChange={mockOnChange}
+        fileMaxSize={5 * 1024 * 1024}
+      />
+    );
+
+    expect(screen.getByText(/Drag and drop a file/)).toBeInTheDocument();
+  });
 });

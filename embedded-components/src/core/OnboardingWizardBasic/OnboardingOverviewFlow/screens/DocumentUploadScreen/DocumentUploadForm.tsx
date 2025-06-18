@@ -199,6 +199,9 @@ export const DocumentUploadForm = () => {
     Record<string, Record<number, DocumentTypeSmbdo[]>>
   >({});
 
+  // State to force dropzone reset by changing the key
+  const [dropzoneResetKey, setDropzoneResetKey] = useState<number>(0);
+
   const currentPartyData = clientData?.parties?.find((p) => p.id === partyId);
 
   const partiesDocumentRequests = Array.from(
@@ -571,7 +574,10 @@ export const DocumentUploadForm = () => {
   });
 
   const resetForm = () => {
-    form.reset();
+    // Reset form data with empty default values
+    form.reset({});
+
+    // Clear form state and trigger re-render
     setSatisfiedDocTypes([]);
     setRequirementDocTypes({});
 
@@ -583,6 +589,13 @@ export const DocumentUploadForm = () => {
       }
     });
     setActiveRequirements(initialActiveReqs);
+
+    // Clear API error messages from mutations
+    uploadDocumentMutation.reset();
+    submitDocumentMutation.reset();
+
+    // Force dropzone and selects to reset by changing the key
+    setDropzoneResetKey((prev) => prev + 1);
   };
 
   // Additional check to see if all requirements are satisfied
@@ -948,8 +961,6 @@ export const DocumentUploadForm = () => {
                                     }).map((_, uploadIndex) => {
                                       // Get the current field name to maintain selection state
                                       const docTypeFieldName = `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
-                                      const selectedValue =
-                                        form.watch(docTypeFieldName);
 
                                       return (
                                         <div
@@ -965,6 +976,7 @@ export const DocumentUploadForm = () => {
 
                                           {/* Document Type Selection */}
                                           <FormField
+                                            key={`${docTypeFieldName}-${dropzoneResetKey}`}
                                             control={form.control}
                                             name={docTypeFieldName}
                                             render={({ field }) => (
@@ -989,10 +1001,7 @@ export const DocumentUploadForm = () => {
                                                     onValueChange={
                                                       field.onChange
                                                     }
-                                                    value={
-                                                      field.value ||
-                                                      selectedValue
-                                                    }
+                                                    value={field.value || ''}
                                                     disabled={isPastRequirement}
                                                   >
                                                     <SelectTrigger className="eb-w-full">
@@ -1021,6 +1030,7 @@ export const DocumentUploadForm = () => {
 
                                           {/* File Upload */}
                                           <FormField
+                                            key={`${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}-${dropzoneResetKey}`}
                                             control={form.control}
                                             name={`${documentRequest?.id}.requirement_${requirementIndex}_files${uploadIndex > 0 ? `_${uploadIndex}` : ''}`}
                                             render={({
@@ -1048,6 +1058,7 @@ export const DocumentUploadForm = () => {
 
                                                 <FormControl>
                                                   <Dropzone
+                                                    key={`${documentRequest?.id}-${requirementIndex}-${uploadIndex}-${dropzoneResetKey}`}
                                                     containerClassName="eb-max-w-full"
                                                     {...fieldProps}
                                                     multiple
