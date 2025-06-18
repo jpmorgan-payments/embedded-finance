@@ -122,16 +122,16 @@ export const OwnersSectionScreen = () => {
                       return {
                         ...party,
                         ...response,
+                        roles,
                       };
                     }
                     return party;
                   }),
                 })
               );
-              form.setValue(
-                'controllerIsAnOwner',
-                response.roles?.includes('BENEFICIAL_OWNER') ? 'yes' : 'no'
-              );
+              queryClient.invalidateQueries({
+                queryKey: getSmbdoGetClientQueryKey(clientData.id),
+              });
             }
           },
           onError: (error) => {
