@@ -131,7 +131,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     } else if (originScreenId === 'owners-section') {
       goTo('owners-section');
     } else if (
-      currentSection?.id === 'review-attest-section' &&
+      currentScreenId === 'review-attest-section' &&
       currentStep.id === 'documents'
     ) {
       goTo('overview');
@@ -162,7 +162,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         : 'Continue to next section';
     }
     if (
-      currentSection?.id === 'review-attest-section' &&
+      currentScreenId === 'review-attest-section' &&
       currentStep.id === 'documents'
     ) {
       return 'Agree and finish';
@@ -178,6 +178,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       goTo('review-attest-section');
     } else if (
       originScreenId === 'owners-section' &&
+      currentScreenId !== 'review-attest-section' &&
       (currentStepNumber === 1 || currentStep.stepType === 'check-answers')
     ) {
       goBack();
@@ -205,9 +206,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
           return 'Back to all owners overview';
         }
         return 'Return to overview';
-      }
-      if (originScreenId === 'owners-section') {
-        return 'Back to all owners overview';
       }
     }
     return 'Previous';
