@@ -197,84 +197,76 @@ const Dropzone = ({
           );
         }
       } else {
-        // Check if file already meets size requirements without compression
-        const needsCompression = fileMaxSize ? file.size > fileMaxSize : true;
+        // Set compression status for this file
+        setCompressionStatus({
+          isCompressing: true,
+          originalSize: file.size,
+        });
 
-        if (!needsCompression) {
-          // File is small enough, no need to compress
-          processedFiles.push(file);
-        } else {
-          // Set compression status for this file
-          setCompressionStatus({
-            isCompressing: true,
-            originalSize: file.size,
+        try {
+          const compressedDataUrl = await compressionFunc(
+            file,
+            compressionMaxDimension
+          );
+
+          // Convert data URL back to a File object
+          const base64Response = await fetch(compressedDataUrl);
+          const compressedBlob = await base64Response.blob();
+
+          const compressedFile = new File([compressedBlob], file.name, {
+            type: file.type,
           });
 
-          try {
-            const compressedDataUrl = await compressionFunc(
-              file,
-              compressionMaxDimension
+          // Validate compressed file size
+          if (validateFileSize(compressedFile)) {
+            // Calculate compression ratio
+            const compressionRatio = Math.round(
+              ((file.size - compressedFile.size) / file.size) * 100
             );
 
-            // Convert data URL back to a File object
-            const base64Response = await fetch(compressedDataUrl);
-            const compressedBlob = await base64Response.blob();
-
-            const compressedFile = new File([compressedBlob], file.name, {
-              type: file.type,
+            // Store compression info using the compressed file's properties for lookup
+            const compressedFileKey = `${compressedFile.name}-${compressedFile.size}-${compressedFile.lastModified}`;
+            newCompressionInfo.set(compressedFileKey, {
+              originalSize: file.size,
+              compressedSize: compressedFile.size,
+              compressionRatio: Math.max(0, compressionRatio),
+              wasCompressed: true,
             });
 
-            // Validate compressed file size
-            if (validateFileSize(compressedFile)) {
-              // Calculate compression ratio
-              const compressionRatio = Math.round(
-                ((file.size - compressedFile.size) / file.size) * 100
-              );
-
-              // Store compression info using the compressed file's properties for lookup
-              const compressedFileKey = `${compressedFile.name}-${compressedFile.size}-${compressedFile.lastModified}`;
-              newCompressionInfo.set(compressedFileKey, {
-                originalSize: file.size,
-                compressedSize: compressedFile.size,
-                compressionRatio: Math.max(0, compressionRatio),
-                wasCompressed: true,
-              });
-
-              processedFiles.push(compressedFile);
-            } else {
-              const maxSizeMB = fileMaxSize
-                ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-                : 'unknown';
-              setErrorMessage(
-                `Even after compression, file size exceeds the maximum allowed size of ${maxSizeMB} MB`
-              );
-            }
-          } catch (compressionError) {
-            console.error(
-              'Image compression failed, using original file:',
-              compressionError
+            processedFiles.push(compressedFile);
+          } else {
+            const maxSizeMB = fileMaxSize
+              ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+              : 'unknown';
+            setErrorMessage(
+              `Even after compression, file size exceeds the maximum allowed size of ${maxSizeMB} MB`
             );
+          }
+        } catch (compressionError) {
+          console.error(
+            'Image compression failed, using original file:',
+            compressionError
+          );
 
-            // Validate original file size after compression failure
-            if (validateFileSize(file)) {
-              // Store info indicating compression failed (file stays the same)
-              const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-              newCompressionInfo.set(fileKey, {
-                originalSize: file.size,
-                compressedSize: file.size,
-                compressionRatio: 0,
-                wasCompressed: false,
-              });
+          // Validate original file size after compression failure
+          if (validateFileSize(file)) {
+            // Store info indicating compression failed (file stays the same)
+            const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+            newCompressionInfo.set(fileKey, {
+              originalSize: file.size,
+              compressedSize: file.size,
+              compressionRatio: 0,
+              wasCompressed: false,
+            });
 
-              processedFiles.push(file);
-            } else {
-              const maxSizeMB = fileMaxSize
-                ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-                : 'unknown';
-              setErrorMessage(
-                `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
-              );
-            }
+            processedFiles.push(file);
+          } else {
+            const maxSizeMB = fileMaxSize
+              ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+              : 'unknown';
+            setErrorMessage(
+              `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
+            );
           }
         }
       }
