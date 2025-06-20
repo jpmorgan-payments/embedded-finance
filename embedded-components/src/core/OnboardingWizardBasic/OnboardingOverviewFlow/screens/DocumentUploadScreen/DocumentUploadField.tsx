@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Control } from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
@@ -66,6 +66,52 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   isReadOnly = false,
   isOptional = false,
 }) => {
+  // Camera detection state
+  const [enableCameraCapture, setEnableCameraCapture] =
+    useState<boolean>(false);
+
+  // Utility functions for mobile and camera detection
+  const isMobileDevice = (): boolean => {
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) ||
+      ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2)
+    );
+  };
+
+  const hasCameraCapabilities = (): boolean => {
+    return !!(
+      navigator.mediaDevices &&
+      'getUserMedia' in navigator.mediaDevices &&
+      'enumerateDevices' in navigator.mediaDevices
+    );
+  };
+
+  // Check for mobile device and camera capabilities on mount
+  useEffect(() => {
+    const checkCameraCapabilities = async () => {
+      const isMobile = isMobileDevice();
+      const hasCamera = hasCameraCapabilities();
+
+      if (isMobile && hasCamera) {
+        // Additional check to verify camera access (without requesting permission)
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const hasVideoInput = devices.some(
+            (device) => device.kind === 'videoinput'
+          );
+          setEnableCameraCapture(hasVideoInput);
+        } catch (error) {
+          // If we can't enumerate devices, assume camera is available on mobile
+          setEnableCameraCapture(true);
+        }
+      }
+    };
+
+    checkCameraCapabilities();
+  }, []);
+
   // Field names with optional suffix for multiple fields
   const fieldSuffix = uploadIndex > 0 ? `_${uploadIndex}` : '';
   const docTypeFieldName = `${documentRequestId}.requirement_${requirementIndex}_docType${fieldSuffix}`;
@@ -143,6 +189,8 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
                 fileMaxSize={MAX_FILE_SIZE_BYTES}
                 compressionMaxDimension={1000}
                 showCompressionInfo
+                enableCameraCapture={enableCameraCapture}
+                captureMode="environment"
               />
             </FormControl>
             <FormMessage className="eb-text-xs" />
