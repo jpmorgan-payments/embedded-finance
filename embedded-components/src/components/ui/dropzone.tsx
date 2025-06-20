@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import {
   useDropzone,
@@ -19,6 +19,13 @@ interface CompressionStatus {
   compressionRatio?: number;
 }
 
+interface FileCompressionInfo {
+  originalSize: number;
+  compressedSize: number;
+  compressionRatio: number;
+  wasCompressed: boolean;
+}
+
 export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
   containerClassName?: string;
   dropZoneClassName?: string;
@@ -31,6 +38,7 @@ export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
   fileMaxSize?: number; // in bytes
   compressionMaxDimension?: number;
   showCompressionInfo?: boolean;
+  resetKey?: number; // Key to force reset of internal state
 }
 
 // Functions:
@@ -125,6 +133,7 @@ const Dropzone = ({
   fileMaxSize,
   compressionMaxDimension = 1000,
   showCompressionInfo = true,
+  resetKey,
   ...props
 }: DropzoneProps) => {
   // State:
@@ -135,6 +144,19 @@ const Dropzone = ({
       isCompressing: false,
     }
   );
+  const [fileCompressionInfo, setFileCompressionInfo] = useState<
+    Map<string, FileCompressionInfo>
+  >(new Map());
+
+  // Reset files and compression info when resetKey changes (for external reset)
+  useEffect(() => {
+    if (resetKey !== undefined) {
+      setFilesUploaded([]);
+      setFileCompressionInfo(new Map());
+      setCompressionStatus({ isCompressing: false });
+      setErrorMessage('');
+    }
+  }, [resetKey]);
 
   // Helper function to check if a file is compressible
   const isCompressibleFile = (file: File): boolean => {
@@ -156,99 +178,111 @@ const Dropzone = ({
       return files;
     }
 
-    const file = files[0]; // Since we're typically using multiple={false}
+    const processedFiles: File[] = [];
+    const newCompressionInfo = new Map(fileCompressionInfo);
 
-    const isCompressible = isCompressibleFile(file);
+    for (const file of files) {
+      const isCompressible = isCompressibleFile(file);
 
-    // For non-compressible files, validate original file size
-    if (!isCompressible || !compressionFunc) {
-      if (!validateFileSize(file)) {
-        const maxSizeMB = fileMaxSize
-          ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-          : 'unknown';
-        setErrorMessage(
-          `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
-        );
-        return [];
+      // For non-compressible files, validate original file size
+      if (!isCompressible || !compressionFunc) {
+        if (validateFileSize(file)) {
+          processedFiles.push(file);
+        } else {
+          const maxSizeMB = fileMaxSize
+            ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+            : 'unknown';
+          setErrorMessage(
+            `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
+          );
+        }
+      } else {
+        // Check if file already meets size requirements without compression
+        const needsCompression = fileMaxSize ? file.size > fileMaxSize : true;
+
+        if (!needsCompression) {
+          // File is small enough, no need to compress
+          processedFiles.push(file);
+        } else {
+          // Set compression status for this file
+          setCompressionStatus({
+            isCompressing: true,
+            originalSize: file.size,
+          });
+
+          try {
+            const compressedDataUrl = await compressionFunc(
+              file,
+              compressionMaxDimension
+            );
+
+            // Convert data URL back to a File object
+            const base64Response = await fetch(compressedDataUrl);
+            const compressedBlob = await base64Response.blob();
+
+            const compressedFile = new File([compressedBlob], file.name, {
+              type: file.type,
+            });
+
+            // Validate compressed file size
+            if (validateFileSize(compressedFile)) {
+              // Calculate compression ratio
+              const compressionRatio = Math.round(
+                ((file.size - compressedFile.size) / file.size) * 100
+              );
+
+              // Store compression info using the compressed file's properties for lookup
+              const compressedFileKey = `${compressedFile.name}-${compressedFile.size}-${compressedFile.lastModified}`;
+              newCompressionInfo.set(compressedFileKey, {
+                originalSize: file.size,
+                compressedSize: compressedFile.size,
+                compressionRatio: Math.max(0, compressionRatio),
+                wasCompressed: true,
+              });
+
+              processedFiles.push(compressedFile);
+            } else {
+              const maxSizeMB = fileMaxSize
+                ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+                : 'unknown';
+              setErrorMessage(
+                `Even after compression, file size exceeds the maximum allowed size of ${maxSizeMB} MB`
+              );
+            }
+          } catch (compressionError) {
+            console.error(
+              'Image compression failed, using original file:',
+              compressionError
+            );
+
+            // Validate original file size after compression failure
+            if (validateFileSize(file)) {
+              // Store info indicating compression failed (file stays the same)
+              const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+              newCompressionInfo.set(fileKey, {
+                originalSize: file.size,
+                compressedSize: file.size,
+                compressionRatio: 0,
+                wasCompressed: false,
+              });
+
+              processedFiles.push(file);
+            } else {
+              const maxSizeMB = fileMaxSize
+                ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+                : 'unknown';
+              setErrorMessage(
+                `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
+              );
+            }
+          }
+        }
       }
-      setCompressionStatus({ isCompressing: false });
-      return files;
     }
 
-    // Set initial compression status
-    setCompressionStatus({
-      isCompressing: true,
-      originalSize: file.size,
-    });
-
-    try {
-      const compressedDataUrl = await compressionFunc(
-        file,
-        compressionMaxDimension
-      );
-
-      // Convert data URL back to a File object
-      const base64Response = await fetch(compressedDataUrl);
-      const compressedBlob = await base64Response.blob();
-
-      const compressedFile = new File([compressedBlob], file.name, {
-        type: file.type,
-      });
-
-      // Validate compressed file size
-      if (!validateFileSize(compressedFile)) {
-        const maxSizeMB = fileMaxSize
-          ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-          : 'unknown';
-        setErrorMessage(
-          `Even after compression, file size exceeds the maximum allowed size of ${maxSizeMB} MB`
-        );
-        setCompressionStatus({ isCompressing: false });
-        return [];
-      }
-
-      // Calculate compression ratio
-      const compressionRatio = Math.round(
-        ((file.size - compressedFile.size) / file.size) * 100
-      );
-
-      // Update compression status with results
-      setCompressionStatus({
-        isCompressing: false,
-        originalSize: file.size,
-        compressedSize: compressedFile.size,
-        compressionRatio: Math.max(0, compressionRatio),
-      });
-
-      return [compressedFile];
-    } catch (compressionError) {
-      console.error(
-        'Image compression failed, using original file:',
-        compressionError
-      );
-
-      // Validate original file size after compression failure
-      if (!validateFileSize(file)) {
-        const maxSizeMB = fileMaxSize
-          ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-          : 'unknown';
-        setErrorMessage(
-          `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
-        );
-        setCompressionStatus({ isCompressing: false });
-        return [];
-      }
-
-      // Update status to show compression failed
-      setCompressionStatus({
-        isCompressing: false,
-        originalSize: file.size,
-        compressedSize: file.size,
-        compressionRatio: 0,
-      });
-
-      return files;
-    }
+    setCompressionStatus({ isCompressing: false });
+    setFileCompressionInfo(newCompressionInfo);
+    return processedFiles;
   };
 
   // Constants:
@@ -282,6 +316,10 @@ const Dropzone = ({
 
   // Functions:
   const deleteUploadedFile = (index: number) => {
+    const fileToDelete = filesUploaded[index];
+    // Use the actual file's properties for the key (which could be compressed file)
+    const fileKey = `${fileToDelete.name}-${fileToDelete.size}-${fileToDelete.lastModified}`;
+
     onChange?.([
       ...filesUploaded.slice(0, index),
       ...filesUploaded.slice(index + 1),
@@ -291,7 +329,12 @@ const Dropzone = ({
       ..._uploadedFiles.slice(index + 1),
     ]);
 
-    // Reset compression status when files are deleted
+    // Remove compression info for this file
+    const newCompressionInfo = new Map(fileCompressionInfo);
+    newCompressionInfo.delete(fileKey);
+    setFileCompressionInfo(newCompressionInfo);
+
+    // Reset compression status when all files are deleted
     if (filesUploaded.length === 1) {
       setCompressionStatus({ isCompressing: false });
     }
@@ -395,19 +438,25 @@ const Dropzone = ({
                     <div className="eb-text-[0.7rem] eb-leading-tight eb-text-gray-500">
                       .{fileUploaded.name.split('.').pop()} •{' '}
                       {(fileUploaded.size / (1024 * 1024)).toFixed(2)} MB
-                      {/* Show compression info if available */}
-                      {showCompressionInfo &&
-                        compressionStatus &&
-                        compressionStatus.originalSize &&
-                        compressionStatus.compressedSize &&
-                        (compressionStatus.compressionRatio ?? 0) > 0 && (
+                      {/* Show compression info if available for this specific file */}
+                      {(() => {
+                        const fileKey = `${fileUploaded.name}-${fileUploaded.size}-${fileUploaded.lastModified}`;
+                        const compressionInfo =
+                          fileCompressionInfo.get(fileKey);
+                        const isCompressibleType =
+                          isCompressibleFile(fileUploaded);
+
+                        return showCompressionInfo &&
+                          compressionInfo &&
+                          isCompressibleType &&
+                          compressionInfo.wasCompressed &&
+                          compressionInfo.compressionRatio > 0 ? (
                           <span className="eb-ml-2 eb-inline-flex eb-items-center eb-gap-1 eb-text-blue-600">
                             <Sparkles className="eb-h-3 eb-w-3" />
-                            <span>
-                              compressed -{compressionStatus.compressionRatio}%
-                            </span>
+                            <span>compressed</span>
                           </span>
-                        )}
+                        ) : null;
+                      })()}
                     </div>
                   </div>
                 </div>
