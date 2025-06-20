@@ -72,12 +72,37 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
 
   // Utility functions for mobile and camera detection
   const isMobileDevice = (): boolean => {
-    return (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+    const { userAgent } = navigator;
+    const { width, height } = window.screen;
+
+    // Check for explicitly mobile devices (phones and tablets)
+    const isMobileUserAgent =
+      /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        userAgent
       ) ||
-      ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2)
-    );
+      // iPad detection (modern iPads don't contain "Mobile" in user agent)
+      (/iPad|Macintosh/i.test(userAgent) && 'ontouchend' in document);
+
+    // Exclude desktop/laptop operating systems
+    const isWindows = /Windows NT/i.test(userAgent);
+    const isMacOS =
+      /Macintosh|MacIntel/i.test(userAgent) && !('ontouchend' in document);
+    const isLinux = /Linux/i.test(userAgent) && !/Android/i.test(userAgent);
+
+    // Exclude devices that are clearly desktops/laptops
+    const isDesktop = isWindows || isMacOS || isLinux;
+
+    // For touch devices, use more restrictive criteria
+    const isTouchMobile =
+      'maxTouchPoints' in navigator &&
+      navigator.maxTouchPoints > 0 &&
+      !isDesktop &&
+      // Mobile devices typically have portrait orientation capability or small screens
+      (width <= 768 || height <= 1024) &&
+      // Exclude large touch displays (interactive kiosks, large tablets used as laptops)
+      width < 1200;
+
+    return isMobileUserAgent || isTouchMobile;
   };
 
   const hasCameraCapabilities = (): boolean => {
