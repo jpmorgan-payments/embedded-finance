@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import {
   useDropzone,
   type DropzoneProps as _DropzoneProps,
@@ -11,6 +12,13 @@ import { Box } from '@/components/ui/box';
 
 export interface DropzoneState extends _DropzoneState {}
 
+interface CompressionStatus {
+  isCompressing: boolean;
+  originalSize?: number;
+  compressedSize?: number;
+  compressionRatio?: number;
+}
+
 export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
   containerClassName?: string;
   dropZoneClassName?: string;
@@ -18,6 +26,11 @@ export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
   showFilesList?: boolean;
   showErrorMessage?: boolean;
   onChange?: (files: File[]) => void;
+  compressionFunc?: (file: File, maxDimension?: number) => Promise<string>;
+  compressibleExtensions?: string[];
+  fileMaxSize?: number; // in bytes
+  compressionMaxDimension?: number;
+  showCompressionInfo?: boolean;
 }
 
 // Functions:
@@ -107,34 +120,165 @@ const Dropzone = ({
   showFilesList = true,
   showErrorMessage = true,
   onChange,
+  compressionFunc,
+  compressibleExtensions = ['.jpeg', '.jpg', '.png'],
+  fileMaxSize,
+  compressionMaxDimension = 1000,
+  showCompressionInfo = true,
   ...props
 }: DropzoneProps) => {
+  // State:
+  const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [compressionStatus, setCompressionStatus] = useState<CompressionStatus>(
+    {
+      isCompressing: false,
+    }
+  );
+
+  // Helper function to check if a file is compressible
+  const isCompressibleFile = (file: File): boolean => {
+    if (!compressionFunc) return false;
+    const extension = file.name.toLowerCase().match(/\.[^.]*$/)?.[0];
+    return extension ? compressibleExtensions.includes(extension) : false;
+  };
+
+  // Helper function to validate file size
+  const validateFileSize = (file: File): boolean => {
+    if (!fileMaxSize) return true;
+    return file.size <= fileMaxSize;
+  };
+
+  // Helper function to compress files
+  const handleFileCompression = async (files: File[]): Promise<File[]> => {
+    if (!files || files.length === 0) {
+      setCompressionStatus({ isCompressing: false });
+      return files;
+    }
+
+    const file = files[0]; // Since we're typically using multiple={false}
+
+    const isCompressible = isCompressibleFile(file);
+
+    // For non-compressible files, validate original file size
+    if (!isCompressible || !compressionFunc) {
+      if (!validateFileSize(file)) {
+        const maxSizeMB = fileMaxSize
+          ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+          : 'unknown';
+        setErrorMessage(
+          `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
+        );
+        return [];
+      }
+      setCompressionStatus({ isCompressing: false });
+      return files;
+    }
+
+    // Set initial compression status
+    setCompressionStatus({
+      isCompressing: true,
+      originalSize: file.size,
+    });
+
+    try {
+      const compressedDataUrl = await compressionFunc(
+        file,
+        compressionMaxDimension
+      );
+
+      // Convert data URL back to a File object
+      const base64Response = await fetch(compressedDataUrl);
+      const compressedBlob = await base64Response.blob();
+
+      const compressedFile = new File([compressedBlob], file.name, {
+        type: file.type,
+      });
+
+      // Validate compressed file size
+      if (!validateFileSize(compressedFile)) {
+        const maxSizeMB = fileMaxSize
+          ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+          : 'unknown';
+        setErrorMessage(
+          `Even after compression, file size exceeds the maximum allowed size of ${maxSizeMB} MB`
+        );
+        setCompressionStatus({ isCompressing: false });
+        return [];
+      }
+
+      // Calculate compression ratio
+      const compressionRatio = Math.round(
+        ((file.size - compressedFile.size) / file.size) * 100
+      );
+
+      // Update compression status with results
+      setCompressionStatus({
+        isCompressing: false,
+        originalSize: file.size,
+        compressedSize: compressedFile.size,
+        compressionRatio: Math.max(0, compressionRatio),
+      });
+
+      return [compressedFile];
+    } catch (compressionError) {
+      console.error(
+        'Image compression failed, using original file:',
+        compressionError
+      );
+
+      // Validate original file size after compression failure
+      if (!validateFileSize(file)) {
+        const maxSizeMB = fileMaxSize
+          ? (fileMaxSize / (1024 * 1024)).toFixed(2)
+          : 'unknown';
+        setErrorMessage(
+          `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
+        );
+        setCompressionStatus({ isCompressing: false });
+        return [];
+      }
+
+      // Update status to show compression failed
+      setCompressionStatus({
+        isCompressing: false,
+        originalSize: file.size,
+        compressedSize: file.size,
+        compressionRatio: 0,
+      });
+
+      return files;
+    }
+  };
+
   // Constants:
   const dropzone = useDropzone({
     ...props,
-    onDrop(acceptedFiles, fileRejections, event) {
-      if (props.onDrop) props.onDrop(acceptedFiles, fileRejections, event);
-      else {
-        onChange?.([...filesUploaded, ...acceptedFiles]);
-        setFilesUploaded((_filesUploaded) => [
-          ..._filesUploaded,
-          ...acceptedFiles,
-        ]);
+    onDrop: async (acceptedFiles, fileRejections, event) => {
+      if (props.onDrop) {
+        props.onDrop(acceptedFiles, fileRejections, event);
+      } else {
+        // Handle file compression if needed
+        const processedFiles = await handleFileCompression(acceptedFiles);
+
+        if (processedFiles.length > 0) {
+          onChange?.([...filesUploaded, ...processedFiles]);
+          setFilesUploaded((_filesUploaded) => [
+            ..._filesUploaded,
+            ...processedFiles,
+          ]);
+          setErrorMessage('');
+        }
+
         if (fileRejections.length > 0) {
           let _errorMessage = `Could not upload ${fileRejections[0].file.name}`;
           if (fileRejections.length > 1)
             _errorMessage += `, and ${fileRejections.length - 1} other files.`;
           setErrorMessage(_errorMessage);
-        } else {
-          setErrorMessage('');
         }
       }
     },
   });
-
-  // State:
-  const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string>();
 
   // Functions:
   const deleteUploadedFile = (index: number) => {
@@ -146,6 +290,11 @@ const Dropzone = ({
       ..._uploadedFiles.slice(0, index),
       ..._uploadedFiles.slice(index + 1),
     ]);
+
+    // Reset compression status when files are deleted
+    if (filesUploaded.length === 1) {
+      setCompressionStatus({ isCompressing: false });
+    }
   };
 
   // Return:
@@ -172,9 +321,13 @@ const Dropzone = ({
                 <Upload className="eb-mr-2 eb-h-4 eb-w-4" /> Drag and drop a
                 file or click to browse
               </div>
-              {props.maxSize && (
+              {(props.maxSize || fileMaxSize) && (
                 <div className="eb-text-xs eb-font-medium eb-text-gray-400">
-                  Max. file size: {(props.maxSize / (1024 * 1024)).toFixed(2)}{' '}
+                  Max. file size:{' '}
+                  {(
+                    (props.maxSize || fileMaxSize || 0) /
+                    (1024 * 1024)
+                  ).toFixed(2)}{' '}
                   MB
                 </div>
               )}
@@ -182,6 +335,35 @@ const Dropzone = ({
           )}
         </div>
       )}
+
+      {/* Compression Status Alert - only show during compression */}
+      {showCompressionInfo &&
+        compressionStatus &&
+        compressionStatus.isCompressing && (
+          <div className="eb-rounded-md eb-bg-blue-50 eb-p-3 eb-text-sm">
+            <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
+              <Sparkles className="eb-h-4 eb-w-4 eb-animate-spin" />
+              <span>Compressing image to {compressionMaxDimension}px...</span>
+            </div>
+          </div>
+        )}
+
+      {/* Compression Info Note */}
+      {showCompressionInfo &&
+        compressionFunc &&
+        compressibleExtensions.length > 0 && (
+          <div className="eb-text-xs eb-text-gray-500">
+            <div className="eb-flex eb-items-center eb-gap-1">
+              <Sparkles className="eb-h-3 eb-w-3" />
+              <span>
+                {compressibleExtensions.join(', ').toUpperCase()} images will be
+                automatically compressed to {compressionMaxDimension}px for
+                faster uploads
+              </span>
+            </div>
+          </div>
+        )}
+
       {showErrorMessage && errorMessage && (
         <span className="eb-mt-3 eb-text-xs eb-text-red-600">
           {errorMessage}
@@ -213,6 +395,19 @@ const Dropzone = ({
                     <div className="eb-text-[0.7rem] eb-leading-tight eb-text-gray-500">
                       .{fileUploaded.name.split('.').pop()} •{' '}
                       {(fileUploaded.size / (1024 * 1024)).toFixed(2)} MB
+                      {/* Show compression info if available */}
+                      {showCompressionInfo &&
+                        compressionStatus &&
+                        compressionStatus.originalSize &&
+                        compressionStatus.compressedSize &&
+                        (compressionStatus.compressionRatio ?? 0) > 0 && (
+                          <span className="eb-ml-2 eb-inline-flex eb-items-center eb-gap-1 eb-text-blue-600">
+                            <Sparkles className="eb-h-3 eb-w-3" />
+                            <span>
+                              compressed -{compressionStatus.compressionRatio}%
+                            </span>
+                          </span>
+                        )}
                     </div>
                   </div>
                 </div>

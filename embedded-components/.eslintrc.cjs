@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['mantine', 'plugin:tailwindcss/recommended', 'prettier'],
+  extends: ['mantine', 'plugin:tailwindcss/recommended', 'prettier', 'plugin:storybook/recommended'],
   parserOptions: {
     project: './tsconfig.json',
     tsconfigRootDir: __dirname,

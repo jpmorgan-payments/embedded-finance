@@ -2,7 +2,7 @@ import {
   linkedAccountListMock,
   linkedAccountRejectedMock,
 } from '@/mocks/efLinkedAccounts.mock';
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';

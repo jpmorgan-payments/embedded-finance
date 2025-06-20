@@ -9,9 +9,8 @@ import {
 } from '@/mocks/efDocumentRequestDetails.mock';
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { useDarkMode } from 'storybook-dark-mode';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
@@ -83,7 +82,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   },
   decorators: [
     (Story, context) => {
-      const isDarkMode = useDarkMode();
       const {
         apiBaseUrl,
         headers,
@@ -96,7 +94,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
           apiBaseUrl={apiBaseUrl}
           headers={headers}
           theme={{
-            colorScheme: isDarkMode ? 'dark' : 'light',
+            colorScheme: 'light',
             ...theme,
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}

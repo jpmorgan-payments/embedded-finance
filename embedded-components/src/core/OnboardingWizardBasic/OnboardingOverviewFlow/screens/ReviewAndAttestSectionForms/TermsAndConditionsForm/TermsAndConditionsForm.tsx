@@ -105,8 +105,6 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   );
 
   const handleDocumentOpen = (documentId: string) => async () => {
-    setTermsDocumentsOpened((prev) => ({ ...prev, [documentId]: true }));
-
     try {
       // Clear previous errors for this document
       setDocumentErrors((prev) => ({ ...prev, [documentId]: null }));
@@ -141,6 +139,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             : 'Failed to download document',
       }));
       // TODO: temporarily set opened document
+      setTermsDocumentsOpened((prev) => ({ ...prev, [documentId]: true }));
     } finally {
       setLoadingDocuments((prev) => ({ ...prev, [documentId]: false }));
     }
@@ -266,12 +265,12 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                           termsDocumentsOpened[id],
                       }
                     )}
-                    disabled={query?.isLoading || loadingDocuments[id]}
+                    disabled={query?.isFetching || loadingDocuments[id]}
                   >
                     <span className="eb-flex eb-items-center eb-gap-2">
                       <FileIcon />
                       <p className="eb-text-[#12647E] eb-underline">
-                        {query?.isLoading
+                        {query?.isFetching
                           ? 'Loading...'
                           : query?.data?.documentType}
                       </p>

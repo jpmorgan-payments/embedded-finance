@@ -1,0 +1,150 @@
+import { FC } from 'react';
+import { RefreshCw } from 'lucide-react';
+import { Control, UseFormWatch } from 'react-hook-form';
+
+import {
+  DocumentRequestResponse,
+  DocumentTypeSmbdo,
+} from '@/api/generated/smbdo.schemas';
+import { AlertDescription } from '@/components/ui/alert';
+import { Alert, Button, Card } from '@/components/ui';
+
+import { formatDocumentDescription } from './documentUploadUtils';
+import { RequirementStep } from './RequirementStep';
+
+interface DocumentRequestCardProps {
+  /**
+   * Document request data
+   */
+  documentRequest: DocumentRequestResponse;
+  /**
+   * Active requirements for this document request
+   */
+  activeRequirements: number[];
+  /**
+   * Document types that have been satisfied
+   */
+  satisfiedDocTypes: DocumentTypeSmbdo[];
+  /**
+   * Document types uploaded for each requirement
+   */
+  requirementDocTypes: Record<number, DocumentTypeSmbdo[]>;
+  /**
+   * Form control from parent component
+   */
+  control: Control<any>;
+  /**
+   * Form watch function from parent component
+   */
+  watch: UseFormWatch<any>;
+  /**
+   * Key to force reset of form fields
+   */
+  resetKey: number;
+  /**
+   * Callback to reset the form
+   */
+  onReset: () => void;
+}
+
+/**
+ * Component that renders a card for a single document request with multiple requirements
+ */
+export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
+  documentRequest,
+  activeRequirements,
+  satisfiedDocTypes,
+  requirementDocTypes,
+  control,
+  watch,
+  resetKey,
+  onReset,
+}) => {
+  if (!documentRequest?.id || !documentRequest.requirements?.length)
+    return null;
+
+  return (
+    <div>
+      {documentRequest.description && (
+        <Alert variant="informative" density="sm" noTitle>
+          <AlertDescription>
+            {formatDocumentDescription(documentRequest.description)}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Card className="eb-mt-6 eb-w-full eb-shadow-sm">
+        <div className="eb-flex eb-justify-end eb-px-4 eb-pb-0 eb-pt-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onReset}
+            className="eb-flex eb-items-center eb-gap-1 eb-text-xs"
+          >
+            <RefreshCw className="eb-h-3 eb-w-3" /> Reset form
+          </Button>
+        </div>
+
+        <div className="eb-space-y-6 eb-p-4">
+          {documentRequest.requirements.map((requirement, requirementIndex) => {
+            // Check if this requirement is active
+            const isActive = activeRequirements.includes(requirementIndex);
+            // Count how many document types are already satisfied
+            const satisfiedCount = requirement.documentTypes.filter((docType) =>
+              satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
+            ).length;
+
+            // Calculate how many document fields we need based on requirement
+            const numFieldsToShow = Math.max(
+              (requirement.minRequired || 1) - satisfiedCount,
+              0
+            );
+
+            // Check if this is a past (completed) requirement
+            const isPastRequirement =
+              satisfiedCount > 0 &&
+              (satisfiedCount === requirement.documentTypes.length ||
+                numFieldsToShow === 0);
+
+            // Get document types that were specifically uploaded for this requirement
+            const docTypesForThisRequirement =
+              requirementDocTypes[requirementIndex] || [];
+
+            // For completed steps, ensure we show at least the satisfied documents
+            // For active steps, use the calculated number
+            let numFieldsToShowForReq: number;
+            if (isPastRequirement) {
+              numFieldsToShowForReq = Math.max(
+                docTypesForThisRequirement.length,
+                requirement.minRequired || 1
+              );
+            } else {
+              numFieldsToShowForReq =
+                numFieldsToShow +
+                (docTypesForThisRequirement.length > 0
+                  ? docTypesForThisRequirement.length - 1
+                  : 0);
+            }
+
+            return (
+              <RequirementStep
+                key={`${documentRequest.id}-req-${requirementIndex}`}
+                documentRequest={documentRequest}
+                requirementIndex={requirementIndex}
+                isActive={isActive}
+                isPastRequirement={isPastRequirement}
+                satisfiedDocTypes={satisfiedDocTypes}
+                docTypesForRequirement={docTypesForThisRequirement}
+                numFieldsToShow={numFieldsToShowForReq}
+                control={control}
+                watch={watch}
+                resetKey={resetKey}
+              />
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+};

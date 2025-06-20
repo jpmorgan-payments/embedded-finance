@@ -1,5 +1,5 @@
 /* eslint-disable import/no-useless-path-segments */
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TransactionsDisplayWithProvider } from './TransactionsDisplay.story';
 

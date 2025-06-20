@@ -5,9 +5,8 @@ import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnswere
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { useDarkMode } from 'storybook-dark-mode';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
@@ -65,7 +64,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   },
   decorators: [
     (Story, context) => {
-      const isDarkMode = useDarkMode();
       const {
         apiBaseUrl,
         headers,
@@ -82,7 +80,7 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
           //   version: 'v2',
           // }}
           theme={{
-            colorScheme: isDarkMode ? 'dark' : 'light',
+            colorScheme: 'light',
             ...theme,
           }}
           reactQueryDefaultOptions={reactQueryDefaultOptions}
