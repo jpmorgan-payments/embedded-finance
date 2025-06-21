@@ -485,6 +485,7 @@ export const DocumentUploadForm = () => {
       if (!requirement) return false;
 
       // If minRequired is 0, the requirement is optional and considered satisfied
+      // Optional requirements don't need to check for validation errors
       if (requirement.minRequired === 0) return true;
 
       // Count how many documents of the required types have been uploaded
@@ -538,13 +539,14 @@ export const DocumentUploadForm = () => {
             : false;
 
           // A requirement is satisfied if:
-          // 1. It has enough satisfied document types to meet the missing requirement, AND
-          // 2. There are no validation errors, AND
-          // 3. Either it's shown as completed in the UI OR it's not active
+          // For optional requirements (minRequired = 0): Always satisfied regardless of validation errors
+          // For required requirements: Must have enough docs AND no validation errors AND (completed in UI OR not active)
           const isSatisfied =
-            satisfiedDocCount >= (requirement.minRequired ?? 1) &&
-            !hasValidationErrors &&
-            (isCompletedInUI || !isActive);
+            requirement.minRequired === 0
+              ? true // Optional requirements are always satisfied
+              : satisfiedDocCount >= (requirement.minRequired ?? 1) &&
+                !hasValidationErrors &&
+                (isCompletedInUI || !isActive);
 
           return isSatisfied;
         }

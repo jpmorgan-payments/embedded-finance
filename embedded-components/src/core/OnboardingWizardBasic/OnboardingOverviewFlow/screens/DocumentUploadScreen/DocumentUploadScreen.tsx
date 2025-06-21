@@ -95,7 +95,13 @@ export const DocumentUploadScreen: FC = () => {
   return (
     <StepLayout
       title="Supporting documents"
-      description="To satisfy regulatory requirements, we need to obtain the following"
+      description={
+        documentRequestGetListStatus === 'success' &&
+        clientData?.status === 'INFORMATION_REQUESTED' &&
+        hasDocumentRequests
+          ? 'To satisfy regulatory requirements, we need to obtain the following'
+          : undefined
+      }
     >
       <div className="eb-mt-6 eb-flex-auto eb-space-y-6">{renderContent()}</div>
 
