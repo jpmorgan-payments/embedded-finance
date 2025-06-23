@@ -101,13 +101,14 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
 
   // Client has outstanding items
   if (
-    (clientOutstanding?.attestationDocumentIds?.length ?? 0) > 0 ||
-    (clientOutstanding?.partyIds?.length ?? 0) > 0 ||
-    (clientOutstanding?.partyRoles?.length ?? 0) > 0 ||
-    (clientOutstanding?.questionIds?.length ?? 0) > 0
+    clientStatus === 'NEW' &&
+    ((clientOutstanding?.attestationDocumentIds?.length ?? 0) > 0 ||
+      (clientOutstanding?.partyIds?.length ?? 0) > 0 ||
+      (clientOutstanding?.partyRoles?.length ?? 0) > 0 ||
+      (clientOutstanding?.questionIds?.length ?? 0) > 0)
   ) {
     return (
-      <Alert variant="destructive">
+      <Alert variant="warning">
         <AlertTriangle className="eb-h-4 eb-w-4" />
         <AlertTitle>Outstanding items</AlertTitle>
         <AlertDescription>
