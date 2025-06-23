@@ -56,6 +56,7 @@ export const DocumentUploadScreen: FC = () => {
       clientStatus: clientData?.status,
       documentRequestStatus: documentRequestGetListStatus,
       hasDocumentRequests,
+      clientOutstanding: clientData?.outstanding,
     });
 
     // Only set statusComponent if StatusMessages returns non-null
