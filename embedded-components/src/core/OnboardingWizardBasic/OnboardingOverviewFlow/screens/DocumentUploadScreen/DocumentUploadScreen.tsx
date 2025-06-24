@@ -1,6 +1,10 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
+import {
+  getSmbdoGetClientQueryKey,
+  useSmbdoListDocumentRequests,
+} from '@/api/generated/smbdo';
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { FormLoadingState } from '@/core/OnboardingWizardBasic/FormLoadingState/FormLoadingState';
@@ -18,6 +22,7 @@ import { StatusMessages } from './StatusMessages';
 export const DocumentUploadScreen: FC = () => {
   const { clientData, docUploadOnlyMode } = useOnboardingOverviewContext();
   const { goTo } = useFlowContext();
+  const queryClient = useQueryClient();
 
   // Fetch document requests
   const {
@@ -31,6 +36,15 @@ export const DocumentUploadScreen: FC = () => {
 
   const documentRequests = documentRequestListResponse?.documentRequests;
   const hasDocumentRequests = !!documentRequests?.length;
+
+  // Refetch client data when document requests change to ensure client status is up-to-date
+  useEffect(() => {
+    if (clientData?.id) {
+      queryClient.invalidateQueries({
+        queryKey: getSmbdoGetClientQueryKey(clientData?.id),
+      });
+    }
+  }, [clientData?.id, JSON.stringify(documentRequestGetListStatus)]);
 
   /**
    * Handler for when a party is selected to upload documents
