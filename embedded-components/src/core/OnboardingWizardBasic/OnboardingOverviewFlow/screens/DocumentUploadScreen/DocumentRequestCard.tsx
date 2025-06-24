@@ -118,19 +118,10 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
 
             // For completed steps, ensure we show at least the satisfied documents
             // For active steps, use the calculated number
-            let numFieldsToShowForReq: number;
-            if (isPastRequirement) {
-              numFieldsToShowForReq = Math.max(
-                docTypesForThisRequirement.length,
-                requirement.minRequired || 1
-              );
-            } else {
-              numFieldsToShowForReq =
-                numFieldsToShow +
-                (docTypesForThisRequirement.length > 0
-                  ? docTypesForThisRequirement.length - 1
-                  : 0);
-            }
+            const numFieldsToShowForReq = Math.max(
+              docTypesForThisRequirement.length,
+              requirement.minRequired || 1
+            );
 
             return (
               <RequirementStep

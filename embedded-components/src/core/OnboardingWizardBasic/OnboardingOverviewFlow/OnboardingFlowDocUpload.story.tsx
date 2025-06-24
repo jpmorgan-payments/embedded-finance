@@ -99,6 +99,153 @@ DocsRequested.parameters = {
     ],
   },
 };
+export const DocsRequestedMultipleDocsInRequirement = SThemeWithMock.bind({});
+DocsRequestedMultipleDocsInRequirement.storyName =
+  'Multiple docs required in requirement';
+DocsRequestedMultipleDocsInRequirement.args = {
+  ...SThemeWithMock.args,
+  initialClientId: CLIENT_ID,
+  docUploadOnlyMode: true,
+};
+DocsRequestedMultipleDocsInRequirement.parameters = {
+  msw: {
+    handlers: [
+      ...defaultHandlers,
+      http.get('/document-requests', (req) => {
+        const url = new URL(req.request.url);
+        const clientId = url.searchParams.get('clientId');
+        if (!clientId) {
+          return new HttpResponse(null, {
+            status: 400,
+            statusText: 'Bad Request: Missing clientId parameter',
+          });
+        }
+        return HttpResponse.json({
+          documentRequests: [
+            {
+              clientId: CLIENT_ID,
+              createdAt: '2025-06-24T15:01:55.713Z',
+              id: '88916',
+              description:
+                'To verify your identity, please provide requested documents.\n1. Formation Document - listing the legal name and address of the company.\n The certificate or other record that proves the corporation’s existence must have been issued by a competent authority under the legislation of the jurisdiction in which the corporation was incorporated and it must be authentic, valid and current. Acceptable documents are: A partnership agreement [OR] Acceptable documents are: A partnership agreement [OR] [OR] Any other similar record that confirms the entity\u0027s existence.\n[AND] 2. Tax Document - FATCA/CRS or any documentation confirming tax filings.',
+              outstanding: {
+                documentTypes: [
+                  'PARTNERSHIP_AGREEMENT',
+                  'IDENTIFICATION_DOCUMENT',
+                  'TRUST_AGREEMENT',
+                  'TAX_DOCUMENT',
+                  'ARTICLES_OF_ASSOCIATION',
+                  'ANNUAL_FILINGS',
+                ],
+              },
+              requirements: [
+                {
+                  documentTypes: [
+                    'PARTNERSHIP_AGREEMENT',
+                    'ARTICLES_OF_ASSOCIATION',
+                    'TRUST_AGREEMENT',
+                    'ANNUAL_FILINGS',
+                    'IDENTIFICATION_DOCUMENT',
+                    'TAX_DOCUMENT',
+                  ],
+                  level: 'PRIMARY',
+                  minRequired: 2,
+                },
+              ],
+              status: 'ACTIVE',
+              validForDays: 120,
+            },
+            {
+              clientId: CLIENT_ID,
+              createdAt: '2025-06-24T14:45:02.046Z',
+              id: '88877',
+              description:
+                'Requirement validator created by using requirement list provided in the request.',
+              outstanding: {
+                documentTypes: [],
+              },
+              requirements: [
+                {
+                  documentTypes: ['PARTNERSHIP_AGREEMENT'],
+                  minRequired: 1,
+                },
+              ],
+              status: 'ACTIVE',
+              validForDays: 120,
+            },
+          ],
+          metadata: {
+            page: 0,
+            limit: 25,
+            total: 2,
+          },
+        });
+      }),
+
+      http.get('/document-requests/88916', () => {
+        return HttpResponse.json({
+          clientId: CLIENT_ID,
+          createdAt: '2025-06-24T15:01:55.713Z',
+          id: '88916',
+          description:
+            'To verify your identity, please provide requested documents.\n1. Formation Document - listing the legal name and address of the company.\n The certificate or other record that proves the corporation’s existence must have been issued by a competent authority under the legislation of the jurisdiction in which the corporation was incorporated and it must be authentic, valid and current. Acceptable documents are: A partnership agreement [OR] Acceptable documents are: A partnership agreement [OR] [OR] Any other similar record that confirms the entity\u0027s existence.\n[AND] 2. Tax Document - FATCA/CRS or any documentation confirming tax filings.',
+          outstanding: {
+            documentTypes: [
+              'PARTNERSHIP_AGREEMENT',
+              'IDENTIFICATION_DOCUMENT',
+              'TRUST_AGREEMENT',
+              'TAX_DOCUMENT',
+              'ARTICLES_OF_ASSOCIATION',
+              'ANNUAL_FILINGS',
+            ],
+          },
+          requirements: [
+            {
+              documentTypes: [
+                'PARTNERSHIP_AGREEMENT',
+                'ARTICLES_OF_ASSOCIATION',
+                'TRUST_AGREEMENT',
+                'ANNUAL_FILINGS',
+                'IDENTIFICATION_DOCUMENT',
+                'TAX_DOCUMENT',
+              ],
+              level: 'PRIMARY',
+              minRequired: 2,
+            },
+          ],
+          status: 'ACTIVE',
+          validForDays: 120,
+        });
+      }),
+      http.get('/document-requests/88877', () => {
+        return HttpResponse.json({
+          clientId: CLIENT_ID,
+          createdAt: '2025-06-24T14:45:02.046Z',
+          id: '88877',
+          description:
+            'Requirement validator created by using requirement list provided in the request.',
+          outstanding: {
+            documentTypes: [],
+          },
+          requirements: [
+            {
+              documentTypes: ['PARTNERSHIP_AGREEMENT'],
+              minRequired: 1,
+            },
+          ],
+          status: 'ACTIVE',
+          validForDays: 120,
+        });
+      }),
+      http.post('/documents', () => {
+        return HttpResponse.json({
+          requestId: Math.random().toString(36).substring(7),
+          traceId: `doc-${Math.random().toString(36).substring(7)}`,
+        });
+      }),
+    ],
+  },
+};
 
 export const NoDocsRequested = DocsRequested.bind({});
 NoDocsRequested.storyName = 'No documents requested';

@@ -30,7 +30,7 @@ export interface PartyCardProps {
   /**
    * Callback function when upload button is clicked
    */
-  onUploadClick: (party: PartyResponse) => void;
+  onUploadClick: () => void;
 }
 
 /**
@@ -90,7 +90,7 @@ export const PartyCard: FC<PartyCardProps> = ({
           <Button
             variant="outline"
             className="eb-w-full eb-border-primary eb-text-primary"
-            onClick={() => onUploadClick(party)}
+            onClick={onUploadClick}
           >
             <UploadIcon /> Upload documents
           </Button>

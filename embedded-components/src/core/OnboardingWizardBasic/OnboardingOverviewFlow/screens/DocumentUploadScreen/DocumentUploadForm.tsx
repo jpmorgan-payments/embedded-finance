@@ -5,7 +5,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useSmbdoListDocumentRequests,
+  useSmbdoGetDocumentRequest,
   useSmbdoSubmitDocumentRequest,
   useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
@@ -34,7 +34,7 @@ export const DocumentUploadForm = () => {
 
   const { goTo, editingPartyIds } = useFlowContext();
 
-  const partyId = editingPartyIds['document-upload-form'];
+  const docRequestId = editingPartyIds['document-upload-form'];
 
   const uploadDocumentMutation = useSmbdoUploadDocument();
   const submitDocumentMutation = useSmbdoSubmitDocumentRequest();
@@ -57,67 +57,18 @@ export const DocumentUploadForm = () => {
   // State to force dropzone reset by changing the key
   const [dropzoneResetKey, setDropzoneResetKey] = useState<number>(0);
 
-  const currentPartyData = clientData?.parties?.find((p) => p.id === partyId);
+  const { data: documentRequestResponse, status: documentRequestGetStatus } =
+    useSmbdoGetDocumentRequest(docRequestId ?? '');
 
-  const partiesDocumentRequests = Array.from(
-    new Set(
-      clientData?.parties
-        ?.map((p) => p?.validationResponse?.map((v) => v?.documentRequestIds))
-        ?.flat(2)
-        ?.filter((v) => v?.length)
-        .concat(clientData?.outstanding?.documentRequestIds)
-    )
+  const currentPartyData = clientData?.parties?.find((p) =>
+    documentRequestResponse?.partyId
+      ? p.id === documentRequestResponse?.partyId
+      : p.roles?.includes('CLIENT')
   );
 
-  // Filter document requests by partyId
-  const filteredDocumentRequests = partyId
-    ? Array.from(
-        new Set(
-          clientData?.parties
-            ?.filter((p) => p.id === partyId)
-            ?.map((p) =>
-              p?.validationResponse?.map((v) => v?.documentRequestIds)
-            )
-            ?.flat(2)
-            ?.filter((v) => v?.length)
-            // Include outstanding document requests if the filtered party is an organization
-            .concat(
-              clientData?.parties?.find((p) => p.id === partyId)?.partyType ===
-                'ORGANIZATION'
-                ? clientData?.outstanding?.documentRequestIds || []
-                : []
-            )
-        )
-      )
-    : partiesDocumentRequests;
-
-  const { data: documentRequestList, status: documentRequestListStatus } =
-    useSmbdoListDocumentRequests({
-      clientId: clientData?.id,
-      // @ts-ignore - API expects this parameter
-      includeRelatedParty: true,
-    });
-
-  const activeDocumentRequests =
-    documentRequestList?.documentRequests?.filter(
-      (docRequest) =>
-        docRequest.status === 'ACTIVE' &&
-        filteredDocumentRequests.includes(docRequest.id)
-    ) || [];
-
-  // Initialize active requirements when document requests are loaded
-  useEffect(() => {
-    if (activeDocumentRequests?.length) {
-      const initialActiveReqs: Record<string, number[]> = {};
-      activeDocumentRequests.forEach((docRequest) => {
-        if (docRequest?.id && docRequest.requirements?.length) {
-          // Only make the first requirement active initially
-          initialActiveReqs[docRequest.id] = [0];
-        }
-      });
-      setActiveRequirements(initialActiveReqs);
-    }
-  }, [JSON.stringify(activeDocumentRequests)]);
+  const activeDocumentRequests = documentRequestResponse
+    ? [documentRequestResponse]
+    : [];
 
   // zod schema, dynamically generated based on the document types
   const DocumentUploadSchema = useMemo(() => {
@@ -199,10 +150,10 @@ export const DocumentUploadForm = () => {
     > = {};
 
     // Process form values to extract uploaded documents
-    Object.entries(formValues).forEach(([docRequestId, requirementValues]) => {
-      newUploadedDocs[docRequestId] = [];
+    Object.entries(formValues).forEach(([id, requirementValues]) => {
+      newUploadedDocs[id] = [];
       // Initialize the object for this document request
-      newRequirementDocTypes[docRequestId] = {};
+      newRequirementDocTypes[id] = {};
 
       Object.entries(requirementValues as Record<string, any>).forEach(
         ([fieldName, value]) => {
@@ -224,7 +175,7 @@ export const DocumentUploadForm = () => {
             if (files && files.length > 0) {
               // Check for validation errors on both document type and files fields
 
-              const docRequestErrors = form.formState.errors?.[docRequestId] as
+              const docRequestErrors = form.formState.errors?.[id] as
                 | Record<string, any>
                 | undefined;
               const hasDocTypeError = !!docRequestErrors?.[fieldName];
@@ -233,7 +184,7 @@ export const DocumentUploadForm = () => {
               // Only consider documents as satisfied if there are no validation errors
               if (!hasDocTypeError && !hasFilesError) {
                 const docType = value as DocumentTypeSmbdo;
-                newUploadedDocs[docRequestId].push({
+                newUploadedDocs[id].push({
                   documentType: docType,
                   files,
                 });
@@ -244,15 +195,11 @@ export const DocumentUploadForm = () => {
                 }
 
                 // Track which document types were uploaded for each requirement
-                if (!newRequirementDocTypes[docRequestId][reqIndex]) {
-                  newRequirementDocTypes[docRequestId][reqIndex] = [];
+                if (!newRequirementDocTypes[id][reqIndex]) {
+                  newRequirementDocTypes[id][reqIndex] = [];
                 }
-                if (
-                  !newRequirementDocTypes[docRequestId][reqIndex].includes(
-                    docType
-                  )
-                ) {
-                  newRequirementDocTypes[docRequestId][reqIndex].push(docType);
+                if (!newRequirementDocTypes[id][reqIndex].includes(docType)) {
+                  newRequirementDocTypes[id][reqIndex].push(docType);
                 }
               }
             }
@@ -565,8 +512,8 @@ export const DocumentUploadForm = () => {
   ]);
 
   // @ts-ignore - This is a workaround for the type error in the query
-  if (documentRequestListStatus === 'pending') {
-    return <FormLoadingState message="Fetching document requests..." />;
+  if (documentRequestGetStatus === 'pending') {
+    return <FormLoadingState message="Fetching document request..." />;
   }
 
   return (

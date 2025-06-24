@@ -5,7 +5,6 @@ import {
   getSmbdoGetClientQueryKey,
   useSmbdoListDocumentRequests,
 } from '@/api/generated/smbdo';
-import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { FormLoadingState } from '@/core/OnboardingWizardBasic/FormLoadingState/FormLoadingState';
 
@@ -49,9 +48,9 @@ export const DocumentUploadScreen: FC = () => {
   /**
    * Handler for when a party is selected to upload documents
    */
-  const handlePartySelect = (party: PartyResponse) => {
+  const handleDocRequestSelect = (docRequestId: string | undefined) => {
     goTo('document-upload-form', {
-      editingPartyId: party.id,
+      editingPartyId: docRequestId,
     });
   };
 
@@ -93,7 +92,7 @@ export const DocumentUploadScreen: FC = () => {
           title="For the business"
           documentRequests={businessDocumentRequests}
           clientData={clientData}
-          onPartySelect={handlePartySelect}
+          onDocRequestSelect={handleDocRequestSelect}
         />
 
         {/* Individual document requests section */}
@@ -101,7 +100,7 @@ export const DocumentUploadScreen: FC = () => {
           title="For owners and key roles"
           documentRequests={individualDocumentRequests}
           clientData={clientData}
-          onPartySelect={handlePartySelect}
+          onDocRequestSelect={handleDocRequestSelect}
         />
       </div>
     );
