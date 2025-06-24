@@ -45,6 +45,10 @@ interface DocumentRequestCardProps {
    * Callback to reset the form
    */
   onReset: () => void;
+  /**
+   * Maximum file size in bytes for uploads
+   */
+  maxFileSizeBytes?: number;
 }
 
 /**
@@ -59,6 +63,7 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
   watch,
   resetKey,
   onReset,
+  maxFileSizeBytes,
 }) => {
   if (!documentRequest?.id || !documentRequest.requirements?.length)
     return null;
@@ -140,6 +145,7 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
                 control={control}
                 watch={watch}
                 resetKey={resetKey}
+                maxFileSizeBytes={maxFileSizeBytes}
               />
             );
           })}

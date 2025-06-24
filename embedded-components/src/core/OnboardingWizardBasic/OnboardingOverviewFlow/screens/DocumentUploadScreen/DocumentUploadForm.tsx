@@ -28,7 +28,8 @@ import { UploadedDocument } from './documentUploadUtils';
  * Component for uploading documents for a specific party
  */
 export const DocumentUploadForm = () => {
-  const { clientData } = useOnboardingOverviewContext();
+  const { clientData, docUploadMaxFileSizeBytes = 2 * 1024 * 1024 } =
+    useOnboardingOverviewContext();
   const queryClient = useQueryClient();
 
   const { goTo, editingPartyIds } = useFlowContext();
@@ -606,6 +607,7 @@ export const DocumentUploadForm = () => {
                   watch={form.watch}
                   resetKey={dropzoneResetKey}
                   onReset={resetForm}
+                  maxFileSizeBytes={docUploadMaxFileSizeBytes}
                 />
               ))}
             </div>

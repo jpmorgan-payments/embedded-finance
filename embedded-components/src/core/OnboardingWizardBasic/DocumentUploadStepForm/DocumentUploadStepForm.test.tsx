@@ -144,8 +144,8 @@ describe('DocumentUploadStepForm', () => {
     test('validates file size', async () => {
       renderComponent({ partyFilter: '2000000111' });
 
-      // Create a file larger than 5MB
-      const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.pdf', {
+      // Create a file larger than 2MB
+      const largeFile = new File(['x'.repeat(3 * 1024 * 1024)], 'large.pdf', {
         type: 'application/pdf',
       });
 

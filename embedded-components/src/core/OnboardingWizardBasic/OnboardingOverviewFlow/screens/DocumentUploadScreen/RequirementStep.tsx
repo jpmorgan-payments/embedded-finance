@@ -51,6 +51,10 @@ interface RequirementStepProps {
    * Key to force reset of form fields
    */
   resetKey: number;
+  /**
+   * Maximum file size in bytes for uploads
+   */
+  maxFileSizeBytes?: number;
 }
 
 /**
@@ -67,6 +71,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
   control,
   watch,
   resetKey,
+  maxFileSizeBytes,
 }) => {
   const requirement = documentRequest.requirements?.[requirementIndex];
   if (!requirement) return null;
@@ -168,6 +173,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
               control={control}
               isReadOnly={isPastRequirement}
               isOptional={requirement.minRequired === 0}
+              maxFileSizeBytes={maxFileSizeBytes}
             />
           ))}
         </>

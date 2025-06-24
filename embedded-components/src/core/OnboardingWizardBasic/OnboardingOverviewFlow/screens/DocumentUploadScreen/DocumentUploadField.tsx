@@ -18,10 +18,7 @@ import {
 } from '@/components/ui';
 import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingWizardBasic/utils/documentTypeMapping';
 
-import {
-  ACCEPTED_FILE_TYPES,
-  MAX_FILE_SIZE_BYTES,
-} from './documentUploadUtils';
+import { ACCEPTED_FILE_TYPES } from './documentUploadUtils';
 
 interface DocumentUploadFieldProps {
   /**
@@ -52,6 +49,10 @@ interface DocumentUploadFieldProps {
    * Whether the field is optional
    */
   isOptional?: boolean;
+  /**
+   * Maximum file size in bytes
+   */
+  maxFileSizeBytes?: number;
 }
 
 /**
@@ -65,6 +66,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   control,
   isReadOnly = false,
   isOptional = false,
+  maxFileSizeBytes,
 }) => {
   // Camera detection state
   const [enableCameraCapture, setEnableCameraCapture] =
@@ -211,7 +213,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
                 onChange={onChange}
                 compressionFunc={compressImage}
                 compressibleExtensions={['.jpeg', '.jpg', '.png']}
-                fileMaxSize={MAX_FILE_SIZE_BYTES}
+                fileMaxSize={maxFileSizeBytes}
                 compressionMaxDimension={1000}
                 showCompressionInfo
                 enableCameraCapture={enableCameraCapture}
