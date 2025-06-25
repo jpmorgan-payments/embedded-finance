@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Control } from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
@@ -18,10 +18,7 @@ import {
 } from '@/components/ui';
 import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingWizardBasic/utils/documentTypeMapping';
 
-import {
-  ACCEPTED_FILE_TYPES,
-  MAX_FILE_SIZE_BYTES,
-} from './documentUploadUtils';
+import { ACCEPTED_FILE_TYPES } from './documentUploadUtils';
 
 interface DocumentUploadFieldProps {
   /**
@@ -52,6 +49,10 @@ interface DocumentUploadFieldProps {
    * Whether the field is optional
    */
   isOptional?: boolean;
+  /**
+   * Maximum file size in bytes
+   */
+  maxFileSizeBytes?: number;
 }
 
 /**
@@ -65,14 +66,89 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   control,
   isReadOnly = false,
   isOptional = false,
+  maxFileSizeBytes,
 }) => {
+  // Camera detection state
+  const [enableCameraCapture, setEnableCameraCapture] =
+    useState<boolean>(false);
+
+  // Utility functions for mobile and camera detection
+  const isMobileDevice = (): boolean => {
+    const { userAgent } = navigator;
+    const { width, height } = window.screen;
+
+    // Check for explicitly mobile devices (phones and tablets)
+    const isMobileUserAgent =
+      /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        userAgent
+      ) ||
+      // iPad detection (modern iPads don't contain "Mobile" in user agent)
+      (/iPad|Macintosh/i.test(userAgent) && 'ontouchend' in document);
+
+    // Exclude desktop/laptop operating systems
+    const isWindows = /Windows NT/i.test(userAgent);
+    const isMacOS =
+      /Macintosh|MacIntel/i.test(userAgent) && !('ontouchend' in document);
+    const isLinux = /Linux/i.test(userAgent) && !/Android/i.test(userAgent);
+
+    // Exclude devices that are clearly desktops/laptops
+    const isDesktop = isWindows || isMacOS || isLinux;
+
+    // For touch devices, use more restrictive criteria
+    const isTouchMobile =
+      'maxTouchPoints' in navigator &&
+      navigator.maxTouchPoints > 0 &&
+      !isDesktop &&
+      // Mobile devices typically have portrait orientation capability or small screens
+      (width <= 768 || height <= 1024) &&
+      // Exclude large touch displays (interactive kiosks, large tablets used as laptops)
+      width < 1200;
+
+    return isMobileUserAgent || isTouchMobile;
+  };
+
+  const hasCameraCapabilities = (): boolean => {
+    return !!(
+      navigator.mediaDevices &&
+      'getUserMedia' in navigator.mediaDevices &&
+      'enumerateDevices' in navigator.mediaDevices
+    );
+  };
+
+  // Check for mobile device and camera capabilities on mount
+  useEffect(() => {
+    const checkCameraCapabilities = async () => {
+      const isMobile = isMobileDevice();
+      const hasCamera = hasCameraCapabilities();
+
+      if (isMobile && hasCamera) {
+        // Additional check to verify camera access (without requesting permission)
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const hasVideoInput = devices.some(
+            (device) => device.kind === 'videoinput'
+          );
+          setEnableCameraCapture(hasVideoInput);
+        } catch (error) {
+          // If we can't enumerate devices, assume camera is available on mobile
+          setEnableCameraCapture(true);
+        }
+      }
+    };
+
+    checkCameraCapabilities();
+  }, []);
+
   // Field names with optional suffix for multiple fields
   const fieldSuffix = uploadIndex > 0 ? `_${uploadIndex}` : '';
   const docTypeFieldName = `${documentRequestId}.requirement_${requirementIndex}_docType${fieldSuffix}`;
   const filesFieldName = `${documentRequestId}.requirement_${requirementIndex}_files${fieldSuffix}`;
 
   return (
-    <div className="eb-mb-6">
+    <div>
+      <h3 className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
+        Document {uploadIndex + 1}
+      </h3>
       {/* Document Type Selection */}
       <FormField
         control={control}
@@ -140,9 +216,11 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
                 onChange={onChange}
                 compressionFunc={compressImage}
                 compressibleExtensions={['.jpeg', '.jpg', '.png']}
-                fileMaxSize={MAX_FILE_SIZE_BYTES}
+                fileMaxSize={maxFileSizeBytes}
                 compressionMaxDimension={1000}
                 showCompressionInfo
+                enableCameraCapture={enableCameraCapture}
+                captureMode="environment"
               />
             </FormControl>
             <FormMessage className="eb-text-xs" />

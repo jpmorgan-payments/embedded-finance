@@ -41,4 +41,5 @@ export type OnboardingConfigUsedInContext = {
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
   docUploadOnlyMode?: boolean;
+  docUploadMaxFileSizeBytes?: number;
 };

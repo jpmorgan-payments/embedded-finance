@@ -24,7 +24,7 @@ interface DocumentRequestsSectionProps {
   /**
    * Handler for when upload button is clicked
    */
-  onPartySelect: (party: PartyResponse) => void;
+  onDocRequestSelect: (id: string | undefined) => void;
 }
 
 /**
@@ -34,7 +34,7 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
   title,
   documentRequests,
   clientData,
-  onPartySelect,
+  onDocRequestSelect,
 }) => {
   if (!clientData?.parties) return null;
 
@@ -55,7 +55,7 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
               key={party.id}
               party={party}
               docRequestStatus={docRequest.status}
-              onUploadClick={onPartySelect}
+              onUploadClick={() => onDocRequestSelect(docRequest.id)}
             />
           );
         })

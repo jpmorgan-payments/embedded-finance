@@ -10,11 +10,6 @@ export const ACCEPTED_FILE_TYPES = {
 };
 
 /**
- * Maximum file size in bytes
- */
-export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-
-/**
  * Interface for uploaded document
  */
 export interface UploadedDocument {

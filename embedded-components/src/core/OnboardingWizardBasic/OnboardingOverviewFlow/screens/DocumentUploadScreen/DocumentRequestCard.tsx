@@ -7,7 +7,7 @@ import {
   DocumentTypeSmbdo,
 } from '@/api/generated/smbdo.schemas';
 import { AlertDescription } from '@/components/ui/alert';
-import { Alert, Button, Card } from '@/components/ui';
+import { Alert, Button } from '@/components/ui';
 
 import { formatDocumentDescription } from './documentUploadUtils';
 import { RequirementStep } from './RequirementStep';
@@ -45,6 +45,10 @@ interface DocumentRequestCardProps {
    * Callback to reset the form
    */
   onReset: () => void;
+  /**
+   * Maximum file size in bytes for uploads
+   */
+  maxFileSizeBytes?: number;
 }
 
 /**
@@ -59,6 +63,7 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
   watch,
   resetKey,
   onReset,
+  maxFileSizeBytes,
 }) => {
   if (!documentRequest?.id || !documentRequest.requirements?.length)
     return null;
@@ -73,20 +78,20 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
         </Alert>
       )}
 
-      <Card className="eb-mt-6 eb-w-full eb-shadow-sm">
-        <div className="eb-flex eb-justify-end eb-px-4 eb-pb-0 eb-pt-3">
+      <div className="eb-mt-6 eb-w-full">
+        <div className="eb-mb-4 eb-flex eb-justify-end">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={onReset}
-            className="eb-flex eb-items-center eb-gap-1 eb-text-xs"
+            className="eb-flex eb-h-6 eb-items-center eb-gap-1 eb-p-1 eb-text-xs"
           >
-            <RefreshCw className="eb-h-3 eb-w-3" /> Reset form
+            <RefreshCw className="!eb-size-3" /> Reset form
           </Button>
         </div>
 
-        <div className="eb-space-y-6 eb-p-4">
+        <div className="eb-space-y-6">
           {documentRequest.requirements.map((requirement, requirementIndex) => {
             // Check if this requirement is active
             const isActive = activeRequirements.includes(requirementIndex);
@@ -113,19 +118,10 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
 
             // For completed steps, ensure we show at least the satisfied documents
             // For active steps, use the calculated number
-            let numFieldsToShowForReq: number;
-            if (isPastRequirement) {
-              numFieldsToShowForReq = Math.max(
-                docTypesForThisRequirement.length,
-                requirement.minRequired || 1
-              );
-            } else {
-              numFieldsToShowForReq =
-                numFieldsToShow +
-                (docTypesForThisRequirement.length > 0
-                  ? docTypesForThisRequirement.length - 1
-                  : 0);
-            }
+            const numFieldsToShowForReq = Math.max(
+              docTypesForThisRequirement.length,
+              requirement.minRequired || 1
+            );
 
             return (
               <RequirementStep
@@ -140,11 +136,12 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
                 control={control}
                 watch={watch}
                 resetKey={resetKey}
+                maxFileSizeBytes={maxFileSizeBytes}
               />
             );
           })}
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
