@@ -145,7 +145,10 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   const filesFieldName = `${documentRequestId}.requirement_${requirementIndex}_files${fieldSuffix}`;
 
   return (
-    <div className="eb-mb-6">
+    <div>
+      <h3 className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
+        Document {uploadIndex + 1}
+      </h3>
       {/* Document Type Selection */}
       <FormField
         control={control}

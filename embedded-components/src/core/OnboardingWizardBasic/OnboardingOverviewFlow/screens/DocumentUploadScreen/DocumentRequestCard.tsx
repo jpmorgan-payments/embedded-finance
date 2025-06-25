@@ -7,7 +7,7 @@ import {
   DocumentTypeSmbdo,
 } from '@/api/generated/smbdo.schemas';
 import { AlertDescription } from '@/components/ui/alert';
-import { Alert, Button, Card } from '@/components/ui';
+import { Alert, Button } from '@/components/ui';
 
 import { formatDocumentDescription } from './documentUploadUtils';
 import { RequirementStep } from './RequirementStep';
@@ -78,20 +78,20 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
         </Alert>
       )}
 
-      <Card className="eb-mt-6 eb-w-full eb-shadow-sm">
-        <div className="eb-flex eb-justify-end eb-px-4 eb-pb-0 eb-pt-3">
+      <div className="eb-mt-6 eb-w-full">
+        <div className="eb-mb-4 eb-flex eb-justify-end">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={onReset}
-            className="eb-flex eb-items-center eb-gap-1 eb-text-xs"
+            className="eb-flex eb-h-6 eb-items-center eb-gap-1 eb-p-1 eb-text-xs"
           >
-            <RefreshCw className="eb-h-3 eb-w-3" /> Reset form
+            <RefreshCw className="!eb-size-3" /> Reset form
           </Button>
         </div>
 
-        <div className="eb-space-y-6 eb-p-4">
+        <div className="eb-space-y-6">
           {documentRequest.requirements.map((requirement, requirementIndex) => {
             // Check if this requirement is active
             const isActive = activeRequirements.includes(requirementIndex);
@@ -141,7 +141,7 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
             );
           })}
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
