@@ -50,7 +50,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   } = useSmbdoGetClient(clientId, {
     query: {
       enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
-      refetchOnWindowFocus: false, // Avoid refetching on window focus
+      refetchOnWindowFocus: true,
+      refetchInterval: 60000, // Refetch every 60 seconds
     },
   });
 
