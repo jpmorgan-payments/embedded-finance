@@ -59,15 +59,8 @@ export const OwnersSectionScreen = () => {
       party.active
   );
 
-  const {
-    currentScreenId,
-    originScreenId,
-    goTo,
-    previouslyCompletedScreens,
-    sections,
-    sessionData,
-    updateSessionData,
-  } = useFlowContext();
+  const { originScreenId, goTo, sections, sessionData, updateSessionData } =
+    useFlowContext();
 
   const { sectionStatuses } = getFlowProgress(
     sections,
@@ -77,14 +70,13 @@ export const OwnersSectionScreen = () => {
   );
 
   const reviewMode = originScreenId === 'review-attest-section';
-  const previouslyCompleted = previouslyCompletedScreens[currentScreenId];
 
   const form = useForm({
     defaultValues: {
       controllerIsAnOwner: controllerParty
         ? controllerParty.roles?.includes('BENEFICIAL_OWNER')
           ? 'yes'
-          : previouslyCompleted
+          : sessionData.isControllerOwnerQuestionAnswered
             ? 'no'
             : undefined
         : undefined,
@@ -169,6 +161,12 @@ export const OwnersSectionScreen = () => {
       updateControllerRoles(controllerParty.id, [
         ...controllerParty.roles.filter((role) => role !== 'BENEFICIAL_OWNER'),
       ]);
+    }
+
+    if (!sessionData.isControllerOwnerQuestionAnswered) {
+      updateSessionData({
+        isControllerOwnerQuestionAnswered: true,
+      });
     }
   }, [form.watch('controllerIsAnOwner')]);
 
