@@ -297,7 +297,7 @@ const Dropzone = ({
         <div
           {...dropzone.getRootProps()}
           className={cn(
-            'eb-flex eb-h-32 eb-w-full eb-cursor-pointer eb-select-none eb-items-center eb-justify-center eb-rounded-lg eb-border-2 eb-border-dashed eb-border-gray-200 eb-p-4 eb-transition-all hover:eb-bg-accent hover:eb-text-accent-foreground',
+            'eb-flex eb-h-32 eb-w-full eb-cursor-pointer eb-select-none eb-items-center eb-justify-center eb-rounded-lg eb-border-2 eb-border-dashed eb-border-inputBorder eb-bg-input eb-p-4 eb-transition-all hover:eb-bg-accent hover:eb-text-accent-foreground',
             dropZoneClassName
           )}
         >
