@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, Fragment, useEffect, useState } from 'react';
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -85,7 +85,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
   maxFileSizeBytes,
 }) => {
   const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    isActive ? `${documentRequest.id}-req-${requirementIndex}` : undefined
+    isActive ? `req-${requirementIndex}` : undefined
   );
 
   // Effect to control accordion open state when isActive changes to true
@@ -94,7 +94,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
     if (isActive) {
       setAccordionValue(`req-${requirementIndex}`);
     }
-  }, [isActive, documentRequest.id, requirementIndex]);
+  }, [isActive, requirementIndex]);
 
   const requirement = documentRequest.requirements?.[requirementIndex];
   if (!requirement) return null;
@@ -130,6 +130,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
       className="eb-w-full eb-rounded-lg eb-border eb-bg-card eb-shadow-md"
       value={accordionValue}
       onValueChange={setAccordionValue}
+      collapsible
     >
       <AccordionItem
         className="eb-rounded-md eb-border eb-border-gray-200"
@@ -175,9 +176,10 @@ export const RequirementStep: FC<RequirementStepProps> = ({
         <AccordionContent className="eb-p-4">
           {/* Show fixed number of upload sections based on requirement */}
           {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
-            <>
+            <Fragment
+              key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
+            >
               <DocumentUploadField
-                key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
                 documentRequestId={documentRequest.id || ''}
                 requirementIndex={requirementIndex}
                 uploadIndex={uploadIndex}
@@ -191,7 +193,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
               {uploadIndex < numFieldsToShow - 1 && (
                 <Separator className="eb-my-6" />
               )}
-            </>
+            </Fragment>
           ))}
         </AccordionContent>
       </AccordionItem>

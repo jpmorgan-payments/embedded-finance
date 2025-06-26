@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { Control } from 'react-hook-form';
+import { Control, useWatch } from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
 import { DocumentTypeSmbdo } from '@/api/generated/smbdo.schemas';
@@ -77,6 +77,18 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   const [enableCameraCapture, setEnableCameraCapture] =
     useState<boolean>(false);
 
+  // Field names with optional suffix for multiple fields
+  const fieldSuffix = uploadIndex > 0 ? `_${uploadIndex}` : '';
+  const docTypeFieldName = `${documentRequestId}.requirement_${requirementIndex}_docType${fieldSuffix}`;
+  const filesFieldName = `${documentRequestId}.requirement_${requirementIndex}_files${fieldSuffix}`;
+
+  // Watch the files field value to pass to Dropzone's value prop
+  const filesValue = useWatch({
+    control,
+    name: filesFieldName,
+    defaultValue: [],
+  });
+
   // Utility functions for mobile and camera detection
   const isMobileDevice = (): boolean => {
     const { userAgent } = navigator;
@@ -144,11 +156,6 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
     checkCameraCapabilities();
   }, []);
 
-  // Field names with optional suffix for multiple fields
-  const fieldSuffix = uploadIndex > 0 ? `_${uploadIndex}` : '';
-  const docTypeFieldName = `${documentRequestId}.requirement_${requirementIndex}_docType${fieldSuffix}`;
-  const filesFieldName = `${documentRequestId}.requirement_${requirementIndex}_files${fieldSuffix}`;
-
   return (
     <div>
       {!isOnlyFieldShown && (
@@ -200,7 +207,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
       <FormField
         control={control}
         name={filesFieldName}
-        render={({ field: { onChange, ...fieldProps } }) => (
+        render={({ field: { onChange, value, ...fieldProps } }) => (
           <FormItem className="eb-space-y-2">
             <FormLabel
               asterisk={!isOptional}
@@ -228,6 +235,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
                 showCompressionInfo
                 enableCameraCapture={enableCameraCapture}
                 captureMode="environment"
+                value={filesValue}
               />
             </FormControl>
             <FormMessage className="eb-text-xs" />

@@ -48,6 +48,7 @@ export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
   resetKey?: number; // Key to force reset of internal state
   enableCameraCapture?: boolean; // Enable camera capture for mobile devices
   captureMode?: 'user' | 'environment'; // Camera facing mode: 'user' for front camera, 'environment' for back camera
+  value?: File[]; // Support for external value
 }
 
 /**
@@ -59,6 +60,7 @@ export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
  * - Image compression with visual feedback
  * - Camera capture for smartphones (when enableCameraCapture is true)
  * - Support for front camera ('user') and back camera ('environment') modes
+ * - Maintains state across unmounts when value prop is provided
  */
 const Dropzone = ({
   containerClassName,
@@ -75,10 +77,11 @@ const Dropzone = ({
   resetKey,
   enableCameraCapture = false,
   captureMode,
+  value,
   ...props
 }: DropzoneProps) => {
   // State:
-  const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
+  const [filesUploaded, setFilesUploaded] = useState<File[]>(value || []);
   const [errorMessage, setErrorMessage] = useState<string>();
   const [compressionStatus, setCompressionStatus] = useState<CompressionStatus>(
     {
@@ -88,6 +91,13 @@ const Dropzone = ({
   const [fileCompressionInfo, setFileCompressionInfo] = useState<
     Map<string, FileCompressionInfo>
   >(new Map());
+
+  // Sync with external value when it changes
+  useEffect(() => {
+    if (value && Array.isArray(value) && value.length > 0) {
+      setFilesUploaded(value);
+    }
+  }, [value]);
 
   // Reset files and compression info when resetKey changes (for external reset)
   useEffect(() => {
@@ -229,11 +239,13 @@ const Dropzone = ({
         const processedFiles = await handleFileCompression(acceptedFiles);
 
         if (processedFiles.length > 0) {
-          onChange?.([...filesUploaded, ...processedFiles]);
-          setFilesUploaded((_filesUploaded) => [
-            ..._filesUploaded,
-            ...processedFiles,
-          ]);
+          // Combine with existing files if we're supporting multiple files
+          const newFiles = props.multiple
+            ? [...filesUploaded, ...processedFiles]
+            : processedFiles; // Replace if not multiple
+
+          onChange?.(newFiles);
+          setFilesUploaded(newFiles);
           setErrorMessage('');
         }
 
@@ -259,14 +271,13 @@ const Dropzone = ({
     // Use the actual file's properties for the key (which could be compressed file)
     const fileKey = `${fileToDelete.name}-${fileToDelete.size}-${fileToDelete.lastModified}`;
 
-    onChange?.([
+    const newFiles = [
       ...filesUploaded.slice(0, index),
       ...filesUploaded.slice(index + 1),
-    ]);
-    setFilesUploaded((_uploadedFiles) => [
-      ..._uploadedFiles.slice(0, index),
-      ..._uploadedFiles.slice(index + 1),
-    ]);
+    ];
+
+    onChange?.(newFiles);
+    setFilesUploaded(newFiles);
 
     // Remove compression info for this file
     const newCompressionInfo = new Map(fileCompressionInfo);
