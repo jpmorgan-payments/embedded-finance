@@ -66,6 +66,10 @@ interface RequirementStepProps {
    * Maximum file size in bytes for uploads
    */
   maxFileSizeBytes?: number;
+  /**
+   * Whether this is the only requirement
+   */
+  isOnlyRequirement?: boolean;
 }
 
 /**
@@ -83,6 +87,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
   watch,
   resetKey,
   maxFileSizeBytes,
+  isOnlyRequirement = false,
 }) => {
   const [accordionValue, setAccordionValue] = useState<string | undefined>(
     isActive ? `req-${requirementIndex}` : undefined
@@ -123,6 +128,34 @@ export const RequirementStep: FC<RequirementStepProps> = ({
             satisfiedDocTypes.includes(docType as DocumentTypeSmbdo)
           )
           .map((docType) => docType as DocumentTypeSmbdo);
+
+  const content = (
+    <>
+      {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
+        <Fragment
+          key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
+        >
+          <DocumentUploadField
+            documentRequestId={documentRequest.id || ''}
+            requirementIndex={requirementIndex}
+            uploadIndex={uploadIndex}
+            availableDocTypes={availableDocTypes as DocumentTypeSmbdo[]}
+            control={control}
+            isReadOnly={isPastRequirement}
+            isOptional={requirement.minRequired === 0}
+            maxFileSizeBytes={maxFileSizeBytes}
+            isOnlyFieldShown={numFieldsToShow === 1}
+          />
+          {uploadIndex < numFieldsToShow - 1 && (
+            <Separator className="eb-my-6" />
+          )}
+        </Fragment>
+      ))}
+    </>
+  );
+  if (isOnlyRequirement) {
+    return content;
+  }
 
   return (
     <Accordion
@@ -173,29 +206,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
           </div>
         </AccordionTrigger>
 
-        <AccordionContent className="eb-p-4">
-          {/* Show fixed number of upload sections based on requirement */}
-          {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
-            <Fragment
-              key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
-            >
-              <DocumentUploadField
-                documentRequestId={documentRequest.id || ''}
-                requirementIndex={requirementIndex}
-                uploadIndex={uploadIndex}
-                availableDocTypes={availableDocTypes as DocumentTypeSmbdo[]}
-                control={control}
-                isReadOnly={isPastRequirement}
-                isOptional={requirement.minRequired === 0}
-                maxFileSizeBytes={maxFileSizeBytes}
-                isOnlyFieldShown={numFieldsToShow === 1}
-              />
-              {uploadIndex < numFieldsToShow - 1 && (
-                <Separator className="eb-my-6" />
-              )}
-            </Fragment>
-          ))}
-        </AccordionContent>
+        <AccordionContent className="eb-p-4">{content}</AccordionContent>
       </AccordionItem>
     </Accordion>
   );
