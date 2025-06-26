@@ -186,6 +186,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
                 isReadOnly={isPastRequirement}
                 isOptional={requirement.minRequired === 0}
                 maxFileSizeBytes={maxFileSizeBytes}
+                isOnlyFieldShown={numFieldsToShow === 1}
               />
               {uploadIndex < numFieldsToShow - 1 && (
                 <Separator className="eb-my-6" />

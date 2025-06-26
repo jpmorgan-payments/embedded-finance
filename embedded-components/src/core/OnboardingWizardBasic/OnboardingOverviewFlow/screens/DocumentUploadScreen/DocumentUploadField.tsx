@@ -53,6 +53,10 @@ interface DocumentUploadFieldProps {
    * Maximum file size in bytes
    */
   maxFileSizeBytes?: number;
+  /**
+   * Whether only this field is shown (for single upload scenarios)
+   */
+  isOnlyFieldShown?: boolean;
 }
 
 /**
@@ -67,6 +71,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   isReadOnly = false,
   isOptional = false,
   maxFileSizeBytes,
+  isOnlyFieldShown = false,
 }) => {
   // Camera detection state
   const [enableCameraCapture, setEnableCameraCapture] =
@@ -146,9 +151,11 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
 
   return (
     <div>
-      <h3 className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
-        Document {uploadIndex + 1}
-      </h3>
+      {!isOnlyFieldShown && (
+        <h3 className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
+          Document {uploadIndex + 1}
+        </h3>
+      )}
       {/* Document Type Selection */}
       <FormField
         control={control}
