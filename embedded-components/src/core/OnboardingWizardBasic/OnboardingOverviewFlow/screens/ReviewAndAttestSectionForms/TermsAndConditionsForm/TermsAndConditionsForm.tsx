@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircleIcon,
   CheckCircleIcon,
@@ -16,6 +16,7 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import {
+  getSmbdoGetClientQueryKey,
   smbdoDownloadDocument,
   smbdoGetDocumentDetail,
   useSmbdoPostClientVerifications,
@@ -51,6 +52,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
+  const queryClient = useQueryClient();
   const { clientData, onPostClientSettled } = useOnboardingOverviewContext();
   const { updateSessionData } = useFlowContext();
 
@@ -196,6 +198,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               updateSessionData({
                 mockedKycCompleted: true,
               });
+              queryClient.invalidateQueries({
+                queryKey: getSmbdoGetClientQueryKey(clientData.id),
+              });
               handleNext();
             },
           }
@@ -280,7 +285,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                     <span className="eb-flex eb-items-center eb-gap-2">
                       <FileIcon />
                       <p className="eb-text-[#12647E] eb-underline">
-                        {query?.isFetching || loadingDocuments[id]
+                        {query?.isFetching ||
+                        loadingDocuments[id] ||
+                        !query?.data
                           ? 'Loading...'
                           : query?.data?.documentType}
                       </p>
