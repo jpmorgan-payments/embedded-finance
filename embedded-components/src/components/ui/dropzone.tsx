@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Camera,
+  ExternalLink,
+  Eye,
   FileText,
   Image,
   Sparkles,
@@ -15,7 +17,14 @@ import {
 import truncate from 'truncate';
 
 import { cn } from '@/lib/utils';
-import { Box } from '@/components/ui/box';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export interface DropzoneState extends _DropzoneState {}
 
@@ -49,6 +58,7 @@ export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
   enableCameraCapture?: boolean; // Enable camera capture for mobile devices
   captureMode?: 'user' | 'environment'; // Camera facing mode: 'user' for front camera, 'environment' for back camera
   value?: File[]; // Support for external value
+  enableFilePreview?: boolean; // Enable file preview functionality
 }
 
 /**
@@ -61,6 +71,7 @@ export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
  * - Camera capture for smartphones (when enableCameraCapture is true)
  * - Support for front camera ('user') and back camera ('environment') modes
  * - Maintains state across unmounts when value prop is provided
+ * - Enhanced file preview functionality with option to open in new tab
  */
 const Dropzone = ({
   containerClassName,
@@ -78,6 +89,7 @@ const Dropzone = ({
   enableCameraCapture = false,
   captureMode,
   value,
+  enableFilePreview = true,
   ...props
 }: DropzoneProps) => {
   // State:
@@ -91,6 +103,9 @@ const Dropzone = ({
   const [fileCompressionInfo, setFileCompressionInfo] = useState<
     Map<string, FileCompressionInfo>
   >(new Map());
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState<boolean>(false);
 
   // Sync with external value when it changes
   useEffect(() => {
@@ -108,6 +123,15 @@ const Dropzone = ({
       setErrorMessage('');
     }
   }, [resetKey]);
+
+  // Clean up object URL when preview changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   // Helper function to check if a file is compressible
   const isCompressibleFile = (file: File): boolean => {
@@ -290,6 +314,45 @@ const Dropzone = ({
     }
   };
 
+  // Preview file handler
+  const handleFilePreview = (file: File) => {
+    if (!enableFilePreview) return;
+
+    // Clean up previous preview URL if exists
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    setPreviewFile(file);
+    setPreviewOpen(true);
+  };
+
+  // Close preview handler
+  const closePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
+    setPreviewFile(null);
+    setPreviewOpen(false);
+  };
+
+  // Open file in new tab
+  const openInNewTab = () => {
+    if (previewUrl) {
+      window.open(previewUrl, '_blank');
+      setPreviewOpen(false);
+    }
+  };
+
+  // Determine if file is previewable
+  const isPreviewable = (file: File): boolean => {
+    const type = file.type.toLowerCase();
+    return type.startsWith('image/') || type === 'application/pdf';
+  };
+
   // Return:
   return (
     <div className={cn('eb-flex eb-flex-col eb-gap-2', containerClassName)}>
@@ -379,8 +442,9 @@ const Dropzone = ({
             {filesUploaded.map((fileUploaded, index) => (
               <div
                 key={index}
-                className="eb-mt-2 eb-flex eb-h-16 eb-w-full eb-flex-row eb-items-center eb-justify-between eb-rounded-lg eb-border-2 eb-border-solid eb-border-gray-200 eb-px-4 eb-shadow-sm"
+                className="eb-mt-2 eb-flex eb-h-16 eb-w-full eb-flex-row eb-items-center eb-justify-between eb-rounded-lg eb-border-2 eb-border-solid eb-border-gray-200 eb-bg-card eb-px-4 eb-shadow-sm"
               >
+                {' '}
                 <div className="eb-flex eb-h-full eb-flex-row eb-items-center eb-gap-4">
                   {fileUploaded.type === 'application/pdf' ? (
                     <FileText className="eb-h-6 eb-w-6 eb-text-rose-700" />
@@ -419,17 +483,94 @@ const Dropzone = ({
                     </div>
                   </div>
                 </div>
-                <Box
-                  className="eb-cursor-pointer eb-select-none eb-rounded-full eb-border-2 eb-border-solid eb-border-gray-100 eb-p-2 eb-shadow-sm eb-transition-all hover:eb-bg-accent"
-                  onClick={() => deleteUploadedFile(index)}
-                >
-                  <Trash2 className="eb-h-4 eb-w-4" />
-                </Box>
+                <div className="eb-flex eb-items-center eb-gap-2">
+                  {isPreviewable(fileUploaded) && enableFilePreview && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="eb-size-8 eb-rounded-full eb-p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilePreview(fileUploaded);
+                      }}
+                      aria-label="Preview file"
+                    >
+                      <Eye className="eb-size-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="eb-size-8 eb-rounded-full eb-p-0 eb-text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteUploadedFile(index);
+                    }}
+                    aria-label="Delete file"
+                  >
+                    <Trash2 className="eb-size-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* File Preview Dialog */}
+      <Dialog
+        open={previewOpen}
+        onOpenChange={(open) => {
+          if (!open) closePreview();
+          setPreviewOpen(open);
+        }}
+      >
+        <DialogContent className="eb-max-h-[90vh] eb-w-[92vw] eb-overflow-hidden sm:eb-max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="eb-pr-8">{previewFile?.name}</DialogTitle>
+          </DialogHeader>
+
+          <div className="eb-flex eb-max-h-[70vh] eb-w-full eb-overflow-auto eb-p-1">
+            {previewFile?.type.startsWith('image/') ? (
+              <div className="eb-flex eb-min-h-0 eb-w-full eb-items-center eb-justify-center eb-overflow-auto">
+                <img
+                  src={previewUrl || ''}
+                  alt={previewFile?.name}
+                  className="eb-max-h-[65vh] eb-max-w-full eb-object-contain"
+                  onLoad={(e) => {
+                    e.currentTarget.style.display = 'block';
+                  }}
+                />
+              </div>
+            ) : previewFile?.type === 'application/pdf' ? (
+              <iframe
+                src={previewUrl || ''}
+                title={previewFile?.name}
+                className="eb-h-[65vh] eb-w-full eb-border-0"
+              />
+            ) : (
+              <div className="eb-text-center eb-text-gray-500">
+                Preview not available for this file type
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="eb-flex eb-flex-row eb-justify-center eb-gap-2 sm:eb-justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={openInNewTab}
+              aria-label="Open in new tab"
+            >
+              <ExternalLink className="eb-mr-1 eb-h-4 eb-w-4" />
+              Open in New Tab
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
