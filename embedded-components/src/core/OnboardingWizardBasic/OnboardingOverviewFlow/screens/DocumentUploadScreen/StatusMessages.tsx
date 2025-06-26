@@ -48,7 +48,7 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   // Client is approved
   if (clientStatus === 'APPROVED') {
     return (
-      <Alert variant="informative" noTitle>
+      <Alert variant="success" noTitle>
         <CheckIcon className="eb-h-4 eb-w-4" />
         <AlertDescription>
           Your onboarding has been approved. No documents are required.
