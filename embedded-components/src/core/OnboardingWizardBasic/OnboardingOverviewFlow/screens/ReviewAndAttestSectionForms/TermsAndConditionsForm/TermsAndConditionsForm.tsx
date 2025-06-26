@@ -7,6 +7,7 @@ import {
   ExternalLinkIcon,
   FileIcon,
   InfoIcon,
+  Loader2Icon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -84,12 +85,18 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   }>({});
 
   // Update client attestation
-  const { mutateAsync: updateClientAsync, error: updateClientError } =
-    useSmbdoUpdateClient();
+  const {
+    mutateAsync: updateClientAsync,
+    error: updateClientError,
+    status: clientUpdateStatus,
+  } = useSmbdoUpdateClient();
 
   // Initiate KYC
-  const { mutateAsync: initiateKYCAsync, error: clientVerificationsError } =
-    useSmbdoPostClientVerifications();
+  const {
+    mutateAsync: initiateKYCAsync,
+    error: clientVerificationsError,
+    status: clientVerificationsStatus,
+  } = useSmbdoPostClientVerifications();
 
   const documentIds = clientData?.outstanding?.attestationDocumentIds || [];
 
@@ -223,6 +230,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
 
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' || clientVerificationsStatus === 'pending';
+
   return (
     <Form {...form}>
       <form
@@ -270,7 +280,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                     <span className="eb-flex eb-items-center eb-gap-2">
                       <FileIcon />
                       <p className="eb-text-[#12647E] eb-underline">
-                        {query?.isFetching
+                        {query?.isFetching || loadingDocuments[id]
                           ? 'Loading...'
                           : query?.data?.documentType}
                       </p>
@@ -338,7 +348,19 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           />
         </div>
         <div className="eb-mt-6 eb-space-y-6">
-          <div className="eb-flex eb-justify-between eb-gap-4">
+          <div className="eb-flex eb-flex-col eb-gap-3">
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              className={cn('eb-w-full eb-text-lg', {
+                'eb-hidden': getNextButtonLabel() === null,
+              })}
+              disabled={isFormSubmitting}
+            >
+              {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
+              {getNextButtonLabel()}
+            </Button>
             <Button
               onClick={handlePrev}
               variant="secondary"
@@ -348,16 +370,6 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               })}
             >
               {getPrevButtonLabel()}
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              size="lg"
-              className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getNextButtonLabel() === null,
-              })}
-            >
-              {getNextButtonLabel()}
             </Button>
           </div>
         </div>
