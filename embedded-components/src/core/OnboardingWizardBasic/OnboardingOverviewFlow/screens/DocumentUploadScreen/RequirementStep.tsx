@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, Fragment, useEffect, useState } from 'react';
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -66,6 +66,10 @@ interface RequirementStepProps {
    * Maximum file size in bytes for uploads
    */
   maxFileSizeBytes?: number;
+  /**
+   * Whether this is the only requirement
+   */
+  isOnlyRequirement?: boolean;
 }
 
 /**
@@ -83,9 +87,10 @@ export const RequirementStep: FC<RequirementStepProps> = ({
   watch,
   resetKey,
   maxFileSizeBytes,
+  isOnlyRequirement = false,
 }) => {
   const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    isActive ? `${documentRequest.id}-req-${requirementIndex}` : undefined
+    isActive ? `req-${requirementIndex}` : undefined
   );
 
   // Effect to control accordion open state when isActive changes to true
@@ -94,7 +99,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
     if (isActive) {
       setAccordionValue(`req-${requirementIndex}`);
     }
-  }, [isActive, documentRequest.id, requirementIndex]);
+  }, [isActive, requirementIndex]);
 
   const requirement = documentRequest.requirements?.[requirementIndex];
   if (!requirement) return null;
@@ -124,12 +129,41 @@ export const RequirementStep: FC<RequirementStepProps> = ({
           )
           .map((docType) => docType as DocumentTypeSmbdo);
 
+  const content = (
+    <>
+      {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
+        <Fragment
+          key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
+        >
+          <DocumentUploadField
+            documentRequestId={documentRequest.id || ''}
+            requirementIndex={requirementIndex}
+            uploadIndex={uploadIndex}
+            availableDocTypes={availableDocTypes as DocumentTypeSmbdo[]}
+            control={control}
+            isReadOnly={isPastRequirement}
+            isOptional={requirement.minRequired === 0}
+            maxFileSizeBytes={maxFileSizeBytes}
+            isOnlyFieldShown={numFieldsToShow === 1}
+          />
+          {uploadIndex < numFieldsToShow - 1 && (
+            <Separator className="eb-my-6" />
+          )}
+        </Fragment>
+      ))}
+    </>
+  );
+  if (isOnlyRequirement) {
+    return content;
+  }
+
   return (
     <Accordion
       type="single"
       className="eb-w-full eb-rounded-lg eb-border eb-bg-card eb-shadow-md"
       value={accordionValue}
       onValueChange={setAccordionValue}
+      collapsible
     >
       <AccordionItem
         className="eb-rounded-md eb-border eb-border-gray-200"
@@ -172,27 +206,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
           </div>
         </AccordionTrigger>
 
-        <AccordionContent className="eb-p-4">
-          {/* Show fixed number of upload sections based on requirement */}
-          {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
-            <>
-              <DocumentUploadField
-                key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
-                documentRequestId={documentRequest.id || ''}
-                requirementIndex={requirementIndex}
-                uploadIndex={uploadIndex}
-                availableDocTypes={availableDocTypes as DocumentTypeSmbdo[]}
-                control={control}
-                isReadOnly={isPastRequirement}
-                isOptional={requirement.minRequired === 0}
-                maxFileSizeBytes={maxFileSizeBytes}
-              />
-              {uploadIndex < numFieldsToShow - 1 && (
-                <Separator className="eb-my-6" />
-              )}
-            </>
-          ))}
-        </AccordionContent>
+        <AccordionContent className="eb-p-4">{content}</AccordionContent>
       </AccordionItem>
     </Accordion>
   );

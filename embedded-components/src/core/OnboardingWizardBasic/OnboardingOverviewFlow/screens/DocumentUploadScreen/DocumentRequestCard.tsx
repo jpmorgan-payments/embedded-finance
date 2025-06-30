@@ -137,6 +137,7 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
                 watch={watch}
                 resetKey={resetKey}
                 maxFileSizeBytes={maxFileSizeBytes}
+                isOnlyRequirement={documentRequest.requirements?.length === 1}
               />
             );
           })}

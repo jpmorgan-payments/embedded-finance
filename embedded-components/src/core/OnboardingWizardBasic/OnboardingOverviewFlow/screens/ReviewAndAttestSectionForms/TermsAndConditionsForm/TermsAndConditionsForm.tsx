@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircleIcon,
   CheckCircleIcon,
   ExternalLinkIcon,
   FileIcon,
   InfoIcon,
+  Loader2Icon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,7 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import {
+  getSmbdoGetClientQueryKey,
   smbdoDownloadDocument,
   smbdoGetDocumentDetail,
   useSmbdoPostClientVerifications,
@@ -50,6 +52,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
+  const queryClient = useQueryClient();
   const { clientData, onPostClientSettled } = useOnboardingOverviewContext();
   const { updateSessionData } = useFlowContext();
 
@@ -84,12 +87,18 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   }>({});
 
   // Update client attestation
-  const { mutateAsync: updateClientAsync, error: updateClientError } =
-    useSmbdoUpdateClient();
+  const {
+    mutateAsync: updateClientAsync,
+    error: updateClientError,
+    status: clientUpdateStatus,
+  } = useSmbdoUpdateClient();
 
   // Initiate KYC
-  const { mutateAsync: initiateKYCAsync, error: clientVerificationsError } =
-    useSmbdoPostClientVerifications();
+  const {
+    mutateAsync: initiateKYCAsync,
+    error: clientVerificationsError,
+    status: clientVerificationsStatus,
+  } = useSmbdoPostClientVerifications();
 
   const documentIds = clientData?.outstanding?.attestationDocumentIds || [];
 
@@ -189,6 +198,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               updateSessionData({
                 mockedKycCompleted: true,
               });
+              queryClient.invalidateQueries({
+                queryKey: getSmbdoGetClientQueryKey(clientData.id),
+              });
               handleNext();
             },
           }
@@ -222,6 +234,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   }, [documentQueries.map((query) => query.data?.id).filter(Boolean)]);
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
+
+  const isFormSubmitting =
+    clientUpdateStatus === 'pending' || clientVerificationsStatus === 'pending';
 
   return (
     <Form {...form}>
@@ -270,7 +285,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                     <span className="eb-flex eb-items-center eb-gap-2">
                       <FileIcon />
                       <p className="eb-text-[#12647E] eb-underline">
-                        {query?.isFetching
+                        {query?.isFetching ||
+                        loadingDocuments[id] ||
+                        !query?.data
                           ? 'Loading...'
                           : query?.data?.documentType}
                       </p>
@@ -338,7 +355,19 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           />
         </div>
         <div className="eb-mt-6 eb-space-y-6">
-          <div className="eb-flex eb-justify-between eb-gap-4">
+          <div className="eb-flex eb-flex-col eb-gap-3">
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              className={cn('eb-w-full eb-text-lg', {
+                'eb-hidden': getNextButtonLabel() === null,
+              })}
+              disabled={isFormSubmitting}
+            >
+              {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
+              {getNextButtonLabel()}
+            </Button>
             <Button
               onClick={handlePrev}
               variant="secondary"
@@ -348,16 +377,6 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               })}
             >
               {getPrevButtonLabel()}
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              size="lg"
-              className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getNextButtonLabel() === null,
-              })}
-            >
-              {getNextButtonLabel()}
             </Button>
           </div>
         </div>

@@ -29,6 +29,18 @@ const meta: Meta<typeof Dropzone> = {
       control: { type: 'boolean' },
       description: 'Show compression information for images',
     },
+    showFilesList: {
+      control: 'boolean',
+      defaultValue: true,
+    },
+    showErrorMessage: {
+      control: 'boolean',
+      defaultValue: true,
+    },
+    enableFilePreview: {
+      control: 'boolean',
+      defaultValue: true,
+    },
   },
 };
 
@@ -40,7 +52,7 @@ const DropzoneWithState = (args: any) => {
   const [files, setFiles] = useState<File[]>([]);
 
   return (
-    <div className="eb-mx-auto eb-max-w-md eb-p-4">
+    <div className="eb-component eb-mx-auto eb-max-w-md eb-p-4">
       <Dropzone
         {...args}
         onChange={(newFiles) => {
@@ -200,6 +212,60 @@ export const SingleFileOnly: Story = {
       description: {
         story:
           'Dropzone configured for single file upload only with camera capture. Once a file is selected, the dropzone is hidden.',
+      },
+    },
+  },
+};
+
+export const WithFilePreview: Story = {
+  render: (args) => <DropzoneWithState {...args} />,
+  args: {
+    showFilesList: true,
+    showErrorMessage: true,
+    multiple: true,
+    fileMaxSize: 5 * 1024 * 1024, // 5MB
+    enableFilePreview: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Upload images or PDFs and click on them to view in a preview modal',
+      },
+    },
+  },
+};
+
+export const WithoutFilePreview: Story = {
+  render: (args) => <DropzoneWithState {...args} />,
+  args: {
+    showFilesList: true,
+    showErrorMessage: true,
+    multiple: true,
+    fileMaxSize: 5 * 1024 * 1024, // 5MB
+    enableFilePreview: false,
+  },
+};
+
+export const WithInitialFiles: Story = {
+  render: (args) => <DropzoneWithState {...args} />,
+  args: {
+    showFilesList: true,
+    showErrorMessage: true,
+    multiple: true,
+    value: Array.from({ length: 3 }).map(
+      (_, i) =>
+        new File(['dummy content'], `sample-file-${i + 1}.pdf`, {
+          type: 'application/pdf',
+        })
+    ),
+    enableFilePreview: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Dropzone initialized with existing files that can be previewed by clicking them',
       },
     },
   },
