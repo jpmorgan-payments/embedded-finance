@@ -26,7 +26,7 @@ export type OnboardingConfigDefault = {
 };
 
 export type OnboardingConfigUsedInContext = {
-  onGetClientSettledSettled?: (
+  onGetClientSettled?: (
     clientData: ClientResponse | undefined,
     status: 'success' | 'pending' | 'error',
     error: ErrorType<SchemasApiError> | null
