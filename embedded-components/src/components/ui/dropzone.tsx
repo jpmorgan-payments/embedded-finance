@@ -324,6 +324,12 @@ const Dropzone = ({
     }
 
     const url = URL.createObjectURL(file);
+
+    if (file.type === 'application/pdf') {
+      window.open(url, '_blank');
+      return;
+    }
+
     setPreviewUrl(url);
     setPreviewFile(file);
     setPreviewOpen(true);
