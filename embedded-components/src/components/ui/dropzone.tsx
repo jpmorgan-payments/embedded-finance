@@ -324,6 +324,12 @@ const Dropzone = ({
     }
 
     const url = URL.createObjectURL(file);
+
+    if (file.type === 'application/pdf') {
+      window.open(url, '_blank');
+      return;
+    }
+
     setPreviewUrl(url);
     setPreviewFile(file);
     setPreviewOpen(true);
@@ -386,6 +392,21 @@ const Dropzone = ({
                   </>
                 )}
               </div>
+              {props.accept && (
+                <div className="eb-text-xs eb-font-medium eb-text-gray-400">
+                  Accepted file types:{' '}
+                  {typeof props.accept === 'object'
+                    ? Object.keys(props.accept)
+                        .map((type) =>
+                          type
+                            .replace('image/', '')
+                            .replace('application/', '')
+                            .toUpperCase()
+                        )
+                        .join(', ')
+                    : props.accept}
+                </div>
+              )}
               {(props.maxSize || fileMaxSize) && (
                 <div className="eb-text-xs eb-font-medium eb-text-gray-400">
                   Max. file size:{' '}
@@ -409,22 +430,6 @@ const Dropzone = ({
             <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
               <Sparkles className="eb-h-4 eb-w-4 eb-animate-spin" />
               <span>Compressing image to {compressionMaxDimension}px...</span>
-            </div>
-          </div>
-        )}
-
-      {/* Compression Info Note */}
-      {showCompressionInfo &&
-        compressionFunc &&
-        compressibleExtensions.length > 0 && (
-          <div className="eb-text-xs eb-text-gray-500">
-            <div className="eb-flex eb-items-center eb-gap-1">
-              <Sparkles className="eb-h-3 eb-w-3" />
-              <span>
-                {compressibleExtensions.join(', ').toUpperCase()} images will be
-                automatically compressed to {compressionMaxDimension}px for
-                faster uploads
-              </span>
             </div>
           </div>
         )}
