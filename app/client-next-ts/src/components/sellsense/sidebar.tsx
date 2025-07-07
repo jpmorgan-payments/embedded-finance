@@ -9,6 +9,8 @@ interface SidebarProps {
   activeView: View;
   onViewChange: (view: View) => void;
   theme: ThemeOption;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
 }
 
 const onboardingMenu = [{ key: 'onboarding' as View, label: 'Onboarding' }];
@@ -58,6 +60,8 @@ export function Sidebar({
   activeView,
   onViewChange,
   theme,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen,
 }: SidebarProps) {
   const themeStyles = useThemeStyles(theme);
 
@@ -71,38 +75,83 @@ export function Sidebar({
   // Choose appropriate menu based on scenario
   const menuItems = isOnboardingScenario ? onboardingMenu : fullSidebarMenu;
 
-  return (
-    <div
-      className={`w-60 border-r h-full flex flex-col ${themeStyles.getSidebarStyles()}`}
-    >
-      <nav className="flex-1 pt-4">
-        {/* Scenario-specific Menu */}
-        <div className="space-y-0">
-          {menuItems.map((item) => (
-            <SidebarButton
-              key={item.key}
-              label={item.label}
-              selected={activeView === item.key}
-              onClick={() => onViewChange(item.key)}
-              theme={theme}
-            />
-          ))}
-        </div>
+  const handleViewChange = (view: View) => {
+    onViewChange(view);
+    setIsMobileMenuOpen(false); // Close mobile menu when changing views
+  };
 
-        {/* Scenario indicator */}
-        <div className="mt-8 px-4">
-          <div
-            className={`text-xs uppercase tracking-wide font-medium mb-2 ${themeStyles.getSidebarLabelStyles()}`}
-          >
-            Current Mode
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div
+        className={`hidden lg:block w-60 border-r h-full flex-shrink-0 ${themeStyles.getSidebarStyles()}`}
+      >
+        <nav className="flex-1 pt-4">
+          {/* Scenario-specific Menu */}
+          <div className="space-y-0">
+            {menuItems.map((item) => (
+              <SidebarButton
+                key={item.key}
+                label={item.label}
+                selected={activeView === item.key}
+                onClick={() => handleViewChange(item.key)}
+                theme={theme}
+              />
+            ))}
           </div>
-          <div
-            className={`text-sm font-medium ${themeStyles.getSidebarTextStyles()}`}
-          >
-            {isOnboardingScenario ? 'Onboarding Flow' : 'Seller Dashboard'}
+
+          {/* Scenario indicator */}
+          <div className="mt-8 px-4">
+            <div
+              className={`text-xs uppercase tracking-wide font-medium mb-2 ${themeStyles.getSidebarLabelStyles()}`}
+            >
+              Current Mode
+            </div>
+            <div
+              className={`text-sm font-medium ${themeStyles.getSidebarTextStyles()}`}
+            >
+              {isOnboardingScenario ? 'Onboarding Flow' : 'Seller Dashboard'}
+            </div>
           </div>
-        </div>
-      </nav>
-    </div>
+        </nav>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div
+        className={`lg:hidden fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } w-64 ${themeStyles.getSidebarStyles()}`}
+        style={{ top: '4rem' }} // Start below the header
+      >
+        <nav className="h-full pt-4 pb-20 overflow-y-auto">
+          {/* Scenario-specific Menu */}
+          <div className="space-y-0">
+            {menuItems.map((item) => (
+              <SidebarButton
+                key={item.key}
+                label={item.label}
+                selected={activeView === item.key}
+                onClick={() => handleViewChange(item.key)}
+                theme={theme}
+              />
+            ))}
+          </div>
+
+          {/* Scenario indicator */}
+          <div className="mt-8 px-4">
+            <div
+              className={`text-xs uppercase tracking-wide font-medium mb-2 ${themeStyles.getSidebarLabelStyles()}`}
+            >
+              Current Mode
+            </div>
+            <div
+              className={`text-sm font-medium ${themeStyles.getSidebarTextStyles()}`}
+            >
+              {isOnboardingScenario ? 'Onboarding Flow' : 'Seller Dashboard'}
+            </div>
+          </div>
+        </nav>
+      </div>
+    </>
   );
 }
