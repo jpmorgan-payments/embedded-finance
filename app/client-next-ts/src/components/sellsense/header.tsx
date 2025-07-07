@@ -1,15 +1,8 @@
 'use client';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Globe, Settings } from 'lucide-react';
+import { Globe, Settings, Menu, X, ChevronDown } from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useThemeStyles } from './theme-utils';
@@ -21,6 +14,10 @@ interface HeaderProps {
   setTheme: (theme: ThemeOption) => void;
   contentTone: ContentTone;
   setContentTone: (tone: ContentTone) => void;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (open: boolean) => void;
 }
 
 export function Header({
@@ -30,142 +27,132 @@ export function Header({
   setTheme,
   contentTone,
   setContentTone,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen,
+  isSettingsOpen,
+  setIsSettingsOpen,
 }: HeaderProps) {
   const themeStyles = useThemeStyles(theme);
 
+  // Helper function to get shortened names for mobile
+  const getShortScenario = (scenario: ClientScenario) => {
+    if (scenario.includes('Onboarding')) return 'Onboarding';
+    if (scenario.includes('Fresh Start')) return 'Fresh Start';
+    if (scenario.includes('Established')) return 'Established';
+    return 'Active';
+  };
+
+  const getShortTheme = (themeName: ThemeOption) => {
+    if (themeName === 'Default Blue') return 'Default';
+    if (themeName === 'Create Commerce') return 'Dark';
+    return themeName;
+  };
+
   return (
     <header
-      className={`border-b px-6 py-3 shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 ${themeStyles.getHeaderStyles()}`}
+      className={`border-b shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 px-4 lg:px-6 ${themeStyles.getHeaderStyles()}`}
     >
-      {/* Logo */}
-      <div className="flex items-center">
+      {/* Left side - Logo and Mobile Menu Button */}
+      <div className="flex items-center gap-3">
+        {/* Mobile menu button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
+        </Button>
+
+        {/* Logo */}
         {themeStyles.getLogoPath() && (
           <img
             src={themeStyles.getLogoPath()}
             alt={themeStyles.getLogoAlt()}
-            className={themeStyles.getLogoStyles()}
+            className={`${themeStyles.getLogoStyles()} hidden sm:block`}
           />
         )}
       </div>
 
-      {/* Right side controls */}
-      <div className="flex items-center space-x-6">
-        {/* Demo Controls */}
-        <div className="flex items-center space-x-4">
-          <div className="flex flex-col">
-            <label
-              className={`text-xs mb-1 ${themeStyles.getHeaderLabelStyles()}`}
-            >
-              Client View:
-            </label>
-            <Select
-              value={clientScenario}
-              onValueChange={(value) =>
-                setClientScenario(value as ClientScenario)
-              }
-            >
-              <SelectTrigger
-                className={`w-[220px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
-              >
-                <SelectValue placeholder="Select client scenario" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="New Seller - Onboarding">
-                  New Seller - Onboarding
-                </SelectItem>
-                <SelectItem value="Onboarding - Docs Needed">
-                  Onboarding - Docs Needed
-                </SelectItem>
-                <SelectItem value="Onboarding - In Review">
-                  Onboarding - In Review
-                </SelectItem>
-                <SelectItem value="Active Seller - Fresh Start">
-                  Active Seller - Fresh Start
-                </SelectItem>
-                <SelectItem value="Active Seller - Established">
-                  Active Seller - Established
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col">
-            <label
-              className={`text-xs mb-1 ${themeStyles.getHeaderLabelStyles()}`}
-            >
-              Theme:
-            </label>
-            <Select
-              value={theme}
-              onValueChange={(value) => setTheme(value as ThemeOption)}
-            >
-              <SelectTrigger
-                className={`w-[190px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
-              >
-                <SelectValue placeholder="Select theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Empty">Empty (Defaults)</SelectItem>
-                <SelectItem value="Default Blue">Default Blue</SelectItem>
-                <SelectItem value="SellSense">SellSense</SelectItem>
-                <SelectItem value="S&P Theme">S&P Theme</SelectItem>
-                <SelectItem value="Create Commerce">Create Commerce</SelectItem>
-                <SelectItem value="PayFicient">PayFicient</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col">
-            <label
-              className={`text-xs mb-1 ${themeStyles.getHeaderLabelStyles()}`}
-            >
-              Tone:
-            </label>
-            <Select
-              value={contentTone}
-              onValueChange={(value) => setContentTone(value as ContentTone)}
-            >
-              <SelectTrigger
-                className={`w-[120px] h-8 text-sm ${themeStyles.getHeaderSelectStyles()}`}
-              >
-                <SelectValue placeholder="Select tone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Standard">Standard</SelectItem>
-                <SelectItem value="Friendly">Friendly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* User section */}
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
-          >
-            <Globe className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-8 w-8 bg-sellsense-primary">
-              <AvatarFallback className="text-white text-sm font-medium">
-                JD
-              </AvatarFallback>
-            </Avatar>
-            <span
-              className={`text-sm font-medium ${themeStyles.getHeaderTextStyles()}`}
-            >
-              John Doe
+      {/* Center - Demo Settings Summary */}
+      <div className="flex-1 flex items-center justify-center max-w-2xl mx-4">
+        <button
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+          className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md ${
+            isSettingsOpen ? 'bg-gray-100 border-gray-300 shadow-md' : ''
+          }`}
+          title="Click to open demo settings"
+        >
+          {/* Mobile summary - minimal */}
+          <div className="flex items-center gap-1.5 sm:hidden text-gray-700">
+            <span className="font-medium">
+              {getShortScenario(clientScenario)}
             </span>
+            <span className="text-gray-400">•</span>
+            <span className="font-medium">{getShortTheme(theme)}</span>
+            <span className="text-gray-400">•</span>
+            <span className="font-medium">{contentTone}</span>
+            <ChevronDown className="h-3 w-3 text-gray-500 ml-1" />
           </div>
+
+          {/* Desktop summary - detailed */}
+          <div className="hidden sm:flex items-center gap-3 text-gray-700">
+            <div className="flex items-center gap-1">
+              <span className="text-gray-500">Scenario:</span>
+              <span className="font-medium">{clientScenario}</span>
+            </div>
+            <div className="text-gray-400">•</div>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-500">Theme:</span>
+              <span className="font-medium">{theme}</span>
+            </div>
+            <div className="text-gray-400">•</div>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-500">Tone:</span>
+              <span className="font-medium">{contentTone}</span>
+            </div>
+            <ChevronDown className="h-4 w-4 text-gray-500 ml-2" />
+          </div>
+        </button>
+      </div>
+
+      {/* Right side - User section and Settings */}
+      <div className="flex items-center space-x-2 lg:space-x-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
+        >
+          <Globe className="h-4 w-4 lg:h-5 lg:w-5" />
+        </Button>
+
+        {/* Settings button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 rounded-full p-1 ${
+            isSettingsOpen ? 'bg-gray-100 bg-opacity-20' : ''
+          } ${themeStyles.getHeaderButtonStyles()}`}
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+        >
+          <Settings className="h-4 w-4 lg:h-5 lg:w-5" />
+        </Button>
+
+        <div className="flex items-center space-x-2">
+          <Avatar className="h-8 w-8 bg-sellsense-primary">
+            <AvatarFallback className="text-white text-sm font-medium">
+              JD
+            </AvatarFallback>
+          </Avatar>
+          <span
+            className={`text-sm font-medium hidden sm:block ${themeStyles.getHeaderTextStyles()}`}
+          >
+            John Doe
+          </span>
         </div>
       </div>
     </header>

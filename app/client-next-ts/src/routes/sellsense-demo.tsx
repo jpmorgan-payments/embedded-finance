@@ -60,17 +60,24 @@ function SellsenseDemo() {
       <DashboardLayout />
       {/* Only show bottom navigation if NOT in fullscreen mode */}
       {!fullscreen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 px-4 flex items-center justify-between z-50 shadow-md">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-blue-800 hover:text-blue-600 font-medium"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Showcase
-          </Link>
-          <span className="text-sm text-slate-500">
-            Sellsense Marketplace Demo
-          </span>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 shadow-md">
+          {/* Mobile-first responsive bottom navigation */}
+          <div className="py-2 px-4 flex items-center justify-between md:py-3 md:px-6">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-blue-800 hover:text-blue-600 font-medium text-sm md:text-base"
+            >
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
+              <span className="hidden sm:inline">Back to Showcase</span>
+              <span className="sm:hidden">Back</span>
+            </Link>
+            <span className="text-xs md:text-sm text-slate-500">
+              <span className="hidden sm:inline">
+                Sellsense Marketplace Demo
+              </span>
+              <span className="sm:hidden">Demo</span>
+            </span>
+          </div>
         </div>
       )}
     </div>
