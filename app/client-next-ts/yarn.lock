@@ -334,10 +334,10 @@
     wrap-ansi "^8.1.0"
     wrap-ansi-cjs "npm:wrap-ansi@^7.0.0"
 
-"@jpmorgan-payments/embedded-finance-components@^0.6.31":
-  version "0.6.31"
-  resolved "https://registry.npmjs.org/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.6.31.tgz"
-  integrity sha512-GGNBwb9XH19Ha/qBvzyO988DdqvzjO2DI+PAgYEoyiCz3haGhWVUgwCxl60uoEBJv0l3c2pJrR0B8s5YyWl6FA==
+"@jpmorgan-payments/embedded-finance-components@^0.7.2":
+  version "0.7.2"
+  resolved "https://registry.npmjs.org/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.7.2.tgz"
+  integrity sha512-PaBZgcyDtjTr26rHNL1FK6E1Q8Y2mDe0hAvY9iKhNT7q/bygQPBsN/3EnmNkHTx6S+Y+8Upl9M6IDBPC4AQI/w==
   dependencies:
     "@hookform/resolvers" "^3.6.0"
     "@radix-ui/react-accordion" "^1.2.0"

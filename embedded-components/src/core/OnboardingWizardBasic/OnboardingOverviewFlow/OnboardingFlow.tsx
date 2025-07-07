@@ -62,9 +62,16 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     }
   }, [clientData, clientGetStatus, clientGetError, onGetClientSettled]);
 
-  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests({
-    clientId,
-  });
+  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests(
+    {
+      clientId,
+    },
+    {
+      query: {
+        enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
+      },
+    }
+  );
 
   // Set clientId when initialClientId prop changes
   useEffect(() => {
