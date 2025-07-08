@@ -3,7 +3,6 @@ import { i18n } from '@/i18n/config';
 import {
   ClientQuestionResponse,
   ClientResponse,
-  DocumentRequestResponse,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 
@@ -96,13 +95,8 @@ export const formatQuestionResponse = (response: ClientQuestionResponse) => {
   return formattedResponse;
 };
 
-export const checkDocumentRequestsClosed = (
-  documentRequests: DocumentRequestResponse[] | undefined
+export const clientHasOutstandingDocRequests = (
+  clientData: ClientResponse | undefined
 ): boolean => {
-  if (!documentRequests) return false;
-
-  return (
-    documentRequests.length > 0 &&
-    documentRequests.every((request) => request.status === 'CLOSED')
-  );
+  return (clientData?.outstanding.documentRequestIds?.length ?? 0) > 0;
 };

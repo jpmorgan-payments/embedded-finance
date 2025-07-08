@@ -41,7 +41,10 @@ export const StepperReviewCards: React.FC<StepperReviewCardsProps> = ({
           const { isValid, result } = stepValidationMap[step.id];
 
           return (
-            <Card className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4">
+            <Card
+              key={step.id}
+              className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4"
+            >
               <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
                 <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
                   {step.title}

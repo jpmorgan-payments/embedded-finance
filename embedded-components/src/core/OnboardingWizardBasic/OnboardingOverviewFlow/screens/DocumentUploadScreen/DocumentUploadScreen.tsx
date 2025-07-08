@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -22,28 +22,47 @@ export const DocumentUploadScreen: FC = () => {
   const { clientData, docUploadOnlyMode } = useOnboardingOverviewContext();
   const { goTo } = useFlowContext();
   const queryClient = useQueryClient();
+  const prevDocRequestsRef = useRef<string | null>(null);
 
   // Fetch document requests
   const {
     data: documentRequestListResponse,
     status: documentRequestGetListStatus,
-  } = useSmbdoListDocumentRequests({
-    clientId: clientData?.id,
-    // @ts-ignore - API expects this parameter
-    includeRelatedParty: true,
-  });
+  } = useSmbdoListDocumentRequests(
+    {
+      clientId: clientData?.id,
+      // @ts-expect-error - API expects this parameter
+      includeRelatedParty: true,
+    },
+    {
+      query: {
+        enabled: !!clientData?.id, // Only fetch if clientData is available
+      },
+    }
+  );
 
   const documentRequests = documentRequestListResponse?.documentRequests;
   const hasDocumentRequests = !!documentRequests?.length;
 
   // Refetch client data when document requests change to ensure client status is up-to-date
   useEffect(() => {
-    if (clientData?.id) {
-      queryClient.invalidateQueries({
-        queryKey: getSmbdoGetClientQueryKey(clientData?.id),
-      });
+    if (clientData?.id && documentRequests) {
+      const currentDocRequestsString = JSON.stringify(documentRequests);
+
+      // Only invalidate if we have a previous value AND the value has changed
+      if (
+        prevDocRequestsRef.current !== null &&
+        prevDocRequestsRef.current !== currentDocRequestsString
+      ) {
+        queryClient.invalidateQueries({
+          queryKey: getSmbdoGetClientQueryKey(clientData.id),
+        });
+      }
+
+      // Update the ref after checking
+      prevDocRequestsRef.current = currentDocRequestsString;
     }
-  }, [clientData?.id, JSON.stringify(documentRequestGetListStatus)]);
+  }, [clientData?.id, documentRequests, queryClient]);
 
   /**
    * Handler for when a party is selected to upload documents
@@ -59,7 +78,7 @@ export const DocumentUploadScreen: FC = () => {
    */
   const renderContent = () => {
     // Show loading state when requests are pending
-    // @ts-ignore - Status can be 'pending'
+    // @ts-expect-error - Status can be 'pending'
     if (documentRequestGetListStatus === 'pending') {
       return <FormLoadingState message="Loading document requests" />;
     }

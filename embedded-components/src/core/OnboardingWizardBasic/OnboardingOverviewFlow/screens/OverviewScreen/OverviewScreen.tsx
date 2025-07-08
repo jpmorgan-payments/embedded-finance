@@ -29,21 +29,19 @@ import { StepLayout } from '../../components/StepLayout/StepLayout';
 import { useFlowContext } from '../../context/FlowContext';
 import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import {
-  checkDocumentRequestsClosed,
+  clientHasOutstandingDocRequests,
   getPartyByAssociatedPartyFilters,
 } from '../../utils/dataUtils';
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
-  const { organizationType, clientData, documentRequests } =
-    useOnboardingOverviewContext();
+  const { organizationType, clientData } = useOnboardingOverviewContext();
   const { sections, goTo, sessionData, updateSessionData } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
-    clientData,
-    documentRequests
+    clientData
   );
 
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
@@ -54,7 +52,7 @@ export const OverviewScreen = () => {
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
-  const docRequestsClosed = checkDocumentRequestsClosed(documentRequests);
+  const docRequestsClosed = !clientHasOutstandingDocRequests(clientData);
 
   return (
     <StepLayout
