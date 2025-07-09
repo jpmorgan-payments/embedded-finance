@@ -125,23 +125,24 @@ export const loadContentTokens = (
 
 export async function compressImage(
   file: File,
-  options: {
-    maxWidthHeight?: number;
-    quality?: number;
-    outputFormat?: 'image/jpeg' | 'image/png' | 'image/webp';
-    maxSizeKB?: number;
-  } | number = {}
+  options:
+    | {
+        maxWidthHeight?: number;
+        quality?: number;
+        outputFormat?: 'image/jpeg' | 'image/png' | 'image/webp';
+        maxSizeKB?: number;
+      }
+    | number = {}
 ): Promise<string> {
   // Handle backwards compatibility with old function signature
-  const opts = typeof options === 'number' 
-    ? { maxWidthHeight: options } 
-    : options;
-    
-  const { 
+  const opts =
+    typeof options === 'number' ? { maxWidthHeight: options } : options;
+
+  const {
     maxWidthHeight = 1000,
     quality = 0.5,
     outputFormat = 'image/jpeg',
-    maxSizeKB
+    maxSizeKB,
   } = opts;
 
   // Validate input
@@ -154,7 +155,8 @@ export async function compressImage(
   }
 
   // Skip compression for small images if no specific maxSizeKB is set
-  if (!maxSizeKB && file.size < 100 * 1024) { // Less than 100KB
+  if (!maxSizeKB && file.size < 100 * 1024) {
+    // Less than 100KB
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -165,12 +167,12 @@ export async function compressImage(
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    
+
     // Add timeout handling
     const timeoutId = setTimeout(() => {
       reject(new Error('Image compression timed out'));
     }, 10000); // 10 seconds timeout
-    
+
     reader.onload = (event) => {
       const img = new Image();
       img.src = event.target?.result as string;
@@ -198,25 +200,28 @@ export async function compressImage(
           reject(new Error('Failed to get canvas context'));
           return;
         }
-        
+
         ctx.drawImage(img, 0, 0, width, height);
 
         // Start with initial quality
         let currentQuality = quality;
         let compressedDataUrl = canvas.toDataURL(outputFormat, currentQuality);
-        
+
         // If maxSizeKB is specified, reduce quality until size is under limit
         if (maxSizeKB) {
           // Calculate current size in KB
-          const getKBSize = (dataUrl: string) => 
+          const getKBSize = (dataUrl: string) =>
             Math.round((dataUrl.length * 3) / 4 / 1024);
-          
-          while (getKBSize(compressedDataUrl) > maxSizeKB && currentQuality > 0.1) {
+
+          while (
+            getKBSize(compressedDataUrl) > maxSizeKB &&
+            currentQuality > 0.1
+          ) {
             currentQuality -= 0.1;
             compressedDataUrl = canvas.toDataURL(outputFormat, currentQuality);
           }
         }
-        
+
         resolve(compressedDataUrl);
       };
       img.onerror = (error) => {
