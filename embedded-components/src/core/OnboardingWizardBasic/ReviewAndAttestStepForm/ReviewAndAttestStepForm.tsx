@@ -485,39 +485,40 @@ export const ReviewAndAttestStepForm = () => {
             </div>
           </div>
         </div>
+        <div className="eb-mt-6 eb-space-y-6">
+          <ServerErrorAlert
+            error={updateClientError || clientVerificationsError}
+          />
 
-        <ServerErrorAlert
-          error={updateClientError || clientVerificationsError}
-        />
-
-        <div className="eb-mt-8 eb-flex eb-w-full eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-justify-end">
-          <Button
-            disabled={isDisabledStep}
-            variant="secondary"
-            className="eb-w-full sm:eb-w-auto"
-            onClick={prevStep}
-          >
-            {t('common:previous')}
-          </Button>
-          <Button
-            onClick={onCompleteKYCHandler}
-            disabled={
-              !canSubmit || !isOutstandingEmpty(clientData?.outstanding)
-            }
-            className="eb-w-full sm:eb-w-auto"
-          >
-            <span className="eb-block eb-max-w-[200px] eb-truncate sm:eb-max-w-none">
-              {!canSubmit
-                ? t(
-                    'onboarding:reviewAndAttest.termsAndConditions.submitDisabled'
-                  )
-                : !isOutstandingEmpty(clientData?.outstanding)
+          <div className="eb-flex eb-flex-col eb-gap-3">
+            <Button
+              onClick={onCompleteKYCHandler}
+              disabled={
+                !canSubmit || !isOutstandingEmpty(clientData?.outstanding)
+              }
+              className="eb-w-full sm:eb-w-auto"
+            >
+              <span className="eb-block eb-max-w-[200px] eb-truncate sm:eb-max-w-none">
+                {!canSubmit
                   ? t(
-                      'onboarding:reviewAndAttest.termsAndConditions.outstandingItemsWarning'
+                      'onboarding:reviewAndAttest.termsAndConditions.submitDisabled'
                     )
-                  : t('common:submit')}
-            </span>
-          </Button>
+                  : !isOutstandingEmpty(clientData?.outstanding)
+                    ? t(
+                        'onboarding:reviewAndAttest.termsAndConditions.outstandingItemsWarning'
+                      )
+                    : t('common:submit')}
+              </span>
+            </Button>
+            <Button
+              disabled={isDisabledStep}
+              variant="secondary"
+              className="eb-w-full sm:eb-w-auto"
+              onClick={prevStep}
+            >
+              {t('common:previous')}
+            </Button>
+          </div>
         </div>
       </Stack>
     </>

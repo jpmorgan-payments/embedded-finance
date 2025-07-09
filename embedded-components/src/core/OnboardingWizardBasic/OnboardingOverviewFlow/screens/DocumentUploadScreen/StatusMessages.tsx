@@ -1,7 +1,10 @@
 import { FC, ReactElement } from 'react';
 import { AlertTriangle, CheckIcon, InfoIcon } from 'lucide-react';
 
-import { ClientStatus } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponseOutstanding,
+  ClientStatus,
+} from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface StatusMessagesProps {
@@ -17,6 +20,7 @@ interface StatusMessagesProps {
    * Whether document requests exist
    */
   hasDocumentRequests: boolean;
+  clientOutstanding: ClientResponseOutstanding | undefined;
 }
 
 /**
@@ -26,6 +30,7 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   clientStatus,
   documentRequestStatus,
   hasDocumentRequests,
+  clientOutstanding,
 }): ReactElement | undefined => {
   // Client is under review
   if (clientStatus === 'REVIEW_IN_PROGRESS') {
@@ -43,7 +48,7 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   // Client is approved
   if (clientStatus === 'APPROVED') {
     return (
-      <Alert variant="informative" noTitle>
+      <Alert variant="success" noTitle>
         <CheckIcon className="eb-h-4 eb-w-4" />
         <AlertDescription>
           Your onboarding has been approved. No documents are required.
@@ -90,6 +95,26 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
         <AlertTriangle className="eb-h-4 eb-w-4" />
         <AlertTitle>There is a problem</AlertTitle>
         <AlertDescription>No document requests found.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Client has outstanding items
+  if (
+    clientStatus === 'NEW' &&
+    ((clientOutstanding?.attestationDocumentIds?.length ?? 0) > 0 ||
+      (clientOutstanding?.partyIds?.length ?? 0) > 0 ||
+      (clientOutstanding?.partyRoles?.length ?? 0) > 0 ||
+      (clientOutstanding?.questionIds?.length ?? 0) > 0)
+  ) {
+    return (
+      <Alert variant="warning">
+        <AlertTriangle className="eb-h-4 eb-w-4" />
+        <AlertTitle>Outstanding items</AlertTitle>
+        <AlertDescription>
+          Your onboarding has outstanding items that need to be addressed.
+          Please return to the onboarding flow to resolve them.
+        </AlertDescription>
       </Alert>
     );
   }

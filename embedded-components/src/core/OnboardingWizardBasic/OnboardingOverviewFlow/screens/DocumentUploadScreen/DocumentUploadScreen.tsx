@@ -1,7 +1,10 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
-import { PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  getSmbdoGetClientQueryKey,
+  useSmbdoListDocumentRequests,
+} from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 import { FormLoadingState } from '@/core/OnboardingWizardBasic/FormLoadingState/FormLoadingState';
 
@@ -18,6 +21,7 @@ import { StatusMessages } from './StatusMessages';
 export const DocumentUploadScreen: FC = () => {
   const { clientData, docUploadOnlyMode } = useOnboardingOverviewContext();
   const { goTo } = useFlowContext();
+  const queryClient = useQueryClient();
 
   // Fetch document requests
   const {
@@ -32,12 +36,21 @@ export const DocumentUploadScreen: FC = () => {
   const documentRequests = documentRequestListResponse?.documentRequests;
   const hasDocumentRequests = !!documentRequests?.length;
 
+  // Refetch client data when document requests change to ensure client status is up-to-date
+  useEffect(() => {
+    if (clientData?.id) {
+      queryClient.invalidateQueries({
+        queryKey: getSmbdoGetClientQueryKey(clientData?.id),
+      });
+    }
+  }, [clientData?.id, JSON.stringify(documentRequestGetListStatus)]);
+
   /**
    * Handler for when a party is selected to upload documents
    */
-  const handlePartySelect = (party: PartyResponse) => {
+  const handleDocRequestSelect = (docRequestId: string | undefined) => {
     goTo('document-upload-form', {
-      editingPartyId: party.id,
+      editingPartyId: docRequestId,
     });
   };
 
@@ -56,6 +69,7 @@ export const DocumentUploadScreen: FC = () => {
       clientStatus: clientData?.status,
       documentRequestStatus: documentRequestGetListStatus,
       hasDocumentRequests,
+      clientOutstanding: clientData?.outstanding,
     });
 
     // Only set statusComponent if StatusMessages returns non-null
@@ -78,7 +92,7 @@ export const DocumentUploadScreen: FC = () => {
           title="For the business"
           documentRequests={businessDocumentRequests}
           clientData={clientData}
-          onPartySelect={handlePartySelect}
+          onDocRequestSelect={handleDocRequestSelect}
         />
 
         {/* Individual document requests section */}
@@ -86,7 +100,7 @@ export const DocumentUploadScreen: FC = () => {
           title="For owners and key roles"
           documentRequests={individualDocumentRequests}
           clientData={clientData}
-          onPartySelect={handlePartySelect}
+          onDocRequestSelect={handleDocRequestSelect}
         />
       </div>
     );
@@ -95,7 +109,13 @@ export const DocumentUploadScreen: FC = () => {
   return (
     <StepLayout
       title="Supporting documents"
-      description="To satisfy regulatory requirements, we need to obtain the following"
+      description={
+        documentRequestGetListStatus === 'success' &&
+        clientData?.status === 'INFORMATION_REQUESTED' &&
+        hasDocumentRequests
+          ? 'To satisfy regulatory requirements, we need to obtain the following'
+          : undefined
+      }
     >
       <div className="eb-mt-6 eb-flex-auto eb-space-y-6">{renderContent()}</div>
 

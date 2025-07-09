@@ -17,20 +17,22 @@ export function DashboardOverview({
   theme: _theme,
 }: DashboardOverviewProps) {
   return (
-    <div className="p-8 bg-sellsense-background-light min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-2xl font-black tracking-wide mb-2">
+    <div className="p-4 md:p-6 lg:p-8 bg-sellsense-background-light min-h-screen">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-xl md:text-2xl font-black tracking-wide mb-2">
           Welcome, John!
         </h1>
-        <p className="text-sm text-gray-600">Client: {clientScenario}</p>
+        <p className="text-xs md:text-sm text-gray-600">
+          Client: {clientScenario}
+        </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-3 flex items-center justify-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
+          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
             <svg
-              className="w-9 h-9 text-sellsense-secondary"
+              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -42,19 +44,19 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
               Today's Orders
             </p>
-            <h3 className="text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
               12
             </h3>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-3 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
+          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
             <svg
-              className="w-9 h-9 text-sellsense-secondary"
+              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -66,19 +68,19 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
               Unshipped Orders
             </p>
-            <h3 className="text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
               3
             </h3>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-3 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
+          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
             <svg
-              className="w-9 h-9 text-sellsense-secondary"
+              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -86,19 +88,19 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
               Avg. Rating
             </p>
-            <h3 className="text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
               4.8
             </h3>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-3 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
+          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
             <svg
-              className="w-9 h-9 text-sellsense-secondary"
+              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -110,19 +112,19 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
               Current Balance
             </p>
-            <h3 className="text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
               $2,430.00
             </h3>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-6 flex items-center gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-3 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
+          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
             <svg
-              className="w-9 h-9 text-sellsense-secondary"
+              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -134,10 +136,10 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
               Next Payout
             </p>
-            <h3 className="text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
               $1,200.00
             </h3>
           </div>
@@ -145,16 +147,18 @@ export function DashboardOverview({
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Orders Chart */}
-        <div className="bg-white shadow-sm rounded-xl p-6 lg:col-span-1 h-80 flex flex-col">
-          <h4 className="text-lg font-semibold mb-4">Orders per Day</h4>
+        <div className="bg-white shadow-sm rounded-xl p-4 md:p-6 lg:col-span-1 min-h-[320px] flex flex-col">
+          <h4 className="text-base md:text-lg font-semibold mb-4">
+            Orders per Day
+          </h4>
           <div className="flex-1 flex items-center justify-center">
             <svg
               width="100%"
               height="200"
               viewBox="0 0 320 200"
-              className="max-w-80"
+              className="max-w-full"
             >
               <polyline
                 fill="none"
@@ -201,73 +205,153 @@ export function DashboardOverview({
         </div>
 
         {/* Recent Orders Table */}
-        <div className="bg-white shadow-sm rounded-xl p-6 lg:col-span-2 h-80 flex flex-col">
-          <h4 className="text-lg font-semibold mb-4">Recent Orders</h4>
+        <div className="bg-white shadow-sm rounded-xl p-4 md:p-6 lg:col-span-2 min-h-[320px] flex flex-col">
+          <h4 className="text-base md:text-lg font-semibold mb-4">
+            Recent Orders
+          </h4>
           <div className="flex-1 overflow-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-sellsense-background-light">
-                  <th className="text-left p-2 font-semibold">Order #</th>
-                  <th className="text-left p-2 font-semibold">Buyer</th>
-                  <th className="text-left p-2 font-semibold">Product</th>
-                  <th className="text-left p-2 font-semibold">Date</th>
-                  <th className="text-left p-2 font-semibold">Amount</th>
-                  <th className="text-left p-2 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="p-2">20567</td>
-                  <td className="p-2">Lisa Wong</td>
-                  <td className="p-2">Canvas Tote Bag</td>
-                  <td className="p-2">2024-08-07</td>
-                  <td className="p-2">$59.99</td>
-                  <td className="p-2 text-sellsense-success font-medium">
-                    Paid
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">20566</td>
-                  <td className="p-2">Priya Patel</td>
-                  <td className="p-2">Bluetooth Headphones</td>
-                  <td className="p-2">2024-08-07</td>
-                  <td className="p-2">$120.00</td>
-                  <td className="p-2 text-sellsense-warning font-medium">
-                    Shipped
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">20565</td>
-                  <td className="p-2">Samuel Green</td>
-                  <td className="p-2">Stainless Steel Pan</td>
-                  <td className="p-2">2024-08-07</td>
-                  <td className="p-2">$45.50</td>
-                  <td className="p-2 text-sellsense-success font-medium">
-                    Delivered
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">20564</td>
-                  <td className="p-2">Lisa Wong</td>
-                  <td className="p-2">Ceramic Vase</td>
-                  <td className="p-2">2024-08-06</td>
-                  <td className="p-2">$32.00</td>
-                  <td className="p-2 text-sellsense-error font-medium">
-                    Returned
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">20563</td>
-                  <td className="p-2">Priya Patel</td>
-                  <td className="p-2">Wireless Mouse</td>
-                  <td className="p-2">2024-08-06</td>
-                  <td className="p-2">$24.99</td>
-                  <td className="p-2 text-sellsense-success font-medium">
-                    Paid
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            {/* Mobile view - Card layout */}
+            <div className="block md:hidden space-y-3">
+              {[
+                {
+                  id: '20567',
+                  buyer: 'Lisa Wong',
+                  product: 'Canvas Tote Bag',
+                  date: '2024-08-07',
+                  amount: '$59.99',
+                  status: 'Paid',
+                  statusClass: 'text-sellsense-success',
+                },
+                {
+                  id: '20566',
+                  buyer: 'Priya Patel',
+                  product: 'Bluetooth Headphones',
+                  date: '2024-08-07',
+                  amount: '$120.00',
+                  status: 'Shipped',
+                  statusClass: 'text-sellsense-warning',
+                },
+                {
+                  id: '20565',
+                  buyer: 'Samuel Green',
+                  product: 'Stainless Steel Pan',
+                  date: '2024-08-07',
+                  amount: '$45.50',
+                  status: 'Delivered',
+                  statusClass: 'text-sellsense-success',
+                },
+                {
+                  id: '20564',
+                  buyer: 'Lisa Wong',
+                  product: 'Ceramic Vase',
+                  date: '2024-08-06',
+                  amount: '$32.00',
+                  status: 'Returned',
+                  statusClass: 'text-sellsense-error',
+                },
+                {
+                  id: '20563',
+                  buyer: 'Priya Patel',
+                  product: 'Wireless Mouse',
+                  date: '2024-08-06',
+                  amount: '$24.99',
+                  status: 'Paid',
+                  statusClass: 'text-sellsense-success',
+                },
+              ].map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-gray-50 rounded-lg p-3 space-y-2"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium">#{order.id}</p>
+                      <p className="text-sm text-gray-600">{order.buyer}</p>
+                    </div>
+                    <span
+                      className={`text-sm font-medium ${order.statusClass}`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm">{order.product}</p>
+                    <div className="flex justify-between items-center mt-1">
+                      <p className="text-xs text-gray-500">{order.date}</p>
+                      <p className="font-medium">{order.amount}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop view - Table layout */}
+            <div className="hidden md:block">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-sellsense-background-light">
+                    <th className="text-left p-2 font-semibold">Order #</th>
+                    <th className="text-left p-2 font-semibold">Buyer</th>
+                    <th className="text-left p-2 font-semibold">Product</th>
+                    <th className="text-left p-2 font-semibold">Date</th>
+                    <th className="text-left p-2 font-semibold">Amount</th>
+                    <th className="text-left p-2 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="p-2">20567</td>
+                    <td className="p-2">Lisa Wong</td>
+                    <td className="p-2">Canvas Tote Bag</td>
+                    <td className="p-2">2024-08-07</td>
+                    <td className="p-2">$59.99</td>
+                    <td className="p-2 text-sellsense-success font-medium">
+                      Paid
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">20566</td>
+                    <td className="p-2">Priya Patel</td>
+                    <td className="p-2">Bluetooth Headphones</td>
+                    <td className="p-2">2024-08-07</td>
+                    <td className="p-2">$120.00</td>
+                    <td className="p-2 text-sellsense-warning font-medium">
+                      Shipped
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">20565</td>
+                    <td className="p-2">Samuel Green</td>
+                    <td className="p-2">Stainless Steel Pan</td>
+                    <td className="p-2">2024-08-07</td>
+                    <td className="p-2">$45.50</td>
+                    <td className="p-2 text-sellsense-success font-medium">
+                      Delivered
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">20564</td>
+                    <td className="p-2">Lisa Wong</td>
+                    <td className="p-2">Ceramic Vase</td>
+                    <td className="p-2">2024-08-06</td>
+                    <td className="p-2">$32.00</td>
+                    <td className="p-2 text-sellsense-error font-medium">
+                      Returned
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">20563</td>
+                    <td className="p-2">Priya Patel</td>
+                    <td className="p-2">Wireless Mouse</td>
+                    <td className="p-2">2024-08-06</td>
+                    <td className="p-2">$24.99</td>
+                    <td className="p-2 text-sellsense-success font-medium">
+                      Paid
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

@@ -182,7 +182,12 @@ const sectionScreens: SectionScreenConfig[] = [
         'Registration ID details (e.g. employer identification number)',
         'Location and contact details',
       ],
-      statusResolver: (sessionData, clientData, allStepsValid) => {
+      statusResolver: (
+        sessionData,
+        clientData,
+        allStepsValid,
+        stepValidationMap
+      ) => {
         if (sessionData.mockedKycCompleted) {
           return 'hidden';
         }
@@ -196,6 +201,14 @@ const sectionScreens: SectionScreenConfig[] = [
         }
         if (allStepsValid) {
           return 'completed';
+        }
+        const isAnyStepValid = Object.entries(stepValidationMap).some(
+          ([, stepValidation]) => {
+            return stepValidation.isValid;
+          }
+        );
+        if (isAnyStepValid) {
+          return 'missing_details';
         }
         return 'not_started';
       },

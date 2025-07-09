@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearch, useNavigate } from '@tanstack/react-router';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
+import { SettingsDrawer } from './settings-drawer';
 import { DashboardOverview } from './dashboard-overview';
 import { KycOnboarding } from './kyc-onboarding';
 import { WalletOverview } from './wallet-overview';
@@ -39,6 +40,12 @@ export function DashboardLayout() {
   // Use TanStack Router's search param APIs
   const searchParams = useSearch({ from: '/sellsense-demo' });
   const navigate = useNavigate({ from: '/sellsense-demo' });
+
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Settings drawer state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Initialize state from search params with defaults
   const [clientScenario, setClientScenario] = useState<ClientScenario>(
@@ -114,6 +121,7 @@ export function DashboardLayout() {
 
   const handleViewChange = (newView: View) => {
     setActiveView(newView);
+    setIsMobileMenuOpen(false); // Close mobile menu when changing views
     updateSearchParams({ view: newView });
   };
 
@@ -182,7 +190,7 @@ export function DashboardLayout() {
     );
   }
 
-  // Normal dashboard layout
+  // Normal dashboard layout - responsive design
   return (
     <div className="h-screen bg-sellsense-background-light overflow-hidden">
       <Header
@@ -192,16 +200,50 @@ export function DashboardLayout() {
         setTheme={handleThemeChange}
         contentTone={contentTone}
         setContentTone={handleContentToneChange}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        isSettingsOpen={isSettingsOpen}
+        setIsSettingsOpen={setIsSettingsOpen}
       />
-      <div className="flex h-[calc(100vh-4rem)]">
+
+      {/* Mobile-first responsive layout */}
+      <div className="flex h-[calc(100vh-4rem)] relative">
+        {/* Sidebar - responsive implementation */}
         <Sidebar
           clientScenario={clientScenario}
           activeView={activeView}
           onViewChange={handleViewChange}
           theme={theme}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-        <main className="flex-1 overflow-auto">{renderMainContent()}</main>
+
+        {/* Main content area - responsive */}
+        <main className="flex-1 overflow-auto w-full min-w-0">
+          {/* Add padding for mobile to account for fixed bottom navigation */}
+          <div className="pb-16 md:pb-0">{renderMainContent()}</div>
+        </main>
+
+        {/* Mobile menu overlay */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
       </div>
+
+      {/* Settings Drawer */}
+      <SettingsDrawer
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        clientScenario={clientScenario}
+        setClientScenario={handleScenarioChange}
+        theme={theme}
+        setTheme={handleThemeChange}
+        contentTone={contentTone}
+        setContentTone={handleContentToneChange}
+      />
     </div>
   );
 }

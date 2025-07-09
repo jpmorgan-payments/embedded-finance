@@ -186,27 +186,34 @@ export function LinkedAccounts({
   return (
     <>
       <div className="h-full p-6">
+        {/* Component Control Icons - Positioned above component boundaries */}
+        <div className="flex justify-end mb-4 gap-2 items-center z-20 relative">
+          {/* Component Tag */}
+          <div
+            className={`px-3 py-1.5 text-xs rounded-md border ${themeStyles.getTagStyles()}`}
+          >
+            @jpmorgan-payments/embedded-finance-components
+          </div>
+          <button
+            onClick={() => setShowTechDetails(true)}
+            className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
+            title="Component Details"
+          >
+            <Info size={18} />
+          </button>
+          <button
+            onClick={handleFullScreen}
+            className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
+            title="Open in Full Screen"
+          >
+            <Maximize2 size={18} />
+          </button>
+        </div>
+
+        {/* Component Content Container */}
         <div
           className={`relative h-full border-2 rounded-lg ${themeStyles.getCardStyles()}`}
         >
-          {/* Component Control Icons */}
-          <div className="absolute top-3 right-3 z-10 flex gap-2">
-            <button
-              onClick={() => setShowTechDetails(true)}
-              className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
-              title="Component Details"
-            >
-              <Info size={18} />
-            </button>
-            <button
-              onClick={handleFullScreen}
-              className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
-              title="Open in Full Screen"
-            >
-              <Maximize2 size={18} />
-            </button>
-          </div>
-
           {/* Component Content */}
           <div className="h-full overflow-auto">
             {renderLinkedAccountsComponent()}

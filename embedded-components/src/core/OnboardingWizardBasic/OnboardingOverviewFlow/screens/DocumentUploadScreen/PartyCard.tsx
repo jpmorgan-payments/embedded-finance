@@ -30,7 +30,7 @@ export interface PartyCardProps {
   /**
    * Callback function when upload button is clicked
    */
-  onUploadClick: (party: PartyResponse) => void;
+  onUploadClick: () => void;
 }
 
 /**
@@ -45,7 +45,7 @@ export const PartyCard: FC<PartyCardProps> = ({
     <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
       <div className="eb-space-y-1.5">
         <div className="eb-flex eb-items-center eb-justify-between">
-          <h3 className="eb-font-header eb-text-lg eb-font-medium">
+          <h3 className="eb-min-w-0 eb-shrink eb-overflow-hidden eb-break-words eb-font-header eb-text-lg eb-font-medium">
             {getPartyName(party)}
           </h3>
           {docRequestStatus === 'ACTIVE' && (
@@ -90,7 +90,7 @@ export const PartyCard: FC<PartyCardProps> = ({
           <Button
             variant="outline"
             className="eb-w-full eb-border-primary eb-text-primary"
-            onClick={() => onUploadClick(party)}
+            onClick={onUploadClick}
           >
             <UploadIcon /> Upload documents
           </Button>

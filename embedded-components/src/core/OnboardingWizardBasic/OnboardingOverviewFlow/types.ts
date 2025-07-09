@@ -26,7 +26,7 @@ export type OnboardingConfigDefault = {
 };
 
 export type OnboardingConfigUsedInContext = {
-  onGetClientSettledSettled?: (
+  onGetClientSettled?: (
     clientData: ClientResponse | undefined,
     status: 'success' | 'pending' | 'error',
     error: ErrorType<SchemasApiError> | null
@@ -41,4 +41,5 @@ export type OnboardingConfigUsedInContext = {
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
   docUploadOnlyMode?: boolean;
+  docUploadMaxFileSizeBytes?: number;
 };

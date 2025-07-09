@@ -36,7 +36,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   userEventsToTrack = [],
   userEventsHandler,
   height,
-  onGetClientSettledSettled,
+  onGetClientSettled,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
@@ -50,20 +50,28 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   } = useSmbdoGetClient(clientId, {
     query: {
       enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
-      refetchOnWindowFocus: false, // Avoid refetching on window focus
+      refetchOnWindowFocus: true,
+      refetchInterval: 60000, // Refetch every 60 seconds
     },
   });
 
-  // Call onGetClientSettledSettled callback if provided
+  // Call onGetClientSettled callback if provided
   useEffect(() => {
-    if (onGetClientSettledSettled) {
-      onGetClientSettledSettled(clientData, clientGetStatus, clientGetError);
+    if (onGetClientSettled) {
+      onGetClientSettled(clientData, clientGetStatus, clientGetError);
     }
-  }, [clientData, clientGetStatus, clientGetError, onGetClientSettledSettled]);
+  }, [clientData, clientGetStatus, clientGetError, onGetClientSettled]);
 
-  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests({
-    clientId,
-  });
+  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests(
+    {
+      clientId,
+    },
+    {
+      query: {
+        enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
+      },
+    }
+  );
 
   // Set clientId when initialClientId prop changes
   useEffect(() => {
