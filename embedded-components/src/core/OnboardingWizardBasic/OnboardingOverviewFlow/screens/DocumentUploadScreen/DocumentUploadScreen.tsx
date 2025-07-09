@@ -77,12 +77,6 @@ export const DocumentUploadScreen: FC = () => {
    * Renders the main content based on status and document requests
    */
   const renderContent = () => {
-    // Show loading state when requests are pending
-    // @ts-expect-error - Status can be 'pending'
-    if (documentRequestGetListStatus === 'pending') {
-      return <FormLoadingState message="Loading document requests" />;
-    }
-
     // Check for status messages that should be displayed
     const statusMessages = StatusMessages({
       clientStatus: clientData?.status,
@@ -97,6 +91,12 @@ export const DocumentUploadScreen: FC = () => {
     // If there's a status message to display, show it
     if (statusComponent) {
       return statusComponent;
+    }
+
+    // Show loading state when requests are pending
+    // @ts-expect-error - Status can be 'pending'
+    if (documentRequestGetListStatus === 'pending') {
+      return <FormLoadingState message="Loading document requests" />;
     }
 
     // Group document requests by party type
