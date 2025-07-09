@@ -125,15 +125,59 @@ export const loadContentTokens = (
 
 export async function compressImage(
   file: File,
-  maxWidthHeight = 1000
+  options:
+    | {
+        maxWidthHeight?: number;
+        quality?: number;
+        outputFormat?: 'image/jpeg' | 'image/png' | 'image/webp';
+        maxSizeKB?: number;
+      }
+    | number = {}
 ): Promise<string> {
+  // Handle backwards compatibility with old function signature
+  const opts =
+    typeof options === 'number' ? { maxWidthHeight: options } : options;
+
+  const {
+    maxWidthHeight = 1000,
+    quality = 0.5,
+    outputFormat = 'image/jpeg',
+    maxSizeKB,
+  } = opts;
+
+  // Validate input
+  if (!(file instanceof File)) {
+    throw new Error('Invalid file input');
+  }
+
+  if (!file.type.startsWith('image/')) {
+    throw new Error('File is not an image');
+  }
+
+  // Skip compression for small images if no specific maxSizeKB is set
+  if (!maxSizeKB && file.size < 100 * 1024) {
+    // Less than 100KB
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => resolve(event.target?.result as string);
+    });
+  }
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
+
+    // Add timeout handling
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Image compression timed out'));
+    }, 10000); // 10 seconds timeout
+
     reader.onload = (event) => {
       const img = new Image();
       img.src = event.target?.result as string;
       img.onload = () => {
+        clearTimeout(timeoutId);
         const canvas = document.createElement('canvas');
         let { height, width } = img;
 
@@ -152,14 +196,42 @@ export async function compressImage(
         canvas.height = height;
 
         const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
 
-        // Compress as JPEG with 0.8 quality
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Start with initial quality
+        let currentQuality = quality;
+        let compressedDataUrl = canvas.toDataURL(outputFormat, currentQuality);
+
+        // If maxSizeKB is specified, reduce quality until size is under limit
+        if (maxSizeKB) {
+          // Calculate current size in KB
+          const getKBSize = (dataUrl: string) =>
+            Math.round((dataUrl.length * 3) / 4 / 1024);
+
+          while (
+            getKBSize(compressedDataUrl) > maxSizeKB &&
+            currentQuality > 0.1
+          ) {
+            currentQuality -= 0.1;
+            compressedDataUrl = canvas.toDataURL(outputFormat, currentQuality);
+          }
+        }
+
         resolve(compressedDataUrl);
       };
-      img.onerror = reject;
+      img.onerror = (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      };
     };
-    reader.onerror = reject;
+    reader.onerror = (error) => {
+      clearTimeout(timeoutId);
+      reject(error);
+    };
   });
 }
