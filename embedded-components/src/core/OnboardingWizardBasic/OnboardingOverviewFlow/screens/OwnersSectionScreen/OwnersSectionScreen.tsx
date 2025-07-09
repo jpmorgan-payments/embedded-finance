@@ -47,7 +47,6 @@ export const OwnersSectionScreen = () => {
     clientData,
     onPostPartySettled: onPostPartyResponse,
     organizationType,
-    documentRequests,
   } = useOnboardingOverviewContext();
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
   const queryClient = useQueryClient();
@@ -65,8 +64,7 @@ export const OwnersSectionScreen = () => {
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
-    clientData,
-    documentRequests
+    clientData
   );
 
   const reviewMode = originScreenId === 'review-attest-section';

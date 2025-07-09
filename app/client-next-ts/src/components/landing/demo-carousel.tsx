@@ -99,22 +99,24 @@ export function DemoCarousel() {
                         <p className="text-sm sm:text-base md:text-page-body text-jpm-gray leading-relaxed mb-4 sm:mb-5 md:mb-6">
                           {demo.description}
                         </p>
-                        <Button
-                          asChild={demo.active}
-                          variant={demo.active ? 'default' : 'outline'}
-                          className={`w-full rounded-page-md font-semibold text-sm sm:text-base ${
-                            demo.active
-                              ? 'bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white shadow-page-card'
-                              : 'border-jpm-gray-300 text-jpm-gray opacity-50 cursor-not-allowed'
-                          }`}
-                          disabled={!demo.active}
-                        >
-                          {demo.active ? (
-                            <Link to={demo.link}>Launch Demo</Link>
-                          ) : (
-                            <span>Coming Soon</span>
-                          )}
-                        </Button>
+                        {demo.active ? (
+                          <Link to={demo.link} className="block w-full">
+                            <Button
+                              variant="default"
+                              className="w-full rounded-page-md font-semibold text-sm sm:text-base bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white shadow-page-card"
+                            >
+                              Launch Demo
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="w-full rounded-page-md font-semibold text-sm sm:text-base border-jpm-gray-300 text-jpm-gray opacity-50 cursor-not-allowed"
+                            disabled
+                          >
+                            Coming Soon
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   </div>

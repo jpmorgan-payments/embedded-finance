@@ -3,10 +3,7 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
 import { loadContentTokens } from '@/lib/utils';
-import {
-  useSmbdoGetClient,
-  useSmbdoListDocumentRequests,
-} from '@/api/generated/smbdo';
+import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import {
   useContentTokens,
   useInterceptorStatus,
@@ -61,17 +58,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       onGetClientSettled(clientData, clientGetStatus, clientGetError);
     }
   }, [clientData, clientGetStatus, clientGetError, onGetClientSettled]);
-
-  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests(
-    {
-      clientId,
-    },
-    {
-      query: {
-        enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
-      },
-    }
-  );
 
   // Set clientId when initialClientId prop changes
   useEffect(() => {
@@ -161,7 +147,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientData,
         setClientId,
         organizationType,
-        documentRequests,
       }}
     >
       <div
@@ -173,7 +158,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
           <ServerErrorAlert error={clientGetError} />
-        ) : clientGetStatus === 'pending' && initialClientId ? (
+        ) : clientGetStatus === 'pending' &&
+          initialClientId &&
+          !props.docUploadOnlyMode ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (
           <FlowProvider
@@ -244,7 +231,6 @@ const FlowRenderer: React.FC = () => {
   }, [sessionData.mockedVerifyingSectionId]);
 
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
-
   const renderScreen = () => {
     if (!screen) {
       return <div>Unknown screen id: {currentScreenId}</div>;

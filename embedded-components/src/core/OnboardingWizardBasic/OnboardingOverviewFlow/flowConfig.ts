@@ -30,7 +30,7 @@ import { PersonalDetailsForm } from './screens/PersonalSectionForms/PersonalDeta
 import { ReviewForm } from './screens/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
 import { TermsAndConditionsForm } from './screens/ReviewAndAttestSectionForms/TermsAndConditionsForm/TermsAndConditionsForm';
 import {
-  checkDocumentRequestsClosed,
+  clientHasOutstandingDocRequests,
   getActiveOwners,
 } from './utils/dataUtils';
 import { getStepperValidation } from './utils/flowUtils';
@@ -394,38 +394,25 @@ const sectionScreens: SectionScreenConfig[] = [
       label: 'Supporting documents',
       icon: UploadIcon,
       onHoldText: "We'll let you know if any documents are needed",
-      statusResolver: (
-        _sessionData,
-        clientData,
-        _allStepsValid,
-        _stepValidationMap,
-        documentRequests
-      ) => {
-        // Check if any party has document requests
-        const partyHasDocRequests = clientData?.parties?.some((party) => {
-          return party.validationResponse?.some((validation) => {
-            return !!validation.documentRequestIds?.length;
-          });
-        });
+      statusResolver: (_sessionData, clientData) => {
+        const hasOutstandingDocRequests =
+          clientHasOutstandingDocRequests(clientData);
 
-        const documentRequestsFulfilled =
-          checkDocumentRequestsClosed(documentRequests);
+        if (clientData?.status === 'NEW') {
+          return 'on_hold';
+        }
 
         if (
           clientData?.status === 'INFORMATION_REQUESTED' &&
-          (clientData.outstanding.documentRequestIds?.length ||
-            partyHasDocRequests)
+          hasOutstandingDocRequests
         ) {
           return 'not_started';
         }
         if (
-          clientData?.status === 'NEW' ||
-          clientData?.status === 'REVIEW_IN_PROGRESS'
+          clientData?.status === 'REVIEW_IN_PROGRESS' &&
+          !hasOutstandingDocRequests
         ) {
-          if (documentRequestsFulfilled) {
-            return 'completed_disabled';
-          }
-          return 'on_hold';
+          return 'completed_disabled';
         }
         if (
           clientData?.status === 'APPROVED' ||
