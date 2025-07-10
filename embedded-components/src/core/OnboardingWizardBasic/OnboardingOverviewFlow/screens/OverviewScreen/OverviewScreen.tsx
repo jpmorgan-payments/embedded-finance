@@ -446,15 +446,17 @@ export const OverviewScreen = () => {
                       <span className="eb-sr-only">Not started</span>
                     </div>
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="eb-mt-3 eb-w-full"
-                    disabled={!kycCompleted}
-                  >
-                    {t('common:start')}
-                    <ChevronRightIcon />
-                  </Button>
+                  <div className="eb-flex eb-justify-end">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="eb-mt-3"
+                      disabled={!kycCompleted}
+                    >
+                      {t('common:start')}
+                      <ChevronRightIcon />
+                    </Button>
+                  </div>
                 </Card>
               </div>
             </div>
