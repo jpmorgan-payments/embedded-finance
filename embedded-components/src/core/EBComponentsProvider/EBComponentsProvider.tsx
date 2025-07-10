@@ -13,7 +13,6 @@ import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 
-import { loadContentTokens } from '@/lib/utils';
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -21,10 +20,6 @@ import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
 const queryClient = new QueryClient();
-
-const ContentTokensContext = createContext<
-  EBConfig['contentTokens'] | undefined
->(undefined);
 
 // Create a context to track interceptor ready state
 const InterceptorContext = createContext<{
@@ -155,15 +150,16 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     );
   }, [AXIOS_INSTANCE]);
 
-  // Set the language
+  // Set the global content tokens for common.json only
   useEffect(() => {
-    i18n.changeLanguage(contentTokens.name || 'enUS');
-  }, [contentTokens.name, i18n]);
-
-  // Set the global content tokens`for common.json only
-  useEffect(() => {
-    loadContentTokens(i18n.language, 'common', [contentTokens.tokens?.common]);
-  }, [loadContentTokens, JSON.stringify(contentTokens.tokens), i18n.language]);
+    Object.entries(contentTokens.tokens || {}).forEach(
+      ([namespace, tokens]) => {
+        // Load content tokens for each namespace
+        i18n.addResourceBundle(i18n.language, namespace, tokens, true, true);
+      }
+    );
+    i18n.changeLanguage(i18n.language);
+  }, [JSON.stringify(contentTokens.tokens), i18n.language]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -197,11 +193,9 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
         <QueryClientProvider client={queryClient}>
-          <ContentTokensContext.Provider value={contentTokens}>
-            <InterceptorContext.Provider value={{ interceptorReady }}>
-              {children}
-            </InterceptorContext.Provider>
-          </ContentTokensContext.Provider>
+          <InterceptorContext.Provider value={{ interceptorReady }}>
+            {children}
+          </InterceptorContext.Provider>
           <Toaster closeButton expand position="bottom-left" />
           {process.env.NODE_ENV === 'development' &&
             ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
@@ -209,18 +203,6 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       </ErrorBoundary>
     </>
   );
-};
-
-export const useContentTokens = () => {
-  const context = useContext(ContentTokensContext);
-
-  if (context === undefined) {
-    throw new Error(
-      'useContentTokens must be used within a ContentTokensProvider'
-    );
-  }
-
-  return context;
 };
 
 export const useInterceptorStatus = () => {

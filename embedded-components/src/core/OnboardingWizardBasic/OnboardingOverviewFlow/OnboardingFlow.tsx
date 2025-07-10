@@ -2,12 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
-import { loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import {
-  useContentTokens,
-  useInterceptorStatus,
-} from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
@@ -28,7 +24,6 @@ export type OnboardingFlowProps = OnboardingConfigDefault &
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   initialClientId,
-  onboardingContentTokens = {},
   alertOnExit = false,
   userEventsToTrack = [],
   userEventsHandler,
@@ -71,19 +66,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  // Load content tokens
-  const { tokens: globalContentTokens = {} } = useContentTokens();
-  const { i18n, t } = useTranslation(['onboarding-overview', 'onboarding']);
-  useEffect(() => {
-    loadContentTokens(i18n.language, 'onboarding', [
-      globalContentTokens.onboarding,
-      onboardingContentTokens,
-    ]);
-  }, [
-    i18n.language,
-    JSON.stringify(globalContentTokens.onboarding),
-    JSON.stringify(onboardingContentTokens),
-  ]);
+  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
 
   // Prevent the user from leaving the page
   useEffect(() => {
