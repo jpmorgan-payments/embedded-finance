@@ -8,12 +8,11 @@ import {
   useState,
   type ErrorInfo,
 } from 'react';
+import { i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useTranslation } from 'react-i18next';
 
-import { loadContentTokens } from '@/lib/utils';
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -82,8 +81,6 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
   const [interceptorReady, setInterceptorReady] = useState(false);
-
-  const { i18n } = useTranslation();
 
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
@@ -155,15 +152,16 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     );
   }, [AXIOS_INSTANCE]);
 
-  // Set the language
+  // Set the global content tokens for common.json only
   useEffect(() => {
-    i18n.changeLanguage(contentTokens.name || 'enUS');
-  }, [contentTokens.name, i18n]);
-
-  // Set the global content tokens`for common.json only
-  useEffect(() => {
-    loadContentTokens(i18n.language, 'common', [contentTokens.tokens?.common]);
-  }, [loadContentTokens, JSON.stringify(contentTokens.tokens), i18n.language]);
+    Object.entries(contentTokens.tokens || {}).forEach(
+      ([namespace, tokens]) => {
+        // Load content tokens for each namespace
+        i18n.addResourceBundle(i18n.language, namespace, tokens, true, true);
+      }
+    );
+    i18n.changeLanguage(i18n.language);
+  }, [JSON.stringify(contentTokens.tokens), i18n.language]);
 
   // Add color scheme class to the root element
   useEffect(() => {

@@ -15,7 +15,38 @@
     "overview": {
       "title": "Overview",
       "description": "",
-      "infoAlert": "Your data will be saved as you go."
+      "infoAlert": "Your data will be saved as you go.",
+      "downloadChecklist": "Download Checklist",
+      "verifyBusinessSection": {
+        "title": "Verify your business",
+        "reviewInProgress": {
+          "title": "Great work!",
+          "description": "Please hang tight while we verify your details. This should only take a moment."
+        },
+        "documentsReceived": {
+          "title": "We have your documents",
+          "description": "Please hang tight if you can while we verify your documents."
+        },
+        "informationRequested": {
+          "description": "We're having trouble verifying your business. Please provide supporting documentation."
+        },
+        "declined": {
+          "title": "Application declined",
+          "description": "We're sorry, but we cannot proceed with your application at this time."
+        },
+        "approved": {
+          "title": "All set!",
+          "description": "Your business details have been verified"
+        },
+        "businessTypeLabel": "Your selected business type",
+        "changeWarning": "If you change this after starting the application, you may lose your saved progress.",
+        "editBusinessType": "Edit"
+      },
+      "bankAccountSection": {
+        "title": "Link a bank account for payouts",
+        "lockedMessage": "Available after business verification",
+        "linkAccountTitle": "Link an account"
+      }
     }
   },
   "fields": {

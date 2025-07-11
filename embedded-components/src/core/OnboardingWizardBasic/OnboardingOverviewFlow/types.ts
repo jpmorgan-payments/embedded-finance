@@ -1,6 +1,3 @@
-import { defaultResources } from '@/i18n/config';
-import { DeepPartial } from 'react-hook-form';
-
 import { ErrorType } from '@/api/axios-instance';
 import {
   ApiError,
@@ -16,9 +13,6 @@ import { Jurisdiction } from '../utils/types';
 
 export type OnboardingConfigDefault = {
   initialClientId?: string;
-  onboardingContentTokens?: DeepPartial<
-    (typeof defaultResources)['enUS']['onboarding']
-  >;
   alertOnExit?: boolean;
   userEventsToTrack?: string[];
   userEventsHandler?: ({ actionName }: { actionName: string }) => void;
