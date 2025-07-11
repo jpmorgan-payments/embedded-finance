@@ -21,6 +21,10 @@ import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
 const queryClient = new QueryClient();
 
+const ContentTokensContext = createContext<
+  EBConfig['contentTokens'] | undefined
+>(undefined);
+
 // Create a context to track interceptor ready state
 const InterceptorContext = createContext<{
   interceptorReady: boolean;
@@ -193,9 +197,11 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
         <QueryClientProvider client={queryClient}>
-          <InterceptorContext.Provider value={{ interceptorReady }}>
-            {children}
-          </InterceptorContext.Provider>
+          <ContentTokensContext.Provider value={contentTokens}>
+            <InterceptorContext.Provider value={{ interceptorReady }}>
+              {children}
+            </InterceptorContext.Provider>
+          </ContentTokensContext.Provider>
           <Toaster closeButton expand position="bottom-left" />
           {process.env.NODE_ENV === 'development' &&
             ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
@@ -203,6 +209,18 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       </ErrorBoundary>
     </>
   );
+};
+
+export const useContentTokens = () => {
+  const context = useContext(ContentTokensContext);
+
+  if (context === undefined) {
+    throw new Error(
+      'useContentTokens must be used within a ContentTokensProvider'
+    );
+  }
+
+  return context;
 };
 
 export const useInterceptorStatus = () => {
