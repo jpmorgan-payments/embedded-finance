@@ -156,6 +156,8 @@ It is using @tanstack/react-query for handling API calls and authentication as w
 - `apiBaseUrl`: The base URL for API calls (required)
 - `theme`: Customization options for the components' appearance (optional)
 - `headers`: Custom headers for API requests (optional)
+- `queryParams`: Custom query parameters for API requests (optional)
+- `contentTokens`: Custom content tokens for internationalization (optional)
 
 #### Usage:
 
@@ -175,6 +177,12 @@ const EmbeddedFinanceSection = () => {
       }}
       headers={{
         'Custom-Header': 'value',
+      }}
+      queryParams={{
+        'custom-param': 'value',
+      }}
+      contentTokens={{
+        name: 'enUS',
       }}
     >
       {/* Your Embedded UI Components go here */}
@@ -262,21 +270,68 @@ const OnboardingSection = () => {
 };
 ```
 
-The OnboardingWizard component accepts various props to customize the onboarding process:
+### 2. OnboardingFlow
 
-- `availableProducts` determines which products are selectable in the initial step. If only one product is provided, the component will default to that product and the field will become read-only.
-- `availableJurisdictions` is an array of country codes that are selectable. If only one is provided, it will default to that country.
-- `availableOrganizationTypes` allows customization of the types of organizations that can be onboarded.
-- `usePartyResource` enables using the party resource for onboarding, which may be required for certain integration scenarios.
-- `blockPostVerification` can be used to prevent access to post-verification steps.
-- `showLinkedAccountPanel` controls the visibility of the linked account panel.
-- `initialStep` allows starting the onboarding process from a specific step.
-- `variant` controls the visual style of the stepper component.
-- `onboardingContentTokens` enables customization of text content and labels.
-- `alertOnExit` provides a warning when users attempt to leave the onboarding process.
-- `userEventsToTrack` and `userEventsHandler` enable tracking of user interactions during onboarding.
+The `OnboardingFlow` component provides a modern, enhanced onboarding experience with improved UX and better flow management. It represents the next generation of the onboarding process with screen-based navigation and enhanced state management.
 
-### 2. LinkedAccountWidget
+#### Main Features:
+
+- Screen-based navigation with flow control
+- Enhanced document upload with preview and drag-and-drop
+- Improved mobile responsiveness
+- Better error handling and recovery
+- Streamlined user experience with intelligent navigation
+- Support for document-only onboarding mode
+
+#### Props:
+
+| Prop Name                          | Type                                                                                                                                      | Required | Description                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `initialClientId`                  | `string`                                                                                                                                  | No       | Initial client ID for existing client onboarding        |
+| `onGetClientSettled`               | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched |
+| `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response          |
+| `onPostPartySettled`               | `(response?: PartyResponse, error?: ApiError) => void`                                                                                    | No       | Callback function for party creation response           |
+| `onPostClientVerificationsSettled` | `(response?: ClientVerificationResponse, error?: ApiError) => void`                                                                       | No       | Callback function for client verification response      |
+| `availableProducts`                | `Array<ClientProduct>`                                                                                                                    | Yes      | List of available products for onboarding               |
+| `availableJurisdictions`           | `Array<Jurisdiction>`                                                                                                                     | Yes      | List of available jurisdictions for onboarding          |
+| `availableOrganizationTypes`       | `Array<OrganizationType>`                                                                                                                 | No       | List of available organization types                    |
+| `usePartyResource`                 | `boolean`                                                                                                                                 | No       | Whether to use party resource for onboarding            |
+| `blockPostVerification`            | `boolean`                                                                                                                                 | No       | Whether to block post-verification steps                |
+| `docUploadOnlyMode`                | `boolean`                                                                                                                                 | No       | Whether to show only document upload screens            |
+| `height`                           | `string`                                                                                                                                  | No       | Minimum height for the component container              |
+| `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
+| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Whether to show alert when exiting onboarding           |
+| `userEventsToTrack`                | `string[]`                                                                                                                                | No       | List of user events to track                            |
+| `userEventsHandler`                | `({ actionName }: { actionName: string }) => void`                                                                                        | No       | Handler for user events                                 |
+
+#### Usage:
+
+```jsx
+import {
+  EBComponentsProvider,
+  OnboardingFlow,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const OnboardingSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <OnboardingFlow
+        initialClientId="your-client-id"
+        availableProducts={['EMBEDDED_PAYMENTS']}
+        availableJurisdictions={['US']}
+        height="100vh"
+        onPostClientSettled={(response, error) => {
+          // Handle client creation
+        }}
+        docUploadOnlyMode={false}
+        alertOnExit={true}
+      />
+    </EBComponentsProvider>
+  );
+};
+```
+
+### 3. LinkedAccountWidget
 
 The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account).
 
@@ -284,6 +339,7 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 
 - Add and manage external linked bank accounts for clients
 - Handle complex micro-deposits initiation logic
+- Support for multiple account types and verification methods
 
 #### Usage:
 
@@ -302,7 +358,102 @@ const LinkedAccountSection = () => {
 };
 ```
 
-Please refer to the LinkedAccountProps interface in the codebase for more details.
+### 4. MakePayment
+
+> **⚠️ Alpha State**: This component is currently in alpha state and not fully integrated with the OpenAPI Specification (OAS). It may have limited functionality and is subject to significant changes.
+
+The `MakePayment` component provides a comprehensive payment interface that allows users to initiate payments between accounts with various payment methods.
+
+#### Main Features:
+
+- Payment initiation with multiple payment methods (ACH, RTP, WIRE)
+- Fee calculation and display
+- Form validation and error handling
+- Success confirmation and repeat payment functionality
+- Customizable payment methods and fees
+- Auto-selection for single options
+
+#### Props:
+
+| Prop Name        | Type                                                                     | Required | Description                                      |
+| ---------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------ |
+| `triggerButton`  | `React.ReactNode`                                                        | No       | Custom trigger button for opening payment dialog |
+| `accounts`       | `Array<{ id: string; name: string }>`                                    | No       | List of available accounts to pay from           |
+| `recipients`     | `Array<{ id: string; name: string; accountNumber: string }>`             | No       | List of available recipients                     |
+| `paymentMethods` | `Array<{ id: string; name: string; fee: number; description?: string }>` | No       | List of available payment methods with fees      |
+| `icon`           | `string`                                                                 | No       | Icon name from Lucide React icons                |
+
+#### Usage:
+
+```jsx
+import {
+  EBComponentsProvider,
+  MakePayment,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const PaymentSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <MakePayment
+        accounts={[
+          { id: 'account1', name: 'Main Account' },
+          { id: 'account2', name: 'Savings Account' },
+        ]}
+        recipients={[
+          {
+            id: 'recipient1',
+            name: 'John Doe',
+            accountNumber: '****1234',
+          },
+        ]}
+        paymentMethods={[
+          { id: 'ACH', name: 'ACH Transfer', fee: 2.5 },
+          { id: 'WIRE', name: 'Wire Transfer', fee: 25.0 },
+        ]}
+        icon="CirclePlus"
+      />
+    </EBComponentsProvider>
+  );
+};
+```
+
+### 5. TransactionsDisplay
+
+> **⚠️ Alpha State**: This component is currently in alpha state and not fully integrated with the OpenAPI Specification (OAS). It may have limited functionality and is subject to significant changes.
+
+The `TransactionsDisplay` component provides a comprehensive view of transaction history with detailed information and filtering capabilities.
+
+#### Main Features:
+
+- Transaction listing with sorting and filtering
+- Transaction details view with expandable information
+- Support for different transaction types (PAYIN/PAYOUT)
+- Currency formatting and localization
+- Pagination and search capabilities
+- Mobile-responsive design
+
+#### Props:
+
+| Prop Name   | Type     | Required | Description                          |
+| ----------- | -------- | -------- | ------------------------------------ |
+| `accountId` | `string` | Yes      | Account ID to fetch transactions for |
+
+#### Usage:
+
+```jsx
+import {
+  EBComponentsProvider,
+  TransactionsDisplay,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const TransactionsSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <TransactionsDisplay accountId="your-account-id" />
+    </EBComponentsProvider>
+  );
+};
+```
 
 ## Theming
 
@@ -319,33 +470,134 @@ The `EBComponentsProvider` accepts a `theme` prop that allows for extensive cust
 
 Here's an updated table of available theme design tokens that can be used in the `variables`, `light`, and `dark` properties:
 
-| Token Name                 | Description                            | Type   | Default                   |
-| -------------------------- | -------------------------------------- | ------ | ------------------------- |
-| fontFamily                 | Main font family for text              | String |                           |
-| backgroundColor            | Background color of the main container | String | `"hsl(0 0% 100%)"`        |
-| foregroundColor            | Main text color                        | String | `"hsl(240 10% 3.9%)"`     |
-| primaryColor               | Primary brand color                    | String | `"#155C93"`               |
-| primaryColorHover          | Hover state of primary color           | String | `"#2D81BD"`               |
-| primaryForegroundColor     | Text color on primary background       | String | `"hsl(0 0% 98%)"`         |
-| secondaryColor             | Secondary brand color                  | String | `"hsl(240 4.8% 95.9%)"`   |
-| secondaryForegroundColor   | Text color on secondary background     | String | `"hsl(240 5.9% 10%)"`     |
-| destructiveColor           | Color for destructive actions          | String | `"hsl(0 84.2% 60.2%)"`    |
-| destructiveForegroundColor | Text color on destructive background   | String | `"hsl(0 0% 98%)"`         |
-| mutedColor                 | Color for muted elements               | String | `"hsl(240 4.8% 95.9%)"`   |
-| mutedForegroundColor       | Text color on muted background         | String | `"hsl(240 3.8% 46.1%)"`   |
-| accentColor                | Accent color for highlights            | String | `"hsl(240 4.8% 95.9%)"`   |
-| accentForegroundColor      | Text color on accent background        | String | `"hsl(240 5.9% 10%)"`     |
-| cardColor                  | Background color for card elements     | String | `"hsl(0 0% 100%)"`        |
-| cardForegroundColor        | Text color for card elements           | String | `"hsl(240 10% 3.9%)"`     |
-| popoverColor               | Background color for popovers          | String | `"hsl(0 0% 100%)"`        |
-| popoverForegroundColor     | Text color for popovers                | String | `"hsl(240 10% 3.9%)"`     |
-| borderRadius               | Default border radius for elements     | String | `"0.375rem"`              |
-| buttonBorderRadius         | Border radius specifically for buttons | String | inherits `"borderRadius"` |
-| spacingUnit                | Unit for the numeric spacing scale     | String | `"0.25rem"`               |
-| borderColor                | Color for borders                      | String | `"hsl(240 5.9% 90%)"`     |
-| inputColor                 | Background color for input fields      | String | `"hsl(240 5.9% 90%)"`     |
-| ringColor                  | Color for focus rings                  | String | `"hsl(240 10% 3.9%)"`     |
-| zIndexOverlay              | z-index for overlay elements           | Number | `100`                     |
+| Token Name                       | Description                                  | Type    | Default                     |
+| -------------------------------- | -------------------------------------------- | ------- | --------------------------- |
+| fontFamily                       | Main font family for text                    | String  | `"Geist"`                   |
+| headerFontFamily                 | Font family for headers                      | String  | inherits `fontFamily`       |
+| buttonFontFamily                 | Font family for buttons                      | String  | inherits `fontFamily`       |
+| backgroundColor                  | Background color of the main container       | String  | `"hsl(0 0% 100%)"`          |
+| foregroundColor                  | Main text color                              | String  | `"hsl(240 10% 3.9%)"`       |
+| formLabelForegroundColor         | Form label text color                        | String  | `"hsl(240 10% 3.9%)"`       |
+| primaryColor                     | Primary brand color                          | String  | `"#155C93"`                 |
+| primaryHoverColor                | Hover state of primary color                 | String  | calculated automatically    |
+| primaryActiveColor               | Active state of primary color                | String  | calculated automatically    |
+| primaryForegroundColor           | Text color on primary background             | String  | `"hsl(0 0% 98%)"`           |
+| primaryForegroundHoverColor      | Text color on primary background hover       | String  | calculated automatically    |
+| primaryForegroundActiveColor     | Text color on primary background active      | String  | calculated automatically    |
+| secondaryColor                   | Secondary brand color                        | String  | `"hsl(240 4.8% 95.9%)"`     |
+| secondaryHoverColor              | Hover state of secondary color               | String  | calculated automatically    |
+| secondaryActiveColor             | Active state of secondary color              | String  | calculated automatically    |
+| secondaryForegroundColor         | Text color on secondary background           | String  | `"hsl(240 5.9% 10%)"`       |
+| secondaryForegroundHoverColor    | Text color on secondary background hover     | String  | calculated automatically    |
+| secondaryForegroundActiveColor   | Text color on secondary background active    | String  | calculated automatically    |
+| destructiveColor                 | Color for destructive actions                | String  | `"hsl(0 84.2% 60.2%)"`      |
+| destructiveHoverColor            | Hover state of destructive color             | String  | calculated automatically    |
+| destructiveActiveColor           | Active state of destructive color            | String  | calculated automatically    |
+| destructiveForegroundColor       | Text color on destructive background         | String  | `"hsl(0 0% 98%)"`           |
+| destructiveForegroundHoverColor  | Text color on destructive background hover   | String  | calculated automatically    |
+| destructiveForegroundActiveColor | Text color on destructive background active  | String  | calculated automatically    |
+| destructiveAccentColor           | Accent color for destructive elements        | String  | `"#FFECEA"`                 |
+| informativeColor                 | Color for informational elements             | String  | `"#0078CF"`                 |
+| informativeAccentColor           | Accent color for informational elements      | String  | `"#EAF6FF"`                 |
+| warningColor                     | Color for warning elements                   | String  | `"#C75300"`                 |
+| warningAccentColor               | Accent color for warning elements            | String  | `"#FFECD9"`                 |
+| successColor                     | Color for success elements                   | String  | `"#00875D"`                 |
+| successAccentColor               | Accent color for success elements            | String  | `"#EAF5F2"`                 |
+| alertColor                       | Background color for alerts                  | String  | `"hsl(0 0% 100%)"`          |
+| alertForegroundColor             | Text color for alerts                        | String  | `"hsl(240 10% 3.9%)"`       |
+| mutedColor                       | Color for muted elements                     | String  | `"hsl(240 4.8% 95.9%)"`     |
+| mutedForegroundColor             | Text color on muted background               | String  | `"hsl(240 3.8% 46.1%)"`     |
+| accentColor                      | Accent color for highlights                  | String  | `"hsl(240 4.8% 95.9%)"`     |
+| accentForegroundColor            | Text color on accent background              | String  | `"hsl(240 5.9% 10%)"`       |
+| cardColor                        | Background color for card elements           | String  | `"hsl(0 0% 100%)"`          |
+| cardForegroundColor              | Text color for card elements                 | String  | `"hsl(240 10% 3.9%)"`       |
+| popoverColor                     | Background color for popovers                | String  | `"hsl(0 0% 100%)"`          |
+| popoverForegroundColor           | Text color for popovers                      | String  | `"hsl(240 10% 3.9%)"`       |
+| borderRadius                     | Default border radius for elements           | String  | `"0.375rem"`                |
+| inputBorderRadius                | Border radius for input elements             | String  | inherits `borderRadius`     |
+| buttonBorderRadius               | Border radius specifically for buttons       | String  | inherits `borderRadius`     |
+| buttonFontWeight                 | Font weight for buttons                      | String  | `"500"`                     |
+| buttonFontSize                   | Font size for buttons                        | String  | `"0.875rem"`                |
+| buttonLineHeight                 | Line height for buttons                      | String  | `"1.25rem"`                 |
+| primaryButtonFontWeight          | Font weight for primary buttons              | String  | inherits `buttonFontWeight` |
+| secondaryButtonFontWeight        | Font weight for secondary buttons            | String  | inherits `buttonFontWeight` |
+| destructiveButtonFontWeight      | Font weight for destructive buttons          | String  | inherits `buttonFontWeight` |
+| primaryBorderWidth               | Border width for primary elements            | String  | `"0rem"`                    |
+| secondaryBorderWidth             | Border width for secondary elements          | String  | `"0rem"`                    |
+| destructiveBorderWidth           | Border width for destructive elements        | String  | `"0rem"`                    |
+| shiftButtonOnActive              | Whether to shift button position when active | Boolean | `true`                      |
+| buttonTextTransform              | Text transform for buttons                   | String  | `"none"`                    |
+| buttonLetterSpacing              | Letter spacing for buttons                   | String  | `"0em"`                     |
+| formLabelFontSize                | Font size for form labels                    | String  | `"0.875rem"`                |
+| formLabelLineHeight              | Line height for form labels                  | String  | `"1.25rem"`                 |
+| formLabelFontWeight              | Font weight for form labels                  | String  | `"500"`                     |
+| spacingUnit                      | Unit for the numeric spacing scale           | String  | `"0.25rem"`                 |
+| borderColor                      | Color for borders                            | String  | `"hsl(240 5.9% 90%)"`       |
+| inputColor                       | Background color for input fields            | String  | `"hsl(0 0% 100%)"`          |
+| inputBorderColor                 | Border color for input fields                | String  | `"hsl(240 5.9% 90%)"`       |
+| ringColor                        | Color for focus rings                        | String  | `"hsl(240 10% 3.9%)"`       |
+| zIndexOverlay                    | z-index for overlay elements                 | Number  | `100`                       |
+
+### Theme Usage Example
+
+```jsx
+import { EBComponentsProvider } from '@jpmorgan-payments/embedded-finance-components';
+
+const ThemedApplication = () => {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://api.example.com"
+      theme={{
+        colorScheme: 'light',
+        variables: {
+          fontFamily: 'Inter, system-ui, sans-serif',
+          primaryColor: '#2563eb',
+          borderRadius: '0.5rem',
+          buttonFontWeight: '600',
+        },
+        light: {
+          backgroundColor: '#ffffff',
+          foregroundColor: '#1f2937',
+          cardColor: '#f9fafb',
+        },
+        dark: {
+          backgroundColor: '#1f2937',
+          foregroundColor: '#f9fafb',
+          cardColor: '#374151',
+        },
+      }}
+    >
+      {/* Your components */}
+    </EBComponentsProvider>
+  );
+};
+```
+
+## Internationalization
+
+The library supports internationalization with the following languages:
+
+- **English (US)** - `en-US` (default)
+- **French (Canada)** - `fr-CA`
+
+### Language Configuration
+
+```jsx
+import { EBComponentsProvider } from '@jpmorgan-payments/embedded-finance-components';
+
+const InternationalizedApp = () => {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://api.example.com"
+      contentTokens={{
+        name: 'frCA', // Use French Canadian
+      }}
+    >
+      {/* Your components */}
+    </EBComponentsProvider>
+  );
+};
+```
 
 ## Installation
 
@@ -374,19 +626,18 @@ To contribute to the development of this library, please follow these guidelines
 
 Use the `files.associations` setting to tell VS Code to always open `.css` files in Tailwind CSS mode:
 
-```
-
+```json
 "files.associations": {
-"\*.css": "tailwindcss"
+  "*.css": "tailwindcss"
 }
-
 ```
 
 #### `editor.quickSuggestions`
 
 By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the `editor.quickSuggestions` setting may improve your experience:
 
-```"editor.quickSuggestions": {
+```json
+"editor.quickSuggestions": {
   "strings": "on"
 }
 ```
@@ -433,3 +684,41 @@ This configuration file is a mapping utility that connects form fields to API fi
 - `storybook` – starts storybook dev server
 - `storybook:build` – build production storybook bundle to `storybook-static`
 - `prettier:write` – formats all files with Prettier
+- `generate-api` – generates API client from OpenAPI specifications using Orval
+
+## Recent Updates (v0.7.2)
+
+The library has been significantly enhanced with the following updates:
+
+### New Components
+
+- **MakePayment**: Complete payment interface with multiple payment methods and fee calculation _(Alpha - not fully integrated with OAS)_
+- **TransactionsDisplay**: Transaction history viewer with detailed information and filtering _(Alpha - not fully integrated with OAS)_
+- **OnboardingFlow**: Next-generation onboarding experience with improved UX and flow management
+
+### Enhanced Features
+
+- **Improved Document Upload**: Enhanced document upload with file preview, drag-and-drop support, and better error handling
+- **Enhanced Theming**: More comprehensive theming system with additional design tokens and better customization options
+- **Multi-language Support**: Added French Canadian (fr-CA) language support alongside English (US)
+- **Better Mobile Experience**: Improved responsive design and mobile-first approach
+- **Enhanced Error Handling**: Better error boundary implementation and user-friendly error messages
+
+### Technical Improvements
+
+- **Orval Integration**: Enhanced API code generation with better type safety and React Query integration
+- **Testing Enhancements**: Improved test utilities with better MSW (Mock Service Worker) integration
+- **Performance Optimizations**: Better memoization and rendering optimizations
+- **Accessibility Improvements**: Enhanced ARIA support and keyboard navigation
+
+### API Enhancements
+
+- **Better State Management**: Improved state management with React Query integration
+- **Enhanced Validation**: Better form validation with Zod schemas and improved error messages
+- **Improved Data Fetching**: Better caching, error handling, and loading states
+
+### Developer Experience
+
+- **Better Documentation**: Enhanced Storybook stories with more comprehensive examples
+- **Improved Testing**: Better test coverage and more robust testing utilities
+- **Enhanced TypeScript Support**: Better type definitions and improved developer experience
