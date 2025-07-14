@@ -16,7 +16,6 @@ import { BusinessContactInfoForm } from './screens/BusinessSectionForms/Business
 import { CompanyIdentificationForm } from './screens/BusinessSectionForms/CompanyIdentificationForm/CompanyIdentificationForm';
 import { CustomerFacingDetailsForm } from './screens/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm';
 import { IndustryForm } from './screens/BusinessSectionForms/IndustryForm/IndustryForm';
-import { ChecklistScreen } from './screens/ChecklistScreen/ChecklistScreen';
 import { DocumentUploadForm } from './screens/DocumentUploadScreen/DocumentUploadForm';
 import { DocumentUploadScreen } from './screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from './screens/GatewayScreen/GatewayScreen';
@@ -41,12 +40,6 @@ const staticScreens: StaticScreenConfig[] = [
     isSection: false,
     type: 'component',
     Component: GatewayScreen,
-  },
-  {
-    id: 'checklist',
-    isSection: false,
-    type: 'component',
-    Component: ChecklistScreen,
   },
   {
     id: 'overview',

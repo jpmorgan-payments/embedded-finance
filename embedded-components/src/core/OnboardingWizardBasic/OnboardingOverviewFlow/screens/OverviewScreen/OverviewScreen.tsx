@@ -44,7 +44,7 @@ export const OverviewScreen = () => {
     clientData
   );
 
-  const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-overview', 'common']);
 
   // TODO:
   const kycCompleted =
