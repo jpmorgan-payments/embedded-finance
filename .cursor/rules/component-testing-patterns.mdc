@@ -1,0 +1,163 @@
+---
+description: Component testing patterns with MSW integration and React Query
+---
+
+# Component Testing Patterns
+
+## Test File Requirements
+
+Every component must have a test file following this pattern:
+
+```typescript
+// ComponentName.test.tsx
+import { render, screen, waitFor } from "@testing-library/react";
+import { userEvent } from "@test-utils";
+import { http, HttpResponse } from "msw";
+import { server } from "@/msw/server";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Setup QueryClient for tests
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
+
+// Mock data setup
+const mockData = {
+  // Component-specific mock data
+};
+```
+
+## Test Setup Helper Function
+
+Always create a `renderComponent` helper:
+
+```typescript
+const renderComponent = (props = {}) => {
+  // Reset MSW handlers before each render
+  server.resetHandlers();
+
+  // Setup explicit API mock handlers
+  server.use(
+    http.get("/api/endpoint", () => {
+      return HttpResponse.json(mockData);
+    })
+  );
+
+  return render(
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{ name: "enUS" }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ComponentName {...props} />
+      </QueryClientProvider>
+    </EBComponentsProvider>
+  );
+};
+```
+
+## Required Test Categories
+
+1. **Basic Rendering Tests** - Component renders with initial data
+2. **User Interaction Tests** - Button clicks, form submissions, etc.
+3. **API Integration Tests** - Success/error states, loading states
+4. **Error Boundary Tests** - Error handling and recovery
+5. **Accessibility Tests** - ARIA attributes, keyboard navigation
+
+## MSW API Mock Patterns
+
+```typescript
+// GET requests
+server.use(
+  http.get("/api/resource/:id", ({ params }) => {
+    return HttpResponse.json(mockData[params.id]);
+  }),
+
+  // POST requests with validation
+  http.post("/api/resource", async ({ request }) => {
+    const body = await request.json();
+    if (!isValidData(body)) {
+      return HttpResponse.json({ error: "Invalid data" }, { status: 400 });
+    }
+    return HttpResponse.json({ success: true });
+  }),
+
+  // Error scenarios
+  http.get("/api/error-case", () => {
+    return HttpResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    );
+  })
+);
+```
+
+## Context Testing Pattern
+
+For components using multiple contexts:
+
+```typescript
+const renderWithProviders = (ui: React.ReactElement, options = {}) => {
+  return render(
+    <EBComponentsProvider apiBaseUrl="/" headers={{}}>
+      <FeatureContextProvider value={mockFeatureContext}>
+        <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+      </FeatureContextProvider>
+    </EBComponentsProvider>
+  );
+};
+```
+
+## Test Coverage Requirements
+
+- Minimum 80% line coverage
+- Cover all user interaction paths
+- Test all API integration points
+- Verify error handling and edge cases
+- Test accessibility features
+- Include integration tests for complex flows
+
+## Common Test Patterns
+
+```typescript
+describe("ComponentName", () => {
+  // Mock external dependencies
+  vi.mock("@/components/ui/someComponent", () => ({
+    useSomeHook: () => ({ someFunction: vi.fn() }),
+  }));
+
+  test("renders correctly with initial data", async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/expected text/i)).toBeInTheDocument();
+    });
+  });
+
+  test("handles user interactions", async () => {
+    renderComponent();
+
+    await userEvent.click(screen.getByRole("button", { name: /action/i }));
+
+    expect(screen.getByText(/new state/i)).toBeInTheDocument();
+  });
+
+  test("handles API errors gracefully", async () => {
+    server.use(
+      http.get("/api/endpoint", () => {
+        return HttpResponse.json({ error: "Server error" }, { status: 500 });
+      })
+    );
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
+    });
+  });
+});
+```

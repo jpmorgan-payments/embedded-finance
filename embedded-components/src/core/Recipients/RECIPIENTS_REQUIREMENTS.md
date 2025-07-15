@@ -1,9 +1,11 @@
 # Recipients Management Embedded Component Requirements
 
 > **Documentation References:**
+>
 > - [JPMorgan Chase Embedded Payments - Third-Party Recipients](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/third-party-recipient)
-> 
+>
 > **API References:**
+>
 > - [Create Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/createRecipient)
 > - [Update Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 > - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
@@ -17,6 +19,7 @@ Recipients are external parties (type: RECIPIENT) that can receive payments from
 ### 1.1 Account Type Compatibility
 
 The Recipients functionality has the following account type constraints:
+
 - **LIMITED_DDA_PAYMENTS accounts:** Can make payments to third-party recipients (type: RECIPIENT)
 - **LIMITED_DDA accounts:** Cannot make payments to third-party recipients
 
@@ -31,6 +34,7 @@ The Recipients functionality has the following account type constraints:
 ### 3.1 Recipient Management
 
 #### 3.1.1 View Recipients List
+
 - Users must be able to view a list of all saved recipients using the [getAllRecipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 - The list should display key recipient information:
   - Name (individual or business)
@@ -45,30 +49,26 @@ The Recipients functionality has the following account type constraints:
 - Error states should be handled gracefully with appropriate messaging if the API fails to retrieve recipients
 
 #### 3.1.2 Create New Recipients
+
 - Users must be able to add new payment recipients with the following information:
+  - **Payment method selection** (presented first under the heading “How do you want to pay this recipient?”).
+    - User chooses one or more transaction methods (ACH, WIRE, RTP).
+    - The rest of the form dynamically adapts – only fields that are required for the selected methods are shown/validated.
   - Recipient type (RECIPIENT for third-party recipients)
   - Party details:
     - Type (INDIVIDUAL or ORGANIZATION)
     - For individuals: First name, Last name
     - For organizations: Business name
-    - Address information:
-      - Address line 1 (and optional line 2)
-      - City
-      - State/Province
-      - Postal/ZIP code
-      - Country code
   - Bank account details:
-    - Account type (CHECKING or SAVINGS)
+    - Account type (CHECKING or SAVINGS) – selected **before** entering the account number
     - Account number
     - Country code
-    - Routing information by transaction type:
-      - ACH: Routing number (ABA) and routing code type (USABA)
-      - WIRE: Routing number (ABA) and routing code type (USABA)
-      - RTP: Routing number (ABA) and routing code type (USABA)
-  - Contact information:
-    - Email address (required for notifications)
-    - Phone number (optional)
-- The system must support multiple transaction methods per recipient (ACH, WIRE, RTP)
+  - Routing information:
+    - Simple horizontal table showing a routing-number field for each selected payment method
+    - Option to reuse the same routing number for all methods
+  - Address information (shown and required only when a selected method demands it – e.g. WIRE)
+  - Contact information (e-mail and/or phone; required types depend on the chosen payment methods)
+- The system must support multiple transaction methods per recipient and adjust validation rules in real time.
 - Form validation must enforce proper formatting and required fields
 - Duplicate detection should alert users when creating potential duplicates
 - The system must display the correct minimum required fields based on selected payment methods:
@@ -80,6 +80,7 @@ The Recipients functionality has the following account type constraints:
 - Upon successful creation, the system should offer options to "Add Another Recipient" or "Make a Payment"
 
 #### 3.1.3 View Recipient Details
+
 - Users must be able to view detailed information about each recipient
 - Details should be organized in logical groups (General Info, Bank Account, Contacts)
 - From the details view, users should be able to:
@@ -92,6 +93,7 @@ The Recipients functionality has the following account type constraints:
 - The detail view should include creation date and last modified date information
 
 #### 3.1.4 Edit Recipients
+
 - Users must be able to update all recipient information using the [amendRecipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 - Updates should maintain the same recipient ID but allow changes to party details, contact information, and account details
 - Form validation rules apply to edits the same as to creation
@@ -104,6 +106,7 @@ The Recipients functionality has the following account type constraints:
 - Changes should be tracked for audit purposes with the "updatedAt" timestamp
 
 #### 3.1.5 Delete Recipients
+
 - Users must be able to delete recipients from the system
 - A confirmation dialog must be displayed before deletion with clear warning about the action being irreversible
 - Success notification must be shown upon successful deletion
@@ -114,6 +117,7 @@ The Recipients functionality has the following account type constraints:
 ### 3.2 Payment Integration
 
 #### 3.2.1 Initiate Payments
+
 - Users must be able to initiate payments directly to recipients from:
   - The recipients list
   - The recipient details page
@@ -129,6 +133,7 @@ The Recipients functionality has the following account type constraints:
 - Users should be able to save new recipients directly from the payment flow when sending to a new recipient
 
 #### 3.2.2 Payment Method Selection Logic
+
 - When multiple transaction methods are available for a recipient, the system should:
   - Display all available options to the user (ACH, WIRE, RTP)
   - Provide informational tooltips explaining the characteristics of each method
@@ -139,6 +144,7 @@ The Recipients functionality has the following account type constraints:
 ### 3.3 Validation & Error Handling
 
 #### 3.3.1 Form Validation
+
 - Implement comprehensive validation for all recipient form fields including:
   - Required field validation
   - Character limitations (e.g., max 70 chars for names)
@@ -148,6 +154,7 @@ The Recipients functionality has the following account type constraints:
 - Display clear error messages for invalid inputs
 
 #### 3.3.2 API Error Handling
+
 - Display appropriate error messages for API failures
 - Show notifications for successful operations
 - Handle network/server errors gracefully
@@ -155,26 +162,31 @@ The Recipients functionality has the following account type constraints:
 ## 4. Non-Functional Requirements
 
 ### 4.1 Performance
+
 - Recipients list should load within 2 seconds
 - Form submissions should process within 3 seconds
 - Pagination should support efficient loading of large recipient lists
 
 ### 4.2 Usability
+
 - The interface should follow established UI patterns from the Mantine component library
 - Consistent notification patterns for success/error states
 - Mobile-responsive design with appropriate column displays for smaller viewports
 - Tooltips and help text for complex fields
 
 ### 4.3 Localization
+
 - Support for content tokens to enable localization
 - Content overrides for different platforms/implementations
 
 ### 4.4 Accessibility
+
 - All form elements should be properly labeled and accessible
 - Color contrast should meet WCAG standards
 - Keyboard navigation should be supported
 
 ### 4.5 Security
+
 - All sensitive recipient information must be properly masked when displayed (account numbers, routing numbers)
 - Access to recipient data should be restricted based on user permissions
 - API calls must use secure authentication methods as specified in the JPMC API documentation
@@ -185,21 +197,25 @@ The Recipients functionality has the following account type constraints:
 ## 5. Technical Integration Points
 
 ### 5.1 API Integration
+
 - RESTful API endpoints for CRUD operations on recipients
 - Pagination support for listing recipients
 - Error handling with appropriate status codes
 
 ### 5.2 Authentication Integration
+
 - Integration with the application's ForgeRock authentication system
 - Proper token handling for API requests
 
 ### 5.3 Content Management Integration
+
 - Content tokens for all user-facing text to support localization and customization
 - Integration with AEM content management system
 
 ## 6. User Flows
 
 ### 6.1 Viewing Recipients List
+
 1. User navigates to the Recipients section of the application
 2. System fetches recipients data using the [getAllRecipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 3. System displays a paginated list with the following:
@@ -217,38 +233,23 @@ The Recipients functionality has the following account type constraints:
 5. If the API call fails, system displays appropriate error messaging with retry option
 
 ### 6.2 Creating a New Recipient
+
 1. User navigates to Recipients page
 2. User clicks "Create Recipient" button
-3. System presents multi-step form with progress indicator:
-   - Step 1: Basic Information
-     - User selects recipient type (Individual/Organization)
-     - For Individual: User enters first name, last name
-     - For Organization: User enters business name
-   - Step 2: Address Information
-     - User enters address details (required for WIRE transfers)
-     - User enters country code
-   - Step 3: Bank Account Details
-     - User selects account type (CHECKING/SAVINGS)
-     - User enters account number
-     - User selects transaction methods (ACH, WIRE, RTP)
-     - User enters routing information for selected methods
-       - Option to use same routing number for all methods
-   - Step 4: Contact Information
-     - User enters email address (required)
-     - User enters phone number (optional)
-   - Step 5: Review & Submit
-     - System displays all entered information for verification
-     - User can go back to any step to make corrections
+3. System displays a vertically-stacked form (single page, scrollable if necessary) in the following order:
+   1. Payment Method Selection – “How do you want to pay this recipient?”
+   2. Personal / Organization Details
+   3. Account Details (account type → account number)
+   4. Routing Numbers (simple table driven by the selected methods)
+   5. Address Information (only required for methods that need it)
+   6. Contact Information (required types depend on selected methods)
+   7. Review & Submit (summary or inline review)
 4. User submits the form
-5. System validates all inputs
-6. If valid, system creates recipient and displays success notification
-7. User is presented with options:
-   - "View Recipient Details"
-   - "Make a Payment"
-   - "Add Another Recipient"
-   - "Return to Recipients List"
+5. System validates all inputs, applying only the rules relevant to the selected payment methods
+6. Upon success, system shows confirmation and offers follow-up actions (view, pay, add another, return to list)
 
 ### 6.3 Viewing Recipient Details
+
 1. User clicks "View Details" action for a specific recipient in the list
 2. System retrieves detailed recipient information
 3. System displays information in organized sections:
@@ -273,27 +274,16 @@ The Recipients functionality has the following account type constraints:
    - Click "Back to List" to return to the recipients list
 
 ### 6.4 Editing a Recipient
-1. User clicks "Edit" action for a specific recipient (from list or details view)
-2. System retrieves current recipient data
-3. System pre-populates multi-step form with existing information
-4. User can navigate through same steps as creation process:
-   - Step 1: Basic Information
-   - Step 2: Address Information
-   - Step 3: Bank Account Details
-   - Step 4: Contact Information
-   - Step 5: Review & Submit
-5. User can modify any information:
-   - Update name, address, or contact details
-   - Change account type or number
-   - Add or remove transaction methods
-   - Update routing information
-6. User reviews changes and submits the updated form
-7. System validates all inputs
-8. If valid, system updates recipient using [amendRecipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
-9. System displays success notification
-10. User is returned to the recipient details view showing updated information
+
+1. User selects "Edit" for a recipient
+2. System loads the same form layout described in 6.2, pre-populated with existing data
+3. User can modify any information, including changing payment methods, which immediately updates visible/required fields
+4. User reviews changes and submits
+5. System applies validation rules relevant to the updated selection and saves via the Amend Recipient API
+6. Success notification is shown and the details view reflects the update
 
 ### 6.5 Deleting a Recipient
+
 1. User clicks "Delete" action for a recipient (from list or details view)
 2. System displays confirmation dialog:
    - Warning that action cannot be undone
@@ -308,6 +298,7 @@ The Recipients functionality has the following account type constraints:
    - Provides options to retry or cancel
 
 ### 6.6 Making a Payment to a Recipient
+
 1. User clicks "Make Payment" action for a specific recipient
 2. System retrieves recipient details
 3. System navigates to payment form with pre-populated recipient information:
@@ -325,6 +316,7 @@ The Recipients functionality has the following account type constraints:
 9. User receives confirmation with payment details and tracking information
 
 ### 6.7 Adding a New Recipient During Payment
+
 1. User initiates a new payment without selecting a recipient first
 2. User selects "New Recipient" option when prompted for payment destination
 3. System presents the recipient creation flow (as in 6.2)
@@ -335,6 +327,7 @@ The Recipients functionality has the following account type constraints:
 5. User completes payment to newly created recipient
 
 ### 6.8 Managing Multiple Transaction Methods
+
 1. User navigates to Recipients list
 2. User selects "Edit" for a specific recipient
 3. User proceeds to Bank Account Details step
@@ -354,6 +347,7 @@ The Recipients functionality has the following account type constraints:
 ## 7. Data Model
 
 ### 7.1 Recipient
+
 - **id**: Unique identifier (UUID format)
 - **type**: RECIPIENT (for third-party recipients)
 - **status**: Account status (e.g., ACTIVE, INACTIVE)
@@ -366,7 +360,7 @@ The Recipients functionality has the following account type constraints:
   - **lastName**: String (required for INDIVIDUAL)
   - **businessName**: String (required for ORGANIZATION)
   - **alternativeName**: Optional alternative name
-  - **address**: 
+  - **address**:
     - **addressLine1**: String
     - **addressLine2**: String (optional)
     - **addressLine3**: String (optional)
@@ -392,40 +386,36 @@ The Recipients functionality has the following account type constraints:
     - **routingCodeType**: String (e.g., "USABA")
 
 ### 7.2 ListRecipientsResponse
+
 - **recipients**: Array of Recipient objects
 - **page**: Current page number
 - **limit**: Items per page
 - **total_items**: Total number of recipients
 
 ### 7.3 Recipient Form Field Validations
+
 - **Business Name**:
   - Required when party type is ORGANIZATION
   - Maximum 100 characters
   - Alphanumeric and common special characters
-  
 - **Individual Name**:
   - First and last name required when party type is INDIVIDUAL
   - Each field maximum 70 characters
   - Alphanumeric and common special characters (no numbers in names)
-  
 - **Account Number**:
   - Required for all recipient types
   - 4-17 digits
   - No special characters
-  
 - **Routing Number**:
   - Required for ACH, WIRE, and RTP transaction methods
   - Exactly 9 digits for USABA routing numbers
   - Must pass checksum validation
-  
 - **Email Address**:
   - Valid email format
   - Maximum 254 characters
-  
 - **Phone Number**:
   - Optional for most transaction types
   - Valid format with country code
-  
 - **Address Fields**:
   - Required for WIRE transaction method
   - Address line: Maximum 100 characters
@@ -436,6 +426,7 @@ The Recipients functionality has the following account type constraints:
 ## 8. Metrics & Analytics
 
 Track the following metrics to measure feature success:
+
 - Number of recipients created
 - Number of payments initiated from recipient pages
 - Time spent on recipient creation form
@@ -450,164 +441,169 @@ The Recipient creation form should generate a request body that matches the foll
 #### Example Request:
 
 ```json
-{ 
-    "partyDetails": { 
-        "address": { 
-            "addressLine1": "200 Central Park West", 
-            "addressLine2": "Apt. 3663", 
-            "city": "New York City", 
-            "countryCode": "US", 
-            "postalCode": "12345", 
-            "state": "NY" 
-        }, 
-        "type": "ORGANIZATION", 
-        "businessName": "Acme Corporation", 
-        "contacts": [ 
-            { 
-                "contactType": "EMAIL", 
-                "value": "contact@example.com" 
-            } 
-        ] 
-    }, 
-    "account": { 
-        "number": "0259057683", 
-        "type": "SAVINGS", 
-        "routingInformation": [ 
-            { 
-                "routingCodeType": "USABA", 
-                "routingNumber": "021000021", 
-                "transactionType": "ACH" 
-            }, 
-            { 
-                "routingCodeType": "USABA", 
-                "routingNumber": "021000021", 
-                "transactionType": "RTP" 
-            }, 
-            { 
-                "routingCodeType": "USABA", 
-                "routingNumber": "021000021", 
-                "transactionType": "WIRE" 
-            }
-        ],
-        "countryCode": "US" 
-    }, 
-    "type": "RECIPIENT" 
+{
+  "partyDetails": {
+    "address": {
+      "addressLine1": "200 Central Park West",
+      "addressLine2": "Apt. 3663",
+      "city": "New York City",
+      "countryCode": "US",
+      "postalCode": "12345",
+      "state": "NY"
+    },
+    "type": "ORGANIZATION",
+    "businessName": "Acme Corporation",
+    "contacts": [
+      {
+        "contactType": "EMAIL",
+        "value": "contact@example.com"
+      }
+    ]
+  },
+  "account": {
+    "number": "0259057683",
+    "type": "SAVINGS",
+    "routingInformation": [
+      {
+        "routingCodeType": "USABA",
+        "routingNumber": "021000021",
+        "transactionType": "ACH"
+      },
+      {
+        "routingCodeType": "USABA",
+        "routingNumber": "021000021",
+        "transactionType": "RTP"
+      },
+      {
+        "routingCodeType": "USABA",
+        "routingNumber": "021000021",
+        "transactionType": "WIRE"
+      }
+    ],
+    "countryCode": "US"
+  },
+  "type": "RECIPIENT"
 }
 ```
 
 #### Example Response:
 
 ```json
-{ 
-    "id": "56043232-1ef2-4495-953b-1320b5b8913d", 
-    "partyDetails": { 
-        "address": { 
-            "addressType": null, 
-            "addressLine1": "200 Central Park West", 
-            "addressLine2": "Apt. 3663", 
-            "addressLine3": null, 
-            "city": "New York City", 
-            "state": "NY", 
-            "postalCode": "12345", 
-            "countryCode": "US" 
-        }, 
-        "type": "ORGANIZATION", 
-        "firstName": null, 
-        "lastName": null, 
-        "businessName": "Acme Corporation", 
-        "alternativeName": null, 
-        "contacts": [ 
-            { 
-                "contactType": "EMAIL", 
-                "countryCode": null, 
-                "value": "contact@example.com" 
-            } 
-        ], 
-        "identities": null 
-    }, 
-    "partyId": "33321085-23c6-4116-9e1b-b1a9a651ce7b", 
-    "account": { 
-        "number": "0259057683", 
-        "type": "SAVINGS", 
-        "bic": null, 
-        "bankName": null, 
-        "branchCode": null, 
-        "routingInformation": [ 
-            {
-                "routingNumber": "021000021", 
-                "transactionType": "ACH", 
-                "routingCodeType": "USABA" 
-            }, 
-            { 
-                "routingNumber": "021000021", 
-                "transactionType": "RTP", 
-                "routingCodeType": "USABA" 
-            }, 
-            { 
-                "routingNumber": "021000021", 
-                "transactionType": "WIRE", 
-                "routingCodeType": "USABA" 
-            } 
-        ], 
-        "countryCode": "US" 
-    }, 
-    "type": "RECIPIENT", 
-    "status": "ACTIVE", 
-    "clientId": "3002023061", 
-    "createdAt": "2025-04-08T17:19:33.368472Z", 
-    "updatedAt": "2025-04-08T17:19:33.366590372Z", 
-    "accountValidationResponse": null, 
-    "card": null 
+{
+  "id": "56043232-1ef2-4495-953b-1320b5b8913d",
+  "partyDetails": {
+    "address": {
+      "addressType": null,
+      "addressLine1": "200 Central Park West",
+      "addressLine2": "Apt. 3663",
+      "addressLine3": null,
+      "city": "New York City",
+      "state": "NY",
+      "postalCode": "12345",
+      "countryCode": "US"
+    },
+    "type": "ORGANIZATION",
+    "firstName": null,
+    "lastName": null,
+    "businessName": "Acme Corporation",
+    "alternativeName": null,
+    "contacts": [
+      {
+        "contactType": "EMAIL",
+        "countryCode": null,
+        "value": "contact@example.com"
+      }
+    ],
+    "identities": null
+  },
+  "partyId": "33321085-23c6-4116-9e1b-b1a9a651ce7b",
+  "account": {
+    "number": "0259057683",
+    "type": "SAVINGS",
+    "bic": null,
+    "bankName": null,
+    "branchCode": null,
+    "routingInformation": [
+      {
+        "routingNumber": "021000021",
+        "transactionType": "ACH",
+        "routingCodeType": "USABA"
+      },
+      {
+        "routingNumber": "021000021",
+        "transactionType": "RTP",
+        "routingCodeType": "USABA"
+      },
+      {
+        "routingNumber": "021000021",
+        "transactionType": "WIRE",
+        "routingCodeType": "USABA"
+      }
+    ],
+    "countryCode": "US"
+  },
+  "type": "RECIPIENT",
+  "status": "ACTIVE",
+  "clientId": "3002023061",
+  "createdAt": "2025-04-08T17:19:33.368472Z",
+  "updatedAt": "2025-04-08T17:19:33.366590372Z",
+  "accountValidationResponse": null,
+  "card": null
 }
 ```
 
 #### 9.1.1 Data Model Details
 
 **Recipient Type:**
+
 - **RECIPIENT:** Third-party recipients that can receive payments from a LIMITED_DDA_PAYMENTS account
 
 **Party Types:**
+
 - **INDIVIDUAL:** A person receiving payments (e.g., contractor, employee)
 - **ORGANIZATION:** A business entity receiving payments (e.g., vendor, supplier)
 
 **Account Types:**
+
 - **CHECKING:** Standard checking account
 - **SAVINGS:** Interest-bearing savings account
 
 **Transaction Methods:**
+
 - **ACH:** Automated Clearing House electronic transfers (US)
   - **Required fields:** Name, country code, routing number, account number, account type (CHECKING or SAVINGS)
   - **Routing code type:** USABA (9-digit ABA routing number)
-  - **Characteristics:** 
+  - **Characteristics:**
     - Typically settles within 1-3 business days
     - Lower transaction fees compared to wire transfers
     - Suitable for recurring payments
-  
 - **WIRE:** Traditional bank wire transfers
   - **Required fields:** Name, country code, complete address (city, state, postal code), routing and account numbers
   - **Routing code type:** USABA for domestic wires
-  - **Characteristics:** 
+  - **Characteristics:**
     - Same-day settlement (when initiated before cutoff times)
     - Higher transaction fees
     - Suitable for time-sensitive, high-value transactions
-  
 - **RTP:** Real-Time Payments network transfers
   - **Required fields:** Name, country code, routing number, account number
   - **Routing code type:** USABA (9-digit ABA routing number)
-  - **Characteristics:** 
+  - **Characteristics:**
     - Immediate settlement (24/7/365)
     - Lower transaction fees than wire transfers
     - Maximum transaction limit of $100,000
     - Recipient's bank must participate in the RTP network
 
 **Routing Code Types:**
+
 - **USABA:** American Bankers Association routing number (9 digits)
 
 **API Response Status Values:**
+
 - **ACTIVE:** Recipient is ready to receive payments
 - **INACTIVE:** Recipient is currently disabled for payments
 
-> **Important Notes:** 
+> **Important Notes:**
+>
 > - Your client can make business-related payments to third parties from their LIMITED_DDA_PAYMENTS account.
 > - Your client cannot pay to a third-party recipient from their LIMITED_DDA account.
 > - Recipients are created with ACTIVE status and can receive payments immediately after creation.
@@ -631,13 +627,13 @@ A key requirement is to implement a flexible UI configuration map that determine
 interface PaymentTypeFieldConfig {
   // Fields required when this payment type is selected
   requiredFields: string[];
-  
+
   // Fields that should be visible but optional when this payment type is selected
   optionalFields: string[];
-  
+
   // Fields that should be hidden when this payment type is selected
   hiddenFields?: string[];
-  
+
   // Validation rules specific to this payment type
   validations: {
     [fieldName: string]: {
@@ -648,7 +644,7 @@ interface PaymentTypeFieldConfig {
       errorMessage?: string;
     }
   };
-  
+
   // Country-specific overrides
   countryOverrides?: {
     [countryCode: string]: {
@@ -660,7 +656,7 @@ interface PaymentTypeFieldConfig {
       };
     }
   };
-  
+
   // Field dependency rules
   fieldDependencies?: {
     [fieldName: string]: {
@@ -670,7 +666,7 @@ interface PaymentTypeFieldConfig {
       whenFalse: 'show' | 'require' | 'hide'; // Action to take when condition is false
     }
   };
-  
+
   // Helper text for fields
   helperText?: {
     [fieldName: string]: string;
@@ -682,7 +678,7 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
   ACH: {
     requiredFields: [
       'account.type',
-      'account.number', 
+      'account.number',
       'account.countryCode',
       'account.routingInformation[ACH].routingNumber',
       'account.routingInformation[ACH].routingCodeType',
@@ -767,7 +763,7 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
   WIRE: {
     requiredFields: [
       'account.type',
-      'account.number', 
+      'account.number',
       'account.bankName',
       'account.countryCode',
       'account.routingInformation[WIRE].routingNumber',
@@ -806,7 +802,7 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
   RTP: {
     requiredFields: [
       'account.type',
-      'account.number', 
+      'account.number',
       'account.routingInformation[RTP].routingNumber',
       'partyDetails.contacts[EMAIL].value'
     ],
@@ -829,7 +825,7 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
   EMAIL: {
     requiredFields: [
       'partyDetails.contacts[EMAIL].value',
-      'partyDetails.firstName', 
+      'partyDetails.firstName',
       'partyDetails.lastName'
     ],
     optionalFields: [
@@ -875,13 +871,13 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
         customValidator: (value, formValues) => {
           // IBAN validation for European countries
           const euroCountries = ['DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'AT', 'GR', 'PT', 'IE', 'FI', 'LU', 'SI', 'CY', 'MT', 'SK', 'EE', 'LV', 'LT'];
-          
+
           if (euroCountries.includes(formValues?.account?.countryCode)) {
             // Simple IBAN format check (complete validation would require mod-97 check)
             const ibanRegex = new RegExp(`^${formValues?.account?.countryCode}[0-9]{2}[A-Z0-9]{10,30}$`);
             return ibanRegex.test(value) || 'Please enter a valid IBAN for this country';
           }
-          
+
           return true;
         }
       },
@@ -979,21 +975,21 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
   - Apply the most restrictive validation rules (9-digit USABA routing number)
   - Store the same routing number for all selected transaction types in the API request, as shown in the API example:
   ```json
-  "routingInformation": [ 
-      { 
-          "routingCodeType": "USABA", 
-          "routingNumber": "021000021", 
-          "transactionType": "ACH" 
-      }, 
-      { 
-          "routingCodeType": "USABA", 
-          "routingNumber": "021000021", 
-          "transactionType": "RTP" 
-      }, 
-      { 
-          "routingCodeType": "USABA", 
-          "routingNumber": "021000021", 
-          "transactionType": "WIRE" 
+  "routingInformation": [
+      {
+          "routingCodeType": "USABA",
+          "routingNumber": "021000021",
+          "transactionType": "ACH"
+      },
+      {
+          "routingCodeType": "USABA",
+          "routingNumber": "021000021",
+          "transactionType": "RTP"
+      },
+      {
+          "routingCodeType": "USABA",
+          "routingNumber": "021000021",
+          "transactionType": "WIRE"
       }
   ]
   ```
@@ -1005,11 +1001,13 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
 #### 9.3.2 Dynamic Field Management
 
 - **Field Visibility Control**:
+
   - Show/hide fields dynamically based on payment type selection
   - Maintain field values in the form state even when hidden (for returning to previous selections)
   - Clear values of hidden fields when they become irrelevant to the current selection
 
 - **Field Requirement Logic**:
+
   - When multiple payment types are selected, a field should be required if any selected payment type requires it
   - Fields that are optional for all selected payment types should remain optional
   - Fields that are hidden by all selected payment types should remain hidden
@@ -1021,17 +1019,20 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
 #### 9.3.3 Validation Strategy
 
 - **Progressive Validation**:
+
   - Validate fields as users progress through the form, not just on submission
   - Provide immediate feedback for format errors (e.g., invalid email, wrong routing number format)
   - Defer complex validations (e.g., routing number verification) until submission
 
 - **Transaction Type-Specific Validation**:
+
   - Apply specific validation rules for each transaction type according to JPMC requirements:
     - **ACH:** Validate 9-digit USABA routing number, account number, account type (CHECKING or SAVINGS)
     - **WIRE:** Validate 9-digit USABA routing number, complete address fields (city, state, postal code), account number
     - **RTP:** Validate 9-digit USABA routing number, account number, email address for notifications
 
 - **Composite Validation Rules**:
+
   - When multiple transaction types are selected, merge validation rules using these principles:
     - Apply the most restrictive pattern/format requirements
     - Take the minimum of all maxLength requirements
@@ -1046,11 +1047,13 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
 #### 9.3.4 Configuration Architecture
 
 - **Configuration Management**:
+
   - Store the configuration map in a central, versioned location
   - Consider making it externally configurable via CMS or configuration service
   - Implement a fallback mechanism to default rules if configuration cannot be loaded
 
 - **Extensibility Design**:
+
   - Use a plugin architecture for adding new payment types
   - Implement a registry pattern for field validators
   - Support middleware hooks for pre/post processing of form data
@@ -1063,16 +1066,19 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
 #### 9.3.5 User Experience Enhancements
 
 - **Smart Defaults**:
+
   - Pre-select country code based on user's location
   - Default currency to match the country's primary currency
   - Remember user's commonly used payment types
 
 - **Progressive Disclosure**:
+
   - Initially show only the most basic fields (recipient type, name, payment method)
   - Expand to show relevant fields based on selections
   - Group related fields in collapsible sections
 
 - **Contextual Help**:
+
   - Provide field-level tooltips explaining format requirements
   - Show examples of correctly formatted values for complex fields
   - Display visual indicators for required vs. optional fields
@@ -1085,11 +1091,13 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
 #### 9.3.6 API Integration
 
 - **Request Transformation**:
+
   - Convert form values to the exact API request format
   - Handle nested objects and arrays properly
   - Filter out empty or unused fields before submission
 
 - **Response Handling**:
+
   - Parse API responses to extract meaningful error messages
   - Map backend validation errors to specific form fields
   - Support partial form submission and resumption
@@ -1102,11 +1110,13 @@ const paymentTypeConfigMap: Record<PaymentMethodType, PaymentTypeFieldConfig> = 
 #### 9.3.7 Test Strategy
 
 - **Test Cases by Payment Type**:
+
   - Create test matrices covering all payment type combinations
   - Test field visibility, requirement, and validation rules for each combination
   - Verify correct API request formation for each scenario
 
 - **Validation Testing**:
+
   - Test boundary conditions for all validations
   - Verify error messages are clear and actionable
   - Test internationalization of validation messages
@@ -1121,12 +1131,14 @@ This comprehensive configuration approach ensures the Recipients form can handle
 ## 10. Additional Resources
 
 ### 10.1 API Documentation References
+
 - [JPMorgan Chase Embedded Payments - Third-Party Recipient](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/third-party-recipient)
 - [Create Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/createRecipient)
 - [Update Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 
 ### 10.2 Related JPMC Documentation
+
 - [Payment Capabilities](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/payment-capabilities)
 - [Recipient Management Overview](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-recipients)
 - [API Reference](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients)

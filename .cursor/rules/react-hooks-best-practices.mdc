@@ -1,0 +1,236 @@
+---
+description: React hooks best practices and rules of hooks to prevent common errors
+---
+
+# React Hooks Best Practices
+
+## Rules of Hooks (CRITICAL)
+
+React hooks must follow strict rules to prevent "rendered more hooks than during the previous render" errors.
+
+### 1. Only Call Hooks at the Top Level
+
+```typescript
+// ✅ CORRECT - All hooks at component top level
+const MyComponent = () => {
+  const [state, setState] = useState(false);
+  const [data, setData] = useState(null);
+  const query = useQuery(...);
+  const mutation = useMutation(...);
+
+  // All hooks declared before any conditional logic
+  if (loading) return <Loading />;
+
+  return <div>...</div>;
+};
+
+// ❌ INCORRECT - Hooks inside conditionals
+const MyComponent = () => {
+  if (someCondition) {
+    const [state, setState] = useState(false); // NEVER DO THIS
+  }
+
+  return <div>...</div>;
+};
+```
+
+### 2. Never Call Hooks Inside Loops, Conditions, or Nested Functions
+
+```typescript
+// ❌ INCORRECT - Hooks in conditional blocks
+const MyComponent = ({ showForm }) => {
+  const [basicState, setBasicState] = useState(false);
+
+  if (showForm) {
+    const [formData, setFormData] = useState({}); // WRONG!
+  }
+
+  return <div>...</div>;
+};
+
+// ✅ CORRECT - All hooks declared, conditionally used
+const MyComponent = ({ showForm }) => {
+  const [basicState, setBasicState] = useState(false);
+  const [formData, setFormData] = useState({}); // Always declared
+
+  if (!showForm) return <div>No form</div>;
+
+  return <div>Form content using formData</div>;
+};
+```
+
+### 3. Hook Declaration Order
+
+Declare hooks in this order:
+
+```typescript
+const MyComponent = () => {
+  // 1. State hooks first
+  const [isOpen, setIsOpen] = useState(false);
+  const [data, setData] = useState(null);
+
+  // 2. Refs
+  const ref = useRef(null);
+  const scrollRef = useRef(null);
+
+  // 3. Custom hooks
+  const { filters, updateFilter } = useCustomHook();
+
+  // 4. API hooks (React Query)
+  const { data: apiData } = useQuery(...);
+  const mutation = useMutation(...);
+
+  // 5. Effect hooks last
+  useEffect(() => {
+    // Side effects
+  }, [dependencies]);
+
+  // 6. Computed values and handlers
+  const computedValue = useMemo(() => {...}, [deps]);
+  const handleClick = useCallback(() => {...}, [deps]);
+
+  return <div>...</div>;
+};
+```
+
+## Common Anti-Patterns to Avoid
+
+### 1. Adding Hooks After Component Creation
+
+```typescript
+// ❌ WRONG - Adding hooks later breaks order
+const MyComponent = () => {
+  const [existingState, setExistingState] = useState(false);
+
+  // Later during development, adding new hooks here:
+  const [newState, setNewState] = useState(null); // OK if added here
+
+  const query = useQuery(...); // OK
+
+  // But adding hooks AFTER other logic is dangerous:
+  if (someCondition) {
+    // Other logic
+  }
+
+  // ❌ Adding hooks here breaks the rules:
+  // const [lateHook, setLateHook] = useState(false); // NEVER!
+
+  return <div>...</div>;
+};
+```
+
+### 2. Conditional Hook Usage
+
+```typescript
+// ❌ WRONG - Conditionally calling hooks
+const MyComponent = ({ needsData }) => {
+  const [state, setState] = useState(false);
+
+  // This will cause "more hooks rendered" error
+  if (needsData) {
+    const { data } = useQuery("data", fetchData); // WRONG!
+  }
+
+  return <div>...</div>;
+};
+
+// ✅ CORRECT - Always call hooks, conditionally use results
+const MyComponent = ({ needsData }) => {
+  const [state, setState] = useState(false);
+
+  // Always call the hook
+  const { data } = useQuery("data", fetchData, {
+    enabled: needsData, // Use options to control behavior
+  });
+
+  return <div>...</div>;
+};
+```
+
+## Scrolling and Complex State Patterns
+
+### CSS-First Approach (Recommended)
+
+```typescript
+// ✅ PREFERRED - Use CSS for scrolling, minimal hooks
+const DialogComponent = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  // No refs or scroll state hooks needed
+
+  return (
+    <DialogContent className="eb-scrollable-dialog">
+      <div className="eb-scrollable-content">
+        {/* Content automatically scrollable via CSS */}
+      </div>
+    </DialogContent>
+  );
+};
+```
+
+### Complex State Management
+
+```typescript
+// ✅ CORRECT - All hooks declared upfront
+const ComplexComponent = () => {
+  // All state hooks first
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState(null);
+
+  // All refs
+  const containerRef = useRef(null);
+
+  // All custom hooks
+  const { user } = useAuth();
+
+  // All API hooks
+  const query = useQuery(...);
+  const mutation = useMutation(...);
+
+  // All effects
+  useEffect(() => {
+    // Initialize
+  }, []);
+
+  // All callbacks and memoized values
+  const handleSubmit = useCallback(() => {
+    // Handle submit
+  }, [dependencies]);
+
+  const memoizedValue = useMemo(() => {
+    // Compute value
+  }, [dependencies]);
+
+  // Render logic
+  if (isLoading) return <Loading />;
+  if (error) return <Error />;
+
+  return <div>...</div>;
+};
+```
+
+## Migration Strategy for Existing Components
+
+When fixing hook order issues:
+
+1. **Identify all hooks** in the component
+2. **Move all hooks to the top** before any conditional logic
+3. **Use hook options** instead of conditional calls
+4. **Test thoroughly** to ensure no functionality is broken
+
+## Debugging Hook Issues
+
+If you get "rendered more hooks" error:
+
+1. Check if any hooks are inside conditionals
+2. Verify hook declaration order is consistent
+3. Ensure no hooks are added/removed dynamically
+4. Use React DevTools to trace hook order
+
+## Performance Considerations
+
+- Prefer CSS solutions over JavaScript hooks for UI state
+- Use `useMemo` and `useCallback` judiciously, not everywhere
+- Consider moving complex state to custom hooks
+- Avoid creating refs unnecessarily
+
