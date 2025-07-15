@@ -13,10 +13,10 @@ function ConceptVisualization() {
     <div className="flex flex-col items-center">
       {/* Outermost layer - Demo Applications */}
       <div
-        className="bg-gray-100 border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-200 transition-colors w-full max-w-lg"
+        className="bg-gray-100 border-2 border-gray-300 rounded-lg px-8 py-6 cursor-pointer hover:bg-gray-200 transition-colors w-full max-w-lg"
         onClick={() => scrollToSection('demo-applications')}
       >
-        <div className="flex justify-center mb-3">
+        <div className="flex justify-center mb-4">
           <span className="text-sm font-medium text-gray-700 px-3 py-1 bg-gray-200 rounded-full">
             Demo Applications
           </span>
@@ -24,13 +24,13 @@ function ConceptVisualization() {
 
         {/* Middle layer - Embedded Components */}
         <div
-          className="bg-jpm-brown-100 border-2 border-jpm-brown-300 rounded-lg p-3 cursor-pointer hover:bg-jpm-brown-200 transition-colors"
+          className="bg-jpm-brown-100 border-2 border-jpm-brown-300 rounded-lg px-7 py-5 cursor-pointer hover:bg-jpm-brown-200 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             scrollToSection('embedded-components');
           }}
         >
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-4">
             <span className="text-sm font-medium text-jpm-brown px-3 py-1 bg-jpm-brown-200 rounded-full">
               Embedded Components
             </span>
@@ -38,7 +38,7 @@ function ConceptVisualization() {
 
           {/* Innermost layer - Utility Components */}
           <div
-            className="bg-blue-100 border-2 border-blue-300 rounded-lg p-3 cursor-pointer hover:bg-blue-200 transition-colors"
+            className="bg-blue-100 border-2 border-blue-300 rounded-lg px-6 py-4 cursor-pointer hover:bg-blue-200 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               scrollToSection('utility-components');
