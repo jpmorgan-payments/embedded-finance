@@ -225,9 +225,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
         firstName: recipient.partyDetails?.individual?.firstName,
         lastName: recipient.partyDetails?.individual?.lastName,
         businessName: recipient.partyDetails?.organization?.businessName,
-        accountNumber: recipient.accountDetails?.accountNumber,
-        accountType: recipient.accountDetails?.accountType,
-        countryCode: recipient.accountDetails?.countryCode || 'US',
+        accountNumber: recipient.account?.number,
+        accountType: recipient.account?.type,
+        countryCode: recipient.account?.countryCode || 'US',
         addressLine1: recipient.partyDetails?.address?.addressLine1,
         addressLine2: recipient.partyDetails?.address?.addressLine2,
         addressLine3: recipient.partyDetails?.address?.addressLine3,
@@ -262,11 +262,11 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
             };
           }) || [],
         // Set payment methods based on existing routing information
-        paymentMethods: recipient.routingInformation?.map(
+        paymentMethods: recipient.account?.routingInformation?.map(
           (ri: { transactionType: any }) => ri.transactionType
         ) || [availablePaymentMethods[0]],
         routingNumbers:
-          recipient.routingInformation?.reduce(
+          recipient.account?.routingInformation?.reduce(
             (
               acc: { [x: string]: any },
               ri: { transactionType: string | number; routingNumber: any }
