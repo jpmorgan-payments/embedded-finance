@@ -57,7 +57,7 @@ export function DemoCarousel() {
   });
 
   return (
-    <section className="py-8 bg-jpm-white">
+    <section id="demo-applications" className="py-8 bg-jpm-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
@@ -85,6 +85,24 @@ export function DemoCarousel() {
                     style={{ width: `${itemWidthPercent}%` }}
                   >
                     <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">
+                      <div className="bg-gray-100 p-3 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-md font-semibold text-gray-900">
+                              {demo.title}
+                            </span>
+                          </div>
+                          <span
+                            className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${
+                              demo.active
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-orange-100 text-orange-800'
+                            }`}
+                          >
+                            {demo.active ? 'Live' : 'Soon'}
+                          </span>
+                        </div>
+                      </div>
                       <div className="aspect-video w-full overflow-hidden">
                         <img
                           src={demo.image || '/placeholder.svg'}
@@ -93,9 +111,7 @@ export function DemoCarousel() {
                         />
                       </div>
                       <CardContent className="p-4 sm:p-6 md:p-8">
-                        <h3 className="text-lg sm:text-xl md:text-page-h4 text-jpm-gray-900 mb-2 sm:mb-3 md:mb-4">
-                          {demo.title}
-                        </h3>
+                      
                         <p className="text-sm sm:text-base md:text-page-body text-jpm-gray leading-relaxed mb-4 sm:mb-5 md:mb-6">
                           {demo.description}
                         </p>
