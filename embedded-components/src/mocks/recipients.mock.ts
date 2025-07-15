@@ -1,7 +1,6 @@
 import type {
   ListRecipientsResponse,
   Recipient,
-  RecipientPartyDetails,
 } from '@/api/generated/ep-recipients.schemas';
 
 // Mock individual recipient

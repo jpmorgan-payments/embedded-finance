@@ -162,8 +162,6 @@ export interface AccountValidationResponse {
 }
 
 export interface Recipient {
-  accountDetails: any;
-  routingInformation: any;
   account?: RecipientAccount;
   /**
    * Account validation response
@@ -383,8 +381,8 @@ export const PartyType = {
 } as const;
 
 export interface RecipientPartyDetails {
-  individual: any;
-  organization: any;
+  individual?: any;
+  organization?: any;
   address?: RecipientAddress;
   /**
    * Recipient company name. Mandatory for recipient type ORGANIZATION.
