@@ -13,7 +13,7 @@ function ConceptVisualization() {
     <div className="flex flex-col items-center">
       {/* Outermost layer - Demo Applications */}
       <div
-        className="bg-gray-100 border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-200 transition-colors w-full max-w-sm"
+        className="bg-gray-100 border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:bg-gray-200 transition-colors w-full max-w-lg"
         onClick={() => scrollToSection('demo-applications')}
       >
         <div className="flex justify-center mb-3">
@@ -100,9 +100,6 @@ export function HeroSection() {
 
           {/* Right side - Architecture visualization */}
           <div className="flex flex-col items-center lg:col-span-1">
-            <h3 className="text-lg font-semibold text-jpm-gray-900 mb-4 text-center">
-              Architecture Overview
-            </h3>
             <ConceptVisualization />
           </div>
         </div>
