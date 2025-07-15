@@ -164,10 +164,10 @@ export function ExperiencesSection() {
                 key={exp.id}
                 className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-64 flex flex-col"
               >
-                <CardHeader className="bg-jpm-brown-100 p-4 min-h-[5rem] flex-shrink-0">
+                <CardHeader className="bg-jpm-brown-100 p-4 min-h-[4rem] flex-shrink-0">
                   <div className="flex items-start justify-between">
                     <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-jpm-brown-100 p-1 rounded-page-sm mr-2 text-jpm-brown flex-shrink-0">
+                      <div className="bg-jpm-brown-100 p-1 rounded-page-sm mr-2 text-jpm-brown-800 flex-shrink-0">
                         {exp.icon}
                       </div>
                       <span className="line-clamp-2">{exp.title}</span>

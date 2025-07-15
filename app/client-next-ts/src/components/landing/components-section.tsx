@@ -331,14 +331,14 @@ export function ComponentsSection() {
                 key={comp.id}
                 className="border-0 shadow-page-card bg-jpm-white rounded-page-lg h-auto flex flex-col"
               >
-                <CardHeader className="bg-blue-100 p-4 min-h-[4rem] flex-shrink-0">
+                <div className="bg-jpm-brown-200 p-4 min-h-[4rem] flex-shrink-0 rounded-t-page-lg">
                   <div className="flex items-start justify-between">
-                    <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-blue-100 p-1 rounded-page-sm mr-2 text-blue-700 flex-shrink-0">
+                    <div className="flex items-start text-base font-semibold leading-tight">
+                      <div className="bg-jpm-brown-200 p-1 rounded-page-sm mr-2 text-jpm-brown-900 flex-shrink-0">
                         {comp.icon}
                       </div>
                       <span className="line-clamp-2">{comp.title}</span>
-                    </CardTitle>
+                    </div>
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                       <span
                         className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
@@ -351,7 +351,7 @@ export function ComponentsSection() {
                       </span>
                     </div>
                   </div>
-                </CardHeader>
+                </div>
                 <CardContent className="p-4 flex-1 flex flex-col">
                   <p className="text-sm text-jpm-gray leading-relaxed mb-4">
                     {comp.description}

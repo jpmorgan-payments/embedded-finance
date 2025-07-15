@@ -85,22 +85,24 @@ export function DemoCarousel() {
                     style={{ width: `${itemWidthPercent}%` }}
                   >
                     <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">
-                      <div className="bg-gray-100 p-3 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="text-md font-semibold text-gray-900">
+                      <div className="bg-jpm-brown-50 p-4 min-h-[4rem] flex-shrink-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start text-base font-semibold leading-tight">
+                            <span className="line-clamp-2 text-jpm-brown-800">
                               {demo.title}
                             </span>
                           </div>
-                          <span
-                            className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${
-                              demo.active
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-orange-100 text-orange-800'
-                            }`}
-                          >
-                            {demo.active ? 'Live' : 'Soon'}
-                          </span>
+                          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                            <span
+                              className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
+                                demo.active
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-orange-100 text-orange-800'
+                              }`}
+                            >
+                              {demo.active ? 'Live' : 'Soon'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="aspect-video w-full overflow-hidden">
@@ -111,7 +113,6 @@ export function DemoCarousel() {
                         />
                       </div>
                       <CardContent className="p-4 sm:p-6 md:p-8">
-                      
                         <p className="text-sm sm:text-base md:text-page-body text-jpm-gray leading-relaxed mb-4 sm:mb-5 md:mb-6">
                           {demo.description}
                         </p>
