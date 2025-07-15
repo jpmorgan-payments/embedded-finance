@@ -27,6 +27,20 @@ module.exports = {
       },
     },
   },
+   'ep-recipients': {
+    input: './api-specs/embedded-finance-pub-ep-recipients-1.0.23.yaml',
+    output: {
+      mode: 'split',
+      target: './src/api/generated/ep-recipients.ts',
+      client: 'react-query',
+      override: {
+        mutator: {
+          path: './src/api/axios-instance.ts',
+          name: 'ebInstance',
+        },
+      },
+    },
+  },
   smbdo: {
     input: './api-specs/embedded-finance-pub-smbdo-1.0.12-mp.yaml',
     output: {
