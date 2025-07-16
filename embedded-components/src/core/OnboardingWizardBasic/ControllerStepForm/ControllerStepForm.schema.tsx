@@ -84,9 +84,24 @@ export const controllerIdSchema = z
   .refine(
     (data) => {
       switch (data.idType) {
-        case 'SSN':
+        case 'SSN': {
           // SSN: 9 digits
-          return /^\d{9}$/.test(data.value);
+          const firstThree = parseInt(data.value.slice(0, 3), 10);
+          return (
+            data.value.length === 9 &&
+            data.value.match(/^[0-8]{1}[0-9]{2}[0-9]{2}[0-9]{4}/) &&
+            firstThree !== 666 &&
+            firstThree !== 0 &&
+            ![
+              '078051120',
+              '219099999',
+              '123456789',
+              '333333333',
+              '111111111',
+              '457555462',
+            ].includes(data.value)
+          );
+        }
         case 'ITIN':
           // ITIN: 9 digits
           return /^\d{9}$/.test(data.value);

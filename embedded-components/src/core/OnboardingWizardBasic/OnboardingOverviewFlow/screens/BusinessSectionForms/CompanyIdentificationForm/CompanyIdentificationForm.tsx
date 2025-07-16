@@ -21,7 +21,7 @@ import { FormStepComponent } from '../../../flow.types';
 import { CompanyIdentificationFormSchema } from './CompanyIdentificationForm.schema';
 
 export const CompanyIdentificationForm: FormStepComponent = () => {
-  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
+  const { t } = useTranslation(['onboarding-overview']);
   const form =
     useFormContext<z.input<typeof CompanyIdentificationFormSchema>>();
 
@@ -37,13 +37,13 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
 
   // Get label for value field based on ID type
   const getValueLabel = (idType: OrganizationIdentityDtoIdType) => {
-    if (!idType) return t('onboarding:idValueLabels.placeholder');
-    return t([`idValueLabels.${idType}`, `onboarding:idValueLabels.${idType}`]);
+    if (!idType) return t('idValueLabels.placeholder');
+    return t(`idValueLabels.${idType}`);
   };
 
   const getValueDescription = (idType: OrganizationIdentityDtoIdType) => {
     if (!idType) return '';
-    return t([`idValueDescriptions.${idType}`]);
+    return t(`idValueDescriptions.${idType}`);
   };
 
   const currentIdType = form.watch('organizationIds.0.idType');
@@ -87,8 +87,7 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
         <Alert variant="informative" density="sm" noTitle>
           <InfoIcon className="eb-size-4" />
           <AlertDescription>
-            If your business is outside of the United States, please contact
-            Platform operator.
+            {t('screens.companyIdentification.contactPlatformOperator')}
           </AlertDescription>
         </Alert>
       </div>
@@ -108,7 +107,7 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" type="button" size="sm" className="">
-                Use a different ID type
+                {t('screens.companyIdentification.useDifferentIdType')}
                 <ChevronDownIcon />
               </Button>
             </DropdownMenuTrigger>

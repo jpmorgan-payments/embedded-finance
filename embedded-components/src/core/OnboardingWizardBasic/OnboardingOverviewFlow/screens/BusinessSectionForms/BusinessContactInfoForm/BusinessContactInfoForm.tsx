@@ -27,11 +27,10 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       />
       <fieldset>
         <legend className="eb-font-header eb-text-lg eb-font-medium">
-          Registered address
+          {t('fields.addresses.sectionTitle')}
         </legend>
         <p className="eb-mt-1.5 eb-text-sm">
-          Please provide the address registered to your company with your local
-          authority
+          {t('fields.addresses.sectionDescription')}
         </p>
         <div className="eb-mt-3 eb-space-y-3">
           <OnboardingFormField
@@ -59,13 +58,17 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="addresses.0.additionalAddressLines.0.value"
             type="text"
-            description="Apt, Suite, Unit, Building etc."
+            description={t(
+              'fields.addresses.additionalAddressLines.line1Description'
+            )}
           />
           <OnboardingFormField
             control={form.control}
             name="addresses.0.additionalAddressLines.1.value"
             type="text"
-            description=""
+            description={t(
+              'fields.addresses.additionalAddressLines.line2Description'
+            )}
           />
           <OnboardingFormField
             control={form.control}

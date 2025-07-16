@@ -314,13 +314,10 @@ export const GatewayScreen = () => {
           <Alert variant="informative" density="sm" className="eb-mb-4">
             <InfoIcon className="eb-h-4 eb-w-4" />
             <AlertTitle className="eb-text-sm eb-font-semibold">
-              Is this you?
+              {t('screens.gateway.infoAlert.title')}
             </AlertTitle>
             <AlertDescription>
-              To keep your account details safe, we expect that the person
-              completing this application holds primary control over financial
-              and business operations for the business. If this is not you,
-              please don&apos;t proceed below.
+              {t('screens.gateway.infoAlert.description')}
             </AlertDescription>
             <button
               type="button"

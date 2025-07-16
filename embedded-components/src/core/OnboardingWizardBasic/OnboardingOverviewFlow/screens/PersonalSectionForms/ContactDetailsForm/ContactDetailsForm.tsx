@@ -13,7 +13,6 @@ export const ContactDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
 
-  console.log(form.formState.errors);
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField

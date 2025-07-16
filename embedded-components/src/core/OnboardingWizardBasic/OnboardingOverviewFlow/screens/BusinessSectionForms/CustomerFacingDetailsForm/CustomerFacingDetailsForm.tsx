@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingWizardBasic/OnboardingFormField/OnboardingFormField';
@@ -14,7 +14,7 @@ import {
 export const CustomerFacingDetailsForm: FormStepComponent = ({
   currentPartyData,
 }) => {
-  // const { t } = useTranslation(['onboarding-overview', 'onboarding']);
+  const { t } = useTranslation(['onboarding-overview']);
 
   const form =
     useFormContext<z.input<typeof CustomerFacingDetailsFormSchema>>();
@@ -56,7 +56,7 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
           control={form.control}
           name="dbaNameNotAvailable"
           type="checkbox-basic"
-          label="Same as legal name of the company"
+          label={t('fields.dbaNameNotAvailable.label')}
           noOptionalLabel
         />
       </div>
@@ -69,22 +69,27 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
           tooltip={
             <div className="eb-space-y-3">
               <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                Description example
+                {t(
+                  'fields.organizationDescription.tooltipContent.exampleTitle'
+                )}
               </h2>
               <p className="eb-text-sm">
-                {
-                  '{Business name} creates sustainable and affordable beauty and hair care products that are vegan and cruelty free. Our top selling products are our organic citrus shampoo and conditioner line as well as our paraben and sulfate free mascara.'
-                }
+                {t('fields.organizationDescription.tooltipContent.exampleText')}
               </p>
               <p className="eb-pb-1 eb-text-sm">
-                Please ensure this aligns with the business classification you
-                have selected.
+                {t(
+                  'fields.organizationDescription.tooltipContent.alignmentNote'
+                )}
               </p>
               <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                Will my customers see this?
+                {t(
+                  'fields.organizationDescription.tooltipContent.visibilityTitle'
+                )}
               </h2>
               <p className="eb-pb-1 eb-text-sm">
-                No. This is used for compliance and regulatory purposes only.
+                {t(
+                  'fields.organizationDescription.tooltipContent.visibilityText'
+                )}
               </p>
             </div>
           }
@@ -103,7 +108,7 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
           control={form.control}
           name="websiteNotAvailable"
           type="checkbox-basic"
-          label="My business doesn't have a website"
+          label={t('fields.websiteNotAvailable.label')}
           noOptionalLabel
         />
       </div>

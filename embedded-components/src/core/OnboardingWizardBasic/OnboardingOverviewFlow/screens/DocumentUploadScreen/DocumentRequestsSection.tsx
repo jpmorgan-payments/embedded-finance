@@ -54,7 +54,7 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
             <PartyCard
               key={party.id}
               party={party}
-              docRequestStatus={docRequest.status}
+              docRequest={docRequest}
               onUploadClick={() => onDocRequestSelect(docRequest.id)}
             />
           );

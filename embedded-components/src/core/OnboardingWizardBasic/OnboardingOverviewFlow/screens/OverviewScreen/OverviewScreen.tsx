@@ -44,7 +44,7 @@ export const OverviewScreen = () => {
     clientData
   );
 
-  const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-overview', 'common']);
 
   // TODO:
   const kycCompleted =
@@ -60,7 +60,7 @@ export const OverviewScreen = () => {
         <div className="eb-flex eb-items-center eb-justify-between">
           <p>{t('screens.overview.title')}</p>
           <Button variant="outline" size="sm">
-            <DownloadIcon /> Download Checklist
+            <DownloadIcon /> {t('screens.overview.downloadChecklist')}
           </Button>
         </div>
       }
@@ -93,7 +93,7 @@ export const OverviewScreen = () => {
           <CardHeader className="eb-p-3">
             <CardTitle>
               <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                Verify your business
+                {t('screens.overview.verifyBusinessSection.title')}
               </h2>
             </CardTitle>
           </CardHeader>
@@ -102,10 +102,15 @@ export const OverviewScreen = () => {
               !docRequestsClosed && (
                 <Alert variant="informative" density="sm" className="eb-mb-6">
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>Great work!</AlertTitle>
+                  <AlertTitle>
+                    {t(
+                      'screens.overview.verifyBusinessSection.reviewInProgress.title'
+                    )}
+                  </AlertTitle>
                   <AlertDescription>
-                    Please hang tight while we verify your details. This should
-                    only take a moment.
+                    {t(
+                      'screens.overview.verifyBusinessSection.reviewInProgress.description'
+                    )}
                     <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
                   </AlertDescription>
                 </Alert>
@@ -115,9 +120,15 @@ export const OverviewScreen = () => {
               docRequestsClosed && (
                 <Alert variant="informative" density="sm" className="eb-mb-6">
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>We have your documents</AlertTitle>
+                  <AlertTitle>
+                    {t(
+                      'screens.overview.verifyBusinessSection.documentsReceived.title'
+                    )}
+                  </AlertTitle>
                   <AlertDescription>
-                    Please hang tight if you can while we verify your documents.
+                    {t(
+                      'screens.overview.verifyBusinessSection.documentsReceived.description'
+                    )}
                     <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
                   </AlertDescription>
                 </Alert>
@@ -127,8 +138,9 @@ export const OverviewScreen = () => {
               <Alert variant="warning" density="sm" className="eb-mb-6" noTitle>
                 <AlertTriangleIcon className="eb-size-4" />
                 <AlertDescription>
-                  We&apos;re having trouble verifying your business. Please
-                  provide supporting documentation.
+                  {t(
+                    'screens.overview.verifyBusinessSection.informationRequested.description'
+                  )}
                 </AlertDescription>
               </Alert>
             )}
@@ -136,10 +148,13 @@ export const OverviewScreen = () => {
             {clientData?.status === 'DECLINED' && (
               <Alert variant="destructive" density="sm">
                 <AlertCircleIcon className="eb-size-4" />
-                <AlertTitle>Application declined</AlertTitle>
+                <AlertTitle>
+                  {t('screens.overview.verifyBusinessSection.declined.title')}
+                </AlertTitle>
                 <AlertDescription>
-                  We&apos;re sorry, but we cannot proceed with your application
-                  at this time.
+                  {t(
+                    'screens.overview.verifyBusinessSection.declined.description'
+                  )}
                 </AlertDescription>
               </Alert>
             )}
@@ -147,9 +162,13 @@ export const OverviewScreen = () => {
             {clientData?.status === 'APPROVED' && (
               <Alert variant="success" density="sm">
                 <CheckIcon className="eb-size-4" />
-                <AlertTitle>All set!</AlertTitle>
+                <AlertTitle>
+                  {t('screens.overview.verifyBusinessSection.approved.title')}
+                </AlertTitle>
                 <AlertDescription>
-                  Your business details have been verified
+                  {t(
+                    'screens.overview.verifyBusinessSection.approved.description'
+                  )}
                 </AlertDescription>
               </Alert>
             )}
@@ -158,7 +177,9 @@ export const OverviewScreen = () => {
               {clientData?.status === 'NEW' && (
                 <div className="eb-space-y-3 eb-rounded eb-bg-accent eb-px-4 eb-py-3">
                   <p className="eb-text-xs eb-font-semibold eb-tracking-normal eb-text-muted-foreground">
-                    Your selected business type
+                    {t(
+                      'screens.overview.verifyBusinessSection.businessTypeLabel'
+                    )}
                   </p>
                   <div>
                     <span
@@ -176,14 +197,17 @@ export const OverviewScreen = () => {
                         className="eb-rounded-input hover:eb-bg-black/5"
                       >
                         <PencilIcon />
-                        Edit
+                        {t(
+                          'screens.overview.verifyBusinessSection.editBusinessType'
+                        )}
                       </Button>
                     </span>
 
                     <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
-                      <AlertTriangleIcon className="eb-size-4" /> If you change
-                      this after starting the application, you may lose your
-                      saved progress.
+                      <AlertTriangleIcon className="eb-size-4" />
+                      {t(
+                        'screens.overview.verifyBusinessSection.changeWarning'
+                      )}
                     </p>
                   </div>
                 </div>
@@ -357,7 +381,7 @@ export const OverviewScreen = () => {
           <CardHeader className="eb-p-3">
             <CardTitle>
               <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                Link a bank account for payouts
+                {t('screens.overview.bankAccountSection.title')}
               </h2>
             </CardTitle>
           </CardHeader>
@@ -373,7 +397,7 @@ export const OverviewScreen = () => {
                   )}
                 >
                   <LockIcon className="eb-size-4" />
-                  Available after business verification
+                  {t('screens.overview.bankAccountSection.lockedMessage')}
                 </p>
                 <Card
                   className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
@@ -411,7 +435,9 @@ export const OverviewScreen = () => {
                           }
                         )}
                       >
-                        Link an account
+                        {t(
+                          'screens.overview.bankAccountSection.linkAccountTitle'
+                        )}
                       </h3>
                     </div>
 
@@ -420,15 +446,17 @@ export const OverviewScreen = () => {
                       <span className="eb-sr-only">Not started</span>
                     </div>
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="eb-mt-3 eb-w-full"
-                    disabled={!kycCompleted}
-                  >
-                    {t('common:start')}
-                    <ChevronRightIcon />
-                  </Button>
+                  <div className="eb-flex eb-justify-end">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="eb-mt-3"
+                      disabled={!kycCompleted}
+                    >
+                      {t('common:start')}
+                      <ChevronRightIcon />
+                    </Button>
+                  </div>
                 </Card>
               </div>
             </div>
