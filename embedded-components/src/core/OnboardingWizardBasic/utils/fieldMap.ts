@@ -399,7 +399,7 @@ export const partyFieldMap: PartyFieldMap = {
       if (!primaryId) {
         return undefined;
       }
-      return `${i18n.t(`idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
+      return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
       const primaryId = val[0];
@@ -621,7 +621,7 @@ export const partyFieldMap: PartyFieldMap = {
       if (!primaryId) {
         return undefined;
       }
-      return `${i18n.t(`idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
+      return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
       const primaryId = val[0];

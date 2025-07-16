@@ -660,7 +660,7 @@
     "BUSINESS_REGISTRATION_ID": "Business Registration ID",
     "BUSINESS_NUMBER": "Business Number",
     "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number",
-    "SSN": "Social security number",
+    "SSN": "Social security number (SSN)",
     "ITIN": "Individual Taxpayer Identification Number (ITIN)",
     "NATIONAL_ID": "National ID",
     "PASSPORT": "Passport",
