@@ -37,7 +37,7 @@ function getRequiredContactTypes(
   const requiredTypes = new Set<'EMAIL' | 'PHONE' | 'WEBSITE'>();
 
   paymentMethods.forEach((method) => {
-    const methodConfig = config.paymentMethodConfigs[method];
+    const methodConfig = config?.paymentMethodConfigs?.[method];
     if (!methodConfig?.enabled) return;
 
     methodConfig.requiredFields.forEach((field) => {
@@ -59,9 +59,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
-  initialType = 'RECIPIENT',
   config,
   showCardWrapper = true,
+  recipientType = 'RECIPIENT', // Add this as a prop
 }) => {
   const [partyType, setPartyType] = useState<PartyType>(
     recipient?.partyDetails?.type || 'INDIVIDUAL'
@@ -90,7 +90,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     resolver: zodResolver(dynamicSchema),
     defaultValues: {
       type: partyType,
-      recipientType: initialType,
       countryCode: 'US',
       paymentMethods: [availablePaymentMethods[0]],
       routingNumbers: {},
@@ -232,7 +231,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     if (recipient && mode === 'edit') {
       const formData: Partial<FormData> = {
         type: recipient.partyDetails?.type || 'INDIVIDUAL',
-        recipientType: recipient.type,
         firstName: recipient.partyDetails?.individual?.firstName,
         lastName: recipient.partyDetails?.individual?.lastName,
         businessName: recipient.partyDetails?.organization?.businessName,
@@ -300,7 +298,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     // No need for manual validation - the dynamic schema handles everything!
     // Build the request based on the form data
     const baseRequest = {
-      type: data.recipientType,
+      type: recipientType, // Use the prop, not a form field
       partyDetails: {
         type: data.type,
         ...(data.type === 'INDIVIDUAL' && {

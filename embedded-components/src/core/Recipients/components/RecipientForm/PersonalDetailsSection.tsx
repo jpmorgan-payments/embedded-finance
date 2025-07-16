@@ -67,34 +67,6 @@ export const PersonalDetailsSection: React.FC<PersonalDetailsSectionProps> = ({
         )}
       </div>
 
-      {/* Recipient Type */}
-      <div className="eb-space-y-2">
-        <Label htmlFor="recipientType">Recipient Type</Label>
-        <Controller
-          name="recipientType"
-          control={control}
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select recipient type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="RECIPIENT">Recipient</SelectItem>
-                <SelectItem value="LINKED_ACCOUNT">Linked Account</SelectItem>
-                <SelectItem value="SETTLEMENT_ACCOUNT">
-                  Settlement Account
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {errors.recipientType && (
-          <p className="eb-text-sm eb-text-red-500">
-            {errors.recipientType.message}
-          </p>
-        )}
-      </div>
-
       {/* Conditional Fields based on Party Type */}
       {partyType === 'INDIVIDUAL' && (
         <div className="eb-grid eb-grid-cols-2 eb-gap-4">

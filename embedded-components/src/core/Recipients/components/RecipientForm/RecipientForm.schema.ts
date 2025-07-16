@@ -66,7 +66,7 @@ const contactSchema = z.discriminatedUnion('contactType', [
 const baseRecipientFormSchema = z.object({
   // Basic info
   type: z.enum(['INDIVIDUAL', 'ORGANIZATION']),
-  recipientType: z.enum(['RECIPIENT', 'LINKED_ACCOUNT', 'SETTLEMENT_ACCOUNT']),
+  // recipientType: z.enum(['RECIPIENT', 'LINKED_ACCOUNT', 'SETTLEMENT_ACCOUNT']),
 
   // Individual fields (optional by default)
   firstName: z.string().max(70).optional(),
@@ -121,7 +121,7 @@ function getRequiredContactTypes(
   const requiredContactTypes = new Set<string>();
 
   selectedPaymentMethods.forEach((method) => {
-    const methodConfig = config.paymentMethodConfigs[method];
+    const methodConfig = config.paymentMethodConfigs?.[method];
     if (!methodConfig?.enabled) return;
 
     methodConfig.requiredFields.forEach((field) => {
@@ -177,7 +177,7 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
       const fieldValidations: Record<string, any> = {};
 
       selectedPaymentMethods.forEach((method) => {
-        const methodConfig = config.paymentMethodConfigs[method];
+        const methodConfig = config.paymentMethodConfigs?.[method];
         if (!methodConfig?.enabled) return;
 
         // Collect required fields
@@ -220,7 +220,7 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
         // Determine which payment methods require this field
         const methodsRequiringField = selectedPaymentMethods.filter(
           (method) => {
-            const methodConfig = config.paymentMethodConfigs[method];
+            const methodConfig = config.paymentMethodConfigs?.[method];
             return (
               methodConfig?.enabled &&
               methodConfig.requiredFields.includes(fieldPath)
@@ -312,7 +312,7 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
           if (!hasContact) {
             const paymentMethodsRequiringContact =
               selectedPaymentMethods.filter((method) => {
-                const methodConfig = config.paymentMethodConfigs[method];
+                const methodConfig = config.paymentMethodConfigs?.[method];
                 return methodConfig?.requiredFields.includes(
                   `partyDetails.contacts.${contactType}.value`
                 );
@@ -329,7 +329,7 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
 
       // 4. Routing numbers validation
       selectedPaymentMethods.forEach((method) => {
-        const methodConfig = config.paymentMethodConfigs[method];
+        const methodConfig = config.paymentMethodConfigs?.[method];
         if (!methodConfig?.enabled) return;
 
         const routingNumber = data.routingNumbers?.[method];

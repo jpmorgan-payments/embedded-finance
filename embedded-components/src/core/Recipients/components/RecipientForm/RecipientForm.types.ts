@@ -14,10 +14,10 @@ export interface RecipientFormProps {
   onSubmit: (data: RecipientRequest | UpdateRecipientRequest) => void;
   onCancel: () => void;
   isLoading?: boolean;
-  initialType?: RecipientType;
   config?: RecipientsConfig;
   // Control whether to render the Card wrapper (false for dialog usage)
   showCardWrapper?: boolean;
+  recipientType: RecipientType;
 }
 
 export interface FormSectionProps {

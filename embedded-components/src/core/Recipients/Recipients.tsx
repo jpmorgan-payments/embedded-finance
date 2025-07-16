@@ -87,7 +87,7 @@ export interface RecipientsProps {
 
 export const Recipients: React.FC<RecipientsProps> = ({
   clientId,
-  initialRecipientType,
+  initialRecipientType = 'RECIPIENT',
   showCreateButton = true,
   enableVerification = true,
   config,
@@ -312,9 +312,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
                     onSubmit={handleCreateRecipient}
                     onCancel={() => setIsCreateDialogOpen(false)}
                     isLoading={createRecipientMutation.isPending}
-                    initialType={initialRecipientType}
                     config={resolvedConfig}
                     showCardWrapper={false}
+                    recipientType={initialRecipientType}
                   />
                 </div>
               </DialogContent>
@@ -576,6 +576,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
                 isLoading={updateRecipientMutation.isPending}
                 config={resolvedConfig}
                 showCardWrapper={false}
+                recipientType={selectedRecipient.type ?? 'RECIPIENT'}
               />
             )}
           </div>
