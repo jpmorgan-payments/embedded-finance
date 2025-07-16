@@ -39,9 +39,9 @@ export function ExperiencesSection() {
       id: 'recipients',
       title: 'Recipients Management',
       description:
-        'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows. Includes search, filtering, and direct payment initiation.',
+        'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <List className="h-5 w-5" />,
-      status: 'live',
+      status: 'beta',
       hasComponents: true,
       steps: [
         'View, search, filter, and sort all saved recipients',
@@ -200,10 +200,16 @@ export function ExperiencesSection() {
                         className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
                           exp.status === 'live'
                             ? 'bg-green-100 text-green-800'
-                            : 'bg-orange-100 text-orange-800'
+                            : exp.status === 'beta'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-orange-100 text-orange-800'
                         }`}
                       >
-                        {exp.status === 'live' ? 'Live' : 'Soon'}
+                        {exp.status === 'live'
+                          ? 'Live'
+                          : exp.status === 'beta'
+                            ? 'Beta'
+                            : 'Soon'}
                       </span>
                       {exp.hasComponents && (
                         <Box className="h-3 w-3 text-blue-600" />
