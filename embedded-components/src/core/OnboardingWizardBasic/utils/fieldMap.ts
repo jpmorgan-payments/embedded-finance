@@ -625,7 +625,7 @@ export const partyFieldMap: PartyFieldMap = {
     },
     toStringFn: (val) => {
       const primaryId = val[0];
-      return primaryId.value.replace(/(\d{3})(\d{2})(\d{4})/, '*** - ** - $3');
+      return primaryId.value.replace(/(\d{3})(\d{2})(\d{4})/, 'XXX-XX-$3');
     },
     subFields: {
       idType: {
