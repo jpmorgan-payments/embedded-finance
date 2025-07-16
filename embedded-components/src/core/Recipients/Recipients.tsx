@@ -1,14 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 // Icons
-import {
-  AlertCircle,
-  CheckCircle,
-  Edit,
-  Eye,
-  Plus,
-  Search,
-} from 'lucide-react';
+import { AlertCircle, Plus, Search } from 'lucide-react';
 
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   useAmendRecipient,
   useCreateRecipient,
@@ -85,6 +79,95 @@ export interface RecipientsProps {
   userEventsHandler?: ({ actionName }: { actionName: string }) => void;
 }
 
+// Status badge component
+const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
+  return (
+    <Badge variant="secondary" className="eb-text-xs">
+      {status.replace(/_/g, ' ')}
+    </Badge>
+  );
+};
+
+// Mobile card for a single recipient
+const RecipientCard: React.FC<{
+  recipient: Recipient;
+  onView: () => void;
+  onEdit: () => void;
+  onVerify?: () => void;
+  enableVerification?: boolean;
+}> = ({ recipient, onView, onEdit, onVerify, enableVerification }) => (
+  <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
+    <div className="eb-flex eb-items-center eb-justify-between">
+      <div className="eb-truncate eb-text-base eb-font-semibold">
+        {formatRecipientName(recipient)}
+      </div>
+      <Badge variant="outline" className="eb-text-xs">
+        {recipient.type?.replace(/_/g, ' ') || 'Unknown'}
+      </Badge>
+    </div>
+    <div className="eb-flex eb-items-center eb-gap-2">
+      <StatusBadge status={recipient.status!} />
+      <span className="eb-text-xs eb-text-gray-500">
+        {recipient.createdAt
+          ? new Date(recipient.createdAt).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })
+          : 'N/A'}
+      </span>
+    </div>
+    <div className="eb-text-xs eb-text-gray-600">
+      <span className="eb-font-medium">Account:</span>{' '}
+      {recipient.account?.number
+        ? `****${recipient.account.number.slice(-4)}`
+        : 'N/A'}
+    </div>
+    <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={onView}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') onView();
+        }}
+        className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+        title="View details"
+      >
+        Details
+      </span>
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={onEdit}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') onEdit();
+        }}
+        className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+        title="Edit recipient"
+      >
+        Edit
+      </span>
+      {enableVerification &&
+        recipient.status === 'MICRODEPOSITS_INITIATED' &&
+        onVerify && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={onVerify}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') onVerify();
+            }}
+            className="eb-cursor-pointer eb-text-green-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+            title="Verify microdeposits"
+          >
+            Verify
+          </span>
+        )}
+    </div>
+  </Card>
+);
+
 export const Recipients: React.FC<RecipientsProps> = ({
   clientId,
   initialRecipientType = 'RECIPIENT',
@@ -114,6 +197,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
+  const isMobile = useMediaQuery('(max-width: 640px)');
 
   // API queries
   const {
@@ -231,15 +315,6 @@ export const Recipients: React.FC<RecipientsProps> = ({
     });
   }, [recipientsData?.recipients, searchTerm, filters.status]);
 
-  // Status badge component
-  const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
-    return (
-      <Badge variant="secondary" className="eb-text-xs">
-        {status.replace(/_/g, ' ')}
-      </Badge>
-    );
-  };
-
   // Loading state
   if (isLoading) {
     return (
@@ -327,14 +402,14 @@ export const Recipients: React.FC<RecipientsProps> = ({
         {/* Filters and Search */}
         <div className="eb-mb-6 eb-space-y-4">
           {/* Search Input */}
-          <div className="eb-max-w-sm">
-            <div className="eb-relative">
-              <Search className="eb-absolute eb-left-3 eb-top-1/2 eb-h-4 eb-w-4 eb--translate-y-1/2 eb-transform eb-text-gray-400" />
+          <div className="eb-flex eb-w-full eb-items-center sm:eb-max-w-xs">
+            <div className="eb-relative eb-w-full">
+              <Search className="eb-absolute eb-left-2 eb-top-1/2 eb-h-4 eb-w-4 eb--translate-y-1/2 eb-transform eb-text-gray-400" />
               <Input
                 placeholder="Search recipients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="eb-h-9 eb-pl-10"
+                className="eb-h-8 eb-rounded eb-border eb-border-gray-300 eb-pl-8 eb-text-sm focus:eb-border-primary"
               />
             </div>
           </div>
@@ -399,115 +474,150 @@ export const Recipients: React.FC<RecipientsProps> = ({
           </div>
         </div>
 
-        {/* Recipients Table */}
-        <div className="eb-overflow-hidden eb-rounded-md eb-border">
-          <div className="eb-overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="eb-min-w-[150px]">Name</TableHead>
-                  <TableHead className="eb-min-w-[120px]">Type</TableHead>
-                  <TableHead className="eb-min-w-[140px]">Status</TableHead>
-                  <TableHead className="eb-hidden eb-min-w-[100px] sm:eb-table-cell">
-                    Account
-                  </TableHead>
-                  <TableHead className="eb-hidden eb-min-w-[100px] md:eb-table-cell">
-                    Created
-                  </TableHead>
-                  <TableHead className="eb-w-24 eb-min-w-[100px]">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRecipients.length === 0 ? (
+        {/* Recipients List/Table */}
+        {isMobile ? (
+          <div>
+            {filteredRecipients.length === 0 ? (
+              <div className="eb-py-8 eb-text-center eb-text-gray-500">
+                No recipients found
+              </div>
+            ) : (
+              filteredRecipients.map((recipient) => (
+                <RecipientCard
+                  key={recipient.id}
+                  recipient={recipient}
+                  onView={() => handleViewDetails(recipient)}
+                  onEdit={() => handleEditRecipient(recipient)}
+                  onVerify={
+                    enableVerification &&
+                    recipient.status === 'MICRODEPOSITS_INITIATED'
+                      ? () => handleVerifyRecipient(recipient)
+                      : undefined
+                  }
+                  enableVerification={enableVerification}
+                />
+              ))
+            )}
+          </div>
+        ) : (
+          <div className="eb-overflow-hidden eb-rounded-md eb-border">
+            <div>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="eb-py-8 eb-text-center eb-text-gray-500"
-                    >
-                      No recipients found
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="eb-hidden sm:eb-table-cell">
+                      Account
+                    </TableHead>
+                    <TableHead className="eb-hidden md:eb-table-cell">
+                      Created
+                    </TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredRecipients.map((recipient) => (
-                    <TableRow key={recipient.id}>
-                      <TableCell className="eb-min-w-[150px] eb-font-medium">
-                        <div className="eb-truncate">
+                </TableHeader>
+                <TableBody>
+                  {filteredRecipients.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="eb-py-8 eb-text-center eb-text-gray-500"
+                      >
+                        No recipients found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredRecipients.map((recipient) => (
+                      <TableRow key={recipient.id}>
+                        <TableCell className="eb-truncate eb-font-medium">
                           {formatRecipientName(recipient)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="eb-min-w-[120px]">
-                        <Badge variant="outline" className="eb-text-xs">
-                          {recipient.type?.replace(/_/g, ' ') || 'Unknown'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="eb-min-w-[140px]">
-                        <StatusBadge status={recipient.status!} />
-                      </TableCell>
-                      <TableCell className="eb-hidden eb-min-w-[100px] sm:eb-table-cell">
-                        <span className="eb-text-sm eb-text-gray-600">
-                          {recipient.account?.number
-                            ? `****${recipient.account.number.slice(-4)}`
-                            : 'N/A'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="eb-hidden eb-min-w-[100px] md:eb-table-cell">
-                        <span className="eb-text-sm eb-text-gray-600">
-                          {recipient.createdAt
-                            ? new Date(recipient.createdAt).toLocaleDateString(
-                                undefined,
-                                {
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="eb-text-xs">
+                            {recipient.type?.replace(/_/g, ' ') || 'Unknown'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={recipient.status!} />
+                        </TableCell>
+                        <TableCell className="eb-hidden sm:eb-table-cell">
+                          <span className="eb-text-sm eb-text-gray-600">
+                            {recipient.account?.number
+                              ? `****${recipient.account.number.slice(-4)}`
+                              : 'N/A'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="eb-hidden md:eb-table-cell">
+                          <span className="eb-text-sm eb-text-gray-600">
+                            {recipient.createdAt
+                              ? new Date(
+                                  recipient.createdAt
+                                ).toLocaleDateString(undefined, {
                                   year: 'numeric',
                                   month: 'short',
                                   day: 'numeric',
-                                }
-                              )
-                            : 'N/A'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="eb-min-w-[100px]">
-                        <div className="eb-flex eb-gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(recipient)}
-                            className="eb-h-8 eb-w-8 eb-rounded-md eb-p-0 eb-transition-colors hover:eb-bg-gray-100"
-                            title="View details"
-                          >
-                            <Eye className="eb-h-4 eb-w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditRecipient(recipient)}
-                            className="eb-h-8 eb-w-8 eb-rounded-md eb-p-0 eb-transition-colors hover:eb-bg-gray-100"
-                            title="Edit recipient"
-                          >
-                            <Edit className="eb-h-4 eb-w-4" />
-                          </Button>
-                          {enableVerification &&
-                            recipient.status === 'MICRODEPOSITS_INITIATED' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleVerifyRecipient(recipient)}
-                                className="eb-h-8 eb-w-8 eb-rounded-md eb-p-0 eb-transition-colors hover:eb-bg-green-50 hover:eb-text-green-600"
-                                title="Verify microdeposits"
-                              >
-                                <CheckCircle className="eb-h-4 eb-w-4" />
-                              </Button>
-                            )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                                })
+                              : 'N/A'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="eb-flex eb-gap-3">
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleViewDetails(recipient)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ')
+                                  handleViewDetails(recipient);
+                              }}
+                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                              title="View details"
+                            >
+                              Details
+                            </span>
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleEditRecipient(recipient)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ')
+                                  handleEditRecipient(recipient);
+                              }}
+                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                              title="Edit recipient"
+                            >
+                              Edit
+                            </span>
+                            {enableVerification &&
+                              recipient.status ===
+                                'MICRODEPOSITS_INITIATED' && (
+                                <span
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() =>
+                                    handleVerifyRecipient(recipient)
+                                  }
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ')
+                                      handleVerifyRecipient(recipient);
+                                  }}
+                                  className="eb-cursor-pointer eb-text-green-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                  title="Verify microdeposits"
+                                >
+                                  Verify
+                                </span>
+                              )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
-        </div>
-
+        )}
         {/* Pagination */}
         {recipientsData &&
           recipientsData.total_items &&
