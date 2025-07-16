@@ -49,22 +49,26 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
   const originalContacts = recipient.partyDetails.contacts || [];
 
   return (
-    <div className="eb-space-y-6 eb-pb-4">
+    <div className="eb-space-y-4 eb-pb-4">
       {/* Header */}
       <div className="eb-flex eb-items-start eb-justify-between">
         <div className="eb-space-y-1">
-          <h2 className="eb-text-2xl eb-font-semibold">
+          <h2 className="eb-text-base eb-font-semibold">
             {formatRecipientName(recipient)}
           </h2>
           <div className="eb-flex eb-items-center eb-gap-2">
             <Badge
               variant="secondary"
-              className={`${color} eb-flex eb-items-center eb-gap-1`}
+              className={`eb-text-sm ${color} eb-flex eb-items-center eb-gap-1`}
             >
               <StatusIcon className="eb-h-3 eb-w-3" />
               {recipient.status}
             </Badge>
-            <Badge variant="outline">{recipient.type}</Badge>
+            <Badge variant="outline" className="eb-text-sm">
+              {recipient.partyDetails?.type === 'INDIVIDUAL'
+                ? 'Individual'
+                : 'Business'}
+            </Badge>
           </div>
         </div>
         {showEditButton && onEdit && (
@@ -103,7 +107,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
       {/* Party Details */}
       <Card>
         <CardHeader>
-          <CardTitle className="eb-flex eb-items-center eb-gap-2">
+          <CardTitle className="eb-flex eb-items-center eb-gap-2 eb-text-base eb-font-semibold">
             {recipient.partyDetails.type === 'INDIVIDUAL' ? (
               <User className="eb-h-5 eb-w-5" />
             ) : (
@@ -116,10 +120,10 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
           <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">
             <div className="eb-space-y-2">
               <p className="eb-text-sm eb-font-medium eb-text-gray-600">Type</p>
-              <p className="eb-font-medium">
+              <p className="eb-text-sm eb-font-semibold">
                 {recipient.partyDetails.type === 'INDIVIDUAL'
                   ? 'Individual'
-                  : 'Organization'}
+                  : 'Business'}
               </p>
             </div>
 
@@ -129,7 +133,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                   <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                     First Name
                   </p>
-                  <p className="eb-font-medium">
+                  <p className="eb-text-sm eb-font-semibold">
                     {recipient.partyDetails.firstName || 'N/A'}
                   </p>
                 </div>
@@ -137,7 +141,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                   <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                     Last Name
                   </p>
-                  <p className="eb-font-medium">
+                  <p className="eb-text-sm eb-font-semibold">
                     {recipient.partyDetails.lastName || 'N/A'}
                   </p>
                 </div>
@@ -149,7 +153,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                 <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                   Business Name
                 </p>
-                <p className="eb-font-medium">
+                <p className="eb-text-sm eb-font-semibold">
                   {recipient.partyDetails.businessName || 'N/A'}
                 </p>
               </div>
@@ -163,7 +167,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
               <div className="eb-space-y-3">
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <MapPin className="eb-h-4 eb-w-4" />
-                  <h4 className="eb-font-medium">Address</h4>
+                  <h4 className="eb-text-base eb-font-semibold">Address</h4>
                 </div>
                 <div className="eb-text-sm eb-leading-relaxed eb-text-gray-600">
                   {formatRecipientAddress(recipient)}
@@ -177,7 +181,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
             <>
               <Separator />
               <div className="eb-space-y-3">
-                <h4 className="eb-flex eb-items-center eb-gap-2 eb-font-medium">
+                <h4 className="eb-flex eb-items-center eb-gap-2 eb-text-base eb-font-semibold">
                   <Phone className="eb-h-4 eb-w-4" />
                   Contact Information
                 </h4>
@@ -198,7 +202,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                           <Globe className="eb-h-4 eb-w-4 eb-text-gray-500" />
                         )}
                         <div>
-                          <p className="eb-text-sm eb-font-medium">
+                          <p className="eb-text-sm eb-font-semibold">
                             {contact.value}
                           </p>
                           <p className="eb-text-xs eb-text-gray-500">
@@ -220,7 +224,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
       {recipient.account && (
         <Card>
           <CardHeader>
-            <CardTitle className="eb-flex eb-items-center eb-gap-2">
+            <CardTitle className="eb-flex eb-items-center eb-gap-2 eb-text-base eb-font-semibold">
               <CreditCard className="eb-h-5 eb-w-5" />
               Account Information
             </CardTitle>
@@ -231,7 +235,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                 <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                   Account Number
                 </p>
-                <p className="eb-font-mono eb-text-sm">
+                <p className="eb-font-mono eb-text-xs">
                   ****{recipient.account.number?.slice(-4) || 'N/A'}
                 </p>
               </div>
@@ -241,7 +245,9 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                   <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                     Account Type
                   </p>
-                  <p className="eb-font-medium">{recipient.account.type}</p>
+                  <p className="eb-text-sm eb-font-semibold">
+                    {recipient.account.type}
+                  </p>
                 </div>
               )}
 
@@ -249,7 +255,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                 <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                   Country
                 </p>
-                <p className="eb-font-medium">
+                <p className="eb-text-sm eb-font-semibold">
                   {recipient.account.countryCode || 'N/A'}
                 </p>
               </div>
@@ -261,7 +267,9 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                 <>
                   <Separator />
                   <div className="eb-space-y-3">
-                    <h4 className="eb-font-medium">Routing Information</h4>
+                    <h4 className="eb-text-base eb-font-semibold">
+                      Routing Information
+                    </h4>
                     {recipient.account.routingInformation.map(
                       (routing, index) => (
                         <div
@@ -272,7 +280,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                             <p className="eb-text-xs eb-font-medium eb-text-gray-600">
                               Routing Number
                             </p>
-                            <p className="eb-font-mono eb-text-sm">
+                            <p className="eb-font-mono eb-text-xs">
                               {routing.routingNumber}
                             </p>
                           </div>
@@ -280,7 +288,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                             <p className="eb-text-xs eb-font-medium eb-text-gray-600">
                               Code Type
                             </p>
-                            <p className="eb-text-sm">
+                            <p className="eb-text-xs eb-font-semibold">
                               {routing.routingCodeType}
                             </p>
                           </div>
@@ -288,7 +296,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                             <p className="eb-text-xs eb-font-medium eb-text-gray-600">
                               Transaction Type
                             </p>
-                            <p className="eb-text-sm">
+                            <p className="eb-text-xs eb-font-semibold">
                               {routing.transactionType}
                             </p>
                           </div>
@@ -306,7 +314,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                 Account Summary
               </p>
               <div className="eb-rounded-md eb-bg-gray-50 eb-p-3">
-                <p className="eb-font-mono eb-text-sm">
+                <p className="eb-font-mono eb-text-xs">
                   {formatAccountInfo(recipient)}
                 </p>
               </div>
@@ -319,7 +327,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
       {recipient.createdAt && (
         <Card>
           <CardHeader>
-            <CardTitle className="eb-flex eb-items-center eb-gap-2">
+            <CardTitle className="eb-flex eb-items-center eb-gap-2 eb-text-base eb-font-semibold">
               <Calendar className="eb-h-5 eb-w-5" />
               Timeline
             </CardTitle>
@@ -329,7 +337,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
               <p className="eb-text-sm eb-font-medium eb-text-gray-600">
                 Created
               </p>
-              <p className="eb-text-sm">
+              <p className="eb-text-xs">
                 {new Date(recipient.createdAt).toLocaleString()}
               </p>
             </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isEqual } from 'lodash';
 import { useForm } from 'react-hook-form';
 
 import type {
@@ -130,6 +131,78 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     }
   }, [watchedType, partyType]);
 
+  // Load existing recipient data
+  useEffect(() => {
+    if (recipient && mode === 'edit') {
+      const formData: Partial<FormData> = {
+        type: recipient.partyDetails?.type || 'INDIVIDUAL',
+        firstName: recipient.partyDetails?.firstName,
+        lastName: recipient.partyDetails?.lastName,
+        businessName: recipient.partyDetails?.organization?.businessName,
+        accountNumber: recipient.account?.number,
+        accountType: recipient.account?.type,
+        countryCode: recipient.account?.countryCode || 'US',
+        addressLine1: recipient.partyDetails?.address?.addressLine1,
+        addressLine2: recipient.partyDetails?.address?.addressLine2,
+        addressLine3: recipient.partyDetails?.address?.addressLine3,
+        city: recipient.partyDetails?.address?.city,
+        state: recipient.partyDetails?.address?.state,
+        postalCode: recipient.partyDetails?.address?.postalCode,
+        contacts:
+          recipient.partyDetails?.contacts?.map((contact) => {
+            if (contact.contactType === 'PHONE') {
+              return {
+                contactType: 'PHONE' as const,
+                value: contact.value,
+                countryCode: contact.countryCode || '+1',
+              };
+            }
+            if (contact.contactType === 'EMAIL') {
+              return {
+                contactType: 'EMAIL' as const,
+                value: contact.value,
+              };
+            }
+            if (contact.contactType === 'WEBSITE') {
+              return {
+                contactType: 'WEBSITE' as const,
+                value: contact.value,
+              };
+            }
+            // Fallback for unknown contact types
+            return {
+              contactType: 'EMAIL' as const,
+              value: contact.value,
+            };
+          }) || [],
+        // Set payment methods based on existing routing information
+        paymentMethods: recipient.account?.routingInformation?.map(
+          (ri: { transactionType: any }) => ri.transactionType
+        ) || [availablePaymentMethods[0]],
+        routingNumbers:
+          recipient.account?.routingInformation?.reduce(
+            (
+              acc: { [x: string]: any },
+              ri: { transactionType: string | number; routingNumber: any }
+            ) => {
+              if (ri.transactionType && ri.routingNumber) {
+                acc[ri.transactionType] = ri.routingNumber;
+              }
+              return acc;
+            },
+            {} as Record<string, string>
+          ) || {},
+      };
+
+      // Only reset if formData is different from current values
+      const currentValues = watch();
+      if (!isEqual(formData, currentValues)) {
+        reset(formData);
+        setPartyType(formData.type || 'INDIVIDUAL');
+      }
+    }
+  }, [recipient, mode, reset, availablePaymentMethods, watch]);
+
   // Initialize routing numbers when payment methods change
   useEffect(() => {
     if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
@@ -137,9 +210,11 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       const newRoutingNumbers = { ...currentRoutingNumbers };
 
       // Add routing number fields for newly selected methods
+      let needsUpdate = false;
       watchedPaymentMethods.forEach((method) => {
         if (!newRoutingNumbers[method]) {
           newRoutingNumbers[method] = '';
+          needsUpdate = true;
         }
       });
 
@@ -147,14 +222,14 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       Object.keys(newRoutingNumbers).forEach((method) => {
         if (!watchedPaymentMethods.includes(method)) {
           delete newRoutingNumbers[method];
+          needsUpdate = true;
         }
       });
 
-      setValue('routingNumbers', newRoutingNumbers);
-
-      // Trigger validation for all fields when payment methods change
-      // This ensures validation rules are re-evaluated for new requirements
-      trigger();
+      if (needsUpdate && !isEqual(newRoutingNumbers, currentRoutingNumbers)) {
+        setValue('routingNumbers', newRoutingNumbers);
+        trigger();
+      }
     }
   }, [watchedPaymentMethods, setValue, watch, trigger]);
 
@@ -232,74 +307,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       }
     }
   }, [watchedPaymentMethods, formConfig, setValue, watchedContacts]);
-
-  // Load existing recipient data
-  useEffect(() => {
-    if (recipient && mode === 'edit') {
-      const formData: Partial<FormData> = {
-        type: recipient.partyDetails?.type || 'INDIVIDUAL',
-        firstName: recipient.partyDetails?.individual?.firstName,
-        lastName: recipient.partyDetails?.individual?.lastName,
-        businessName: recipient.partyDetails?.organization?.businessName,
-        accountNumber: recipient.account?.number,
-        accountType: recipient.account?.type,
-        countryCode: recipient.account?.countryCode || 'US',
-        addressLine1: recipient.partyDetails?.address?.addressLine1,
-        addressLine2: recipient.partyDetails?.address?.addressLine2,
-        addressLine3: recipient.partyDetails?.address?.addressLine3,
-        city: recipient.partyDetails?.address?.city,
-        state: recipient.partyDetails?.address?.state,
-        postalCode: recipient.partyDetails?.address?.postalCode,
-        contacts:
-          recipient.partyDetails?.contacts?.map((contact) => {
-            if (contact.contactType === 'PHONE') {
-              return {
-                contactType: 'PHONE' as const,
-                value: contact.value,
-                countryCode: contact.countryCode || '+1',
-              };
-            }
-            if (contact.contactType === 'EMAIL') {
-              return {
-                contactType: 'EMAIL' as const,
-                value: contact.value,
-              };
-            }
-            if (contact.contactType === 'WEBSITE') {
-              return {
-                contactType: 'WEBSITE' as const,
-                value: contact.value,
-              };
-            }
-            // Fallback for unknown contact types
-            return {
-              contactType: 'EMAIL' as const,
-              value: contact.value,
-            };
-          }) || [],
-        // Set payment methods based on existing routing information
-        paymentMethods: recipient.account?.routingInformation?.map(
-          (ri: { transactionType: any }) => ri.transactionType
-        ) || [availablePaymentMethods[0]],
-        routingNumbers:
-          recipient.account?.routingInformation?.reduce(
-            (
-              acc: { [x: string]: any },
-              ri: { transactionType: string | number; routingNumber: any }
-            ) => {
-              if (ri.transactionType && ri.routingNumber) {
-                acc[ri.transactionType] = ri.routingNumber;
-              }
-              return acc;
-            },
-            {} as Record<string, string>
-          ) || {},
-      };
-
-      reset(formData);
-      setPartyType(formData.type || 'INDIVIDUAL');
-    }
-  }, [recipient, mode, reset, availablePaymentMethods]);
 
   const onFormSubmit = (data: FormData) => {
     console.log('RecipientForm submit', data); // Debug: see if submit is called

@@ -88,6 +88,14 @@ const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
   );
 };
 
+// Helper to get supported payment methods as a string array
+function getSupportedPaymentMethods(recipient: Recipient): string[] {
+  if (!recipient.account?.routingInformation) return [];
+  return recipient.account.routingInformation
+    .map((ri) => ri.transactionType)
+    .filter(Boolean);
+}
+
 // Mobile card for a single recipient
 const RecipientCard: React.FC<{
   recipient: Recipient;
@@ -101,8 +109,10 @@ const RecipientCard: React.FC<{
       <div className="eb-truncate eb-text-base eb-font-semibold">
         {formatRecipientName(recipient)}
       </div>
-      <Badge variant="outline" className="eb-text-xs">
-        {recipient.type?.replace(/_/g, ' ') || 'Unknown'}
+      <Badge variant="outline" className="eb-text-sm">
+        {recipient.partyDetails?.type === 'INDIVIDUAL'
+          ? 'Individual'
+          : 'Business'}
       </Badge>
     </div>
     <div className="eb-flex eb-items-center eb-gap-2">
@@ -122,6 +132,18 @@ const RecipientCard: React.FC<{
       {recipient.account?.number
         ? `****${recipient.account.number.slice(-4)}`
         : 'N/A'}
+    </div>
+    {/* Supported Payment Methods */}
+    <div className="eb-mt-1 eb-flex eb-flex-wrap eb-gap-1">
+      {getSupportedPaymentMethods(recipient).length > 0 ? (
+        getSupportedPaymentMethods(recipient).map((method) => (
+          <Badge key={method} variant="secondary" className="eb-text-xs">
+            {method}
+          </Badge>
+        ))
+      ) : (
+        <span className="eb-text-xs eb-text-gray-400">No payment methods</span>
+      )}
     </div>
     <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
       <span
@@ -506,8 +528,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Person/Business</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Payment Methods</TableHead>
                     <TableHead className="eb-hidden sm:eb-table-cell">
                       Account
                     </TableHead>
@@ -521,7 +544,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   {filteredRecipients.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="eb-py-8 eb-text-center eb-text-gray-500"
                       >
                         No recipients found
@@ -535,11 +558,35 @@ export const Recipients: React.FC<RecipientsProps> = ({
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="eb-text-xs">
-                            {recipient.type?.replace(/_/g, ' ') || 'Unknown'}
+                            {recipient.partyDetails?.type === 'INDIVIDUAL'
+                              ? 'Individual'
+                              : 'Business'}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={recipient.status!} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="eb-flex eb-flex-wrap eb-gap-1">
+                            {getSupportedPaymentMethods(recipient).length >
+                            0 ? (
+                              getSupportedPaymentMethods(recipient).map(
+                                (method) => (
+                                  <Badge
+                                    key={method}
+                                    variant="secondary"
+                                    className="eb-text-xs"
+                                  >
+                                    {method}
+                                  </Badge>
+                                )
+                              )
+                            ) : (
+                              <span className="eb-text-xs eb-text-gray-400">
+                                None
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="eb-hidden sm:eb-table-cell">
                           <span className="eb-text-sm eb-text-gray-600">
