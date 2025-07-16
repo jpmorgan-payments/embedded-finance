@@ -166,8 +166,8 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
         currentContacts.map((contact) => [contact.contactType, contact])
       );
 
-      const updatedContacts = [...currentContacts];
       let contactsChanged = false;
+      const updatedContacts = [...currentContacts];
 
       // Add missing required contact types
       requiredContactTypes.forEach((contactType) => {
@@ -199,19 +199,30 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
         }
       });
 
-      // Remove contacts that are no longer required (but keep if they have values)
-      const filteredContacts = updatedContacts.filter((contact) => {
-        return (
-          requiredContactTypes.has(contact.contactType) ||
-          (contact.value && contact.value.trim() !== '')
-        );
-      });
+      // Only auto-add required contacts, never auto-remove any
+      const areContactsEqual = (
+        a: typeof updatedContacts,
+        b: typeof updatedContacts
+      ) => {
+        if (a.length !== b.length) return false;
+        let allEqual = true;
+        a.forEach((contact, i) => {
+          if (
+            contact.contactType !== b[i].contactType ||
+            contact.value !== b[i].value ||
+            (contact.countryCode || '') !== (b[i].countryCode || '')
+          ) {
+            allEqual = false;
+          }
+        });
+        return allEqual;
+      };
 
       if (
         contactsChanged ||
-        filteredContacts.length !== currentContacts.length
+        !areContactsEqual(updatedContacts, currentContacts)
       ) {
-        setValue('contacts', filteredContacts);
+        setValue('contacts', updatedContacts);
       }
     }
   }, [watchedPaymentMethods, formConfig, setValue, watchedContacts]);
@@ -387,7 +398,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       {/* 4. Routing Numbers - simplified table */}
       <RoutingNumbersSection
         control={control}
-        register={register}
         errors={errors}
         watch={watch}
         setValue={setValue}

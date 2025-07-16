@@ -217,6 +217,17 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
 
         const fieldValue = data[formFieldName as keyof typeof data];
 
+        // Determine which payment methods require this field
+        const methodsRequiringField = selectedPaymentMethods.filter(
+          (method) => {
+            const methodConfig = config.paymentMethodConfigs[method];
+            return (
+              methodConfig?.enabled &&
+              methodConfig.requiredFields.includes(fieldPath)
+            );
+          }
+        );
+
         // Check if required field is missing
         if (
           !fieldValue ||
@@ -224,7 +235,7 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `${formFieldName} is required for ${selectedPaymentMethods.join(', ')}`,
+            message: `${formFieldName} is required for ${methodsRequiringField.join(', ')}`,
             path: [formFieldName],
           });
         }
