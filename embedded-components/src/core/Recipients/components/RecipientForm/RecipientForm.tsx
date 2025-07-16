@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isEqual } from 'lodash';
 import { useForm } from 'react-hook-form';
 
 import type {
   PartyType,
   RecipientRequest,
   UpdateRecipientRequest,
+} from '@/api/generated/ep-recipients.schemas';
+import {
+  AccountType,
+  CountryCode,
+  RoutingCodeType,
+  RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +44,7 @@ function getRequiredContactTypes(
   const requiredTypes = new Set<'EMAIL' | 'PHONE' | 'WEBSITE'>();
 
   paymentMethods.forEach((method) => {
-    const methodConfig = config.paymentMethodConfigs[method];
+    const methodConfig = config?.paymentMethodConfigs?.[method];
     if (!methodConfig?.enabled) return;
 
     methodConfig.requiredFields.forEach((field) => {
@@ -59,9 +66,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
-  initialType = 'RECIPIENT',
   config,
   showCardWrapper = true,
+  recipientType = 'RECIPIENT', // Add this as a prop
 }) => {
   const [partyType, setPartyType] = useState<PartyType>(
     recipient?.partyDetails?.type || 'INDIVIDUAL'
@@ -88,9 +95,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     trigger,
   } = useForm<FormData>({
     resolver: zodResolver(dynamicSchema),
+    mode: 'onChange', // Validate on change
     defaultValues: {
       type: partyType,
-      recipientType: initialType,
       countryCode: 'US',
       paymentMethods: [availablePaymentMethods[0]],
       routingNumbers: {},
@@ -124,106 +131,13 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     }
   }, [watchedType, partyType]);
 
-  // Initialize routing numbers when payment methods change
-  useEffect(() => {
-    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
-      const currentRoutingNumbers = watch('routingNumbers') || {};
-      const newRoutingNumbers = { ...currentRoutingNumbers };
-
-      // Add routing number fields for newly selected methods
-      watchedPaymentMethods.forEach((method) => {
-        if (!newRoutingNumbers[method]) {
-          newRoutingNumbers[method] = '';
-        }
-      });
-
-      // Remove routing number fields for unselected methods
-      Object.keys(newRoutingNumbers).forEach((method) => {
-        if (!watchedPaymentMethods.includes(method)) {
-          delete newRoutingNumbers[method];
-        }
-      });
-
-      setValue('routingNumbers', newRoutingNumbers);
-
-      // Trigger validation for all fields when payment methods change
-      // This ensures validation rules are re-evaluated for new requirements
-      trigger();
-    }
-  }, [watchedPaymentMethods, setValue, watch, trigger]);
-
-  // Auto-manage contacts based on payment method requirements
-  useEffect(() => {
-    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
-      const requiredContactTypes = getRequiredContactTypes(
-        formConfig,
-        watchedPaymentMethods as PaymentMethodType[]
-      );
-      const currentContacts = watchedContacts || [];
-
-      // Create a map of existing contacts by type
-      const existingContactsByType = new Map(
-        currentContacts.map((contact) => [contact.contactType, contact])
-      );
-
-      const updatedContacts = [...currentContacts];
-      let contactsChanged = false;
-
-      // Add missing required contact types
-      requiredContactTypes.forEach((contactType) => {
-        if (!existingContactsByType.has(contactType)) {
-          let newContact: any;
-
-          if (contactType === 'PHONE') {
-            newContact = {
-              contactType: 'PHONE' as const,
-              value: '',
-              countryCode: '+1',
-            };
-          } else if (contactType === 'EMAIL') {
-            newContact = {
-              contactType: 'EMAIL' as const,
-              value: '',
-            };
-          } else if (contactType === 'WEBSITE') {
-            newContact = {
-              contactType: 'WEBSITE' as const,
-              value: '',
-            };
-          }
-
-          if (newContact) {
-            updatedContacts.push(newContact);
-            contactsChanged = true;
-          }
-        }
-      });
-
-      // Remove contacts that are no longer required (but keep if they have values)
-      const filteredContacts = updatedContacts.filter((contact) => {
-        return (
-          requiredContactTypes.has(contact.contactType) ||
-          (contact.value && contact.value.trim() !== '')
-        );
-      });
-
-      if (
-        contactsChanged ||
-        filteredContacts.length !== currentContacts.length
-      ) {
-        setValue('contacts', filteredContacts);
-      }
-    }
-  }, [watchedPaymentMethods, formConfig, setValue, watchedContacts]);
-
   // Load existing recipient data
   useEffect(() => {
     if (recipient && mode === 'edit') {
       const formData: Partial<FormData> = {
         type: recipient.partyDetails?.type || 'INDIVIDUAL',
-        recipientType: recipient.type,
-        firstName: recipient.partyDetails?.individual?.firstName,
-        lastName: recipient.partyDetails?.individual?.lastName,
+        firstName: recipient.partyDetails?.firstName,
+        lastName: recipient.partyDetails?.lastName,
         businessName: recipient.partyDetails?.organization?.businessName,
         accountNumber: recipient.account?.number,
         accountType: recipient.account?.type,
@@ -280,16 +194,125 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
           ) || {},
       };
 
-      reset(formData);
-      setPartyType(formData.type || 'INDIVIDUAL');
+      // Only reset if formData is different from current values
+      const currentValues = watch();
+      if (!isEqual(formData, currentValues)) {
+        reset(formData);
+        setPartyType(formData.type || 'INDIVIDUAL');
+      }
     }
-  }, [recipient, mode, reset, availablePaymentMethods]);
+  }, [recipient, mode, reset, availablePaymentMethods, watch]);
+
+  // Initialize routing numbers when payment methods change
+  useEffect(() => {
+    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
+      const currentRoutingNumbers = watch('routingNumbers') || {};
+      const newRoutingNumbers = { ...currentRoutingNumbers };
+
+      // Add routing number fields for newly selected methods
+      let needsUpdate = false;
+      watchedPaymentMethods.forEach((method) => {
+        if (!newRoutingNumbers[method]) {
+          newRoutingNumbers[method] = '';
+          needsUpdate = true;
+        }
+      });
+
+      // Remove routing number fields for unselected methods
+      Object.keys(newRoutingNumbers).forEach((method) => {
+        if (!watchedPaymentMethods.includes(method)) {
+          delete newRoutingNumbers[method];
+          needsUpdate = true;
+        }
+      });
+
+      if (needsUpdate && !isEqual(newRoutingNumbers, currentRoutingNumbers)) {
+        setValue('routingNumbers', newRoutingNumbers);
+        trigger();
+      }
+    }
+  }, [watchedPaymentMethods, setValue, watch, trigger]);
+
+  // Auto-manage contacts based on payment method requirements
+  useEffect(() => {
+    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
+      const requiredContactTypes = getRequiredContactTypes(
+        formConfig,
+        watchedPaymentMethods as PaymentMethodType[]
+      );
+      const currentContacts = watchedContacts || [];
+
+      // Create a map of existing contacts by type
+      const existingContactsByType = new Map(
+        currentContacts.map((contact) => [contact.contactType, contact])
+      );
+
+      let contactsChanged = false;
+      const updatedContacts = [...currentContacts];
+
+      // Add missing required contact types
+      requiredContactTypes.forEach((contactType) => {
+        if (!existingContactsByType.has(contactType)) {
+          let newContact: any;
+
+          if (contactType === 'PHONE') {
+            newContact = {
+              contactType: 'PHONE' as const,
+              value: '',
+              countryCode: '+1',
+            };
+          } else if (contactType === 'EMAIL') {
+            newContact = {
+              contactType: 'EMAIL' as const,
+              value: '',
+            };
+          } else if (contactType === 'WEBSITE') {
+            newContact = {
+              contactType: 'WEBSITE' as const,
+              value: '',
+            };
+          }
+
+          if (newContact) {
+            updatedContacts.push(newContact);
+            contactsChanged = true;
+          }
+        }
+      });
+
+      // Only auto-add required contacts, never auto-remove any
+      const areContactsEqual = (
+        a: typeof updatedContacts,
+        b: typeof updatedContacts
+      ) => {
+        if (a.length !== b.length) return false;
+        let allEqual = true;
+        a.forEach((contact, i) => {
+          if (
+            contact.contactType !== b[i].contactType ||
+            contact.value !== b[i].value ||
+            (contact.countryCode || '') !== (b[i].countryCode || '')
+          ) {
+            allEqual = false;
+          }
+        });
+        return allEqual;
+      };
+
+      if (
+        contactsChanged ||
+        !areContactsEqual(updatedContacts, currentContacts)
+      ) {
+        setValue('contacts', updatedContacts);
+      }
+    }
+  }, [watchedPaymentMethods, formConfig, setValue, watchedContacts]);
 
   const onFormSubmit = (data: FormData) => {
-    // No need for manual validation - the dynamic schema handles everything!
+    console.log('RecipientForm submit', data); // Debug: see if submit is called
     // Build the request based on the form data
-    const baseRequest = {
-      type: data.recipientType,
+    const baseRequest: RecipientRequest = {
+      type: recipientType,
       partyDetails: {
         type: data.type,
         ...(data.type === 'INDIVIDUAL' && {
@@ -308,9 +331,10 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
             addressLine1: data.addressLine1,
             addressLine2: data.addressLine2,
             addressLine3: data.addressLine3,
-            city: data.city,
+            city: data.city!,
             state: data.state,
             postalCode: data.postalCode,
+            countryCode: CountryCode.US,
           },
         }),
         ...(data.contacts &&
@@ -318,22 +342,23 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
             contacts: data.contacts.filter((contact) => contact.value?.trim()),
           }),
       },
-      accountDetails: {
-        accountNumber: data.accountNumber,
-        accountType: data.accountType,
-        countryCode: data.countryCode,
+      account: {
+        number: data.accountNumber!,
+        type: data.accountType as AccountType,
+        countryCode: CountryCode.US,
+        routingInformation: data.paymentMethods
+          ?.filter((method) => data.routingNumbers?.[method])
+          .map((method) => ({
+            routingNumber: data.routingNumbers![method],
+            routingCodeType: RoutingCodeType.USABA,
+            transactionType:
+              method as keyof typeof RoutingInformationTransactionType,
+          })),
       },
-      routingInformation: data.paymentMethods
-        ?.filter((method) => data.routingNumbers?.[method])
-        .map((method) => ({
-          routingNumber: data.routingNumbers![method],
-          routingCodeType: 'USABA',
-          transactionType: method,
-        })),
     };
 
     if (mode === 'create') {
-      onSubmit(baseRequest as RecipientRequest);
+      onSubmit(baseRequest);
     } else {
       onSubmit(baseRequest as UpdateRecipientRequest);
     }
@@ -348,6 +373,52 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   // Form content that will be rendered with or without Card wrapper
   const formContent = (
     <form onSubmit={handleSubmit(onFormSubmit)} className="eb-space-y-6">
+      {/* Error Summary for Debugging */}
+      {Object.keys(errors).length > 0 && (
+        <div className="eb-mb-4 eb-rounded eb-border eb-border-red-200 eb-bg-red-50 eb-p-3">
+          <p className="eb-mb-2 eb-font-semibold eb-text-red-700">
+            Form Errors:
+          </p>
+          <ul className="eb-list-inside eb-list-disc eb-text-xs eb-text-red-600">
+            {Object.entries(errors).flatMap(([key, value]) => {
+              if (Array.isArray(value)) {
+                return value
+                  .map((v, i) =>
+                    v &&
+                    typeof v === 'object' &&
+                    'message' in v &&
+                    typeof v.message === 'string' &&
+                    v.message ? (
+                      <li key={`${key}-${i}`}>
+                        <strong>
+                          {key}[{i}]:
+                        </strong>{' '}
+                        {v.message}
+                      </li>
+                    ) : null
+                  )
+                  .filter(Boolean);
+              }
+              // Only render if value is a FieldError with a string message
+              if (
+                value &&
+                typeof value === 'object' &&
+                'message' in value &&
+                typeof value.message === 'string' &&
+                value.message
+              ) {
+                return (
+                  <li key={key}>
+                    <strong>{key}:</strong> {value.message}
+                  </li>
+                );
+              }
+              // For all other types (including primitives), return null
+              return null;
+            })}
+          </ul>
+        </div>
+      )}
       {/* 1. Payment Methods - moved to top */}
       <PaymentMethodsSection
         control={control}
@@ -387,7 +458,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       {/* 4. Routing Numbers - simplified table */}
       <RoutingNumbersSection
         control={control}
-        register={register}
         errors={errors}
         watch={watch}
         setValue={setValue}

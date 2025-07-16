@@ -14,10 +14,10 @@ export interface RecipientFormProps {
   onSubmit: (data: RecipientRequest | UpdateRecipientRequest) => void;
   onCancel: () => void;
   isLoading?: boolean;
-  initialType?: RecipientType;
   config?: RecipientsConfig;
   // Control whether to render the Card wrapper (false for dialog usage)
   showCardWrapper?: boolean;
+  recipientType: RecipientType;
 }
 
 export interface FormSectionProps {
@@ -33,8 +33,12 @@ export interface PaymentMethodsSectionProps extends FormSectionProps {
   multipleMethodsAllowed: boolean;
 }
 
-export interface RoutingNumbersSectionProps extends FormSectionProps {
+export interface RoutingNumbersSectionProps {
+  control: any;
+  errors: any;
   selectedPaymentMethods: string[];
+  setValue: (name: string, value: any) => void;
+  watch: (name: string) => any;
 }
 
 export interface AccountDetailsSectionProps extends FormSectionProps {

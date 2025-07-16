@@ -35,6 +35,7 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
+
     {
       id: 'document-upload',
       title: 'Documents Requests Management',
@@ -89,6 +90,29 @@ export function ExperiencesSection() {
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/LINKED_ACCOUNTS_RECIPE.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
+    },
+    {
+      id: 'recipients',
+      title: 'Recipients Management',
+      description:
+        'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
+      icon: <List className="h-5 w-5" />,
+      status: 'beta',
+      hasComponents: true,
+      steps: [
+        'View, search, filter, and sort all saved recipients',
+        'Add new recipients with dynamic forms based on selected payment methods',
+        'Edit recipient details and update payment methods',
+        'Delete recipients with confirmation and audit tracking',
+        'Initiate payments directly from recipient list or details',
+        'Mask sensitive account information for security',
+        'Comprehensive validation and error handling for all fields',
+        'Accessible, mobile-responsive design with tooltips and help text',
+      ],
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Recipients/RECIPIENTS_REQUIREMENTS.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/external-payments',
     },
     {
       id: 'transactions',
@@ -177,10 +201,16 @@ export function ExperiencesSection() {
                         className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
                           exp.status === 'live'
                             ? 'bg-green-100 text-green-800'
-                            : 'bg-orange-100 text-orange-800'
+                            : exp.status === 'beta'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-orange-100 text-orange-800'
                         }`}
                       >
-                        {exp.status === 'live' ? 'Live' : 'Soon'}
+                        {exp.status === 'live'
+                          ? 'Live'
+                          : exp.status === 'beta'
+                            ? 'Beta'
+                            : 'Soon'}
                       </span>
                       {exp.hasComponents && (
                         <Box className="h-3 w-3 text-blue-600" />

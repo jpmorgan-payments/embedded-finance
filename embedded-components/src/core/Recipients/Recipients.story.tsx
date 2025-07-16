@@ -16,24 +16,16 @@ import { EBComponentsProvider } from '../EBComponentsProvider';
 import { Recipients, RecipientsProps } from './Recipients';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay
-export const RecipientsWithProvider = ({
-  apiBaseUrl,
-  headers,
-  theme,
-  contentTokens,
+const RecipientsWithProvider = ({
+  children,
   ...recipientsProps
-}: {
-  apiBaseUrl: string;
-  headers?: Record<string, string>;
-  theme?: Record<string, unknown>;
-  contentTokens?: { name: 'enUS' | 'frCA' };
-} & RecipientsProps) => {
+}: RecipientsProps & { children?: React.ReactNode }) => {
   return (
     <EBComponentsProvider
-      apiBaseUrl={apiBaseUrl}
-      headers={headers || {}}
-      theme={theme}
-      contentTokens={contentTokens || { name: 'enUS' }}
+      apiBaseUrl="https://api.example.com"
+      headers={{}}
+      theme={{}}
+      contentTokens={{ name: 'enUS' }}
     >
       <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
         <Recipients {...recipientsProps} />
@@ -42,9 +34,9 @@ export const RecipientsWithProvider = ({
   );
 };
 
-const meta: Meta<typeof RecipientsWithProvider> = {
+const meta: Meta<typeof Recipients> = {
   title: 'Core/Recipients',
-  component: RecipientsWithProvider,
+  component: Recipients,
   parameters: {
     layout: 'fullscreen',
     docs: {
@@ -55,10 +47,6 @@ const meta: Meta<typeof RecipientsWithProvider> = {
     },
   },
   argTypes: {
-    apiBaseUrl: {
-      control: 'text',
-      description: 'API base URL',
-    },
     clientId: {
       control: 'text',
       description: 'Optional client ID filter',
@@ -94,19 +82,18 @@ const meta: Meta<typeof RecipientsWithProvider> = {
     },
   },
 };
-
 export default meta;
-type Story = StoryObj<typeof RecipientsWithProvider>;
+type Story = StoryObj<typeof Recipients>;
 
 // Default story with all recipients
 export const Default: Story = {
   args: {
-    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -130,8 +117,12 @@ export const Default: Story = {
 // Story with only active recipients
 export const ActiveRecipients: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -154,9 +145,12 @@ export const ActiveRecipients: Story = {
 // Story with recipients requiring microdeposit verification
 export const MicrodepositVerification: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
     enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -176,8 +170,12 @@ export const MicrodepositVerification: Story = {
 // Story with empty state
 export const EmptyState: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -192,8 +190,12 @@ export const EmptyState: Story = {
 // Story with loading state
 export const Loading: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -208,8 +210,12 @@ export const Loading: Story = {
 // Story with error state
 export const ErrorState: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -227,9 +233,12 @@ export const ErrorState: Story = {
 // Story with create button hidden
 export const ReadOnly: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
     showCreateButton: false,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -244,9 +253,12 @@ export const ReadOnly: Story = {
 // Story with verification disabled
 export const NoVerification: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
     enableVerification: false,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -261,8 +273,12 @@ export const NoVerification: Story = {
 // Story with large dataset for pagination
 export const LargeDataset: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -314,9 +330,12 @@ export const LargeDataset: Story = {
 // Story with specific recipient types
 export const RecipientTypes: Story = {
   args: {
-    ...Default.args,
-    initialRecipientType: 'LINKED_ACCOUNT',
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -345,9 +364,12 @@ export const RecipientTypes: Story = {
 // Story with verification failure
 export const VerificationFailure: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
     enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -367,8 +389,12 @@ export const VerificationFailure: Story = {
 // Interactive story for testing user interactions
 export const InteractiveDemo: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -407,8 +433,12 @@ export const InteractiveDemo: Story = {
 // Story for mobile responsiveness
 export const MobileView: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     viewport: {
       defaultViewport: 'mobile1',
@@ -426,16 +456,12 @@ export const MobileView: Story = {
 // Story for dark theme
 export const DarkTheme: Story = {
   args: {
-    ...Default.args,
-    theme: {
-      colorScheme: 'dark',
-      variables: {
-        backgroundColor: '#1a1a1a',
-        foregroundColor: '#ffffff',
-        cardColor: '#2a2a2a',
-      },
-    },
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     backgrounds: {
       default: 'dark',
@@ -454,12 +480,15 @@ export const DarkTheme: Story = {
 // Story with custom event tracking
 export const WithEventTracking: Story = {
   args: {
-    ...Default.args,
+    clientId: 'client-001',
+    showCreateButton: true,
+    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create', 'verify'],
     userEventsHandler: (event) => {
       console.log('User event:', event);
     },
   },
+  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
