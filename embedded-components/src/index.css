@@ -12,3 +12,68 @@
     @apply eb-bg-background eb-font-sans eb-text-foreground eb-antialiased;
   }
 }
+
+@layer components {
+  /* Scrollable dialog styles */
+  .eb-scrollable-dialog {
+    @apply eb-flex eb-h-[90vh] eb-max-h-[90vh] eb-flex-col;
+  }
+
+  .eb-scrollable-content {
+    @apply eb-min-h-0 eb-flex-1 eb-overflow-y-auto;
+    scroll-behavior: smooth;
+    position: relative;
+    /* Firefox scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(209 213 219) rgb(243 244 246);
+  }
+
+  /* Visual scroll indicators using CSS gradients */
+  .eb-scrollable-content::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to bottom, hsl(0 0% 100% / 0.9), transparent);
+    z-index: 10;
+    pointer-events: none;
+    margin-bottom: -12px;
+  }
+
+  .eb-scrollable-content::after {
+    content: '';
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to top, hsl(0 0% 100% / 0.9), transparent);
+    z-index: 10;
+    pointer-events: none;
+    margin-top: -12px;
+  }
+
+  /* Ensure content padding for better scrolling experience */
+  .eb-scrollable-content > * {
+    @apply eb-pb-4;
+  }
+
+  /* Custom scrollbar styling */
+  .eb-scrollable-content::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .eb-scrollable-content::-webkit-scrollbar-track {
+    @apply eb-rounded-md eb-bg-gray-100;
+  }
+
+  .eb-scrollable-content::-webkit-scrollbar-thumb {
+    @apply eb-rounded-md eb-bg-gray-300;
+  }
+
+  .eb-scrollable-content::-webkit-scrollbar-thumb:hover {
+    @apply eb-bg-gray-400;
+  }
+}

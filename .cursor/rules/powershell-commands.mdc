@@ -1,0 +1,118 @@
+---
+description: PowerShell command syntax for Windows development environment
+---
+
+# PowerShell Command Best Practices
+
+## Environment Context
+
+This project runs in a Windows PowerShell environment. Bash-style command chaining does NOT work.
+
+## Command Chaining Rules
+
+### ❌ INCORRECT - Bash Style (Does NOT work in PowerShell)
+
+```bash
+cd embedded-components && npm run typecheck
+cd embedded-components && npm run test
+cd embedded-components && npm run build
+```
+
+### ✅ CORRECT - PowerShell Style
+
+```powershell
+# Option 1: Use semicolon separator
+cd embedded-components; npm run typecheck
+
+# Option 2: Run separate commands (PREFERRED)
+cd embedded-components
+npm run typecheck
+
+# Option 3: Use PowerShell-specific operators
+cd embedded-components -and npm run typecheck
+```
+
+## Common Development Commands
+
+### TypeScript Checking
+
+```powershell
+cd embedded-components
+npm run typecheck
+```
+
+### Running Tests
+
+```powershell
+cd embedded-components
+npm run test
+```
+
+### Building Project
+
+```powershell
+cd embedded-components
+npm run build
+```
+
+### Linting and Formatting
+
+```powershell
+cd embedded-components
+npm run lint
+npm run prettier:check
+npm run prettier:write
+```
+
+### Storybook Development
+
+```powershell
+cd embedded-components
+npm run storybook
+```
+
+## Directory Navigation
+
+Always navigate to the correct directory first:
+
+```powershell
+# Main project commands run from embedded-components
+cd embedded-components
+
+# If already in embedded-components, commands can run directly
+npm run typecheck
+```
+
+## Error Prevention Checklist
+
+- [ ] Never use `&&` for command chaining in PowerShell
+- [ ] Always check current directory before running commands
+- [ ] Use semicolons `;` or separate commands for chaining
+- [ ] Remember PowerShell is case-insensitive but commands are not
+- [ ] Use forward slashes `/` or escaped backslashes `\\` for paths
+
+## Multi-Command Scripts
+
+For multiple commands, prefer separate lines:
+
+```powershell
+cd embedded-components
+npm run prettier:write
+npm run lint
+npm run typecheck
+npm run test
+```
+
+## Common PowerShell Gotchas to Avoid
+
+1. **&&** - Not supported, use `;` or separate commands
+2. **||** - Not supported, use PowerShell-specific operators
+3. **$()** - PowerShell uses this for subexpressions, different from bash
+4. **Paths** - Use forward slashes or escape backslashes properly
+
+## Recommended Workflow
+
+1. Navigate to directory first
+2. Run commands individually
+3. Check output before proceeding
+4. Use clear, explicit commands rather than complex chaining

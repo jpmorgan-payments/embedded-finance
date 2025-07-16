@@ -1,0 +1,70 @@
+---
+description: Component creation workflow and structure for embedded-components
+---
+
+# Component Creation Workflow
+
+## Repository Structure
+
+Active development is in the `embedded-components/` package. Other packages (`app/`, `embedded-finance-sdk/`) are not currently active.
+
+## Component Location and Structure
+
+New components must be placed in `embedded-components/src/core/` with this structure:
+
+```
+ComponentName/
+├── ComponentName.tsx          # Main component
+├── ComponentName.test.tsx     # Tests with MSW integration
+├── ComponentName.story.tsx    # Storybook stories
+├── ComponentName.schema.ts    # Zod validation schema (if needed)
+├── components/                # Sub-components (if needed)
+│   └── SubComponent/
+├── hooks/                     # Custom hooks (if needed)
+├── utils/                     # Helper functions (if needed)
+└── index.ts                   # Exports
+```
+
+## Required Files for Every Component
+
+1. **Main Component** (`ComponentName.tsx`)
+2. **Tests** (`ComponentName.test.tsx`) with MSW integration
+3. **Storybook** (`ComponentName.story.tsx`) with comprehensive stories
+4. **Index exports** (`index.ts`)
+
+## Export Requirements
+
+After creating a component, update these files:
+
+- `embedded-components/src/index.tsx` - Main library exports
+- `embedded-components/src/vanilla/componentRegistry.ts` - Component registry
+
+## Technology Stack Requirements
+
+- React 18.x with TypeScript (strict mode)
+- Functional components with hooks only
+- Tailwind CSS with `eb-` prefix for all classes
+- Radix UI primitives for base components
+- Zod for validation schemas
+- React Query v5 with Orval generated hooks
+- MSW for API mocking in tests and development
+
+## Component Template Structure
+
+```typescript
+// ComponentName.tsx
+import { FC } from "react";
+import { z } from "zod";
+
+export interface ComponentNameProps {
+  // Props definition with JSDoc
+}
+
+export const ComponentName: FC<ComponentNameProps> = (
+  {
+    // Props destructuring
+  }
+) => {
+  return <div className="eb-custom-classes">{/* Component JSX */}</div>;
+};
+```
