@@ -7,6 +7,12 @@ import type {
   RecipientRequest,
   UpdateRecipientRequest,
 } from '@/api/generated/ep-recipients.schemas';
+import {
+  AccountType,
+  CountryCode,
+  RoutingCodeType,
+  RoutingInformationTransactionType,
+} from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -88,6 +94,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     trigger,
   } = useForm<FormData>({
     resolver: zodResolver(dynamicSchema),
+    mode: 'onChange', // Validate on change
     defaultValues: {
       type: partyType,
       countryCode: 'US',
@@ -295,10 +302,10 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   }, [recipient, mode, reset, availablePaymentMethods]);
 
   const onFormSubmit = (data: FormData) => {
-    // No need for manual validation - the dynamic schema handles everything!
+    console.log('RecipientForm submit', data); // Debug: see if submit is called
     // Build the request based on the form data
-    const baseRequest = {
-      type: recipientType, // Use the prop, not a form field
+    const baseRequest: RecipientRequest = {
+      type: recipientType,
       partyDetails: {
         type: data.type,
         ...(data.type === 'INDIVIDUAL' && {
@@ -317,9 +324,10 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
             addressLine1: data.addressLine1,
             addressLine2: data.addressLine2,
             addressLine3: data.addressLine3,
-            city: data.city,
+            city: data.city!,
             state: data.state,
             postalCode: data.postalCode,
+            countryCode: CountryCode.US,
           },
         }),
         ...(data.contacts &&
@@ -327,22 +335,23 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
             contacts: data.contacts.filter((contact) => contact.value?.trim()),
           }),
       },
-      accountDetails: {
-        accountNumber: data.accountNumber,
-        accountType: data.accountType,
-        countryCode: data.countryCode,
+      account: {
+        number: data.accountNumber!,
+        type: data.accountType as AccountType,
+        countryCode: CountryCode.US,
+        routingInformation: data.paymentMethods
+          ?.filter((method) => data.routingNumbers?.[method])
+          .map((method) => ({
+            routingNumber: data.routingNumbers![method],
+            routingCodeType: RoutingCodeType.USABA,
+            transactionType:
+              method as keyof typeof RoutingInformationTransactionType,
+          })),
       },
-      routingInformation: data.paymentMethods
-        ?.filter((method) => data.routingNumbers?.[method])
-        .map((method) => ({
-          routingNumber: data.routingNumbers![method],
-          routingCodeType: 'USABA',
-          transactionType: method,
-        })),
     };
 
     if (mode === 'create') {
-      onSubmit(baseRequest as RecipientRequest);
+      onSubmit(baseRequest);
     } else {
       onSubmit(baseRequest as UpdateRecipientRequest);
     }
@@ -357,6 +366,52 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   // Form content that will be rendered with or without Card wrapper
   const formContent = (
     <form onSubmit={handleSubmit(onFormSubmit)} className="eb-space-y-6">
+      {/* Error Summary for Debugging */}
+      {Object.keys(errors).length > 0 && (
+        <div className="eb-mb-4 eb-rounded eb-border eb-border-red-200 eb-bg-red-50 eb-p-3">
+          <p className="eb-mb-2 eb-font-semibold eb-text-red-700">
+            Form Errors:
+          </p>
+          <ul className="eb-list-inside eb-list-disc eb-text-xs eb-text-red-600">
+            {Object.entries(errors).flatMap(([key, value]) => {
+              if (Array.isArray(value)) {
+                return value
+                  .map((v, i) =>
+                    v &&
+                    typeof v === 'object' &&
+                    'message' in v &&
+                    typeof v.message === 'string' &&
+                    v.message ? (
+                      <li key={`${key}-${i}`}>
+                        <strong>
+                          {key}[{i}]:
+                        </strong>{' '}
+                        {v.message}
+                      </li>
+                    ) : null
+                  )
+                  .filter(Boolean);
+              }
+              // Only render if value is a FieldError with a string message
+              if (
+                value &&
+                typeof value === 'object' &&
+                'message' in value &&
+                typeof value.message === 'string' &&
+                value.message
+              ) {
+                return (
+                  <li key={key}>
+                    <strong>{key}:</strong> {value.message}
+                  </li>
+                );
+              }
+              // For all other types (including primitives), return null
+              return null;
+            })}
+          </ul>
+        </div>
+      )}
       {/* 1. Payment Methods - moved to top */}
       <PaymentMethodsSection
         control={control}

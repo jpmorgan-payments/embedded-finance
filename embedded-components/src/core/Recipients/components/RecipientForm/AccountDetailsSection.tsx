@@ -1,6 +1,6 @@
 import React from 'react';
 import { CreditCard } from 'lucide-react';
-import { Controller } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,17 +33,27 @@ export const AccountDetailsSection: React.FC<AccountDetailsSectionProps> = ({
           <Controller
             name="accountType"
             control={control}
-            render={({ field }) => (
-              <Select value={field.value || ''} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CHECKING">Checking</SelectItem>
-                  <SelectItem value="SAVINGS">Savings</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
+            render={({ field }) => {
+              const formContext = useFormContext?.();
+              const clearErrors = formContext?.clearErrors;
+              return (
+                <Select
+                  value={field.value || ''}
+                  onValueChange={(val) => {
+                    field.onChange(val);
+                    if (val && clearErrors) clearErrors('accountType');
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CHECKING">Checking</SelectItem>
+                    <SelectItem value="SAVINGS">Savings</SelectItem>
+                  </SelectContent>
+                </Select>
+              );
+            }}
           />
           {errors.accountType && (
             <p className="eb-text-sm eb-text-red-500">

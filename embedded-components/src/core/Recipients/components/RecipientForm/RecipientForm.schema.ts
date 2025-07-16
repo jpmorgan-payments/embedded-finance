@@ -215,6 +215,15 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
         // Skip contact validation here - handled separately below
         if (fieldPath.includes('contacts.')) return;
 
+        // Skip routingNumbers and related fields (handled per-method below)
+        if (
+          fieldPath.includes('routingNumber') ||
+          fieldPath.includes('routingCodeType') ||
+          fieldPath.includes('name')
+        ) {
+          return;
+        }
+
         const fieldValue = data[formFieldName as keyof typeof data];
 
         // Determine which payment methods require this field

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Hash } from 'lucide-react';
-import { Controller } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 import type { UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,23 @@ export const RoutingNumbersSection: React.FC<RoutingNumbersSectionProps> = ({
 
   // Watch all routing numbers
   const routingNumbers = watch ? watch('routingNumbers') || {} : {};
+
+  // --- Autofill/Autocomplete Validation Fix ---
+  // Get trigger from form context safely
+  const formContext = useFormContext?.();
+  const trigger = formContext?.trigger;
+  useEffect(() => {
+    if (
+      trigger &&
+      selectedPaymentMethods &&
+      selectedPaymentMethods.length > 0
+    ) {
+      // Trigger validation for all routing numbers on mount and when they change
+      selectedPaymentMethods.forEach((method) => {
+        trigger(`routingNumbers.${method}`);
+      });
+    }
+  }, [JSON.stringify(routingNumbers), selectedPaymentMethods]);
 
   // When useSameRouting is enabled, sync all routing numbers to the first value
   useEffect(() => {
@@ -109,33 +126,41 @@ export const RoutingNumbersSection: React.FC<RoutingNumbersSectionProps> = ({
                     name={`routingNumbers.${method}`}
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        placeholder="Enter routing number"
-                        className="eb-w-full"
-                        maxLength={11}
-                        pattern="[0-9]*"
-                        onInput={(e) => {
-                          // Only allow numeric input
-                          const target = e.target as HTMLInputElement;
-                          target.value = target.value.replace(/[^0-9]/g, '');
-                          field.onChange(target.value);
-                          if (useSameRouting) {
-                            // Update all routing numbers to this value
-                            const newRoutingNumbers: Record<string, string> =
-                              {};
-                            selectedPaymentMethods.forEach((m) => {
-                              newRoutingNumbers[m] = target.value;
-                            });
-                            setValue &&
-                              setValue(
-                                'routingNumbers' as any,
-                                newRoutingNumbers
-                              );
-                          }
-                        }}
-                        disabled={useSameRouting && idx !== 0}
-                      />
+                      <>
+                        <Input
+                          {...field}
+                          placeholder="Enter routing number"
+                          className="eb-w-full"
+                          maxLength={11}
+                          pattern="[0-9]*"
+                          onInput={(e) => {
+                            // Only allow numeric input
+                            const target = e.target as HTMLInputElement;
+                            target.value = target.value.replace(/[^0-9]/g, '');
+                            field.onChange(target.value);
+                            if (useSameRouting) {
+                              // Update all routing numbers to this value
+                              const newRoutingNumbers: Record<string, string> =
+                                {};
+                              selectedPaymentMethods.forEach((m) => {
+                                newRoutingNumbers[m] = target.value;
+                              });
+                              setValue &&
+                                setValue(
+                                  'routingNumbers' as any,
+                                  newRoutingNumbers
+                                );
+                            }
+                          }}
+                          disabled={useSameRouting && idx !== 0}
+                        />
+                        {/* Inline error for this routing number */}
+                        {errors.routingNumbers?.[method]?.message && (
+                          <p className="eb-mt-1 eb-text-xs eb-text-red-500">
+                            {errors.routingNumbers[method].message}
+                          </p>
+                        )}
+                      </>
                     )}
                   />
                 </TableCell>
@@ -145,11 +170,7 @@ export const RoutingNumbersSection: React.FC<RoutingNumbersSectionProps> = ({
         </Table>
       </div>
 
-      {errors.routingNumbers && (
-        <p className="eb-text-sm eb-text-red-500">
-          {errors.routingNumbers.message}
-        </p>
-      )}
+      {/* Remove global routingNumbers error, now handled inline */}
 
       <p className="eb-text-xs eb-text-gray-500">
         Routing numbers must be 8-11 digits and are specific to each payment
