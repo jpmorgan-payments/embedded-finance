@@ -18,7 +18,7 @@ function ConceptVisualization() {
       >
         <div className="flex justify-center mb-4">
           <span className="text-sm font-medium text-jpm-brown-800 px-3 py-1 bg-jpm-brown-100 rounded-full">
-            Demo Applications
+            Demo Applications and Recipes
           </span>
         </div>
 

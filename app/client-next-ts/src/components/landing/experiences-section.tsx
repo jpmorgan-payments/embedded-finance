@@ -2,13 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  ArrowRight,
   Users,
   Link,
   List,
   Box,
   ExternalLink,
-  UserCog,
   FileText,
   Zap,
   Bell,
@@ -55,23 +53,7 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/upload-documents',
     },
-    {
-      id: 'partially-hosted-onboarding',
-      title: 'Partially Hosted Onboarding Integration',
-      description:
-        'Implement a hybrid onboarding approach where parts of the client verification process are handled by your application while leveraging embedded components.',
-      icon: <UserCog className="h-5 w-5" />,
-      status: 'live',
-      hasComponents: false,
-      steps: [
-        'Configure your application to handle initial client data collection',
-        'Integrate embedded components for specific onboarding steps',
-        'Implement seamless handoff between hosted and embedded flows',
-        'Customize the user experience to match your brand requirements',
-      ],
-      recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md',
-    },
+
     {
       id: 'link-account',
       title: 'Link External Bank Account',
@@ -174,7 +156,7 @@ export function ExperiencesSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
-            Explore Embedded Business Components and Recipes
+            Explore Embedded Business Components
           </h2>
           <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
             Pre-built workflows and implementation patterns for common embedded

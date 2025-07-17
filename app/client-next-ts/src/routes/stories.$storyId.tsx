@@ -89,7 +89,7 @@ export const Route = createFileRoute('/stories/$storyId')({
               variant="outline"
               className="border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md"
             >
-              Back to Stories
+              Back to Recipes
             </Button>
           </Link>
         </div>
@@ -113,7 +113,7 @@ function Story() {
               className="border-jpm-gray-300 text-jpm-gray hover:bg-jpm-gray-100 rounded-page-md flex items-center"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Stories
+              Back to Recipes
             </Button>
           </Link>
         </div>
