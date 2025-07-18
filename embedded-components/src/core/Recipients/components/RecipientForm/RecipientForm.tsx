@@ -1,18 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { isEqual } from 'lodash';
 import { useForm } from 'react-hook-form';
 
 import type {
   PartyType,
-  RecipientRequest,
+  Recipient,
   UpdateRecipientRequest,
-} from '@/api/generated/ep-recipients.schemas';
-import {
-  AccountType,
-  CountryCode,
-  RoutingCodeType,
-  RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +28,13 @@ import { PersonalDetailsSection } from './PersonalDetailsSection';
 import { createDynamicRecipientFormSchema } from './RecipientForm.schema';
 import type { FormData, RecipientFormProps } from './RecipientForm.types';
 import { RoutingNumbersSection } from './RoutingNumbersSection';
+// Utils
+import {
+  buildRecipientRequest,
+  extractPaymentMethods,
+  extractRoutingNumbers,
+  mapContactsToFormData,
+} from './utils';
 
 // Helper function to get required contact types from payment methods
 function getRequiredContactTypes(
@@ -73,6 +73,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   const [partyType, setPartyType] = useState<PartyType>(
     recipient?.partyDetails?.type || 'INDIVIDUAL'
   );
+  const dataLoadedRef = useRef(false);
 
   // Use provided config or fallback to default
   const formConfig = config || defaultRecipientsConfig;
@@ -91,24 +92,32 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     formState: { errors },
     watch,
     setValue,
-    reset,
-    trigger,
   } = useForm<FormData>({
     resolver: zodResolver(dynamicSchema),
     mode: 'onChange', // Validate on change
     defaultValues: {
-      type: partyType,
+      type: 'INDIVIDUAL',
+      firstName: '',
+      lastName: '',
+      businessName: '',
       countryCode: 'US',
       paymentMethods: [availablePaymentMethods[0]],
       routingNumbers: {},
       contacts: [],
+      accountNumber: '',
+      accountType: 'CHECKING',
+      addressLine1: '',
+      addressLine2: '',
+      addressLine3: '',
+      city: '',
+      state: '',
+      postalCode: '',
     },
   });
 
   // Watch for form changes
   const watchedType = watch('type');
   const watchedPaymentMethods = watch('paymentMethods');
-  const watchedContacts = watch('contacts');
 
   // Get configuration-driven address requirements
   const addressRequired = isAddressRequired(
@@ -131,231 +140,78 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     }
   }, [watchedType, partyType]);
 
+  // Reset data loaded flag when recipient changes
+  useEffect(() => {
+    dataLoadedRef.current = false;
+  }, [recipient?.id]);
+
+  // Helper function to load recipient data into form
+  const loadRecipientData = (recipientData: Recipient) => {
+    // Basic information
+    setValue('type', recipientData.partyDetails?.type || 'INDIVIDUAL');
+    setValue('firstName', recipientData.partyDetails?.firstName || '');
+    setValue('lastName', recipientData.partyDetails?.lastName || '');
+    setValue(
+      'businessName',
+      recipientData.partyDetails?.organization?.businessName || ''
+    );
+
+    // Account information
+    setValue('accountNumber', recipientData.account?.number || '');
+    setValue('accountType', recipientData.account?.type || 'CHECKING');
+    setValue('countryCode', recipientData.account?.countryCode || 'US');
+
+    // Address information
+    setValue(
+      'addressLine1',
+      recipientData.partyDetails?.address?.addressLine1 || ''
+    );
+    setValue(
+      'addressLine2',
+      recipientData.partyDetails?.address?.addressLine2 || ''
+    );
+    setValue(
+      'addressLine3',
+      recipientData.partyDetails?.address?.addressLine3 || ''
+    );
+    setValue('city', recipientData.partyDetails?.address?.city || '');
+    setValue('state', recipientData.partyDetails?.address?.state || '');
+    setValue(
+      'postalCode',
+      recipientData.partyDetails?.address?.postalCode || ''
+    );
+
+    // Contacts
+    const contacts = mapContactsToFormData(
+      recipientData.partyDetails?.contacts
+    );
+    setValue('contacts', contacts);
+
+    // Payment methods
+    const paymentMethods = extractPaymentMethods(
+      recipientData,
+      availablePaymentMethods[0]
+    );
+    setValue('paymentMethods', paymentMethods);
+
+    // Routing numbers
+    const routingNumbers = extractRoutingNumbers(recipientData);
+    setValue('routingNumbers', routingNumbers);
+
+    setPartyType(recipientData.partyDetails?.type || 'INDIVIDUAL');
+  };
+
   // Load existing recipient data
   useEffect(() => {
-    if (recipient && mode === 'edit') {
-      const formData: Partial<FormData> = {
-        type: recipient.partyDetails?.type || 'INDIVIDUAL',
-        firstName: recipient.partyDetails?.firstName,
-        lastName: recipient.partyDetails?.lastName,
-        businessName: recipient.partyDetails?.organization?.businessName,
-        accountNumber: recipient.account?.number,
-        accountType: recipient.account?.type,
-        countryCode: recipient.account?.countryCode || 'US',
-        addressLine1: recipient.partyDetails?.address?.addressLine1,
-        addressLine2: recipient.partyDetails?.address?.addressLine2,
-        addressLine3: recipient.partyDetails?.address?.addressLine3,
-        city: recipient.partyDetails?.address?.city,
-        state: recipient.partyDetails?.address?.state,
-        postalCode: recipient.partyDetails?.address?.postalCode,
-        contacts:
-          recipient.partyDetails?.contacts?.map((contact) => {
-            if (contact.contactType === 'PHONE') {
-              return {
-                contactType: 'PHONE' as const,
-                value: contact.value,
-                countryCode: contact.countryCode || '+1',
-              };
-            }
-            if (contact.contactType === 'EMAIL') {
-              return {
-                contactType: 'EMAIL' as const,
-                value: contact.value,
-              };
-            }
-            if (contact.contactType === 'WEBSITE') {
-              return {
-                contactType: 'WEBSITE' as const,
-                value: contact.value,
-              };
-            }
-            // Fallback for unknown contact types
-            return {
-              contactType: 'EMAIL' as const,
-              value: contact.value,
-            };
-          }) || [],
-        // Set payment methods based on existing routing information
-        paymentMethods: recipient.account?.routingInformation?.map(
-          (ri: { transactionType: any }) => ri.transactionType
-        ) || [availablePaymentMethods[0]],
-        routingNumbers:
-          recipient.account?.routingInformation?.reduce(
-            (
-              acc: { [x: string]: any },
-              ri: { transactionType: string | number; routingNumber: any }
-            ) => {
-              if (ri.transactionType && ri.routingNumber) {
-                acc[ri.transactionType] = ri.routingNumber;
-              }
-              return acc;
-            },
-            {} as Record<string, string>
-          ) || {},
-      };
-
-      // Only reset if formData is different from current values
-      const currentValues = watch();
-      if (!isEqual(formData, currentValues)) {
-        reset(formData);
-        setPartyType(formData.type || 'INDIVIDUAL');
-      }
+    if (recipient && mode === 'edit' && !dataLoadedRef.current) {
+      dataLoadedRef.current = true;
+      loadRecipientData(recipient);
     }
-  }, [recipient, mode, reset, availablePaymentMethods, watch]);
-
-  // Initialize routing numbers when payment methods change
-  useEffect(() => {
-    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
-      const currentRoutingNumbers = watch('routingNumbers') || {};
-      const newRoutingNumbers = { ...currentRoutingNumbers };
-
-      // Add routing number fields for newly selected methods
-      let needsUpdate = false;
-      watchedPaymentMethods.forEach((method) => {
-        if (!newRoutingNumbers[method]) {
-          newRoutingNumbers[method] = '';
-          needsUpdate = true;
-        }
-      });
-
-      // Remove routing number fields for unselected methods
-      Object.keys(newRoutingNumbers).forEach((method) => {
-        if (!watchedPaymentMethods.includes(method)) {
-          delete newRoutingNumbers[method];
-          needsUpdate = true;
-        }
-      });
-
-      if (needsUpdate && !isEqual(newRoutingNumbers, currentRoutingNumbers)) {
-        setValue('routingNumbers', newRoutingNumbers);
-        trigger();
-      }
-    }
-  }, [watchedPaymentMethods, setValue, watch, trigger]);
-
-  // Auto-manage contacts based on payment method requirements
-  useEffect(() => {
-    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
-      const requiredContactTypes = getRequiredContactTypes(
-        formConfig,
-        watchedPaymentMethods as PaymentMethodType[]
-      );
-      const currentContacts = watchedContacts || [];
-
-      // Create a map of existing contacts by type
-      const existingContactsByType = new Map(
-        currentContacts.map((contact) => [contact.contactType, contact])
-      );
-
-      let contactsChanged = false;
-      const updatedContacts = [...currentContacts];
-
-      // Add missing required contact types
-      requiredContactTypes.forEach((contactType) => {
-        if (!existingContactsByType.has(contactType)) {
-          let newContact: any;
-
-          if (contactType === 'PHONE') {
-            newContact = {
-              contactType: 'PHONE' as const,
-              value: '',
-              countryCode: '+1',
-            };
-          } else if (contactType === 'EMAIL') {
-            newContact = {
-              contactType: 'EMAIL' as const,
-              value: '',
-            };
-          } else if (contactType === 'WEBSITE') {
-            newContact = {
-              contactType: 'WEBSITE' as const,
-              value: '',
-            };
-          }
-
-          if (newContact) {
-            updatedContacts.push(newContact);
-            contactsChanged = true;
-          }
-        }
-      });
-
-      // Only auto-add required contacts, never auto-remove any
-      const areContactsEqual = (
-        a: typeof updatedContacts,
-        b: typeof updatedContacts
-      ) => {
-        if (a.length !== b.length) return false;
-        let allEqual = true;
-        a.forEach((contact, i) => {
-          if (
-            contact.contactType !== b[i].contactType ||
-            contact.value !== b[i].value ||
-            (contact.countryCode || '') !== (b[i].countryCode || '')
-          ) {
-            allEqual = false;
-          }
-        });
-        return allEqual;
-      };
-
-      if (
-        contactsChanged ||
-        !areContactsEqual(updatedContacts, currentContacts)
-      ) {
-        setValue('contacts', updatedContacts);
-      }
-    }
-  }, [watchedPaymentMethods, formConfig, setValue, watchedContacts]);
+  }, [recipient?.id, mode, setValue, availablePaymentMethods]);
 
   const onFormSubmit = (data: FormData) => {
-    console.log('RecipientForm submit', data); // Debug: see if submit is called
-    // Build the request based on the form data
-    const baseRequest: RecipientRequest = {
-      type: recipientType,
-      partyDetails: {
-        type: data.type,
-        ...(data.type === 'INDIVIDUAL' && {
-          individual: {
-            firstName: data.firstName!,
-            lastName: data.lastName!,
-          },
-        }),
-        ...(data.type === 'ORGANIZATION' && {
-          organization: {
-            businessName: data.businessName!,
-          },
-        }),
-        ...(data.addressLine1 && {
-          address: {
-            addressLine1: data.addressLine1,
-            addressLine2: data.addressLine2,
-            addressLine3: data.addressLine3,
-            city: data.city!,
-            state: data.state,
-            postalCode: data.postalCode,
-            countryCode: CountryCode.US,
-          },
-        }),
-        ...(data.contacts &&
-          data.contacts.length > 0 && {
-            contacts: data.contacts.filter((contact) => contact.value?.trim()),
-          }),
-      },
-      account: {
-        number: data.accountNumber!,
-        type: data.accountType as AccountType,
-        countryCode: CountryCode.US,
-        routingInformation: data.paymentMethods
-          ?.filter((method) => data.routingNumbers?.[method])
-          .map((method) => ({
-            routingNumber: data.routingNumbers![method],
-            routingCodeType: RoutingCodeType.USABA,
-            transactionType:
-              method as keyof typeof RoutingInformationTransactionType,
-          })),
-      },
-    };
+    console.log('RecipientForm submit', data);
+    const baseRequest = buildRecipientRequest(data, recipientType);
 
     if (mode === 'create') {
       onSubmit(baseRequest);
@@ -372,7 +228,10 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
 
   // Form content that will be rendered with or without Card wrapper
   const formContent = (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="eb-space-y-6">
+    <form
+      onSubmit={handleSubmit(onFormSubmit)}
+      className="eb-space-y-6 eb-px-4 eb-py-2"
+    >
       {/* Error Summary for Debugging */}
       {Object.keys(errors).length > 0 && (
         <div className="eb-mb-4 eb-rounded eb-border eb-border-red-200 eb-bg-red-50 eb-p-3">
