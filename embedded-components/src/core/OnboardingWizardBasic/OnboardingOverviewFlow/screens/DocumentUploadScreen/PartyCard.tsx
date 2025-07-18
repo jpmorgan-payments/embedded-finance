@@ -128,64 +128,61 @@ export const PartyCard: FC<PartyCardProps> = ({
             <UploadIcon /> Upload documents
           </Button>
         ) : (
-          <div>
-            <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
-              <CheckIcon className="eb-size-4" />
-              Required documents successfully uploaded
-            </div>
-            <div>
-              {documentDetailsList?.map((docDetail) => {
-                if (
-                  docDetail?.metadata?.find(
-                    (m) => m.key === 'DOCUMENT_REQUEST_ID'
-                  )?.value === docRequest.id
-                ) {
-                  const fileName = getMetadataValue(
-                    docDetail.metadata,
-                    'UPLOADED_FILE_NAME'
-                  );
-                  const uploadTime = getMetadataValue(
-                    docDetail.metadata,
-                    'UPLOAD_TIME'
-                  );
-
-                  return (
-                    <div
-                      key={docDetail.id}
-                      className="eb-mt-2 eb-rounded-md eb-border eb-p-2"
-                    >
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        <FileIcon className="eb-size-4 eb-text-muted-foreground" />
-                        <span className="eb-text-sm eb-font-medium">
-                          {DOCUMENT_TYPE_MAPPING[docDetail.documentType].label}
-                        </span>
-                      </div>
-                      {fileName && (
-                        <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
-                          <span
-                            className="eb-max-w-[200px] eb-truncate eb-text-xs eb-text-muted-foreground"
-                            title={fileName}
-                          >
-                            {fileName}
-                          </span>
-                        </div>
-                      )}
-                      {uploadTime && (
-                        <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
-                          <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
-                          <span className="eb-text-xs eb-text-muted-foreground">
-                            Uploaded on {formatUploadTime(uploadTime)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-                return null;
-              })}
-            </div>
+          <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
+            <CheckIcon className="eb-size-4" />
+            Required documents successfully uploaded
           </div>
         )}
+        <div>
+          {documentDetailsList?.map((docDetail) => {
+            if (
+              docDetail?.metadata?.find((m) => m.key === 'DOCUMENT_REQUEST_ID')
+                ?.value === docRequest.id
+            ) {
+              const fileName = getMetadataValue(
+                docDetail.metadata,
+                'UPLOADED_FILE_NAME'
+              );
+              const uploadTime = getMetadataValue(
+                docDetail.metadata,
+                'UPLOAD_TIME'
+              );
+
+              return (
+                <div
+                  key={docDetail.id}
+                  className="eb-mt-2 eb-rounded-md eb-border eb-p-2"
+                >
+                  <div className="eb-flex eb-items-center eb-gap-2">
+                    <FileIcon className="eb-size-4 eb-text-muted-foreground" />
+                    <span className="eb-text-sm eb-font-medium">
+                      {DOCUMENT_TYPE_MAPPING[docDetail.documentType].label}
+                    </span>
+                  </div>
+                  {fileName && (
+                    <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
+                      <span
+                        className="eb-max-w-[200px] eb-truncate eb-text-xs eb-text-muted-foreground"
+                        title={fileName}
+                      >
+                        {fileName}
+                      </span>
+                    </div>
+                  )}
+                  {uploadTime && (
+                    <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
+                      <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
+                      <span className="eb-text-xs eb-text-muted-foreground">
+                        Uploaded on {formatUploadTime(uploadTime)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
       </div>
     </Card>
   );
