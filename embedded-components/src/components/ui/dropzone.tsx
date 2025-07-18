@@ -440,9 +440,7 @@ const Dropzone = ({
         </span>
       )}
       {showFilesList && filesUploaded.length > 0 && (
-        <div
-          className={`eb-flex eb-w-full eb-flex-col eb-gap-2 ${filesUploaded.length > 2 ? 'eb-h-48' : 'eb-h-fit'} ${filesUploaded.length > 0 ? 'eb-pb-2' : ''}`}
-        >
+        <div className="eb-flex eb-h-fit eb-w-full eb-flex-col eb-gap-2">
           <div className="eb-w-full">
             {filesUploaded.map((fileUploaded, index) => (
               <div

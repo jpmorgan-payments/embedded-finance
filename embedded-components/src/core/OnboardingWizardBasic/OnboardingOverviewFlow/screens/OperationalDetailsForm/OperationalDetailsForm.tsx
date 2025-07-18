@@ -60,7 +60,7 @@ export const OperationalDetailsForm = () => {
     const existingIds = existingQuestionResponses.map(
       (response) => response.questionId ?? 'undefined'
     );
-    return [...new Set([...outstandingQuestionIds, ...existingIds])];
+    return [...new Set([...outstandingQuestionIds, ...existingIds])].sort();
   }, [outstandingQuestionIds, existingQuestionResponses]);
 
   // Fetch all questions

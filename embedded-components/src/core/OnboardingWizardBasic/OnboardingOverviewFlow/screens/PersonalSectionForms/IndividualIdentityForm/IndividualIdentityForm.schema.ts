@@ -11,12 +11,12 @@ const controllerIdSchema = z
       .string()
       .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
         message: i18n.t(
-          'onboarding:fields.controllerIds.expiryDate.validation.format'
+          'onboarding-overview:fields.controllerIds.expiryDate.validation.format'
         ),
       })
       .refine((val) => !Number.isNaN(new Date(val).getTime()), {
         message: i18n.t(
-          'onboarding:fields.controllerIds.expiryDate.validation.invalid'
+          'onboarding-overview:fields.controllerIds.expiryDate.validation.invalid'
         ),
       })
       .refine(
@@ -27,7 +27,7 @@ const controllerIdSchema = z
         },
         {
           message: i18n.t(
-            'onboarding:fields.controllerIds.expiryDate.validation.past'
+            'onboarding-overview:fields.controllerIds.expiryDate.validation.past'
           ),
         }
       )
@@ -42,7 +42,7 @@ const controllerIdSchema = z
         },
         {
           message: i18n.t(
-            'onboarding:fields.controllerIds.expiryDate.validation.tooFar'
+            'onboarding-overview:fields.controllerIds.expiryDate.validation.tooFar'
           ),
         }
       )
@@ -61,18 +61,20 @@ const controllerIdSchema = z
       .length(
         2,
         i18n.t(
-          'onboarding:fields.controllerIds.issuer.validation.exactlyTwoChars'
+          'onboarding-overview:fields.controllerIds.issuer.validation.exactlyTwoChars'
         )
       ),
     value: z
       .string()
       .min(
         1,
-        i18n.t('onboarding:fields.controllerIds.value.validation.required')
+        i18n.t(
+          'onboarding-overview:fields.controllerIds.value.validation.required'
+        )
       )
       .refine((val: string) => !/\s/.test(val), {
         message: i18n.t(
-          'onboarding:fields.controllerIds.value.validation.noSpaces'
+          'onboarding-overview:fields.controllerIds.value.validation.noSpaces'
         ),
       }),
   })
@@ -126,7 +128,7 @@ const controllerIdSchema = z
     },
     (data) => ({
       message: i18n.t(
-        `onboarding:fields.controllerIds.value.validation.${data.idType.toLowerCase()}Format`
+        `onboarding-overview:fields.controllerIds.value.validation.${data.idType.toLowerCase()}Format`
       ),
       path: ['value'],
     })
@@ -135,35 +137,37 @@ const controllerIdSchema = z
 export const IndividualIdentityFormSchema = z.object({
   birthDate: z
     .string()
-    .regex(
-      /^\d{4}-\d{2}-\d{2}$/,
-      i18n.t('onboarding:fields.birthDate.validation.format')
+    .refine(
+      (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
+      i18n.t('onboarding-overview:fields.birthDate.validation.format')
     )
     .refine(
       (val) => !Number.isNaN(new Date(val).getTime()),
-      i18n.t('onboarding:fields.birthDate.validation.invalid')
+      i18n.t('onboarding-overview:fields.birthDate.validation.invalid')
     )
     .refine((val) => {
       const date = new Date(val);
       return date <= new Date();
-    }, i18n.t('onboarding:fields.birthDate.validation.future'))
+    }, i18n.t('onboarding-overview:fields.birthDate.validation.future'))
     .refine((val) => {
       const birthDate = new Date(val);
       const now = new Date();
       const age = now.getFullYear() - birthDate.getFullYear();
       return age >= MIN_AGE;
-    }, i18n.t('onboarding:fields.birthDate.validation.tooYoung'))
+    }, i18n.t('onboarding-overview:fields.birthDate.validation.tooYoung'))
     .refine((val) => {
       const birthDate = new Date(val);
       const now = new Date();
       const age = now.getFullYear() - birthDate.getFullYear();
       return age <= MAX_AGE;
-    }, i18n.t('onboarding:fields.birthDate.validation.tooOld')),
+    }, i18n.t('onboarding-overview:fields.birthDate.validation.tooOld')),
   countryOfResidence: z
     .string()
     .length(
       2,
-      i18n.t('onboarding:fields.countryOfResidence.validation.exactlyTwoChars')
+      i18n.t(
+        'onboarding-overview:fields.countryOfResidence.validation.exactlyTwoChars'
+      )
     )
     .refine((val) => val === 'US', {
       message: 'Only US is supported at this time.',
@@ -171,5 +175,5 @@ export const IndividualIdentityFormSchema = z.object({
   controllerIds: z.array(controllerIdSchema).refine((ids) => {
     const types = ids.map((id) => id.idType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.controllerIds.validation.uniqueTypes')),
+  }, i18n.t('onboarding-overview:fields.controllerIds.validation.uniqueTypes')),
 });

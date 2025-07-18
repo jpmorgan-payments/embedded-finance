@@ -225,7 +225,7 @@ const FlowRenderer: React.FC = () => {
     }
 
     if (screen.type === 'stepper') {
-      return <StepperRenderer {...screen.stepperConfig} />;
+      return <StepperRenderer key={screen.id} {...screen.stepperConfig} />;
     }
 
     return <div>Unhandled screen error</div>;
