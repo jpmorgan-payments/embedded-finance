@@ -1,5 +1,24 @@
 import { http, HttpResponse } from 'msw';
-import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
+import {
+  efClientQuestionsMock,
+  efDocumentClientDetail,
+  mockTransactionsResponse,
+  mockEmptyTransactionsResponse,
+  createMockTransactionsResponse,
+  mockLinkedAccounts,
+  mockEmptyLinkedAccounts,
+  createMockLinkedAccountsResponse,
+  mockRecipientsResponse,
+  createMockRecipientsResponse,
+  mockPaymentResponse,
+  mockPaymentValidationResponse,
+  mockPaymentErrorResponse,
+  createMockPayment,
+  validatePayment,
+  mockAccounts,
+  mockRecipients,
+  mockPaymentMethods,
+} from '../mocks';
 
 import { db, handleMagicValues, resetDb, getDbStatus, logDbState } from './db';
 import merge from 'lodash/merge';
@@ -676,6 +695,240 @@ export const createHandlers = (apiUrl) => [
       headers: {
         'Content-Type': 'application/json',
       },
+    });
+  }),
+
+  // --- Embedded Components Handlers ---
+
+  // TransactionsDisplay Component Handlers
+  http.get(`${apiUrl}/ef/do/v1/transactions`, ({ request }) => {
+    console.log('Transactions API call:', request.url);
+    const url = new URL(request.url);
+    const pageParam = url.searchParams.get('page');
+    const limitParam = url.searchParams.get('limit');
+    const accountId = url.searchParams.get('accountId');
+    const status = url.searchParams.get('status');
+    const type = url.searchParams.get('type');
+
+    // Handle optional pagination - if no page/limit provided, return all transactions
+    if (!pageParam && !limitParam) {
+      console.log('No pagination params, returning all transactions');
+      const response = {
+        items: mockTransactionsResponse.items,
+        page: 1,
+        limit: mockTransactionsResponse.items.length,
+        total_items: mockTransactionsResponse.items.length,
+        total_pages: 1,
+      };
+      return HttpResponse.json(response, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Use pagination if provided
+    const page = parseInt(pageParam || '1', 10);
+    const limit = parseInt(limitParam || '10', 10);
+
+    console.log('Transactions API call params:', {
+      page,
+      limit,
+      accountId,
+      status,
+      type,
+    });
+
+    // Filter transactions based on query parameters
+    let filteredTransactions = mockTransactionsResponse.items;
+
+    if (accountId) {
+      filteredTransactions = filteredTransactions.filter(
+        (t) =>
+          t.creditorAccountId === accountId || t.debtorAccountId === accountId,
+      );
+    }
+
+    if (status) {
+      filteredTransactions = filteredTransactions.filter(
+        (t) => t.status === status,
+      );
+    }
+
+    if (type) {
+      filteredTransactions = filteredTransactions.filter(
+        (t) => t.type === type,
+      );
+    }
+
+    const response = createMockTransactionsResponse(
+      filteredTransactions,
+      page,
+      limit,
+    );
+
+    console.log('Transactions response:', response);
+    return HttpResponse.json(response, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  // Recipients Component Handlers
+  http.get(`${apiUrl}/ef/do/v1/recipients`, ({ request }) => {
+    console.log('Recipients API call:', request.url);
+    const url = new URL(request.url);
+    const pageParam = url.searchParams.get('page');
+    const limitParam = url.searchParams.get('limit');
+    const type = url.searchParams.get('type');
+    const status = url.searchParams.get('status');
+
+    console.log('Recipients API call params:', {
+      type,
+      status,
+      pageParam,
+      limitParam,
+    });
+
+    // Determine which mock data to use based on the request
+    let filteredRecipients;
+
+    if (type === 'LINKED_ACCOUNT') {
+      // For LinkedAccountWidget - return linked accounts
+      filteredRecipients = mockLinkedAccounts.recipients;
+      console.log('Returning linked accounts:', filteredRecipients.length);
+
+      // Filter by status if specified
+      if (status) {
+        filteredRecipients = filteredRecipients.filter(
+          (r) => r.status === status,
+        );
+      }
+
+      // Handle optional pagination
+      if (!pageParam && !limitParam) {
+        console.log('No pagination params, returning all linked accounts');
+        const response = {
+          page: 1,
+          limit: filteredRecipients.length,
+          total_items: filteredRecipients.length,
+          recipients: filteredRecipients,
+        };
+        return HttpResponse.json(response, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const page = parseInt(pageParam || '1', 10);
+      const limit = parseInt(limitParam || '10', 10);
+
+      const response = createMockLinkedAccountsResponse(
+        filteredRecipients,
+        page,
+        limit,
+      );
+
+      return HttpResponse.json(response, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } else {
+      // For Recipients component - return payment recipients
+      filteredRecipients = mockRecipientsResponse.recipients;
+      console.log('Returning payment recipients:', filteredRecipients.length);
+
+      // Filter by type if specified (RECIPIENT vs LINKED_ACCOUNT)
+      if (type && type !== 'RECIPIENT') {
+        filteredRecipients = filteredRecipients.filter((r) => r.type === type);
+      }
+
+      // Filter by status if specified
+      if (status) {
+        filteredRecipients = filteredRecipients.filter(
+          (r) => r.status === status,
+        );
+      }
+
+      // Handle optional pagination
+      if (!pageParam && !limitParam) {
+        console.log('No pagination params, returning all recipients');
+        const response = {
+          page: 1,
+          limit: filteredRecipients.length,
+          total_items: filteredRecipients.length,
+          recipients: filteredRecipients,
+        };
+        return HttpResponse.json(response, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const page = parseInt(pageParam || '1', 10);
+      const limit = parseInt(limitParam || '10', 10);
+
+      const response = createMockRecipientsResponse(
+        filteredRecipients,
+        page,
+        limit,
+      );
+
+      console.log('Final response:', response);
+      return HttpResponse.json(response, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }),
+
+  // MakePayment Component Handlers
+  http.get(`${apiUrl}/ef/do/v1/accounts`, () => {
+    return HttpResponse.json(mockAccounts, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  http.get(`${apiUrl}/ef/do/v1/payment-recipients`, ({ request }) => {
+    const url = new URL(request.url);
+    const type = url.searchParams.get('type');
+
+    // Return payment recipients (not linked accounts)
+    let filteredRecipients = mockRecipients.filter(
+      (r) => r.type === 'RECIPIENT',
+    );
+
+    if (type) {
+      filteredRecipients = filteredRecipients.filter((r) => r.type === type);
+    }
+
+    return HttpResponse.json(filteredRecipients, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  http.get(`${apiUrl}/ef/do/v1/payment-methods`, () => {
+    return HttpResponse.json(mockPaymentMethods, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  http.post(`${apiUrl}/ef/do/v1/payments/validate`, async ({ request }) => {
+    const paymentData = await request.json();
+    const validation = validatePayment(paymentData);
+
+    if (validation.isValid) {
+      return HttpResponse.json(mockPaymentValidationResponse, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } else {
+      return HttpResponse.json(mockPaymentErrorResponse, {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }),
+
+  http.post(`${apiUrl}/ef/do/v1/payments`, async ({ request }) => {
+    const paymentData = await request.json();
+    const newPayment = createMockPayment(paymentData);
+
+    return HttpResponse.json(newPayment, {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
     });
   }),
 ];

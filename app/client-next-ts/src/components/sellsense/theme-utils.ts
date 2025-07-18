@@ -1,5 +1,6 @@
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import { getThemeVariables, type ThemeOption } from './use-sellsense-themes';
+import { useMemo } from 'react';
 
 /**
  * Centralized theme utilities for SellSense demo portal
@@ -313,7 +314,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Default Blue':
         case 'S&P Theme':
         case 'Create Commerce':
-          return '/CreateCommerceLogo.svg'
+          return '/CreateCommerceLogo.svg';
         case 'SellSense':
         default:
           return '/sellSense.svg'; // SellSense logo for all other themes
@@ -345,7 +346,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Default Blue':
         case 'S&P Theme':
         case 'Create Commerce':
-          return 'h-9 w-auto max-w-[250px]'
+          return 'h-9 w-auto max-w-[250px]';
         case 'SellSense':
         default:
           return 'h-8 w-auto max-w-[150px] object-contain'; // Consistent responsive sizing for SellSense logo
@@ -358,5 +359,5 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
  * Hook-style wrapper for easier use in components
  */
 export function useThemeStyles(theme: ThemeOption): ThemeStyleUtils {
-  return createThemeStyleUtils(theme);
+  return useMemo(() => createThemeStyleUtils(theme), [theme]);
 }

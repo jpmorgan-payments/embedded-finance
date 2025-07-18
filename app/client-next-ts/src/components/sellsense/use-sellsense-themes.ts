@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
 // Updated ThemeOption type to include Empty theme for showing defaults
@@ -10,7 +11,7 @@ export type ThemeOption =
   | 'Empty';
 
 export const useSellSenseThemes = () => {
-  const getThemeVariables = (themeOption: ThemeOption): EBThemeVariables => {
+  const getThemeVariables = useCallback((themeOption: ThemeOption): EBThemeVariables => {
     switch (themeOption) {
       case 'Empty':
         // Empty theme - no design tokens to show component defaults
@@ -507,15 +508,15 @@ export const useSellSenseThemes = () => {
           successAccentColor: '#d1fae5',
         };
     }
-  };
+  }, []);
 
-  const mapThemeOption = (themeOption: ThemeOption) => {
+  const mapThemeOption = useCallback((themeOption: ThemeOption) => {
     const variables = getThemeVariables(themeOption);
     return {
       colorScheme: 'light' as const, // All themes are light mode for now
       variables,
     };
-  };
+  }, [getThemeVariables]);
 
   return {
     getThemeVariables,

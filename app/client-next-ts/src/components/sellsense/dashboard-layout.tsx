@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useSearch, useNavigate } from '@tanstack/react-router';
+import {
+  EBComponentsProvider,
+  Recipients,
+  TransactionsDisplay,
+} from '@jpmorgan-payments/embedded-finance-components';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import { SettingsDrawer } from './settings-drawer';
@@ -94,7 +99,7 @@ export function DashboardLayout() {
       case 'Onboarding - In Review':
         return 'onboarding';
       default:
-        return 'overview';
+        return 'wallet'; // Changed from 'overview' to 'wallet'
     }
   }
 
@@ -167,15 +172,121 @@ export function DashboardLayout() {
   };
 
   const renderFullscreenComponent = () => {
+    // Use theme from URL params for fullscreen mode, fallback to current theme
+    const fullscreenTheme = searchParams.theme || theme;
+
+    // Create theme object for EBComponentsProvider
+    const themeObject = {
+      colorScheme: 'light' as const,
+      variables: {
+        primaryColor: fullscreenTheme === 'SellSense' ? '#ff6b35' : '#6366f1',
+        backgroundColor: '#ffffff',
+        foregroundColor: '#1e293b',
+        borderColor: '#e2e8f0',
+        borderRadius: '8px',
+      },
+    };
+
     switch (searchParams.component) {
       case 'onboarding':
-        return <KycOnboarding clientScenario={clientScenario} theme={theme} />;
+        return (
+          <KycOnboarding
+            clientScenario={clientScenario}
+            theme={fullscreenTheme}
+          />
+        );
       case 'linked-accounts':
-        return <LinkedAccounts clientScenario={clientScenario} theme={theme} />;
+        return (
+          <LinkedAccounts
+            clientScenario={clientScenario}
+            theme={fullscreenTheme}
+          />
+        );
+      case 'recipients':
+        return (
+          <div className="h-screen p-6">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-2xl font-bold mb-6">Recipients</h1>
+              <div className="bg-white rounded-lg border p-6">
+                <EBComponentsProvider
+                  apiBaseUrl="/ef/do/v1/"
+                  theme={themeObject}
+                  headers={{
+                    'Content-Type': 'application/json',
+                  }}
+                  contentTokens={{
+                    name: 'enUS',
+                  }}
+                >
+                  <Recipients />
+                </EBComponentsProvider>
+              </div>
+            </div>
+          </div>
+        );
+      case 'transactions':
+        return (
+          <div className="h-screen p-6">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-2xl font-bold mb-6">Transaction History</h1>
+              <div className="bg-white rounded-lg border p-6">
+                <EBComponentsProvider
+                  apiBaseUrl="/ef/do/v1/"
+                  theme={themeObject}
+                  headers={{
+                    'Content-Type': 'application/json',
+                  }}
+                  contentTokens={{
+                    name: 'enUS',
+                  }}
+                >
+                  <TransactionsDisplay accountId="0030000131" />
+                </EBComponentsProvider>
+              </div>
+            </div>
+          </div>
+        );
+      case 'make-payment':
+        return (
+          <div className="h-screen p-6">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-2xl font-bold mb-6">Make Payment</h1>
+              <div className="bg-white rounded-lg border p-6">
+                <div className="p-8 text-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                  <div className="text-gray-500 mb-4">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Make Payment Component
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    This component will be implemented in the future.
+                  </p>
+                  <div className="text-xs text-gray-500 bg-white px-3 py-2 rounded border">
+                    <strong>Status:</strong> Coming Soon
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="flex items-center justify-center h-screen text-gray-500">
-            Component not found
+            Component not found: {searchParams.component}
           </div>
         );
     }
