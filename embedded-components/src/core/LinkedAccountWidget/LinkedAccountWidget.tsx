@@ -8,7 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Separator,
 } from '@/components/ui';
 
 import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
