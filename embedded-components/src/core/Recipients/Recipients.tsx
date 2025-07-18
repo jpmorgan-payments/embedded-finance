@@ -68,6 +68,8 @@ export interface RecipientsProps {
   onRecipientCreated?: (recipient: Recipient) => void;
   /** Callback when recipient is updated */
   onRecipientUpdated?: (recipient: Recipient) => void;
+  /** Callback when recipient is deactivated */
+  onRecipientDeactivated?: (recipient: Recipient) => void;
   /** List of user events to track */
   userEventsToTrack?: string[];
   /** Handler for user events */
@@ -96,7 +98,17 @@ const RecipientCard: React.FC<{
   recipient: Recipient;
   onView: () => void;
   onEdit: () => void;
-}> = ({ recipient, onView, onEdit }) => (
+  onDeactivate: () => void;
+  canDeactivate: boolean;
+  isDeactivating: boolean;
+}> = ({
+  recipient,
+  onView,
+  onEdit,
+  onDeactivate,
+  canDeactivate,
+  isDeactivating,
+}) => (
   <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
     <div className="eb-flex eb-items-center eb-justify-between">
       <div className="eb-truncate eb-text-base eb-font-semibold">
@@ -163,6 +175,25 @@ const RecipientCard: React.FC<{
       >
         Edit
       </span>
+      {canDeactivate && (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={onDeactivate}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onDeactivate();
+          }}
+          className={`eb-cursor-pointer eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline ${
+            isDeactivating
+              ? 'eb-cursor-not-allowed eb-text-gray-400'
+              : 'eb-text-red-600'
+          }`}
+          title="Deactivate recipient"
+          style={{ pointerEvents: isDeactivating ? 'none' : 'auto' }}
+        >
+          {isDeactivating ? 'Deactivating...' : 'Deactivate'}
+        </span>
+      )}
     </div>
   </Card>
 );
@@ -174,6 +205,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   config,
   onRecipientCreated,
   onRecipientUpdated,
+  onRecipientDeactivated,
   userEventsHandler,
 }) => {
   // Merge user config with defaults
@@ -237,6 +269,19 @@ export const Recipients: React.FC<RecipientsProps> = ({
     },
   });
 
+  const deactivateRecipientMutation = useAmendRecipient({
+    mutation: {
+      onSuccess: (data) => {
+        refetch();
+        onRecipientDeactivated?.(data);
+        userEventsHandler?.({ actionName: 'recipient_deactivated' });
+      },
+      onError: (error) => {
+        console.error('Failed to deactivate recipient:', error);
+      },
+    },
+  });
+
   // Handlers
   const handleCreateRecipient = useCallback(
     (data: RecipientRequest) => {
@@ -271,6 +316,26 @@ export const Recipients: React.FC<RecipientsProps> = ({
     },
     [userEventsHandler]
   );
+
+  const handleDeactivateRecipient = useCallback(
+    (recipient: Recipient) => {
+      if (
+        window.confirm(
+          `Are you sure you want to deactivate ${formatRecipientName(recipient)}?`
+        )
+      ) {
+        deactivateRecipientMutation.mutate({
+          id: recipient.id,
+          data: { status: 'INACTIVE' },
+        });
+        userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
+      }
+    },
+    [deactivateRecipientMutation, userEventsHandler]
+  );
+
+  // Check if any deactivate operation is in progress
+  const isDeactivating = deactivateRecipientMutation.isPending;
 
   // Filtered recipients
   const filteredRecipients = useMemo(() => {
@@ -467,6 +532,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   recipient={recipient}
                   onView={() => handleViewDetails(recipient)}
                   onEdit={() => handleEditRecipient(recipient)}
+                  onDeactivate={() => handleDeactivateRecipient(recipient)}
+                  canDeactivate={recipient.status === 'ACTIVE'}
+                  isDeactivating={isDeactivating}
                 />
               ))
             )}
@@ -537,6 +605,23 @@ export const Recipients: React.FC<RecipientsProps> = ({
                             >
                               Edit
                             </span>
+                            {recipient.status === 'ACTIVE' && (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                  handleDeactivateRecipient(recipient)
+                                }
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ')
+                                    handleDeactivateRecipient(recipient);
+                                }}
+                                className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                title="Deactivate recipient"
+                              >
+                                Deactivate
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -661,6 +746,23 @@ export const Recipients: React.FC<RecipientsProps> = ({
                             >
                               Edit
                             </span>
+                            {recipient.status === 'ACTIVE' && (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                  handleDeactivateRecipient(recipient)
+                                }
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ')
+                                    handleDeactivateRecipient(recipient);
+                                }}
+                                className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                title="Deactivate recipient"
+                              >
+                                Deactivate
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

@@ -89,7 +89,7 @@ export const getRecipientLabel = (recipient: Recipient) => {
           recipient.partyDetails?.firstName,
           recipient.partyDetails?.lastName,
         ].join(' ')
-      : recipient.partyDetails?.businessName;
+      : recipient.partyDetails?.organization?.businessName;
 
   return `${name} (...${recipient.account ? recipient.account.number?.slice(-4) : ''})`;
 };
