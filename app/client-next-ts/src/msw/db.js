@@ -6,6 +6,9 @@ import {
   LLCExistingClientOutstandingDocuments,
 } from '../mocks/clientDetails.mock';
 import { efDocumentRequestDetailsList, efClientQuestionsMock } from '../mocks';
+import { mockRecipientsResponse } from '../mocks/recipients.mock';
+import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
+import { mockTransactionsResponse } from '../mocks/transactions.mock';
 
 // Magic values configuration
 export const MAGIC_VALUES = {
@@ -66,6 +69,33 @@ export const db = factory({
     createdAt: String,
     validForDays: Number,
   },
+  recipient: {
+    id: primaryKey(String),
+    type: String, // 'RECIPIENT' or 'LINKED_ACCOUNT'
+    status: String,
+    clientId: String,
+    partyDetails: Object,
+    account: Object,
+    createdAt: String,
+    updatedAt: String,
+  },
+  transaction: {
+    id: primaryKey(String),
+    type: String, // 'ACH', 'WIRE', 'RTP'
+    status: String, // 'COMPLETED', 'PENDING', 'FAILED'
+    amount: Number,
+    currency: String,
+    paymentDate: String,
+    effectiveDate: String,
+    creditorAccountId: String,
+    debtorAccountId: String,
+    creditorName: String,
+    debtorName: String,
+    postingVersion: Number,
+    reference: String,
+    description: String,
+    createdAt: String,
+  },
 });
 
 // Helper function to handle document request upsert
@@ -115,11 +145,15 @@ export function logDbState(operation = 'Current State') {
   const clients = db.client.getAll();
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
+  const recipients = db.recipient.getAll();
+  const transactions = db.transaction.getAll();
 
   console.log('=== Database State After:', operation, '===');
-  console.log('Clients:', JSON.stringify(clients, null, 2));
-  console.log('Parties:', JSON.stringify(parties, null, 2));
-  console.log('Document Requests:', JSON.stringify(documentRequests, null, 2));
+  console.log('Clients:', clients);
+  console.log('Parties:', parties);
+  console.log('Document Requests:', documentRequests);
+  console.log('Recipients:', recipients);
+  console.log('Transactions:', transactions);
   console.log('=====================================');
 }
 
@@ -130,23 +164,19 @@ export function initializeDb(force = false) {
     const existingClients = db.client.getAll();
     if (force || existingClients.length === 0) {
       console.log('=== Starting Database Initialization ===');
-      console.log(
-        'Predefined Clients Data:',
-        JSON.stringify(predefinedClients, null, 2),
-      );
+      console.log('Predefined Clients Data:', predefinedClients);
 
       // Clear existing data
       db.client.deleteMany({});
       db.party.deleteMany({});
       db.documentRequest.deleteMany({});
+      db.recipient.deleteMany({});
+      db.transaction.deleteMany({});
 
       // Add predefined clients and their parties
       Object.entries(predefinedClients).forEach(([clientId, clientData]) => {
         try {
-          console.log(
-            `\nInitializing Client ${clientId}:`,
-            JSON.stringify(clientData, null, 2),
-          );
+          console.log(`\nInitializing Client ${clientId}:`, clientData);
 
           // First create all parties from the client data
           const parties = clientData.parties || [];
@@ -165,10 +195,7 @@ export function initializeDb(force = false) {
                 access: party.access || [],
                 validationResponse: party.validationResponse || [],
               };
-              console.log(
-                `\nParty ${party.id}:`,
-                JSON.stringify(newParty, null, 2),
-              );
+              console.log(`\nParty ${party.id}:`, newParty);
               try {
                 db.party.create(newParty);
               } catch (error) {
@@ -200,7 +227,7 @@ export function initializeDb(force = false) {
               customerIdentityStatus: 'NOT_STARTED',
             },
           };
-          console.log(`\nCreating Client:`, JSON.stringify(newClient, null, 2));
+          console.log(`\nCreating Client:`, newClient);
           db.client.create(newClient);
 
           // If client status is INFORMATION_REQUESTED, create document requests
@@ -281,6 +308,45 @@ export function initializeDb(force = false) {
           }
         } catch (e) {
           console.error('Error creating client:', e);
+        }
+      });
+
+      // Initialize recipients from mock data
+      console.log('\n=== Initializing Recipients ===');
+      const allRecipients = [
+        ...mockRecipientsResponse.recipients,
+        ...mockLinkedAccounts.recipients,
+      ];
+
+      allRecipients.forEach((recipient) => {
+        try {
+          const newRecipient = {
+            ...recipient,
+            createdAt: recipient.createdAt || new Date().toISOString(),
+            updatedAt: recipient.updatedAt || new Date().toISOString(),
+          };
+          console.log(`Creating recipient ${recipient.id}:`, newRecipient);
+          db.recipient.create(newRecipient);
+        } catch (error) {
+          console.error('Error creating recipient:', error);
+        }
+      });
+
+      // Initialize transactions from mock data
+      console.log('\n=== Initializing Transactions ===');
+      mockTransactionsResponse.items.forEach((transaction) => {
+        try {
+          const newTransaction = {
+            ...transaction,
+            createdAt: new Date().toISOString(),
+          };
+          console.log(
+            `Creating transaction ${transaction.id}:`,
+            newTransaction,
+          );
+          db.transaction.create(newTransaction);
+        } catch (error) {
+          console.error('Error creating transaction:', error);
         }
       });
 
@@ -471,12 +537,18 @@ export function getDbStatus() {
   const clients = db.client.getAll();
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
+  const recipients = db.recipient.getAll();
+  const transactions = db.transaction.getAll();
 
   logDbState('Status Check');
   return {
     clientCount: clients.length,
     partyCount: parties.length,
     documentRequestCount: documentRequests.length,
+    recipientCount: recipients.length,
+    transactionCount: transactions.length,
     clients: clients.map((c) => c.id),
+    recipients: recipients.map((r) => r.id),
+    transactions: transactions.map((t) => t.id),
   };
 }

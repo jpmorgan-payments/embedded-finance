@@ -48,10 +48,6 @@ const meta: Meta<typeof Recipients> = {
       control: 'boolean',
       description: 'Show/hide create functionality',
     },
-    enableVerification: {
-      control: 'boolean',
-      description: 'Enable microdeposit verification',
-    },
   },
 };
 export default meta;
@@ -67,7 +63,6 @@ export const ConditionalFieldRequirements: Story = {
   name: 'Conditional Field Requirements',
   args: {
     showCreateButton: true,
-    enableVerification: true,
     clientId: 'client-001',
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -99,7 +94,6 @@ export const AddressValidation: Story = {
   name: 'Enhanced Address Validation',
   args: {
     showCreateButton: true,
-    enableVerification: true,
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
@@ -117,7 +111,6 @@ export const ContactValidation: Story = {
   name: 'Complex Contact Validation',
   args: {
     showCreateButton: true,
-    enableVerification: true,
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
@@ -135,7 +128,6 @@ export const BusinessVsIndividual: Story = {
   name: 'Business vs Individual Validation',
   args: {
     showCreateButton: true,
-    enableVerification: true,
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
@@ -153,7 +145,6 @@ export const InternationalValidation: Story = {
   name: 'International Payment Validation',
   args: {
     showCreateButton: true,
-    enableVerification: true,
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
@@ -171,7 +162,6 @@ export const ErrorHandling: Story = {
   name: 'Error Handling & Edge Cases',
   args: {
     showCreateButton: true,
-    enableVerification: true,
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {

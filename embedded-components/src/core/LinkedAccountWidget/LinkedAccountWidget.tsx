@@ -1,10 +1,14 @@
-import { LinkIcon, PencilLineIcon } from 'lucide-react';
-
 import { getRecipientLabel } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ef-v1';
 import { RecipientStatus } from '@/api/generated/ef-v1.schemas';
 import { Button } from '@/components/ui/button';
-import { Badge, Separator } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui';
 
 import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
 import { MicrodepositsFormDialogTrigger } from './MicrodepositsForm/MicrodepositsForm';
@@ -26,15 +30,29 @@ const StatusBadge = ({ status }: { status: RecipientStatus }) => {
     },
   };
 
-  return <Badge {...propsMap[status]}>{status.replace('_', ' ')}</Badge>;
+  return (
+    <Badge {...propsMap[status]} className="eb-text-xs">
+      {status.replace('_', ' ')}
+    </Badge>
+  );
 };
+
+// Helper to get supported payment methods as a string array
+function getSupportedPaymentMethods(recipient: any): string[] {
+  if (!recipient.account?.routingInformation) return [];
+  return recipient.account.routingInformation
+    .map((ri: any) => ri.transactionType)
+    .filter(Boolean);
+}
 
 type LinkedAccountWidgetProps = {
   variant?: 'default' | 'singleAccount';
+  showCreateButton?: boolean;
 };
 
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   variant = 'default',
+  showCreateButton = true,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, status, failureReason } = useGetAllRecipients({
@@ -47,55 +65,140 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       : data?.recipients;
 
   return (
-    <div className="eb-component eb-space-y-4">
-      {status === 'pending' && <p>Loading...</p>}
-      {status === 'error' && (
-        <p>Error: {failureReason?.message ?? 'Unknown error'}</p>
-      )}
-
-      {status === 'success' &&
-        modifiedRecipients &&
-        modifiedRecipients.length > 0 &&
-        modifiedRecipients.map((recipient) => (
-          <div key={recipient.id} className="eb-space-y-1">
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <h4
-                key={recipient.id}
-                className="eb-text-sm eb-font-medium eb-leading-none"
-              >
-                {getRecipientLabel(recipient)}
-              </h4>
-              {recipient.status && <StatusBadge status={recipient.status} />}
-            </div>
-            <p className="eb-text-sm eb-text-muted-foreground">
-              {recipient.partyDetails.type.toLocaleUpperCase()}
-            </p>
-            {recipient.status === 'READY_FOR_VALIDATION' && (
-              <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
-                <Button size="sm" variant="secondary" className="eb-mt-2">
-                  <PencilLineIcon className="eb-mr-2 eb-h-4 eb-w-4" /> Verify
-                  microdeposits
-                </Button>
-              </MicrodepositsFormDialogTrigger>
-            )}
-          </div>
-        ))}
-      {status === 'success' &&
-        modifiedRecipients &&
-        ((variant === 'singleAccount' && modifiedRecipients.length === 0) ||
-          variant === 'default') && (
-          <>
-            {(data?.recipients ?? []).length > 0 && (
-              <Separator className="eb-my-4" />
-            )}
+    <Card className="eb-w-full">
+      <CardHeader>
+        <div className="eb-flex eb-items-center eb-justify-between">
+          <CardTitle className="eb-text-xl eb-font-semibold">
+            Linked Accounts
+          </CardTitle>
+          {showCreateButton && (
             <LinkAccountFormDialogTrigger>
-              <Button>
-                <LinkIcon className="eb-mr-2 eb-h-4 eb-w-4" /> Link A New
-                Account
-              </Button>
+              <Button>Link A New Account</Button>
             </LinkAccountFormDialogTrigger>
-          </>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="eb-space-y-4">
+        {status === 'pending' && (
+          <div className="eb-py-8 eb-text-center eb-text-gray-500">
+            Loading linked accounts...
+          </div>
         )}
-    </div>
+        {status === 'error' && (
+          <div className="eb-py-8 eb-text-center eb-text-red-500">
+            Error: {failureReason?.message ?? 'Unknown error'}
+          </div>
+        )}
+
+        {status === 'success' &&
+          modifiedRecipients &&
+          modifiedRecipients.length > 0 &&
+          modifiedRecipients.map((recipient) => (
+            <div
+              key={recipient.id}
+              className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4"
+            >
+              <div className="eb-flex eb-items-center eb-justify-between">
+                <div className="eb-truncate eb-text-base eb-font-semibold">
+                  {getRecipientLabel(recipient)}
+                </div>
+                <Badge variant="outline" className="eb-text-sm">
+                  {recipient.partyDetails?.type === 'INDIVIDUAL'
+                    ? 'Individual'
+                    : 'Business'}
+                </Badge>
+              </div>
+              <div className="eb-flex eb-items-center eb-gap-2">
+                {recipient.status && <StatusBadge status={recipient.status} />}
+                <span className="eb-text-xs eb-text-gray-500">
+                  {recipient.createdAt
+                    ? new Date(recipient.createdAt).toLocaleDateString(
+                        undefined,
+                        {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        }
+                      )
+                    : 'N/A'}
+                </span>
+              </div>
+              <div className="eb-text-xs eb-text-gray-600">
+                <span className="eb-font-medium">Account:</span>{' '}
+                {recipient.account?.number
+                  ? `****${recipient.account.number.slice(-4)}`
+                  : 'N/A'}
+              </div>
+              {/* Supported Payment Methods */}
+              <div className="eb-mt-1 eb-flex eb-flex-wrap eb-gap-1">
+                {getSupportedPaymentMethods(recipient).length > 0 ? (
+                  getSupportedPaymentMethods(recipient).map(
+                    (method: string) => (
+                      <Badge
+                        key={method}
+                        variant="secondary"
+                        className="eb-text-xs"
+                      >
+                        {method}
+                      </Badge>
+                    )
+                  )
+                ) : (
+                  <span className="eb-text-xs eb-text-gray-400">
+                    No payment methods
+                  </span>
+                )}
+              </div>
+              <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
+                {recipient.status === 'READY_FOR_VALIDATION' && (
+                  <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                      title="Verify microdeposits"
+                    >
+                      Verify microdeposits
+                    </span>
+                  </MicrodepositsFormDialogTrigger>
+                )}
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                  title="View details"
+                >
+                  Details
+                </span>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                  title="Edit linked account"
+                >
+                  Edit
+                </span>
+                {recipient.status === 'ACTIVE' && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                    title="Deactivate linked account"
+                  >
+                    Deactivate
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        {status === 'success' &&
+          modifiedRecipients &&
+          modifiedRecipients.length === 0 && (
+            <div className="eb-py-8 eb-text-center eb-text-gray-500">
+              No linked accounts found
+            </div>
+          )}
+      </CardContent>
+    </Card>
   );
 };

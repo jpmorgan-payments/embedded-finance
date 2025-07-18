@@ -40,13 +40,16 @@ export const PersonalDetailsSection: React.FC<PersonalDetailsSectionProps> = ({
           control={control}
           render={({ field }) => (
             <Select
-              value={field.value}
+              value={field.value || 'INDIVIDUAL'}
               onValueChange={(value) => {
                 field.onChange(value);
-                // Clear relevant fields when switching type
-                if (value === 'INDIVIDUAL') {
+                // Only clear fields when switching type, not when initializing
+                if (value === 'INDIVIDUAL' && field.value === 'ORGANIZATION') {
                   setValue('businessName', '');
-                } else {
+                } else if (
+                  value === 'ORGANIZATION' &&
+                  field.value === 'INDIVIDUAL'
+                ) {
                   setValue('firstName', '');
                   setValue('lastName', '');
                 }

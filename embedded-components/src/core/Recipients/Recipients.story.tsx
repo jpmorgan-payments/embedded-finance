@@ -3,10 +3,7 @@ import {
   createMockRecipientsResponse,
   mockActiveRecipients,
   mockEmptyRecipientsResponse,
-  mockMicrodepositRecipients,
   mockRecipientsResponse,
-  mockVerificationFailure,
-  mockVerificationSuccess,
 } from '@/mocks/recipients.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
@@ -60,10 +57,6 @@ const meta: Meta<typeof Recipients> = {
       control: 'boolean',
       description: 'Show/hide create functionality',
     },
-    enableVerification: {
-      control: 'boolean',
-      description: 'Enable microdeposit verification',
-    },
     onRecipientCreated: {
       action: 'recipient-created',
       description: 'Callback when recipient is created',
@@ -71,10 +64,6 @@ const meta: Meta<typeof Recipients> = {
     onRecipientUpdated: {
       action: 'recipient-updated',
       description: 'Callback when recipient is updated',
-    },
-    onVerificationComplete: {
-      action: 'verification-complete',
-      description: 'Callback when verification is complete',
     },
     userEventsHandler: {
       action: 'user-event',
@@ -90,7 +79,6 @@ export const Default: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -106,9 +94,6 @@ export const Default: Story = {
         http.post('*/recipients/:id', () => {
           return HttpResponse.json(createMockRecipient());
         }),
-        http.post('*/recipients/:id/verify-microdeposit', () => {
-          return HttpResponse.json(mockVerificationSuccess);
-        }),
       ],
     },
   },
@@ -119,7 +104,6 @@ export const ActiveRecipients: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -142,12 +126,11 @@ export const ActiveRecipients: Story = {
   },
 };
 
-// Story with recipients requiring microdeposit verification
-export const MicrodepositVerification: Story = {
+// Story with inactive recipients
+export const InactiveRecipients: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -155,12 +138,13 @@ export const MicrodepositVerification: Story = {
     msw: {
       handlers: [
         http.get('*/recipients', () => {
+          const inactiveRecipients =
+            mockRecipientsResponse.recipients?.filter(
+              (r) => r.status === 'INACTIVE'
+            ) || [];
           return HttpResponse.json(
-            createMockRecipientsResponse(mockMicrodepositRecipients)
+            createMockRecipientsResponse(inactiveRecipients)
           );
-        }),
-        http.post('*/recipients/:id/verify-microdeposit', () => {
-          return HttpResponse.json(mockVerificationSuccess);
         }),
       ],
     },
@@ -172,7 +156,6 @@ export const EmptyState: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -192,7 +175,6 @@ export const Loading: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -212,7 +194,6 @@ export const ErrorState: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -235,7 +216,6 @@ export const ReadOnly: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: false,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -255,7 +235,6 @@ export const NoVerification: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: false,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -275,7 +254,6 @@ export const LargeDataset: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -312,9 +290,7 @@ export const LargeDataset: Story = {
                 individual: undefined,
                 organization: undefined,
               },
-              status: ['ACTIVE', 'INACTIVE', 'MICRODEPOSITS_INITIATED'][
-                i % 3
-              ] as any,
+              status: ['ACTIVE', 'INACTIVE', 'REJECTED'][i % 3] as any,
             })
           );
 
@@ -332,7 +308,6 @@ export const RecipientTypes: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -343,11 +318,11 @@ export const RecipientTypes: Story = {
           const url = new URL(request.url);
           const type = url.searchParams.get('type');
 
-          let filteredRecipients = mockRecipientsResponse.recipients || [];
-          if (type) {
-            filteredRecipients = filteredRecipients.filter(
-              (r) => r.type === type
-            );
+          let filteredRecipients =
+            mockRecipientsResponse.recipients?.filter((r) => r.type === type) ||
+            [];
+          if (!type) {
+            filteredRecipients = mockRecipientsResponse.recipients || [];
           }
 
           return HttpResponse.json({
@@ -361,12 +336,11 @@ export const RecipientTypes: Story = {
   },
 };
 
-// Story with verification failure
-export const VerificationFailure: Story = {
+// Story with rejected recipients
+export const RejectedRecipients: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -374,12 +348,13 @@ export const VerificationFailure: Story = {
     msw: {
       handlers: [
         http.get('*/recipients', () => {
+          const rejectedRecipients =
+            mockRecipientsResponse.recipients?.filter(
+              (r) => r.status === 'REJECTED'
+            ) || [];
           return HttpResponse.json(
-            createMockRecipientsResponse(mockMicrodepositRecipients)
+            createMockRecipientsResponse(rejectedRecipients)
           );
-        }),
-        http.post('*/recipients/:id/verify-microdeposit', () => {
-          return HttpResponse.json(mockVerificationFailure);
         }),
       ],
     },
@@ -391,7 +366,6 @@ export const InteractiveDemo: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -406,9 +380,6 @@ export const InteractiveDemo: Story = {
         }),
         http.post('*/recipients/:id', () => {
           return HttpResponse.json(createMockRecipient());
-        }),
-        http.post('*/recipients/:id/verify-microdeposit', () => {
-          return HttpResponse.json(mockVerificationSuccess);
         }),
       ],
     },
@@ -435,7 +406,6 @@ export const MobileView: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -458,7 +428,6 @@ export const DarkTheme: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -482,8 +451,7 @@ export const WithEventTracking: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create', 'verify'],
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
       console.log('User event:', event);
     },

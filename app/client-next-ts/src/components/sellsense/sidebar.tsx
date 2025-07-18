@@ -17,17 +17,10 @@ const onboardingMenu = [{ key: 'onboarding' as View, label: 'Onboarding' }];
 
 const fullSidebarMenu = [
   { key: 'overview' as View, label: 'Home' },
-  { key: 'wallet' as View, label: 'Wallet' },
-  { key: 'transactions' as View, label: 'Transactions' },
-  { key: 'linked-accounts' as View, label: 'Linked Bank Accounts' },
-  { key: 'payout' as View, label: 'Payout Settings' },
+  { key: 'wallet' as View, label: 'Wallet Management' },
   { key: 'catalog' as View, label: 'Catalog' },
-  { key: 'pricing' as View, label: 'Pricing' },
   { key: 'orders' as View, label: 'Orders' },
-  { key: 'payments' as View, label: 'Payments' },
   { key: 'performance' as View, label: 'Performance' },
-  { key: 'analytics' as View, label: 'Analytics' },
-  { key: 'growth' as View, label: 'Growth Tools' },
 ];
 
 interface SidebarButtonProps {

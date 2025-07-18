@@ -30,7 +30,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
   MicrodepositsFormDataType,
@@ -86,9 +85,9 @@ export const MicrodepositsFormDialogTrigger: FC<
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-max-h-[min(60rem,100vh)] eb-max-w-[30rem] eb-gap-4 eb-px-0 eb-pb-0">
-        <DialogHeader className="eb-px-6">
-          <DialogTitle>Verify microdeposits</DialogTitle>
+      <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Verify Microdeposits</DialogTitle>
           <DialogDescription>
             Enter the two micro-deposits we sent to your external bank account
             <b> {recipient ? getRecipientLabel(recipient) : '...'} </b>
@@ -96,7 +95,7 @@ export const MicrodepositsFormDialogTrigger: FC<
           </DialogDescription>
         </DialogHeader>
         {verifyStatus === 'pending' ? (
-          <div className="eb-flex eb-h-[25rem] eb-items-center eb-justify-center eb-border-t-2">
+          <div className="eb-flex eb-h-[25rem] eb-items-center eb-justify-center">
             <Loader2Icon
               className="eb-animate-spin eb-stroke-primary"
               size={48}
@@ -104,57 +103,60 @@ export const MicrodepositsFormDialogTrigger: FC<
           </div>
         ) : verifyStatus === 'success' &&
           verifyResponse.status === 'VERIFIED' ? (
-          <div>
-            <div className="eb-flex eb-h-80 eb-items-center eb-justify-center eb-border-t-2">
-              <div className="eb-grid eb-gap-2 eb-px-10">
+          <div className="eb-space-y-6">
+            <div className="eb-flex eb-h-80 eb-items-center eb-justify-center">
+              <div className="eb-grid eb-gap-4 eb-text-center">
                 <CheckCircle2Icon
                   className="eb-justify-self-center eb-stroke-green-600"
                   size={72}
                 />
-                <p className="eb-justify-self-center eb-text-lg eb-font-medium">
-                  Success!
-                </p>
+                <p className="eb-text-lg eb-font-medium">Success!</p>
 
-                <p className="eb-mt-8 eb-text-muted-foreground">
+                <p className="eb-text-muted-foreground">
                   You have completed the microdeposits verification. You can now
                   make transactions to your linked account{' '}
                   <b>{recipient ? getRecipientLabel(recipient) : '...'}</b>
                 </p>
               </div>
             </div>
-            <DialogFooter className="eb-mx-6 eb-my-4 eb-gap-2">
+            <DialogFooter className="eb-gap-2">
               <DialogClose asChild>
                 <Button>Done</Button>
               </DialogClose>
             </DialogFooter>
           </div>
         ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <ScrollArea className="eb-max-h-[calc(min(60rem,100vh)-5.5rem)] eb-border-t-2">
-                <div className="eb-grid eb-gap-2 eb-px-6 eb-pt-4">
-                  {verifyResponse?.status === 'FAILED' && (
-                    <Alert variant="destructive">
-                      <AlertTriangleIcon className="eb-h-4 eb-w-4 eb-stroke-destructive" />
-                      <AlertTitle>Verification failed</AlertTitle>
-                      <AlertDescription>
-                        The microdeposits you have entered were incorrect.
-                        Please try again.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {verifyResponse?.status ===
-                    'FAILED_MAX_ATTEMPTS_EXCEEDED' && (
-                    <Alert variant="destructive">
-                      <AlertTriangleIcon className="eb-h-4 eb-w-4 eb-stroke-destructive" />
-                      <AlertTitle>Max number of attempts exceeded</AlertTitle>
-                      <AlertDescription>
-                        You have exceeded the maximum number of attempts to
-                        verify microdeposits. Please contact support.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <div className="eb-grid eb-grid-flow-col eb-justify-stretch eb-gap-4">
+          <div className="eb-scrollable-content">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="eb-space-y-6"
+              >
+                {/* Error Alerts */}
+                {verifyResponse?.status === 'FAILED' && (
+                  <Alert variant="destructive">
+                    <AlertTriangleIcon className="eb-h-4 eb-w-4" />
+                    <AlertTitle>Verification failed</AlertTitle>
+                    <AlertDescription>
+                      The microdeposits you have entered were incorrect. Please
+                      try again.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {verifyResponse?.status === 'FAILED_MAX_ATTEMPTS_EXCEEDED' && (
+                  <Alert variant="destructive">
+                    <AlertTriangleIcon className="eb-h-4 eb-w-4" />
+                    <AlertTitle>Max number of attempts exceeded</AlertTitle>
+                    <AlertDescription>
+                      You have exceeded the maximum number of attempts to verify
+                      microdeposits. Please contact support.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Microdeposit Amounts Section */}
+                <div className="eb-space-y-4">
+                  <div className="eb-grid eb-grid-cols-2 eb-gap-4">
                     <FormField
                       control={form.control}
                       name="amount1"
@@ -196,15 +198,16 @@ export const MicrodepositsFormDialogTrigger: FC<
                     />
                   </div>
                 </div>
-                <DialogFooter className="eb-mx-6 eb-my-4 eb-gap-2">
+
+                <DialogFooter className="eb-gap-2">
                   <DialogClose asChild>
-                    <Button variant="secondary">Cancel</Button>
+                    <Button variant="outline">Cancel</Button>
                   </DialogClose>
                   <Button type="submit">Verify</Button>
                 </DialogFooter>
-              </ScrollArea>
-            </form>
-          </Form>
+              </form>
+            </Form>
+          </div>
         )}
       </DialogContent>
     </Dialog>

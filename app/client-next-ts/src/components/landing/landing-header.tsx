@@ -43,7 +43,7 @@ export function LandingHeader() {
               to="/stories"
               className="text-jpm-gray hover:text-jpm-brown font-medium text-sm lg:text-page-small transition-colors duration-200"
             >
-              Stories
+              Recipes
             </Link>
             <Link
               to="/github"
@@ -87,7 +87,7 @@ export function LandingHeader() {
                     to="/stories"
                     className="block text-jpm-gray hover:text-jpm-brown font-medium text-base transition-colors duration-200 py-2"
                   >
-                    Stories
+                    Recipes
                   </Link>
                   <Link
                     to="/github"

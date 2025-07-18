@@ -23,6 +23,8 @@
     @apply eb-min-h-0 eb-flex-1 eb-overflow-y-auto;
     scroll-behavior: smooth;
     position: relative;
+    /* Add padding to create space between content and scrollbar */
+    padding-right: 16px;
     /* Firefox scrollbar */
     scrollbar-width: thin;
     scrollbar-color: rgb(209 213 219) rgb(243 244 246);

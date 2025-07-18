@@ -26,7 +26,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -34,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge, Checkbox } from '@/components/ui';
+import { Badge, Checkbox, Separator } from '@/components/ui';
 
 import {
   LinkAccountFormDataType,
@@ -119,38 +118,33 @@ export const LinkAccountFormDialogTrigger: FC<
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-max-h-[min(60rem,100vh)] eb-gap-4 eb-px-0 eb-pb-0 sm:eb-max-w-[26rem]">
-        <DialogHeader className="eb-px-6">
-          <DialogTitle>Link an account</DialogTitle>
+      <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Link an Account</DialogTitle>
           <DialogDescription>
             Enter your external account&apos;s information to link it
           </DialogDescription>
         </DialogHeader>
         {createRecipientStatus === 'pending' ? (
-          <div className="eb-flex eb-h-[25rem] eb-items-center eb-justify-center eb-border-t-2">
+          <div className="eb-flex eb-h-[25rem] eb-items-center eb-justify-center">
             <Loader2Icon
               className="eb-animate-spin eb-stroke-primary"
               size={48}
             />
           </div>
         ) : createRecipientStatus === 'success' ? (
-          <div>
-            <div className="eb-flex eb-h-80 eb-items-center eb-justify-center eb-border-t-2">
-              <div className="eb-grid eb-gap-2">
+          <div className="eb-space-y-6">
+            <div className="eb-flex eb-h-80 eb-items-center eb-justify-center">
+              <div className="eb-grid eb-gap-4 eb-text-center">
                 <CheckCircle2Icon
                   className="eb-justify-self-center eb-stroke-green-600"
                   size={72}
                 />
-                <p className="eb-justify-self-center eb-text-lg eb-font-medium">
-                  Success!
-                </p>
+                <p className="eb-text-lg eb-font-medium">Success!</p>
 
-                <div className="eb-mt-8 eb-space-y-1 eb-border eb-p-2">
-                  <div className="eb-flex eb-items-center eb-justify-between eb-gap-4 eb-rounded-lg">
-                    <h4
-                      key={createRecipientResponse.id}
-                      className="eb-text-sm eb-font-medium eb-leading-none"
-                    >
+                <div className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4">
+                  <div className="eb-flex eb-items-center eb-justify-between eb-gap-4">
+                    <h4 className="eb-text-base eb-font-medium eb-leading-none">
                       {getRecipientLabel(createRecipientResponse)}
                     </h4>
                     <Badge>{createRecipientResponse.status}</Badge>
@@ -161,23 +155,29 @@ export const LinkAccountFormDialogTrigger: FC<
                 </div>
               </div>
             </div>
-            <DialogFooter className="eb-mx-6 eb-my-4 eb-gap-2">
+            <DialogFooter className="eb-gap-2">
               <DialogClose asChild>
                 <Button>Done</Button>
               </DialogClose>
             </DialogFooter>
           </div>
         ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <ScrollArea className="eb-max-h-[calc(min(60rem,100vh)-5.5rem)] eb-border-t-2">
-                <div className="eb-grid eb-gap-4 eb-px-6 eb-py-4">
+          <div className="eb-scrollable-content">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="eb-space-y-6"
+              >
+                {/* Account Type Section */}
+                <div className="eb-space-y-4">
                   <FormField
                     control={form.control}
                     name="accountType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Account Type</FormLabel>
+                        <FormLabel className="eb-text-base eb-font-medium">
+                          Account Type
+                        </FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -203,9 +203,14 @@ export const LinkAccountFormDialogTrigger: FC<
                       </FormItem>
                     )}
                   />
+                </div>
 
+                <Separator />
+
+                {/* Personal/Business Details Section */}
+                <div className="eb-space-y-4">
                   {selectedAccountType === 'INDIVIDUAL' && (
-                    <div className="eb-grid eb-grid-flow-col eb-justify-stretch eb-gap-4">
+                    <div className="eb-grid eb-grid-cols-2 eb-gap-4">
                       <FormField
                         control={form.control}
                         name="firstName"
@@ -213,7 +218,10 @@ export const LinkAccountFormDialogTrigger: FC<
                           <FormItem>
                             <FormLabel>First Name</FormLabel>
                             <FormControl>
-                              <Input {...field} />
+                              <Input
+                                {...field}
+                                placeholder="Enter first name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -227,7 +235,7 @@ export const LinkAccountFormDialogTrigger: FC<
                           <FormItem>
                             <FormLabel>Last Name</FormLabel>
                             <FormControl>
-                              <Input {...field} />
+                              <Input {...field} placeholder="Enter last name" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -244,14 +252,22 @@ export const LinkAccountFormDialogTrigger: FC<
                         <FormItem>
                           <FormLabel>Business Name</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              {...field}
+                              placeholder="Enter business name"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   )}
+                </div>
 
+                <Separator />
+
+                {/* Account Details Section */}
+                <div className="eb-space-y-4">
                   <FormField
                     control={form.control}
                     name="routingNumber"
@@ -259,7 +275,10 @@ export const LinkAccountFormDialogTrigger: FC<
                       <FormItem>
                         <FormLabel>Routing Number</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            placeholder="Enter routing number"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -273,13 +292,21 @@ export const LinkAccountFormDialogTrigger: FC<
                       <FormItem>
                         <FormLabel>Account Number</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            placeholder="Enter account number"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                </div>
 
+                <Separator />
+
+                {/* Authorization Section */}
+                <div className="eb-space-y-4">
                   <FormField
                     control={form.control}
                     name="certify"
@@ -302,15 +329,16 @@ export const LinkAccountFormDialogTrigger: FC<
                     )}
                   />
                 </div>
-                <DialogFooter className="eb-mx-6 eb-my-4 eb-gap-2">
+
+                <DialogFooter className="eb-gap-2">
                   <DialogClose asChild>
-                    <Button variant="secondary">Cancel</Button>
+                    <Button variant="outline">Cancel</Button>
                   </DialogClose>
                   <Button type="submit">Link Account</Button>
                 </DialogFooter>
-              </ScrollArea>
-            </form>
-          </Form>
+              </form>
+            </Form>
+          </div>
         )}
       </DialogContent>
     </Dialog>
