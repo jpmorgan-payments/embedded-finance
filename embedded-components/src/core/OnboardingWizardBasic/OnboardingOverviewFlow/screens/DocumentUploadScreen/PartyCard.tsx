@@ -51,7 +51,7 @@ export const PartyCard: FC<PartyCardProps> = ({
   const { data: { documentDetails: documentDetailsList } = {} } =
     useSmbdoGetAllDocumentDetails({
       clientId: clientData?.id,
-      partyId: party.id,
+      ...(party.roles?.includes('CLIENT') ? {} : { partyId: party.id }),
     });
 
   // Helper function to format timestamp to readable date
