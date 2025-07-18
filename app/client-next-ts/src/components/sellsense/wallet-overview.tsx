@@ -141,20 +141,6 @@ function EmbeddedComponentCard({
                   ))}
                 </ul>
               </div>
-              <div>
-                <h4 className="font-medium mb-2">Package Details</h4>
-                <div className="text-sm space-y-1">
-                  <p>
-                    <strong>Latest Version:</strong> 0.7.6
-                  </p>
-                  <p>
-                    <strong>License:</strong> Proprietary (JPMorgan Chase)
-                  </p>
-                  <p>
-                    <strong>Repository:</strong> Private
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
