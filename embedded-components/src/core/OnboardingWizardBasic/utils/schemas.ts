@@ -52,7 +52,10 @@ export const AddressSchema = z.object({
     .string()
     .min(2, 'State name is required')
     .refine(
-      (val) => /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/.test(val),
+      (val) =>
+        /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/.test(
+          val
+        ),
       'Invalid US state'
     ),
 
