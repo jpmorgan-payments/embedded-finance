@@ -320,7 +320,6 @@ export const mockInactiveRecipients = mockRecipients.filter(
   (r) => r.status === 'INACTIVE'
 );
 
-
 // Mock response for specific recipient types
 export const mockRecipientTypeResponse = mockRecipients.filter(
   (r) => r.type === 'RECIPIENT'

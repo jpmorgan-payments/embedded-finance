@@ -2,7 +2,14 @@ import { getRecipientLabel } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ef-v1';
 import { RecipientStatus } from '@/api/generated/ef-v1.schemas';
 import { Button } from '@/components/ui/button';
-import { Badge, Card, CardContent, CardHeader, CardTitle, Separator } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Separator,
+} from '@/components/ui';
 
 import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
 import { MicrodepositsFormDialogTrigger } from './MicrodepositsForm/MicrodepositsForm';
@@ -24,7 +31,11 @@ const StatusBadge = ({ status }: { status: RecipientStatus }) => {
     },
   };
 
-  return <Badge {...propsMap[status]} className="eb-text-xs">{status.replace('_', ' ')}</Badge>;
+  return (
+    <Badge {...propsMap[status]} className="eb-text-xs">
+      {status.replace('_', ' ')}
+    </Badge>
+  );
 };
 
 // Helper to get supported payment methods as a string array
@@ -63,9 +74,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           </CardTitle>
           {showCreateButton && (
             <LinkAccountFormDialogTrigger>
-              <Button>
-                Link A New Account
-              </Button>
+              <Button>Link A New Account</Button>
             </LinkAccountFormDialogTrigger>
           )}
         </div>
@@ -86,7 +95,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           modifiedRecipients &&
           modifiedRecipients.length > 0 &&
           modifiedRecipients.map((recipient) => (
-            <div key={recipient.id} className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4">
+            <div
+              key={recipient.id}
+              className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4"
+            >
               <div className="eb-flex eb-items-center eb-justify-between">
                 <div className="eb-truncate eb-text-base eb-font-semibold">
                   {getRecipientLabel(recipient)}
@@ -101,11 +113,14 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 {recipient.status && <StatusBadge status={recipient.status} />}
                 <span className="eb-text-xs eb-text-gray-500">
                   {recipient.createdAt
-                    ? new Date(recipient.createdAt).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })
+                    ? new Date(recipient.createdAt).toLocaleDateString(
+                        undefined,
+                        {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        }
+                      )
                     : 'N/A'}
                 </span>
               </div>
@@ -118,13 +133,21 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
               {/* Supported Payment Methods */}
               <div className="eb-mt-1 eb-flex eb-flex-wrap eb-gap-1">
                 {getSupportedPaymentMethods(recipient).length > 0 ? (
-                  getSupportedPaymentMethods(recipient).map((method: string) => (
-                    <Badge key={method} variant="secondary" className="eb-text-xs">
-                      {method}
-                    </Badge>
-                  ))
+                  getSupportedPaymentMethods(recipient).map(
+                    (method: string) => (
+                      <Badge
+                        key={method}
+                        variant="secondary"
+                        className="eb-text-xs"
+                      >
+                        {method}
+                      </Badge>
+                    )
+                  )
                 ) : (
-                  <span className="eb-text-xs eb-text-gray-400">No payment methods</span>
+                  <span className="eb-text-xs eb-text-gray-400">
+                    No payment methods
+                  </span>
                 )}
               </div>
               <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
