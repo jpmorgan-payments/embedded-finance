@@ -28,6 +28,7 @@ export interface ThemeStyleUtils {
   getLogoPath: () => string;
   getLogoAlt: () => string;
   getLogoStyles: () => string;
+  getLayoutButtonStyles: (active: boolean) => string;
 }
 
 export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
@@ -350,6 +351,44 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'SellSense':
         default:
           return 'h-8 w-auto max-w-[150px] object-contain'; // Consistent responsive sizing for SellSense logo
+      }
+    },
+
+    getLayoutButtonStyles: (active: boolean) => {
+      if (active) {
+        switch (theme) {
+          case 'Empty':
+            return 'bg-gray-600 text-white font-medium'; // Neutral styling for showing component defaults
+          case 'Default Blue':
+            return 'bg-[#0060f0] text-white font-medium'; // primaryColor: '#0060f0'
+          case 'S&P Theme':
+            return 'bg-[#1B7F9E] text-white font-medium'; // primaryColor: '#1B7F9E'
+          case 'Create Commerce':
+            return 'bg-[#FD8172] text-white font-medium'; // primaryColor: '#FD8172'
+          case 'SellSense':
+            return 'bg-[#f55727] text-white font-medium'; // primaryColor: '#f55727'
+          case 'PayFicient':
+            return 'bg-[#177556] text-white font-medium'; // primaryColor: '#177556'
+          default:
+            return 'bg-gray-600 text-white font-medium';
+        }
+      } else {
+        switch (theme) {
+          case 'Empty':
+            return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
+          case 'Default Blue':
+            return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386'
+          case 'S&P Theme':
+            return 'text-[#1B7F9E] hover:text-[#166b85] hover:bg-white'; // primaryColor: '#1B7F9E', primaryHoverColor: '#166b85'
+          case 'Create Commerce':
+            return 'text-[#FD8172] hover:text-[#fd6b5a] hover:bg-[#EDEFF7]'; // primaryColor: '#FD8172', primaryHoverColor: '#fd6b5a'
+          case 'SellSense':
+            return 'text-[#f55727] hover:text-[#e14d1f] hover:bg-[#FDF7F0]'; // primaryColor: '#f55727', primaryHoverColor: '#e14d1f'
+          case 'PayFicient':
+            return 'text-[#177556] hover:text-[#145f47] hover:bg-[#FFFCF6]'; // primaryColor: '#177556', primaryHoverColor: '#145f47'
+          default:
+            return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
+        }
       }
     },
   };

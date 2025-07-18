@@ -592,27 +592,44 @@ export const createHandlers = (apiUrl) => [
   // EF Linked Account Creation
   http.post(`${apiUrl}/ef/do/v1/recipients`, async ({ request }) => {
     const data = await request.json();
+    console.log('Creating EF recipient:', data);
 
-    // Generate a mock recipient ID
+    // Generate a unique recipient ID
     const recipientId =
       'c0712fc9-b7d5-4ee2-81bb-' + Math.random().toString(36).substring(2, 15);
+    const timestamp = new Date().toISOString();
 
-    // Create a mock linked account recipient response
-    const mockRecipient = {
+    // Create the recipient in the database
+    const newRecipient = {
       id: recipientId,
-      type: 'LINKED_ACCOUNT',
-      status: 'MICRODEPOSITS_INITIATED', // Start with microdeposits initiated
+      type: data.type || 'LINKED_ACCOUNT',
+      status: data.status || 'MICRODEPOSITS_INITIATED',
+      clientId: data.clientId || 'client-001',
       partyDetails: data.partyDetails,
       account: data.account,
-      createdAt: new Date().toISOString(),
+      createdAt: timestamp,
+      updatedAt: timestamp,
     };
 
-    return HttpResponse.json(mockRecipient, {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const createdRecipient = db.recipient.create(newRecipient);
+      console.log('Created EF recipient:', createdRecipient);
+
+      logDbState('EF Recipient Creation');
+
+      return HttpResponse.json(createdRecipient, {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Error creating EF recipient:', error);
+      return HttpResponse.json(
+        { error: 'Failed to create recipient', message: error.message },
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
   }),
 
   // EF Microdeposit Verification
@@ -622,10 +639,37 @@ export const createHandlers = (apiUrl) => [
       const { recipientId } = params;
       const data = await request.json();
 
+      console.log('Verifying microdeposit for recipient:', recipientId, data);
+
+      // Find the recipient in the database
+      const recipient = db.recipient.findFirst({
+        where: { id: { equals: recipientId } },
+      });
+
+      if (!recipient) {
+        return HttpResponse.json(
+          { error: 'Recipient not found' },
+          { status: 404, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+
       // Mock verification logic - in real app this would validate the amounts
       const isValid = data.amounts && data.amounts.length === 2;
 
       if (isValid) {
+        // Update recipient status in database
+        const updatedRecipient = db.recipient.update({
+          where: { id: { equals: recipientId } },
+          data: {
+            ...recipient,
+            status: 'ACTIVE',
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+        console.log('Updated recipient status to ACTIVE:', updatedRecipient);
+        logDbState('Microdeposit Verification');
+
         // Return success response
         return HttpResponse.json(
           {
@@ -661,37 +705,22 @@ export const createHandlers = (apiUrl) => [
   http.get(`${apiUrl}/ef/do/v1/recipients/:recipientId`, ({ params }) => {
     const { recipientId } = params;
 
-    // For demo purposes, return a mock recipient based on ID
-    const mockRecipient = {
-      id: recipientId,
-      type: 'LINKED_ACCOUNT',
-      status: 'ACTIVE',
-      partyDetails: {
-        type: 'INDIVIDUAL',
-        firstName: 'Alex',
-        lastName: 'James',
-        contacts: [
-          {
-            contactType: 'EMAIL',
-            value: 'alex.james@example.com',
-          },
-        ],
-      },
-      account: {
-        number: '****7971423204567',
-        type: 'CHECKING',
-        countryCode: 'US',
-        routingInformation: [
-          {
-            routingCodeType: 'USABA',
-            routingNumber: '154135115',
-            transactionType: 'ACH',
-          },
-        ],
-      },
-    };
+    console.log('Getting recipient:', recipientId);
 
-    return HttpResponse.json(mockRecipient, {
+    // Find the recipient in the database
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: recipientId } },
+    });
+
+    if (!recipient) {
+      return HttpResponse.json(
+        { error: 'Recipient not found' },
+        { status: 404, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
+    console.log('Found recipient:', recipient);
+    return HttpResponse.json(recipient, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -710,36 +739,10 @@ export const createHandlers = (apiUrl) => [
     const status = url.searchParams.get('status');
     const type = url.searchParams.get('type');
 
-    // Handle optional pagination - if no page/limit provided, return all transactions
-    if (!pageParam && !limitParam) {
-      console.log('No pagination params, returning all transactions');
-      const response = {
-        items: mockTransactionsResponse.items,
-        page: 1,
-        limit: mockTransactionsResponse.items.length,
-        total_items: mockTransactionsResponse.items.length,
-        total_pages: 1,
-      };
-      return HttpResponse.json(response, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Use pagination if provided
-    const page = parseInt(pageParam || '1', 10);
-    const limit = parseInt(limitParam || '10', 10);
-
-    console.log('Transactions API call params:', {
-      page,
-      limit,
-      accountId,
-      status,
-      type,
-    });
+    // Get all transactions from database
+    let filteredTransactions = db.transaction.getAll();
 
     // Filter transactions based on query parameters
-    let filteredTransactions = mockTransactionsResponse.items;
-
     if (accountId) {
       filteredTransactions = filteredTransactions.filter(
         (t) =>
@@ -759,16 +762,108 @@ export const createHandlers = (apiUrl) => [
       );
     }
 
-    const response = createMockTransactionsResponse(
-      filteredTransactions,
+    console.log(
+      'Filtered transactions from database:',
+      filteredTransactions.length,
+    );
+
+    // Handle optional pagination - if no page/limit provided, return all transactions
+    if (!pageParam && !limitParam) {
+      console.log('No pagination params, returning all transactions');
+      const response = {
+        items: filteredTransactions,
+        page: 1,
+        limit: filteredTransactions.length,
+        total_items: filteredTransactions.length,
+        total_pages: 1,
+      };
+      return HttpResponse.json(response, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Use pagination if provided
+    const page = parseInt(pageParam || '1', 10);
+    const limit = parseInt(limitParam || '10', 10);
+
+    console.log('Transactions API call params:', {
       page,
       limit,
+      accountId,
+      status,
+      type,
+    });
+
+    // Manual pagination since we're using database
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedTransactions = filteredTransactions.slice(
+      startIndex,
+      endIndex,
     );
+
+    const response = {
+      items: paginatedTransactions,
+      page,
+      limit,
+      total_items: filteredTransactions.length,
+      total_pages: Math.ceil(filteredTransactions.length / limit),
+    };
 
     console.log('Transactions response:', response);
     return HttpResponse.json(response, {
       headers: { 'Content-Type': 'application/json' },
     });
+  }),
+
+  // Create new transaction
+  http.post(`${apiUrl}/ef/do/v1/transactions`, async ({ request }) => {
+    const data = await request.json();
+    console.log('Creating new transaction:', data);
+
+    // Generate a unique transaction ID
+    const transactionId =
+      'txn-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+    const timestamp = new Date().toISOString();
+
+    // Create the transaction in the database
+    const newTransaction = {
+      id: transactionId,
+      type: data.type || 'ACH',
+      status: data.status || 'PENDING',
+      amount: data.amount || 0,
+      currency: data.currency || 'USD',
+      paymentDate: data.paymentDate || timestamp,
+      effectiveDate: data.effectiveDate || timestamp,
+      creditorAccountId:
+        data.creditorAccountId || 'd3371713f14e423f82065c9486ebe15b',
+      debtorAccountId: data.debtorAccountId || 'debtor-account-mock',
+      creditorName: data.creditorName || 'SellSense Marketplace',
+      debtorName: data.debtorName || 'New Customer',
+      postingVersion: data.postingVersion || 1,
+      reference:
+        data.reference || `Sale #${Math.floor(Math.random() * 100000)}`,
+      description: data.description || 'New transaction',
+      createdAt: timestamp,
+    };
+
+    try {
+      const createdTransaction = db.transaction.create(newTransaction);
+      console.log('Created transaction:', createdTransaction);
+
+      logDbState('Transaction Creation');
+
+      return HttpResponse.json(createdTransaction, {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      return HttpResponse.json(
+        { error: 'Failed to create transaction', message: error.message },
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
   }),
 
   // Recipients Component Handlers
@@ -787,92 +882,59 @@ export const createHandlers = (apiUrl) => [
       limitParam,
     });
 
-    // Determine which mock data to use based on the request
-    let filteredRecipients;
+    // Get all recipients from database
+    let filteredRecipients = db.recipient.getAll();
 
-    if (type === 'LINKED_ACCOUNT') {
-      // For LinkedAccountWidget - return linked accounts
-      filteredRecipients = mockLinkedAccounts.recipients;
-      console.log('Returning linked accounts:', filteredRecipients.length);
+    // Filter by type if specified
+    if (type) {
+      filteredRecipients = filteredRecipients.filter((r) => r.type === type);
+    }
 
-      // Filter by status if specified
-      if (status) {
-        filteredRecipients = filteredRecipients.filter(
-          (r) => r.status === status,
-        );
-      }
-
-      // Handle optional pagination
-      if (!pageParam && !limitParam) {
-        console.log('No pagination params, returning all linked accounts');
-        const response = {
-          page: 1,
-          limit: filteredRecipients.length,
-          total_items: filteredRecipients.length,
-          recipients: filteredRecipients,
-        };
-        return HttpResponse.json(response, {
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
-      const page = parseInt(pageParam || '1', 10);
-      const limit = parseInt(limitParam || '10', 10);
-
-      const response = createMockLinkedAccountsResponse(
-        filteredRecipients,
-        page,
-        limit,
+    // Filter by status if specified
+    if (status) {
+      filteredRecipients = filteredRecipients.filter(
+        (r) => r.status === status,
       );
+    }
 
-      return HttpResponse.json(response, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } else {
-      // For Recipients component - return payment recipients
-      filteredRecipients = mockRecipientsResponse.recipients;
-      console.log('Returning payment recipients:', filteredRecipients.length);
+    console.log(
+      'Filtered recipients from database:',
+      filteredRecipients.length,
+    );
 
-      // Filter by type if specified (RECIPIENT vs LINKED_ACCOUNT)
-      if (type && type !== 'RECIPIENT') {
-        filteredRecipients = filteredRecipients.filter((r) => r.type === type);
-      }
-
-      // Filter by status if specified
-      if (status) {
-        filteredRecipients = filteredRecipients.filter(
-          (r) => r.status === status,
-        );
-      }
-
-      // Handle optional pagination
-      if (!pageParam && !limitParam) {
-        console.log('No pagination params, returning all recipients');
-        const response = {
-          page: 1,
-          limit: filteredRecipients.length,
-          total_items: filteredRecipients.length,
-          recipients: filteredRecipients,
-        };
-        return HttpResponse.json(response, {
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
-      const page = parseInt(pageParam || '1', 10);
-      const limit = parseInt(limitParam || '10', 10);
-
-      const response = createMockRecipientsResponse(
-        filteredRecipients,
-        page,
-        limit,
-      );
-
-      console.log('Final response:', response);
+    // Handle optional pagination
+    if (!pageParam && !limitParam) {
+      console.log('No pagination params, returning all recipients');
+      const response = {
+        page: 1,
+        limit: filteredRecipients.length,
+        total_items: filteredRecipients.length,
+        recipients: filteredRecipients,
+      };
       return HttpResponse.json(response, {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    const page = parseInt(pageParam || '1', 10);
+    const limit = parseInt(limitParam || '10', 10);
+
+    // Manual pagination since we're using database
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedRecipients = filteredRecipients.slice(startIndex, endIndex);
+
+    const response = {
+      page,
+      limit,
+      total_items: filteredRecipients.length,
+      recipients: paginatedRecipients,
+    };
+
+    console.log('Final response:', response);
+    return HttpResponse.json(response, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }),
 
   // MakePayment Component Handlers
@@ -886,15 +948,16 @@ export const createHandlers = (apiUrl) => [
     const url = new URL(request.url);
     const type = url.searchParams.get('type');
 
-    // Return payment recipients (not linked accounts)
-    let filteredRecipients = mockRecipients.filter(
-      (r) => r.type === 'RECIPIENT',
-    );
+    // Get payment recipients from database (not linked accounts)
+    let filteredRecipients = db.recipient
+      .getAll()
+      .filter((r) => r.type === 'RECIPIENT');
 
     if (type) {
       filteredRecipients = filteredRecipients.filter((r) => r.type === type);
     }
 
+    console.log('Payment recipients from database:', filteredRecipients.length);
     return HttpResponse.json(filteredRecipients, {
       headers: { 'Content-Type': 'application/json' },
     });

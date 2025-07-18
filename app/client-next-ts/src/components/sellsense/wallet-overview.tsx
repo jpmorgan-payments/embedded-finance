@@ -10,6 +10,8 @@ import {
   // MakePayment, // Commented out due to infinite loop issues
 } from '@jpmorgan-payments/embedded-finance-components';
 import { Maximize2, Info, Grid3X3, Square } from 'lucide-react';
+import { useThemeStyles } from './theme-utils';
+import { useSellSenseThemes } from './use-sellsense-themes';
 
 interface WalletOverviewProps {
   clientScenario?: any;
@@ -26,8 +28,6 @@ interface EmbeddedComponentCardProps {
 }
 
 function EmbeddedComponentCard({
-  title,
-  description,
   componentName,
   componentDescription,
   componentFeatures,
@@ -158,30 +158,12 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   const currentTone = searchParams.contentTone || 'Standard';
   const currentScenario = searchParams.scenario || 'New Seller - Onboarding';
 
-  // Create theme object that responds to all theme options
-  const themeObject = {
-    colorScheme: 'light' as const,
-    variables: {
-      primaryColor:
-        currentTheme === 'SellSense'
-          ? '#ff6b35'
-          : currentTheme === 'Default Blue'
-            ? '#6366f1'
-            : currentTheme === 'S&P Theme'
-              ? '#14b8a6'
-              : currentTheme === 'Create Commerce'
-                ? '#0f172a'
-                : currentTheme === 'PayFicient'
-                  ? '#059669'
-                  : '#6366f1',
-      backgroundColor:
-        currentTheme === 'Create Commerce' ? '#0f172a' : '#ffffff',
-      foregroundColor:
-        currentTheme === 'Create Commerce' ? '#f1f5f9' : '#1e293b',
-      borderColor: currentTheme === 'Create Commerce' ? '#334155' : '#e2e8f0',
-      borderRadius: '8px',
-    },
-  };
+  // Get theme-aware styles
+  const themeStyles = useThemeStyles(currentTheme as any);
+  const { mapThemeOption } = useSellSenseThemes();
+
+  // Create theme object using the proper theme system
+  const themeObject = mapThemeOption(currentTheme as any);
 
   // Create content tokens that respond to tone changes
   const contentTokens = {
@@ -282,10 +264,12 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1
+          className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
+        >
           Wallet Management
         </h1>
-        <p className="text-gray-600">
+        <p className={themeStyles.getHeaderLabelStyles()}>
           Manage your embedded finance wallet, recipients, linked accounts, and
           transactions.
         </p>
@@ -293,25 +277,19 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         {/* Layout Controls */}
         <div className="flex items-center gap-4 mt-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Layout:</span>
+            <span className={`text-sm ${themeStyles.getHeaderLabelStyles()}`}>
+              Layout:
+            </span>
             <button
               onClick={() => setLayout('grid')}
-              className={`p-2 rounded transition-colors ${
-                layout === 'grid'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'grid')}`}
               title="Grid Layout"
             >
               <Grid3X3 size={16} />
             </button>
             <button
               onClick={() => setLayout('full-width')}
-              className={`p-2 rounded transition-colors ${
-                layout === 'full-width'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'full-width')}`}
               title="Full Width Layout"
             >
               <Square size={16} />
