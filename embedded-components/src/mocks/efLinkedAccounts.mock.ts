@@ -68,9 +68,7 @@ export const linkedAccountListMock: ListRecipientsResponse = {
           postalCode: '90210',
         },
         type: PartyType.ORGANIZATION,
-        organization: {
-          businessName: 'TechCorp Solutions Inc.',
-        },
+        businessName: 'TechCorp Solutions Inc.',
         contacts: [
           {
             contactType: RecipientContactContactType.EMAIL,
@@ -319,9 +317,7 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
           postalCode: '94105',
         },
         type: PartyType.ORGANIZATION,
-        organization: {
-          businessName: 'Innovation Labs LLC',
-        },
+        businessName: 'Innovation Labs LLC',
         contacts: [
           {
             contactType: RecipientContactContactType.EMAIL,
@@ -367,9 +363,7 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
           postalCode: '73301',
         },
         type: PartyType.ORGANIZATION,
-        organization: {
-          businessName: 'Green Energy Solutions',
-        },
+        businessName: 'Green Energy Solutions',
         contacts: [
           {
             contactType: RecipientContactContactType.EMAIL,

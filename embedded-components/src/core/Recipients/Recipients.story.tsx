@@ -138,9 +138,10 @@ export const InactiveRecipients: Story = {
     msw: {
       handlers: [
         http.get('*/recipients', () => {
-          const inactiveRecipients = mockRecipientsResponse.recipients.filter(
-            (r) => r.status === 'INACTIVE'
-          );
+          const inactiveRecipients =
+            mockRecipientsResponse.recipients?.filter(
+              (r) => r.status === 'INACTIVE'
+            ) || [];
           return HttpResponse.json(
             createMockRecipientsResponse(inactiveRecipients)
           );
@@ -155,7 +156,6 @@ export const EmptyState: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -175,7 +175,6 @@ export const Loading: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -195,7 +194,6 @@ export const ErrorState: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -218,7 +216,6 @@ export const ReadOnly: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: false,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -238,7 +235,6 @@ export const NoVerification: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: false,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -258,7 +254,6 @@ export const LargeDataset: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
-    enableVerification: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   render: (args) => <RecipientsWithProvider {...args} />,
@@ -323,11 +318,11 @@ export const RecipientTypes: Story = {
           const url = new URL(request.url);
           const type = url.searchParams.get('type');
 
-          let filteredRecipients = mockRecipientsResponse.recipients || [];
-          if (type) {
-            filteredRecipients = filteredRecipients.filter(
-              (r) => r.type === type
-            );
+          let filteredRecipients =
+            mockRecipientsResponse.recipients?.filter((r) => r.type === type) ||
+            [];
+          if (!type) {
+            filteredRecipients = mockRecipientsResponse.recipients || [];
           }
 
           return HttpResponse.json({
@@ -353,9 +348,10 @@ export const RejectedRecipients: Story = {
     msw: {
       handlers: [
         http.get('*/recipients', () => {
-          const rejectedRecipients = mockRecipientsResponse.recipients.filter(
-            (r) => r.status === 'REJECTED'
-          );
+          const rejectedRecipients =
+            mockRecipientsResponse.recipients?.filter(
+              (r) => r.status === 'REJECTED'
+            ) || [];
           return HttpResponse.json(
             createMockRecipientsResponse(rejectedRecipients)
           );

@@ -220,11 +220,11 @@ export const MixedStatuses: Story = {
             limit: 10,
             total_items: 4,
             recipients: [
-              linkedAccountListMock.recipients[0], // Active
-              linkedAccountReadyForValidationMock.recipients[0], // Ready for validation
-              linkedAccountRejectedMock.recipients[0], // Rejected
-              linkedAccountInactiveMock.recipients[0], // Inactive
-            ],
+              linkedAccountListMock.recipients?.[0], // Active
+              linkedAccountReadyForValidationMock.recipients?.[0], // Ready for validation
+              linkedAccountRejectedMock.recipients?.[0], // Rejected
+              linkedAccountInactiveMock.recipients?.[0], // Inactive
+            ].filter(Boolean),
           });
         }),
       ],

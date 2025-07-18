@@ -1,13 +1,11 @@
 import {
   AccountType,
   CountryCode,
+  RecipientType,
   RoutingCodeType,
   RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
-import type {
-  RecipientRequest,
-  UpdateRecipientRequest,
-} from '@/api/generated/ep-recipients.schemas';
+import type { RecipientRequest } from '@/api/generated/ep-recipients.schemas';
 
 import type { FormData } from '../RecipientForm.schema';
 
@@ -16,7 +14,7 @@ import type { FormData } from '../RecipientForm.schema';
  */
 export function buildRecipientRequest(
   data: FormData,
-  recipientType: string
+  recipientType: RecipientType
 ): RecipientRequest {
   return {
     type: recipientType,

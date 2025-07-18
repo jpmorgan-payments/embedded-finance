@@ -1,4 +1,4 @@
-import type { Contact } from '@/api/generated/ep-recipients.schemas';
+import type { RecipientContact } from '@/api/generated/ep-recipients.schemas';
 
 import type { FormData } from '../RecipientForm.schema';
 
@@ -6,7 +6,7 @@ import type { FormData } from '../RecipientForm.schema';
  * Maps API contact objects to form contact objects
  */
 export function mapContactsToFormData(
-  contacts?: Contact[]
+  contacts?: RecipientContact[]
 ): FormData['contacts'] {
   return (
     contacts?.map((contact) => {
