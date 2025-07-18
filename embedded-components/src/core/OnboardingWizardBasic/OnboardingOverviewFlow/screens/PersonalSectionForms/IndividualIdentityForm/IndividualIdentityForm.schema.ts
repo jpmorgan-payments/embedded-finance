@@ -137,8 +137,8 @@ const controllerIdSchema = z
 export const IndividualIdentityFormSchema = z.object({
   birthDate: z
     .string()
-    .regex(
-      /^\d{4}-\d{2}-\d{2}$/,
+    .refine(
+      (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
       i18n.t('onboarding-overview:fields.birthDate.validation.format')
     )
     .refine(
