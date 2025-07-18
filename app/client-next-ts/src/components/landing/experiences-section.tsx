@@ -34,28 +34,6 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
-
-    {
-      id: 'document-upload',
-      title: 'Documents Requests Management',
-      description:
-        'Guided document upload with validation and multi-party support.',
-      icon: <FileText className="h-5 w-5" />,
-      status: 'live',
-      npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
-      steps: [
-        'Load document requests with ACTIVE status validation',
-        'Progressive disclosure of requirements with step-by-step interface',
-        'Handle both required and optional documents with validation',
-        'Upload documents and submit requests',
-      ],
-      recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/OnboardingWizardBasic/DocumentUploadStepForm/IMPLEMENTATION_GUIDE.md',
-      docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/upload-documents',
-    },
-
     {
       id: 'link-account',
       title: 'Link External Bank Account',
@@ -137,22 +115,6 @@ export function ExperiencesSection() {
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-makepayment',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
-    },
-    {
-      id: 'notifications',
-      title: 'Notifications & Webhooks',
-      description:
-        'Receive real-time notifications about transaction and client events with customizable webhook endpoints for seamless integration.',
-      icon: <Bell className="h-5 w-5" />,
-      status: 'coming soon',
-      steps: [
-        'Set up webhook subscription endpoints',
-        'Configure event types for notifications',
-        'Handle real-time event notifications',
-        'Update UI based on event data',
-      ],
-      docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions',
     },
   ];
 
