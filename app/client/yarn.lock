@@ -703,10 +703,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@jpmorgan-payments/embedded-finance-components@0.7.2":
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.7.2.tgz#18b9738369d6f34d388e1632f893e2c15de3b307"
-  integrity sha512-PaBZgcyDtjTr26rHNL1FK6E1Q8Y2mDe0hAvY9iKhNT7q/bygQPBsN/3EnmNkHTx6S+Y+8Upl9M6IDBPC4AQI/w==
+"@jpmorgan-payments/embedded-finance-components@0.7.4":
+  version "0.7.4"
+  resolved "https://registry.yarnpkg.com/@jpmorgan-payments/embedded-finance-components/-/embedded-finance-components-0.7.4.tgz#18f4a1d7d82027839939b3ff01b6bfd73a1d54ac"
+  integrity sha512-8O1vajJJc+3ihZ4lHZgF3DhGKq3Fq4j72ORoJIgg0GCZGSUPduD9EK+qruucAYfTtkBoPwfWrLvkVbsiXMGxFQ==
   dependencies:
     "@hookform/resolvers" "^3.6.0"
     "@radix-ui/react-accordion" "^1.2.0"
@@ -740,7 +740,7 @@
     i18next "^24.2.1"
     input-otp "^1.4.2"
     json-diff-ts "^4.0.1"
-    libphonenumber-js "^1.11.5"
+    libphonenumber-js "^1.12.10"
     lucide-react "^0.418.0"
     next-themes "^0.3.0"
     public-ip "^7.0.1"
@@ -4553,15 +4553,15 @@ layout-base@^1.0.0:
   resolved "https://registry.yarnpkg.com/layout-base/-/layout-base-1.0.2.tgz#1291e296883c322a9dd4c5dd82063721b53e26e2"
   integrity sha512-8h2oVEZNktL4BH2JCOI90iD1yXwL6iNW7KcCKT2QZgQJR2vbqDsldCTPRU9NifTCqHZci57XvQQ15YTu+sTYPg==
 
-libphonenumber-js@^1.11.5:
-  version "1.11.5"
-  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.11.5.tgz#50a441da5ff9ed9a322d796a14f1e9cbc0fdabdf"
-  integrity sha512-TwHR5BZxGRODtAfz03szucAkjT5OArXr+94SMtAM2pYXIlQNVMrxvb6uSCbnaJJV6QXEyICk7+l6QPgn72WHhg==
-
 libphonenumber-js@^1.11.8:
   version "1.11.8"
   resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.11.8.tgz#697fdd36500a97bc672d7927d867edf34b4bd2a7"
   integrity sha512-0fv/YKpJBAgXKy0kaS3fnqoUVN8901vUYAKIGD/MWZaDfhJt1nZjPL3ZzdZBt/G8G8Hw2J1xOIrXWdNHFHPAvg==
+
+libphonenumber-js@^1.12.10:
+  version "1.12.10"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.12.10.tgz#525f7c9ffaea40c21463d3906f52ec3209ea5945"
+  integrity sha512-E91vHJD61jekHHR/RF/E83T/CMoaLXT7cwYA75T4gim4FZjnM6hbJjVIGg7chqlSqRsSvQ3izGmOjHy1SQzcGQ==
 
 lines-and-columns@^1.1.6:
   version "1.2.4"

@@ -340,13 +340,13 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 {options?.map((option) => (
                                   <CommandItem
                                     key={`combobox-option-${option.value}`}
-                                    value={option.value}
-                                    onSelect={(currentValue) => {
-                                      onChangeProp?.(currentValue);
+                                    value={`${option.label} ${option.value}`}
+                                    onSelect={() => {
+                                      onChangeProp?.(option.value);
                                       field.onChange(
-                                        currentValue === field.value
+                                        option.value === field.value
                                           ? ''
-                                          : currentValue
+                                          : option.value
                                       );
                                       onBlur();
                                       setOpen(false);

@@ -4,15 +4,21 @@ import {
   CheckCircle2Icon,
   CheckIcon,
   CircleDashedIcon,
+  ClockIcon,
+  FileIcon,
   UploadIcon,
 } from 'lucide-react';
 
+import { useSmbdoGetAllDocumentDetails } from '@/api/generated/smbdo';
 import {
-  DocumentRequestStatus,
+  DocumentMetadataSmbdo,
+  DocumentRequestResponse,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 import { Badge, Button, Card } from '@/components/ui';
+import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingWizardBasic/utils/documentTypeMapping';
 
+import { useOnboardingOverviewContext } from '../../OnboardingContext/OnboardingContext';
 import { getPartyName } from '../../utils/dataUtils';
 
 /**
@@ -26,7 +32,7 @@ export interface PartyCardProps {
   /**
    * Status of the document request
    */
-  docRequestStatus?: DocumentRequestStatus;
+  docRequest: DocumentRequestResponse;
   /**
    * Callback function when upload button is clicked
    */
@@ -38,9 +44,36 @@ export interface PartyCardProps {
  */
 export const PartyCard: FC<PartyCardProps> = ({
   party,
-  docRequestStatus,
+  docRequest,
   onUploadClick,
 }) => {
+  const { clientData } = useOnboardingOverviewContext();
+  const { data: { documentDetails: documentDetailsList } = {} } =
+    useSmbdoGetAllDocumentDetails({
+      clientId: clientData?.id,
+      partyId: party.id,
+    });
+
+  // Helper function to format timestamp to readable date
+  const formatUploadTime = (timestamp: string): string => {
+    if (!timestamp) return '';
+
+    const date = new Date(parseInt(timestamp, 10));
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  // Helper function to get metadata value
+  const getMetadataValue = (
+    metadata: DocumentMetadataSmbdo[],
+    key: string
+  ): string | undefined => {
+    return metadata?.find((m) => m.key === key)?.value;
+  };
+
   return (
     <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
       <div className="eb-space-y-1.5">
@@ -48,19 +81,19 @@ export const PartyCard: FC<PartyCardProps> = ({
           <h3 className="eb-min-w-0 eb-shrink eb-overflow-hidden eb-break-words eb-font-header eb-text-lg eb-font-medium">
             {getPartyName(party)}
           </h3>
-          {docRequestStatus === 'ACTIVE' && (
+          {docRequest.status === 'ACTIVE' && (
             <span>
               <CircleDashedIcon className="eb-size-5 eb-text-muted-foreground" />
               <span className="eb-sr-only">Pending</span>
             </span>
           )}
-          {docRequestStatus === 'CLOSED' && (
+          {docRequest.status === 'CLOSED' && (
             <span>
               <CheckCircle2Icon className="eb-size-5 eb-stroke-green-700" />
               <span className="eb-sr-only">Completed</span>
             </span>
           )}
-          {docRequestStatus === 'EXPIRED' && (
+          {docRequest.status === 'EXPIRED' && (
             <span>
               <AlertTriangle className="eb-size-5 eb-stroke-[#C75300]" />
               <span className="eb-sr-only">Expired</span>
@@ -86,7 +119,7 @@ export const PartyCard: FC<PartyCardProps> = ({
         </div>
       </div>
       <div>
-        {docRequestStatus === 'ACTIVE' ? (
+        {docRequest.status === 'ACTIVE' ? (
           <Button
             variant="outline"
             className="eb-w-full eb-border-primary eb-text-primary"
@@ -95,9 +128,62 @@ export const PartyCard: FC<PartyCardProps> = ({
             <UploadIcon /> Upload documents
           </Button>
         ) : (
-          <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
-            <CheckIcon className="eb-size-4" />
-            Required documents successfully uploaded
+          <div>
+            <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
+              <CheckIcon className="eb-size-4" />
+              Required documents successfully uploaded
+            </div>
+            <div>
+              {documentDetailsList?.map((docDetail) => {
+                if (
+                  docDetail?.metadata?.find(
+                    (m) => m.key === 'DOCUMENT_REQUEST_ID'
+                  )?.value === docRequest.id
+                ) {
+                  const fileName = getMetadataValue(
+                    docDetail.metadata,
+                    'UPLOADED_FILE_NAME'
+                  );
+                  const uploadTime = getMetadataValue(
+                    docDetail.metadata,
+                    'UPLOAD_TIME'
+                  );
+
+                  return (
+                    <div
+                      key={docDetail.id}
+                      className="eb-mt-2 eb-rounded-md eb-border eb-p-2"
+                    >
+                      <div className="eb-flex eb-items-center eb-gap-2">
+                        <FileIcon className="eb-size-4 eb-text-muted-foreground" />
+                        <span className="eb-text-sm eb-font-medium">
+                          {DOCUMENT_TYPE_MAPPING[docDetail.documentType].label}
+                        </span>
+                      </div>
+                      {fileName && (
+                        <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
+                          <span
+                            className="eb-max-w-[200px] eb-truncate eb-text-xs eb-text-muted-foreground"
+                            title={fileName}
+                          >
+                            {fileName}
+                          </span>
+                        </div>
+                      )}
+                      {uploadTime && (
+                        <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
+                          <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
+                          <span className="eb-text-xs eb-text-muted-foreground">
+                            Uploaded on {formatUploadTime(uploadTime)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
           </div>
         )}
       </div>

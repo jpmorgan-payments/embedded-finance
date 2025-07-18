@@ -2,15 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
-import { loadContentTokens } from '@/lib/utils';
-import {
-  useSmbdoGetClient,
-  useSmbdoListDocumentRequests,
-} from '@/api/generated/smbdo';
-import {
-  useContentTokens,
-  useInterceptorStatus,
-} from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { FormLoadingState } from '../FormLoadingState/FormLoadingState';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
@@ -31,7 +24,6 @@ export type OnboardingFlowProps = OnboardingConfigDefault &
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   initialClientId,
-  onboardingContentTokens = {},
   alertOnExit = false,
   userEventsToTrack = [],
   userEventsHandler,
@@ -62,17 +54,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     }
   }, [clientData, clientGetStatus, clientGetError, onGetClientSettled]);
 
-  const { data: { documentRequests } = {} } = useSmbdoListDocumentRequests(
-    {
-      clientId,
-    },
-    {
-      query: {
-        enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
-      },
-    }
-  );
-
   // Set clientId when initialClientId prop changes
   useEffect(() => {
     setClientId(initialClientId ?? '');
@@ -85,19 +66,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  // Load content tokens
-  const { tokens: globalContentTokens = {} } = useContentTokens();
-  const { i18n, t } = useTranslation(['onboarding-overview', 'onboarding']);
-  useEffect(() => {
-    loadContentTokens(i18n.language, 'onboarding', [
-      globalContentTokens.onboarding,
-      onboardingContentTokens,
-    ]);
-  }, [
-    i18n.language,
-    JSON.stringify(globalContentTokens.onboarding),
-    JSON.stringify(onboardingContentTokens),
-  ]);
+  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
 
   // Prevent the user from leaving the page
   useEffect(() => {
@@ -161,7 +130,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientData,
         setClientId,
         organizationType,
-        documentRequests,
       }}
     >
       <div
@@ -173,7 +141,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
           <ServerErrorAlert error={clientGetError} />
-        ) : clientGetStatus === 'pending' && initialClientId ? (
+        ) : clientGetStatus === 'pending' &&
+          initialClientId &&
+          !props.docUploadOnlyMode ? (
           <FormLoadingState message={t('onboarding:fetchingClientData')} />
         ) : (
           <FlowProvider
@@ -244,7 +214,6 @@ const FlowRenderer: React.FC = () => {
   }, [sessionData.mockedVerifyingSectionId]);
 
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
-
   const renderScreen = () => {
     if (!screen) {
       return <div>Unknown screen id: {currentScreenId}</div>;
