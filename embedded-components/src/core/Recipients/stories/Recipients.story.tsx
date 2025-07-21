@@ -9,8 +9,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 import { userEvent, within } from '@test-utils';
 
-import { EBComponentsProvider } from '../EBComponentsProvider';
-import { Recipients, RecipientsProps } from './Recipients';
+import { EBComponentsProvider } from '../../EBComponentsProvider';
+import { Recipients, RecipientsProps } from '../Recipients';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay
 const RecipientsWithProvider = ({
@@ -32,7 +32,7 @@ const RecipientsWithProvider = ({
 };
 
 const meta: Meta<typeof Recipients> = {
-  title: 'Core/Recipients',
+  title: 'Recipients',
   component: Recipients,
   parameters: {
     layout: 'fullscreen',
@@ -287,8 +287,6 @@ export const LargeDataset: Story = {
                     value: `contact${i}@example.com`,
                   },
                 ],
-                individual: undefined,
-                organization: undefined,
               },
               status: ['ACTIVE', 'INACTIVE', 'REJECTED'][i % 3] as any,
             })

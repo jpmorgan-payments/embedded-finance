@@ -10,7 +10,7 @@ import { ModifiedTransaction } from './utils/modifyTransactionsData';
 export const columns: ColumnDef<ModifiedTransaction>[] = [
   {
     accessorKey: 'paymentDate',
-    header: 'Payment Date',
+    header: 'Date',
     accessorFn: (row) => {
       if (row.paymentDate === undefined) {
         return 'N/A';
@@ -26,10 +26,9 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
     accessorKey: 'status',
     header: 'Status',
   },
-  { accessorKey: 'type', header: 'Type' },
   {
-    accessorKey: 'counterpartName',
-    header: 'Counterpart Name',
+    accessorKey: 'type',
+    header: 'Type',
   },
   {
     accessorKey: 'amount',
@@ -55,10 +54,17 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
     },
   },
   {
+    accessorKey: 'counterpartName',
+    header: 'Counterpart',
+  },
+  {
+    accessorKey: 'transactionReferenceId',
+    header: 'Reference ID',
+  },
+  {
     id: 'actions',
     cell: ({ row }) => {
       const transaction = row.original;
-
       return (
         <TransactionDetailsDialogTrigger transaction={transaction}>
           <Button variant="ghost" className="eb-h-8 eb-w-8 eb-p-0">

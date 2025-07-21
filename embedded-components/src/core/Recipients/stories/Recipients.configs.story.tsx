@@ -29,7 +29,7 @@ const RecipientsWithProvider = ({
 };
 
 const meta: Meta<typeof Recipients> = {
-  title: 'Core/Recipients/Configuration Examples',
+  title: 'Recipients/Configuration Examples',
   component: Recipients,
   parameters: {
     layout: 'fullscreen',

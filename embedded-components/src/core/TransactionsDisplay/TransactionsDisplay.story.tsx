@@ -1,10 +1,12 @@
+import { mockTransactionsResponse } from '@/mocks/transactions.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { TransactionsDisplay } from './TransactionsDisplay';
 
-export const TransactionsDisplayWithProvider = ({
+const TransactionsDisplayWithProvider = ({
   apiBaseUrl,
   headers,
   theme,
@@ -29,17 +31,56 @@ export const TransactionsDisplayWithProvider = ({
 };
 
 const meta: Meta<typeof TransactionsDisplayWithProvider> = {
-  title: 'Transactions Display / General',
+  title: 'Transactions Display',
   component: TransactionsDisplayWithProvider,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/transactions', () => {
+          return HttpResponse.json(mockTransactionsResponse);
+        }),
+      ],
+    },
+  },
 };
 export default meta;
 
 type Story = StoryObj<typeof TransactionsDisplayWithProvider>;
 
-export const MockAPI: Story = {
-  name: 'PDP Mock API',
+export const Default: Story = {
+  name: 'Default',
   args: {
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    accountId: 'd3371713f14e423f82065c9486ebe15b',
+    accountId: 'debtor-acc-001',
+  },
+};
+
+export const Loading: Story = {
+  name: 'Loading',
+  args: {
+    apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
+    accountId: 'debtor-acc-001',
+  },
+  parameters: {
+    msw: {
+      handlers: [http.get('*/transactions', () => new Promise(() => {}))],
+    },
+  },
+};
+
+export const Error: Story = {
+  name: 'Error',
+  args: {
+    apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
+    accountId: 'debtor-acc-001',
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/transactions', () =>
+          HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        ),
+      ],
+    },
   },
 };
