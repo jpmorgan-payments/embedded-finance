@@ -2,13 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  ArrowRight,
   Users,
   Link,
   List,
   Box,
   ExternalLink,
-  UserCog,
   FileText,
   Zap,
   Bell,
@@ -23,7 +21,8 @@ export function ExperiencesSection() {
         'Complete client verification with staggered data collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
       status: 'live',
-      hasComponents: true,
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       steps: [
         'Create client with basic business information',
         'Collect party details and due diligence responses',
@@ -35,43 +34,6 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
-
-    {
-      id: 'document-upload',
-      title: 'Documents Requests Management',
-      description:
-        'Guided document upload with validation and multi-party support.',
-      icon: <FileText className="h-5 w-5" />,
-      status: 'live',
-      hasComponents: true,
-      steps: [
-        'Load document requests with ACTIVE status validation',
-        'Progressive disclosure of requirements with step-by-step interface',
-        'Handle both required and optional documents with validation',
-        'Upload documents and submit requests',
-      ],
-      recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/OnboardingWizardBasic/DocumentUploadStepForm/IMPLEMENTATION_GUIDE.md',
-      docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/upload-documents',
-    },
-    {
-      id: 'partially-hosted-onboarding',
-      title: 'Partially Hosted Onboarding Integration',
-      description:
-        'Implement a hybrid onboarding approach where parts of the client verification process are handled by your application while leveraging embedded components.',
-      icon: <UserCog className="h-5 w-5" />,
-      status: 'live',
-      hasComponents: false,
-      steps: [
-        'Configure your application to handle initial client data collection',
-        'Integrate embedded components for specific onboarding steps',
-        'Implement seamless handoff between hosted and embedded flows',
-        'Customize the user experience to match your brand requirements',
-      ],
-      recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md',
-    },
     {
       id: 'link-account',
       title: 'Link External Bank Account',
@@ -79,7 +41,8 @@ export function ExperiencesSection() {
         'Connect external bank accounts using Account Validation Service with microdeposits verification for secure account linking.',
       icon: <Link className="h-5 w-5" />,
       status: 'live',
-      hasComponents: true,
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#3-linkedaccountwidget',
       steps: [
         'Add recipient with account details and party information',
         'Trigger Account Validation Service (AVS) checks',
@@ -98,7 +61,8 @@ export function ExperiencesSection() {
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <List className="h-5 w-5" />,
       status: 'beta',
-      hasComponents: true,
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       steps: [
         'View, search, filter, and sort all saved recipients',
         'Add new recipients with dynamic forms based on selected payment methods',
@@ -121,13 +85,14 @@ export function ExperiencesSection() {
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
       icon: <List className="h-5 w-5" />,
       status: 'coming soon',
-      hasComponents: false,
       steps: [
         'Fetch transaction data with filtering options',
         'Display transaction details and status',
         'Provide search and sorting capabilities',
         'Export transaction data for reporting',
       ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/TRANSACTIONS_DISPLAY_RECIPE.md',
       docsUrl:
@@ -140,32 +105,16 @@ export function ExperiencesSection() {
         'Process ACH, Wire, and RTP payments from Embedded Banking accounts with real-time status tracking and comprehensive payment management.',
       icon: <Zap className="h-5 w-5" />,
       status: 'coming soon',
-      hasComponents: false,
       steps: [
         'Get debtor account ID from your Embedded account',
         'Create payment request with recipient and amount',
         'Submit transaction with reference ID and memo',
         'Monitor payment status and completion',
       ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-makepayment',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
-    },
-    {
-      id: 'notifications',
-      title: 'Notifications & Webhooks',
-      description:
-        'Receive real-time notifications about transaction and client events with customizable webhook endpoints for seamless integration.',
-      icon: <Bell className="h-5 w-5" />,
-      status: 'coming soon',
-      hasComponents: false,
-      steps: [
-        'Set up webhook subscription endpoints',
-        'Configure event types for notifications',
-        'Handle real-time event notifications',
-        'Update UI based on event data',
-      ],
-      docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions',
     },
   ];
 
@@ -174,7 +123,7 @@ export function ExperiencesSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
-            Explore Embedded Business Components and Recipes
+            Explore Embedded Business Components
           </h2>
           <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
             Pre-built workflows and implementation patterns for common embedded
@@ -212,9 +161,7 @@ export function ExperiencesSection() {
                             ? 'Beta'
                             : 'Soon'}
                       </span>
-                      {exp.hasComponents && (
-                        <Box className="h-3 w-3 text-blue-600" />
-                      )}
+                      {exp.npmUrl && <Box className="h-3 w-3 text-blue-600" />}
                     </div>
                   </div>
                 </CardHeader>
@@ -257,16 +204,11 @@ export function ExperiencesSection() {
                       </div>
                     )}
 
-                    {exp.hasComponents && (
+                    {exp.npmUrl && (
                       <div className="relative group">
                         <button
                           className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
-                          onClick={() =>
-                            window.open(
-                              'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
-                              '_blank',
-                            )
-                          }
+                          onClick={() => window.open(exp.npmUrl, '_blank')}
                           title="View NPM Components"
                         >
                           <Box className="h-5 w-5" />

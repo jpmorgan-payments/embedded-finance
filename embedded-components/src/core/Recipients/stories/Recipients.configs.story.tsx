@@ -49,10 +49,6 @@ const meta: Meta<typeof Recipients> = {
       control: 'boolean',
       description: 'Show/hide create functionality',
     },
-    enableVerification: {
-      control: 'boolean',
-      description: 'Enable microdeposit verification',
-    },
   },
 };
 export default meta;
@@ -64,7 +60,6 @@ export const DefaultConfig: Story = {
   name: 'Default Configuration',
   args: {
     showCreateButton: true,
-    enableVerification: true,
     clientId: 'client-001',
   },
   parameters: {
@@ -130,7 +125,6 @@ export const MultiplePaymentMethods: Story = {
   args: {
     config: multiMethodConfig,
     showCreateButton: true,
-    enableVerification: true,
     clientId: 'client-001',
   },
   parameters: {
