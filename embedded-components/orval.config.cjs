@@ -27,11 +27,39 @@ module.exports = {
       },
     },
   },
-   'ep-recipients': {
+  'ep-recipients': {
     input: './api-specs/embedded-finance-pub-ep-recipients-1.0.23.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/ep-recipients.ts',
+      client: 'react-query',
+      override: {
+        mutator: {
+          path: './src/api/axios-instance.ts',
+          name: 'ebInstance',
+        },
+      },
+    },
+  },
+  'ep-transactions': {
+    input: './api-specs/embedded-finance-pub-ep-transactions-2.0.23.yaml',
+    output: {
+      mode: 'split',
+      target: './src/api/generated/ep-transactions.ts',
+      client: 'react-query',
+      override: {
+        mutator: {
+          path: './src/api/axios-instance.ts',
+          name: 'ebInstance',
+        },
+      },
+    },
+  },
+  'ep-accounts': {
+    input: './api-specs/embedded-finance-pub-ep-accounts-1.0.23.yaml',
+    output: {
+      mode: 'split',
+      target: './src/api/generated/ep-accounts.ts',
       client: 'react-query',
       override: {
         mutator: {

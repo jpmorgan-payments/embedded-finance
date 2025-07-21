@@ -151,10 +151,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     setValue('type', recipientData.partyDetails?.type || 'INDIVIDUAL');
     setValue('firstName', recipientData.partyDetails?.firstName || '');
     setValue('lastName', recipientData.partyDetails?.lastName || '');
-    setValue(
-      'businessName',
-      recipientData.partyDetails?.organization?.businessName || ''
-    );
+    setValue('businessName', recipientData.partyDetails?.businessName || '');
 
     // Account information
     setValue('accountNumber', recipientData.account?.number || '');

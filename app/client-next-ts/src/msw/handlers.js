@@ -603,7 +603,7 @@ export const createHandlers = (apiUrl) => [
     const newRecipient = {
       id: recipientId,
       type: data.type || 'LINKED_ACCOUNT',
-      status: data.status || 'MICRODEPOSITS_INITIATED',
+      status: data.status || 'ACTIVE',
       clientId: data.clientId || 'client-001',
       partyDetails: data.partyDetails,
       account: data.account,
@@ -814,6 +814,21 @@ export const createHandlers = (apiUrl) => [
     return HttpResponse.json(response, {
       headers: { 'Content-Type': 'application/json' },
     });
+  }),
+
+  // Add handler for GET /ef/do/v1/transactions/:id using the mock
+  http.get(`${apiUrl}/ef/do/v1/transactions/:id`, ({ params }) => {
+    const { id } = params;
+    const transaction = db.transaction.findFirst({
+      where: { id: { equals: id } },
+    });
+    if (transaction) {
+      return HttpResponse.json(transaction, { status: 200 });
+    }
+    return HttpResponse.json(
+      { error: 'Transaction not found' },
+      { status: 404 },
+    );
   }),
 
   // Create new transaction

@@ -1,0 +1,892 @@
+openapi: 3.0.1
+info:
+  title: Accounts API
+  version: 1.0.23
+  description: Create, organize and manage accounts.
+  contact:
+    name: JPMC Technical Services Support
+servers:
+  - url: https://apigateway.jpmorgan.com/tsapi/ef/v1
+    description: JPM-PROD - Embedded Payments
+  - url: https://api-mock.payments.jpmorgan.com/tsapi/ef/v1
+    description: JPM-PROD - Embedded Payments Mock
+  - url: https://apigatewaycat.jpmorgan.com/tsapi/ef/v1
+    description: JPM-CAT - Embedded Payments
+tags:
+  - name: Accounts
+    description: Create, organize and manage accounts.
+paths:
+  /accounts:
+    get:
+      summary: List accounts
+      description: Returns a list of accounts for a specific client.
+      operationId: getAccounts
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/clientIdInQuery'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/pageNo'
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: List of accounts for a specific client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAccountsResponse'
+              examples:
+                ListAccountsResponse:
+                  $ref: '#/components/examples/ListAccountsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    post:
+      summary: Create account
+      description: Create an account for a specific client
+      operationId: postAccounts
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+            examples:
+              Create a limited DDA:
+                $ref: '#/components/examples/CreateLimitedDdaRequest'
+              Create an embedded DDA:
+                $ref: '#/components/examples/CreateEmbeddedDdaRequest'
+      tags:
+        - Accounts
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseWithStatus'
+              examples:
+                Create a limited DDA:
+                  $ref: '#/components/examples/CreateLimitedDdaResponse'
+                Create an embedded DDA:
+                  $ref: '#/components/examples/CreateEmbeddedDdaResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /accounts/{id}:
+    get:
+      summary: Get account
+      description: Look up a single account by account ID
+      operationId: getAccount
+      tags:
+        - Accounts
+      parameters:
+        - $ref: '#/components/parameters/accountIdInPath'
+        - $ref: '#/components/parameters/token'
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponseWithStatus'
+              examples:
+                GetLimitedDdaAccountResponse:
+                  $ref: '#/components/examples/GetLimitedDdaAccountResponse'
+                GetEmbeddedDdaAccountResponse:
+                  $ref: '#/components/examples/GetEmbeddedDdaAccountResponse'
+                GetDdaAccountResponse:
+                  $ref: '#/components/examples/GetDdaAccountResponse'
+                GetProcessingAccountResponse:
+                  $ref: '#/components/examples/GetProcessingAccountResponse'
+                GetManagementAccountResponse:
+                  $ref: '#/components/examples/GetManagementAccountResponse'
+                GetPaymentsDdaAccountResponse:
+                  $ref: '#/components/examples/GetPaymentsDdaAccountResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /accounts/{id}/balances:
+    get:
+      summary: Get an account balance
+      description: Get the balance details for an account
+      operationId: getAccountBalance
+      tags:
+        - Accounts
+      parameters:
+        - $ref: '#/components/parameters/accountIdInPath'
+        - $ref: '#/components/parameters/token'
+      responses:
+        '200':
+          description: Account balance details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalanceResponse'
+              examples:
+                GetAccountBalanceResponse:
+                  $ref: '#/components/examples/GetAccountBalanceResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+components:
+  parameters:
+    token:
+      name: token
+      in: header
+      description: JWT Client token
+      required: false
+      schema:
+        type: string
+        minLength: 0
+    clientIdInQuery:
+      name: clientId
+      in: query
+      description: Unique Client identifier
+      required: false
+      example: '9000000001'
+      schema:
+        type: string
+        pattern: ^\d{10}$
+        minLength: 10
+        maxLength: 10
+    pageSize:
+      name: limit
+      in: query
+      description: Number of records per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 25
+        default: 25
+      required: false
+    pageNo:
+      name: page
+      in: query
+      description: Page Number
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+    accountIdInPath:
+      name: id
+      in: path
+      description: Unique account identifier
+      schema:
+        type: string
+      required: true
+      example: ablim765e14741c5a44acc570af517ab
+  schemas:
+    PageMetaData:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+          description: |
+            Page Number.
+        limit:
+          type: integer
+          example: 30
+          description: |
+            Number of records per page.
+        total_items:
+          type: integer
+          example: 1
+          description: |
+            Total number of items.
+    AccountState:
+      description: Account State
+      type: string
+      enum:
+        - OPEN
+        - CLOSED
+        - PENDING_CLOSE
+      example: OPEN
+    CountryCode:
+      type: string
+      enum:
+        - US
+      description: Two letter country code based on ISO 3166 standard
+      example: US
+    RoutingCode:
+      type: string
+      enum:
+        - ABA
+      description: Routing codes supported (currently only ABA is supported)
+      example: ABA
+    RoutingInformationDto:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          $ref: '#/components/schemas/RoutingCode'
+        value:
+          type: string
+          description: Routing number
+          example: '280000240'
+    PaymentRoutingInformationDto:
+      type: object
+      required:
+        - accountNumber
+        - country
+      properties:
+        accountNumber:
+          type: string
+          example: '20000113278882'
+          description: Account number (PRN)
+        country:
+          $ref: '#/components/schemas/CountryCode'
+        routingInformation:
+          type: array
+          description: Routing information
+          items:
+            $ref: '#/components/schemas/RoutingInformationDto'
+          minItems: 0
+    AccountCategory:
+      type: string
+      enum:
+        - CLIENT_DDA
+        - CLIENT_OFFSET
+        - DDA
+        - EMBEDDED_DDA
+        - LIMITED_DDA
+        - LIMITED_DDA_PAYMENTS
+        - MANAGEMENT
+        - PROCESSING
+        - PROCESSING_OFFSET
+      example: LIMITED_DDA
+      description: Category of account
+    AccountResponse:
+      type: object
+      required:
+        - id
+        - label
+        - state
+        - createdAt
+        - category
+      properties:
+        id:
+          type: string
+          description: Account identifier
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+        label:
+          type: string
+          example: MAIN
+          description: Account label
+        state:
+          $ref: '#/components/schemas/AccountState'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationDto'
+        createdAt:
+          description: The date and time the account was created. For the client first account created during onboarding, this is close to the date and time that the client passes onboarding checks. For all other accounts, the timestamp is generated within a few seconds of the new account being requested.
+          type: string
+          format: date-time
+          example: '2022-09-22T16:09:53.397005Z'
+        category:
+          $ref: '#/components/schemas/AccountCategory'
+    ListAccountsResponse:
+      type: object
+      required:
+        - metadata
+        - items
+      properties:
+        metadata:
+          $ref: '#/components/schemas/PageMetaData'
+        items:
+          type: array
+          nullable: false
+          description: List of accounts for a specific client
+          items:
+            $ref: '#/components/schemas/AccountResponse'
+          minItems: 0
+    ApiErrorReasonV2:
+      type: object
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+        location:
+          type: string
+          enum:
+            - BODY
+            - QUERY
+            - PATH
+            - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+        field:
+          type: string
+          description: The location of the property or parameter in error
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+    ApiError:
+      type: object
+      required:
+        - title
+        - httpStatus
+        - error
+      properties:
+        title:
+          type: string
+          description: Short humanly-readable title of the error
+          example: BAD REQUEST
+        httpStatus:
+          type: integer
+          description: HTTP status code
+          example: 422
+        traceId:
+          type: string
+          description: Internal assigned traced identifier
+        requestId:
+          type: string
+          description: Client provided request identifier
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
+    AccountCategoryReq:
+      type: string
+      enum:
+        - LIMITED_DDA
+        - EMBEDDED_DDA
+        - LIMITED_DDA_PAYMENTS
+      example: LIMITED_DDA
+      description: |
+        The type of account for your client. There are two account categories for Embedded Payments (EP) product:
+        * `LIMITED_DDA`: Accounts under this category will have an inactive Payment Routing Number (PRN), which means they cannot handle external transactions but remain active for internal transactions.
+        * `LIMITED_DDA_PAYMENTS`: Accounts under this category will have an active Payment Routing Number (PRN), enabling them to handle both internal and external transactions, thus supporting a full range of payment activities.
+
+        The `EMBEDDED_DDA` category is included only to support our legacy Embedded Banking (EB) product and should not be used.
+    CreateAccountRequest:
+      type: object
+      properties:
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+          pattern: ^\d{10}$
+        label:
+          type: string
+          description: The label of the account to be created. Currently, only `MAIN` is supported.
+          example: MAIN
+        category:
+          $ref: '#/components/schemas/AccountCategoryReq'
+    PaymentRoutingStatus:
+      description: Indicates the current status of the Payment Routing Number (PRN) associated with an account. An "ACTIVE" status allows for both incoming and outgoing transactions, including external transfers. An "INACTIVE" status means that the client cannot receive payments (PAYIns) from external sources into the account, nor can they transfer money out externally. However, internal money movements within linked accounts are still possible. **Important:** An "INACTIVE" PRN status strictly pertains to the PRN's ability to handle external transactions and does not affect the overall status or functionality of the account itself. The account remains active and operational for other purposes.
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+      example: ACTIVE
+    PaymentRoutingInformationDtoWithStatus:
+      type: object
+      required:
+        - accountNumber
+        - country
+        - status
+      properties:
+        accountNumber:
+          type: string
+          example: '20000113278882'
+          description: Account number (PRN)
+        country:
+          $ref: '#/components/schemas/CountryCode'
+        routingInformation:
+          type: array
+          description: Routing information
+          items:
+            $ref: '#/components/schemas/RoutingInformationDto'
+          minItems: 0
+        status:
+          $ref: '#/components/schemas/PaymentRoutingStatus'
+    RestrictionType:
+      description: Restriction Type
+      type: string
+      enum:
+        - DIRECT_DEBIT
+      example: DIRECT_DEBIT
+    AccountRestrictionResponse:
+      type: object
+      required:
+        - restrictionId
+        - restrictionType
+      properties:
+        restrictionId:
+          type: string
+          nullable: false
+          minLength: 1
+          maxLength: 36
+          description: Unique identifier for the restriction
+          example: 4c89fa2f-f452-4ca3-86cf-851362370357
+        restrictionType:
+          $ref: '#/components/schemas/RestrictionType'
+    AccountResponseWithStatus:
+      type: object
+      required:
+        - id
+        - label
+        - state
+        - createdAt
+        - category
+      properties:
+        id:
+          type: string
+          description: Account identifier
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+        label:
+          type: string
+          example: MAIN
+          description: Account label
+        state:
+          $ref: '#/components/schemas/AccountState'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationDtoWithStatus'
+        category:
+          $ref: '#/components/schemas/AccountCategory'
+        restrictions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountRestrictionResponse'
+          minItems: 0
+        closureReason:
+          type: string
+          example: Elective Closure
+          description: Closure Reason
+        createdAt:
+          description: The date and time the account was created. For the client first account created during onboarding, this is close to the date and time that the client passes onboarding checks. For all other accounts, the timestamp is generated within a few seconds of the new account being requested.
+          type: string
+          format: date-time
+          example: '2022-09-22T16:09:53.397005Z'
+    AccountBalanceDto:
+      type: object
+      required:
+        - typeCode
+        - amount
+      properties:
+        typeCode:
+          type: string
+          enum:
+            - ITAV
+            - ITBD
+          description: 'Balance type: ITAV (interim available balance) or ITBD (interim booked balance)'
+          example: ITAV
+        amount:
+          type: number
+          description: Balance amount
+          example: 100.23
+    AccountBalanceResponse:
+      type: object
+      required:
+        - id
+        - date
+        - currency
+        - balanceTypes
+      properties:
+        id:
+          type: string
+          description: Account identifier
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        date:
+          description: Balance date in ISO date format - yyyy-MM-dd
+          type: string
+          format: date
+          example: '2022-12-31'
+        currency:
+          type: string
+          description: Balance currency
+          example: USD
+        balanceTypes:
+          type: array
+          description: List of account balances of type ITAV (interim available balance) or ITBD (interim booked balance)
+          items:
+            $ref: '#/components/schemas/AccountBalanceDto'
+          minItems: 0
+  examples:
+    ListAccountsResponse:
+      summary: List Accounts - Sole Prop
+      description: List Accounts - Sole Prop
+      value:
+        metadata:
+          page: 0
+          limit: 25
+          total_items: 8
+        items:
+          - id: 3ad88d43983f4312b1e67615e5aed6dd
+            clientId: '0005199987'
+            label: FUNDING
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '10000000123'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.529997Z'
+            category: DDA
+          - id: 1753d04e42514cd8af07032585643ad9
+            clientId: '0005199987'
+            label: PRIMARY_PROCESSING
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '10000000001035'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.434213Z'
+            category: PROCESSING
+          - id: b4bc60637efe4ea28fb68727a321dbea
+            clientId: '0005199987'
+            label: PROCESSING_OFFSET
+            state: OPEN
+            createdAt: '2025-04-14T08:57:21.495392Z'
+            category: PROCESSING_OFFSET
+          - id: 5af7ff19b6024604a4b801c805aaaa12
+            clientId: '0005199987'
+            label: TAXES
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '10000000001035'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.592681Z'
+            category: MANAGEMENT
+          - id: e627a5350fa3412ba121c4a26fc1b2ff
+            clientId: '0005199987'
+            label: CLIENT_OFFSET
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '10000000001032'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.644832Z'
+            category: CLIENT_OFFSET
+          - id: 94ad2e29486d4fe8b78f2c778370f5fe
+            clientId: '0085199987'
+            label: MAIN3919
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '20000057603919'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.792272Z'
+            category: LIMITED_DDA
+          - id: aemano765e14741c5a44acc570af517ab
+            clientId: '1000013296'
+            label: MAIN3229
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '20000057603229'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.862978Z'
+            category: LIMITED_DDA
+          - id: akrsm765e14741c5a48acc570af517da
+            clientId: '1000012400'
+            label: MAIN3212
+            state: OPEN
+            paymentRoutingInformation:
+              accountNumber: '20000097603212'
+              country: US
+              routingInformation:
+                - type: ABA
+                  value: '028000024'
+            createdAt: '2025-04-14T08:57:21.913631Z'
+            category: LIMITED_DDA_PAYMENTS
+    CreateLimitedDdaRequest:
+      summary: Create limited DDA - Sole Prop
+      description: Create limited DDA - Sole Prop
+      value:
+        clientId: '1000010400'
+        label: MAIN
+        category: LIMITED_DDA
+    CreateEmbeddedDdaRequest:
+      summary: Create embedded DDA - Sole Prop
+      description: Create embedded DDA - Sole Prop
+      value:
+        label: MAIN
+        category: EMBEDDED_DDA
+    CreateLimitedDdaResponse:
+      summary: Create limited DDA - Sole Prop
+      description: Create limited DDA - Sole Prop
+      value:
+        id: 07310f4a684f4979931d75da36364413
+        clientId: '1000010400'
+        label: MAIN3212
+        state: OPEN
+        paymentRoutingInformation:
+          accountNumber: '20000097603212'
+          country: US
+          routingInformation:
+            - type: ABA
+              value: '028000024'
+          status: INACTIVE
+        category: LIMITED_DDA
+        createdAt: '2025-04-14T09:09:47.245258Z'
+    CreateEmbeddedDdaResponse:
+      summary: Create embedded DDA - Sole Prop
+      description: Create embedded DDA - Sole Prop
+      value:
+        id: ablim765e14741c5a44acc570af517ab
+        clientId: '1000010400'
+        label: MAIN2312
+        state: OPEN
+        category: EMBEDDED_DDA
+        createdAt: '2023-10-27T17:33:42.732Z'
+        paymentRoutingInformation:
+          accountNumber: '10000000001035'
+          country: US
+          status: ACTIVE
+          routingInformation:
+            - type: ABA
+              value: '028000024'
+    GetLimitedDdaAccountResponse:
+      summary: Get Limited DDA Account - Sole Prop
+      description: Get Limited DDA Account - Sole Prop
+      value:
+        id: 07310f4a684f4979931d75da36364413
+        clientId: '1000010400'
+        label: MAIN3212
+        state: OPEN
+        paymentRoutingInformation:
+          accountNumber: '20000097603212'
+          country: US
+          routingInformation:
+            - type: ABA
+              value: '028000024'
+          status: INACTIVE
+        category: LIMITED_DDA
+        createdAt: '2025-04-14T09:09:47.245258Z'
+    GetEmbeddedDdaAccountResponse:
+      summary: Get Embedded DDA Account - Sole Prop
+      description: Get Embedded DDA Account - Sole Prop
+      value:
+        id: acemb765e14741c5a44acc570af517ab
+        clientId: '1000010400'
+        label: MAIN
+        state: OPEN
+        category: EMBEDDED_DDA
+        createdAt: '2023-10-27T17:33:42.732Z'
+    GetDdaAccountResponse:
+      summary: Get DDA Account
+      description: Get DDA Account
+      value:
+        id: aadda765e14741c5a44acc570af517ab
+        clientId: '1000010400'
+        label: MAIN
+        state: OPEN
+        category: DDA
+        createdAt: '2023-10-27T17:33:42.732Z'
+    GetProcessingAccountResponse:
+      summary: Get Processing Account - Sole Prop
+      description: Get Processing Account - Sole Prop
+      value:
+        id: adpro765e14741c5a44acc570af517ab
+        clientId: '1000010400'
+        label: MAIN
+        state: OPEN
+        category: PROCESSING
+        createdAt: '2023-10-27T17:33:42.732Z'
+    GetManagementAccountResponse:
+      summary: Get Management Account - Sole Prop
+      description: Get Management Account - Sole Prop
+      value:
+        id: aemano765e14741c5a44acc570af517ab
+        clientId: '1000010400'
+        label: MAIN
+        state: OPEN
+        paymentRoutingInformation:
+          accountNumber: '20000097603211'
+          country: US
+          routingInformation:
+            - type: ABA
+              value: '028000024'
+          status: INACTIVE
+        category: MANAGEMENT
+        createdAt: '2023-10-27T17:33:42.732Z'
+    GetPaymentsDdaAccountResponse:
+      summary: Get Limited Payments DDA Account - Sole Prop
+      description: Get Limited Payments DDA Account - Sole Prop
+      value:
+        id: akrsm765e14741c5a48acc570af517da
+        clientId: '1000012400'
+        label: MAIN
+        state: OPEN
+        paymentRoutingInformation:
+          accountNumber: '20000097603212'
+          country: US
+          status: ACTIVE
+          routingInformation:
+            - type: ABA
+              value: '028000024'
+        category: LIMITED_DDA_PAYMENTS
+        createdAt: '2023-10-27T17:33:42.732Z'
+    GetAccountBalanceResponse:
+      summary: Get Account Balance - Sole Prop
+      description: Get Account Balance - Sole Prop
+      value:
+        id: ae86b765e14741c5a44acc570af517ab
+        date: '2023-10-28'
+        currency: USD
+        balanceTypes:
+          - typeCode: ITAV
+            amount: 245645.65
+          - typeCode: ITBD
+            amount: 552145.33
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Bad Request
+              summary: Bad Request
+              value:
+                title: Bad Request
+                httpStatus: 400
+                error: BAD_REQUEST
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Unauthorized
+              summary: Unauthorized
+              value:
+                title: Unauthorized Request
+                httpStatus: 401
+                error: UNAUTHORIZED
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Forbidden
+              summary: Forbidden
+              value:
+                title: Forbidden
+                httpStatus: 403
+                error: FORBIDDEN
+    '404':
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Not Found
+              summary: Not Found
+              value:
+                title: Not Found
+                httpStatus: 404
+                error: NOT_FOUND
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Internal Server Error
+              summary: Internal Server Error
+              value:
+                title: Internal Server Error
+                httpStatus: 500
+                error: INTERNAL_SERVER_ERROR
+    '503':
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Service Unavailable
+              summary: Service Unavailable
+              value:
+                title: Service Unavailable
+                httpStatus: 503
+                error: SERVICE_UNAVAILABLE
+x-jpmc-securityDefinitions:
+  MutualTLS:
+    type: x509
+    description: Mutual TLS authentication using client and server certificates.
+x-jpmc-security:
+  - MutualTLS

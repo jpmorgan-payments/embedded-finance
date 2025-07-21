@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getRecipientLabel } from '@/lib/utils';
-import { useCreateRecipient } from '@/api/generated/ef-v1';
+import { useCreateRecipient, useGetAllRecipients } from '@/api/generated/ef-v1';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -73,37 +73,46 @@ export const LinkAccountFormDialogTrigger: FC<
     data: createRecipientResponse,
   } = useCreateRecipient();
 
+  const { refetch: refetchCreateRecipient } = useGetAllRecipients();
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit = (data: z.infer<typeof LinkAccountFormSchema>) => {
     // Handle account linking logic here
-    createRecipient({
-      data: {
-        type: 'LINKED_ACCOUNT',
-        partyDetails: {
-          type: data.accountType,
-          ...(data.accountType === 'INDIVIDUAL'
-            ? {
-                firstName: data.firstName,
-                lastName: data.lastName,
-              }
-            : {
-                businessName: data.businessName,
-              }),
-        },
-        account: {
-          type: 'CHECKING',
-          number: data.accountNumber,
-          routingInformation: [
-            {
-              routingCodeType: 'USABA',
-              routingNumber: data.routingNumber,
-              transactionType: 'ACH',
-            },
-          ],
-          countryCode: 'US',
+    createRecipient(
+      {
+        data: {
+          type: 'LINKED_ACCOUNT',
+          partyDetails: {
+            type: data.accountType,
+            ...(data.accountType === 'INDIVIDUAL'
+              ? {
+                  firstName: data.firstName,
+                  lastName: data.lastName,
+                }
+              : {
+                  businessName: data.businessName,
+                }),
+          },
+          account: {
+            type: 'CHECKING',
+            number: data.accountNumber,
+            routingInformation: [
+              {
+                routingCodeType: 'USABA',
+                routingNumber: data.routingNumber,
+                transactionType: 'ACH',
+              },
+            ],
+            countryCode: 'US',
+          },
         },
       },
-    });
+      {
+        onSuccess: () => {
+          refetchCreateRecipient();
+        },
+      }
+    );
   };
 
   return (
