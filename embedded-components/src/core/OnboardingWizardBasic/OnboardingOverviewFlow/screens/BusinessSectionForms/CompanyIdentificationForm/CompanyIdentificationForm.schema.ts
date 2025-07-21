@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingWizardBasic/utils/COUNTRIES_OF_FORMATION';
 
 const CURRENT_YEAR = new Date().getFullYear();
-const NAME_PATTERN = /^[a-zA-Z0-9()_/&+%@#;,.: -?]*$/;
-const SPECIAL_CHARS_PATTERN = /[()_/&+%@#;,.: -?]/;
+const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
+const SPECIAL_CHARS_PATTERN = /[()_\\/&+%@#;,.: '-]/;
 
 const OrganizationIdSchema = z
   .object({
@@ -34,8 +34,8 @@ const OrganizationIdSchema = z
         100,
         i18n.t('onboarding:fields.organizationIds.value.validation.maxLength')
       )
-      .regex(
-        /^[A-Za-z0-9-]+$/,
+      .refine(
+        (val) => /^[A-Za-z0-9-]+$/.test(val),
         i18n.t('onboarding:fields.organizationIds.value.validation.format')
       ),
     issuer: z
@@ -131,8 +131,8 @@ export const CompanyIdentificationFormSchema = z.object({
     .string()
     .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))
     .max(100, i18n.t('onboarding:fields.organizationName.validation.maxLength'))
-    .regex(
-      NAME_PATTERN,
+    .refine(
+      (val) => NAME_PATTERN.test(val),
       i18n.t('onboarding:fields.organizationName.validation.pattern')
     )
     .refine(
@@ -147,8 +147,8 @@ export const CompanyIdentificationFormSchema = z.object({
     ),
   yearOfFormation: z
     .string()
-    .regex(
-      /^(19|20)\d{2}$/,
+    .refine(
+      (val) => /^(19|20)\d{2}$/.test(val),
       i18n.t('onboarding:fields.yearOfFormation.validation.format')
     )
     .refine((val) => {

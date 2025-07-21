@@ -172,7 +172,7 @@
         "validation": {
           "required": "ID value is required",
           "format": "Invalid ID format",
-          "ssnFormat": "SSN must be exactly 9 digits",
+          "ssnFormat": "Invalid SSN",
           "itinFormat": "ITIN must be exactly 9 digits and start with 9",
           "noSpaces": "ID value cannot contain spaces"
         }
@@ -426,7 +426,7 @@
         "validation": {
           "required": "ID value is required",
           "format": "Invalid ID format",
-          "ssnFormat": "SSN must be exactly 9 digits",
+          "ssnFormat": "Invalid SSN",
           "itinFormat": "ITIN must be exactly 9 digits and start with 9",
           "noSpaces": "ID value cannot contain spaces"
         }
