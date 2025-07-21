@@ -1,34 +1,36 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { CopyIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui';
 
 import { formatNumberToCurrency } from '../utils/formatNumberToCurrency';
 import { ModifiedTransaction } from '../utils/modifyTransactionsData';
 
-export type TransactionDetailsSheetTriggerProps = {
+export type TransactionDetailsDialogTriggerProps = {
   children: React.ReactNode;
   transaction: ModifiedTransaction;
 };
 
-export const TransactionDetailsSheetTrigger: FC<
-  TransactionDetailsSheetTriggerProps
+export const TransactionDetailsDialogTrigger: FC<
+  TransactionDetailsDialogTriggerProps
 > = ({ children, transaction }) => {
+  const [open, setOpen] = useState(false);
   return (
-    <Sheet>
-      <SheetTrigger>{children}</SheetTrigger>
-      <SheetContent className="eb-component eb-p-0">
-        <SheetHeader className="eb-flex eb-space-y-1.5 eb-bg-muted/50 eb-p-6">
-          <SheetTitle className="eb-group eb-flex eb-items-center eb-gap-2 eb-text-lg">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="eb-group eb-flex eb-items-center eb-gap-2 eb-text-lg">
             Transaction: {transaction.id}
             <Button
               size="icon"
@@ -41,8 +43,8 @@ export const TransactionDetailsSheetTrigger: FC<
               <CopyIcon className="eb-h-3 eb-w-3" />
               <span className="eb-sr-only">Copy transaction ID</span>
             </Button>
-          </SheetTitle>
-          <SheetDescription>
+          </DialogTitle>
+          <DialogDescription>
             Date:{' '}
             {transaction.paymentDate === undefined
               ? 'N/A'
@@ -51,10 +53,10 @@ export const TransactionDetailsSheetTrigger: FC<
                   month: 'short',
                   day: 'numeric',
                 })}
-          </SheetDescription>
-          <SheetDescription>Status: {transaction.status}</SheetDescription>
-        </SheetHeader>
-        <div className="eb-p-6 eb-text-sm">
+          </DialogDescription>
+          <DialogDescription>Status: {transaction.status}</DialogDescription>
+        </DialogHeader>
+        <div className="eb-scrollable-content eb-text-sm">
           <div className="eb-grid eb-gap-3">
             <div className="eb-font-semibold">Transaction Details</div>
             <ul className="eb-grid eb-gap-3">
@@ -82,7 +84,10 @@ export const TransactionDetailsSheetTrigger: FC<
 
           <Separator className="eb-my-4" />
         </div>
-      </SheetContent>
-    </Sheet>
+        <DialogClose asChild>
+          <Button variant="outline">Close</Button>
+        </DialogClose>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -73,7 +73,6 @@ export const MicrodepositVerificationResponseStatus = {
  * Microdeposit verification outcome
  */
 export interface MicrodepositVerificationResponse {
-  attemptsRemaining: number | undefined;
   status: MicrodepositVerificationResponseStatus;
 }
 
@@ -381,8 +380,6 @@ export const PartyType = {
 } as const;
 
 export interface RecipientPartyDetails {
-  individual?: any;
-  organization?: any;
   address?: RecipientAddress;
   /**
    * Recipient company name. Mandatory for recipient type ORGANIZATION.

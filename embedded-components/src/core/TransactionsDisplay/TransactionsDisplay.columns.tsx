@@ -3,7 +3,7 @@ import { ChevronRightIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 
-import { TransactionDetailsSheetTrigger } from './TransactionDetailsSheet/TransactionDetailsSheet';
+import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet/TransactionDetailsSheet';
 import { formatNumberToCurrency } from './utils/formatNumberToCurrency';
 import { ModifiedTransaction } from './utils/modifyTransactionsData';
 
@@ -60,12 +60,12 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
       const transaction = row.original;
 
       return (
-        <TransactionDetailsSheetTrigger transaction={transaction}>
+        <TransactionDetailsDialogTrigger transaction={transaction}>
           <Button variant="ghost" className="eb-h-8 eb-w-8 eb-p-0">
             <span className="eb-sr-only">View transaction details</span>
             <ChevronRightIcon className="eb-h-4 eb-w-4" />
           </Button>
-        </TransactionDetailsSheetTrigger>
+        </TransactionDetailsDialogTrigger>
       );
     },
   },
