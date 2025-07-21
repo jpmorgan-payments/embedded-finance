@@ -40,6 +40,10 @@ export const IndividualIdentityForm: FormStepComponent = () => {
     }
   }, [form.watch('controllerIds.0.issuer')]);
 
+  useEffect(() => {
+    form.clearErrors('controllerIds.0.value');
+  }, [currentIdType]);
+
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
@@ -67,6 +71,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       {form.watch('countryOfResidence') === 'US' && (
         <div className="eb-space-y-3">
           <OnboardingFormField
+            key={currentIdType}
             control={form.control}
             name="controllerIds.0.value"
             type="text"
