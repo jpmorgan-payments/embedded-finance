@@ -21,15 +21,11 @@ export function buildRecipientRequest(
     partyDetails: {
       type: data.type,
       ...(data.type === 'INDIVIDUAL' && {
-        individual: {
-          firstName: data.firstName!,
-          lastName: data.lastName!,
-        },
+        firstName: data.firstName!,
+        lastName: data.lastName!,
       }),
       ...(data.type === 'ORGANIZATION' && {
-        organization: {
-          businessName: data.businessName!,
-        },
+        businessName: data.businessName!,
       }),
       ...(data.addressLine1 && {
         address: {

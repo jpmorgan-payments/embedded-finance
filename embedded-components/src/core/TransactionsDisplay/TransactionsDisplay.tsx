@@ -1,7 +1,9 @@
 import { FC } from 'react';
+import { RefreshCw } from 'lucide-react';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useListTransactionsV2 } from '@/api/generated/ep-transactions';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
 
@@ -80,7 +82,8 @@ const TransactionCard: FC<{ transaction: any }> = ({ transaction }) => (
 export const TransactionsDisplay: FC<TransactionsDisplayProps> = ({
   accountId,
 }) => {
-  const { data, status, failureReason } = useListTransactionsV2({});
+  const { data, status, failureReason, refetch, isFetching } =
+    useListTransactionsV2({});
   const isMobile = useMediaQuery('(max-width: 640px)');
   const transactions = data?.items
     ? modifyTransactionsData(data.items, accountId)
@@ -88,10 +91,24 @@ export const TransactionsDisplay: FC<TransactionsDisplayProps> = ({
 
   return (
     <Card className="eb-w-full">
-      <CardHeader>
-        <CardTitle className="eb-text-xl eb-font-semibold">
+      <CardHeader className="eb-flex eb-flex-row eb-items-center eb-justify-between eb-gap-2">
+        <CardTitle className="eb-flex-1 eb-text-xl eb-font-semibold">
           Transactions
         </CardTitle>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Refresh transactions"
+          title="Refresh transactions"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="eb-ml-2 eb-cursor-pointer"
+        >
+          <span className="eb-sr-only">Refresh transactions</span>
+          <RefreshCw
+            className={`eb-h-5 eb-w-5 eb-text-gray-500 ${isFetching ? 'eb-animate-spin' : ''}`}
+          />
+        </Button>
       </CardHeader>
       <CardContent className="eb-space-y-4">
         {status === 'pending' && (

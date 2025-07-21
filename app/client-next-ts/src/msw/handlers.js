@@ -603,7 +603,7 @@ export const createHandlers = (apiUrl) => [
     const newRecipient = {
       id: recipientId,
       type: data.type || 'LINKED_ACCOUNT',
-      status: data.status || 'MICRODEPOSITS_INITIATED',
+      status: data.status || 'ACTIVE',
       clientId: data.clientId || 'client-001',
       partyDetails: data.partyDetails,
       account: data.account,
