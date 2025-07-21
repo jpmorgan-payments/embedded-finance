@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useElementWidth } from '@/utils/useElementWidth';
 // Icons
 import { AlertCircle, Plus, Search } from 'lucide-react';
 
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   useAmendRecipient,
   useCreateRecipient,
@@ -224,8 +224,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
-  const isMobile = useMediaQuery('(max-width: 640px)');
-  const isTablet = useMediaQuery('(max-width: 1024px)');
+  // Use element width instead
+  const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
+  const isMobile = containerWidth > 0 && containerWidth < 640;
+  const isTablet = containerWidth >= 640 && containerWidth < 1024;
+  // const isDesktop = containerWidth >= 1024; // Not used directly
 
   // API queries
   const {
@@ -404,7 +407,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   }
 
   return (
-    <Card className="eb-w-full">
+    <Card className="eb-w-full" ref={containerRef}>
       <CardHeader>
         <div className="eb-flex eb-items-center eb-justify-between">
           <CardTitle className="eb-text-xl eb-font-semibold">
