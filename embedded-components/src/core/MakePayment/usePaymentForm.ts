@@ -12,8 +12,9 @@ export const paymentSchema = z.object({
   amount: z
     .string()
     .min(1, 'Amount is required')
-    .regex(/^\d+(\.\d{1,2})?$/, 'Invalid amount format'),
+    .regex(/^[\d]+(\.\d{1,2})?$/, 'Invalid amount format'),
   method: z.string().min(1, 'Payment method is required'),
+  memo: z.string().optional(),
 });
 
 type PaymentFormData = z.infer<typeof paymentSchema>;
@@ -41,6 +42,7 @@ export const usePaymentForm = () => {
       to: '',
       amount: '',
       method: 'ACH',
+      memo: '',
     },
   });
 

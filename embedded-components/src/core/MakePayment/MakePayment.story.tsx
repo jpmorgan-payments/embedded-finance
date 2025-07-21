@@ -9,11 +9,6 @@ import { MakePayment } from './MakePayment';
 interface MakePaymentWithProviderProps extends EBConfig {
   triggerButton?: React.ReactNode;
   accounts?: Array<{ id: string; name: string }>;
-  recipients?: Array<{
-    id: string;
-    name: string;
-    accountNumber: string;
-  }>;
   paymentMethods?: Array<{
     id: string;
     name: string;
@@ -22,6 +17,70 @@ interface MakePaymentWithProviderProps extends EBConfig {
   }>;
 }
 
+const mockRecipients = [
+  {
+    id: 'linkedAccount1',
+    partyDetails: {
+      type: 'INDIVIDUAL',
+      firstName: 'John',
+      lastName: 'Doe',
+    },
+    account: {
+      id: 'acc-1234',
+      number: '1234567890',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '111000025',
+          transactionType: 'ACH',
+        },
+      ],
+    },
+  },
+  {
+    id: 'linkedAccount2',
+    partyDetails: {
+      type: 'INDIVIDUAL',
+      firstName: 'Jane',
+      lastName: 'Smith',
+    },
+    account: {
+      id: 'acc-5678',
+      number: '9876543210',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '222000111',
+          transactionType: 'ACH',
+        },
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '222000111',
+          transactionType: 'WIRE',
+        },
+      ],
+    },
+  },
+  {
+    id: 'linkedAccount3',
+    partyDetails: {
+      type: 'ORGANIZATION',
+      businessName: 'Company LLC',
+    },
+    account: {
+      id: 'acc-9012',
+      number: '2468135790',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '333000222',
+          transactionType: 'RTP',
+        },
+      ],
+    },
+  },
+];
+
 const meta: Meta<MakePaymentWithProviderProps> = {
   title: 'Payment / Make Payment',
   component: MakePayment,
@@ -29,7 +88,10 @@ const meta: Meta<MakePaymentWithProviderProps> = {
     layout: 'centered',
     msw: {
       handlers: [
-        http.post('/payments', () => {
+        http.get('*/recipients', () => {
+          return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.post('*/transactions', () => {
           return HttpResponse.json({ success: true });
         }),
       ],
@@ -44,7 +106,6 @@ const meta: Meta<MakePaymentWithProviderProps> = {
         reactQueryDefaultOptions,
         contentTokens,
         accounts,
-        recipients,
         paymentMethods,
       } = context.args;
       return (
@@ -66,7 +127,7 @@ const meta: Meta<MakePaymentWithProviderProps> = {
             contentTokens={contentTokens}
           >
             <div className="eb-p-4">
-              <Story args={{ accounts, recipients, paymentMethods }} />
+              <Story args={{ accounts, paymentMethods }} />
             </div>
           </EBComponentsProvider>
         </div>
@@ -84,32 +145,6 @@ const multipleAccounts = [
   { id: 'account1', name: 'Main Account' },
   { id: 'account2', name: 'Savings Account' },
   { id: 'account3', name: 'Business Account' },
-];
-
-const singleRecipient = [
-  {
-    id: 'linkedAccount',
-    name: 'Linked Account John Doe',
-    accountNumber: '****1234',
-  },
-];
-
-const multipleRecipients = [
-  {
-    id: 'linkedAccount1',
-    name: 'Linked Account John Doe',
-    accountNumber: '****1234',
-  },
-  {
-    id: 'linkedAccount2',
-    name: 'Linked Account Jane Smith',
-    accountNumber: '****5678',
-  },
-  {
-    id: 'linkedAccount3',
-    name: 'Linked Account Company LLC',
-    accountNumber: '****9012',
-  },
 ];
 
 const defaultPaymentMethods = [
@@ -148,7 +183,6 @@ export const Default: Story = {
       name: 'enUS',
     },
     accounts: multipleAccounts,
-    recipients: multipleRecipients,
     paymentMethods: defaultPaymentMethods,
   },
 };
@@ -157,45 +191,12 @@ export const WithSingleAccount: Story = {
   args: {
     ...Default.args,
     accounts: singleAccount,
-    recipients: multipleRecipients,
   },
   parameters: {
     docs: {
       description: {
         story:
           'When only one account is available, it is preselected automatically.',
-      },
-    },
-  },
-};
-
-export const WithSingleRecipient: Story = {
-  args: {
-    ...Default.args,
-    accounts: multipleAccounts,
-    recipients: singleRecipient,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'When only one recipient is available, it is preselected automatically.',
-      },
-    },
-  },
-};
-
-export const WithSingleAccountAndRecipient: Story = {
-  args: {
-    ...Default.args,
-    accounts: singleAccount,
-    recipients: singleRecipient,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'When only one account and one recipient are available, both are preselected automatically.',
       },
     },
   },
@@ -226,6 +227,59 @@ export const WithCustomPaymentMethods: Story = {
       description: {
         story:
           'Custom payment methods can be provided with different names, fees, and descriptions.',
+      },
+    },
+  },
+};
+
+// --- Storybook Stories for MakePayment ---
+
+/**
+ * Default: Shows all payment methods (ACH, RTP, WIRE) for all recipients.
+ * Use this to test dynamic payment method selection (e.g., Jane Smith: ACH & WIRE).
+ */
+export const AllPaymentMethods: Story = {
+  ...Default,
+  name: 'All Payment Methods (Default)',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows all payment methods (ACH, RTP, WIRE) for all recipients. Use this to test dynamic payment method selection (e.g., Jane Smith: ACH & WIRE).',
+      },
+    },
+  },
+};
+
+/**
+ * Only ACH: Shows only ACH as a payment method for all recipients.
+ * Use this to test single-method scenarios.
+ */
+export const OnlyACH: Story = {
+  ...WithSinglePaymentMethod,
+  name: 'Only ACH',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows only ACH as a payment method for all recipients. Use this to test single-method scenarios.',
+      },
+    },
+  },
+};
+
+/**
+ * Custom Payment Methods: Shows custom payment methods (INSTANT, STANDARD).
+ * Use this to test custom method scenarios.
+ */
+export const CustomPaymentMethods: Story = {
+  ...WithCustomPaymentMethods,
+  name: 'Custom Payment Methods',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows custom payment methods (INSTANT, STANDARD). Use this to test custom method scenarios.',
       },
     },
   },
