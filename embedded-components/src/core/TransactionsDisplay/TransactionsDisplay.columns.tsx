@@ -66,7 +66,7 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
     cell: ({ row }) => {
       const transaction = row.original;
       return (
-        <TransactionDetailsDialogTrigger transaction={transaction}>
+        <TransactionDetailsDialogTrigger transactionId={transaction.id ?? ''}>
           <Button variant="ghost" className="eb-h-8 eb-w-8 eb-p-0">
             <span className="eb-sr-only">View transaction details</span>
             <ChevronRightIcon className="eb-h-4 eb-w-4" />

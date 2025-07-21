@@ -153,7 +153,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     setValue('lastName', recipientData.partyDetails?.lastName || '');
     setValue(
       'businessName',
-      recipientData.partyDetails?.organization?.businessName || ''
+      recipientData.partyDetails?.businessName || ''
     );
 
     // Account information

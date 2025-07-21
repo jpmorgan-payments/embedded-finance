@@ -51,7 +51,7 @@ const TransactionCard: FC<{ transaction: any }> = ({ transaction }) => (
             : 'N/A'}
         </div>
       </div>
-      <TransactionDetailsDialogTrigger transaction={transaction}>
+      <TransactionDetailsDialogTrigger transactionId={transaction.id}>
         Details
       </TransactionDetailsDialogTrigger>
     </div>

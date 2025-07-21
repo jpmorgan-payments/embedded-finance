@@ -16,7 +16,6 @@ export {
 // Export sub-components if needed
 export { RecipientForm } from './components/RecipientForm/RecipientForm';
 export { RecipientDetails } from './components/RecipientDetails/RecipientDetails';
-export { VerificationFlow } from './components/VerificationFlow/VerificationFlow';
 
 // Export hooks
 export { useRecipientsFilters } from './hooks/useRecipientsFilters';
