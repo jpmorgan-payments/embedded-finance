@@ -5,6 +5,7 @@ import { useSearch } from '@tanstack/react-router';
 import {
   EBComponentsProvider,
   LinkedAccountWidget,
+  MakePayment,
   Recipients,
   TransactionsDisplay,
   // MakePayment, // Commented out due to infinite loop issues
@@ -150,7 +151,7 @@ function EmbeddedComponentCard({
 }
 
 export function WalletOverview(props: WalletOverviewProps = {}) {
-  const [layout, setLayout] = useState<'grid' | 'full-width'>('grid');
+  const [layout, setLayout] = useState<'grid' | 'full-width'>('full-width');
   const searchParams = useSearch({ from: '/sellsense-demo' });
 
   // Get all parameters from URL to ensure components respond to all changes
@@ -193,6 +194,19 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       component: <LinkedAccountWidget />,
     },
     {
+      title: 'Make Payment',
+      description: 'Send payments to recipients using your linked accounts.',
+      componentName: 'MakePayment',
+      componentDescription:
+        'A comprehensive widget for making payments to recipients.',
+      componentFeatures: [
+        'Select recipient from your list',
+        'Choose payment amount and account',
+        'Review and confirm payment details',
+      ],
+      component: <MakePayment />,
+    },
+    {
       title: 'Recipients',
       description: 'Manage your payment recipients and their information.',
       componentName: 'Recipients',
@@ -216,48 +230,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'View transaction details and status',
       ],
       component: <TransactionsDisplay accountId="0030000131" />,
-    },
-    // MakePayment component placeholder - to be implemented in the future
-    {
-      title: 'Make Payment',
-      description: 'Send payments to recipients using your linked accounts.',
-      componentName: 'MakePayment',
-      componentDescription:
-        'A comprehensive widget for making payments to recipients.',
-      componentFeatures: [
-        'Select recipient from your list',
-        'Choose payment amount and account',
-        'Review and confirm payment details',
-      ],
-      component: (
-        <div className="p-8 text-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-          <div className="text-gray-500 mb-4">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Make Payment Component
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            This component will be implemented in the future.
-          </p>
-          <div className="text-xs text-gray-500 bg-white px-3 py-2 rounded border">
-            <strong>Status:</strong> Coming Soon
-          </div>
-        </div>
-      ),
     },
   ];
 

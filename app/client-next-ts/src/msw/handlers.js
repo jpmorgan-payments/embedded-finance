@@ -816,6 +816,21 @@ export const createHandlers = (apiUrl) => [
     });
   }),
 
+  // Add handler for GET /ef/do/v1/transactions/:id using the mock
+  http.get(`${apiUrl}/ef/do/v1/transactions/:id`, ({ params }) => {
+    const { id } = params;
+    const transaction = db.transaction.findFirst({
+      where: { id: { equals: id } },
+    });
+    if (transaction) {
+      return HttpResponse.json(transaction, { status: 200 });
+    }
+    return HttpResponse.json(
+      { error: 'Transaction not found' },
+      { status: 404 },
+    );
+  }),
+
   // Create new transaction
   http.post(`${apiUrl}/ef/do/v1/transactions`, async ({ request }) => {
     const data = await request.json();
