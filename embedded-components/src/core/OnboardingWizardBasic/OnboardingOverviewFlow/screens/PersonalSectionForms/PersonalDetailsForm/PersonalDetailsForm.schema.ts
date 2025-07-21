@@ -1,7 +1,7 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-const NAME_PATTERN = /^[a-zA-Z0-9()_/\\&+%@#;,.: -?]*$/;
+const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
 const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
 
 export const PersonalDetailsFormSchema = z.object({
@@ -15,9 +15,9 @@ export const PersonalDetailsFormSchema = z.object({
       30,
       i18n.t('onboarding:fields.controllerFirstName.validation.maxLength')
     )
-    .regex(
-      NAME_PATTERN,
-      i18n.t('onboarding:fields.firstName.validation.pattern')
+    .refine(
+      (val) => NAME_PATTERN.test(val),
+      i18n.t('onboarding:fields.controllerFirstName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
@@ -33,8 +33,8 @@ export const PersonalDetailsFormSchema = z.object({
       30,
       i18n.t('onboarding:fields.controllerMiddleName.validation.maxLength')
     )
-    .regex(
-      NAME_PATTERN,
+    .refine(
+      (val) => NAME_PATTERN.test(val),
       i18n.t('onboarding:fields.controllerMiddleName.validation.pattern')
     ),
   controllerLastName: z
@@ -44,8 +44,8 @@ export const PersonalDetailsFormSchema = z.object({
       30,
       i18n.t('onboarding:fields.controllerLastName.validation.maxLength')
     )
-    .regex(
-      NAME_PATTERN,
+    .refine(
+      (val) => NAME_PATTERN.test(val),
       i18n.t('onboarding:fields.controllerLastName.validation.pattern')
     )
     .refine(
@@ -66,8 +66,8 @@ export const PersonalDetailsFormSchema = z.object({
       5,
       i18n.t('onboarding:fields.controllerNameSuffix.validation.maxLength')
     )
-    .regex(
-      SUFFIX_PATTERN,
+    .refine(
+      (val) => SUFFIX_PATTERN.test(val),
       i18n.t('onboarding:fields.controllerNameSuffix.validation.pattern')
     ),
   controllerJobTitle: z
@@ -94,8 +94,8 @@ export const PersonalDetailsFormSchema = z.object({
         'onboarding:fields.controllerJobTitleDescription.validation.maxLength'
       )
     )
-    .regex(
-      /^[a-zA-Z0-9\s,.&-]+$/,
+    .refine(
+      (val) => /^[a-zA-Z0-9\s,.&-]+$/.test(val),
       i18n.t(
         'onboarding:fields.controllerJobTitleDescription.validation.pattern'
       )

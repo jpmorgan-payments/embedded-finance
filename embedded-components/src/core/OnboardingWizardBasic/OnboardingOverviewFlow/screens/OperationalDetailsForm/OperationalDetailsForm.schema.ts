@@ -21,8 +21,8 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
     if (question.id && DATE_QUESTION_IDS.includes(question.id)) {
       valueSchema = z
         .string()
-        .regex(
-          /^\d{4}-\d{2}-\d{2}$/,
+        .refine(
+          (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
           i18n.t('onboarding:fields.additionalQuestions.validation.dateFormat')
         );
     } else if (itemType) {
@@ -47,8 +47,8 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                 )
               );
             if (itemPattern) {
-              valueSchema = (valueSchema as z.ZodString).regex(
-                new RegExp(itemPattern),
+              valueSchema = (valueSchema as z.ZodString).refine(
+                (val) => new RegExp(itemPattern).test(val),
                 i18n.t(
                   'onboarding:fields.additionalQuestions.validation.invalidFormat'
                 )
@@ -65,8 +65,8 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                 'onboarding:fields.additionalQuestions.validation.required'
               )
             )
-            .regex(
-              /^\d+$/,
+            .refine(
+              (val) => /^\d+$/.test(val),
               i18n.t(
                 'onboarding:fields.additionalQuestions.validation.numberFormat'
               )

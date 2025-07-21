@@ -13,6 +13,8 @@ import { useSmbdoGetAllDocumentDetails } from '@/api/generated/smbdo';
 import {
   DocumentMetadataSmbdo,
   DocumentRequestResponse,
+  DocumentResponse,
+  DocumentTypeSmbdo,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 import { Badge, Button, Card } from '@/components/ui';
@@ -40,6 +42,14 @@ export interface PartyCardProps {
 }
 
 /**
+ * Interface for grouped documents
+ */
+interface DocumentGroup {
+  documentType: DocumentTypeSmbdo;
+  documents: DocumentResponse[];
+}
+
+/**
  * Component to display a party card with document upload functionality
  */
 export const PartyCard: FC<PartyCardProps> = ({
@@ -47,13 +57,6 @@ export const PartyCard: FC<PartyCardProps> = ({
   docRequest,
   onUploadClick,
 }) => {
-  const { clientData } = useOnboardingOverviewContext();
-  const { data: { documentDetails: documentDetailsList } = {} } =
-    useSmbdoGetAllDocumentDetails({
-      clientId: clientData?.id,
-      partyId: party.id,
-    });
-
   // Helper function to format timestamp to readable date
   const formatUploadTime = (timestamp: string): string => {
     if (!timestamp) return '';
@@ -63,6 +66,10 @@ export const PartyCard: FC<PartyCardProps> = ({
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
     });
   };
 
@@ -73,6 +80,48 @@ export const PartyCard: FC<PartyCardProps> = ({
   ): string | undefined => {
     return metadata?.find((m) => m.key === key)?.value;
   };
+
+  // Group documents by document type
+  const groupDocumentsByType = (
+    documents?: DocumentResponse[]
+  ): DocumentGroup[] => {
+    if (!documents || documents.length === 0) return [];
+
+    const groupedDocuments: Record<DocumentTypeSmbdo, DocumentResponse[]> =
+      Object.values(DocumentTypeSmbdo).reduce(
+        (acc, type) => {
+          acc[type] = [];
+          return acc;
+        },
+        {} as Record<DocumentTypeSmbdo, DocumentResponse[]>
+      );
+
+    documents.forEach((doc) => {
+      const type = doc.documentType;
+      groupedDocuments[type].push(doc);
+    });
+
+    return Object.keys(groupedDocuments).map((type) => ({
+      documentType: type as DocumentTypeSmbdo,
+      documents: groupedDocuments[type as DocumentTypeSmbdo],
+    }));
+  };
+
+  const { clientData } = useOnboardingOverviewContext();
+
+  const { data: { documentDetails: documentDetailsList } = {} } =
+    useSmbdoGetAllDocumentDetails({
+      clientId: clientData?.id,
+      ...(party.roles?.includes('CLIENT') ? {} : { partyId: party.id }),
+    });
+
+  const filteredDocumentDetailsList = documentDetailsList?.filter(
+    (doc) =>
+      doc.metadata.find((m) => m.key === 'DOCUMENT_REQUEST_ID')?.value ===
+      docRequest.id
+  );
+
+  const documentGroups = groupDocumentsByType(filteredDocumentDetailsList);
 
   return (
     <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
@@ -128,18 +177,28 @@ export const PartyCard: FC<PartyCardProps> = ({
             <UploadIcon /> Upload documents
           </Button>
         ) : (
-          <div>
-            <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
-              <CheckIcon className="eb-size-4" />
-              Required documents successfully uploaded
-            </div>
-            <div>
-              {documentDetailsList?.map((docDetail) => {
-                if (
-                  docDetail?.metadata?.find(
-                    (m) => m.key === 'DOCUMENT_REQUEST_ID'
-                  )?.value === docRequest.id
-                ) {
+          <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
+            <CheckIcon className="eb-size-4" />
+            Required documents successfully uploaded
+          </div>
+        )}
+        <div>
+          {documentGroups.map((group) => {
+            if (group.documents.length === 0) return null;
+            return (
+              <div
+                key={group.documentType}
+                className="eb-mt-2 eb-rounded-md eb-border eb-p-2"
+              >
+                <div className="eb-flex eb-items-center eb-gap-2">
+                  <FileIcon className="eb-size-4 eb-text-muted-foreground" />
+                  <span className="eb-text-sm eb-font-medium">
+                    {DOCUMENT_TYPE_MAPPING[group.documentType]?.label ||
+                      group.documentType}
+                  </span>
+                </div>
+
+                {group.documents.map((docDetail) => {
                   const fileName = getMetadataValue(
                     docDetail.metadata,
                     'UPLOADED_FILE_NAME'
@@ -150,18 +209,9 @@ export const PartyCard: FC<PartyCardProps> = ({
                   );
 
                   return (
-                    <div
-                      key={docDetail.id}
-                      className="eb-mt-2 eb-rounded-md eb-border eb-p-2"
-                    >
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        <FileIcon className="eb-size-4 eb-text-muted-foreground" />
-                        <span className="eb-text-sm eb-font-medium">
-                          {DOCUMENT_TYPE_MAPPING[docDetail.documentType].label}
-                        </span>
-                      </div>
+                    <div key={docDetail.id} className="eb-ml-6 eb-mt-2">
                       {fileName && (
-                        <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
+                        <div className="eb-flex eb-items-center eb-gap-2">
                           <span
                             className="eb-max-w-[200px] eb-truncate eb-text-xs eb-text-muted-foreground"
                             title={fileName}
@@ -171,7 +221,7 @@ export const PartyCard: FC<PartyCardProps> = ({
                         </div>
                       )}
                       {uploadTime && (
-                        <div className="eb-ml-6 eb-mt-1 eb-flex eb-items-center eb-gap-2">
+                        <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2">
                           <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
                           <span className="eb-text-xs eb-text-muted-foreground">
                             Uploaded on {formatUploadTime(uploadTime)}
@@ -180,12 +230,11 @@ export const PartyCard: FC<PartyCardProps> = ({
                       )}
                     </div>
                   );
-                }
-                return null;
-              })}
-            </div>
-          </div>
-        )}
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </Card>
   );
