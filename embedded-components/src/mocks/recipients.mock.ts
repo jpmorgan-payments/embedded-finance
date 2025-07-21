@@ -97,46 +97,6 @@ export const mockOrganizationRecipient: Recipient = {
   updatedAt: '2024-01-16T09:15:00Z',
 };
 
-// Mock recipient with microdeposits initiated
-export const mockMicrodepositRecipient: Recipient = {
-  id: 'recipient-003',
-  type: 'RECIPIENT',
-  status: 'MICRODEPOSITS_INITIATED',
-  clientId: 'client-001',
-  partyDetails: {
-    type: 'INDIVIDUAL',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    address: {
-      addressLine1: '789 Oak Street',
-      city: 'Austin',
-      state: 'TX',
-      postalCode: '73301',
-      countryCode: 'US',
-    },
-    contacts: [
-      {
-        contactType: 'EMAIL',
-        value: 'jane.smith@email.com',
-      },
-    ],
-  },
-  account: {
-    number: '5555666677',
-    type: 'SAVINGS',
-    countryCode: 'US',
-    routingInformation: [
-      {
-        routingCodeType: 'USABA',
-        routingNumber: '111000025',
-        transactionType: 'ACH',
-      },
-    ],
-  },
-  createdAt: '2024-01-20T11:45:00Z',
-  updatedAt: '2024-01-20T11:45:00Z',
-};
-
 // Mock linked account recipient
 export const mockLinkedAccountRecipient: Recipient = {
   id: 'recipient-004',
@@ -250,51 +210,6 @@ export const mockInactiveRecipient: Recipient = {
   updatedAt: '2024-01-22T12:00:00Z',
 };
 
-// Mock recipient ready for validation
-export const mockValidationReadyRecipient: Recipient = {
-  id: 'recipient-006',
-  type: 'RECIPIENT',
-  status: 'READY_FOR_VALIDATION',
-  clientId: 'client-001',
-  partyDetails: {
-    type: 'INDIVIDUAL',
-    firstName: 'Sarah',
-    lastName: 'Wilson',
-    address: {
-      addressLine1: '555 Ready Street',
-      city: 'Denver',
-      state: 'CO',
-      postalCode: '80202',
-      countryCode: 'US',
-    },
-    contacts: [
-      {
-        contactType: 'EMAIL',
-        value: 'sarah.wilson@email.com',
-      },
-      {
-        contactType: 'PHONE',
-        value: '5559876543',
-        countryCode: '+1',
-      },
-    ],
-  },
-  account: {
-    number: '7777888899',
-    type: 'CHECKING',
-    countryCode: 'US',
-    routingInformation: [
-      {
-        routingCodeType: 'USABA',
-        routingNumber: '102001017',
-        transactionType: 'ACH',
-      },
-    ],
-  },
-  createdAt: '2024-01-25T13:15:00Z',
-  updatedAt: '2024-01-25T13:15:00Z',
-};
-
 // Mock rejected recipient
 export const mockRejectedRecipient: Recipient = {
   id: 'recipient-007',
@@ -383,10 +298,8 @@ export const mockSettlementRecipient: Recipient = {
 export const mockRecipients: Recipient[] = [
   mockIndividualRecipient,
   mockOrganizationRecipient,
-  mockMicrodepositRecipient,
   mockLinkedAccountRecipient,
   mockInactiveRecipient,
-  mockValidationReadyRecipient,
   mockRejectedRecipient,
   mockSettlementRecipient,
 ];
@@ -405,9 +318,6 @@ export const mockActiveRecipients = mockRecipients.filter(
 );
 export const mockInactiveRecipients = mockRecipients.filter(
   (r) => r.status === 'INACTIVE'
-);
-export const mockMicrodepositRecipients = mockRecipients.filter(
-  (r) => r.status === 'MICRODEPOSITS_INITIATED'
 );
 
 // Mock response for specific recipient types

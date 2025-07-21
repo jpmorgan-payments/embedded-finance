@@ -18,7 +18,7 @@ function ConceptVisualization() {
       >
         <div className="flex justify-center mb-4">
           <span className="text-sm font-medium text-jpm-brown-800 px-3 py-1 bg-jpm-brown-100 rounded-full">
-            Demo Applications
+            Demo Applications and Recipes
           </span>
         </div>
 
@@ -71,10 +71,9 @@ export function HeroSection() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl lg:text-page-body text-jpm-brown-700 leading-relaxed mb-6 sm:mb-7 md:mb-8 max-w-3xl">
-              This Showcase is a collection of Demo applications, API workflow
-              recipes and underlying business and utility components that
-              demonstrate how our APIs can be used to create powerful and
-              efficient experiences.
+              Discover live demos, engineering recipes, and ready-to-use
+              components that unlock the full power of our APIs for embedded
+              finance.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">

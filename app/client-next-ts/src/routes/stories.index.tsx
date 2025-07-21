@@ -35,7 +35,7 @@ function StoriesIndex() {
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="mb-12">
           <h1 className="text-page-hero text-jpm-gray-900 mb-4">
-            Engineering Stories
+            Engineering Recipes
           </h1>
           <p className="text-page-body text-jpm-gray leading-relaxed max-w-2xl">
             Insights from our engineering team on building embedded finance

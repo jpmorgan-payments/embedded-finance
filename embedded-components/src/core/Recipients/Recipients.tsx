@@ -48,7 +48,6 @@ import {
 import { RecipientDetails } from './components/RecipientDetails/RecipientDetails';
 // Sub-components
 import { RecipientForm } from './components/RecipientForm/RecipientForm';
-import { VerificationFlow } from './components/VerificationFlow/VerificationFlow';
 // Hooks
 import { useRecipientsFilters } from './hooks/useRecipientsFilters';
 import type { RecipientsConfig } from './types/paymentConfig';
@@ -63,16 +62,14 @@ export interface RecipientsProps {
   initialRecipientType?: RecipientType;
   /** Show/hide create functionality */
   showCreateButton?: boolean;
-  /** Enable microdeposit verification */
-  enableVerification?: boolean;
   /** Configuration for payment methods and validation rules */
   config?: RecipientsConfig;
   /** Callback when recipient is created */
   onRecipientCreated?: (recipient: Recipient) => void;
   /** Callback when recipient is updated */
   onRecipientUpdated?: (recipient: Recipient) => void;
-  /** Callback when verification is complete */
-  onVerificationComplete?: (recipient: Recipient) => void;
+  /** Callback when recipient is deactivated */
+  onRecipientDeactivated?: (recipient: Recipient) => void;
   /** List of user events to track */
   userEventsToTrack?: string[];
   /** Handler for user events */
@@ -101,9 +98,17 @@ const RecipientCard: React.FC<{
   recipient: Recipient;
   onView: () => void;
   onEdit: () => void;
-  onVerify?: () => void;
-  enableVerification?: boolean;
-}> = ({ recipient, onView, onEdit, onVerify, enableVerification }) => (
+  onDeactivate: () => void;
+  canDeactivate: boolean;
+  isDeactivating: boolean;
+}> = ({
+  recipient,
+  onView,
+  onEdit,
+  onDeactivate,
+  canDeactivate,
+  isDeactivating,
+}) => (
   <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
     <div className="eb-flex eb-items-center eb-justify-between">
       <div className="eb-truncate eb-text-base eb-font-semibold">
@@ -170,22 +175,25 @@ const RecipientCard: React.FC<{
       >
         Edit
       </span>
-      {enableVerification &&
-        recipient.status === 'MICRODEPOSITS_INITIATED' &&
-        onVerify && (
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={onVerify}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') onVerify();
-            }}
-            className="eb-cursor-pointer eb-text-green-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
-            title="Verify microdeposits"
-          >
-            Verify
-          </span>
-        )}
+      {canDeactivate && (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={onDeactivate}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onDeactivate();
+          }}
+          className={`eb-cursor-pointer eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline ${
+            isDeactivating
+              ? 'eb-cursor-not-allowed eb-text-gray-400'
+              : 'eb-text-red-600'
+          }`}
+          title="Deactivate recipient"
+          style={{ pointerEvents: isDeactivating ? 'none' : 'auto' }}
+        >
+          {isDeactivating ? 'Deactivating...' : 'Deactivate'}
+        </span>
+      )}
     </div>
   </Card>
 );
@@ -194,11 +202,10 @@ export const Recipients: React.FC<RecipientsProps> = ({
   clientId,
   initialRecipientType = 'RECIPIENT',
   showCreateButton = true,
-  enableVerification = true,
   config,
   onRecipientCreated,
   onRecipientUpdated,
-  onVerificationComplete,
+  onRecipientDeactivated,
   userEventsHandler,
 }) => {
   // Merge user config with defaults
@@ -208,8 +215,6 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [isVerificationDialogOpen, setIsVerificationDialogOpen] =
-    useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
     null
   );
@@ -220,6 +225,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
   const isMobile = useMediaQuery('(max-width: 640px)');
+  const isTablet = useMediaQuery('(max-width: 1024px)');
 
   // API queries
   const {
@@ -263,6 +269,19 @@ export const Recipients: React.FC<RecipientsProps> = ({
     },
   });
 
+  const deactivateRecipientMutation = useAmendRecipient({
+    mutation: {
+      onSuccess: (data) => {
+        refetch();
+        onRecipientDeactivated?.(data);
+        userEventsHandler?.({ actionName: 'recipient_deactivated' });
+      },
+      onError: (error) => {
+        console.error('Failed to deactivate recipient:', error);
+      },
+    },
+  });
+
   // Handlers
   const handleCreateRecipient = useCallback(
     (data: RecipientRequest) => {
@@ -298,31 +317,34 @@ export const Recipients: React.FC<RecipientsProps> = ({
     [userEventsHandler]
   );
 
-  const handleVerifyRecipient = useCallback(
+  const handleDeactivateRecipient = useCallback(
     (recipient: Recipient) => {
-      setSelectedRecipient(recipient);
-      setIsVerificationDialogOpen(true);
-      userEventsHandler?.({ actionName: 'recipient_verification_started' });
+      if (
+        window.confirm(
+          `Are you sure you want to deactivate ${formatRecipientName(recipient)}?`
+        )
+      ) {
+        deactivateRecipientMutation.mutate({
+          id: recipient.id,
+          data: { status: 'INACTIVE' },
+        });
+        userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
+      }
     },
-    [userEventsHandler]
+    [deactivateRecipientMutation, userEventsHandler]
   );
 
-  const handleVerificationComplete = useCallback(
-    (recipient: Recipient) => {
-      setIsVerificationDialogOpen(false);
-      setSelectedRecipient(null);
-      refetch();
-      onVerificationComplete?.(recipient);
-      userEventsHandler?.({ actionName: 'recipient_verification_completed' });
-    },
-    [refetch, onVerificationComplete, userEventsHandler]
-  );
+  // Check if any deactivate operation is in progress
+  const isDeactivating = deactivateRecipientMutation.isPending;
 
   // Filtered recipients
   const filteredRecipients = useMemo(() => {
     if (!recipientsData?.recipients) return [];
 
     return recipientsData.recipients.filter((recipient) => {
+      // Only show RECIPIENT type
+      if (recipient.type !== 'RECIPIENT') return false;
+
       const matchesSearch =
         searchTerm === '' ||
         formatRecipientName(recipient)
@@ -510,16 +532,104 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   recipient={recipient}
                   onView={() => handleViewDetails(recipient)}
                   onEdit={() => handleEditRecipient(recipient)}
-                  onVerify={
-                    enableVerification &&
-                    recipient.status === 'MICRODEPOSITS_INITIATED'
-                      ? () => handleVerifyRecipient(recipient)
-                      : undefined
-                  }
-                  enableVerification={enableVerification}
+                  onDeactivate={() => handleDeactivateRecipient(recipient)}
+                  canDeactivate={recipient.status === 'ACTIVE'}
+                  isDeactivating={isDeactivating}
                 />
               ))
             )}
+          </div>
+        ) : isTablet ? (
+          <div className="eb-overflow-hidden eb-rounded-md eb-border">
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Account</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRecipients.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="eb-py-8 eb-text-center eb-text-gray-500"
+                      >
+                        No recipients found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredRecipients.map((recipient) => (
+                      <TableRow key={recipient.id}>
+                        <TableCell className="eb-truncate eb-font-medium">
+                          {formatRecipientName(recipient)}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={recipient.status!} />
+                        </TableCell>
+                        <TableCell>
+                          <span className="eb-text-sm eb-text-gray-600">
+                            {recipient.account?.number
+                              ? `****${recipient.account.number.slice(-4)}`
+                              : 'N/A'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="eb-flex eb-gap-3">
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleViewDetails(recipient)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ')
+                                  handleViewDetails(recipient);
+                              }}
+                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                              title="View details"
+                            >
+                              Details
+                            </span>
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleEditRecipient(recipient)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ')
+                                  handleEditRecipient(recipient);
+                              }}
+                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                              title="Edit recipient"
+                            >
+                              Edit
+                            </span>
+                            {recipient.status === 'ACTIVE' && (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                  handleDeactivateRecipient(recipient)
+                                }
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ')
+                                    handleDeactivateRecipient(recipient);
+                                }}
+                                className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                title="Deactivate recipient"
+                              >
+                                Deactivate
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         ) : (
           <div className="eb-overflow-hidden eb-rounded-md eb-border">
@@ -636,25 +746,23 @@ export const Recipients: React.FC<RecipientsProps> = ({
                             >
                               Edit
                             </span>
-                            {enableVerification &&
-                              recipient.status ===
-                                'MICRODEPOSITS_INITIATED' && (
-                                <span
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() =>
-                                    handleVerifyRecipient(recipient)
-                                  }
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ')
-                                      handleVerifyRecipient(recipient);
-                                  }}
-                                  className="eb-cursor-pointer eb-text-green-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
-                                  title="Verify microdeposits"
-                                >
-                                  Verify
-                                </span>
-                              )}
+                            {recipient.status === 'ACTIVE' && (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                  handleDeactivateRecipient(recipient)
+                                }
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ')
+                                    handleDeactivateRecipient(recipient);
+                                }}
+                                className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                title="Deactivate recipient"
+                              >
+                                Deactivate
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -739,32 +847,6 @@ export const Recipients: React.FC<RecipientsProps> = ({
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Verification Dialog */}
-      {enableVerification && (
-        <Dialog
-          open={isVerificationDialogOpen}
-          onOpenChange={setIsVerificationDialogOpen}
-        >
-          <DialogContent className="eb-scrollable-dialog eb-max-w-md">
-            <DialogHeader>
-              <DialogTitle>Verify Microdeposits</DialogTitle>
-            </DialogHeader>
-            <div className="eb-scrollable-content">
-              {selectedRecipient && (
-                <VerificationFlow
-                  recipient={selectedRecipient}
-                  onComplete={handleVerificationComplete}
-                  onCancel={() => {
-                    setIsVerificationDialogOpen(false);
-                    setSelectedRecipient(null);
-                  }}
-                />
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </Card>
   );
 };
