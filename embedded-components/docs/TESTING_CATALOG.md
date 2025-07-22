@@ -1,7 +1,9 @@
 # Embedded Payments Test Catalog
 
-This document describes test cases created to guide Sandbox testing of Document Upload using Payment Edge routing.  
-_All data is mock data and should not be used in production._
+This document describes test cases created to guide Sandbox testing of Document Upload using Payment Edge routing.
+
+> [!NOTE]
+> All data is mock data and should not be used in production.
 
 Testing key scenarios for complex client onboarding flows is essential before going live to ensure a seamless and error-free experience.
 
@@ -72,8 +74,6 @@ Verify the API flow when additional documents are requested for a party during t
 
 9. Verify that `outstanding.documentRequestIds` is now empty, indicating that the document request has been satisfied for the root party. Also, verify that the client state transitions to `APPROVED` after the document has been uploaded and the document request has been submitted.
 
-   **Note:** In Production, the client `status` will move to `REVIEW_IN_PROGRESS` as the JPM Ops team begins to review uploaded documents, then the client state will move to `APPROVED`.
-
 ## Scenario 2: Emulate Document Request for a Related Party
 
 **Objective:**  
@@ -138,8 +138,6 @@ Verify the API flow when additional documents are requested for a related party 
 
 8. Once all document requests are satisfied, verify that the `documentRequestIds` array is now empty in the party's `validationResponse` section, indicating that all required documents have been provided. Also, confirm that the client state transitions to `APPROVED` after the documents have been uploaded and the requests submitted.
 
-   **Note:** In Production, the client `status` will move to `REVIEW_IN_PROGRESS` as the JPM Ops team reviews uploaded documents before finally transitioning the client state to `APPROVED`.
-
 ## Scenario 3: Emulate Document Request for Client and Multiple Related Parties
 
 **Objective:**  
@@ -149,7 +147,9 @@ Verify the API flow when additional documents are requested for multiple related
 
 1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where parties with roles `CLIENT`, `CONTROLLER`, and `BENEFICIAL_OWNER` have an `"externalId"` set to `"docRequested"`.
 
-   **Request Payload Example:**   ```json
+   **Request Payload Example:**
+
+   ```json
    {
      "parties": [
        {
@@ -210,8 +210,6 @@ Verify the API flow when additional documents are requested for multiple related
 
 8. Once all document requests are satisfied, verify that `outstanding.documentRequestIds` is empty for the client, indicating that all required documents have been provided. Also, ensure the client state transitions to `APPROVED` after the document upload and submission.
 
-   **Note:** In Production, the client `status` will initially change to `REVIEW_IN_PROGRESS` as the JPM Ops team reviews the uploaded documents before final approval.
-
 ## Scenario 4: Simulate KYC Approval
 
 **Objective:**  
@@ -247,8 +245,6 @@ Verify the flow when KYC is approved.
 3. Verify that the client state transitions to `APPROVED` using:
 
    `GET https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}`
-   
-   **Note:** In Production, this flow would trigger normal KYC processes, and approval is not guaranteed.
 
 ## Scenario 5: Simulate KYC Decline
 
