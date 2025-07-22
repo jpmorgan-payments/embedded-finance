@@ -74,6 +74,9 @@ Verify the API flow when additional documents are requested for a party during t
 
 9. Verify that `outstanding.documentRequestIds` is now empty, indicating that the document request has been satisfied for the root party. Also, verify that the client state transitions to `APPROVED` after the document has been uploaded and the document request has been submitted.
 
+   > [!NOTE]
+   > In Production, the client `status` will move to `REVIEW_IN_PROGRESS` as the JPM Ops team begins to review uploaded documents, then the client state will move to `APPROVED`.
+
 ## Scenario 2: Emulate Document Request for a Related Party
 
 **Objective:**  
@@ -137,6 +140,9 @@ Verify the API flow when additional documents are requested for a related party 
    `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/document-requests/{documentRequestId}/submit`
 
 8. Once all document requests are satisfied, verify that the `documentRequestIds` array is now empty in the party's `validationResponse` section, indicating that all required documents have been provided. Also, confirm that the client state transitions to `APPROVED` after the documents have been uploaded and the requests submitted.
+
+   > [!NOTE]
+   > In Production, the client `status` will move to `REVIEW_IN_PROGRESS` as the JPM Ops team reviews uploaded documents before finally transitioning the client state to `APPROVED`.
 
 ## Scenario 3: Emulate Document Request for Client and Multiple Related Parties
 
@@ -209,6 +215,11 @@ Verify the API flow when additional documents are requested for multiple related
    `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/document-requests/{documentRequestId}/submit`
 
 8. Once all document requests are satisfied, verify that `outstanding.documentRequestIds` is empty for the client, indicating that all required documents have been provided. Also, ensure the client state transitions to `APPROVED` after the document upload and submission.
+
+   > [!NOTE]
+   > In Production, the client `status` will initially change to `REVIEW_IN_PROGRESS` as the JPM Ops team reviews the uploaded documents before final approval.
+   >
+   > Completing a document request for any party may resolve the document request for other related parties if they have the same externalId attribute value.
 
 ## Scenario 4: Simulate KYC Approval
 
