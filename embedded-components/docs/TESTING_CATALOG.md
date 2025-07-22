@@ -1,6 +1,6 @@
 # Embedded Payments Test Catalog
 
-This document describes test cases created to guide Sandbox testing of Document Upload using Payment Edge routing.
+This document describes test cases created to guide Sandbox testing.
 
 > [!NOTE]
 > All data is mock data and should not be used in production.
@@ -12,7 +12,7 @@ Before testing, ensure the following prerequisites are met:
 - Payment Edge Sandbox environment endpoint:  
   `https://api-sandbox.payments.jpmorgan.com/onboarding/v1`
 - Configure mTLS certificate that is used for current CAT environment testing via the Open Banking Gateway.
-- Magic values, such as `"externalId"` mentioned in the scenarios below, must be preliminarily set up by the corresponding J.P. Morgan implementation team.
+- Magic values, such as `"externalId"` mentioned in the scenarios below, must be preliminarily set up by the corresponding J.P. Morgan mplementation team.
 
 ## Scenario 1: Emulate Document Request for a Client as Organization
 
