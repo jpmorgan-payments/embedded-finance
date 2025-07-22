@@ -257,7 +257,7 @@ export function ImportantDateSelector({
               >
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="eb-max-h-120">
                 {monthOptions.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}

@@ -4,6 +4,19 @@ import { z } from 'zod';
 const MIN_AGE = 18;
 const MAX_AGE = 120;
 
+// Helper function to check if ITIN has restricted ranges in positions 2-3
+const hasRestrictedRanges = (value: string): boolean => {
+  const secondThirdDigits = value.slice(1, 3);
+  const secondThirdNum = parseInt(secondThirdDigits, 10);
+
+  return (
+    (secondThirdNum >= 50 && secondThirdNum <= 65) ||
+    (secondThirdNum >= 70 && secondThirdNum <= 88) ||
+    (secondThirdNum >= 90 && secondThirdNum <= 92) ||
+    (secondThirdNum >= 94 && secondThirdNum <= 99)
+  );
+};
+
 const controllerIdSchema = z
   .object({
     description: z.string().optional(),
@@ -92,7 +105,12 @@ const controllerIdSchema = z
               '078051120',
               '219099999',
               '123456789',
+              '888888888',
+              '777777777',
+              '555555555',
+              '444444444',
               '333333333',
+              '222222222',
               '111111111',
               '457555462',
               '012345678',
@@ -101,26 +119,8 @@ const controllerIdSchema = z
           );
         }
         case 'ITIN': {
-          // Check that it starts with 9 and is 9 digits long
-          if (!data.value.startsWith('9') || data.value.length !== 9) {
-            return false;
-          }
-
-          // Extract the second and third digits to check against restricted ranges
-          const secondThirdDigits = data.value.slice(1, 3);
-          const secondThirdNum = parseInt(secondThirdDigits, 10);
-
-          // Check if the second and third digits fall within restricted ranges
-          if (
-            (secondThirdNum >= 50 && secondThirdNum <= 65) ||
-            (secondThirdNum >= 70 && secondThirdNum <= 88) ||
-            (secondThirdNum >= 90 && secondThirdNum <= 92) ||
-            (secondThirdNum >= 94 && secondThirdNum <= 99)
-          ) {
-            return false;
-          }
-
-          return true;
+          // Basic ITIN format check
+          return data.value.startsWith('9') && data.value.length === 9;
         }
         default:
           return true;
@@ -129,6 +129,25 @@ const controllerIdSchema = z
     (data) => ({
       message: i18n.t(
         `onboarding-overview:fields.controllerIds.value.validation.${data.idType.toLowerCase()}Format`
+      ),
+      path: ['value'],
+    })
+  )
+  .refine(
+    (data) => {
+      if (
+        data.idType === 'ITIN' &&
+        data.value.startsWith('9') &&
+        data.value.length === 9
+      ) {
+        // Return true if it doesn't have restricted ranges
+        return !hasRestrictedRanges(data.value);
+      }
+      return true;
+    },
+    () => ({
+      message: i18n.t(
+        'onboarding-overview:fields.controllerIds.value.validation.itinRestrictedRange'
       ),
       path: ['value'],
     })
