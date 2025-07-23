@@ -112,6 +112,23 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
     },
+    {
+      id: 'accounts',
+      title: 'Accounts Management',
+      description:
+        'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
+      icon: <List className="h-5 w-5" />,
+      status: 'soon',
+      steps: [
+        'View accounts details and balances',
+        'Mask sensitive account information for security',
+        'Accessible, mobile-responsive design with tooltips and help text',
+      ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#1-accountsdisplay',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
+    },
   ];
 
   return (

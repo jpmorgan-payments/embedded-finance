@@ -100,7 +100,7 @@ export function DemoCarousel() {
                                   : 'bg-orange-100 text-orange-800'
                               }`}
                             >
-                              {demo.active ? 'Live' : 'Soon'}
+                              {demo.active ? 'Available' : 'Coming Soon'}
                             </span>
                           </div>
                         </div>
