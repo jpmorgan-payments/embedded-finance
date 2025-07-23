@@ -295,7 +295,7 @@ export function DashboardLayout() {
   // Fullscreen mode - render only the component
   if (searchParams.fullscreen) {
     return (
-      <div className="h-screen bg-sellsense-background-light overflow-hidden">
+      <div className="h-screen">
         {renderFullscreenComponent()}
       </div>
     );
