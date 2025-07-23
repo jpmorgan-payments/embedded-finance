@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import {
+  Accounts,
   EBComponentsProvider,
   LinkedAccountWidget,
   MakePayment,
@@ -151,6 +152,7 @@ function EmbeddedComponentCard({
   const handleFullScreen = () => {
     const currentTheme = searchParams.theme || 'SellSense';
     const componentMap: Record<string, string> = {
+      Accounts: 'accounts',
       LinkedAccountWidget: 'linked-accounts',
       Recipients: 'recipients',
       TransactionsDisplay: 'transactions',
@@ -226,6 +228,10 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Create theme object using the proper theme system
   const themeObject = mapThemeOption(currentTheme as any);
 
+  // Refs for component refetch functions
+  const accountsRef = useRef<{ refresh: () => void } | null>(null);
+  const transactionsRef = useRef<{ refresh: () => void } | null>(null);
+
   // Create content tokens that respond to tone changes
   const contentTokens = {
     name: 'enUS' as const,
@@ -243,7 +249,42 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     setOpenTooltip(isOpen ? componentName : null);
   };
 
+  // Handle transaction settlement - refetch accounts and transactions
+  const handleTransactionSettled = () => {
+    // Add a small delay to ensure the transaction is processed
+    setTimeout(() => {
+      console.log('Transaction settled - refetching accounts and transactions');
+      accountsRef.current?.refresh();
+      transactionsRef.current?.refresh();
+    }, 1000);
+  };
+
   const components: ComponentInfo[] = [
+    {
+      title: 'Accounts',
+      description:
+        'View your account details, balances, and routing information.',
+      componentName: 'Accounts',
+      componentDescription:
+        'A comprehensive widget for displaying account information and balances.',
+      componentFeatures: [
+        'Display account categories and states',
+        'Show masked account and routing information',
+        'Display available and booked balances with descriptions',
+        'Filter accounts by category type',
+      ],
+      component: (
+        <Accounts
+          allowedCategories={['LIMITED_DDA_PAYMENTS']}
+          clientId="0030000131"
+          ref={(ref) => {
+            if (ref) {
+              accountsRef.current = ref;
+            }
+          }}
+        />
+      ),
+    },
     {
       title: 'Linked Bank Accounts',
       description: 'Manage your linked bank accounts for payments and payouts.',
@@ -268,7 +309,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Choose payment amount and account',
         'Review and confirm payment details',
       ],
-      component: <MakePayment />,
+      component: (
+        <MakePayment onTransactionSettled={handleTransactionSettled} />
+      ),
     },
     {
       title: 'Recipients',
@@ -293,7 +336,16 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Filter transactions by date and type',
         'View transaction details and status',
       ],
-      component: <TransactionsDisplay accountId="0030000131" />,
+      component: (
+        <TransactionsDisplay
+          accountId="0030000131"
+          ref={(ref) => {
+            if (ref) {
+              transactionsRef.current = ref;
+            }
+          }}
+        />
+      ),
     },
   ];
 

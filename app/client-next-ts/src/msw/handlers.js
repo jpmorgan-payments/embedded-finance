@@ -15,12 +15,25 @@ import {
   mockPaymentErrorResponse,
   createMockPayment,
   validatePayment,
-  mockAccounts,
   mockRecipients,
   mockPaymentMethods,
 } from '../mocks';
+import {
+  mockAccounts,
+  mockAccountBalance,
+  mockAccountBalance2,
+} from '../mocks/accounts.mock';
 
-import { db, handleMagicValues, resetDb, getDbStatus, logDbState } from './db';
+import {
+  db,
+  handleMagicValues,
+  resetDb,
+  getDbStatus,
+  logDbState,
+  createTransactionWithBalanceUpdate,
+  updateTransactionStatus,
+  updateAccountBalance,
+} from './db';
 import merge from 'lodash/merge';
 
 export const createHandlers = (apiUrl) => [
@@ -831,42 +844,17 @@ export const createHandlers = (apiUrl) => [
     );
   }),
 
-  // Create new transaction
+  // Create new transaction with balance updates
   http.post(`${apiUrl}/ef/do/v1/transactions`, async ({ request }) => {
     const data = await request.json();
-    console.log('Creating new transaction:', data);
-
-    // Generate a unique transaction ID
-    const transactionId =
-      'txn-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-    const timestamp = new Date().toISOString();
-
-    // Create the transaction in the database
-    const newTransaction = {
-      id: transactionId,
-      type: data.type || 'ACH',
-      status: data.status || 'PENDING',
-      amount: data.amount || 0,
-      currency: data.currency || 'USD',
-      paymentDate: data.paymentDate || timestamp,
-      effectiveDate: data.effectiveDate || timestamp,
-      creditorAccountId:
-        data.creditorAccountId || 'd3371713f14e423f82065c9486ebe15b',
-      debtorAccountId: data.debtorAccountId || 'debtor-account-mock',
-      creditorName: data.creditorName || 'SellSense Marketplace',
-      debtorName: data.debtorName || 'New Customer',
-      postingVersion: data.postingVersion || 1,
-      reference:
-        data.reference || `Sale #${Math.floor(Math.random() * 100000)}`,
-      description: data.description || 'New transaction',
-      createdAt: timestamp,
-    };
+    console.log('Creating new transaction with balance updates:', data);
 
     try {
-      const createdTransaction = db.transaction.create(newTransaction);
-      console.log('Created transaction:', createdTransaction);
-
-      logDbState('Transaction Creation');
+      const createdTransaction = createTransactionWithBalanceUpdate(data);
+      console.log(
+        'Created transaction with balance updates:',
+        createdTransaction,
+      );
 
       return HttpResponse.json(createdTransaction, {
         status: 201,
@@ -952,13 +940,41 @@ export const createHandlers = (apiUrl) => [
     });
   }),
 
-  // MakePayment Component Handlers
+  // MakePayment Component Handlers - Updated to use database
   http.get(`${apiUrl}/ef/do/v1/accounts`, () => {
-    return HttpResponse.json(mockAccounts, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const accounts = db.account.getAll();
+    console.log('Retrieved accounts from database:', accounts.length);
+
+    return HttpResponse.json(
+      {
+        items: accounts,
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   }),
 
+  http.get(`${apiUrl}/ef/do/v1/accounts/:accountId/balances`, ({ params }) => {
+    const { accountId } = params;
+
+    const balance = db.accountBalance.findFirst({
+      where: { accountId: { equals: accountId } },
+    });
+
+    if (balance) {
+      console.log(`Retrieved balance for account ${accountId}:`, balance);
+      return HttpResponse.json(balance, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Return 404 for unknown account IDs
+    console.warn(`No balance found for account ${accountId}`);
+    return new HttpResponse(null, { status: 404 });
+  }),
+
+ 
   http.get(`${apiUrl}/ef/do/v1/payment-recipients`, ({ request }) => {
     const url = new URL(request.url);
     const type = url.searchParams.get('type');

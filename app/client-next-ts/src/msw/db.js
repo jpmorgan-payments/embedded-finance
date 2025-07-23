@@ -9,6 +9,11 @@ import { efDocumentRequestDetailsList, efClientQuestionsMock } from '../mocks';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
+import {
+  mockAccounts,
+  mockAccountBalance,
+  mockAccountBalance2,
+} from '../mocks/accounts.mock';
 
 // Magic values configuration
 export const MAGIC_VALUES = {
@@ -79,6 +84,26 @@ export const db = factory({
     createdAt: String,
     updatedAt: String,
   },
+  // NEW: Account model for managing accounts
+  account: {
+    id: primaryKey(String),
+    clientId: String,
+    label: String,
+    state: String, // 'OPEN', 'CLOSED', 'FROZEN'
+    category: String, // 'LIMITED_DDA', 'LIMITED_DDA_PAYMENTS', etc.
+    paymentRoutingInformation: Object,
+    createdAt: String,
+    updatedAt: String,
+  },
+  // NEW: Account balance model for tracking balances
+  accountBalance: {
+    id: primaryKey(String),
+    accountId: String,
+    date: String,
+    currency: String,
+    balanceTypes: Array, // Array of { typeCode: String, amount: Number }
+    updatedAt: String,
+  },
   transaction: {
     id: primaryKey(String),
     type: String, // 'ACH', 'WIRE', 'RTP'
@@ -97,6 +122,151 @@ export const db = factory({
     createdAt: String,
   },
 });
+
+// NEW: Function to update account balance when transaction is processed
+export function updateAccountBalance(
+  accountId,
+  amount,
+  transactionType = 'CREDIT',
+) {
+  const balance = db.accountBalance.findFirst({
+    where: { accountId: { equals: accountId } },
+  });
+
+  if (!balance) {
+    console.warn(`No balance found for account ${accountId}`);
+    return null;
+  }
+
+  // Update the balance based on transaction type
+  const updatedBalanceTypes = balance.balanceTypes.map((balanceType) => {
+    let newAmount = balanceType.amount;
+
+    if (transactionType === 'CREDIT') {
+      newAmount += amount;
+    } else if (transactionType === 'DEBIT') {
+      newAmount -= amount;
+    }
+
+    return {
+      ...balanceType,
+      amount: Math.max(0, newAmount), // Prevent negative balances
+    };
+  });
+
+  const updatedBalance = db.accountBalance.update({
+    where: { accountId: { equals: accountId } },
+    data: {
+      ...balance,
+      balanceTypes: updatedBalanceTypes,
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  console.log(`Updated balance for account ${accountId}:`, updatedBalance);
+  return updatedBalance;
+}
+
+// NEW: Function to process transaction and update balances
+export function processTransaction(transactionData) {
+  const { creditorAccountId, debtorAccountId, amount, type, status } =
+    transactionData;
+
+  // Only update balances for completed transactions
+  if (status === 'COMPLETED') {
+    console.log(`Processing completed transaction: ${type} for $${amount}`);
+
+    // Update creditor account (money coming in)
+    if (creditorAccountId) {
+      updateAccountBalance(creditorAccountId, amount, 'CREDIT');
+    }
+
+    // Update debtor account (money going out)
+    if (debtorAccountId) {
+      updateAccountBalance(debtorAccountId, amount, 'DEBIT');
+    }
+  }
+}
+
+// NEW: Function to create transaction with balance updates
+export function createTransactionWithBalanceUpdate(transactionData) {
+  // Generate a unique transaction ID
+  const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  const newTransaction = {
+    id: transactionId,
+    type: transactionData.type || 'ACH',
+    status: transactionData.status || 'PENDING',
+    amount: transactionData.amount || 0,
+    currency: transactionData.currency || 'USD',
+    paymentDate:
+      transactionData.paymentDate || new Date().toISOString().slice(0, 10),
+    effectiveDate:
+      transactionData.effectiveDate || new Date().toISOString().slice(0, 10),
+    creditorAccountId: transactionData.creditorAccountId || 'acc-001',
+    debtorAccountId: transactionData.debtorAccountId || 'acc-002',
+    creditorName: transactionData.creditorName || 'SellSense Marketplace',
+    debtorName: transactionData.debtorName || 'Mock Customer',
+    postingVersion: transactionData.postingVersion || 1,
+    reference:
+      transactionData.reference ||
+      `Sale #${Math.floor(Math.random() * 100000)}`,
+    description: transactionData.description || 'New transaction',
+    createdAt: new Date().toISOString(),
+  };
+
+  // Create the transaction in the database
+  const createdTransaction = db.transaction.create(newTransaction);
+
+  // Process balance updates if transaction is completed
+  if (createdTransaction.status === 'COMPLETED') {
+    processTransaction(createdTransaction);
+  }
+
+  console.log('Created transaction with balance update:', createdTransaction);
+  logDbState('Transaction Creation with Balance Update');
+
+  return createdTransaction;
+}
+
+// NEW: Function to update transaction status and process balance changes
+export function updateTransactionStatus(transactionId, newStatus) {
+  const transaction = db.transaction.findFirst({
+    where: { id: { equals: transactionId } },
+  });
+
+  if (!transaction) {
+    throw new Error(`Transaction ${transactionId} not found`);
+  }
+
+  const oldStatus = transaction.status;
+  const updatedTransaction = db.transaction.update({
+    where: { id: { equals: transactionId } },
+    data: {
+      ...transaction,
+      status: newStatus,
+    },
+  });
+
+  // Handle balance updates based on status change
+  if (oldStatus !== 'COMPLETED' && newStatus === 'COMPLETED') {
+    // Transaction just completed - update balances
+    processTransaction(updatedTransaction);
+  } else if (oldStatus === 'COMPLETED' && newStatus !== 'COMPLETED') {
+    // Transaction was completed but is now not completed - reverse balance changes
+    processTransaction({
+      ...updatedTransaction,
+      amount: -updatedTransaction.amount, // Reverse the amount
+    });
+  }
+
+  console.log(
+    `Updated transaction ${transactionId} status from ${oldStatus} to ${newStatus}`,
+  );
+  logDbState('Transaction Status Update');
+
+  return updatedTransaction;
+}
 
 // Helper function to handle document request upsert
 export function upsertDocumentRequest(id, data) {
@@ -146,6 +316,8 @@ export function logDbState(operation = 'Current State') {
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
   const recipients = db.recipient.getAll();
+  const accounts = db.account.getAll();
+  const accountBalances = db.accountBalance.getAll();
   const transactions = db.transaction.getAll();
 
   console.log('=== Database State After:', operation, '===');
@@ -153,6 +325,8 @@ export function logDbState(operation = 'Current State') {
   console.log('Parties:', parties);
   console.log('Document Requests:', documentRequests);
   console.log('Recipients:', recipients);
+  console.log('Accounts:', accounts);
+  console.log('Account Balances:', accountBalances);
   console.log('Transactions:', transactions);
   console.log('=====================================');
 }
@@ -171,6 +345,8 @@ export function initializeDb(force = false) {
       db.party.deleteMany({});
       db.documentRequest.deleteMany({});
       db.recipient.deleteMany({});
+      db.account.deleteMany({});
+      db.accountBalance.deleteMany({});
       db.transaction.deleteMany({});
 
       // Add predefined clients and their parties
@@ -329,6 +505,41 @@ export function initializeDb(force = false) {
           db.recipient.create(newRecipient);
         } catch (error) {
           console.error('Error creating recipient:', error);
+        }
+      });
+
+      // Initialize accounts from mock data
+      console.log('\n=== Initializing Accounts ===');
+      mockAccounts.items.forEach((account) => {
+        try {
+          const newAccount = {
+            ...account,
+            createdAt: account.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          console.log(`Creating account ${account.id}:`, newAccount);
+          db.account.create(newAccount);
+        } catch (error) {
+          console.error('Error creating account:', error);
+        }
+      });
+
+      // Initialize account balances from mock data
+      console.log('\n=== Initializing Account Balances ===');
+      const mockBalances = [mockAccountBalance, mockAccountBalance2];
+      mockBalances.forEach((balance) => {
+        try {
+          const newBalance = {
+            ...balance,
+            updatedAt: new Date().toISOString(),
+          };
+          console.log(
+            `Creating balance for account ${balance.accountId}:`,
+            newBalance,
+          );
+          db.accountBalance.create(newBalance);
+        } catch (error) {
+          console.error('Error creating account balance:', error);
         }
       });
 
@@ -538,6 +749,8 @@ export function getDbStatus() {
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
   const recipients = db.recipient.getAll();
+  const accounts = db.account.getAll();
+  const accountBalances = db.accountBalance.getAll();
   const transactions = db.transaction.getAll();
 
   logDbState('Status Check');
@@ -546,9 +759,12 @@ export function getDbStatus() {
     partyCount: parties.length,
     documentRequestCount: documentRequests.length,
     recipientCount: recipients.length,
+    accountCount: accounts.length,
+    accountBalanceCount: accountBalances.length,
     transactionCount: transactions.length,
     clients: clients.map((c) => c.id),
     recipients: recipients.map((r) => r.id),
+    accounts: accounts.map((a) => a.id),
     transactions: transactions.map((t) => t.id),
   };
 }
