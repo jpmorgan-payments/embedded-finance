@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { AlertCircle, Info } from 'lucide-react';
 
 import {
@@ -41,69 +41,101 @@ export interface AccountsProps {
   clientId?: string;
 }
 
-export const Accounts: FC<AccountsProps> = ({
-  allowedCategories,
-  clientId,
-}) => {
-  const { data, isLoading, isError } = useGetAccounts(
-    clientId ? { clientId } : undefined
-  );
+// Define the ref interface for external actions
+export interface AccountsRef {
+  refresh: () => void;
+  // Add other actions as needed
+  // exportAccounts: () => void;
+  // getAccountsData: () => AccountResponse[];
+}
 
-  const filteredAccounts = useMemo(() => {
-    if (!data?.items) return [];
-    return data.items.filter((account: AccountResponse) =>
-      allowedCategories.includes(account.category)
+export const Accounts = forwardRef<AccountsRef, AccountsProps>(
+  ({ allowedCategories, clientId }, ref) => {
+    const { data, isLoading, isError, refetch } = useGetAccounts(
+      clientId ? { clientId } : undefined
     );
-  }, [data, allowedCategories]);
 
-  if (isLoading) {
-    return (
-      <div className="eb-space-y-4">
-        {[...Array(2)].map((_, i) => (
-          <Card key={i} className="eb-w-full">
-            <div className="eb-p-4">
-              <Skeleton className="eb-h-6 eb-w-1/3" />
-              <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
-              <Skeleton className="eb-h-4 eb-w-1/4" />
+    const filteredAccounts = useMemo(() => {
+      if (!data?.items) return [];
+      return data.items.filter((account: AccountResponse) =>
+        allowedCategories.includes(account.category)
+      );
+    }, [data, allowedCategories]);
+
+    // Expose internal methods to parent component
+    useImperativeHandle(
+      ref,
+      () => ({
+        refresh: () => {
+          // This will trigger both accounts and balances refresh
+          refetch();
+          // Note: Individual balance refetches will be handled by React Query's
+          // automatic invalidation when the accounts query refetches
+        },
+        // Add other actions as needed:
+        // exportAccounts: () => {
+        //   // Export accounts data
+        //   console.log('Exporting accounts:', filteredAccounts);
+        // },
+        // getAccountsData: () => {
+        //   return filteredAccounts;
+        // },
+      }),
+      [refetch, filteredAccounts]
+    );
+
+    if (isLoading) {
+      return (
+        <div className="eb-space-y-4">
+          {[...Array(2)].map((_, i) => (
+            <Card key={i} className="eb-w-full">
+              <div className="eb-p-4">
+                <Skeleton className="eb-h-6 eb-w-1/3" />
+                <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
+                <Skeleton className="eb-h-4 eb-w-1/4" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    if (isError) {
+      return (
+        <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
+          <AlertCircle className="eb-h-5 eb-w-5" />
+          <span>Failed to load accounts.</span>
+        </div>
+      );
+    }
+
+    if (!filteredAccounts.length) {
+      return <div className="eb-text-muted-foreground">No accounts found.</div>;
+    }
+
+    // If more than one account, wrap each in its own Card for visual separation
+    if (filteredAccounts.length > 1) {
+      return (
+        <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
+          {filteredAccounts.map((account: AccountResponse) => (
+            <div
+              key={account.id}
+              className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
+            >
+              <AccountCard account={account} />
             </div>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+          ))}
+        </div>
+      );
+    }
 
-  if (isError) {
-    return (
-      <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
-        <AlertCircle className="eb-h-5 eb-w-5" />
-        <span>Failed to load accounts.</span>
-      </div>
-    );
+    // Single account, no extra wrapper
+    return <AccountCard account={filteredAccounts[0]} />;
   }
+);
 
-  if (!filteredAccounts.length) {
-    return <div className="eb-text-muted-foreground">No accounts found.</div>;
-  }
-
-  // If more than one account, wrap each in its own Card for visual separation
-  if (filteredAccounts.length > 1) {
-    return (
-      <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
-        {filteredAccounts.map((account: AccountResponse) => (
-          <div
-            key={account.id}
-            className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
-          >
-            <AccountCard account={account} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // Single account, no extra wrapper
-  return <AccountCard account={filteredAccounts[0]} />;
-};
+// Add display name for better debugging
+Accounts.displayName = 'Accounts';
 
 interface AccountCardProps {
   account: AccountResponse;
@@ -114,7 +146,7 @@ const AccountCard: FC<AccountCardProps> = ({ account }) => {
     useGetAccountBalance(account.id);
 
   return (
-    <Card className="eb-mb-4 eb-flex eb-flex-col eb-items-center eb-justify-between eb-gap-4 eb-p-4 eb-shadow-sm eb-border-2 eb-border-gray-200 sm:eb-flex-row">
+    <Card className="eb-mb-4 eb-flex eb-flex-col eb-items-center eb-justify-between eb-gap-4 eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row">
       {/* Left: Main Info */}
       <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
         <div className="eb-flex eb-items-center eb-gap-2 eb-truncate eb-text-base eb-font-semibold">

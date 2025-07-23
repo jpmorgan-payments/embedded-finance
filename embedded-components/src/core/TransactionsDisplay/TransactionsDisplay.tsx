@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, forwardRef, useImperativeHandle } from 'react';
 import { RefreshCw } from 'lucide-react';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -15,6 +15,14 @@ import { modifyTransactionsData } from './utils/modifyTransactionsData';
 export type TransactionsDisplayProps = {
   accountId: string;
 };
+
+// Define the ref interface for external actions
+export interface TransactionsDisplayRef {
+  refresh: () => void;
+  // Add other actions as needed
+  // reset: () => void;
+  // exportData: () => void;
+}
 
 const TransactionCard: FC<{ transaction: any }> = ({ transaction }) => (
   <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
@@ -79,15 +87,35 @@ const TransactionCard: FC<{ transaction: any }> = ({ transaction }) => (
   </Card>
 );
 
-export const TransactionsDisplay: FC<TransactionsDisplayProps> = ({
-  accountId,
-}) => {
+export const TransactionsDisplay = forwardRef<
+  TransactionsDisplayRef,
+  TransactionsDisplayProps
+>(({ accountId }, ref) => {
   const { data, status, failureReason, refetch, isFetching } =
     useListTransactionsV2({});
   const isMobile = useMediaQuery('(max-width: 640px)');
   const transactions = data?.items
     ? modifyTransactionsData(data.items, accountId)
     : [];
+
+  // Expose internal methods to parent component
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh: () => {
+        refetch();
+      },
+      // Add other actions as needed:
+      // reset: () => {
+      //   // Reset any internal state
+      // },
+      // exportData: () => {
+      //   // Export transactions data
+      //   console.log('Exporting transactions:', transactions);
+      // },
+    }),
+    [refetch]
+  ); // Include dependencies that the methods use
 
   return (
     <Card className="eb-w-full">
@@ -143,4 +171,7 @@ export const TransactionsDisplay: FC<TransactionsDisplayProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+// Add display name for better debugging
+TransactionsDisplay.displayName = 'TransactionsDisplay';
