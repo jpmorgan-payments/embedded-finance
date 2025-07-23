@@ -1,4 +1,4 @@
-import React, { FC, forwardRef, useImperativeHandle, useMemo } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { AlertCircle, Info } from 'lucide-react';
 
 import {
@@ -49,6 +49,11 @@ export interface AccountsRef {
   // getAccountsData: () => AccountResponse[];
 }
 
+// Define the ref interface for AccountCard
+export interface AccountCardRef {
+  refreshBalance: () => void;
+}
+
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
   ({ allowedCategories, clientId }, ref) => {
     const { data, isLoading, isError, refetch } = useGetAccounts(
@@ -62,6 +67,9 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
       );
     }, [data, allowedCategories]);
 
+    // Create refs for each AccountCard
+    const accountCardRefs = useRef<Record<string, AccountCardRef | null>>({});
+
     // Expose internal methods to parent component
     useImperativeHandle(
       ref,
@@ -69,8 +77,10 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         refresh: () => {
           // This will trigger both accounts and balances refresh
           refetch();
-          // Note: Individual balance refetches will be handled by React Query's
-          // automatic invalidation when the accounts query refetches
+          // Also trigger individual balance refetches for each account card
+          Object.values(accountCardRefs.current).forEach((cardRef) => {
+            cardRef?.refreshBalance();
+          });
         },
         // Add other actions as needed:
         // exportAccounts: () => {
@@ -122,7 +132,12 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
               key={account.id}
               className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
             >
-              <AccountCard account={account} />
+              <AccountCard
+                account={account}
+                ref={(cardRef) => {
+                  accountCardRefs.current[account.id] = cardRef;
+                }}
+              />
             </div>
           ))}
         </div>
@@ -130,7 +145,14 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     }
 
     // Single account, no extra wrapper
-    return <AccountCard account={filteredAccounts[0]} />;
+    return (
+      <AccountCard
+        account={filteredAccounts[0]}
+        ref={(cardRef) => {
+          accountCardRefs.current[filteredAccounts[0].id] = cardRef;
+        }}
+      />
+    );
   }
 );
 
@@ -141,91 +163,113 @@ interface AccountCardProps {
   account: AccountResponse;
 }
 
-const AccountCard: FC<AccountCardProps> = ({ account }) => {
-  const { data: balanceData, isLoading: isBalanceLoading } =
-    useGetAccountBalance(account.id);
+const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
+  ({ account }, ref) => {
+    const {
+      data: balanceData,
+      isLoading: isBalanceLoading,
+      refetch,
+    } = useGetAccountBalance(account.id);
 
-  return (
-    <Card className="eb-mb-4 eb-flex eb-flex-col eb-items-center eb-justify-between eb-gap-4 eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row">
-      {/* Left: Main Info */}
-      <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
-        <div className="eb-flex eb-items-center eb-gap-2 eb-truncate eb-text-base eb-font-semibold">
-          {CATEGORY_LABELS[account.category] || account.category}
-          <span className="eb-text-xs eb-font-normal eb-text-muted-foreground">
-            {account.label}
-          </span>
-        </div>
-        <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
-          <span className="eb-font-medium">State:</span>
-          <span>{account.state}</span>
-        </div>
-        {account.paymentRoutingInformation?.accountNumber && (
-          <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-            <span className="eb-font-medium">Routing:</span>
-            <span className="eb-font-mono eb-text-xs">
-              {maskRoutingInfo(account.paymentRoutingInformation.accountNumber)}
+    // Expose refresh method to parent component
+    useImperativeHandle(
+      ref,
+      () => ({
+        refreshBalance: () => {
+          refetch();
+        },
+      }),
+      [refetch]
+    );
+
+    return (
+      <Card className="eb-mb-4 eb-flex eb-flex-col eb-items-center eb-justify-between eb-gap-4 eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row">
+        {/* Left: Main Info */}
+        <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
+          <div className="eb-flex eb-items-center eb-gap-2 eb-truncate eb-text-base eb-font-semibold">
+            {CATEGORY_LABELS[account.category] || account.category}
+            <span className="eb-text-xs eb-font-normal eb-text-muted-foreground">
+              {account.label}
             </span>
-            {Array.isArray(
-              account.paymentRoutingInformation.routingInformation
-            ) &&
-              account.paymentRoutingInformation.routingInformation.length >
-                0 && (
-                <span className="eb-ml-2 eb-text-gray-400">
-                  {account.paymentRoutingInformation.routingInformation
-                    .map((ri) => ri.value)
-                    .join(', ')}
-                </span>
-              )}
           </div>
-        )}
-      </div>
-      {/* Right: Balances */}
-      <div className="eb-mt-4 eb-flex eb-min-w-[180px] eb-max-w-xs eb-flex-col eb-items-end eb-gap-1 sm:eb-mt-0">
-        <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
-        {isBalanceLoading ? (
-          <Skeleton className="eb-h-4 eb-w-1/2" />
-        ) : balanceData?.balanceTypes?.length ? (
-          <div className="eb-flex eb-w-full eb-flex-col eb-gap-1">
-            {balanceData.balanceTypes.map((b) => (
-              <div
-                key={b.typeCode}
-                className="eb-flex eb-items-center eb-justify-end eb-gap-2"
-              >
-                <span className="eb-text-xs eb-font-medium">
-                  {BALANCE_TYPE_LABELS[String(b.typeCode)]?.label || b.typeCode}
-                </span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <span
-                      className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400"
-                      title="Info"
-                    >
-                      <Info
-                        className="eb-h-4 eb-w-4 eb-text-blue-400 hover:eb-text-blue-600"
-                        aria-label="Info"
-                      />
-                    </span>
-                  </PopoverTrigger>
-                  <PopoverContent className="eb-max-w-xs eb-text-xs">
-                    {BALANCE_TYPE_LABELS[String(b.typeCode)]?.description ||
-                      'No description.'}
-                  </PopoverContent>
-                </Popover>
-                <span className="eb-font-mono eb-text-right eb-text-xs">
-                  {b.amount} {balanceData.currency}
-                </span>
-              </div>
-            ))}
+          <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
+            <span className="eb-font-medium">State:</span>
+            <span>{account.state}</span>
           </div>
-        ) : (
-          <span className="eb-text-xs eb-text-muted-foreground">
-            No balance data.
-          </span>
-        )}
-      </div>
-    </Card>
-  );
-};
+          {account.paymentRoutingInformation?.accountNumber && (
+            <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
+              <span className="eb-font-medium">Routing:</span>
+              <span className="eb-font-mono eb-text-xs">
+                {maskRoutingInfo(
+                  account.paymentRoutingInformation.accountNumber
+                )}
+              </span>
+              {Array.isArray(
+                account.paymentRoutingInformation.routingInformation
+              ) &&
+                account.paymentRoutingInformation.routingInformation.length >
+                  0 && (
+                  <span className="eb-ml-2 eb-text-gray-400">
+                    {account.paymentRoutingInformation.routingInformation
+                      .map((ri) => ri.value)
+                      .join(', ')}
+                  </span>
+                )}
+            </div>
+          )}
+        </div>
+        {/* Right: Balances */}
+        <div className="eb-mt-4 eb-flex eb-min-w-[180px] eb-max-w-xs eb-flex-col eb-items-end eb-gap-1 sm:eb-mt-0">
+          <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
+          {isBalanceLoading ? (
+            <Skeleton className="eb-h-4 eb-w-1/2" />
+          ) : balanceData?.balanceTypes?.length ? (
+            <div className="eb-flex eb-w-full eb-flex-col eb-gap-1">
+              {balanceData.balanceTypes.map((b) => (
+                <div
+                  key={b.typeCode}
+                  className="eb-flex eb-items-center eb-justify-end eb-gap-2"
+                >
+                  <span className="eb-text-xs eb-font-medium">
+                    {BALANCE_TYPE_LABELS[String(b.typeCode)]?.label ||
+                      b.typeCode}
+                  </span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <span
+                        className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400"
+                        title="Info"
+                      >
+                        <Info
+                          className="eb-h-4 eb-w-5 eb-text-blue-400 hover:eb-text-blue-600"
+                          aria-label="Info"
+                        />
+                      </span>
+                    </PopoverTrigger>
+                    <PopoverContent className="eb-max-w-xs eb-text-xs">
+                      {BALANCE_TYPE_LABELS[String(b.typeCode)]?.description ||
+                        'No description.'}
+                    </PopoverContent>
+                  </Popover>
+                  <span className="eb-font-mono eb-text-right eb-text-xs">
+                    {b.amount} {balanceData.currency}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span className="eb-text-xs eb-text-muted-foreground">
+              No balance data.
+            </span>
+          )}
+        </div>
+      </Card>
+    );
+  }
+);
+
+// Add display name for AccountCard
+AccountCard.displayName = 'AccountCard';
 
 function maskRoutingInfo(accountNumber: string): string {
   if (!accountNumber) return 'N/A';

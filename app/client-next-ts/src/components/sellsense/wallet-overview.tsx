@@ -182,7 +182,7 @@ function EmbeddedComponentCard({
 
   return (
     <div
-      className={`rounded-lg border bg-white border-gray-300 relative ${
+      className={`rounded-lg border border-gray-300 bg-transparent relative ${
         showTooltip ? 'p-6' : 'p-0'
       }`}
     >
