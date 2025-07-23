@@ -12,7 +12,7 @@ import {
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Popover,
   PopoverContent,
@@ -45,6 +45,8 @@ const BALANCE_TYPE_LABELS: Record<
 export interface AccountsProps {
   allowedCategories: string[];
   clientId?: string;
+  /** Optional title for the accounts section */
+  title?: string;
 }
 
 // Define the ref interface for external actions
@@ -61,7 +63,7 @@ export interface AccountCardRef {
 }
 
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
-  ({ allowedCategories, clientId }, ref) => {
+  ({ allowedCategories, clientId, title = 'Accounts' }, ref) => {
     const { data, isLoading, isError, refetch } = useGetAccounts(
       clientId ? { clientId } : undefined
     );
@@ -102,62 +104,107 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (isLoading) {
       return (
-        <div className="eb-space-y-4">
-          {[...Array(2)].map((_, i) => (
-            <Card key={i} className="eb-w-full">
-              <div className="eb-p-4">
-                <Skeleton className="eb-h-6 eb-w-1/3" />
-                <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
-                <Skeleton className="eb-h-4 eb-w-1/4" />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-space-y-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="eb-w-full">
+                  <div className="eb-p-4">
+                    <Skeleton className="eb-h-6 eb-w-1/3" />
+                    <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
+                    <Skeleton className="eb-h-4 eb-w-1/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       );
     }
 
     if (isError) {
       return (
-        <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
-          <AlertCircle className="eb-h-5 eb-w-5" />
-          <span>Failed to load accounts.</span>
-        </div>
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
+              <AlertCircle className="eb-h-5 eb-w-5" />
+              <span>Failed to load accounts.</span>
+            </div>
+          </CardContent>
+        </Card>
       );
     }
 
     if (!filteredAccounts.length) {
-      return <div className="eb-text-muted-foreground">No accounts found.</div>;
+      return (
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-text-muted-foreground">No accounts found.</div>
+          </CardContent>
+        </Card>
+      );
     }
 
     // If more than one account, wrap each in its own Card for visual separation
     if (filteredAccounts.length > 1) {
       return (
-        <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
-          {filteredAccounts.map((account: AccountResponse) => (
-            <div
-              key={account.id}
-              className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
-            >
-              <AccountCard
-                account={account}
-                ref={(cardRef) => {
-                  accountCardRefs.current[account.id] = cardRef;
-                }}
-              />
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
+              {filteredAccounts.map((account: AccountResponse) => (
+                <div
+                  key={account.id}
+                  className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
+                >
+                  <AccountCard
+                    account={account}
+                    ref={(cardRef) => {
+                      accountCardRefs.current[account.id] = cardRef;
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
       );
     }
 
     // Single account, no extra wrapper
     return (
-      <AccountCard
-        account={filteredAccounts[0]}
-        ref={(cardRef) => {
-          accountCardRefs.current[filteredAccounts[0].id] = cardRef;
-        }}
-      />
+      <Card className="eb-w-full">
+        <CardHeader>
+          <CardTitle className="eb-text-xl eb-font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AccountCard
+            account={filteredAccounts[0]}
+            ref={(cardRef) => {
+              accountCardRefs.current[filteredAccounts[0].id] = cardRef;
+            }}
+          />
+        </CardContent>
+      </Card>
     );
   }
 );
