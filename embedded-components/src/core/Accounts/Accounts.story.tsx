@@ -1,10 +1,10 @@
 import React from 'react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '../EBComponentsProvider';
 import { Accounts, AccountsProps } from './Accounts';
-import { Meta, StoryObj } from '@storybook/react-vite';
 
 // --- Mock Data (aligned with JPMorgan API docs) ---
 const mockAccountsResponse = {
