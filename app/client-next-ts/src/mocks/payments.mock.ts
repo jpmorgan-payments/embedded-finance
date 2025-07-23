@@ -1,7 +1,7 @@
 // Mock data for MakePayment component
 
-// Mock accounts
-export const mockAccounts = [
+// Mock accounts for payment component
+export const mockPaymentAccounts = [
   {
     id: 'account-001',
     name: 'Main Business Account',
@@ -160,7 +160,7 @@ export const getRecipientById = (id: string) => {
 
 // Function to get account by ID
 export const getAccountById = (id: string) => {
-  return mockAccounts.find((account) => account.id === id);
+  return mockPaymentAccounts.find((account) => account.id === id);
 };
 
 // Function to calculate payment fee

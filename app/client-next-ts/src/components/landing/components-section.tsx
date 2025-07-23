@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react'; 
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Calendar,
   ListFilter,
@@ -84,7 +84,7 @@ export function ComponentsSection() {
       description:
         'Interactive date picker with validation and formatting options',
       icon: <Calendar className="h-5 w-5" />,
-      status: 'live',
+      status: 'available',
       preview: (
         <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
           <div className="space-y-1">
@@ -156,7 +156,7 @@ export function ComponentsSection() {
       description:
         'Hierarchical selector for industry categories and subcategories',
       icon: <ListFilter className="h-5 w-5" />,
-      status: 'live',
+      status: 'available',
       preview: (
         <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
           <div className="w-full">
@@ -342,12 +342,12 @@ export function ComponentsSection() {
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                       <span
                         className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
-                          comp.status === 'live'
+                          comp.status === 'available'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-orange-100 text-orange-800'
                         }`}
                       >
-                        {comp.status === 'live' ? 'Live' : 'Coming Soon'}
+                        {comp.status === 'available' ? 'Available' : 'Coming Soon'}
                       </span>
                     </div>
                   </div>
