@@ -974,7 +974,6 @@ export const createHandlers = (apiUrl) => [
     return new HttpResponse(null, { status: 404 });
   }),
 
- 
   http.get(`${apiUrl}/ef/do/v1/payment-recipients`, ({ request }) => {
     const url = new URL(request.url);
     const type = url.searchParams.get('type');
@@ -1024,5 +1023,25 @@ export const createHandlers = (apiUrl) => [
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
+  }),
+
+  // Keep-alive ping handler to prevent service worker termination
+  http.get(`${apiUrl}/ping`, () => {
+    console.log('MSW Ping received:', new Date().toISOString());
+    return HttpResponse.json(
+      {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        message: 'MSW service worker is alive',
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      },
+    );
   }),
 ];
