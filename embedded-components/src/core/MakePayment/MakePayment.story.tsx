@@ -15,6 +15,7 @@ interface MakePaymentWithProviderProps extends EBConfig {
     fee: number;
     description?: string;
   }>;
+  onTransactionSettled?: (response?: any, error?: any) => void;
 }
 
 const mockRecipients = [
@@ -92,7 +93,24 @@ const meta: Meta<MakePaymentWithProviderProps> = {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
         http.post('*/transactions', () => {
-          return HttpResponse.json({ success: true });
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'linkedAccount1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
+          });
         }),
       ],
     },
@@ -107,6 +125,7 @@ const meta: Meta<MakePaymentWithProviderProps> = {
         contentTokens,
         accounts,
         paymentMethods,
+        onTransactionSettled,
       } = context.args;
       return (
         <div className="eb-light">
@@ -127,13 +146,18 @@ const meta: Meta<MakePaymentWithProviderProps> = {
             contentTokens={contentTokens}
           >
             <div className="eb-p-4">
-              <Story args={{ accounts, paymentMethods }} />
+              <Story
+                args={{ accounts, paymentMethods, onTransactionSettled }}
+              />
             </div>
           </EBComponentsProvider>
         </div>
       );
     },
   ],
+  argTypes: {
+    onTransactionSettled: { table: { disable: true } },
+  },
 };
 export default meta;
 
@@ -280,6 +304,76 @@ export const CustomPaymentMethods: Story = {
       description: {
         story:
           'Shows custom payment methods (INSTANT, STANDARD). Use this to test custom method scenarios.',
+      },
+    },
+  },
+};
+
+export const WithTransactionSettledCallback: Story = {
+  ...Default,
+  name: 'With Transaction Settled Callback',
+  args: {
+    ...Default.args,
+    onTransactionSettled: (response, error) => {
+      if (response) {
+        console.log('@@TRANSACTION response data', response);
+      } else if (error) {
+        console.log('@@TRANSACTION response error', error);
+      }
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the onTransactionSettled callback using the onSettled mutation callback. Open the browser console to see the transaction response data or error when a payment is submitted. The callback will be triggered for all transaction states (pending, success, error).',
+      },
+    },
+  },
+};
+
+export const WithTransactionSettledCallbackError: Story = {
+  ...Default,
+  name: 'With Transaction Settled Callback (Error)',
+  args: {
+    ...Default.args,
+    onTransactionSettled: (response, error) => {
+      if (response) {
+        console.log('@@TRANSACTION response data', response);
+      } else if (error) {
+        console.log('@@TRANSACTION response error', error);
+      }
+    },
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.post('*/transactions', () => {
+          return HttpResponse.json(
+            {
+              httpStatus: 400,
+              title: 'Bad Request',
+              context: [
+                {
+                  code: 'INSUFFICIENT_FUNDS',
+                  message: 'Insufficient funds in account',
+                  field: 'amount',
+                  location: 'body',
+                },
+              ],
+            },
+            { status: 400 }
+          );
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the onTransactionSettled callback with an error scenario using the onSettled mutation callback. Open the browser console to see the error response when a payment fails.',
       },
     },
   },
