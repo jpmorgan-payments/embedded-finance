@@ -9,14 +9,6 @@ import {
   mockEmptyLinkedAccounts,
   createMockLinkedAccountsResponse,
   mockRecipientsResponse,
-  createMockRecipientsResponse,
-  mockPaymentResponse,
-  mockPaymentValidationResponse,
-  mockPaymentErrorResponse,
-  createMockPayment,
-  validatePayment,
-  mockRecipients,
-  mockPaymentMethods,
 } from '../mocks';
 import {
   mockAccounts,
@@ -989,38 +981,6 @@ export const createHandlers = (apiUrl) => [
 
     console.log('Payment recipients from database:', filteredRecipients.length);
     return HttpResponse.json(filteredRecipients, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }),
-
-  http.get(`${apiUrl}/ef/do/v1/payment-methods`, () => {
-    return HttpResponse.json(mockPaymentMethods, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }),
-
-  http.post(`${apiUrl}/ef/do/v1/payments/validate`, async ({ request }) => {
-    const paymentData = await request.json();
-    const validation = validatePayment(paymentData);
-
-    if (validation.isValid) {
-      return HttpResponse.json(mockPaymentValidationResponse, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } else {
-      return HttpResponse.json(mockPaymentErrorResponse, {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-  }),
-
-  http.post(`${apiUrl}/ef/do/v1/payments`, async ({ request }) => {
-    const paymentData = await request.json();
-    const newPayment = createMockPayment(paymentData);
-
-    return HttpResponse.json(newPayment, {
-      status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
   }),
