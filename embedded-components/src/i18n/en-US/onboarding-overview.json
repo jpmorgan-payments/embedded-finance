@@ -60,37 +60,108 @@
   "fields": {
     "organizationType": {
       "label": "Select business type",
-      "description": ""
+      "description": "",
+      "validation": {
+        "required": "Business type is required"
+      }
     },
     "controllerFirstName": {
       "label": "First name",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "required": "First name is required",
+        "minLength": "First name must be at least 2 characters",
+        "maxLength": "First name must be at most 30 characters",
+        "pattern": "First name can only contain letters, hyphens, apostrophes, and spaces",
+        "noNumbers": "First name cannot contain numbers",
+        "noSpecialChars": "First name cannot contain special characters except hyphens and apostrophes",
+        "noConsecutiveSpaces": "First name cannot contain consecutive spaces",
+        "noConsecutiveHyphens": "First name cannot contain consecutive hyphens",
+        "noLeadingSpace": "First name cannot start with a space",
+        "noTrailingSpace": "First name cannot end with a space",
+        "noLeadingHyphen": "First name cannot start with a hyphen",
+        "noTrailingHyphen": "First name cannot end with a hyphen"
+      }
     },
     "controllerMiddleName": {
       "label": "Middle name",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "maxLength": "Middle name must be at most 30 characters",
+        "pattern": "Middle name can only contain letters, hyphens, apostrophes, and spaces",
+        "noNumbers": "Middle name cannot contain numbers",
+        "noSpecialChars": "Middle name cannot contain special characters except hyphens and apostrophes",
+        "noConsecutiveSpaces": "Middle name cannot contain consecutive spaces",
+        "noConsecutiveHyphens": "Middle name cannot contain consecutive hyphens",
+        "noLeadingSpace": "Middle name cannot start with a space",
+        "noTrailingSpace": "Middle name cannot end with a space",
+        "noLeadingHyphen": "Middle name cannot start with a hyphen",
+        "noTrailingHyphen": "Middle name cannot end with a hyphen"
+      }
     },
     "controllerLastName": {
       "label": "Last name",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "required": "Last name is required",
+        "minLength": "Last name must be at least 2 characters",
+        "maxLength": "Last name must be at most 30 characters",
+        "pattern": "Last name can only contain letters, hyphens, apostrophes, and spaces",
+        "noNumbers": "Last name cannot contain numbers",
+        "noSpecialChars": "Last name cannot contain special characters except hyphens and apostrophes",
+        "noConsecutiveSpaces": "Last name cannot contain consecutive spaces",
+        "noConsecutiveHyphens": "Last name cannot contain consecutive hyphens",
+        "noLeadingSpace": "Last name cannot start with a space",
+        "noTrailingSpace": "Last name cannot end with a space",
+        "noLeadingHyphen": "Last name cannot start with a hyphen",
+        "noTrailingHyphen": "Last name cannot end with a hyphen"
+      }
     },
     "controllerNameSuffix": {
       "description": "(e.g. Jr., Sr. II, etc)",
-      "tooltip": ""
+      "tooltip": "",
+      "validation": {
+        "minLength": "Suffix must be at least 1 character",
+        "maxLength": "Suffix must be at most 5 characters",
+        "pattern": "Suffix can only contain letters, periods, and roman numerals"
+      }
     },
     "controllerJobTitle": {
       "tooltip": "",
-      "placeholder": "Select job title"
+      "placeholder": "Select job title",
+      "validation": {
+        "required": "Job title is required",
+        "minLength": "Job title must be at least 2 characters",
+        "maxLength": "Job title must be at most 50 characters",
+        "pattern": "Job title can only contain letters, numbers, and basic punctuation",
+        "noLeadingSpace": "Job title cannot start with a space",
+        "noTrailingSpace": "Job title cannot end with a space"
+      }
     },
     "birthDate": {
-      "description": ""
+      "description": "",
+      "validation": {
+        "required": "Date of birth is required",
+        "format": "Please enter a valid date in MM/DD/YYYY format",
+        "invalid": "Please enter a valid date",
+        "future": "Date of birth cannot be in the future",
+        "tooOld": "The date suggests an age of over 120 years. Please double-check the date",
+        "tooYoung": "Must be at least 18 years old to proceed",
+        "dayRange": "Day must be between 1 and 31",
+        "monthRange": "Month must be between 1 and 12",
+        "yearRange": "Year must be between 1000 and 9999"
+      }
     },
     "countryOfResidence": {
       "tooltip": "",
-      "description": "Please select your current country of residence"
+      "description": "Please select your current country of residence",
+      "validation": {
+        "required": "Country of residence is required",
+        "exactlyTwoChars": "Country code must be exactly 2 characters"
+      }
     },
     "industry": {
       "label": "Industry classification",
@@ -220,20 +291,52 @@
       },
       "primaryAddressLine": {
         "description": "P.O. box is not accepted",
-        "tooltip": ""
+        "tooltip": "",
+        "validation": {
+          "required": "Address line 1 is required",
+          "maxLength": "Address line must be 60 characters or less",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
       },
       "postalCode": {
         "label": "Postal code",
-        "description": ""
+        "description": "",
+        "validation": {
+          "required": "Postal code is required",
+          "pattern": "Postal code must be exactly 5 digits",
+          "maxLength": "Postal code must be 10 characters or less"
+        }
       },
       "city": {
         "label": "Town/City",
-        "description": "Locality, Settlement, etc."
+        "description": "Locality, Settlement, etc.",
+        "validation": {
+          "required": "City is required",
+          "maxLength": "City name must be 34 characters or less"
+        }
       },
       "state": {
         "label": "State/Province",
         "description": "",
-        "placeholder": "Select"
+        "placeholder": "Select",
+        "validation": {
+          "required": "State is required",
+          "maxLength": "State name must be 30 characters or less"
+        }
+      },
+      "additionalAddressLines": {
+        "line1Description": "Apt, Suite, Unit, Building etc.",
+        "line2Description": "",
+        "value": {
+          "validation": {
+            "maxLength": "Address line must be 60 characters or less",
+            "pattern": "Address can only contain letters, numbers, and basic punctuation"
+          }
+        },
+        "validation": {
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
+        }
       }
     },
     "addresses": {
@@ -277,6 +380,12 @@
       "additionalAddressLines": {
         "line1Description": "Apt, Suite, Unit, Building etc.",
         "line2Description": "",
+        "value": {
+          "validation": {
+            "maxLength": "Address line must be 60 characters or less",
+            "pattern": "Address can only contain letters, numbers, and basic punctuation"
+          }
+        },
         "validation": {
           "minItems": "At least {{count}} address line is required",
           "maxItems": "Maximum {{count}} address lines allowed"
