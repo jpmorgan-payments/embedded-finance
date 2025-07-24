@@ -31,9 +31,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
 import {
-  LearnMorePopoverTrigger,
   OnboardingFormField,
   ServerErrorAlert,
   StepLayout,
