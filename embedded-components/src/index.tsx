@@ -12,8 +12,7 @@ export * from './core/Recipients';
 export * from './core/Accounts';
 
 export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
-export type * from './core/OnboardingWizardBasic/utils/types';
 
-export * from './core/OnboardingWizardBasic/OnboardingOverviewFlow/OnboardingFlow';
-export type * from './core/OnboardingWizardBasic/OnboardingOverviewFlow/types';
-export type * from './core/OnboardingWizardBasic/OnboardingOverviewFlow/flow.types';
+export * from './core/OnboardingFlow';
+
+export * as types from './api/generated/smbdo.schemas';

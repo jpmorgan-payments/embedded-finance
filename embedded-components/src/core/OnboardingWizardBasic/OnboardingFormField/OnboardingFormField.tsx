@@ -11,7 +11,6 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { IndustryTypeSelect } from '@/components/IndustryTypeSelect/IndustryTypeSelect';
 import {
   Button,
   Checkbox,
@@ -41,17 +40,18 @@ import {
   Textarea,
 } from '@/components/ui';
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
-import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
+import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
+import { useOnboardingContext as useOnboardingOverviewContext } from '@/core/OnboardingFlow/contexts';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useOnboardingOverviewContext } from '../OnboardingOverviewFlow/OnboardingContext/OnboardingContext';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   FieldRule,
   OnboardingFormValuesSubmit,
   OptionalDefaults,
 } from '../utils/types';
+import { InfoPopover } from './InfoPopover';
 
 type FieldType =
   | 'text'

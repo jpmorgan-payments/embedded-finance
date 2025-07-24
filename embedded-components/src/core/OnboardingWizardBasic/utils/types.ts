@@ -10,8 +10,6 @@ import {
 import { BeneficialOwnerStepFormSchema } from '../BeneficialOwnerStepForm/BeneficialOwnerStepForm.schema';
 import { ControllerStepFormSchema } from '../ControllerStepForm/ControllerStepForm.schema';
 import { InitialStepFormSchema } from '../InitialStepForm/InitialStepForm.schema';
-import { CustomerFacingDetailsFormSchema } from '../OnboardingOverviewFlow/screens/BusinessSectionForms/CustomerFacingDetailsForm/CustomerFacingDetailsForm.schema';
-import { GatewayScreenFormSchema } from '../OnboardingOverviewFlow/screens/GatewayScreen/GatewayScreen.schema';
 import { OrganizationStepFormSchema } from '../OrganizationStepForm/OrganizationStepForm.schema';
 
 // TODO: add more form schemas here
@@ -20,18 +18,14 @@ export type OnboardingFormValuesSubmit = z.output<
 > &
   z.output<typeof OrganizationStepFormSchema> &
   z.output<typeof ControllerStepFormSchema> &
-  z.output<typeof BeneficialOwnerStepFormSchema> &
-  z.output<typeof CustomerFacingDetailsFormSchema> &
-  z.output<typeof GatewayScreenFormSchema>;
+  z.output<typeof BeneficialOwnerStepFormSchema>;
 
 export type OnboardingFormValuesInitial = z.input<
   typeof InitialStepFormSchema
 > &
   z.input<typeof OrganizationStepFormSchema> &
   z.input<typeof ControllerStepFormSchema> &
-  z.input<typeof BeneficialOwnerStepFormSchema> &
-  z.input<typeof CustomerFacingDetailsFormSchema> &
-  z.input<typeof GatewayScreenFormSchema>;
+  z.input<typeof BeneficialOwnerStepFormSchema>;
 
 export type OnboardingTopLevelArrayFieldNames = Extract<
   FieldArrayPath<OnboardingFormValuesSubmit>,
