@@ -97,7 +97,11 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     refetch: refetchRecipients,
   } = useGetAllRecipients(undefined);
 
-  const { data: accounts } = useGetAccounts(undefined);
+  const {
+    data: accounts,
+    status: accountsStatus,
+    refetch: refetchAccounts,
+  } = useGetAccounts(undefined);
 
   const recipients = recipientsData?.recipients || [];
 
@@ -293,10 +297,28 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('fields.from.label')}</FormLabel>
+                          {accountsStatus === 'pending' && (
+                            <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                              Loading accounts...
+                            </div>
+                          )}
+                          {accountsStatus === 'error' && (
+                            <div className="eb-py-2 eb-text-xs eb-text-destructive">
+                              Failed to load accounts.{' '}
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => refetchAccounts()}
+                              >
+                                Retry
+                              </Button>
+                            </div>
+                          )}
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                             value={field.value}
+                            disabled={accountsStatus !== 'success'}
                           >
                             <FormControl>
                               <SelectTrigger>
