@@ -196,7 +196,7 @@ export const createMockTransaction = (
 export const createMockTransactionsResponse = (
   transactions: TransactionsSearchResponseV2[] = mockTransactions,
   page: number = 1,
-  limit: number = 10,
+  limit: number = 4,
 ): ListTransactionsSearchResponseV2 => {
   // Convert 1-based page to 0-based index
   const startIndex = (page - 1) * limit;

@@ -82,6 +82,77 @@ const mockRecipients = [
   },
 ];
 
+const mockAccounts = {
+  items: [
+    {
+      id: 'account1',
+      label: 'Main Account',
+      number: '****1234',
+      type: 'CHECKING',
+      balance: 5000.0,
+      currency: 'USD',
+    },
+    {
+      id: 'account2',
+      label: 'Savings Account',
+      number: '****5678',
+      type: 'SAVINGS',
+      balance: 15000.0,
+      currency: 'USD',
+    },
+    {
+      id: 'account3',
+      label: 'Business Account',
+      number: '****9012',
+      type: 'CHECKING',
+      balance: 25000.0,
+      currency: 'USD',
+    },
+  ],
+};
+
+const mockAccountBalances = {
+  account1: {
+    balanceTypes: [
+      {
+        typeCode: 'ITAV',
+        amount: 5000.0,
+      },
+      {
+        typeCode: 'ITBD',
+        amount: 5200.0,
+      },
+    ],
+    currency: 'USD',
+  },
+  account2: {
+    balanceTypes: [
+      {
+        typeCode: 'ITAV',
+        amount: 15000.0,
+      },
+      {
+        typeCode: 'ITBD',
+        amount: 15200.0,
+      },
+    ],
+    currency: 'USD',
+  },
+  account3: {
+    balanceTypes: [
+      {
+        typeCode: 'ITAV',
+        amount: 25000.0,
+      },
+      {
+        typeCode: 'ITBD',
+        amount: 25200.0,
+      },
+    ],
+    currency: 'USD',
+  },
+};
+
 const meta: Meta<MakePaymentWithProviderProps> = {
   title: 'Payment / Make Payment',
   component: MakePayment,
@@ -91,6 +162,21 @@ const meta: Meta<MakePaymentWithProviderProps> = {
       handlers: [
         http.get('*/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json(mockAccounts);
+        }),
+        http.get('*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
         }),
         http.post('*/transactions', () => {
           return HttpResponse.json({
@@ -350,6 +436,9 @@ export const WithTransactionSettledCallbackError: Story = {
       handlers: [
         http.get('*/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json(mockAccounts);
         }),
         http.post('*/transactions', () => {
           return HttpResponse.json(

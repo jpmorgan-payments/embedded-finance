@@ -1,7 +1,5 @@
-import type { ListRecipientsResponse } from '@jpmorgan-payments/embedded-finance-components';
-
 // Mock linked accounts data for LinkedAccountWidget component
-export const mockLinkedAccounts: ListRecipientsResponse = {
+export const mockLinkedAccounts = {
   page: 0,
   limit: 10,
   total_items: 3,
@@ -49,48 +47,11 @@ export const mockLinkedAccounts: ListRecipientsResponse = {
       createdAt: '2024-01-15T10:30:00Z',
       updatedAt: '2024-01-15T10:30:00Z',
     },
-    {
-      id: 'linked-account-002',
-      type: 'LINKED_ACCOUNT',
-      status: 'MICRODEPOSITS_INITIATED',
-      clientId: 'client-001',
-      partyDetails: {
-        type: 'INDIVIDUAL',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        address: {
-          addressLine1: '456 Oak Avenue',
-          city: 'San Francisco',
-          state: 'CA',
-          postalCode: '94102',
-          countryCode: 'US',
-        },
-        contacts: [
-          {
-            contactType: 'EMAIL',
-            value: 'jane.smith@email.com',
-          },
-        ],
-      },
-      account: {
-        number: '9876543210',
-        type: 'SAVINGS',
-        countryCode: 'US',
-        routingInformation: [
-          {
-            routingCodeType: 'USABA',
-            routingNumber: '121000248',
-            transactionType: 'ACH',
-          },
-        ],
-      },
-      createdAt: '2024-01-20T14:20:00Z',
-      updatedAt: '2024-01-20T14:20:00Z',
-    },
+
     {
       id: 'linked-account-003',
       type: 'LINKED_ACCOUNT',
-      status: 'READY_FOR_VALIDATION',
+      status: 'INACTIVE',
       clientId: 'client-001',
       partyDetails: {
         type: 'ORGANIZATION',
@@ -133,25 +94,25 @@ export const mockLinkedAccounts: ListRecipientsResponse = {
 };
 
 // Mock linked accounts with different statuses
-export const mockActiveLinkedAccounts: ListRecipientsResponse = {
+export const mockActiveLinkedAccounts = {
   ...mockLinkedAccounts,
   recipients: mockLinkedAccounts.recipients.filter(
-    (account) => account.status === 'ACTIVE',
+    (account: { status: string }) => account.status === 'ACTIVE',
   ),
   total_items: 1,
 };
 
-export const mockMicrodepositLinkedAccounts: ListRecipientsResponse = {
+export const mockMicrodepositLinkedAccounts = {
   ...mockLinkedAccounts,
   recipients: mockLinkedAccounts.recipients.filter(
-    (account) =>
+    (account: { status: string }) =>
       account.status === 'MICRODEPOSITS_INITIATED' ||
       account.status === 'READY_FOR_VALIDATION',
   ),
   total_items: 2,
 };
 
-export const mockEmptyLinkedAccounts: ListRecipientsResponse = {
+export const mockEmptyLinkedAccounts = {
   page: 0,
   limit: 10,
   total_items: 0,
@@ -261,7 +222,7 @@ export const createMockLinkedAccountsResponse = (
   accounts: any[] = mockLinkedAccounts.recipients,
   page: number = 1,
   limit: number = 10,
-): ListRecipientsResponse => {
+) => {
   // Convert 1-based page to 0-based index
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
@@ -277,7 +238,9 @@ export const createMockLinkedAccountsResponse = (
 
 // Function to get linked account by ID
 export const getLinkedAccountById = (id: string) => {
-  return mockLinkedAccounts.recipients.find((account) => account.id === id);
+  return mockLinkedAccounts.recipients.find(
+    (account: { id: string }) => account.id === id,
+  );
 };
 
 // Function to update linked account status

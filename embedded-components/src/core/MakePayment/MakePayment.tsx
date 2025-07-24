@@ -2,17 +2,21 @@
 
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Info, X } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  useGetAccountBalance,
+  useGetAccounts,
+} from '@/api/generated/ep-accounts';
+import { AccountResponse } from '@/api/generated/ep-accounts.schemas';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
 import {
   ApiErrorV2,
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -73,7 +77,6 @@ interface PaymentComponentProps {
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
-  accounts = [{ id: 'account1', name: 'Main Account' }],
   paymentMethods = [
     { id: 'ACH', name: 'ACH', fee: 2.5 },
     { id: 'RTP', name: 'RTP', fee: 1 },
@@ -84,7 +87,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 }) => {
   const { t } = useTranslation(['make-payment']);
   const { form, resetForm } = usePaymentForm();
-  const [showAd, setShowAd] = useState(true);
   const [isOpen, setIsOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -94,12 +96,33 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     status: recipientsStatus,
     refetch: refetchRecipients,
   } = useGetAllRecipients(undefined);
+
+  const {
+    data: accounts,
+    status: accountsStatus,
+    refetch: refetchAccounts,
+  } = useGetAccounts(undefined);
+
   const recipients = recipientsData?.recipients || [];
+
+  // Fetch account balance when account is selected
+  const selectedAccountId = form.watch('from');
+  const { data: accountBalance, isLoading: isBalanceLoading } =
+    useGetAccountBalance(selectedAccountId || '');
+
+  // Get available balance (ITAV) for validation
+  const availableBalance =
+    accountBalance?.balanceTypes?.find((b) => b.typeCode === 'ITAV')?.amount ||
+    0;
 
   // Preselect values when there's only a single option available
   useEffect(() => {
-    if (accounts.length === 1 && form.getValues('from') !== accounts[0].id) {
-      form.setValue('from', accounts[0].id);
+    if (
+      accounts &&
+      accounts.items.length === 1 &&
+      form.getValues('from') !== accounts.items[0].id
+    ) {
+      form.setValue('from', accounts.items[0].id);
     }
     if (recipients.length === 1 && form.getValues('to') !== recipients[0].id) {
       form.setValue('to', recipients[0].id);
@@ -161,7 +184,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   // On submit, build payload and call mutation
   const handlePaymentSubmit = (values: any) => {
     const recipient = recipients.find((r: any) => r.id === values.to);
-    const fromAccount = accounts.find((a) => a.id === values.from);
+    const fromAccount = accounts?.items.find(
+      (a: { id: any }) => a.id === values.from
+    );
     if (!recipient || !fromAccount) return;
     createTransaction(
       {
@@ -208,7 +233,8 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   };
 
   const fee = getFee(method);
-  const isAmountValid = amount > fee;
+  const totalAmount = amount + fee;
+  const isAmountValid = amount > fee && totalAmount <= availableBalance;
 
   const handleMakeAnotherPayment = () => {
     resetForm();
@@ -245,24 +271,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           <CardContent className="eb-space-y-4 eb-pt-0">
             <DialogDescription>{t('description')}</DialogDescription>
 
-            {!localSuccess && showAd && (
-              <Alert variant="default" className="eb-mb-4">
-                <Info className="eb-mt-0.5 eb-h-4 eb-w-4" />
-                <AlertDescription className="eb-flex eb-items-center eb-justify-between">
-                  <span>{t('alerts.newPayoutCapability')}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowAd(false)}
-                    className="eb-h-6 eb-w-6 eb-p-0"
-                  >
-                    <X className="eb-h-4 eb-w-4" />
-                    <span className="eb-sr-only">Close</span>
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* Make the form content scrollable if it grows */}
             <div className="eb-max-h-[70vh] eb-overflow-y-auto eb-pr-1">
               {localSuccess ? (
@@ -289,10 +297,28 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('fields.from.label')}</FormLabel>
+                          {accountsStatus === 'pending' && (
+                            <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                              Loading accounts...
+                            </div>
+                          )}
+                          {accountsStatus === 'error' && (
+                            <div className="eb-py-2 eb-text-xs eb-text-destructive">
+                              Failed to load accounts.{' '}
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => refetchAccounts()}
+                              >
+                                Retry
+                              </Button>
+                            </div>
+                          )}
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                             value={field.value}
+                            disabled={accountsStatus !== 'success'}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -302,17 +328,62 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {accounts.map((account: Account) => (
-                                <SelectItem key={account.id} value={account.id}>
-                                  {account.name}
-                                </SelectItem>
-                              ))}
+                              {accounts?.items.map(
+                                (account: AccountResponse) => (
+                                  <SelectItem
+                                    key={account.id}
+                                    value={account.id}
+                                  >
+                                    {account.label}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    {/* Account Balance Display */}
+                    {selectedAccountId && (
+                      <div className="eb-mt-2 eb-rounded-md eb-bg-muted eb-p-3">
+                        <div className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+                          Account Balance
+                        </div>
+                        {isBalanceLoading ? (
+                          <div className="eb-text-sm eb-text-muted-foreground">
+                            Loading balance...
+                          </div>
+                        ) : accountBalance?.balanceTypes?.length ? (
+                          <div className="eb-space-y-1">
+                            {accountBalance.balanceTypes.map((balance) => (
+                              <div
+                                key={balance.typeCode}
+                                className="eb-flex eb-items-center eb-justify-between eb-text-sm"
+                              >
+                                <span className="eb-text-muted-foreground">
+                                  {balance.typeCode === 'ITAV'
+                                    ? 'Available Balance'
+                                    : balance.typeCode === 'ITBD'
+                                      ? 'Booked Balance'
+                                      : balance.typeCode}
+                                </span>
+                                <span className="eb-font-mono eb-font-medium">
+                                  ${balance.amount.toFixed(2)}{' '}
+                                  {accountBalance.currency}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="eb-text-sm eb-text-muted-foreground">
+                            No balance information available
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <FormField
                       control={form.control}
                       name="to"
@@ -390,6 +461,13 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             </div>
                           </FormControl>
                           <FormMessage />
+                          {!isAmountValid && amount > 0 && (
+                            <div className="eb-text-sm eb-text-destructive">
+                              {totalAmount > availableBalance
+                                ? `Insufficient funds. Available balance: $${availableBalance.toFixed(2)}`
+                                : t('fields.amount.validation.greaterThanFee')}
+                            </div>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -508,12 +586,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </div>
                         </div>
                       </>
-                    )}
-
-                    {!isAmountValid && amount > 0 && (
-                      <div className="eb-text-sm eb-text-destructive">
-                        {t('fields.amount.validation.greaterThanFee')}
-                      </div>
                     )}
 
                     {isPaymentError && (
