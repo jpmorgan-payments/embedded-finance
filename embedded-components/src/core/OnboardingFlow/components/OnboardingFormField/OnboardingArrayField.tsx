@@ -10,17 +10,14 @@ import {
 } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
-import { useOnboardingContext as useOnboardingOverviewContext } from '@/core/OnboardingFlow/contexts';
-
-import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useFormUtilsWithClientContext } from '../utils/formUtils';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import {
   ArrayFieldRule,
   OnboardingTopLevelArrayFieldNames,
   OptionalDefaults,
-} from '../utils/types';
+} from '@/core/OnboardingFlow/types/form.types';
+import { useFormUtilsWithClientContext } from '@/core/OnboardingFlow/utils/formUtils';
 
 type ButtonProps = {
   className?: string;
@@ -91,16 +88,7 @@ export function OnboardingArrayField<
   disableFieldRuleMapping,
   ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
-  // temporary workaround to get clientId and flowType from different contexts
-  let clientId;
-  try {
-    const context = useOnboardingContext();
-    clientId = context.clientId;
-  } catch (error) {
-    const context = useOnboardingOverviewContext();
-    clientId = context.clientData?.id;
-  }
-  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
+  const { clientData } = useOnboardingContext();
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'common']);

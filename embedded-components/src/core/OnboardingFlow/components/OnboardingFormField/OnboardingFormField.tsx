@@ -9,7 +9,6 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
   Button,
@@ -43,15 +42,13 @@ import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/Imp
 import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
-import { useOnboardingContext as useOnboardingOverviewContext } from '@/core/OnboardingFlow/contexts';
-
-import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useFormUtilsWithClientContext } from '../utils/formUtils';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldRule,
   OnboardingFormValuesSubmit,
   OptionalDefaults,
-} from '../utils/types';
+} from '@/core/OnboardingFlow/types/form.types';
+import { useFormUtilsWithClientContext } from '@/core/OnboardingFlow/utils/formUtils';
 
 type FieldType =
   | 'text'
@@ -145,19 +142,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
-
-  // temporary workaround to get clientId and flowType from different contexts
-  let clientData;
-  let isOverviewFlow = false;
-  try {
-    const context = useOnboardingContext();
-    const { data } = useSmbdoGetClient(context.clientId ?? '');
-    clientData = data;
-  } catch (error) {
-    const context = useOnboardingOverviewContext();
-    clientData = context.clientData;
-    isOverviewFlow = true;
-  }
+  const { clientData } = useOnboardingContext();
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
@@ -199,9 +184,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     const overviewFlowKey = `onboarding-overview:${key}`;
     return t(
       [
-        ...(isOverviewFlow
-          ? [overviewFlowKey, stepperFlowKey]
-          : [stepperFlowKey]),
+        overviewFlowKey,
+        stepperFlowKey,
         'common:noTokenFallback',
       ] as unknown as TemplateStringsArray,
       {
@@ -250,21 +234,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             {type !== 'checkbox' && type !== 'checkbox-basic' ? (
               <>
                 <div className="eb-flex eb-items-center eb-space-x-2">
-                  <FormLabel
-                    asterisk={fieldRequired && !isOverviewFlow}
-                    className={labelClassName}
-                  >
-                    {fieldLabel}
-                  </FormLabel>
+                  <FormLabel className={labelClassName}>{fieldLabel}</FormLabel>
                   <InfoPopover popoutTooltip={popoutTooltip}>
                     {fieldTooltip}
                   </InfoPopover>
                 </div>
-                {fieldDescription && !isOverviewFlow && (
-                  <FormDescription className="eb-text-xs eb-text-gray-500">
-                    {fieldDescription}
-                  </FormDescription>
-                )}
               </>
             ) : null}
 
@@ -483,10 +457,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         </FormControl>
                         <div className="eb-space-y-1 eb-leading-none">
                           <div className="eb-flex eb-items-center eb-space-x-2">
-                            <FormLabel
-                              asterisk={fieldRequired && !isOverviewFlow}
-                              className="eb-text-foreground"
-                            >
+                            <FormLabel className="eb-text-foreground">
                               {fieldLabel}
                             </FormLabel>
                             <InfoPopover popoutTooltip={popoutTooltip}>
@@ -512,10 +483,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           />
                         </FormControl>
                         <div className="eb-flex eb-items-center eb-space-x-2">
-                          <FormLabel
-                            asterisk={fieldRequired && !isOverviewFlow}
-                            className="eb-text-sm eb-leading-none eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
-                          >
+                          <FormLabel className="eb-text-sm eb-leading-none eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
                             {fieldLabel}
                           </FormLabel>
                           <InfoPopover popoutTooltip={popoutTooltip}>
@@ -631,7 +599,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               })()
             )}
 
-            {fieldDescription && isOverviewFlow && type !== 'checkbox' && (
+            {fieldDescription && type !== 'checkbox' && (
               <FormDescription className="eb-text-xs eb-italic eb-text-muted-foreground">
                 {fieldDescription}
               </FormDescription>

@@ -1,5 +1,7 @@
 import { defaultResources } from '@/i18n/config';
+import { useQuery } from '@tanstack/react-query';
 import { clsx, type ClassValue } from 'clsx';
+import DOMPurify from 'dompurify';
 import { getI18n } from 'react-i18next';
 import { extendTailwindMerge } from 'tailwind-merge';
 
@@ -235,3 +237,48 @@ export async function compressImage(
     };
   });
 }
+
+export const sanitizeInput = (input: string): string => {
+  // First pass: DOMPurify to handle any HTML/XSS
+  let sanitized = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [], // strip all HTML
+    ALLOWED_ATTR: [],
+    KEEP_CONTENT: true,
+  });
+
+  // Second pass: Custom cleaning
+  sanitized = sanitized
+    // Remove URLs
+    .replace(/https?:\/\/[^\s]+/g, '')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    // Remove any remaining < > characters
+    .replace(/[<>]/g, '')
+    // Trim
+    .trim();
+
+  return sanitized;
+};
+
+export const useIPAddress = () => {
+  return useQuery<string>({
+    queryKey: ['useIPAddress'],
+    queryFn: async () => {
+      if (process.env.NODE_ENV !== 'test') {
+        const { publicIpv4 } = await import('public-ip');
+
+        return publicIpv4({
+          fallbackUrls: [
+            `https://ifconfig.co/ip`,
+            'https://api64.ipify.org/',
+            'https://ipapi.co/ip',
+          ],
+        });
+      }
+      return new Promise((resolve) => {
+        resolve('1.1.1.1');
+      });
+    },
+    retry: 5,
+  });
+};
