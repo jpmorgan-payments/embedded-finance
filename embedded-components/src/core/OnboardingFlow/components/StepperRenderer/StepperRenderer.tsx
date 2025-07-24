@@ -61,7 +61,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     originScreenId,
     editingPartyIds,
     updateEditingPartyId,
-    previouslyCompletedScreens,
+    previouslyCompleted,
     updateSessionData,
     initialStepperStepId,
     sections,
@@ -83,7 +83,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   );
   const checkAnswersMode = checkAnswersStepId !== null;
   const reviewMode = originScreenId === 'review-attest-section';
-  const previouslyCompleted = previouslyCompletedScreens[currentScreenId];
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const {
@@ -114,6 +113,19 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     clientData,
     nextSection?.stepperConfig?.associatedPartyFilters
   );
+  const prevSection =
+    currentSectionIndex > 0 ? sections[currentSectionIndex - 1] : undefined;
+  const prevSectionPartyData = getPartyByAssociatedPartyFilters(
+    clientData,
+    prevSection?.stepperConfig?.associatedPartyFilters
+  );
+
+  const canNavigateToPrevSection =
+    currentSectionIndex > 0 &&
+    currentStepNumber === 1 &&
+    !checkAnswersMode &&
+    !reviewMode &&
+    originScreenId === prevSection?.id;
 
   const handleNext = () => {
     if (checkAnswersMode) {
@@ -186,10 +198,14 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     ) {
       goBack();
     } else if (
-      currentStepNumber === 1 ||
-      (currentStep.stepType === 'check-answers' && previouslyCompleted)
+      currentStep.stepType === 'check-answers' &&
+      previouslyCompleted
     ) {
       goTo('overview');
+    } else if (canNavigateToPrevSection) {
+      goTo(prevSection.id, {
+        editingPartyId: prevSectionPartyData.id,
+      });
     } else {
       stepperPrev();
     }
@@ -199,26 +215,19 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'form' && (checkAnswersMode || reviewMode)) {
       return 'Cancel';
     }
-    if (
-      (currentStepNumber === 1 ||
-        (currentStep.stepType === 'check-answers' && previouslyCompleted)) &&
-      originScreenId
-    ) {
-      if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
-        if (originScreenId === 'owners-section') {
-          return 'Back to all owners overview';
-        }
-        return 'Return to overview';
+    if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
+      if (originScreenId === 'owners-section') {
+        return 'Back to all owners overview';
       }
+      return 'Return to overview';
+    }
+    if (canNavigateToPrevSection) {
+      return `Back to ${prevSection?.sectionConfig.label}`;
     }
     return 'Previous';
   };
 
-  const prevButtonDisabled =
-    currentStepNumber === 1 &&
-    !checkAnswersMode &&
-    !reviewMode &&
-    originScreenId !== 'owners-section';
+  const prevButtonDisabled = !canNavigateToPrevSection;
 
   const { stepValidationMap } = getStepperValidation(
     steps,

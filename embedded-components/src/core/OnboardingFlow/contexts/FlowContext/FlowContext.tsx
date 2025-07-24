@@ -11,11 +11,6 @@ import {
 type EditingPartyIds = {
   [screenId: string]: string | undefined;
 };
-
-type PreviouslyCompletedScreens = {
-  [screenId: string]: boolean;
-};
-
 type GoToConfig = {
   resetHistory?: boolean;
   editingPartyId?: string;
@@ -38,7 +33,7 @@ const FlowContext = createContext<{
   sections: SectionScreenConfig[];
   sessionData: FlowSessionData;
   updateSessionData: (updates: Partial<FlowSessionData>) => void;
-  previouslyCompletedScreens: PreviouslyCompletedScreens;
+  previouslyCompleted: boolean;
   reviewScreenOpenedSectionId: SectionScreenId | null;
   initialStepperStepId: string | null;
   shortLabelOverride: string | null;
@@ -60,7 +55,7 @@ const FlowContext = createContext<{
   updateSessionData: () => {
     throw new Error('setSessionData() must be used within FlowProvider');
   },
-  previouslyCompletedScreens: {},
+  previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
   shortLabelOverride: null,
@@ -73,8 +68,7 @@ export const FlowProvider: React.FC<{
 }> = ({ children, initialScreenId, flowConfig }) => {
   const [history, setHistory] = useState<ScreenId[]>([initialScreenId]);
   const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>({});
-  const [previouslyCompletedScreens, setPreviouslyCompletedScreens] =
-    useState<PreviouslyCompletedScreens>({});
+  const [previouslyCompleted, setPreviouslyCompleted] = useState(false);
   const [reviewScreenOpenedSectionId, setReviewScreenOpenedSectionId] =
     useState<SectionScreenId | null>(null);
   const [initialStepperStepId, setInitialStepperStepId] = useState<
@@ -94,10 +88,7 @@ export const FlowProvider: React.FC<{
       ...prev,
       [id]: config?.editingPartyId,
     }));
-    setPreviouslyCompletedScreens((prev) => ({
-      ...prev,
-      [id]: config?.previouslyCompleted ?? false,
-    }));
+    setPreviouslyCompleted(config?.previouslyCompleted ?? false);
     setReviewScreenOpenedSectionId(config?.reviewScreenOpenedSectionId ?? null);
     setInitialStepperStepId(config?.initialStepperStepId ?? null);
     setHistory((prev) => [...(config?.resetHistory ? [] : prev), id]);
@@ -137,7 +128,7 @@ export const FlowProvider: React.FC<{
         sections,
         sessionData,
         updateSessionData,
-        previouslyCompletedScreens,
+        previouslyCompleted,
         reviewScreenOpenedSectionId,
         initialStepperStepId,
         shortLabelOverride,

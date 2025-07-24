@@ -179,7 +179,7 @@ const mockFlowContext = {
   sections: [],
   sessionData: {},
   updateSessionData: vi.fn(),
-  previouslyCompletedScreens: {},
+  previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
   shortLabelOverride: null,
