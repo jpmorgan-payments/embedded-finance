@@ -4,6 +4,7 @@ import {
   ArrowRightIcon,
   InfoIcon,
   Loader2Icon,
+  MenuIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -270,7 +271,15 @@ export const OwnersSectionScreen = () => {
 
   return (
     <StepLayout
-      title="Owners and key roles"
+      title={
+        <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+          <span>Owners and key roles</span>
+          <Button variant="outline" size="sm" onClick={() => goTo('overview')}>
+            Overview
+            <MenuIcon />
+          </Button>
+        </div>
+      }
       description="Provide information for owners and senior managers for your company. Keep in mind that individual people may have multiple roles."
     >
       <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
@@ -524,7 +533,7 @@ export const OwnersSectionScreen = () => {
             }}
             disabled={isFormDisabled}
           >
-            {reviewMode ? 'Save and continue' : 'Save and return to overview'}
+            {reviewMode ? 'Save and return to review' : 'Save and continue'}
           </Button>
         </div>
       </div>
