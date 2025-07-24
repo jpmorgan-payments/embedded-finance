@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { useFieldArray } from 'react-hook-form';
 
+import { InfoPopover } from '@/components/LearnMorePopover';
 import {
   Button,
   FormControl,
@@ -10,7 +11,6 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui';
-import { InfoPopover } from '@/components/ux/InfoPopover';
 
 type AddressLinesProps = {
   control: any;
