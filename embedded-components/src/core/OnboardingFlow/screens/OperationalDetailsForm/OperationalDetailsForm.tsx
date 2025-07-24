@@ -2,7 +2,7 @@ import { Fragment, useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, MenuIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -145,7 +145,7 @@ export const OperationalDetailsForm = () => {
             reviewScreenOpenedSectionId: 'additional-questions-section',
           });
         } else {
-          goTo('overview');
+          goTo('review-attest-section');
           updateSessionData({
             mockedVerifyingSectionId: 'additional-questions-section',
           });
@@ -523,7 +523,19 @@ export const OperationalDetailsForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title="Operational details"
+          title={
+            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-gap-4">
+              <span>Operational details</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => goTo('overview')}
+              >
+                Overview
+                <MenuIcon />
+              </Button>
+            </div>
+          }
           description="Please answer these additional questions to help us understand your business operations."
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
@@ -543,7 +555,7 @@ export const OperationalDetailsForm = () => {
               )}
               {reviewMode
                 ? 'Save and return to review'
-                : 'Save and return to overview'}
+                : 'Save and continue to review'}
             </Button>
           </div>
         </StepLayout>

@@ -272,7 +272,7 @@ export const OwnersSectionScreen = () => {
   return (
     <StepLayout
       title={
-        <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+        <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-gap-4">
           <span>Owners and key roles</span>
           <Button variant="outline" size="sm" onClick={() => goTo('overview')}>
             Overview
