@@ -1,12 +1,18 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
-import { AlertCircle, Info } from 'lucide-react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { AlertCircle, Eye, EyeOff, Info } from 'lucide-react';
 
 import {
   useGetAccountBalance,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Popover,
   PopoverContent,
@@ -39,6 +45,8 @@ const BALANCE_TYPE_LABELS: Record<
 export interface AccountsProps {
   allowedCategories: string[];
   clientId?: string;
+  /** Optional title for the accounts section */
+  title?: string;
 }
 
 // Define the ref interface for external actions
@@ -55,7 +63,7 @@ export interface AccountCardRef {
 }
 
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
-  ({ allowedCategories, clientId }, ref) => {
+  ({ allowedCategories, clientId, title = 'Accounts' }, ref) => {
     const { data, isLoading, isError, refetch } = useGetAccounts(
       clientId ? { clientId } : undefined
     );
@@ -96,62 +104,107 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (isLoading) {
       return (
-        <div className="eb-space-y-4">
-          {[...Array(2)].map((_, i) => (
-            <Card key={i} className="eb-w-full">
-              <div className="eb-p-4">
-                <Skeleton className="eb-h-6 eb-w-1/3" />
-                <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
-                <Skeleton className="eb-h-4 eb-w-1/4" />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-space-y-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="eb-w-full">
+                  <div className="eb-p-4">
+                    <Skeleton className="eb-h-6 eb-w-1/3" />
+                    <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
+                    <Skeleton className="eb-h-4 eb-w-1/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       );
     }
 
     if (isError) {
       return (
-        <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
-          <AlertCircle className="eb-h-5 eb-w-5" />
-          <span>Failed to load accounts.</span>
-        </div>
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
+              <AlertCircle className="eb-h-5 eb-w-5" />
+              <span>Failed to load accounts.</span>
+            </div>
+          </CardContent>
+        </Card>
       );
     }
 
     if (!filteredAccounts.length) {
-      return <div className="eb-text-muted-foreground">No accounts found.</div>;
+      return (
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-text-muted-foreground">No accounts found.</div>
+          </CardContent>
+        </Card>
+      );
     }
 
     // If more than one account, wrap each in its own Card for visual separation
     if (filteredAccounts.length > 1) {
       return (
-        <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
-          {filteredAccounts.map((account: AccountResponse) => (
-            <div
-              key={account.id}
-              className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
-            >
-              <AccountCard
-                account={account}
-                ref={(cardRef) => {
-                  accountCardRefs.current[account.id] = cardRef;
-                }}
-              />
+        <Card className="eb-w-full">
+          <CardHeader>
+            <CardTitle className="eb-text-xl eb-font-semibold">
+              {title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
+              {filteredAccounts.map((account: AccountResponse) => (
+                <div
+                  key={account.id}
+                  className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
+                >
+                  <AccountCard
+                    account={account}
+                    ref={(cardRef) => {
+                      accountCardRefs.current[account.id] = cardRef;
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
       );
     }
 
     // Single account, no extra wrapper
     return (
-      <AccountCard
-        account={filteredAccounts[0]}
-        ref={(cardRef) => {
-          accountCardRefs.current[filteredAccounts[0].id] = cardRef;
-        }}
-      />
+      <Card className="eb-w-full">
+        <CardHeader>
+          <CardTitle className="eb-text-xl eb-font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AccountCard
+            account={filteredAccounts[0]}
+            ref={(cardRef) => {
+              accountCardRefs.current[filteredAccounts[0].id] = cardRef;
+            }}
+          />
+        </CardContent>
+      </Card>
     );
   }
 );
@@ -171,6 +224,9 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       refetch,
     } = useGetAccountBalance(account.id);
 
+    // State for showing/hiding sensitive information
+    const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
+
     // Expose refresh method to parent component
     useImperativeHandle(
       ref,
@@ -182,8 +238,12 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       [refetch]
     );
 
+    const toggleSensitiveInfo = () => {
+      setShowSensitiveInfo(!showSensitiveInfo);
+    };
+
     return (
-      <Card className="eb-mb-4 eb-flex eb-flex-col eb-items-center eb-justify-between eb-gap-4 eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row">
+      <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row sm:eb-items-stretch">
         {/* Left: Main Info */}
         <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
           <div className="eb-flex eb-items-center eb-gap-2 eb-truncate eb-text-base eb-font-semibold">
@@ -197,29 +257,65 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             <span>{account.state}</span>
           </div>
           {account.paymentRoutingInformation?.accountNumber && (
-            <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-              <span className="eb-font-medium">Routing:</span>
-              <span className="eb-font-mono eb-text-xs">
-                {maskRoutingInfo(
-                  account.paymentRoutingInformation.accountNumber
-                )}
-              </span>
+            <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-1">
+              {/* Routing Number */}
               {Array.isArray(
                 account.paymentRoutingInformation.routingInformation
               ) &&
                 account.paymentRoutingInformation.routingInformation.length >
                   0 && (
-                  <span className="eb-ml-2 eb-text-gray-400">
-                    {account.paymentRoutingInformation.routingInformation
-                      .map((ri) => ri.value)
-                      .join(', ')}
-                  </span>
+                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
+                    <span className="eb-font-medium">Routing Number:</span>
+                    <span className="eb-font-mono eb-text-xs">
+                      {showSensitiveInfo
+                        ? account.paymentRoutingInformation.routingInformation
+                            .map((ri) => ri.value)
+                            .join(', ')
+                        : maskRoutingInfo(
+                            account.paymentRoutingInformation.routingInformation
+                              .map((ri) => ri.value)
+                              .join(', ')
+                          )}
+                    </span>
+                  </div>
                 )}
+              {/* Account Number */}
+              <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
+                <span className="eb-font-medium">Account Number:</span>
+                <span className="eb-font-mono eb-text-xs">
+                  {showSensitiveInfo
+                    ? account.paymentRoutingInformation.accountNumber
+                    : maskAccountNumber(
+                        account.paymentRoutingInformation.accountNumber
+                      )}
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleSensitiveInfo}
+                  className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                  title={
+                    showSensitiveInfo
+                      ? 'Hide account details'
+                      : 'Show account details'
+                  }
+                  aria-label={
+                    showSensitiveInfo
+                      ? 'Hide account details'
+                      : 'Show account details'
+                  }
+                >
+                  {showSensitiveInfo ? (
+                    <EyeOff className="eb-h-3 eb-w-3" />
+                  ) : (
+                    <Eye className="eb-h-3 eb-w-3" />
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
-        {/* Right: Balances */}
-        <div className="eb-mt-4 eb-flex eb-min-w-[180px] eb-max-w-xs eb-flex-col eb-items-end eb-gap-1 sm:eb-mt-0">
+        {/* Right: Balances - Aligned to bottom */}
+        <div className="eb-mt-4 eb-flex eb-min-w-[180px] eb-max-w-xs eb-flex-col eb-items-end eb-justify-end eb-gap-1 sm:eb-mt-0">
           <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
           {isBalanceLoading ? (
             <Skeleton className="eb-h-4 eb-w-1/2" />
@@ -230,7 +326,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   key={b.typeCode}
                   className="eb-flex eb-items-center eb-justify-end eb-gap-2"
                 >
-                  <span className="eb-text-xs eb-font-medium">
+                  <span className="eb-text-sm eb-font-medium">
                     {BALANCE_TYPE_LABELS[String(b.typeCode)]?.label ||
                       b.typeCode}
                   </span>
@@ -251,7 +347,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                         'No description.'}
                     </PopoverContent>
                   </Popover>
-                  <span className="eb-font-mono eb-text-right eb-text-xs">
+                  <span className="eb-font-mono eb-text-right eb-text-sm">
                     {b.amount} {balanceData.currency}
                   </span>
                 </div>
@@ -271,7 +367,14 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 // Add display name for AccountCard
 AccountCard.displayName = 'AccountCard';
 
-function maskRoutingInfo(accountNumber: string): string {
+function maskRoutingInfo(routingNumber: string): string {
+  if (!routingNumber) return 'N/A';
+  return routingNumber.length > 4
+    ? routingNumber.replace(/.(?=.{4})/g, '*')
+    : routingNumber;
+}
+
+function maskAccountNumber(accountNumber: string): string {
   if (!accountNumber) return 'N/A';
   return accountNumber.length > 4
     ? accountNumber.replace(/.(?=.{4})/g, '*')

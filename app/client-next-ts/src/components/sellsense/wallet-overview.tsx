@@ -10,7 +10,7 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Maximize2, Info, Grid3X3, Square } from 'lucide-react';
+import { Maximize2, Info, Grid3X3, Square, Columns } from 'lucide-react';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
 
@@ -212,7 +212,9 @@ function EmbeddedComponentCard({
 }
 
 export function WalletOverview(props: WalletOverviewProps = {}) {
-  const [layout, setLayout] = useState<'grid' | 'full-width'>('full-width');
+  const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
+    'columns',
+  );
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const searchParams = useSearch({ from: '/sellsense-demo' });
 
@@ -285,19 +287,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         />
       ),
     },
-    {
-      title: 'Linked Bank Accounts',
-      description: 'Manage your linked bank accounts for payments and payouts.',
-      componentName: 'LinkedAccountWidget',
-      componentDescription:
-        'A comprehensive widget for managing linked bank accounts.',
-      componentFeatures: [
-        'Display linked bank accounts with status badges',
-        'Link new bank accounts via secure form',
-        'Microdeposit verification workflow',
-      ],
-      component: <LinkedAccountWidget />,
-    },
+
     {
       title: 'Make Payment',
       description: 'Send payments to recipients using your linked accounts.',
@@ -312,6 +302,19 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       component: (
         <MakePayment onTransactionSettled={handleTransactionSettled} />
       ),
+    },
+    {
+      title: 'Linked Bank Accounts',
+      description: 'Manage your linked bank accounts for payments and payouts.',
+      componentName: 'LinkedAccountWidget',
+      componentDescription:
+        'A comprehensive widget for managing linked bank accounts.',
+      componentFeatures: [
+        'Display linked bank accounts with status badges',
+        'Link new bank accounts via secure form',
+        'Microdeposit verification workflow',
+      ],
+      component: <LinkedAccountWidget />,
     },
     {
       title: 'Recipients',
@@ -376,6 +379,13 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
               <Grid3X3 size={16} />
             </button>
             <button
+              onClick={() => setLayout('columns')}
+              className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'columns')}`}
+              title="Columns Layout"
+            >
+              <Columns size={16} />
+            </button>
+            <button
               onClick={() => setLayout('full-width')}
               className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'full-width')}`}
               title="Full Width Layout"
@@ -397,16 +407,22 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           className={
             layout === 'grid'
               ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
-              : 'space-y-6'
+              : layout === 'columns'
+                ? 'columns-1 lg:columns-2 gap-6 space-y-6'
+                : 'space-y-6'
           }
         >
           {components.map((componentInfo, index) => (
-            <EmbeddedComponentCard
+            <div
               key={index}
-              componentInfo={componentInfo}
-              isAnyTooltipOpen={openTooltip !== null}
-              onTooltipToggle={handleTooltipToggle}
-            />
+              className={layout === 'columns' ? 'break-inside-avoid mb-6' : ''}
+            >
+              <EmbeddedComponentCard
+                componentInfo={componentInfo}
+                isAnyTooltipOpen={openTooltip !== null}
+                onTooltipToggle={handleTooltipToggle}
+              />
+            </div>
           ))}
         </div>
       </EBComponentsProvider>

@@ -82,6 +82,61 @@ development.
 3. **API_URL not defined**: Set the `VITE_API_URL` environment variable
 4. **Console errors**: Check the browser console for MSW-related messages
 
+## Service Worker Keep-Alive
+
+To prevent the MSW service worker from being terminated due to inactivity, the project includes a ping service that periodically sends requests to keep the service worker alive.
+
+### Ping Service Implementation
+
+1. **Ping Handler**: Added `/ping` endpoint in `src/msw/handlers.js`
+2. **Ping Service**: `src/lib/ping-service.ts` - Manages periodic ping requests
+3. **React Hook**: `src/hooks/use-ping-service.ts` - React integration
+4. **Debug Component**: `src/components/PingStatus.tsx` - Visual status indicator
+
+### How It Works
+
+- The ping service starts automatically when MSW initializes
+- Sends a GET request to `/ping` every 30 seconds (configurable)
+- Includes retry logic with exponential backoff for failed requests
+- Automatically stops when the page unloads
+- Provides visual feedback in development mode
+
+### Configuration
+
+```typescript
+// Default interval: 30 seconds
+pingService.start(30000);
+
+// Custom interval: 15 seconds
+pingService.start(15000);
+```
+
+### Manual Control
+
+```typescript
+import { usePingService } from '../hooks/use-ping-service';
+
+function MyComponent() {
+  const { start, stop, isRunning } = usePingService();
+  
+  return (
+    <div>
+      <button onClick={() => start(30000)}>Start Ping</button>
+      <button onClick={() => stop()}>Stop Ping</button>
+      <span>Status: {isRunning() ? 'Active' : 'Inactive'}</span>
+    </div>
+  );
+}
+```
+
+### Debug Interface
+
+In development mode, a small status widget appears in the bottom-right corner showing:
+- Current ping service status
+- Ping interval
+- Last successful ping time
+- Manual start/stop controls
+
 ## Production
 
 MSW is configured to only run in development mode
