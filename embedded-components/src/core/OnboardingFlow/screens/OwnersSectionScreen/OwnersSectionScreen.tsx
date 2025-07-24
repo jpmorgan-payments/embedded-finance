@@ -511,7 +511,7 @@ export const OwnersSectionScreen = () => {
             type="button"
             variant="default"
             size="lg"
-            className="eb-w-full eb-text-lg"
+            className="eb-h-auto eb-min-h-11 eb-w-full eb-text-wrap eb-text-lg"
             onClick={() => {
               const controllerQuestionAnswered =
                 form.getValues('controllerIsAnOwner') !== undefined;
@@ -533,7 +533,9 @@ export const OwnersSectionScreen = () => {
             }}
             disabled={isFormDisabled}
           >
-            {reviewMode ? 'Save and return to review' : 'Save and continue'}
+            {reviewMode
+              ? 'Save and return to review'
+              : 'Save and continue to operational details'}
           </Button>
         </div>
       </div>
