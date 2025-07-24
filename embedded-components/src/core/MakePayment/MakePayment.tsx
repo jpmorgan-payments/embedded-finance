@@ -8,6 +8,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
+import {
+  ApiErrorV2,
+  TransactionResponseV2,
+} from '@/api/generated/ep-transactions.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,6 +65,10 @@ interface PaymentComponentProps {
   accounts?: Account[];
   paymentMethods?: PaymentMethod[];
   icon?: string;
+  onTransactionSettled?: (
+    response?: TransactionResponseV2,
+    error?: ApiErrorV2
+  ) => void;
 }
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
@@ -72,6 +80,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     { id: 'WIRE', name: 'WIRE', fee: 25 },
   ],
   icon = 'CirclePlus',
+  onTransactionSettled,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const { form, resetForm } = usePaymentForm();
@@ -171,6 +180,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       {
         onSuccess: () => {
           setLocalSuccess(true);
+        },
+        onSettled: (data, error) => {
+          onTransactionSettled?.(data, error?.response?.data);
         },
       }
     );

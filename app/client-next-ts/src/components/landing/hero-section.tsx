@@ -71,9 +71,8 @@ export function HeroSection() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl lg:text-page-body text-jpm-brown-700 leading-relaxed mb-6 sm:mb-7 md:mb-8 max-w-3xl">
-              Discover live demos, engineering recipes, and ready-to-use
-              components that unlock the full power of our APIs for embedded
-              finance.
+              Live demos, engineering recipes, and components that
+              unlock the full power of Embedded Finance APIs.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">

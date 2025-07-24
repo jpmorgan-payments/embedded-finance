@@ -9,7 +9,6 @@ import {
   ExternalLink,
   FileText,
   Zap,
-  Bell,
 } from 'lucide-react';
 
 export function ExperiencesSection() {
@@ -18,9 +17,9 @@ export function ExperiencesSection() {
       id: 'onboarding',
       title: 'Client Onboarding (KYC/KYB)',
       description:
-        'Complete client verification with staggered data collection, due diligence questions, and document requests for seamless onboarding.',
+        'Complete client verification with incremental information collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
-      status: 'live',
+      status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       steps: [
@@ -40,7 +39,7 @@ export function ExperiencesSection() {
       description:
         'Connect external bank accounts using Account Validation Service with microdeposits verification for secure account linking.',
       icon: <Link className="h-5 w-5" />,
-      status: 'live',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#3-linkedaccountwidget',
       steps: [
@@ -60,15 +59,14 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <List className="h-5 w-5" />,
-      status: 'beta',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       steps: [
         'View, search, filter, and sort all saved recipients',
         'Add new recipients with dynamic forms based on selected payment methods',
         'Edit recipient details and update payment methods',
-        'Delete recipients with confirmation and audit tracking',
-        'Initiate payments directly from recipient list or details',
+        'Deactivate recipients with confirmation and audit tracking',
         'Mask sensitive account information for security',
         'Comprehensive validation and error handling for all fields',
         'Accessible, mobile-responsive design with tooltips and help text',
@@ -89,7 +87,6 @@ export function ExperiencesSection() {
         'Fetch transaction data with filtering options',
         'Display transaction details and status',
         'Provide search and sorting capabilities',
-        'Export transaction data for reporting',
       ],
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
@@ -102,19 +99,35 @@ export function ExperiencesSection() {
       id: 'payments',
       title: 'Make Payouts',
       description:
-        'Process ACH, Wire, and RTP payments from Embedded Banking accounts with real-time status tracking and comprehensive payment management.',
+        'Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to external recipients and linked accounts.',
       icon: <Zap className="h-5 w-5" />,
       status: 'coming soon',
       steps: [
         'Get debtor account ID from your Embedded account',
         'Create payment request with recipient and amount',
         'Submit transaction with reference ID and memo',
-        'Monitor payment status and completion',
       ],
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-makepayment',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
+    },
+    {
+      id: 'accounts',
+      title: 'Accounts Management',
+      description:
+        'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
+      icon: <List className="h-5 w-5" />,
+      status: 'soon',
+      steps: [
+        'View accounts details and balances',
+        'Mask sensitive account information for security',
+        'Accessible, mobile-responsive design with tooltips and help text',
+      ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#1-accountsdisplay',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
     },
   ];
 
@@ -148,17 +161,17 @@ export function ExperiencesSection() {
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                       <span
                         className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
-                          exp.status === 'live'
+                          exp.status === 'available'
                             ? 'bg-green-100 text-green-800'
-                            : exp.status === 'beta'
+                            : exp.status === 'testing'
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-orange-100 text-orange-800'
                         }`}
                       >
-                        {exp.status === 'live'
-                          ? 'Live'
-                          : exp.status === 'beta'
-                            ? 'Beta'
+                        {exp.status === 'available'
+                          ? 'Available'
+                          : exp.status === 'testing'
+                            ? 'Testing'
                             : 'Soon'}
                       </span>
                       {exp.npmUrl && <Box className="h-3 w-3 text-blue-600" />}
