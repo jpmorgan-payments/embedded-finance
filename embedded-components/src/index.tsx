@@ -14,3 +14,5 @@ export * from './core/Accounts';
 export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
 
 export * from './core/OnboardingFlow';
+
+export * as types from './api/generated/smbdo.schemas';

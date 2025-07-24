@@ -1,2 +1,2 @@
 export * from './OnboardingFlow';
-export * from './types';
+export * as types from './types';
