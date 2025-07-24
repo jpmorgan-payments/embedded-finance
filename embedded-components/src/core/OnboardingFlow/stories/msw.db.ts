@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { factory, primaryKey } from '@mswjs/data';
 import merge from 'lodash/merge';
 
