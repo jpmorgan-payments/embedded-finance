@@ -7,10 +7,8 @@ import {
 } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
-import {
-  useFlowContext,
-  useOnboardingContext,
-} from '@/core/OnboardingFlow/contexts';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 
 import { DocumentRequestsSection } from './DocumentRequestsSection';
 import { groupDocumentRequests } from './documentUtils';
