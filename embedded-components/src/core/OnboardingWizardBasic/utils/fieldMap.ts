@@ -4,12 +4,8 @@ import {
   parsePhoneNumber,
 } from 'react-phone-number-input';
 
-import {
-  AddressDto,
-  OrganizationType,
-  PhoneSmbdo,
-} from '@/api/generated/smbdo.schemas';
-import naicsCodes from '@/components/IndustryTypeSelect/naics-codes.json';
+import { AddressDto, PhoneSmbdo } from '@/api/generated/smbdo.schemas';
+import naicsCodes from '@/core/OnboardingFlow/components/IndustryTypeSelect/naics-codes.json';
 
 import { PartyFieldMap } from './types';
 
@@ -64,60 +60,6 @@ export const partyFieldMap: PartyFieldMap = {
       display: 'visible',
       required: true,
       defaultValue: '',
-    },
-  },
-  organizationTypeHierarchy: {
-    path: 'organizationDetails.organizationType',
-    baseRule: {
-      display: 'visible',
-      required: true,
-      defaultValue: {
-        generalOrganizationType: '',
-        specificOrganizationType: '',
-      },
-    },
-    fromResponseFn: (val: OrganizationType) => {
-      if (val === 'SOLE_PROPRIETORSHIP') {
-        return {
-          generalOrganizationType: 'SOLE_PROPRIETORSHIP',
-          specificOrganizationType: 'SOLE_PROPRIETORSHIP',
-        };
-      }
-      if (
-        [
-          'LIMITED_LIABILITY_COMPANY',
-          'LIMITED_LIABILITY_PARTNERSHIP',
-          'C_CORPORATION',
-          'S_COPORATION',
-          'GENERAL_PARTNERSHIP',
-          'LIMITED_PARTNERSHIP',
-          'PARTNERSHIP',
-        ].includes(val)
-      ) {
-        return {
-          generalOrganizationType: 'REGISTERED_BUSINESS',
-          specificOrganizationType: val,
-        };
-      }
-      if (
-        [
-          'NON_PROFIT_COPORATION',
-          'GOVERNMENT_ENTITY',
-          'UNINCORPORATED ASSOCIATION',
-        ].includes(val)
-      ) {
-        return {
-          generalOrganizationType: 'OTHER',
-          specificOrganizationType: val,
-        };
-      }
-      return {
-        generalOrganizationType: 'OTHER',
-        specificOrganizationType: val,
-      };
-    },
-    toRequestFn: (val): OrganizationType => {
-      return val.specificOrganizationType;
     },
   },
   countryOfFormation: {
@@ -478,7 +420,7 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: '',
     },
     toStringFn: (val, formValues) =>
-      !formValues.websiteNotAvailable ? val : undefined,
+      formValues.websiteAvailable ? val : undefined,
   },
   websiteAvailable: {
     path: 'organizationDetails.websiteAvailable',
@@ -489,26 +431,6 @@ export const partyFieldMap: PartyFieldMap = {
     },
     fromResponseFn: (val: boolean) => !val,
     toRequestFn: (val): boolean => !val,
-  },
-  websiteNotAvailable: {
-    path: 'organizationDetails.websiteAvailable',
-    isHiddenInReview: () => true,
-    baseRule: {
-      display: 'visible',
-      required: false,
-      defaultValue: false,
-    },
-    fromResponseFn: (val: boolean) => !val,
-    toRequestFn: (val): boolean => !val,
-  },
-  dbaNameNotAvailable: {
-    excludeFromMapping: true,
-    isHiddenInReview: () => true,
-    baseRule: {
-      display: 'visible',
-      required: false,
-      defaultValue: false,
-    },
   },
   secondaryMccList: {
     path: 'organizationDetails.secondaryMccList',

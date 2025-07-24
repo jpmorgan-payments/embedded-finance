@@ -12,9 +12,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
+import { useOnboardingContext as useOnboardingOverviewContext } from '@/core/OnboardingFlow/contexts';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
-import { useOnboardingOverviewContext } from '../OnboardingOverviewFlow/OnboardingContext/OnboardingContext';
 import { useFormUtilsWithClientContext } from '../utils/formUtils';
 import {
   ArrayFieldRule,
