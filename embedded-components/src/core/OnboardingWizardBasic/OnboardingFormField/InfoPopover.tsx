@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { LearnMorePopoverTrigger } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/components/LearnMorePopover/LearnMorePopover';
+import { LearnMorePopoverTrigger } from '@/core/OnboardingFlow/components';
 
 interface InfoPopoverProps {
   children: React.ReactNode;

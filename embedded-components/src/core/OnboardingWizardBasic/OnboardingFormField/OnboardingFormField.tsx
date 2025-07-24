@@ -40,7 +40,6 @@ import {
   Textarea,
 } from '@/components/ui';
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
-import { InfoPopover } from '@/components/ux/InfoPopover';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
 import { useOnboardingContext as useOnboardingOverviewContext } from '@/core/OnboardingFlow/contexts';
@@ -52,6 +51,7 @@ import {
   OnboardingFormValuesSubmit,
   OptionalDefaults,
 } from '../utils/types';
+import { InfoPopover } from './InfoPopover';
 
 type FieldType =
   | 'text'
