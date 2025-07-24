@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { InfoPopover } from '@/components/LearnMorePopover';
 import {
   Button,
   Checkbox,
@@ -48,8 +49,6 @@ import {
   OptionalDefaults,
 } from '@/core/OnboardingFlow/types/form.types';
 import { useFormUtilsWithClientContext } from '@/core/OnboardingFlow/utils/formUtils';
-
-import { InfoPopover } from './InfoPopover';
 
 type FieldType =
   | 'text'
