@@ -519,14 +519,12 @@ export const OwnersSectionScreen = () => {
                   reviewScreenOpenedSectionId: 'owners-section',
                 });
               } else {
-                goTo('overview');
+                goTo('additional-questions-section');
               }
             }}
             disabled={isFormDisabled}
           >
-            {reviewMode
-              ? 'Save and return to review'
-              : 'Save and return to overview'}
+            {reviewMode ? 'Save and continue' : 'Save and return to overview'}
           </Button>
         </div>
       </div>
