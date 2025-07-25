@@ -583,6 +583,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem className="eb-space-y-3">
                           <FormLabel>{t('fields.method.label')}</FormLabel>
+                          <div className="eb-text-xs eb-text-muted-foreground">
+                            Available payment methods for the selected recipient
+                          </div>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
