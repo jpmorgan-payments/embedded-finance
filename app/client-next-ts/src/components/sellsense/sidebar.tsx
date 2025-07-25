@@ -3,6 +3,10 @@
 import type { ClientScenario, View } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useThemeStyles } from './theme-utils';
+import {
+  getOnboardingScenarios,
+  getScenarioKeyByDisplayName,
+} from './scenarios-config';
 
 interface SidebarProps {
   clientScenario: ClientScenario;
@@ -41,9 +45,9 @@ function SidebarButton({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-4 py-2.5 transition-colors ${themeStyles.getSidebarButtonStyles(selected)}`}
+      className={`w-full text-left px-4 py-3 transition-colors duration-200 ${themeStyles.getSidebarButtonStyles(selected)}`}
     >
-      {label}
+      <span className="text-sm font-medium">{label}</span>
     </button>
   );
 }
@@ -58,12 +62,16 @@ export function Sidebar({
 }: SidebarProps) {
   const themeStyles = useThemeStyles(theme);
 
-  // Determine if this is an onboarding scenario
-  const isOnboardingScenario = [
-    'New Seller - Onboarding',
-    'Onboarding - Docs Needed',
-    'Onboarding - In Review',
-  ].includes(clientScenario);
+  // Determine if this is an onboarding scenario using centralized config
+  const scenarioKey = getScenarioKeyByDisplayName(clientScenario);
+  const isOnboardingScenario = scenarioKey
+    ? getOnboardingScenarios().some((s) => s.key === scenarioKey)
+    : // Fallback for legacy scenarios
+      [
+        'New Seller - Onboarding',
+        'Onboarding - Docs Needed',
+        'Onboarding - In Review',
+      ].includes(clientScenario);
 
   // Choose appropriate menu based on scenario
   const menuItems = isOnboardingScenario ? onboardingMenu : fullSidebarMenu;

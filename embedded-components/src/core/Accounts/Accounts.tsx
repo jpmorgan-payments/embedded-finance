@@ -348,7 +348,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     </PopoverContent>
                   </Popover>
                   <span className="eb-font-mono eb-text-right eb-text-sm">
-                    {b.amount} {balanceData.currency}
+                    {Number(b.amount).toFixed(2)} {balanceData.currency}
                   </span>
                 </div>
               ))}

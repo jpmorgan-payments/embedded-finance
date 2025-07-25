@@ -196,7 +196,7 @@ export function createTransactionWithBalanceUpdate(transactionData) {
   const newTransaction = {
     id: transactionId,
     type: transactionData.type || 'ACH',
-    status: transactionData.status || 'PENDING',
+    status: transactionData.status || 'COMPLETED',
     amount: transactionData.amount || 0,
     currency: transactionData.currency || 'USD',
     paymentDate:

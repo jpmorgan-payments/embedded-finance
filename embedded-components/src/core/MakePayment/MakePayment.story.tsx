@@ -19,16 +19,40 @@ interface MakePaymentWithProviderProps extends EBConfig {
 }
 
 const mockRecipients = [
+  // Linked Accounts
   {
     id: 'linkedAccount1',
+    type: 'LINKED_ACCOUNT',
+    status: 'ACTIVE',
+    clientId: 'client-001',
     partyDetails: {
       type: 'INDIVIDUAL',
       firstName: 'John',
       lastName: 'Doe',
+      address: {
+        addressLine1: '123 Main Street',
+        city: 'New York',
+        state: 'NY',
+        postalCode: '10001',
+        countryCode: 'US',
+      },
+      contacts: [
+        {
+          contactType: 'EMAIL',
+          value: 'john.doe@email.com',
+        },
+        {
+          contactType: 'PHONE',
+          value: '5551234567',
+          countryCode: '+1',
+        },
+      ],
     },
     account: {
       id: 'acc-1234',
       number: '1234567890',
+      type: 'CHECKING',
+      countryCode: 'US',
       routingInformation: [
         {
           routingCodeType: 'USABA',
@@ -37,17 +61,42 @@ const mockRecipients = [
         },
       ],
     },
+    createdAt: '2024-01-15T10:30:00Z',
+    updatedAt: '2024-01-15T10:30:00Z',
   },
   {
     id: 'linkedAccount2',
+    type: 'LINKED_ACCOUNT',
+    status: 'ACTIVE',
+    clientId: 'client-001',
     partyDetails: {
       type: 'INDIVIDUAL',
       firstName: 'Jane',
       lastName: 'Smith',
+      address: {
+        addressLine1: '456 Oak Avenue',
+        city: 'Los Angeles',
+        state: 'CA',
+        postalCode: '90210',
+        countryCode: 'US',
+      },
+      contacts: [
+        {
+          contactType: 'EMAIL',
+          value: 'jane.smith@email.com',
+        },
+        {
+          contactType: 'PHONE',
+          value: '5559876543',
+          countryCode: '+1',
+        },
+      ],
     },
     account: {
       id: 'acc-5678',
       number: '9876543210',
+      type: 'SAVINGS',
+      countryCode: 'US',
       routingInformation: [
         {
           routingCodeType: 'USABA',
@@ -61,16 +110,40 @@ const mockRecipients = [
         },
       ],
     },
+    createdAt: '2024-01-10T14:20:00Z',
+    updatedAt: '2024-01-16T09:15:00Z',
   },
   {
     id: 'linkedAccount3',
+    type: 'LINKED_ACCOUNT',
+    status: 'ACTIVE',
+    clientId: 'client-001',
     partyDetails: {
       type: 'ORGANIZATION',
       businessName: 'Company LLC',
+      address: {
+        addressLine1: '789 Business Blvd',
+        city: 'Chicago',
+        state: 'IL',
+        postalCode: '60601',
+        countryCode: 'US',
+      },
+      contacts: [
+        {
+          contactType: 'EMAIL',
+          value: 'payments@companyllc.com',
+        },
+        {
+          contactType: 'WEBSITE',
+          value: 'https://www.companyllc.com',
+        },
+      ],
     },
     account: {
       id: 'acc-9012',
       number: '2468135790',
+      type: 'CHECKING',
+      countryCode: 'US',
       routingInformation: [
         {
           routingCodeType: 'USABA',
@@ -79,6 +152,149 @@ const mockRecipients = [
         },
       ],
     },
+    createdAt: '2024-01-05T11:45:00Z',
+    updatedAt: '2024-01-17T16:30:00Z',
+  },
+  // Regular Recipients
+  {
+    id: 'recipient1',
+    type: 'RECIPIENT',
+    status: 'ACTIVE',
+    clientId: 'client-001',
+    partyDetails: {
+      type: 'INDIVIDUAL',
+      firstName: 'Alice',
+      lastName: 'Johnson',
+      address: {
+        addressLine1: '321 Pine Street',
+        city: 'Miami',
+        state: 'FL',
+        postalCode: '33101',
+        countryCode: 'US',
+      },
+      contacts: [
+        {
+          contactType: 'EMAIL',
+          value: 'alice.johnson@email.com',
+        },
+        {
+          contactType: 'PHONE',
+          value: '5551112222',
+          countryCode: '+1',
+        },
+      ],
+    },
+    account: {
+      id: 'acc-3456',
+      number: '111122223333',
+      type: 'CHECKING',
+      countryCode: 'US',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '444000555',
+          transactionType: 'ACH',
+        },
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '444000555',
+          transactionType: 'WIRE',
+        },
+      ],
+    },
+    createdAt: '2024-01-20T08:15:00Z',
+    updatedAt: '2024-01-20T08:15:00Z',
+  },
+  {
+    id: 'recipient2',
+    type: 'RECIPIENT',
+    status: 'ACTIVE',
+    clientId: 'client-001',
+    partyDetails: {
+      type: 'ORGANIZATION',
+      businessName: 'Tech Solutions Inc',
+      address: {
+        addressLine1: '654 Innovation Drive',
+        city: 'Austin',
+        state: 'TX',
+        postalCode: '73301',
+        countryCode: 'US',
+      },
+      contacts: [
+        {
+          contactType: 'EMAIL',
+          value: 'payments@techsolutions.com',
+        },
+        {
+          contactType: 'WEBSITE',
+          value: 'https://www.techsolutions.com',
+        },
+      ],
+    },
+    account: {
+      id: 'acc-7890',
+      number: '555566667777',
+      type: 'CHECKING',
+      countryCode: 'US',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '666000777',
+          transactionType: 'ACH',
+        },
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '666000777',
+          transactionType: 'RTP',
+        },
+      ],
+    },
+    createdAt: '2024-01-18T13:30:00Z',
+    updatedAt: '2024-01-19T10:45:00Z',
+  },
+  {
+    id: 'recipient3',
+    type: 'RECIPIENT',
+    status: 'ACTIVE',
+    clientId: 'client-001',
+    partyDetails: {
+      type: 'INDIVIDUAL',
+      firstName: 'Bob',
+      lastName: 'Wilson',
+      address: {
+        addressLine1: '987 Elm Court',
+        city: 'Seattle',
+        state: 'WA',
+        postalCode: '98101',
+        countryCode: 'US',
+      },
+      contacts: [
+        {
+          contactType: 'EMAIL',
+          value: 'bob.wilson@email.com',
+        },
+        {
+          contactType: 'PHONE',
+          value: '5553334444',
+          countryCode: '+1',
+        },
+      ],
+    },
+    account: {
+      id: 'acc-1357',
+      number: '888899990000',
+      type: 'SAVINGS',
+      countryCode: 'US',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '777000888',
+          transactionType: 'ACH',
+        },
+      ],
+    },
+    createdAt: '2024-01-22T15:20:00Z',
+    updatedAt: '2024-01-22T15:20:00Z',
   },
 ];
 
@@ -439,6 +655,18 @@ export const WithTransactionSettledCallbackError: Story = {
         }),
         http.get('*/accounts', () => {
           return HttpResponse.json(mockAccounts);
+        }),
+        http.get('*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
         }),
         http.post('*/transactions', () => {
           return HttpResponse.json(

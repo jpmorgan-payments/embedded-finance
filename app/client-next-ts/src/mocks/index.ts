@@ -4,7 +4,6 @@ export { efDocumentRequestDetailsList } from './efDocumentRequestDetailsList.moc
 
 // New mocks for embedded components
 export * from './transactions.mock';
-export * from './payments.mock';
 export * from './linkedAccounts.mock';
 export * from './recipients.mock';
 // Note: accounts.mock exports are imported directly to avoid naming conflicts

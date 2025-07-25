@@ -2,18 +2,13 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { DashboardLayout } from '../components/sellsense/dashboard-layout';
+import { getScenarioDisplayNames } from '../components/sellsense/scenarios-config';
 import { z } from 'zod';
 
 // Define search param schema with validation
 const sellsenseDemoSearchSchema = z.object({
   scenario: z
-    .enum([
-      'New Seller - Onboarding',
-      'Onboarding - Docs Needed',
-      'Onboarding - In Review',
-      'Active Seller - Fresh Start',
-      'Active Seller - Established',
-    ])
+    .enum(getScenarioDisplayNames() as [string, ...string[]])
     .optional(),
   theme: z
     .enum([

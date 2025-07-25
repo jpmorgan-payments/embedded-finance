@@ -13,6 +13,12 @@ import {
 import { Maximize2, Info, Grid3X3, Square, Columns } from 'lucide-react';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
+import {
+  getScenarioDisplayNames,
+  getVisibleComponentsForScenario,
+  AVAILABLE_COMPONENTS,
+  type ComponentName,
+} from './scenarios-config';
 
 interface WalletOverviewProps {
   clientScenario?: any;
@@ -221,7 +227,10 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Get all parameters from URL to ensure components respond to all changes
   const currentTheme = searchParams.theme || 'SellSense';
   const currentTone = searchParams.contentTone || 'Standard';
-  const currentScenario = searchParams.scenario || 'New Seller - Onboarding';
+  const currentScenario = searchParams.scenario || getScenarioDisplayNames()[0];
+
+  // Get visible components for the current scenario
+  const visibleComponents = getVisibleComponentsForScenario(currentScenario);
 
   // Get theme-aware styles
   const themeStyles = useThemeStyles(currentTheme as any);
@@ -261,8 +270,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     }, 1000);
   };
 
-  const components: ComponentInfo[] = [
-    {
+  // All available components with their configurations
+  const allComponents: Record<ComponentName, ComponentInfo> = {
+    [AVAILABLE_COMPONENTS.ACCOUNTS]: {
       title: 'Accounts',
       description:
         'View your account details, balances, and routing information.',
@@ -287,8 +297,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         />
       ),
     },
-
-    {
+    [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
       title: 'Make Payment',
       description: 'Send payments to recipients using your linked accounts.',
       componentName: 'MakePayment',
@@ -303,7 +312,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         <MakePayment onTransactionSettled={handleTransactionSettled} />
       ),
     },
-    {
+    [AVAILABLE_COMPONENTS.LINKED_ACCOUNTS]: {
       title: 'Linked Bank Accounts',
       description: 'Manage your linked bank accounts for payments and payouts.',
       componentName: 'LinkedAccountWidget',
@@ -316,19 +325,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: <LinkedAccountWidget />,
     },
-    {
-      title: 'Recipients',
-      description: 'Manage your payment recipients and their information.',
-      componentName: 'Recipients',
-      componentDescription: 'A widget for managing payment recipients.',
-      componentFeatures: [
-        'Display list of recipients',
-        'Add new recipients',
-        'Edit recipient information',
-      ],
-      component: <Recipients />,
-    },
-    {
+    [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
       description: 'View and manage your transaction history and payments.',
       componentName: 'TransactionsDisplay',
@@ -350,7 +347,24 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         />
       ),
     },
-  ];
+    [AVAILABLE_COMPONENTS.RECIPIENTS]: {
+      title: 'Recipients',
+      description: 'Manage your payment recipients and their information.',
+      componentName: 'Recipients',
+      componentDescription: 'A widget for managing payment recipients.',
+      componentFeatures: [
+        'Display list of recipients',
+        'Add new recipients',
+        'Edit recipient information',
+      ],
+      component: <Recipients />,
+    },
+  };
+
+  // Filter components based on scenario configuration
+  const components = visibleComponents
+    .map((componentName) => allComponents[componentName])
+    .filter(Boolean);
 
   return (
     <div className="p-6 space-y-6">
@@ -361,8 +375,13 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           Wallet Management
         </h1>
         <p className={themeStyles.getHeaderLabelStyles()}>
-          Manage your embedded finance wallet, recipients, linked accounts, and
+          Manage your embedded finance wallet, linked accounts, and
           transactions.
+          {visibleComponents.includes(AVAILABLE_COMPONENTS.RECIPIENTS) && (
+            <span className="ml-1 text-green-600 font-medium">
+              Recipients management available
+            </span>
+          )}
         </p>
 
         {/* Layout Controls */}

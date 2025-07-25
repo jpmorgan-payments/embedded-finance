@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import {
   useGetAccountBalance,
   useGetAccounts,
@@ -44,7 +45,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -261,7 +265,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="eb-p-0 sm:eb-max-w-[425px]">
+      <DialogContent className="eb-p-0 sm:eb-max-w-[600px]">
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
@@ -420,22 +424,106 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              {recipients.map((recipient: any) => (
-                                <SelectItem
-                                  key={recipient.id}
-                                  value={recipient.id}
-                                >
-                                  {recipient.partyDetails?.type === 'INDIVIDUAL'
-                                    ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
-                                    : recipient.partyDetails?.businessName ||
-                                      'Recipient'}
-                                  {' - '}
-                                  {recipient.account?.number
-                                    ? `****${recipient.account.number.slice(-4)}`
-                                    : ''}
-                                </SelectItem>
-                              ))}
+                            <SelectContent className="eb-max-h-60">
+                              {/* Group recipients by type */}
+                              {(() => {
+                                const linkedAccounts = recipients.filter(
+                                  (r: any) => r.type === 'LINKED_ACCOUNT'
+                                );
+                                const regularRecipients = recipients.filter(
+                                  (r: any) => r.type === 'RECIPIENT'
+                                );
+
+                                return (
+                                  <>
+                                    {/* Linked Accounts Group */}
+                                    {linkedAccounts.length > 0 && (
+                                      <SelectGroup>
+                                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                                          Linked Accounts
+                                        </SelectLabel>
+                                        {linkedAccounts.map(
+                                          (recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectGroup>
+                                    )}
+
+                                    {/* Separator if both groups have items */}
+                                    {linkedAccounts.length > 0 &&
+                                      regularRecipients.length > 0 && (
+                                        <SelectSeparator />
+                                      )}
+
+                                    {/* Regular Recipients Group */}
+                                    {regularRecipients.length > 0 && (
+                                      <SelectGroup>
+                                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                                          Recipients
+                                        </SelectLabel>
+                                        {regularRecipients.map(
+                                          (recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectGroup>
+                                    )}
+
+                                    {/* Fallback if no grouping is possible */}
+                                    {linkedAccounts.length === 0 &&
+                                      regularRecipients.length === 0 && (
+                                        <>
+                                          {recipients.map((recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          ))}
+                                        </>
+                                      )}
+                                  </>
+                                );
+                              })()}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -495,12 +583,15 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem className="eb-space-y-3">
                           <FormLabel>{t('fields.method.label')}</FormLabel>
+                          <div className="eb-text-xs eb-text-muted-foreground">
+                            Available payment methods for the selected recipient
+                          </div>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                               value={field.value}
-                              className="eb-flex eb-flex-col eb-space-y-1"
+                              className="eb-flex eb-flex-row eb-flex-wrap eb-gap-3"
                             >
                               {dynamicPaymentMethods.length === 0 && (
                                 <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
@@ -511,19 +602,50 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               {dynamicPaymentMethods.map((paymentMethod) => (
                                 <div
                                   key={paymentMethod.id}
-                                  className="eb-flex eb-items-center eb-space-x-2"
+                                  className="eb-relative eb-min-w-[120px] eb-max-w-[160px] eb-flex-1"
                                 >
                                   <RadioGroupItem
                                     value={paymentMethod.id}
                                     id={paymentMethod.id.toLowerCase()}
+                                    className="eb-sr-only"
                                   />
                                   <Label
                                     htmlFor={paymentMethod.id.toLowerCase()}
-                                    className="eb-cursor-pointer"
+                                    className={cn(
+                                      'eb-flex eb-min-h-[80px] eb-cursor-pointer eb-flex-col eb-items-center eb-justify-center eb-rounded-lg eb-border-2 eb-p-3 eb-transition-all eb-duration-200 eb-ease-in-out',
+                                      'eb-border-border eb-bg-card eb-text-card-foreground',
+                                      'hover:eb-border-primary hover:eb-shadow-md',
+                                      'focus-within:eb-ring-2 focus-within:eb-ring-ring focus-within:eb-ring-offset-2',
+                                      field.value === paymentMethod.id
+                                        ? 'eb-border-primary eb-bg-primary/5 eb-shadow-md'
+                                        : 'eb-border-border hover:eb-border-primary/50'
+                                    )}
                                   >
-                                    {t(`paymentMethods.${paymentMethod.id}`, {
-                                      defaultValue: paymentMethod.name,
-                                    })}
+                                    <div className="eb-flex eb-flex-col eb-items-center eb-space-y-2 eb-text-center">
+                                      <div
+                                        className={cn(
+                                          'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
+                                          field.value === paymentMethod.id
+                                            ? 'eb-bg-primary eb-text-primary-foreground'
+                                            : 'eb-bg-muted eb-text-muted-foreground'
+                                        )}
+                                      >
+                                        {paymentMethod.id.charAt(0)}
+                                      </div>
+                                      <div className="eb-space-y-1">
+                                        <div className="eb-text-xs eb-font-medium">
+                                          {t(
+                                            `paymentMethods.${paymentMethod.id}`,
+                                            {
+                                              defaultValue: paymentMethod.name,
+                                            }
+                                          )}
+                                        </div>
+                                        <div className="eb-text-xs eb-text-muted-foreground">
+                                          ${paymentMethod.fee.toFixed(2)} fee
+                                        </div>
+                                      </div>
+                                    </div>
                                   </Label>
                                 </div>
                               ))}

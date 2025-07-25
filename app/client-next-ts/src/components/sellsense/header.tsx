@@ -2,10 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Globe, Settings, Menu, X, ChevronDown } from 'lucide-react';
+import { Globe, Settings, Menu, X, ChevronDown, Play } from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useThemeStyles } from './theme-utils';
+import {
+  SCENARIO_ORDER,
+  getNextScenario,
+  getScenarioByKey,
+  getScenarioKeyByDisplayName,
+  type ScenarioKey,
+} from './scenarios-config';
 
 interface HeaderProps {
   clientScenario: ClientScenario;
@@ -24,9 +31,7 @@ export function Header({
   clientScenario,
   setClientScenario,
   theme,
-  setTheme,
   contentTone,
-  setContentTone,
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   isSettingsOpen,
@@ -34,8 +39,25 @@ export function Header({
 }: HeaderProps) {
   const themeStyles = useThemeStyles(theme);
 
+  // Get current scenario key and next scenario
+  const currentScenarioKey = getScenarioKeyByDisplayName(clientScenario);
+  const nextScenarioKey = currentScenarioKey
+    ? getNextScenario(currentScenarioKey)
+    : SCENARIO_ORDER[0];
+  const nextScenario = getScenarioByKey(nextScenarioKey);
+
+  // Handle next scenario click
+  const handleNextScenario = () => {
+    setClientScenario(nextScenario.displayName);
+  };
+
   // Helper function to get shortened names for mobile
   const getShortScenario = (scenario: ClientScenario) => {
+    const scenarioKey = getScenarioKeyByDisplayName(scenario);
+    if (scenarioKey) {
+      return getScenarioByKey(scenarioKey).shortName;
+    }
+    // Fallback for legacy scenarios
     if (scenario.includes('Onboarding')) return 'Onboarding';
     if (scenario.includes('Fresh Start')) return 'Fresh Start';
     if (scenario.includes('Established')) return 'Established';
@@ -78,8 +100,8 @@ export function Header({
         )}
       </div>
 
-      {/* Center - Demo Settings Summary */}
-      <div className="flex-1 flex items-center justify-center max-w-2xl mx-4">
+      {/* Center - Demo Settings Summary and Next Scenario Button */}
+      <div className="flex-1 flex items-center justify-center max-w-3xl mx-4 gap-2">
         <button
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
           className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md ${
@@ -118,6 +140,17 @@ export function Header({
             <ChevronDown className="h-4 w-4 text-gray-500 ml-2" />
           </div>
         </button>
+
+        {/* Next Scenario Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleNextScenario}
+          className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${themeStyles.getHeaderButtonStyles()}`}
+          title={`Next scenario: ${nextScenario.displayName}`}
+        >
+          <Play className="h-4 w-4 lg:h-5 lg:w-5 text-gray-600" />
+        </Button>
       </div>
 
       {/* Right side - User section and Settings */}
