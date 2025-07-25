@@ -115,7 +115,10 @@ export const getNextScenario = (currentKey: ScenarioKey): ScenarioKey => {
 };
 
 export const getScenarioDisplayNames = () => {
-  return Object.values(SCENARIOS_CONFIG).map((config) => config.displayName);
+  const names = Object.values(SCENARIOS_CONFIG).map(
+    (config) => config.displayName,
+  );
+  return names.length > 0 ? names : ['Active Seller with Direct Payouts']; // Fallback
 };
 
 export const getOnboardingScenarios = () => {
@@ -150,8 +153,21 @@ export const shouldShowRecipientsForScenario = (
 export const getVisibleComponentsForScenario = (
   scenarioDisplayName: string,
 ): ComponentName[] => {
+  // Safety check for undefined or empty scenario name
+  if (!scenarioDisplayName || typeof scenarioDisplayName !== 'string') {
+    console.warn(
+      'getVisibleComponentsForScenario: Invalid scenario name:',
+      scenarioDisplayName,
+    );
+    return [];
+  }
+
   const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
   if (!scenarioKey) {
+    console.warn(
+      'getVisibleComponentsForScenario: Unknown scenario:',
+      scenarioDisplayName,
+    );
     return []; // Fallback for unknown scenarios
   }
   const scenario = SCENARIOS_CONFIG[scenarioKey];
@@ -159,7 +175,7 @@ export const getVisibleComponentsForScenario = (
   if (scenario.category === 'onboarding') {
     return [];
   }
-  return scenario.visibleComponents;
+  return scenario.visibleComponents || [];
 };
 
 // Utility function to check if a specific component should be visible for a scenario

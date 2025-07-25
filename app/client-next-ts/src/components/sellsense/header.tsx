@@ -2,7 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Globe, Settings, Menu, X, ChevronDown, Play } from 'lucide-react';
+import {
+  Settings,
+  Menu,
+  X,
+  ChevronDown,
+  SkipBack,
+  SkipForward,
+} from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useThemeStyles } from './theme-utils';
@@ -11,7 +18,6 @@ import {
   getNextScenario,
   getScenarioByKey,
   getScenarioKeyByDisplayName,
-  type ScenarioKey,
 } from './scenarios-config';
 
 interface HeaderProps {
@@ -39,16 +45,32 @@ export function Header({
 }: HeaderProps) {
   const themeStyles = useThemeStyles(theme);
 
-  // Get current scenario key and next scenario
+  // Get current scenario key and next/previous scenarios
   const currentScenarioKey = getScenarioKeyByDisplayName(clientScenario);
+  const currentIndex = currentScenarioKey
+    ? SCENARIO_ORDER.indexOf(currentScenarioKey)
+    : 0;
+  const isFirstScenario = currentIndex === 0;
+  const isLastScenario = currentIndex === SCENARIO_ORDER.length - 1;
+
   const nextScenarioKey = currentScenarioKey
     ? getNextScenario(currentScenarioKey)
     : SCENARIO_ORDER[0];
   const nextScenario = getScenarioByKey(nextScenarioKey);
 
+  const prevScenarioKey = isFirstScenario
+    ? SCENARIO_ORDER[SCENARIO_ORDER.length - 1]
+    : SCENARIO_ORDER[currentIndex - 1];
+  const prevScenario = getScenarioByKey(prevScenarioKey);
+
   // Handle next scenario click
   const handleNextScenario = () => {
     setClientScenario(nextScenario.displayName);
+  };
+
+  // Handle previous scenario click
+  const handlePrevScenario = () => {
+    setClientScenario(prevScenario.displayName);
   };
 
   // Helper function to get shortened names for mobile
@@ -100,8 +122,8 @@ export function Header({
         )}
       </div>
 
-      {/* Center - Demo Settings Summary and Next Scenario Button */}
-      <div className="flex-1 flex items-center justify-center max-w-3xl mx-4 gap-2">
+      {/* Center - Demo Settings Summary */}
+      <div className="flex-1 flex items-center justify-center max-w-3xl mx-4">
         <button
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
           className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md ${
@@ -140,28 +162,38 @@ export function Header({
             <ChevronDown className="h-4 w-4 text-gray-500 ml-2" />
           </div>
         </button>
-
-        {/* Next Scenario Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNextScenario}
-          className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${themeStyles.getHeaderButtonStyles()}`}
-          title={`Next scenario: ${nextScenario.displayName}`}
-        >
-          <Play className="h-4 w-4 lg:h-5 lg:w-5 text-gray-600" />
-        </Button>
       </div>
 
-      {/* Right side - User section and Settings */}
+      {/* Right side - User section, Scenario Navigation, and Settings */}
       <div className="flex items-center space-x-2 lg:space-x-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
-        >
-          <Globe className="h-4 w-4 lg:h-5 lg:w-5" />
-        </Button>
+        {/* Scenario Navigation Buttons - Desktop Only */}
+        <div className="hidden lg:flex items-center gap-1 pr-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handlePrevScenario}
+            disabled={isFirstScenario}
+            className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${
+              isFirstScenario ? 'opacity-50 cursor-not-allowed' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            title={`Previous scenario: ${prevScenario.displayName}`}
+          >
+            <SkipBack className="h-4 w-4 text-gray-600" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleNextScenario}
+            disabled={isLastScenario}
+            className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${
+              isLastScenario ? 'opacity-50 cursor-not-allowed' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            title={`Next scenario: ${nextScenario.displayName}`}
+          >
+            <SkipForward className="h-4 w-4 text-gray-600" />
+          </Button>
+        </div>
 
         {/* Settings button */}
         <Button

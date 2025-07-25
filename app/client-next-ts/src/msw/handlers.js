@@ -744,8 +744,8 @@ export const createHandlers = (apiUrl) => [
     const status = url.searchParams.get('status');
     const type = url.searchParams.get('type');
 
-    // Get all transactions from database
-    let filteredTransactions = db.transaction.getAll();
+    // Get all transactions from database with safety check
+    let filteredTransactions = db.transaction.getAll() || [];
 
     // Filter transactions based on query parameters
     if (accountId) {
@@ -776,7 +776,7 @@ export const createHandlers = (apiUrl) => [
     if (!pageParam && !limitParam) {
       console.log('No pagination params, returning all transactions');
       const response = {
-        items: filteredTransactions,
+        items: filteredTransactions || [],
         page: 1,
         limit: filteredTransactions.length,
         total_items: filteredTransactions.length,
@@ -808,7 +808,7 @@ export const createHandlers = (apiUrl) => [
     );
 
     const response = {
-      items: paginatedTransactions,
+      items: paginatedTransactions || [],
       page,
       limit,
       total_items: filteredTransactions.length,

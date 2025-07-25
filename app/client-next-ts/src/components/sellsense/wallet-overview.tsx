@@ -10,7 +10,7 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Maximize2, Info, Grid3X3, Square, Columns } from 'lucide-react';
+import { Grid3X3, Square, Columns } from 'lucide-react';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
 import {
@@ -19,6 +19,7 @@ import {
   AVAILABLE_COMPONENTS,
   type ComponentName,
 } from './scenarios-config';
+import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 
 interface WalletOverviewProps {
   clientScenario?: any;
@@ -34,189 +35,6 @@ interface ComponentInfo {
   component: React.ReactNode;
 }
 
-interface ComponentTooltipProps {
-  componentName: string;
-  componentDescription: string;
-  componentFeatures: string[];
-  onClose: () => void;
-  onFullScreen: () => void;
-}
-
-function ComponentTooltip({
-  componentName,
-  componentDescription,
-  componentFeatures,
-  onClose,
-  onFullScreen,
-}: ComponentTooltipProps) {
-  return (
-    <div className="absolute top-6 right-0 w-96 bg-gray-900 text-white text-xs rounded-lg p-4 shadow-lg z-50">
-      <div className="space-y-4">
-        {/* Header with close button */}
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-semibold">
-            {componentName} Component Details
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-700 rounded text-gray-300 hover:text-white"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Component Information */}
-        <div>
-          <h4 className="font-medium mb-2 text-gray-200">
-            Component Information
-          </h4>
-          <div className="space-y-1 text-gray-300">
-            <p>
-              <strong>Package:</strong>{' '}
-              @jpmorgan-payments/embedded-finance-components
-            </p>
-            <p>
-              <strong>Version:</strong> ^0.7.6
-            </p>
-            <p>
-              <strong>Component:</strong> {componentName}
-            </p>
-            <p>
-              <strong>Type:</strong> React Component
-            </p>
-          </div>
-        </div>
-
-        {/* Description */}
-        <div>
-          <h4 className="font-medium mb-2 text-gray-200">Description</h4>
-          <p className="text-gray-300">{componentDescription}</p>
-        </div>
-
-        {/* Key Features */}
-        <div>
-          <h4 className="font-medium mb-2 text-gray-200">Key Features</h4>
-          <ul className="space-y-1 text-gray-300">
-            {componentFeatures.map((feature, index) => (
-              <li key={index} className="flex items-start">
-                <span className="text-gray-400 mr-2">•</span>
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t border-gray-700">
-          <button
-            onClick={onFullScreen}
-            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
-          >
-            <Maximize2 size={12} />
-            Open Full Screen
-          </button>
-        </div>
-      </div>
-
-      {/* Tooltip Arrow */}
-      <div className="absolute -top-1 right-3 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-    </div>
-  );
-}
-
-interface InfoIconProps {
-  onClick: () => void;
-  title: string;
-}
-
-function InfoIcon({ onClick, title }: InfoIconProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-5 h-5 rounded-full bg-white/80 hover:bg-amber-200 flex items-center justify-center transition-colors"
-      title={title}
-    >
-      <Info size={12} className="text-amber-700" />
-    </button>
-  );
-}
-
-interface EmbeddedComponentCardProps {
-  componentInfo: ComponentInfo;
-  isAnyTooltipOpen: boolean;
-  onTooltipToggle: (componentName: string, isOpen: boolean) => void;
-}
-
-function EmbeddedComponentCard({
-  componentInfo,
-  isAnyTooltipOpen,
-  onTooltipToggle,
-}: EmbeddedComponentCardProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const searchParams = useSearch({ from: '/sellsense-demo' });
-
-  const handleFullScreen = () => {
-    const currentTheme = searchParams.theme || 'SellSense';
-    const componentMap: Record<string, string> = {
-      Accounts: 'accounts',
-      LinkedAccountWidget: 'linked-accounts',
-      Recipients: 'recipients',
-      TransactionsDisplay: 'transactions',
-      MakePayment: 'make-payment',
-    };
-
-    const fullscreenUrl =
-      window.location.href.replace(window.location.search, '') +
-      '?fullscreen=true&component=' +
-      (componentMap[componentInfo.componentName] ||
-        componentInfo.componentName.toLowerCase()) +
-      '&theme=' +
-      currentTheme;
-
-    window.open(fullscreenUrl, '_blank');
-    setShowTooltip(false);
-    onTooltipToggle(componentInfo.componentName, false);
-  };
-
-  const handleTooltipToggle = () => {
-    const newState = !showTooltip;
-    setShowTooltip(newState);
-    onTooltipToggle(componentInfo.componentName, newState);
-  };
-
-  const shouldShowIcon = !isAnyTooltipOpen || showTooltip;
-
-  return (
-    <div
-      className={`rounded-lg border border-gray-300 bg-transparent relative ${
-        showTooltip ? 'p-6' : 'p-0'
-      }`}
-    >
-      {/* Info Icon Overlay */}
-      {shouldShowIcon && (
-        <div className="absolute top-2 right-2 z-10">
-          <div className="relative">
-            <InfoIcon onClick={handleTooltipToggle} title="Component Details" />
-
-            {showTooltip && (
-              <ComponentTooltip
-                componentName={componentInfo.componentName}
-                componentDescription={componentInfo.componentDescription}
-                componentFeatures={componentInfo.componentFeatures}
-                onClose={handleTooltipToggle}
-                onFullScreen={handleFullScreen}
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Component Content */}
-      {componentInfo.component}
-    </div>
-  );
-}
-
 export function WalletOverview(props: WalletOverviewProps = {}) {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
     'columns',
@@ -227,10 +45,16 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Get all parameters from URL to ensure components respond to all changes
   const currentTheme = searchParams.theme || 'SellSense';
   const currentTone = searchParams.contentTone || 'Standard';
-  const currentScenario = searchParams.scenario || getScenarioDisplayNames()[0];
+  const scenarioDisplayNames = getScenarioDisplayNames();
+  const currentScenario =
+    searchParams.scenario ||
+    (scenarioDisplayNames.length > 0
+      ? scenarioDisplayNames[0]
+      : 'Active Seller with Direct Payouts');
 
   // Get visible components for the current scenario
-  const visibleComponents = getVisibleComponentsForScenario(currentScenario);
+  const visibleComponents =
+    getVisibleComponentsForScenario(currentScenario) || [];
 
   // Get theme-aware styles
   const themeStyles = useThemeStyles(currentTheme as any);
@@ -314,27 +138,30 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     },
     [AVAILABLE_COMPONENTS.LINKED_ACCOUNTS]: {
       title: 'Linked Bank Accounts',
-      description: 'Manage your linked bank accounts for payments and payouts.',
+      description:
+        'Connect and manage your external bank accounts for payments.',
       componentName: 'LinkedAccountWidget',
       componentDescription:
-        'A comprehensive widget for managing linked bank accounts.',
+        'A comprehensive widget for linking and managing external bank accounts.',
       componentFeatures: [
-        'Display linked bank accounts with status badges',
-        'Link new bank accounts via secure form',
-        'Microdeposit verification workflow',
+        'Link external bank accounts',
+        'Verify accounts with microdeposits',
+        'Manage linked account status',
+        'Secure account verification process',
       ],
       component: <LinkedAccountWidget />,
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
-      description: 'View and manage your transaction history and payments.',
+      description: 'View and manage your payment transaction history.',
       componentName: 'TransactionsDisplay',
       componentDescription:
-        'A comprehensive widget for displaying transaction history.',
+        'A comprehensive widget for displaying transaction history and details.',
       componentFeatures: [
-        'Display transaction history with pagination',
-        'Filter transactions by date and type',
-        'View transaction details and status',
+        'View transaction history with pagination',
+        'Filter transactions by status and type',
+        'Display transaction details and status',
+        'Real-time transaction updates',
       ],
       component: (
         <TransactionsDisplay
@@ -351,18 +178,20 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       title: 'Recipients',
       description: 'Manage your payment recipients and their information.',
       componentName: 'Recipients',
-      componentDescription: 'A widget for managing payment recipients.',
+      componentDescription:
+        'A comprehensive widget for managing payment recipients.',
       componentFeatures: [
-        'Display list of recipients',
-        'Add new recipients',
+        'Add and manage payment recipients',
+        'View recipient details and status',
         'Edit recipient information',
+        'Delete recipients when needed',
       ],
       component: <Recipients />,
     },
   };
 
-  // Filter components based on scenario configuration
-  const components = visibleComponents
+  // Filter components based on scenario configuration with safety checks
+  const components = (visibleComponents || [])
     .map((componentName) => allComponents[componentName])
     .filter(Boolean);
 
@@ -377,7 +206,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         <p className={themeStyles.getHeaderLabelStyles()}>
           Manage your embedded finance wallet, linked accounts, and
           transactions.
-          {visibleComponents.includes(AVAILABLE_COMPONENTS.RECIPIENTS) && (
+          {(visibleComponents || []).includes(
+            AVAILABLE_COMPONENTS.RECIPIENTS,
+          ) && (
             <span className="ml-1 text-green-600 font-medium">
               Recipients management available
             </span>
@@ -431,18 +262,42 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
                 : 'space-y-6'
           }
         >
-          {components.map((componentInfo, index) => (
+          {(components || []).map((componentInfo, index) => (
             <div
               key={index}
               className={layout === 'columns' ? 'break-inside-avoid mb-6' : ''}
             >
               <EmbeddedComponentCard
-                componentInfo={componentInfo}
+                component={componentInfo.component}
+                componentName={componentInfo.componentName}
+                componentDescription={componentInfo.componentDescription}
+                componentFeatures={componentInfo.componentFeatures}
                 isAnyTooltipOpen={openTooltip !== null}
                 onTooltipToggle={handleTooltipToggle}
+                onFullScreen={() => {
+                  const fullscreenUrl = createFullscreenUrl(
+                    componentInfo.componentName,
+                    currentTheme,
+                  );
+                  window.open(fullscreenUrl, '_blank');
+                }}
               />
             </div>
           ))}
+          {(components || []).length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                No components available for the current scenario. This may be
+                due to a database reset.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Reload Page
+              </button>
+            </div>
+          )}
         </div>
       </EBComponentsProvider>
     </div>
