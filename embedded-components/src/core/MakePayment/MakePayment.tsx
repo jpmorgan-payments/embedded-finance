@@ -44,7 +44,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -420,22 +423,106 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              {recipients.map((recipient: any) => (
-                                <SelectItem
-                                  key={recipient.id}
-                                  value={recipient.id}
-                                >
-                                  {recipient.partyDetails?.type === 'INDIVIDUAL'
-                                    ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
-                                    : recipient.partyDetails?.businessName ||
-                                      'Recipient'}
-                                  {' - '}
-                                  {recipient.account?.number
-                                    ? `****${recipient.account.number.slice(-4)}`
-                                    : ''}
-                                </SelectItem>
-                              ))}
+                            <SelectContent className="eb-max-h-60">
+                              {/* Group recipients by type */}
+                              {(() => {
+                                const linkedAccounts = recipients.filter(
+                                  (r: any) => r.type === 'LINKED_ACCOUNT'
+                                );
+                                const regularRecipients = recipients.filter(
+                                  (r: any) => r.type === 'RECIPIENT'
+                                );
+
+                                return (
+                                  <>
+                                    {/* Linked Accounts Group */}
+                                    {linkedAccounts.length > 0 && (
+                                      <SelectGroup>
+                                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                                          Linked Accounts
+                                        </SelectLabel>
+                                        {linkedAccounts.map(
+                                          (recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectGroup>
+                                    )}
+
+                                    {/* Separator if both groups have items */}
+                                    {linkedAccounts.length > 0 &&
+                                      regularRecipients.length > 0 && (
+                                        <SelectSeparator />
+                                      )}
+
+                                    {/* Regular Recipients Group */}
+                                    {regularRecipients.length > 0 && (
+                                      <SelectGroup>
+                                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                                          Recipients
+                                        </SelectLabel>
+                                        {regularRecipients.map(
+                                          (recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectGroup>
+                                    )}
+
+                                    {/* Fallback if no grouping is possible */}
+                                    {linkedAccounts.length === 0 &&
+                                      regularRecipients.length === 0 && (
+                                        <>
+                                          {recipients.map((recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          ))}
+                                        </>
+                                      )}
+                                  </>
+                                );
+                              })()}
                             </SelectContent>
                           </Select>
                           <FormMessage />
