@@ -83,5 +83,16 @@
     "US": "United States",
     "VN": "Vietnam",
     "ZA": "South Africa"
+  },
+  "phoneTypes": {
+    "BUSINESS_PHONE": "Business",
+    "MOBILE_PHONE": "Mobile",
+    "ALTERNAE_PHONE": "Alternate"
+  },
+  "addressTypes": {
+    "LEGAL_ADDRESS": "Legal address",
+    "MAILING_ADDRESS": "Mailing address",
+    "BUSINESS_ADDRESS": "Business address",
+    "RESIDENTIAL_ADDRESS": "Residential address"
   }
 }

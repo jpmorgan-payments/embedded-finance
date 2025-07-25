@@ -9,6 +9,7 @@ import enUS_common from './en-US/common.json';
 import enUS_makePayment from './en-US/make-payment.json';
 import enUS_onboardingOverview from './en-US/onboarding-overview.json';
 import enUS_onboarding from './en-US/onboarding.json';
+import enUS_validation from './en-US/validation.json';
 import frCA_common from './fr-CA/common.json';
 import frCA_makePayment from './fr-CA/make-payment.json';
 import frCA_onboarding from './fr-CA/onboarding.json';
@@ -17,6 +18,7 @@ export const defaultResources = {
   enUS: {
     locale: 'en-US',
     common: enUS_common,
+    validation: enUS_validation,
     onboarding: enUS_onboarding,
     'onboarding-overview': enUS_onboardingOverview,
     'make-payment': enUS_makePayment,

@@ -1,23 +1,21 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
-const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
+import { getValidationMessage as v } from '@/core/OnboardingFlow/utils/formUtils';
+import {
+  NAME_PATTERN,
+  SUFFIX_PATTERN,
+} from '@/core/OnboardingFlow/utils/validationPatterns';
 
 export const PersonalDetailsFormSchema = z.object({
   controllerFirstName: z
     .string()
-    .min(
-      2,
-      i18n.t('onboarding:fields.controllerFirstName.validation.minLength')
-    )
-    .max(
-      30,
-      i18n.t('onboarding:fields.controllerFirstName.validation.maxLength')
-    )
+    .min(1, v('controllerFirstName', 'required'))
+    .min(2, v('controllerFirstName', 'minLength'))
+    .max(30, v('controllerFirstName', 'maxLength'))
     .refine(
       (val) => NAME_PATTERN.test(val),
-      i18n.t('onboarding:fields.controllerFirstName.validation.pattern')
+      v('controllerFirstName', 'pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),

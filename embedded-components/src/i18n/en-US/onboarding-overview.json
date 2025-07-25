@@ -60,9 +60,10 @@
   "fields": {
     "organizationType": {
       "label": "Select business type",
+      "validationFieldName": "Business type",
       "description": "",
       "validation": {
-        "required": "Business type is required"
+        "required": "$t(validation:required)"
       }
     },
     "controllerFirstName": {
@@ -70,18 +71,18 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "First name is required",
-        "minLength": "First name must be at least 2 characters",
-        "maxLength": "First name must be at most 30 characters",
-        "pattern": "First name can only contain letters, hyphens, apostrophes, and spaces",
-        "noNumbers": "First name cannot contain numbers",
-        "noSpecialChars": "First name cannot contain special characters except hyphens and apostrophes",
-        "noConsecutiveSpaces": "First name cannot contain consecutive spaces",
-        "noConsecutiveHyphens": "First name cannot contain consecutive hyphens",
-        "noLeadingSpace": "First name cannot start with a space",
-        "noTrailingSpace": "First name cannot end with a space",
-        "noLeadingHyphen": "First name cannot start with a hyphen",
-        "noTrailingHyphen": "First name cannot end with a hyphen"
+        "required": "$t(validation:required)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
+        "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ / @ & + % # ; , . : ' -})",
+        "noNumbers": "$t(validation:text.noNumbers)",
+        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
+        "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
       }
     },
     "controllerMiddleName": {
@@ -89,16 +90,14 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "maxLength": "Middle name must be at most 30 characters",
-        "pattern": "Middle name can only contain letters, hyphens, apostrophes, and spaces",
-        "noNumbers": "Middle name cannot contain numbers",
-        "noSpecialChars": "Middle name cannot contain special characters except hyphens and apostrophes",
-        "noConsecutiveSpaces": "Middle name cannot contain consecutive spaces",
-        "noConsecutiveHyphens": "Middle name cannot contain consecutive hyphens",
-        "noLeadingSpace": "Middle name cannot start with a space",
-        "noTrailingSpace": "Middle name cannot end with a space",
-        "noLeadingHyphen": "Middle name cannot start with a hyphen",
-        "noTrailingHyphen": "Middle name cannot end with a hyphen"
+        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
+        "pattern": "$t(validation:text.namePattern)",
+        "noNumbers": "$t(validation:text.noNumbers)",
+        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
+        "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
+        "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
       }
     },
     "controllerLastName": {
@@ -106,26 +105,26 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "Last name is required",
-        "minLength": "Last name must be at least 2 characters",
-        "maxLength": "Last name must be at most 30 characters",
-        "pattern": "Last name can only contain letters, hyphens, apostrophes, and spaces",
-        "noNumbers": "Last name cannot contain numbers",
-        "noSpecialChars": "Last name cannot contain special characters except hyphens and apostrophes",
-        "noConsecutiveSpaces": "Last name cannot contain consecutive spaces",
-        "noConsecutiveHyphens": "Last name cannot contain consecutive hyphens",
-        "noLeadingSpace": "Last name cannot start with a space",
-        "noTrailingSpace": "Last name cannot end with a space",
-        "noLeadingHyphen": "Last name cannot start with a hyphen",
-        "noTrailingHyphen": "Last name cannot end with a hyphen"
+        "required": "$t(validation:required)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
+        "pattern": "$t(validation:text.namePattern)",
+        "noNumbers": "$t(validation:text.noNumbers)",
+        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
+        "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
       }
     },
     "controllerNameSuffix": {
       "description": "(e.g. Jr., Sr. II, etc)",
       "tooltip": "",
       "validation": {
-        "minLength": "Suffix must be at least 1 character",
-        "maxLength": "Suffix must be at most 5 characters",
+        "minLength": "$t(validation:text.minLength, {'count': 1})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 5})",
         "pattern": "Suffix can only contain letters, periods, and roman numerals"
       }
     },
@@ -133,43 +132,67 @@
       "tooltip": "",
       "placeholder": "Select job title",
       "validation": {
-        "required": "Job title is required",
-        "minLength": "Job title must be at least 2 characters",
-        "maxLength": "Job title must be at most 50 characters",
-        "pattern": "Job title can only contain letters, numbers, and basic punctuation",
-        "noLeadingSpace": "Job title cannot start with a space",
-        "noTrailingSpace": "Job title cannot end with a space"
+        "required": "$t(validation:required)",
+        "minLength": "$t(validation:common.minLength, {'count': 2})",
+        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
+        "pattern": "$t(validation:common.pattern)",
+        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:common.noTrailingSpace)"
+      }
+    },
+    "controllerJobTitleDescription": {
+      "label": "Job title description",
+      "placeholder": "Enter job title description",
+      "description": "Brief description of your role and responsibilities",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
+        "pattern": "$t(validation:common.pattern)",
+        "noHtml": "$t(validation:common.noHtml)",
+        "noUrls": "$t(validation:common.noUrls)",
+        "required": "Description is required when job title is Other."
       }
     },
     "birthDate": {
+      "label": "Date of birth",
       "description": "",
       "validation": {
-        "required": "Date of birth is required",
-        "format": "Please enter a valid date in MM/DD/YYYY format",
-        "invalid": "Please enter a valid date",
-        "future": "Date of birth cannot be in the future",
-        "tooOld": "The date suggests an age of over 120 years. Please double-check the date",
-        "tooYoung": "Must be at least 18 years old to proceed",
-        "dayRange": "Day must be between 1 and 31",
-        "monthRange": "Month must be between 1 and 12",
-        "yearRange": "Year must be between 1000 and 9999"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:date.format, {'format': 'MM/DD/YYYY'})",
+        "invalid": "$t(validation:date.invalid)",
+        "future": "$t(validation:date.future)",
+        "tooOld": "$t(validation:date.age.tooOld, {'years': 120})",
+        "tooYoung": "$t(validation:date.age.tooYoung, {'years': 18})",
+        "dayRange": "$t(validation:date.range.day, {'min': 1, 'max': 31})",
+        "monthRange": "$t(validation:date.range.month, {'min': 1, 'max': 12})",
+        "yearRange": "$t(validation:date.range.year, {'min': 1000, 'max': 9999})"
       }
     },
     "countryOfResidence": {
+      "label": "Country of residence",
       "tooltip": "",
       "description": "Please select your current country of residence",
       "validation": {
-        "required": "Country of residence is required",
-        "exactlyTwoChars": "Country code must be exactly 2 characters"
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
+      }
+    },
+    "countryOfCitizenship": {
+      "label": "Country of Citizenship",
+      "placeholder": "Select country of citizenship",
+      "description": "The country where you hold citizenship",
+      "validation": {
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
       }
     },
     "industry": {
       "label": "Industry classification",
-      "description": "e.g. “Boat dealers” or “441222”.",
+      "description": "e.g. \"Boat dealers\" or \"441222\".",
       "placeholder": "Search by keyword or 6-digit NAICS code",
       "tooltip": "",
       "validation": {
-        "required": "Industry classification is required"
+        "required": "$t(validation:required)"
       }
     },
     "countryOfFormation": {
@@ -179,19 +202,20 @@
     },
     "organizationName": {
       "label": "Legal name of the company",
+      "validationFieldName": "Business name",
       "description": "Please enter this exactly as it appears on your business registration documents",
       "tooltip": "",
       "validation": {
-        "required": "Business name is required",
-        "format": "Business name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
-        "pattern": "Invalid business name format. Please use only allowed characters",
-        "minLength": "Business name must be at least 2 characters",
-        "maxLength": "Business name must be at most 100 characters",
-        "noLeadingSpace": "Business name cannot start with a space",
-        "noTrailingSpace": "Business name cannot end with a space",
-        "noConsecutiveSpaces": "Business name cannot contain consecutive spaces",
-        "noSpecialAtStart": "Business name cannot start with a special character",
-        "noSpecialAtEnd": "Business name cannot end with a special character"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ \\ / @ & + % # ; , . : ' -})",
+        "pattern": "$t(validation:pattern)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noSpecialAtStart": "$t(validation:text.noSpecialCharsAtStart)",
+        "noSpecialAtEnd": "$t(validation:text.noSpecialCharsAtEnd)"
       }
     },
     "yearOfFormation": {
@@ -199,10 +223,10 @@
       "description": "Please enter as YYYY format (e.g. 2001)",
       "tooltip": "",
       "validation": {
-        "format": "Invalid year of formation",
-        "min": "Year of formation cannot be before 1800",
-        "max": "Year of formation cannot be in the future",
-        "invalid": "Please enter a valid year between 1800 and current year"
+        "format": "$t(validation:year.format)",
+        "min": "$t(validation:year.min, {'min': 1800})",
+        "max": "$t(validation:year.max)",
+        "invalid": "$t(validation:year.range, {'min': 1800, 'max': 'current year'})"
       }
     },
     "organizationIds": {
@@ -211,7 +235,7 @@
         "description": "Make a selection",
         "tooltip": "",
         "validation": {
-          "required": "Business Identification type is required"
+          "required": "$t(validation:required)"
         }
       },
       "issuer": {
@@ -219,21 +243,17 @@
         "description": "Country where your ID was issued",
         "tooltip": "",
         "validation": {
-          "required": "Issuer is required",
-          "maxLength": "Issuer must be 500 characters or less"
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:common.maxLength, {'count': 500})"
         }
       },
       "value": {
         "tooltip": "",
         "validation": {
-          "required": "Business Identification value is required",
-          "maxLength": "Business Identification value must be 100 characters or less",
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:common.maxLength, {'count': 100})",
           "format": "Business Identification value can only contain letters, numbers, and hyphens",
-          "noSpaces": "Business Identification value cannot contain spaces",
-          "einFormat": "EIN must be exactly 9 digits",
-          "business_registration_idFormat": "Business Registration Identification must be 5-15 alphanumeric characters",
-          "business_numberFormat": "Business Number must be 9-12 digits",
-          "business_registration_numberFormat": "Business Registration Number must be 6-15 alphanumeric characters with optional dashes"
+          "noSpaces": "$t(validation:common.noSpaces)"
         }
       }
     },
@@ -241,19 +261,29 @@
       "value": {
         "tooltip": "",
         "validation": {
-          "required": "ID value is required",
-          "format": "Invalid ID format",
-          "ssnFormat": "Invalid SSN",
-          "itinFormat": "ITIN must be exactly 9 digits and start with 9",
-          "itinRestrictedRange": "ITIN contains invalid digits in positions 2-3. These positions cannot be in the ranges 50-65, 70-88, 90-92, or 94-99",
-          "noSpaces": "ID value cannot contain spaces"
+          "required": "$t(validation:required)",
+          "format": "$t(validation:format)",
+          "ssnFormat": "$t(validation:id.ssn)",
+          "itinFormat": "$t(validation:id.itin.format, {'digits': 9, 'startDigit': 9})",
+          "itinRestrictedRange": "$t(validation:id.itin.invalidRange, {'positions': '2-3'})",
+          "noSpaces": "$t(validation:common.noSpaces)"
         }
       }
     },
     "controllerPhone": {
       "label": "Phone number",
       "phoneNumber": {
-        "label": "Phone number"
+        "label": "Phone number",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:phone.format)",
+          "pattern": "$t(validation:phone.pattern, {'format': 'international', 'example': '+1234567890'})"
+        }
+      },
+      "phoneType": {
+        "validation": {
+          "required": "$t(validation:required)"
+        }
       }
     },
     "organizationPhone": {
@@ -261,14 +291,14 @@
       "phoneNumber": {
         "label": "Phone number",
         "validation": {
-          "required": "Phone number is required",
-          "format": "Invalid phone number format",
-          "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+          "required": "$t(validation:required)",
+          "format": "$t(validation:contact.phone.format)",
+          "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
         }
       },
       "phoneType": {
         "validation": {
-          "required": "Phone type is required"
+          "required": "$t(validation:required)"
         }
       }
     },
@@ -277,12 +307,25 @@
       "description": "Provide the best email address to contact the business",
       "tooltip": "",
       "validation": {
-        "invalid": "Invalid email address",
-        "format": "Email must be in a valid business email format",
-        "maxLength": "Email must be at most 100 characters",
-        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)",
-        "required": "Business email is required"
+        "invalid": "$t(validation:email.invalid)",
+        "format": "$t(validation:email.format)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})",
+        "noPersonal": "$t(validation:email.noPersonal)",
+        "required": "$t(validation:required)"
       }
+    },
+    "controllerEmail": {
+      "label": "Email",
+      "placeholder": "Enter email",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "invalid": "$t(validation:contact.email.invalid)",
+        "format": "$t(validation:contact.email.format)",
+        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})",
+        "noPersonal": "$t(validation:contact.email.noPersonal)"
+      },
+      "group": "contact"
     },
     "controllerAddresses": {
       "label": "Residential address",
@@ -290,29 +333,29 @@
         "description": ""
       },
       "primaryAddressLine": {
-        "description": "P.O. box is not accepted",
+        "description": "$t(validation:location.address.poBox)",
         "tooltip": "",
         "validation": {
-          "required": "Address line 1 is required",
-          "maxLength": "Address line must be 60 characters or less",
-          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+          "pattern": "$t(validation:location.address.pattern)"
         }
       },
       "postalCode": {
         "label": "Postal code",
         "description": "",
         "validation": {
-          "required": "Postal code is required",
-          "pattern": "Postal code must be exactly 5 digits",
-          "maxLength": "Postal code must be 10 characters or less"
+          "required": "$t(validation:required)",
+          "pattern": "$t(validation:location.postalCode.pattern, {'count': 5})",
+          "maxLength": "$t(validation:location.postalCode.maxLength, {'count': 10})"
         }
       },
       "city": {
         "label": "Town/City",
         "description": "Locality, Settlement, etc.",
         "validation": {
-          "required": "City is required",
-          "maxLength": "City name must be 34 characters or less"
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:common.maxLength, {'count': 34})"
         }
       },
       "state": {
@@ -320,8 +363,8 @@
         "description": "",
         "placeholder": "Select",
         "validation": {
-          "required": "State is required",
-          "maxLength": "State name must be 30 characters or less"
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:common.maxLength, {'count': 30})"
         }
       },
       "additionalAddressLines": {
@@ -329,13 +372,13 @@
         "line2Description": "",
         "value": {
           "validation": {
-            "maxLength": "Address line must be 60 characters or less",
-            "pattern": "Address can only contain letters, numbers, and basic punctuation"
+            "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+            "pattern": "$t(validation:location.address.pattern)"
           }
         },
         "validation": {
-          "minItems": "At least {{count}} address line is required",
-          "maxItems": "Maximum {{count}} address lines allowed"
+          "minItems": "$t(validation:collection.minItems_one, {'count': 1, 'item': 'address line'})",
+          "maxItems": "$t(validation:collection.maxItems_one, {'count': 1, 'item': 'address line'})"
         }
       }
     },
@@ -346,27 +389,27 @@
         "description": ""
       },
       "primaryAddressLine": {
-        "description": "P.O. box is not accepted",
+        "description": "$t(validation:location.address.poBox)",
         "tooltip": "",
         "validation": {
-          "required": "Address line 1 is required",
-          "maxLength": "Address line must be 60 characters or less",
-          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+          "pattern": "$t(validation:location.address.pattern)"
         }
       },
       "postalCode": {
         "label": "Postal code",
         "description": "",
         "validation": {
-          "required": "Postal code is required",
-          "pattern": "Postal code must be exactly 5 digits"
+          "required": "$t(validation:required)",
+          "pattern": "$t(validation:location.postalCode.pattern, {'count': 5})"
         }
       },
       "city": {
         "label": "Town/City",
         "description": "Locality, Settlement, etc.",
         "validation": {
-          "required": "City is required"
+          "required": "$t(validation:required)"
         }
       },
       "state": {
@@ -374,7 +417,7 @@
         "description": "",
         "placeholder": "Select",
         "validation": {
-          "required": "State is required"
+          "required": "$t(validation:required)"
         }
       },
       "additionalAddressLines": {
@@ -382,21 +425,21 @@
         "line2Description": "",
         "value": {
           "validation": {
-            "maxLength": "Address line must be 60 characters or less",
-            "pattern": "Address can only contain letters, numbers, and basic punctuation"
+            "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+            "pattern": "$t(validation:location.address.pattern)"
           }
         },
         "validation": {
-          "minItems": "At least {{count}} address line is required",
-          "maxItems": "Maximum {{count}} address lines allowed"
+          "minItems": "$t(validation:collection.minItems_one, {'count': 1, 'item': 'address line'})",
+          "maxItems": "$t(validation:collection.maxItems_one, {'count': 1, 'item': 'address line'})"
         }
       },
       "validation": {
-        "minItems_one": "At least one address is required",
-        "minItems_other": "At least {{count}} addresses are required",
-        "maxItems_one": "Maximum {{count}} address allowed",
-        "maxItems_other": "Maximum {{count}} addresses allowed",
-        "uniqueTypes": "Each address type must be unique"
+        "minItems_one": "$t(validation:collection.minItems_one, {'count': 1, 'item': 'address'})",
+        "minItems_other": "$t(validation:collection.minItems_other, {'count': '{{count}}', 'item': 'address'})",
+        "maxItems_one": "$t(validation:collection.maxItems_one, {'count': 1, 'item': 'address'})",
+        "maxItems_other": "$t(validation:collection.maxItems_other, {'count': '{{count}}', 'item': 'address'})",
+        "uniqueTypes": "$t(validation:collection.uniqueTypes, {'type': 'address type'})"
       }
     },
     "dbaNameNotAvailable": {
@@ -410,41 +453,44 @@
       "label": "My business doesn't have a website"
     },
     "website": {
+      "label": "Business website",
       "tooltip": "",
       "description": "Please provide a URL for your business",
       "placeholder": "Enter URL",
+      "validationFieldName": "Website URL",
       "validation": {
-        "invalid": "Invalid URL",
-        "maxLength": "Website URL must be 500 characters or less",
-        "required": "Website URL is required",
-        "httpsRequired": "Website URL must start with https://",
-        "format": "Website must be a valid URL (e.g., https://www.example.com)",
-        "noIp": "Website URL cannot be an IP address"
+        "invalid": "$t(validation:url.invalid)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 500})",
+        "required": "$t(validation:required)",
+        "httpsRequired": "$t(validation:url.httpsRequired)",
+        "format": "$t(validation:url.format, {'example': 'https://www.example.com'})",
+        "noIp": "$t(validation:url.noIp)"
       }
     },
     "dbaName": {
       "label": "Doing business as",
+      "validationFieldName": "DBA name",
       "description": "",
       "tooltip": "",
       "validation": {
-        "maxLength": "DBA name must be 100 characters or less",
-        "format": "DBA name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
-        "pattern": "Invalid DBA name format. Please use only allowed characters",
-        "noLeadingSpace": "DBA name cannot start with a space",
-        "noTrailingSpace": "DBA name cannot end with a space",
-        "noConsecutiveSpaces": "DBA name cannot contain consecutive spaces",
-        "minLength": "DBA name must be at least 2 characters"
+        "maxLength": "$t(validation:common.maxLength, {'count': 100})",
+        "format": "$t(validation:business.name.format, {'allowedChars': '()_/&+%@#;,.: -?'})",
+        "pattern": "$t(validation:business.name.pattern)",
+        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:common.noTrailingSpace)",
+        "noConsecutiveSpaces": "$t(validation:common.noConsecutiveSpaces)",
+        "minLength": "$t(validation:common.minLength, {'count': 2})"
       }
     },
     "organizationDescription": {
       "label": "Business description",
-      "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don’t use special characters (e.g. * @ %, etc).",
+      "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don't use special characters (e.g. * @ %, etc).",
       "tooltip": "",
       "validation": {
-        "maxLength": "Business description must be 500 characters or less",
-        "minLength": "Business description must be at least 10 characters",
-        "noHtml": "Business description cannot contain HTML tags",
-        "noUrls": "Business description cannot contain URLs"
+        "maxLength": "$t(validation:common.maxLength, {'count': 500})",
+        "minLength": "$t(validation:common.minLength, {'count': 10})",
+        "noHtml": "$t(validation:common.noHtml)",
+        "noUrls": "$t(validation:common.noUrls)"
       },
       "tooltipContent": {
         "exampleTitle": "Description example",
@@ -454,35 +500,24 @@
         "visibilityText": "No. This is used for compliance and regulatory purposes only."
       }
     },
-    "organizationTypeHierarchy.generalOrganizationType": {
-      "label": "Select your general business type",
-      "description": "",
-      "tooltip": ""
-    },
-    "organizationTypeHierarchy.specificOrganizationType": {
-      "label": {
-        "REGISTERED_BUSINESS": "Select the specific legal structure",
-        "OTHER": "Select your specific business structure"
+    "organizationTypeHierarchy": {
+      "generalOrganizationType": {
+        "label": "Select your general business type",
+        "description": "",
+        "tooltip": ""
       },
-      "description": {
-        "REGISTERED_BUSINESS": "E.g. $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
-        "OTHER": "E.g. $t(organizationTypes.NON_PROFIT_CORPORATION)"
-      },
-      "placeholder": "Select or search",
-      "tooltip": ""
-    },
-    "controllerEmail": {
-      "label": "Email",
-      "placeholder": "Enter email",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "invalid": "Invalid email address",
-        "format": "Email must be in a valid business email format",
-        "maxLength": "Email must be at most 100 characters",
-        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
-      },
-      "group": "contact"
+      "specificOrganizationType": {
+        "label": {
+          "REGISTERED_BUSINESS": "Select the specific legal structure",
+          "OTHER": "Select your specific business structure"
+        },
+        "description": {
+          "REGISTERED_BUSINESS": "E.g. Limited Liability Company (LLC)",
+          "OTHER": "E.g. Non-Profit Corporation"
+        },
+        "placeholder": "Select or search",
+        "tooltip": ""
+      }
     },
     "ownerEmail": {
       "label": "Email",
@@ -490,10 +525,10 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "invalid": "Invalid email address",
-        "format": "Email must be in a valid business email format",
-        "maxLength": "Email must be at most 100 characters",
-        "noPersonal": "Please use a business email address (no gmail.com, yahoo.com, etc.)"
+        "invalid": "$t(validation:contact.email.invalid)",
+        "format": "$t(validation:contact.email.format)",
+        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})",
+        "noPersonal": "$t(validation:contact.email.noPersonal)"
       },
       "group": "contact"
     },
@@ -506,9 +541,9 @@
       "itemLabelNumbered": "Individual Identification {{number}}",
       "validation": {
         "required": "At least one government ID is required",
-        "minItems": "Minimum {{count}} IDs required",
-        "maxItems": "Maximum {{count}} IDs allowed",
-        "uniqueTypes": "Each ID type must be unique"
+        "minItems": "$t(validation:collection.minItems_one, {'count': '{{count}}', 'item': 'ID'})",
+        "maxItems": "$t(validation:collection.maxItems_one, {'count': '{{count}}', 'item': 'ID'})",
+        "uniqueTypes": "$t(validation:collection.uniqueTypes, {'type': 'ID type'})"
       },
       "idType": {
         "label": "ID type",
@@ -516,7 +551,7 @@
         "description": "Type of individual ID",
         "tooltip": "should match your individual ID type",
         "validation": {
-          "required": "ID type is required"
+          "required": "$t(validation:required)"
         }
       },
       "description": {
@@ -525,7 +560,7 @@
         "description": "Description of the ID",
         "tooltip": "should match your business registration documents ID description",
         "validation": {
-          "maxLength": "Description must be 100 characters or less"
+          "maxLength": "$t(validation:common.maxLength, {'count': 100})"
         }
       },
       "value": {
@@ -534,11 +569,11 @@
         "description": "ID value",
         "tooltip": "should match your individual ID number",
         "validation": {
-          "required": "ID value is required",
-          "format": "Invalid ID format",
-          "ssnFormat": "Invalid SSN",
-          "itinFormat": "ITIN must be exactly 9 digits and start with 9",
-          "noSpaces": "ID value cannot contain spaces"
+          "required": "$t(validation:required)",
+          "format": "$t(validation:common.format)",
+          "ssnFormat": "$t(validation:ids.ssn)",
+          "itinFormat": "$t(validation:ids.itin.format, {'digits': 9, 'startDigit': 9})",
+          "noSpaces": "$t(validation:common.noSpaces)"
         }
       },
       "expiryDate": {
@@ -548,9 +583,9 @@
         "tooltip": "Date when the individual ID expires",
         "validation": {
           "format": "Expiry date must be in 'YYYY-MM-DD' format",
-          "invalid": "Invalid date",
-          "past": "Expiry date cannot be in the past",
-          "tooFar": "Expiry date cannot be more than 10 years in the future"
+          "invalid": "$t(validation:common.invalid)",
+          "past": "$t(validation:date.past)",
+          "tooFar": "$t(validation:date.tooFar, {'years': 10})"
         }
       },
       "issuer": {
@@ -559,23 +594,10 @@
         "description": "Organization ID issuer",
         "tooltip": "should match your business registration documents ID issuer",
         "validation": {
-          "exactlyTwoChars": "Issuer must be a 2-letter country code"
+          "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
         }
       },
       "group": "identification"
-    },
-    "controllerJobTitleDescription": {
-      "label": "Job title description",
-      "placeholder": "Enter job title description",
-      "description": "Brief description of your role and responsibilities",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "Description must be at most 50 characters",
-        "pattern": "Description can only contain letters, numbers, and basic punctuation",
-        "noHtml": "Description cannot contain HTML",
-        "noUrls": "Description cannot contain URLs",
-        "required": "Description is required when job title is Other."
-      }
     },
     "ownerJobTitleDescription": {
       "label": "Job title description",
@@ -583,10 +605,10 @@
       "description": "Brief description of your role and responsibilities",
       "tooltip": "",
       "validation": {
-        "maxLength": "Description must be at most 50 characters",
-        "pattern": "Description can only contain letters, numbers, and basic punctuation",
-        "noHtml": "Description cannot contain HTML",
-        "noUrls": "Description cannot contain URLs",
+        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
+        "pattern": "$t(validation:common.pattern)",
+        "noHtml": "$t(validation:common.noHtml)",
+        "noUrls": "$t(validation:common.noUrls)",
         "required": "Description is required when job title is Other."
       }
     },
@@ -595,14 +617,14 @@
       "placeholder": "Select nature of ownership",
       "description": "How you own or control the organization",
       "validation": {
-        "required": "Nature of ownership is required"
+        "required": "$t(validation:required)"
       }
     },
     "soleOwner": {
       "label": "Sole owner",
       "description": "Whether you are the sole owner of the organization",
       "validation": {
-        "required": "Please specify if you are the sole owner"
+        "required": "$t(validation:required)"
       }
     },
     "organizationPhone.phoneType": {
@@ -611,9 +633,9 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "Phone type is required",
-        "format": "Invalid phone number format",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:contact.phone.format)",
+        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
       }
     },
     "organizationPhone.phoneNumber": {
@@ -622,9 +644,9 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "Phone number is required",
-        "format": "Invalid phone number format",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:contact.phone.format)",
+        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
       }
     },
     "controllerPhone.phoneType": {
@@ -633,9 +655,9 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "Phone type is required",
-        "format": "Invalid phone number format",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:contact.phone.format)",
+        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
       }
     },
     "controllerPhone.phoneNumber": {
@@ -644,37 +666,39 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "Phone number is required",
-        "format": "Invalid phone number format",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:contact.phone.format)",
+        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
       }
     },
-    "ownerPhone.phoneType": {
-      "label": "Owner phone type",
-      "placeholder": "Select phone type",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "Phone type is required",
-        "format": "Invalid phone number format",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
-      }
-    },
-    "ownerPhone.phoneNumber": {
-      "label": "Owner phone number",
-      "placeholder": "Enter organization phone number",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "Phone number is required",
-        "format": "Invalid phone number format",
-        "pattern": "Use format: +[country code][number] (e.g., +1234567890)"
+    "ownerPhone": {
+      "phoneType": {
+        "label": "Owner phone type",
+        "placeholder": "Select phone type",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:contact.phone.format)",
+          "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        }
+      },
+      "phoneNumber": {
+        "label": "Owner phone number",
+        "placeholder": "Enter organization phone number",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:contact.phone.format)",
+          "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        }
       }
     },
     "additionalQuestions": {
       "validation": {
         "dateFormat": "Invalid date format",
-        "required": "Required",
+        "required": "$t(validation:required)",
         "invalidFormat": "Invalid format",
         "numberFormat": "Must be a number",
         "maxItems": "Cannot exceed {{maxItems}} items"
@@ -691,16 +715,21 @@
         "description": "Check if your business phone is the same as your personal phone"
       }
     },
+    "solePropPersonalInfo": {
+      "label": "Personal Information",
+      "description": "Your personal information as the business owner"
+    },
     "solePropOrganizationName": {
-      "label": "Business Name",
+      "label": "Legal name of the company",
+      "validationFieldName": "Business name",
       "placeholder": "Enter your business name",
       "description": "Your business's legal name as it appears on government forms",
       "tooltip": "Must match exactly with your business registration documents",
       "validation": {
-        "required": "Business name is required",
-        "format": "Business name can only contain letters, numbers, and the following special characters: ()_/&+%@#;,.: -?",
-        "minLength": "Business name must be at least 2 characters",
-        "maxLength": "Business name must be at most 100 characters"
+        "required": "$t(validation:required)",
+        "format": "$t(validation:business.name.format, {'allowedChars': '()_/&+%@#;,.: -?'})",
+        "minLength": "$t(validation:common.minLength, {'count': 2})",
+        "maxLength": "$t(validation:common.maxLength, {'count': 100})"
       }
     },
     "solePropDbaName": {
@@ -708,7 +737,7 @@
       "placeholder": "Enter DBA name if different from business name",
       "description": "The name under which you conduct business, if different from your legal business name",
       "validation": {
-        "maxLength": "DBA name must be 100 characters or less"
+        "maxLength": "$t(validation:common.maxLength, {'count': 100})"
       }
     },
     "solePropBusinessDescription": {
@@ -716,9 +745,9 @@
       "placeholder": "Describe your business activities",
       "description": "Brief description of your business operations and services",
       "validation": {
-        "required": "Business description is required",
-        "maxLength": "Description must be 500 characters or less",
-        "minLength": "Description must be at least 10 characters"
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:common.maxLength, {'count': 500})",
+        "minLength": "$t(validation:common.minLength, {'count': 10})"
       }
     },
     "solePropBusinessEmail": {
@@ -726,8 +755,8 @@
       "placeholder": "Enter business email",
       "description": "Email address used for business communications",
       "validation": {
-        "format": "Must be a valid email address",
-        "maxLength": "Email must be at most 100 characters"
+        "format": "$t(validation:contact.email.format)",
+        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})"
       }
     },
     "solePropYearStarted": {
@@ -735,9 +764,9 @@
       "placeholder": "YYYY",
       "description": "Year when you started your business operations",
       "validation": {
-        "format": "Must be a valid year",
-        "min": "Year cannot be before 1800",
-        "max": "Year cannot be in the future"
+        "format": "$t(validation:year.format)",
+        "min": "$t(validation:year.min, {'min': 1800})",
+        "max": "$t(validation:year.max)"
       }
     },
     "solePropEin": {
@@ -747,20 +776,7 @@
       "tooltip": "EIN is optional for sole proprietors unless you have employees",
       "validation": {
         "format": "EIN must be in XX-XXXXXXX format",
-        "pattern": "Must be 9 digits"
-      }
-    },
-    "solePropPersonalInfo": {
-      "label": "Personal Information",
-      "description": "Your personal information as the business owner"
-    },
-    "countryOfCitizenship": {
-      "label": "Country of Citizenship",
-      "placeholder": "Select country of citizenship",
-      "description": "The country where you hold citizenship",
-      "validation": {
-        "required": "Country of citizenship is required",
-        "exactlyTwoChars": "Country code must be exactly 2 characters"
+        "pattern": "$t(validation:ids.ein, {'digits': 9})"
       }
     }
   },
@@ -805,6 +821,20 @@
     "UNINCORPORATED_ASSOCIATION": "Unincorporated Association",
     "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company"
   },
+  "organizationTypeDescriptions": {
+    "LIMITED_LIABILITY_COMPANY": "A company owned by one or more members and managed by one or more managers.",
+    "LIMITED_LIABILITY_PARTNERSHIP": "A partnership where all owners, or limited partners, have limited liability.",
+    "GENERAL_PARTNERSHIP": "A partnership where all owners, or general partners, have unlimited liability.",
+    "LIMITED_PARTNERSHIP": "A partnership between one or more limited partners and a general partner.",
+    "C_CORPORATION": "A company owned by shareholders and managed by a board of directors and other officers.",
+    "S_CORPORATION": "An S Corporation is a corporation that meets the IRS requirements to be taxed under Subchapter S of the Internal Revenue Code.",
+    "PARTNERSHIP": "A Partnership is a business structure in which two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.",
+    "PUBLICLY_TRADED_COMPANY": "A Publicly Traded Company is a company that has issued securities through an initial public offering (IPO) and is traded on at least one stock exchange or in over-the-counter markets.",
+    "NON_PROFIT_CORPORATION": "A Non-Profit Corporation is a legal entity that is formed for the purpose of serving a public or mutual benefit other than the pursuit or accumulation of profits for owners or investors.",
+    "GOVERNMENT_ENTITY": "A Government Entity is a state, local, or federal organization that has a specific function or authority.",
+    "SOLE_PROPRIETORSHIP": "An unincorporated business where the owner and the business are legally considered the same entity.",
+    "UNINCORPORATED_ASSOCIATION": "An Unincorporated Association is a group of people who come together for a common purpose but do not register as a corporation or limited liability company."
+  },
   "generalOrganizationTypes": {
     "SOLE_PROPRIETORSHIP": "Sole proprietorship",
     "REGISTERED_BUSINESS": "Registered business",
@@ -814,5 +844,18 @@
     "SOLE_PROPRIETORSHIP": "I'm the sole owner of my business",
     "REGISTERED_BUSINESS": "I manage a registered business, like a $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
     "OTHER": "I work in a different organizational, like a non-profit or state-owned entity"
+  },
+  "jobTitles": {
+    "CEO": "CEO",
+    "CFO": "CFO",
+    "COO": "COO",
+    "President": "President",
+    "Chairman": "Chairman",
+    "Senior Branch Manager": "Senior Branch Manager",
+    "Other": "Other"
+  },
+  "natureOfOwnership": {
+    "Direct": "Direct",
+    "Indirect": "Indirect"
   }
 }
