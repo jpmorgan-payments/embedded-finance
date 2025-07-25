@@ -22,6 +22,8 @@ import {
   getScenarioKeyByDisplayName,
   getScenarioByKey,
   getScenarioDisplayNames,
+  hasResetDbScenario,
+  getResetDbScenario,
 } from './scenarios-config';
 
 // Use display names from centralized scenario configuration
@@ -126,6 +128,30 @@ export function DashboardLayout() {
       scenario,
       view: newView,
     });
+
+    // Check if this scenario has a reset DB scenario and trigger the reset
+    if (hasResetDbScenario(scenario)) {
+      const resetScenario = getResetDbScenario(scenario);
+      if (resetScenario) {
+        console.log(`Resetting DB with scenario: ${resetScenario}`);
+
+        // Call the MSW reset endpoint
+        fetch('/ef/do/v1/_reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ scenario: resetScenario }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log('Database reset successful:', data);
+          })
+          .catch((error) => {
+            console.error('Database reset failed:', error);
+          });
+      }
+    }
   };
 
   const handleThemeChange = (newTheme: ThemeOption) => {

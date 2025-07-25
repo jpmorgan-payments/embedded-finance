@@ -23,6 +23,15 @@ export const MAGIC_VALUES = {
   APPROVED: '444444444',
 };
 
+// Database initialization scenarios
+export const DB_SCENARIOS = {
+  ACTIVE: 'active', // Only linked accounts, no regular recipients
+  ACTIVE_WITH_RECIPIENTS: 'active-with-recipients', // Current behavior (default)
+};
+
+// Default scenario
+export const DEFAULT_SCENARIO = DB_SCENARIOS.ACTIVE_WITH_RECIPIENTS;
+
 // Create the database with our models
 export const db = factory({
   client: {
@@ -332,12 +341,22 @@ export function logDbState(operation = 'Current State') {
 }
 
 // Initialize with predefined mocks
-export function initializeDb(force = false) {
+export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
   try {
+    // Validate scenario parameter
+    const validScenarios = Object.values(DB_SCENARIOS);
+    if (!validScenarios.includes(scenario)) {
+      console.warn(
+        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`,
+      );
+      scenario = DEFAULT_SCENARIO;
+    }
+
     // Only clear if forced or no clients exist
     const existingClients = db.client.getAll();
     if (force || existingClients.length === 0) {
       console.log('=== Starting Database Initialization ===');
+      console.log('Scenario:', scenario);
       console.log('Predefined Clients Data:', predefinedClients);
 
       // Clear existing data
@@ -487,14 +506,28 @@ export function initializeDb(force = false) {
         }
       });
 
-      // Initialize recipients from mock data
+      // Initialize recipients based on scenario
       console.log('\n=== Initializing Recipients ===');
-      const allRecipients = [
-        ...mockRecipientsResponse.recipients,
-        ...mockLinkedAccounts.recipients,
-      ];
+      console.log('Scenario:', scenario);
 
-      allRecipients.forEach((recipient) => {
+      let recipientsToInitialize = [];
+
+      if (scenario === DB_SCENARIOS.ACTIVE) {
+        // Only linked accounts, no regular recipients
+        recipientsToInitialize = mockLinkedAccounts.recipients;
+        console.log('Active scenario: Initializing only linked accounts');
+      } else {
+        // Default: both regular recipients and linked accounts
+        recipientsToInitialize = [
+          ...mockRecipientsResponse.recipients,
+          ...mockLinkedAccounts.recipients,
+        ];
+        console.log(
+          'Active with recipients scenario: Initializing all recipients',
+        );
+      }
+
+      recipientsToInitialize.forEach((recipient) => {
         try {
           const newRecipient = {
             ...recipient,
@@ -729,19 +762,20 @@ export function handleMagicValues(clientId, verificationData = {}) {
 }
 
 // Utility function to reset the database
-export function resetDb() {
-  const success = initializeDb(true);
+export function resetDb(scenario = DEFAULT_SCENARIO) {
+  const success = initializeDb(true, scenario);
   logDbState('Database Reset');
   return {
     success,
     message: success
-      ? 'Database reset successfully'
+      ? `Database reset successfully with scenario: ${scenario}`
       : 'Database reset completed with warnings',
+    scenario,
   };
 }
 
 // Initialize the database when this module loads
-initializeDb();
+initializeDb(false, DEFAULT_SCENARIO);
 
 // Export a function to get database status
 export function getDbStatus() {

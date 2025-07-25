@@ -55,6 +55,7 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000131',
     scenarioId: 'scenario1',
     category: 'active' as const,
+    resetDbScenario: 'active' as const, // Optional: triggers DB reset with active scenario
     visibleComponents: [
       AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.MAKE_PAYMENT,
@@ -69,6 +70,7 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000132',
     scenarioId: 'scenario2',
     category: 'active' as const,
+    resetDbScenario: 'active-with-recipients' as const, // Optional: triggers DB reset with recipients scenario
     visibleComponents: [
       AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.MAKE_PAYMENT,
@@ -186,4 +188,29 @@ export const isComponentVisibleForScenario = (
   const visibleComponents =
     getVisibleComponentsForScenario(scenarioDisplayName);
   return visibleComponents.includes(componentName);
+};
+
+// Utility function to check if a scenario has a reset DB scenario
+export const hasResetDbScenario = (scenarioDisplayName: string): boolean => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return false;
+  }
+  const scenario = SCENARIOS_CONFIG[scenarioKey];
+  return (
+    'resetDbScenario' in scenario &&
+    (scenario as any).resetDbScenario !== undefined
+  );
+};
+
+// Utility function to get the reset DB scenario value
+export const getResetDbScenario = (
+  scenarioDisplayName: string,
+): string | undefined => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return undefined;
+  }
+  const scenario = SCENARIOS_CONFIG[scenarioKey];
+  return (scenario as any).resetDbScenario;
 };

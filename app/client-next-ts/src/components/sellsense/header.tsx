@@ -20,6 +20,14 @@ import {
   getScenarioKeyByDisplayName,
 } from './scenarios-config';
 
+// Company data - always the same
+const getCompanyInfo = () => {
+  return {
+    name: 'Neverland Books',
+    description: 'Step into a world of stories and imagination',
+  };
+};
+
 interface HeaderProps {
   clientScenario: ClientScenario;
   setClientScenario: (scenario: ClientScenario) => void;
@@ -213,11 +221,19 @@ export function Header({
               JD
             </AvatarFallback>
           </Avatar>
-          <span
-            className={`text-sm font-medium hidden sm:block ${themeStyles.getHeaderTextStyles()}`}
-          >
-            John Doe
-          </span>
+          <div className="hidden sm:flex flex-col">
+            <span
+              className={`text-sm font-medium ${themeStyles.getHeaderTextStyles()}`}
+            >
+              John Doe
+            </span>
+            <span
+              className={`text-xs ${themeStyles.getHeaderCompanyTextStyles()}`}
+              title={getCompanyInfo().description}
+            >
+              {getCompanyInfo().name}
+            </span>
+          </div>
         </div>
       </div>
     </header>

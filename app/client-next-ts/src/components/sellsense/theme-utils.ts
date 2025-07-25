@@ -16,6 +16,7 @@ export interface ThemeStyleUtils {
   getHeaderSelectStyles: () => string;
   getHeaderButtonStyles: () => string;
   getHeaderTextStyles: () => string;
+  getHeaderCompanyTextStyles: () => string;
   getSidebarStyles: () => string;
   getSidebarButtonStyles: (selected: boolean) => string;
   getSidebarLabelStyles: () => string;
@@ -115,6 +116,21 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
           return 'text-[#EDEFF7]'; // foregroundColor: '#EDEFF7'
         default:
           return 'text-gray-900';
+      }
+    },
+    getHeaderCompanyTextStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'text-gray-500'; // Neutral styling for showing component defaults
+        case 'Default Blue':
+        case 'S&P Theme':
+        case 'SellSense':
+        case 'PayFicient':
+          return 'text-slate-500'; // mutedForegroundColor: '#64748b'
+        case 'Create Commerce':
+          return 'text-[#98A2CD]'; // mutedForegroundColor: '#98A2CD'
+        default:
+          return 'text-gray-500';
       }
     },
 
