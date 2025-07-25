@@ -25,6 +25,7 @@ import {
   createTransactionWithBalanceUpdate,
   updateTransactionStatus,
   updateAccountBalance,
+  DEFAULT_SCENARIO,
 } from './db';
 import merge from 'lodash/merge';
 
@@ -537,12 +538,55 @@ export const createHandlers = (apiUrl) => [
     return new HttpResponse(null, { status: 404 });
   }),
 
-  http.post(`${apiUrl}/ef/do/v1/_reset`, () => {
-    return HttpResponse.json(resetDb());
+  http.post(`${apiUrl}/ef/do/v1/_reset`, async ({ request }) => {
+    try {
+      const body = await request.json();
+      const scenario = body?.scenario || DEFAULT_SCENARIO;
+
+      return HttpResponse.json(resetDb(scenario));
+    } catch (error) {
+      // If no body or invalid JSON, use default scenario
+      return HttpResponse.json(resetDb(DEFAULT_SCENARIO));
+    }
   }),
 
   http.get(`${apiUrl}/ef/do/v1/_status`, () => {
-    return HttpResponse.json(getDbStatus());
+    const status = getDbStatus();
+    const recipients = db.recipient.getAll();
+    const linkedAccounts = recipients.filter(
+      (r) => r.type === 'LINKED_ACCOUNT',
+    );
+    const regularRecipients = recipients.filter((r) => r.type === 'RECIPIENT');
+
+    return HttpResponse.json({
+      ...status,
+      scenario: {
+        current:
+          linkedAccounts.length > 0 && regularRecipients.length > 0
+            ? 'active-with-recipients'
+            : 'active',
+        linkedAccountsCount: linkedAccounts.length,
+        regularRecipientsCount: regularRecipients.length,
+      },
+    });
+  }),
+
+  http.get(`${apiUrl}/ef/do/v1/_scenarios`, () => {
+    return HttpResponse.json({
+      scenarios: {
+        active: {
+          name: 'Active',
+          description: 'Only linked accounts, no regular recipients',
+          recipients: 'linked-accounts-only',
+        },
+        'active-with-recipients': {
+          name: 'Active with Recipients',
+          description: 'Both regular recipients and linked accounts (default)',
+          recipients: 'all-recipients',
+        },
+      },
+      default: DEFAULT_SCENARIO,
+    });
   }),
 
   http.post(
