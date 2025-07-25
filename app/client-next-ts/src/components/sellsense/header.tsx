@@ -101,7 +101,7 @@ export function Header({
       </div>
 
       {/* Center - Demo Settings Summary and Next Scenario Button */}
-      <div className="flex-1 flex items-center justify-center max-w-2xl mx-4 gap-2">
+      <div className="flex-1 flex items-center justify-center max-w-3xl mx-4 gap-2">
         <button
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
           className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md ${
