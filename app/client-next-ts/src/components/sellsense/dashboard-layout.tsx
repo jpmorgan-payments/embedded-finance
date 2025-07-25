@@ -17,13 +17,14 @@ import { TransactionHistory } from './transaction-history';
 import { LinkedAccounts } from './linked-accounts';
 import { PayoutSettings } from './payout-settings';
 import type { ThemeOption } from './use-sellsense-themes';
+import {
+  getScenarioKeyByDisplayName,
+  getScenarioByKey,
+  getScenarioDisplayNames,
+} from './scenarios-config';
 
-export type ClientScenario =
-  | 'New Seller - Onboarding'
-  | 'Onboarding - Docs Needed'
-  | 'Onboarding - In Review'
-  | 'Active Seller - Fresh Start'
-  | 'Active Seller - Established';
+// Use display names from centralized scenario configuration
+export type ClientScenario = ReturnType<typeof getScenarioDisplayNames>[number];
 
 export type ContentTone = 'Standard' | 'Friendly';
 export type View =
@@ -54,7 +55,7 @@ export function DashboardLayout() {
 
   // Initialize state from search params with defaults
   const [clientScenario, setClientScenario] = useState<ClientScenario>(
-    searchParams.scenario || 'New Seller - Onboarding',
+    (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
   );
   const [theme, setTheme] = useState<ThemeOption>(
     searchParams.theme || 'SellSense',
@@ -64,14 +65,19 @@ export function DashboardLayout() {
   );
   const [activeView, setActiveView] = useState<View>(
     searchParams.view ||
-      getInitialView(searchParams.scenario || 'New Seller - Onboarding'),
+      getInitialView(
+        (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
+      ),
   );
 
   // Sync state with search params on change
   useEffect(() => {
     if (searchParams.scenario && searchParams.scenario !== clientScenario) {
-      setClientScenario(searchParams.scenario);
-      setActiveView(searchParams.view || getInitialView(searchParams.scenario));
+      setClientScenario(searchParams.scenario as ClientScenario);
+      setActiveView(
+        searchParams.view ||
+          getInitialView(searchParams.scenario as ClientScenario),
+      );
     }
     if (searchParams.theme && searchParams.theme !== theme) {
       setTheme(searchParams.theme);
@@ -93,13 +99,20 @@ export function DashboardLayout() {
   };
 
   function getInitialView(scenario: ClientScenario): View {
+    const scenarioKey = getScenarioKeyByDisplayName(scenario);
+    if (scenarioKey) {
+      const config = getScenarioByKey(scenarioKey);
+      return config.category === 'onboarding' ? 'onboarding' : 'wallet';
+    }
+
+    // Fallback for legacy scenarios
     switch (scenario) {
       case 'New Seller - Onboarding':
       case 'Onboarding - Docs Needed':
       case 'Onboarding - In Review':
         return 'onboarding';
       default:
-        return 'wallet'; // Changed from 'overview' to 'wallet'
+        return 'wallet';
     }
   }
 
@@ -294,11 +307,7 @@ export function DashboardLayout() {
 
   // Fullscreen mode - render only the component
   if (searchParams.fullscreen) {
-    return (
-      <div className="h-screen">
-        {renderFullscreenComponent()}
-      </div>
-    );
+    return <div className="h-screen">{renderFullscreenComponent()}</div>;
   }
 
   // Normal dashboard layout - responsive design

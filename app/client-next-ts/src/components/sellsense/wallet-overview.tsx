@@ -13,6 +13,7 @@ import {
 import { Maximize2, Info, Grid3X3, Square, Columns } from 'lucide-react';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
+import { getScenarioDisplayNames } from './scenarios-config';
 
 interface WalletOverviewProps {
   clientScenario?: any;
@@ -221,7 +222,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Get all parameters from URL to ensure components respond to all changes
   const currentTheme = searchParams.theme || 'SellSense';
   const currentTone = searchParams.contentTone || 'Standard';
-  const currentScenario = searchParams.scenario || 'New Seller - Onboarding';
+  const currentScenario = searchParams.scenario || getScenarioDisplayNames()[0];
 
   // Get theme-aware styles
   const themeStyles = useThemeStyles(currentTheme as any);
