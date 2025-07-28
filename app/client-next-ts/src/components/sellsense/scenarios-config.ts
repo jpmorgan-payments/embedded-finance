@@ -49,8 +49,8 @@ export const SCENARIOS_CONFIG = {
     category: 'onboarding' as const,
   },
   [SCENARIO_KEYS.ACTIVE_SELLER_FRESH_START]: {
-    displayName: 'Active Seller with Direct Payouts',
-    shortName: 'Direct Payouts',
+    displayName: 'Seller with Limited DDA',
+    shortName: 'Limited DDA',
     description: 'US Sole Proprietor (onboarding completed, fresh seller)',
     clientId: '0030000131',
     scenarioId: 'scenario1',
@@ -64,8 +64,8 @@ export const SCENARIOS_CONFIG = {
     ] as ComponentName[],
   },
   [SCENARIO_KEYS.ACTIVE_SELLER_ESTABLISHED]: {
-    displayName: 'Active Seller with Recipients',
-    shortName: 'Recipients',
+    displayName: 'Seller with Limited DDA Payments',
+    shortName: 'Limited DDA Payments',
     description: 'US LLC (established seller with transaction history)',
     clientId: '0030000132',
     scenarioId: 'scenario2',
@@ -213,4 +213,15 @@ export const getResetDbScenario = (
   }
   const scenario = SCENARIOS_CONFIG[scenarioKey];
   return (scenario as any).resetDbScenario;
+};
+
+// Utility function to check if a scenario is the ONBOARDING_DOCS_NEEDED scenario
+export const isOnboardingDocsNeededScenario = (
+  scenarioDisplayName: string,
+): boolean => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return false;
+  }
+  return scenarioKey === SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED;
 };

@@ -14,6 +14,7 @@ import {
   getClientIdFromScenario,
   getScenarioData,
 } from './sellsense-scenarios';
+import { isOnboardingDocsNeededScenario } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 
 interface KycOnboardingProps {
@@ -116,6 +117,7 @@ export function KycOnboarding({
         alertOnExit={true}
         userEventsToTrack={['click', 'submit', 'navigation']}
         userEventsHandler={handleUserEvents}
+        docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
       />
     </EBComponentsProvider>
   );
