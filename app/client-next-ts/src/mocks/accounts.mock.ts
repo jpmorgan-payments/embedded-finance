@@ -3,7 +3,7 @@ export const mockAccounts = {
     {
       id: 'acc-001',
       clientId: '0030000131',
-      label: 'Main Account',
+      label: 'MAIN9012',
       state: 'OPEN',
       category: 'LIMITED_DDA',
       createdAt: '2023-10-28T20:56:55.074Z',
@@ -16,7 +16,7 @@ export const mockAccounts = {
     {
       id: 'acc-002',
       clientId: '0030000131',
-      label: 'Payments Account',
+      label: 'MAIN1098',
       state: 'OPEN',
       category: 'LIMITED_DDA_PAYMENTS',
       createdAt: '2023-10-28T20:56:55.074Z',
