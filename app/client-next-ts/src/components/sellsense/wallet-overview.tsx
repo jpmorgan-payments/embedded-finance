@@ -111,7 +111,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <Accounts
-          allowedCategories={['LIMITED_DDA_PAYMENTS']}
+          allowedCategories={['LIMITED_DDA_PAYMENTS', 'LIMITED_DDA']}
           clientId="0030000131"
           ref={(ref) => {
             if (ref) {

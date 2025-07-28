@@ -13,6 +13,10 @@ import {
   mockAccounts,
   mockAccountBalance,
   mockAccountBalance2,
+  mockActiveAccounts,
+  mockActiveWithRecipientsAccounts,
+  mockActiveBalances,
+  mockActiveWithRecipientsBalances,
 } from '../mocks/accounts.mock';
 
 // Magic values configuration
@@ -602,9 +606,25 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
         }
       });
 
-      // Initialize accounts from mock data
+      // Initialize accounts based on scenario
       console.log('\n=== Initializing Accounts ===');
-      mockAccounts.items.forEach((account) => {
+      console.log('Scenario:', scenario);
+
+      let accountsToInitialize = [];
+
+      if (scenario === DB_SCENARIOS.ACTIVE) {
+        // Only acc-001 for ACTIVE scenario
+        accountsToInitialize = mockActiveAccounts.items;
+        console.log('Active scenario: Initializing only acc-001');
+      } else {
+        // Default: both accounts for ACTIVE_WITH_RECIPIENTS scenario
+        accountsToInitialize = mockActiveWithRecipientsAccounts.items;
+        console.log(
+          'Active with recipients scenario: Initializing both accounts (acc-001 and acc-002)',
+        );
+      }
+
+      accountsToInitialize.forEach((account) => {
         try {
           const newAccount = {
             ...account,

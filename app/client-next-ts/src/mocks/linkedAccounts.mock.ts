@@ -5,53 +5,9 @@ export const mockLinkedAccounts = {
   total_items: 3,
   recipients: [
     {
-      id: 'linked-account-001',
-      type: 'LINKED_ACCOUNT',
-      status: 'ACTIVE',
-      clientId: 'client-001',
-      partyDetails: {
-        type: 'INDIVIDUAL',
-        firstName: 'John',
-        lastName: 'Doe',
-        address: {
-          addressLine1: '123 Main Street',
-          city: 'New York',
-          state: 'NY',
-          postalCode: '10001',
-          countryCode: 'US',
-        },
-        contacts: [
-          {
-            contactType: 'EMAIL',
-            value: 'john.doe@email.com',
-          },
-          {
-            contactType: 'PHONE',
-            value: '5551234567',
-            countryCode: '+1',
-          },
-        ],
-      },
-      account: {
-        number: '1234567890',
-        type: 'CHECKING',
-        countryCode: 'US',
-        routingInformation: [
-          {
-            routingCodeType: 'USABA',
-            routingNumber: '021000021',
-            transactionType: 'ACH',
-          },
-        ],
-      },
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T10:30:00Z',
-    },
-
-    {
       id: 'linked-account-003',
       type: 'LINKED_ACCOUNT',
-      status: 'INACTIVE',
+      status: 'ACTIVE',
       clientId: 'client-001',
       partyDetails: {
         type: 'ORGANIZATION',
