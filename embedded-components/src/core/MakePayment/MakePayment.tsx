@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +29,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
@@ -114,10 +115,35 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   const { data: accountBalance, isLoading: isBalanceLoading } =
     useGetAccountBalance(selectedAccountId || '');
 
+  // Get selected account details
+  const selectedAccount = useMemo(() => {
+    return accounts?.items.find(
+      (account: AccountResponse) => account.id === selectedAccountId
+    );
+  }, [accounts?.items, selectedAccountId]);
+
   // Get available balance (ITAV) for validation
   const availableBalance =
     accountBalance?.balanceTypes?.find((b) => b.typeCode === 'ITAV')?.amount ||
     0;
+
+  // Filter recipients based on selected account category
+  const filteredRecipients = useMemo(() => {
+    return recipients.filter((recipient: any) => {
+      // If no account is selected, show no recipients
+      if (!selectedAccount) return false;
+
+      // If account is LIMITED_DDA, only show active linked accounts
+      if (selectedAccount.category === 'LIMITED_DDA') {
+        return (
+          recipient.type === 'LINKED_ACCOUNT' && recipient.status === 'ACTIVE'
+        );
+      }
+
+      // For other account types, show all recipients
+      return true;
+    });
+  }, [recipients, selectedAccount]);
 
   // Preselect values when there's only a single option available
   useEffect(() => {
@@ -128,30 +154,49 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     ) {
       form.setValue('from', accounts.items[0].id);
     }
-    if (recipients.length === 1 && form.getValues('to') !== recipients[0].id) {
-      form.setValue('to', recipients[0].id);
+  }, [accounts?.items, form]);
+
+  // Auto-select recipient when there's only one available after account selection
+  useEffect(() => {
+    if (
+      selectedAccount &&
+      filteredRecipients.length === 1 &&
+      form.getValues('to') !== filteredRecipients[0].id
+    ) {
+      form.setValue('to', filteredRecipients[0].id);
     }
+  }, [selectedAccount, filteredRecipients, form]);
+
+  // Auto-select payment method when there's only one available
+  useEffect(() => {
     if (
       paymentMethods.length === 1 &&
       form.getValues('method') !== paymentMethods[0].id
     ) {
       form.setValue('method', paymentMethods[0].id);
     }
-  }, [accounts, recipients, paymentMethods]);
+  }, [paymentMethods, form]);
 
   // Compute available payment methods for the selected recipient
-  const selectedRecipient = recipients.find(
-    (r: any) => r.id === form.watch('to')
-  );
-  const availableRoutingTypes =
-    selectedRecipient?.account?.routingInformation?.map((ri: any) =>
-      typeof ri.transactionType === 'string'
-        ? ri.transactionType.toUpperCase()
-        : String(ri.transactionType)
-    ) || [];
-  const dynamicPaymentMethods = paymentMethods.filter((pm) =>
-    availableRoutingTypes.includes(pm.id.toUpperCase())
-  );
+  const selectedRecipient = useMemo(() => {
+    return filteredRecipients.find((r: any) => r.id === form.watch('to'));
+  }, [filteredRecipients, form.watch('to')]);
+
+  const availableRoutingTypes = useMemo(() => {
+    return (
+      selectedRecipient?.account?.routingInformation?.map((ri: any) =>
+        typeof ri.transactionType === 'string'
+          ? ri.transactionType.toUpperCase()
+          : String(ri.transactionType)
+      ) || []
+    );
+  }, [selectedRecipient?.account?.routingInformation]);
+
+  const dynamicPaymentMethods = useMemo(() => {
+    return paymentMethods.filter((pm) =>
+      availableRoutingTypes.includes(pm.id.toUpperCase())
+    );
+  }, [paymentMethods, availableRoutingTypes]);
 
   // Preselect payment method if only one is available for the selected recipient
   useEffect(() => {
@@ -161,7 +206,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     ) {
       form.setValue('method', dynamicPaymentMethods[0].id);
     }
-  }, [selectedRecipient, paymentMethods]);
+  }, [dynamicPaymentMethods, form]);
 
   // Reset payment method if not available for the new recipient
   useEffect(() => {
@@ -171,7 +216,21 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     ) {
       form.setValue('method', '');
     }
-  }, [dynamicPaymentMethods]);
+  }, [dynamicPaymentMethods, form]);
+
+  // Reset recipient when account changes
+  useEffect(() => {
+    if (selectedAccount) {
+      const currentRecipient = form.getValues('to');
+      const isRecipientStillValid = filteredRecipients.some(
+        (r: any) => r.id === currentRecipient
+      );
+
+      if (!isRecipientStillValid) {
+        form.setValue('to', '');
+      }
+    }
+  }, [selectedAccount, filteredRecipients, form]);
 
   // Transaction mutation
   const {
@@ -187,7 +246,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // On submit, build payload and call mutation
   const handlePaymentSubmit = (values: any) => {
-    const recipient = recipients.find((r: any) => r.id === values.to);
+    const recipient = filteredRecipients.find((r: any) => r.id === values.to);
     const fromAccount = accounts?.items.find(
       (a: { id: any }) => a.id === values.from
     );
@@ -266,6 +325,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         )}
       </DialogTrigger>
       <DialogContent className="eb-p-0 sm:eb-max-w-[600px]">
+        <DialogTitle className="eb-sr-only">{t('title')}</DialogTitle>
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
@@ -338,7 +398,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                     key={account.id}
                                     value={account.id}
                                   >
-                                    {account.label}
+                                    {account.label} ({account.category})
                                   </SelectItem>
                                 )
                               )}
@@ -352,9 +412,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                     {/* Account Balance Display */}
                     {selectedAccountId && (
                       <div className="eb-mt-2 eb-rounded-md eb-bg-muted eb-p-3">
-                        <div className="eb-text-sm eb-font-medium eb-text-muted-foreground">
-                          Account Balance
-                        </div>
                         {isBalanceLoading ? (
                           <div className="eb-text-sm eb-text-muted-foreground">
                             Loading balance...
@@ -394,12 +451,18 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('fields.to.label')}</FormLabel>
-                          {recipientsStatus === 'pending' && (
+                          {!selectedAccount && (
                             <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
-                              Loading recipients...
+                              Please select an account first
                             </div>
                           )}
-                          {recipientsStatus === 'error' && (
+                          {selectedAccount &&
+                            recipientsStatus === 'pending' && (
+                              <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                                Loading recipients...
+                              </div>
+                            )}
+                          {selectedAccount && recipientsStatus === 'error' && (
                             <div className="eb-py-2 eb-text-xs eb-text-destructive">
                               Failed to load recipients.{' '}
                               <Button
@@ -411,28 +474,49 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               </Button>
                             </div>
                           )}
+                          {selectedAccount &&
+                            filteredRecipients.length === 0 && (
+                              <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                                {selectedAccount.category === 'LIMITED_DDA'
+                                  ? 'No active linked accounts available for this account type'
+                                  : 'No recipients available'}
+                              </div>
+                            )}
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                             value={field.value}
-                            disabled={recipientsStatus !== 'success'}
+                            disabled={
+                              !selectedAccount ||
+                              recipientsStatus !== 'success' ||
+                              filteredRecipients.length === 0
+                            }
                           >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue
-                                  placeholder={t('fields.to.placeholder')}
+                                  placeholder={
+                                    !selectedAccount
+                                      ? 'Select account first'
+                                      : selectedAccount.category ===
+                                          'LIMITED_DDA'
+                                        ? 'Select active linked account'
+                                        : t('fields.to.placeholder')
+                                  }
                                 />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="eb-max-h-60">
                               {/* Group recipients by type */}
                               {(() => {
-                                const linkedAccounts = recipients.filter(
-                                  (r: any) => r.type === 'LINKED_ACCOUNT'
-                                );
-                                const regularRecipients = recipients.filter(
-                                  (r: any) => r.type === 'RECIPIENT'
-                                );
+                                const linkedAccounts =
+                                  filteredRecipients.filter(
+                                    (r: any) => r.type === 'LINKED_ACCOUNT'
+                                  );
+                                const regularRecipients =
+                                  filteredRecipients.filter(
+                                    (r: any) => r.type === 'RECIPIENT'
+                                  );
 
                                 return (
                                   <>
@@ -502,23 +586,25 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                     {linkedAccounts.length === 0 &&
                                       regularRecipients.length === 0 && (
                                         <>
-                                          {recipients.map((recipient: any) => (
-                                            <SelectItem
-                                              key={recipient.id}
-                                              value={recipient.id}
-                                            >
-                                              {recipient.partyDetails?.type ===
-                                              'INDIVIDUAL'
-                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
-                                                : recipient.partyDetails
-                                                    ?.businessName ||
-                                                  'Recipient'}
-                                              {' - '}
-                                              {recipient.account?.number
-                                                ? `****${recipient.account.number.slice(-4)}`
-                                                : ''}
-                                            </SelectItem>
-                                          ))}
+                                          {filteredRecipients.map(
+                                            (recipient: any) => (
+                                              <SelectItem
+                                                key={recipient.id}
+                                                value={recipient.id}
+                                              >
+                                                {recipient.partyDetails
+                                                  ?.type === 'INDIVIDUAL'
+                                                  ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                  : recipient.partyDetails
+                                                      ?.businessName ||
+                                                    'Recipient'}
+                                                {' - '}
+                                                {recipient.account?.number
+                                                  ? `****${recipient.account.number.slice(-4)}`
+                                                  : ''}
+                                              </SelectItem>
+                                            )
+                                          )}
                                         </>
                                       )}
                                   </>
