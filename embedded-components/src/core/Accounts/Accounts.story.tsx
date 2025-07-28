@@ -10,30 +10,40 @@ import { Accounts, AccountsProps } from './Accounts';
 const mockAccountsResponse = {
   items: [
     {
-      id: 'acc-001',
-      clientId: 'client-001',
-      label: 'Main Account',
+      id: 'account1',
+      clientId: '0085199987',
+      label: 'MAIN3919',
       state: 'OPEN',
-      category: 'LIMITED_DDA',
-      createdAt: '2023-10-28T20:56:55.074Z',
       paymentRoutingInformation: {
-        accountNumber: '123456789012',
+        accountNumber: '20000057603919',
         country: 'US',
-        routingInformation: [{ type: 'ABA', value: '987654321' }],
+        routingInformation: [
+          {
+            type: 'ABA',
+            value: '028000024',
+          },
+        ],
       },
+      createdAt: '2025-04-14T08:57:21.792272Z',
+      category: 'LIMITED_DDA',
     },
     {
-      id: 'acc-002',
-      clientId: 'client-001',
-      label: 'Payments Account',
+      id: 'account2',
+      clientId: '1000012400',
+      label: 'MAIN3212',
       state: 'OPEN',
-      category: 'LIMITED_DDA_PAYMENTS',
-      createdAt: '2023-10-28T20:56:55.074Z',
       paymentRoutingInformation: {
-        accountNumber: '987654321098',
+        accountNumber: '20000097603212',
         country: 'US',
-        routingInformation: [{ type: 'ABA', value: '123456789' }],
+        routingInformation: [
+          {
+            type: 'ABA',
+            value: '028000024',
+          },
+        ],
       },
+      createdAt: '2025-04-14T08:57:21.913631Z',
+      category: 'LIMITED_DDA_PAYMENTS',
     },
   ],
 };
@@ -41,7 +51,7 @@ const mockAccountsResponse = {
 const mockEmptyAccountsResponse = { items: [] };
 
 const mockBalanceResponse = {
-  id: 'acc-001',
+  id: 'account1',
   date: '2023-10-28',
   currency: 'USD',
   balanceTypes: [
