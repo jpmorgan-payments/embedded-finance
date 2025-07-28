@@ -202,6 +202,65 @@ export function createTransactionWithBalanceUpdate(transactionData) {
   // Generate a unique transaction ID
   const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+  // Look up recipient data if recipientId is provided
+  let creditorAccountId = transactionData.creditorAccountId || 'acc-001';
+  let creditorName = transactionData.creditorName || 'SellSense Marketplace';
+
+  if (transactionData.recipientId) {
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: transactionData.recipientId } },
+    });
+
+    if (recipient) {
+      // Use recipient's account information for creditor details
+      if (recipient.account && recipient.account.number) {
+        // Find account by account number
+        const account = db.account.findFirst({
+          where: {
+            paymentRoutingInformation: {
+              accountNumber: { equals: recipient.account.number },
+            },
+          },
+        });
+
+        if (account) {
+          creditorAccountId = account.id;
+        }
+      }
+
+      // Use recipient's party details for creditor name
+      if (recipient.partyDetails) {
+        if (
+          recipient.partyDetails.type === 'ORGANIZATION' &&
+          recipient.partyDetails.businessName
+        ) {
+          creditorName = recipient.partyDetails.businessName;
+        } else if (recipient.partyDetails.type === 'INDIVIDUAL') {
+          const firstName = recipient.partyDetails.firstName || '';
+          const lastName = recipient.partyDetails.lastName || '';
+          creditorName =
+            `${firstName} ${lastName}`.trim() || 'Individual Recipient';
+        }
+      }
+    }
+  }
+
+  // Look up debtor account data if debtorAccountId is provided
+  let debtorName = transactionData.debtorName || 'Mock Customer';
+
+  if (transactionData.debtorAccountId) {
+    const debtorAccount = db.account.findFirst({
+      where: { id: { equals: transactionData.debtorAccountId } },
+    });
+
+    if (debtorAccount) {
+      // Use account label as debtor name if available
+      if (debtorAccount.label) {
+        debtorName = debtorAccount.label;
+      }
+    }
+  }
+
   const newTransaction = {
     id: transactionId,
     type: transactionData.type || 'ACH',
@@ -212,15 +271,17 @@ export function createTransactionWithBalanceUpdate(transactionData) {
       transactionData.paymentDate || new Date().toISOString().slice(0, 10),
     effectiveDate:
       transactionData.effectiveDate || new Date().toISOString().slice(0, 10),
-    creditorAccountId: transactionData.creditorAccountId || 'acc-001',
+    creditorAccountId: creditorAccountId,
     debtorAccountId: transactionData.debtorAccountId || 'acc-002',
-    creditorName: transactionData.creditorName || 'SellSense Marketplace',
-    debtorName: transactionData.debtorName || 'Mock Customer',
+    creditorName: creditorName,
+    debtorName: debtorName,
     postingVersion: transactionData.postingVersion || 1,
     reference:
       transactionData.reference ||
+      transactionData.transactionReferenceId ||
       `Sale #${Math.floor(Math.random() * 100000)}`,
-    description: transactionData.description || 'New transaction',
+    description:
+      transactionData.description || transactionData.memo || 'New transaction',
     createdAt: new Date().toISOString(),
   };
 
