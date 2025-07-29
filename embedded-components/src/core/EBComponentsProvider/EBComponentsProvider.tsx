@@ -253,7 +253,12 @@ export const useContentTokens = () => {
   }
 
   // Return the scoped content tokens for this provider
-  return context.contentTokens;
+  return (
+    context.contentTokens ?? {
+      name: 'enUS',
+      tokens: {},
+    }
+  );
 };
 
 // Add a new hook to access the provider ID and content tokens together
