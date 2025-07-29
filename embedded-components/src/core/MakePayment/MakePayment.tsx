@@ -456,24 +456,27 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </div>
                         ) : accountBalance?.balanceTypes?.length ? (
                           <div className="eb-space-y-1">
-                            {accountBalance.balanceTypes.map((balance) => (
-                              <div
-                                key={balance.typeCode}
-                                className="eb-flex eb-items-center eb-justify-between eb-text-sm"
-                              >
-                                <span className="eb-text-muted-foreground">
-                                  {balance.typeCode === 'ITAV'
-                                    ? 'Available Balance'
-                                    : balance.typeCode === 'ITBD'
-                                      ? 'Booked Balance'
-                                      : balance.typeCode}
-                                </span>
-                                <span className="eb-font-mono eb-font-medium">
-                                  ${balance.amount.toFixed(2)}{' '}
-                                  {accountBalance.currency}
-                                </span>
-                              </div>
-                            ))}
+                            {(() => {
+                              const availableBalanceData =
+                                accountBalance.balanceTypes.find(
+                                  (balance) => balance.typeCode === 'ITAV'
+                                );
+                              return availableBalanceData ? (
+                                <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
+                                  <span className="eb-text-muted-foreground">
+                                    Available Balance
+                                  </span>
+                                  <span className="eb-font-mono eb-font-medium">
+                                    ${availableBalanceData.amount.toFixed(2)}{' '}
+                                    {accountBalance.currency}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="eb-text-sm eb-text-muted-foreground">
+                                  No available balance information
+                                </div>
+                              );
+                            })()}
                           </div>
                         ) : (
                           <div className="eb-text-sm eb-text-muted-foreground">

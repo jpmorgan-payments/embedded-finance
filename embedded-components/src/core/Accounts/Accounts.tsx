@@ -174,7 +174,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
               {filteredAccounts.map((account: AccountResponse) => (
                 <div
                   key={account.id}
-                  className="eb-w-full eb-min-w-[500px] sm:eb-flex-1"
+                  className="eb-w-full eb-min-w-[600px] sm:eb-flex-1"
                 >
                   <AccountCard
                     account={account}
@@ -257,26 +257,26 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             <span>{account.state}</span>
           </div>
           {account.paymentRoutingInformation?.accountNumber && (
-            <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-1">
-              {/* Routing Number */}
-              {Array.isArray(
-                account.paymentRoutingInformation.routingInformation
-              ) &&
-                account.paymentRoutingInformation.routingInformation.length >
-                  0 && (
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                    <span className="eb-font-medium">Routing Number:</span>
-                    <span className="eb-font-mono eb-text-xs">
-                      {account.paymentRoutingInformation.routingInformation
-                        .map((ri) => ri.value)
-                        .join(', ')}
-                    </span>
-                  </div>
-                )}
+            <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
+              {/* Routing Numbers - Enhanced Display */}
+              <div className="eb-flex eb-flex-col eb-gap-1">
+                <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
+                  <span className="eb-font-medium">ACH/RTP Routing:</span>
+                  <span className="eb-font-mono eb-text-base eb-font-semibold">
+                    028000024
+                  </span>
+                </div>
+                <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
+                  <span className="eb-font-medium">Wire Routing:</span>
+                  <span className="eb-font-mono eb-text-base eb-font-semibold">
+                    021000021
+                  </span>
+                </div>
+              </div>
               {/* Account Number */}
-              <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
+              <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
                 <span className="eb-font-medium">Account Number:</span>
-                <span className="eb-font-mono eb-text-xs">
+                <span className="eb-font-mono eb-text-base eb-font-semibold">
                   {showSensitiveInfo
                     ? account.paymentRoutingInformation.accountNumber
                     : maskAccountNumber(
