@@ -5,7 +5,6 @@ import {
   EBComponentsProvider,
   OnboardingFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Maximize2, Info, X } from 'lucide-react';
 import { useSearch } from '@tanstack/react-router';
 import type { ClientScenario } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -15,99 +14,12 @@ import {
   getClientIdFromScenario,
   getScenarioData,
 } from './sellsense-scenarios';
-import packageJson from '../../../package.json';
+import { isOnboardingDocsNeededScenario } from './scenarios-config';
+import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
   theme?: ThemeOption;
-}
-
-interface ComponentTechDetailsDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  theme: ThemeOption;
-}
-
-function ComponentTechDetailsDialog({
-  isOpen,
-  onClose,
-  theme,
-}: ComponentTechDetailsDialogProps) {
-  const themeStyles = useThemeStyles(theme);
-  const componentVersion =
-    packageJson.dependencies['@jpmorgan-payments/embedded-finance-components'];
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div
-        className={`max-w-2xl w-full mx-4 rounded-lg border p-6 ${themeStyles.getDialogStyles()}`}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">
-            OnboardingFlow Component Details
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 hover:bg-opacity-10 rounded"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-medium mb-2">Component Information</h4>
-            <div className="text-sm space-y-1">
-              <p>
-                <strong>Package:</strong>{' '}
-                @jpmorgan-payments/embedded-finance-components
-              </p>
-              <p>
-                <strong>Component:</strong> OnboardingFlow
-              </p>
-              <p>
-                <strong>Version:</strong> {componentVersion}
-              </p>
-              <p>
-                <strong>Type:</strong> React Component
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-medium mb-2">Description</h4>
-            <p className="text-sm">
-              A comprehensive onboarding flow component that guides users
-              through the complete client onboarding process for embedded
-              finance solutions. Supports multiple organization types,
-              jurisdictions, and customizable theming.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-medium mb-2">Key Features</h4>
-            <ul className="text-sm space-y-1 list-disc list-inside">
-              <li>Multi-step onboarding wizard</li>
-              <li>Support for various organization types</li>
-              <li>Document upload and verification</li>
-              <li>Real-time validation and error handling</li>
-              <li>Customizable themes and content</li>
-              <li>Event tracking and analytics</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-medium mb-2">Integration</h4>
-            <div className="text-sm bg-gray-100 bg-opacity-20 p-3 rounded font-mono">
-              {`import { OnboardingFlow } from '@jpmorgan-payments/embedded-finance-components';`}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function KycOnboarding({
@@ -116,7 +28,7 @@ export function KycOnboarding({
 }: KycOnboardingProps) {
   const { mapThemeOption } = useSellSenseThemes();
   const themeStyles = useThemeStyles(theme);
-  const [showTechDetails, setShowTechDetails] = useState(false);
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
 
   // Use TanStack Router's search and navigation APIs
   const searchParams = useSearch({ from: '/sellsense-demo' });
@@ -126,17 +38,15 @@ export function KycOnboarding({
   const ebTheme = mapThemeOption(theme);
 
   const handleFullScreen = () => {
-    // Open in new window
-    window.open(
-      window.location.href.replace(window.location.search, '') +
-        '?fullscreen=true&component=onboarding&' +
-        new URLSearchParams({
-          scenario: searchParams.scenario || clientScenario,
-          theme: searchParams.theme || theme,
-          contentTone: searchParams.contentTone || 'Standard',
-        }).toString(),
-      '_blank',
+    const fullscreenUrl = createFullscreenUrl(
+      'OnboardingFlow',
+      searchParams.theme || theme,
+      {
+        scenario: searchParams.scenario || clientScenario,
+        contentTone: searchParams.contentTone || 'Standard',
+      },
     );
+    window.open(fullscreenUrl, '_blank');
   };
 
   const handlePostClientResponse = (response?: any, error?: any) => {
@@ -173,6 +83,10 @@ export function KycOnboarding({
     // Here you could integrate with analytics services
   };
 
+  const handleTooltipToggle = (componentName: string, isOpen: boolean) => {
+    setOpenTooltip(isOpen ? componentName : null);
+  };
+
   // Render the core component
   const renderOnboardingComponent = () => (
     <EBComponentsProvider
@@ -203,6 +117,7 @@ export function KycOnboarding({
         alertOnExit={true}
         userEventsToTrack={['click', 'submit', 'navigation']}
         userEventsHandler={handleUserEvents}
+        docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
       />
     </EBComponentsProvider>
   );
@@ -218,46 +133,35 @@ export function KycOnboarding({
 
   // Normal mode with card wrapper and controls
   return (
-    <>
-      <div className={`p-6 ${themeStyles.getContentAreaStyles()}`}>
-        {/* Component Control Icons - Positioned above component boundaries */}
-        <div className="flex justify-end mb-4 gap-2 items-center z-20 relative">
-          {/* Component Tag */}
-          <div
-            className={`px-3 py-1.5 text-xs rounded-md border ${themeStyles.getTagStyles()}`}
-          >
-            @jpmorgan-payments/embedded-finance-components
-          </div>
-          <button
-            onClick={() => setShowTechDetails(true)}
-            className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
-            title="Component Details"
-          >
-            <Info size={18} />
-          </button>
-          <button
-            onClick={handleFullScreen}
-            className={`p-2 rounded transition-colors ${themeStyles.getIconStyles()}`}
-            title="Open in Full Screen"
-          >
-            <Maximize2 size={18} />
-          </button>
-        </div>
-
-        {/* Component Content Container */}
-        <div
-          className={`relative min-h-fit border-2 rounded-lg ${themeStyles.getCardStyles()}`}
+    <div className="p-6 space-y-6">
+      <div>
+        <h1
+          className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
         >
-          {/* Component Content */}
-          <div className="w-full">{renderOnboardingComponent()}</div>
-        </div>
+          KYC Onboarding
+        </h1>
+        <p className={themeStyles.getHeaderLabelStyles()}>
+          Complete the onboarding process to set up your embedded finance
+          account.
+        </p>
       </div>
 
-      <ComponentTechDetailsDialog
-        isOpen={showTechDetails}
-        onClose={() => setShowTechDetails(false)}
-        theme={theme}
+      <EmbeddedComponentCard
+        component={renderOnboardingComponent()}
+        componentName="OnboardingFlow"
+        componentDescription="A comprehensive onboarding flow component that guides users through the complete client onboarding process for embedded finance solutions. Supports multiple organization types, jurisdictions, and customizable theming."
+        componentFeatures={[
+          'Multi-step onboarding wizard',
+          'Support for various organization types',
+          'Document upload and verification',
+          'Real-time validation and error handling',
+          'Customizable themes and content',
+          'Event tracking and analytics',
+        ]}
+        isAnyTooltipOpen={openTooltip !== null}
+        onTooltipToggle={handleTooltipToggle}
+        onFullScreen={handleFullScreen}
       />
-    </>
+    </div>
   );
 }

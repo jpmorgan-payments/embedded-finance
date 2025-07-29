@@ -1,33 +1,32 @@
-import type { ClientScenario } from './dashboard-layout';
+import {
+  SCENARIOS_CONFIG,
+  type ScenarioKey,
+  getScenarioDisplayNames,
+} from './scenarios-config';
+
+// Legacy type for backward compatibility - will be removed after migration
+// Note: This type is now derived from the centralized configuration
+export type ClientScenario = ReturnType<typeof getScenarioDisplayNames>[number];
 
 // Mapping SellSense client scenarios to onboarding scenario data
-export const sellSenseScenarioMapping = {
-  'New Seller - Onboarding': {
-    clientId: undefined, // New client, scenario5 from onboardingScenarios.ts
-    description: 'New Client (US/Embedded Payments, no mocked data)',
-    scenarioId: 'scenario5',
-  },
-  'Onboarding - Docs Needed': {
-    clientId: '0030000133', // scenario3 from onboardingScenarios.ts
-    description: 'US LLC (outstanding documents requested)',
-    scenarioId: 'scenario3',
-  },
-  'Onboarding - In Review': {
-    clientId: '0030000134', // scenario4 from onboardingScenarios.ts
-    description: 'US LLC (review in progress)',
-    scenarioId: 'scenario4',
-  },
-  'Active Seller - Fresh Start': {
-    clientId: '0030000131', // Could use scenario1 (onboarding in progress)
-    description: 'US Sole Proprietor (onboarding completed, fresh seller)',
-    scenarioId: 'scenario1',
-  },
-  'Active Seller - Established': {
-    clientId: '0030000132', // Could use scenario2 (established business)
-    description: 'US LLC (established seller with transaction history)',
-    scenarioId: 'scenario2',
-  },
-} as const;
+// This is now derived from the centralized configuration
+export const sellSenseScenarioMapping = Object.fromEntries(
+  Object.entries(SCENARIOS_CONFIG).map(([key, config]) => [
+    config.displayName,
+    {
+      clientId: config.clientId,
+      description: config.description,
+      scenarioId: config.scenarioId,
+    },
+  ]),
+) as Record<
+  ClientScenario,
+  {
+    clientId: string | undefined;
+    description: string;
+    scenarioId: string;
+  }
+>;
 
 export const getScenarioData = (scenario: ClientScenario) => {
   return sellSenseScenarioMapping[scenario];
@@ -37,4 +36,15 @@ export const getClientIdFromScenario = (
   scenario: ClientScenario,
 ): string | undefined => {
   return sellSenseScenarioMapping[scenario].clientId;
+};
+
+// New functions using ScenarioKey
+export const getScenarioDataByKey = (scenarioKey: ScenarioKey) => {
+  return SCENARIOS_CONFIG[scenarioKey];
+};
+
+export const getClientIdFromScenarioKey = (
+  scenarioKey: ScenarioKey,
+): string | undefined => {
+  return SCENARIOS_CONFIG[scenarioKey].clientId;
 };

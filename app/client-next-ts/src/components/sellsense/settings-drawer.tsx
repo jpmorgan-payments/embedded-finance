@@ -1,5 +1,7 @@
 'use client';
 
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -7,10 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, Settings } from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useThemeStyles } from './theme-utils';
+import { getScenarioDisplayNames } from './scenarios-config';
+import React from 'react'; // Added missing import for React
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -35,38 +38,70 @@ export function SettingsDrawer({
 }: SettingsDrawerProps) {
   const themeStyles = useThemeStyles(theme);
 
+  // Get scenario display names from centralized config
+  const scenarioDisplayNames = getScenarioDisplayNames();
+
+  // Handle backdrop click to close drawer
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // Only close if clicking the backdrop itself, not its children
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Handle escape key to close drawer
+  React.useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+      // Prevent body scroll when drawer is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      // Restore body scroll when drawer closes
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={onClose}
-        />
-      )}
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={handleBackdropClick}
+        aria-hidden="true"
+      />
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed inset-y-0 right-0 w-80 bg-white border-l border-gray-200 shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
-        } ${themeStyles.getSidebarStyles()}`}
+        }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">Demo Settings</h2>
-          </div>
-          <button
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Demo Settings</h2>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className={`p-1 rounded hover:bg-gray-100 hover:bg-opacity-10 ${themeStyles.getHeaderButtonStyles()}`}
+            className="h-8 w-8"
           >
-            <X className="h-5 w-5" />
-          </button>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-6 overflow-y-auto h-[calc(100vh-80px)]">
+        <div className="p-6 space-y-6 overflow-y-auto h-full">
           {/* Client Scenario Section */}
           <div className="space-y-3">
             <div>
@@ -74,7 +109,7 @@ export function SettingsDrawer({
                 Client Scenario
               </h3>
               <p className="text-xs text-gray-500 mb-3">
-                Select the client onboarding state to demonstrate
+                Choose the client onboarding scenario to demonstrate
               </p>
             </div>
             <Select
@@ -89,21 +124,11 @@ export function SettingsDrawer({
                 <SelectValue placeholder="Select client scenario" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="New Seller - Onboarding">
-                  New Seller - Onboarding
-                </SelectItem>
-                <SelectItem value="Onboarding - Docs Needed">
-                  Onboarding - Docs Needed
-                </SelectItem>
-                <SelectItem value="Onboarding - In Review">
-                  Onboarding - In Review
-                </SelectItem>
-                <SelectItem value="Active Seller - Fresh Start">
-                  Active Seller - Fresh Start
-                </SelectItem>
-                <SelectItem value="Active Seller - Established">
-                  Active Seller - Established
-                </SelectItem>
+                {scenarioDisplayNames.map((displayName) => (
+                  <SelectItem key={displayName} value={displayName}>
+                    {displayName}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

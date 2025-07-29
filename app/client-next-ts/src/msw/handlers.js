@@ -9,14 +9,6 @@ import {
   mockEmptyLinkedAccounts,
   createMockLinkedAccountsResponse,
   mockRecipientsResponse,
-  createMockRecipientsResponse,
-  mockPaymentResponse,
-  mockPaymentValidationResponse,
-  mockPaymentErrorResponse,
-  createMockPayment,
-  validatePayment,
-  mockRecipients,
-  mockPaymentMethods,
 } from '../mocks';
 import {
   mockAccounts,
@@ -33,6 +25,7 @@ import {
   createTransactionWithBalanceUpdate,
   updateTransactionStatus,
   updateAccountBalance,
+  DEFAULT_SCENARIO,
 } from './db';
 import merge from 'lodash/merge';
 
@@ -545,12 +538,55 @@ export const createHandlers = (apiUrl) => [
     return new HttpResponse(null, { status: 404 });
   }),
 
-  http.post(`${apiUrl}/ef/do/v1/_reset`, () => {
-    return HttpResponse.json(resetDb());
+  http.post(`${apiUrl}/ef/do/v1/_reset`, async ({ request }) => {
+    try {
+      const body = await request.json();
+      const scenario = body?.scenario || DEFAULT_SCENARIO;
+
+      return HttpResponse.json(resetDb(scenario));
+    } catch (error) {
+      // If no body or invalid JSON, use default scenario
+      return HttpResponse.json(resetDb(DEFAULT_SCENARIO));
+    }
   }),
 
   http.get(`${apiUrl}/ef/do/v1/_status`, () => {
-    return HttpResponse.json(getDbStatus());
+    const status = getDbStatus();
+    const recipients = db.recipient.getAll();
+    const linkedAccounts = recipients.filter(
+      (r) => r.type === 'LINKED_ACCOUNT',
+    );
+    const regularRecipients = recipients.filter((r) => r.type === 'RECIPIENT');
+
+    return HttpResponse.json({
+      ...status,
+      scenario: {
+        current:
+          linkedAccounts.length > 0 && regularRecipients.length > 0
+            ? 'active-with-recipients'
+            : 'active',
+        linkedAccountsCount: linkedAccounts.length,
+        regularRecipientsCount: regularRecipients.length,
+      },
+    });
+  }),
+
+  http.get(`${apiUrl}/ef/do/v1/_scenarios`, () => {
+    return HttpResponse.json({
+      scenarios: {
+        active: {
+          name: 'Active',
+          description: 'Only linked accounts, no regular recipients',
+          recipients: 'linked-accounts-only',
+        },
+        'active-with-recipients': {
+          name: 'Active with Recipients',
+          description: 'Both regular recipients and linked accounts (default)',
+          recipients: 'all-recipients',
+        },
+      },
+      default: DEFAULT_SCENARIO,
+    });
   }),
 
   http.post(
@@ -752,8 +788,8 @@ export const createHandlers = (apiUrl) => [
     const status = url.searchParams.get('status');
     const type = url.searchParams.get('type');
 
-    // Get all transactions from database
-    let filteredTransactions = db.transaction.getAll();
+    // Get all transactions from database with safety check
+    let filteredTransactions = db.transaction.getAll() || [];
 
     // Filter transactions based on query parameters
     if (accountId) {
@@ -784,7 +820,7 @@ export const createHandlers = (apiUrl) => [
     if (!pageParam && !limitParam) {
       console.log('No pagination params, returning all transactions');
       const response = {
-        items: filteredTransactions,
+        items: filteredTransactions || [],
         page: 1,
         limit: filteredTransactions.length,
         total_items: filteredTransactions.length,
@@ -816,7 +852,7 @@ export const createHandlers = (apiUrl) => [
     );
 
     const response = {
-      items: paginatedTransactions,
+      items: paginatedTransactions || [],
       page,
       limit,
       total_items: filteredTransactions.length,
@@ -989,38 +1025,6 @@ export const createHandlers = (apiUrl) => [
 
     console.log('Payment recipients from database:', filteredRecipients.length);
     return HttpResponse.json(filteredRecipients, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }),
-
-  http.get(`${apiUrl}/ef/do/v1/payment-methods`, () => {
-    return HttpResponse.json(mockPaymentMethods, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }),
-
-  http.post(`${apiUrl}/ef/do/v1/payments/validate`, async ({ request }) => {
-    const paymentData = await request.json();
-    const validation = validatePayment(paymentData);
-
-    if (validation.isValid) {
-      return HttpResponse.json(mockPaymentValidationResponse, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } else {
-      return HttpResponse.json(mockPaymentErrorResponse, {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-  }),
-
-  http.post(`${apiUrl}/ef/do/v1/payments`, async ({ request }) => {
-    const paymentData = await request.json();
-    const newPayment = createMockPayment(paymentData);
-
-    return HttpResponse.json(newPayment, {
-      status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
   }),

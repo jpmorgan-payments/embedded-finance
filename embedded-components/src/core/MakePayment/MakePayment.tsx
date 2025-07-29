@@ -1,11 +1,12 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import {
   useGetAccountBalance,
   useGetAccounts,
@@ -28,6 +29,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
@@ -44,7 +46,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -66,9 +71,17 @@ interface PaymentMethod {
 
 interface PaymentComponentProps {
   triggerButton?: React.ReactNode;
+  triggerButtonVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
   accounts?: Account[];
   paymentMethods?: PaymentMethod[];
   icon?: string;
+  recipientId?: string; // Optional recipient ID to pre-select
   onTransactionSettled?: (
     response?: TransactionResponseV2,
     error?: ApiErrorV2
@@ -77,12 +90,14 @@ interface PaymentComponentProps {
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
+  triggerButtonVariant = 'default',
   paymentMethods = [
     { id: 'ACH', name: 'ACH', fee: 2.5 },
     { id: 'RTP', name: 'RTP', fee: 1 },
     { id: 'WIRE', name: 'WIRE', fee: 25 },
   ],
-  icon = 'CirclePlus',
+  icon,
+  recipientId,
   onTransactionSettled,
 }) => {
   const { t } = useTranslation(['make-payment']);
@@ -110,10 +125,35 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   const { data: accountBalance, isLoading: isBalanceLoading } =
     useGetAccountBalance(selectedAccountId || '');
 
+  // Get selected account details
+  const selectedAccount = useMemo(() => {
+    return accounts?.items.find(
+      (account: AccountResponse) => account.id === selectedAccountId
+    );
+  }, [accounts?.items, selectedAccountId]);
+
   // Get available balance (ITAV) for validation
   const availableBalance =
     accountBalance?.balanceTypes?.find((b) => b.typeCode === 'ITAV')?.amount ||
     0;
+
+  // Filter recipients based on selected account category
+  const filteredRecipients = useMemo(() => {
+    return recipients.filter((recipient: any) => {
+      // If no account is selected, show no recipients
+      if (!selectedAccount) return false;
+
+      // If account is LIMITED_DDA, only show active linked accounts
+      if (selectedAccount.category === 'LIMITED_DDA') {
+        return (
+          recipient.type === 'LINKED_ACCOUNT' && recipient.status === 'ACTIVE'
+        );
+      }
+
+      // For other account types, show all recipients
+      return true;
+    });
+  }, [recipients, selectedAccount]);
 
   // Preselect values when there's only a single option available
   useEffect(() => {
@@ -124,50 +164,115 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     ) {
       form.setValue('from', accounts.items[0].id);
     }
-    if (recipients.length === 1 && form.getValues('to') !== recipients[0].id) {
-      form.setValue('to', recipients[0].id);
-    }
-    if (
-      paymentMethods.length === 1 &&
-      form.getValues('method') !== paymentMethods[0].id
-    ) {
-      form.setValue('method', paymentMethods[0].id);
-    }
-  }, [accounts, recipients, paymentMethods]);
+  }, [accounts?.items, form]);
 
   // Compute available payment methods for the selected recipient
-  const selectedRecipient = recipients.find(
-    (r: any) => r.id === form.watch('to')
-  );
-  const availableRoutingTypes =
-    selectedRecipient?.account?.routingInformation?.map((ri: any) =>
-      typeof ri.transactionType === 'string'
-        ? ri.transactionType.toUpperCase()
-        : String(ri.transactionType)
-    ) || [];
-  const dynamicPaymentMethods = paymentMethods.filter((pm) =>
-    availableRoutingTypes.includes(pm.id.toUpperCase())
-  );
+  const selectedRecipient = useMemo(() => {
+    return filteredRecipients.find((r: any) => r.id === form.watch('to'));
+  }, [filteredRecipients, form.watch('to')]);
 
-  // Preselect payment method if only one is available for the selected recipient
+  const availableRoutingTypes = useMemo(() => {
+    return (
+      selectedRecipient?.account?.routingInformation?.map((ri: any) =>
+        typeof ri.transactionType === 'string'
+          ? ri.transactionType.toUpperCase()
+          : String(ri.transactionType)
+      ) || []
+    );
+  }, [selectedRecipient?.account?.routingInformation]);
+
+  const dynamicPaymentMethods = useMemo(() => {
+    return paymentMethods.filter((pm) =>
+      availableRoutingTypes.includes(pm.id.toUpperCase())
+    );
+  }, [paymentMethods, availableRoutingTypes]);
+
+  // Auto-selection logic for form fields
   useEffect(() => {
-    if (
-      dynamicPaymentMethods.length === 1 &&
-      form.getValues('method') !== dynamicPaymentMethods[0].id
-    ) {
-      form.setValue('method', dynamicPaymentMethods[0].id);
+    // Auto-select single account if only one is available
+    if (accounts?.items.length === 1) {
+      const currentAccount = form.getValues('from');
+      if (currentAccount !== accounts.items[0].id) {
+        form.setValue('from', accounts.items[0].id);
+      }
     }
-  }, [selectedRecipient, paymentMethods]);
 
-  // Reset payment method if not available for the new recipient
-  useEffect(() => {
+    // Auto-select single recipient if only one is available after account selection
+    if (selectedAccount && filteredRecipients.length === 1) {
+      const currentRecipient = form.getValues('to');
+      if (currentRecipient !== filteredRecipients[0].id) {
+        form.setValue('to', filteredRecipients[0].id);
+      }
+    }
+
+    // Auto-select single payment method if only one is available
+    if (paymentMethods.length === 1) {
+      const currentMethod = form.getValues('method');
+      if (currentMethod !== paymentMethods[0].id) {
+        form.setValue('method', paymentMethods[0].id);
+      }
+    }
+
+    // Auto-select payment method if only one is available for the selected recipient
+    if (dynamicPaymentMethods.length === 1) {
+      const currentMethod = form.getValues('method');
+      if (currentMethod !== dynamicPaymentMethods[0].id) {
+        form.setValue('method', dynamicPaymentMethods[0].id);
+      }
+    }
+
+    // Reset payment method if not available for the new recipient
     if (
       form.getValues('method') &&
       !dynamicPaymentMethods.some((pm) => pm.id === form.getValues('method'))
     ) {
       form.setValue('method', '');
     }
-  }, [dynamicPaymentMethods]);
+
+    // Reset recipient when account changes
+    if (selectedAccount) {
+      const currentRecipient = form.getValues('to');
+      const isRecipientStillValid = filteredRecipients.some(
+        (r: any) => r.id === currentRecipient
+      );
+
+      if (!isRecipientStillValid) {
+        form.setValue('to', '');
+      }
+    }
+  }, [
+    accounts?.items,
+    selectedAccount,
+    filteredRecipients,
+    paymentMethods,
+    dynamicPaymentMethods,
+    form,
+  ]);
+
+  // Derived state for recipient selection and warning
+  const recipientSelectionState = useMemo(() => {
+    if (!recipientId || filteredRecipients.length === 0) {
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+
+    const recipientExists = filteredRecipients.some(
+      (r: any) => r.id === recipientId
+    );
+
+    if (recipientExists) {
+      // Auto-select the recipient if it exists and no recipient is currently selected
+      const currentRecipient = form.getValues('to');
+      if (!currentRecipient) {
+        form.setValue('to', recipientId);
+      }
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+
+    // Show warning if recipientId is provided but not found in filtered recipients
+    return { shouldSelectRecipient: false, recipientNotFound: true };
+  }, [recipientId, filteredRecipients, form]);
+
+  const { recipientNotFound } = recipientSelectionState;
 
   // Transaction mutation
   const {
@@ -183,7 +288,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // On submit, build payload and call mutation
   const handlePaymentSubmit = (values: any) => {
-    const recipient = recipients.find((r: any) => r.id === values.to);
+    const recipient = filteredRecipients.find((r: any) => r.id === values.to);
     const fromAccount = accounts?.items.find(
       (a: { id: any }) => a.id === values.from
     );
@@ -218,8 +323,37 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     if (!dialogOpen) {
       setLocalSuccess(false);
       resetPayment();
+      resetForm(); // Reset the form when dialog closes
     }
-  }, [dialogOpen, resetPayment]);
+  }, [dialogOpen, resetPayment, resetForm]);
+
+  // Restore pre-selected values when dialog opens
+  useEffect(() => {
+    if (dialogOpen) {
+      // If there's a recipientId and accounts are loaded, restore pre-selection
+      if (recipientId && accounts?.items) {
+        // Auto-select single account if only one is available
+        if (accounts.items.length === 1) {
+          form.setValue('from', accounts.items[0].id);
+        }
+      }
+    }
+  }, [dialogOpen, recipientId, accounts?.items, form]);
+
+  // Restore recipient selection when recipients are loaded and dialog is open
+  useEffect(() => {
+    if (dialogOpen && recipientId && filteredRecipients.length > 0) {
+      const recipientExists = filteredRecipients.some(
+        (r: any) => r.id === recipientId
+      );
+      if (recipientExists) {
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', recipientId);
+        }
+      }
+    }
+  }, [dialogOpen, recipientId, filteredRecipients, form]);
 
   const amount = Number.parseFloat(form.watch('amount') || '0');
   const from = form.watch('from');
@@ -254,6 +388,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         {triggerButton || (
           <Button
             onClick={() => setDialogOpen(true)}
+            variant={triggerButtonVariant}
             className="eb-flex eb-items-center eb-gap-2"
           >
             {IconComponent && <IconComponent className="eb-h-4 eb-w-4" />}
@@ -261,7 +396,8 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="eb-p-0 sm:eb-max-w-[425px]">
+      <DialogContent className="eb-p-0 sm:eb-max-w-[600px]">
+        <DialogTitle className="eb-sr-only">{t('title')}</DialogTitle>
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
@@ -270,6 +406,15 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </CardHeader>
           <CardContent className="eb-space-y-4 eb-pt-0">
             <DialogDescription>{t('description')}</DialogDescription>
+
+            {/* Show recipient warning immediately if recipientId is invalid */}
+            {recipientNotFound && recipientId && (
+              <div className="eb-rounded-md eb-border eb-border-destructive/20 eb-bg-destructive/10 eb-p-3">
+                <div className="eb-text-sm eb-text-destructive">
+                  {t('warnings.recipientNotFound', { recipientId })}
+                </div>
+              </div>
+            )}
 
             {/* Make the form content scrollable if it grows */}
             <div className="eb-max-h-[70vh] eb-overflow-y-auto eb-pr-1">
@@ -334,7 +479,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                     key={account.id}
                                     value={account.id}
                                   >
-                                    {account.label}
+                                    {account.label} ({account.category})
                                   </SelectItem>
                                 )
                               )}
@@ -348,33 +493,33 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                     {/* Account Balance Display */}
                     {selectedAccountId && (
                       <div className="eb-mt-2 eb-rounded-md eb-bg-muted eb-p-3">
-                        <div className="eb-text-sm eb-font-medium eb-text-muted-foreground">
-                          Account Balance
-                        </div>
                         {isBalanceLoading ? (
                           <div className="eb-text-sm eb-text-muted-foreground">
                             Loading balance...
                           </div>
                         ) : accountBalance?.balanceTypes?.length ? (
                           <div className="eb-space-y-1">
-                            {accountBalance.balanceTypes.map((balance) => (
-                              <div
-                                key={balance.typeCode}
-                                className="eb-flex eb-items-center eb-justify-between eb-text-sm"
-                              >
-                                <span className="eb-text-muted-foreground">
-                                  {balance.typeCode === 'ITAV'
-                                    ? 'Available Balance'
-                                    : balance.typeCode === 'ITBD'
-                                      ? 'Booked Balance'
-                                      : balance.typeCode}
-                                </span>
-                                <span className="eb-font-mono eb-font-medium">
-                                  ${balance.amount.toFixed(2)}{' '}
-                                  {accountBalance.currency}
-                                </span>
-                              </div>
-                            ))}
+                            {(() => {
+                              const availableBalanceData =
+                                accountBalance.balanceTypes.find(
+                                  (balance) => balance.typeCode === 'ITAV'
+                                );
+                              return availableBalanceData ? (
+                                <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
+                                  <span className="eb-text-muted-foreground">
+                                    Available Balance
+                                  </span>
+                                  <span className="eb-font-mono eb-font-medium">
+                                    ${availableBalanceData.amount.toFixed(2)}{' '}
+                                    {accountBalance.currency}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="eb-text-sm eb-text-muted-foreground">
+                                  No available balance information
+                                </div>
+                              );
+                            })()}
                           </div>
                         ) : (
                           <div className="eb-text-sm eb-text-muted-foreground">
@@ -390,12 +535,18 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('fields.to.label')}</FormLabel>
-                          {recipientsStatus === 'pending' && (
+                          {!selectedAccount && (
                             <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
-                              Loading recipients...
+                              Please select an account first
                             </div>
                           )}
-                          {recipientsStatus === 'error' && (
+                          {selectedAccount &&
+                            recipientsStatus === 'pending' && (
+                              <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                                Loading recipients...
+                              </div>
+                            )}
+                          {selectedAccount && recipientsStatus === 'error' && (
                             <div className="eb-py-2 eb-text-xs eb-text-destructive">
                               Failed to load recipients.{' '}
                               <Button
@@ -407,35 +558,142 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               </Button>
                             </div>
                           )}
+                          {selectedAccount &&
+                            filteredRecipients.length === 0 && (
+                              <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                                {selectedAccount.category === 'LIMITED_DDA'
+                                  ? 'No active linked accounts available for this account type'
+                                  : 'No recipients available'}
+                              </div>
+                            )}
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                             value={field.value}
-                            disabled={recipientsStatus !== 'success'}
+                            disabled={
+                              !selectedAccount ||
+                              recipientsStatus !== 'success' ||
+                              filteredRecipients.length === 0
+                            }
                           >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue
-                                  placeholder={t('fields.to.placeholder')}
+                                  placeholder={
+                                    !selectedAccount
+                                      ? 'Select account first'
+                                      : selectedAccount.category ===
+                                          'LIMITED_DDA'
+                                        ? 'Select active linked account'
+                                        : t('fields.to.placeholder')
+                                  }
                                 />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              {recipients.map((recipient: any) => (
-                                <SelectItem
-                                  key={recipient.id}
-                                  value={recipient.id}
-                                >
-                                  {recipient.partyDetails?.type === 'INDIVIDUAL'
-                                    ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
-                                    : recipient.partyDetails?.businessName ||
-                                      'Recipient'}
-                                  {' - '}
-                                  {recipient.account?.number
-                                    ? `****${recipient.account.number.slice(-4)}`
-                                    : ''}
-                                </SelectItem>
-                              ))}
+                            <SelectContent className="eb-max-h-60">
+                              {/* Group recipients by type */}
+                              {(() => {
+                                const linkedAccounts =
+                                  filteredRecipients.filter(
+                                    (r: any) => r.type === 'LINKED_ACCOUNT'
+                                  );
+                                const regularRecipients =
+                                  filteredRecipients.filter(
+                                    (r: any) => r.type === 'RECIPIENT'
+                                  );
+
+                                return (
+                                  <>
+                                    {/* Linked Accounts Group */}
+                                    {linkedAccounts.length > 0 && (
+                                      <SelectGroup>
+                                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                                          Linked Accounts
+                                        </SelectLabel>
+                                        {linkedAccounts.map(
+                                          (recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectGroup>
+                                    )}
+
+                                    {/* Separator if both groups have items */}
+                                    {linkedAccounts.length > 0 &&
+                                      regularRecipients.length > 0 && (
+                                        <SelectSeparator />
+                                      )}
+
+                                    {/* Regular Recipients Group */}
+                                    {regularRecipients.length > 0 && (
+                                      <SelectGroup>
+                                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                                          Recipients
+                                        </SelectLabel>
+                                        {regularRecipients.map(
+                                          (recipient: any) => (
+                                            <SelectItem
+                                              key={recipient.id}
+                                              value={recipient.id}
+                                            >
+                                              {recipient.partyDetails?.type ===
+                                              'INDIVIDUAL'
+                                                ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                : recipient.partyDetails
+                                                    ?.businessName ||
+                                                  'Recipient'}
+                                              {' - '}
+                                              {recipient.account?.number
+                                                ? `****${recipient.account.number.slice(-4)}`
+                                                : ''}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectGroup>
+                                    )}
+
+                                    {/* Fallback if no grouping is possible */}
+                                    {linkedAccounts.length === 0 &&
+                                      regularRecipients.length === 0 && (
+                                        <>
+                                          {filteredRecipients.map(
+                                            (recipient: any) => (
+                                              <SelectItem
+                                                key={recipient.id}
+                                                value={recipient.id}
+                                              >
+                                                {recipient.partyDetails
+                                                  ?.type === 'INDIVIDUAL'
+                                                  ? `${recipient.partyDetails?.firstName} ${recipient.partyDetails?.lastName}`
+                                                  : recipient.partyDetails
+                                                      ?.businessName ||
+                                                    'Recipient'}
+                                                {' - '}
+                                                {recipient.account?.number
+                                                  ? `****${recipient.account.number.slice(-4)}`
+                                                  : ''}
+                                              </SelectItem>
+                                            )
+                                          )}
+                                        </>
+                                      )}
+                                  </>
+                                );
+                              })()}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -495,12 +753,15 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       render={({ field }) => (
                         <FormItem className="eb-space-y-3">
                           <FormLabel>{t('fields.method.label')}</FormLabel>
+                          <div className="eb-text-xs eb-text-muted-foreground">
+                            Available payment methods for the selected recipient
+                          </div>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                               value={field.value}
-                              className="eb-flex eb-flex-col eb-space-y-1"
+                              className="eb-flex eb-flex-row eb-flex-wrap eb-gap-3"
                             >
                               {dynamicPaymentMethods.length === 0 && (
                                 <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
@@ -511,19 +772,50 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               {dynamicPaymentMethods.map((paymentMethod) => (
                                 <div
                                   key={paymentMethod.id}
-                                  className="eb-flex eb-items-center eb-space-x-2"
+                                  className="eb-relative eb-min-w-[120px] eb-max-w-[160px] eb-flex-1"
                                 >
                                   <RadioGroupItem
                                     value={paymentMethod.id}
                                     id={paymentMethod.id.toLowerCase()}
+                                    className="eb-sr-only"
                                   />
                                   <Label
                                     htmlFor={paymentMethod.id.toLowerCase()}
-                                    className="eb-cursor-pointer"
+                                    className={cn(
+                                      'eb-flex eb-min-h-[80px] eb-cursor-pointer eb-flex-col eb-items-center eb-justify-center eb-rounded-lg eb-border-2 eb-p-3 eb-transition-all eb-duration-200 eb-ease-in-out',
+                                      'eb-border-border eb-bg-card eb-text-card-foreground',
+                                      'hover:eb-border-primary hover:eb-shadow-md',
+                                      'focus-within:eb-ring-2 focus-within:eb-ring-ring focus-within:eb-ring-offset-2',
+                                      field.value === paymentMethod.id
+                                        ? 'eb-border-primary eb-bg-primary/5 eb-shadow-md'
+                                        : 'eb-border-border hover:eb-border-primary/50'
+                                    )}
                                   >
-                                    {t(`paymentMethods.${paymentMethod.id}`, {
-                                      defaultValue: paymentMethod.name,
-                                    })}
+                                    <div className="eb-flex eb-flex-col eb-items-center eb-space-y-2 eb-text-center">
+                                      <div
+                                        className={cn(
+                                          'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
+                                          field.value === paymentMethod.id
+                                            ? 'eb-bg-primary eb-text-primary-foreground'
+                                            : 'eb-bg-muted eb-text-muted-foreground'
+                                        )}
+                                      >
+                                        {paymentMethod.id.charAt(0)}
+                                      </div>
+                                      <div className="eb-space-y-1">
+                                        <div className="eb-text-xs eb-font-medium">
+                                          {t(
+                                            `paymentMethods.${paymentMethod.id}`,
+                                            {
+                                              defaultValue: paymentMethod.name,
+                                            }
+                                          )}
+                                        </div>
+                                        <div className="eb-text-xs eb-text-muted-foreground">
+                                          ${paymentMethod.fee.toFixed(2)} fee
+                                        </div>
+                                      </div>
+                                    </div>
                                   </Label>
                                 </div>
                               ))}

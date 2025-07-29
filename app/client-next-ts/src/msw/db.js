@@ -13,6 +13,10 @@ import {
   mockAccounts,
   mockAccountBalance,
   mockAccountBalance2,
+  mockActiveAccounts,
+  mockActiveWithRecipientsAccounts,
+  mockActiveBalances,
+  mockActiveWithRecipientsBalances,
 } from '../mocks/accounts.mock';
 
 // Magic values configuration
@@ -22,6 +26,15 @@ export const MAGIC_VALUES = {
   REJECTED: '333333333',
   APPROVED: '444444444',
 };
+
+// Database initialization scenarios
+export const DB_SCENARIOS = {
+  ACTIVE: 'active', // Only linked accounts, no regular recipients
+  ACTIVE_WITH_RECIPIENTS: 'active-with-recipients', // Current behavior (default)
+};
+
+// Default scenario
+export const DEFAULT_SCENARIO = DB_SCENARIOS.ACTIVE_WITH_RECIPIENTS;
 
 // Create the database with our models
 export const db = factory({
@@ -193,25 +206,86 @@ export function createTransactionWithBalanceUpdate(transactionData) {
   // Generate a unique transaction ID
   const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+  // Look up recipient data if recipientId is provided
+  let creditorAccountId = transactionData.creditorAccountId || 'acc-001';
+  let creditorName = transactionData.creditorName || 'SellSense Marketplace';
+
+  if (transactionData.recipientId) {
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: transactionData.recipientId } },
+    });
+
+    if (recipient) {
+      // Use recipient's account information for creditor details
+      if (recipient.account && recipient.account.number) {
+        // Find account by account number
+        const account = db.account.findFirst({
+          where: {
+            paymentRoutingInformation: {
+              accountNumber: { equals: recipient.account.number },
+            },
+          },
+        });
+
+        if (account) {
+          creditorAccountId = account.id;
+        }
+      }
+
+      // Use recipient's party details for creditor name
+      if (recipient.partyDetails) {
+        if (
+          recipient.partyDetails.type === 'ORGANIZATION' &&
+          recipient.partyDetails.businessName
+        ) {
+          creditorName = recipient.partyDetails.businessName;
+        } else if (recipient.partyDetails.type === 'INDIVIDUAL') {
+          const firstName = recipient.partyDetails.firstName || '';
+          const lastName = recipient.partyDetails.lastName || '';
+          creditorName =
+            `${firstName} ${lastName}`.trim() || 'Individual Recipient';
+        }
+      }
+    }
+  }
+
+  // Look up debtor account data if debtorAccountId is provided
+  let debtorName = transactionData.debtorName || 'Mock Customer';
+
+  if (transactionData.debtorAccountId) {
+    const debtorAccount = db.account.findFirst({
+      where: { id: { equals: transactionData.debtorAccountId } },
+    });
+
+    if (debtorAccount) {
+      // Use account label as debtor name if available
+      if (debtorAccount.label) {
+        debtorName = debtorAccount.label;
+      }
+    }
+  }
+
   const newTransaction = {
     id: transactionId,
     type: transactionData.type || 'ACH',
-    status: transactionData.status || 'PENDING',
+    status: transactionData.status || 'COMPLETED',
     amount: transactionData.amount || 0,
     currency: transactionData.currency || 'USD',
     paymentDate:
       transactionData.paymentDate || new Date().toISOString().slice(0, 10),
     effectiveDate:
       transactionData.effectiveDate || new Date().toISOString().slice(0, 10),
-    creditorAccountId: transactionData.creditorAccountId || 'acc-001',
+    creditorAccountId: creditorAccountId,
     debtorAccountId: transactionData.debtorAccountId || 'acc-002',
-    creditorName: transactionData.creditorName || 'SellSense Marketplace',
-    debtorName: transactionData.debtorName || 'Mock Customer',
+    creditorName: creditorName,
+    debtorName: debtorName,
     postingVersion: transactionData.postingVersion || 1,
     reference:
       transactionData.reference ||
+      transactionData.transactionReferenceId ||
       `Sale #${Math.floor(Math.random() * 100000)}`,
-    description: transactionData.description || 'New transaction',
+    description:
+      transactionData.description || transactionData.memo || 'New transaction',
     createdAt: new Date().toISOString(),
   };
 
@@ -332,12 +406,22 @@ export function logDbState(operation = 'Current State') {
 }
 
 // Initialize with predefined mocks
-export function initializeDb(force = false) {
+export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
   try {
+    // Validate scenario parameter
+    const validScenarios = Object.values(DB_SCENARIOS);
+    if (!validScenarios.includes(scenario)) {
+      console.warn(
+        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`,
+      );
+      scenario = DEFAULT_SCENARIO;
+    }
+
     // Only clear if forced or no clients exist
     const existingClients = db.client.getAll();
     if (force || existingClients.length === 0) {
       console.log('=== Starting Database Initialization ===');
+      console.log('Scenario:', scenario);
       console.log('Predefined Clients Data:', predefinedClients);
 
       // Clear existing data
@@ -487,14 +571,28 @@ export function initializeDb(force = false) {
         }
       });
 
-      // Initialize recipients from mock data
+      // Initialize recipients based on scenario
       console.log('\n=== Initializing Recipients ===');
-      const allRecipients = [
-        ...mockRecipientsResponse.recipients,
-        ...mockLinkedAccounts.recipients,
-      ];
+      console.log('Scenario:', scenario);
 
-      allRecipients.forEach((recipient) => {
+      let recipientsToInitialize = [];
+
+      if (scenario === DB_SCENARIOS.ACTIVE) {
+        // Only linked accounts, no regular recipients
+        recipientsToInitialize = mockLinkedAccounts.recipients;
+        console.log('Active scenario: Initializing only linked accounts');
+      } else {
+        // Default: both regular recipients and linked accounts
+        recipientsToInitialize = [
+          ...mockRecipientsResponse.recipients,
+          ...mockLinkedAccounts.recipients,
+        ];
+        console.log(
+          'Active with recipients scenario: Initializing all recipients',
+        );
+      }
+
+      recipientsToInitialize.forEach((recipient) => {
         try {
           const newRecipient = {
             ...recipient,
@@ -508,9 +606,25 @@ export function initializeDb(force = false) {
         }
       });
 
-      // Initialize accounts from mock data
+      // Initialize accounts based on scenario
       console.log('\n=== Initializing Accounts ===');
-      mockAccounts.items.forEach((account) => {
+      console.log('Scenario:', scenario);
+
+      let accountsToInitialize = [];
+
+      if (scenario === DB_SCENARIOS.ACTIVE) {
+        // Only acc-001 for ACTIVE scenario
+        accountsToInitialize = mockActiveAccounts.items;
+        console.log('Active scenario: Initializing only acc-001');
+      } else {
+        // Default: both accounts for ACTIVE_WITH_RECIPIENTS scenario
+        accountsToInitialize = mockActiveWithRecipientsAccounts.items;
+        console.log(
+          'Active with recipients scenario: Initializing both accounts (acc-001 and acc-002)',
+        );
+      }
+
+      accountsToInitialize.forEach((account) => {
         try {
           const newAccount = {
             ...account,
@@ -729,19 +843,20 @@ export function handleMagicValues(clientId, verificationData = {}) {
 }
 
 // Utility function to reset the database
-export function resetDb() {
-  const success = initializeDb(true);
+export function resetDb(scenario = DEFAULT_SCENARIO) {
+  const success = initializeDb(true, scenario);
   logDbState('Database Reset');
   return {
     success,
     message: success
-      ? 'Database reset successfully'
+      ? `Database reset successfully with scenario: ${scenario}`
       : 'Database reset completed with warnings',
+    scenario,
   };
 }
 
 // Initialize the database when this module loads
-initializeDb();
+initializeDb(false, DEFAULT_SCENARIO);
 
 // Export a function to get database status
 export function getDbStatus() {

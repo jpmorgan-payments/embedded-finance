@@ -14,7 +14,7 @@ const demos = [
     description:
       'A marketplace platform with embedded finance tools for sellers to manage payments and onboarding.',
     image: '/marketplace-dashboard.png',
-    link: '/sellsense-demo',
+    link: '/sellsense-demo?scenario=New+Seller+-+Onboarding',
     active: true,
   },
   {

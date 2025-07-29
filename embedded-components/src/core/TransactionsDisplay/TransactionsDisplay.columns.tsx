@@ -27,10 +27,6 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
     header: 'Status',
   },
   {
-    accessorKey: 'type',
-    header: 'Type',
-  },
-  {
     accessorKey: 'amount',
     accessorFn: (row) => {
       if (row.amount === undefined) {
@@ -56,10 +52,6 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
   {
     accessorKey: 'counterpartName',
     header: 'Counterpart',
-  },
-  {
-    accessorKey: 'transactionReferenceId',
-    header: 'Reference ID',
   },
   {
     id: 'actions',

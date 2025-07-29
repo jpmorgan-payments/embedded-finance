@@ -331,7 +331,101 @@ const OnboardingSection = () => {
 };
 ```
 
-### 3. LinkedAccountWidget
+### 3. Accounts
+
+> **⚠️ Alpha State**: This component is currently in alpha state and not fully integrated with the OpenAPI Specification (OAS). It may have limited functionality and is subject to significant changes.
+
+The `Accounts` component provides a read-only, responsive UI for displaying all accounts associated with a client, including their categories, states, routing information, and balances.
+
+#### Main Features:
+
+- Display accounts with categories, states, and routing information
+- Show account balances (ITAV, ITBD) with human-friendly labels
+- Filter accounts by category via props
+- Responsive layout with mobile support
+- Loading states and error handling
+- Masked account numbers for security
+
+#### Props:
+
+| Prop Name           | Type       | Required | Description                             |
+| ------------------- | ---------- | -------- | --------------------------------------- |
+| `allowedCategories` | `string[]` | Yes      | Array of account categories to display  |
+| `clientId`          | `string`   | No       | Client ID to filter accounts            |
+| `title`             | `string`   | No       | Optional title for the accounts section |
+
+#### Usage:
+
+```jsx
+import {
+  Accounts,
+  EBComponentsProvider,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const AccountsSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <Accounts
+        allowedCategories={['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS']}
+        clientId="your-client-id"
+        title="My Accounts"
+      />
+    </EBComponentsProvider>
+  );
+};
+```
+
+### 4. Recipients
+
+The `Recipients` component provides comprehensive management of payment recipients, enabling users to create, view, edit, and delete recipient information.
+
+#### Main Features:
+
+- Create, view, edit, and delete payment recipients
+- Support for multiple payment methods (ACH, WIRE, RTP)
+- Dynamic form validation based on selected payment methods
+- Search and filtering capabilities
+- Pagination for large recipient lists
+- Mobile-responsive design
+
+#### Props:
+
+| Prop Name                | Type       | Required | Description                                                            |
+| ------------------------ | ---------- | -------- | ---------------------------------------------------------------------- |
+| `clientId`               | `string`   | No       | Optional client ID filter                                              |
+| `initialRecipientType`   | `string`   | No       | Default recipient type (RECIPIENT, LINKED_ACCOUNT, SETTLEMENT_ACCOUNT) |
+| `showCreateButton`       | `boolean`  | No       | Show/hide create functionality                                         |
+| `config`                 | `object`   | No       | Configuration for payment methods and validation rules                 |
+| `onRecipientCreated`     | `function` | No       | Callback when recipient is created                                     |
+| `onRecipientUpdated`     | `function` | No       | Callback when recipient is updated                                     |
+| `onRecipientDeactivated` | `function` | No       | Callback when recipient is deactivated                                 |
+| `userEventsHandler`      | `function` | No       | Handler for user events                                                |
+
+#### Usage:
+
+```jsx
+import {
+  EBComponentsProvider,
+  Recipients,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const RecipientsSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <Recipients
+        clientId="your-client-id"
+        initialRecipientType="RECIPIENT"
+        showCreateButton={true}
+        onRecipientCreated={(recipient) => {
+          console.log('Recipient created:', recipient);
+        }}
+      />
+    </EBComponentsProvider>
+  );
+};
+```
+
+### 5. LinkedAccountWidget
 
 The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account).
 
@@ -358,7 +452,7 @@ const LinkedAccountSection = () => {
 };
 ```
 
-### 4. MakePayment
+### 6. MakePayment
 
 > **⚠️ Alpha State**: This component is currently in alpha state and not fully integrated with the OpenAPI Specification (OAS). It may have limited functionality and is subject to significant changes.
 
@@ -417,7 +511,7 @@ const PaymentSection = () => {
 };
 ```
 
-### 5. TransactionsDisplay
+### 7. TransactionsDisplay
 
 > **⚠️ Alpha State**: This component is currently in alpha state and not fully integrated with the OpenAPI Specification (OAS). It may have limited functionality and is subject to significant changes.
 
@@ -685,40 +779,3 @@ This configuration file is a mapping utility that connects form fields to API fi
 - `storybook:build` – build production storybook bundle to `storybook-static`
 - `prettier:write` – formats all files with Prettier
 - `generate-api` – generates API client from OpenAPI specifications using Orval
-
-## Recent Updates (v0.7.2)
-
-The library has been significantly enhanced with the following updates:
-
-### New Components
-
-- **MakePayment**: Complete payment interface with multiple payment methods and fee calculation _(Alpha - not fully integrated with OAS)_
-- **TransactionsDisplay**: Transaction history viewer with detailed information and filtering _(Alpha - not fully integrated with OAS)_
-- **OnboardingFlow**: Next-generation onboarding experience with improved UX and flow management
-
-### Enhanced Features
-
-- **Improved Document Upload**: Enhanced document upload with file preview, drag-and-drop support, and better error handling
-- **Enhanced Theming**: More comprehensive theming system with additional design tokens and better customization options
-- **Multi-language Support**: Added French Canadian (fr-CA) language support alongside English (US)
-- **Better Mobile Experience**: Improved responsive design and mobile-first approach
-- **Enhanced Error Handling**: Better error boundary implementation and user-friendly error messages
-
-### Technical Improvements
-
-- **Orval Integration**: Enhanced API code generation with better type safety and React Query integration
-- **Testing Enhancements**: Improved test utilities with better MSW (Mock Service Worker) integration
-- **Performance Optimizations**: Better memoization and rendering optimizations
-- **Accessibility Improvements**: Enhanced ARIA support and keyboard navigation
-
-### API Enhancements
-
-- **Better State Management**: Improved state management with React Query integration
-- **Enhanced Validation**: Better form validation with Zod schemas and improved error messages
-- **Improved Data Fetching**: Better caching, error handling, and loading states
-
-### Developer Experience
-
-- **Better Documentation**: Enhanced Storybook stories with more comprehensive examples
-- **Improved Testing**: Better test coverage and more robust testing utilities
-- **Enhanced TypeScript Support**: Better type definitions and improved developer experience

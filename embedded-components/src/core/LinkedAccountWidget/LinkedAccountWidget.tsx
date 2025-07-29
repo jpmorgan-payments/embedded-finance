@@ -1,14 +1,11 @@
+import React from 'react';
+
 import { getRecipientLabel } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ef-v1';
 import { RecipientStatus } from '@/api/generated/ef-v1.schemas';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
 import { MicrodepositsFormDialogTrigger } from './MicrodepositsForm/MicrodepositsForm';
@@ -48,11 +45,13 @@ function getSupportedPaymentMethods(recipient: any): string[] {
 type LinkedAccountWidgetProps = {
   variant?: 'default' | 'singleAccount';
   showCreateButton?: boolean;
+  makePaymentComponent?: React.ReactNode; // Optional MakePayment component to render in each card
 };
 
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   variant = 'default',
   showCreateButton = true,
+  makePaymentComponent,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, status, failureReason } = useGetAllRecipients({
@@ -71,11 +70,19 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           <CardTitle className="eb-text-xl eb-font-semibold">
             Linked Accounts
           </CardTitle>
-          {showCreateButton && (
-            <LinkAccountFormDialogTrigger>
-              <Button>Link A New Account</Button>
-            </LinkAccountFormDialogTrigger>
-          )}
+          {showCreateButton &&
+            !(
+              variant === 'singleAccount' &&
+              status === 'success' &&
+              modifiedRecipients &&
+              modifiedRecipients.some(
+                (recipient) => recipient.status === 'ACTIVE'
+              )
+            ) && (
+              <LinkAccountFormDialogTrigger>
+                <Button>Link A New Account</Button>
+              </LinkAccountFormDialogTrigger>
+            )}
         </div>
       </CardHeader>
       <CardContent className="eb-space-y-4">
@@ -149,44 +156,54 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                   </span>
                 )}
               </div>
-              <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
+              <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
                 {recipient.status === 'READY_FOR_VALIDATION' && (
                   <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="eb-text-xs"
                       title="Verify microdeposits"
                     >
                       Verify microdeposits
-                    </span>
+                    </Button>
                   </MicrodepositsFormDialogTrigger>
                 )}
-                <span
-                  role="button"
-                  tabIndex={0}
-                  className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                {makePaymentComponent && (
+                  <div className="eb-ml-auto">
+                    {React.cloneElement(
+                      makePaymentComponent as React.ReactElement,
+                      {
+                        recipientId: recipient.id,
+                      }
+                    )}
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="eb-text-xs"
                   title="View details"
                 >
                   Details
-                </span>
-                <span
-                  role="button"
-                  tabIndex={0}
-                  className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="eb-text-xs"
                   title="Edit linked account"
                 >
                   Edit
-                </span>
+                </Button>
                 {recipient.status === 'ACTIVE' && (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="eb-text-xs eb-text-red-600 hover:eb-text-red-700"
                     title="Deactivate linked account"
                   >
                     Deactivate
-                  </span>
+                  </Button>
                 )}
               </div>
             </div>
