@@ -166,27 +166,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
   }, [accounts?.items, form]);
 
-  // Auto-select recipient when there's only one available after account selection
-  useEffect(() => {
-    if (
-      selectedAccount &&
-      filteredRecipients.length === 1 &&
-      form.getValues('to') !== filteredRecipients[0].id
-    ) {
-      form.setValue('to', filteredRecipients[0].id);
-    }
-  }, [selectedAccount, filteredRecipients, form]);
-
-  // Auto-select payment method when there's only one available
-  useEffect(() => {
-    if (
-      paymentMethods.length === 1 &&
-      form.getValues('method') !== paymentMethods[0].id
-    ) {
-      form.setValue('method', paymentMethods[0].id);
-    }
-  }, [paymentMethods, form]);
-
   // Compute available payment methods for the selected recipient
   const selectedRecipient = useMemo(() => {
     return filteredRecipients.find((r: any) => r.id === form.watch('to'));
@@ -208,28 +187,49 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     );
   }, [paymentMethods, availableRoutingTypes]);
 
-  // Preselect payment method if only one is available for the selected recipient
+  // Auto-selection logic for form fields
   useEffect(() => {
-    if (
-      dynamicPaymentMethods.length === 1 &&
-      form.getValues('method') !== dynamicPaymentMethods[0].id
-    ) {
-      form.setValue('method', dynamicPaymentMethods[0].id);
+    // Auto-select single account if only one is available
+    if (accounts?.items.length === 1) {
+      const currentAccount = form.getValues('from');
+      if (currentAccount !== accounts.items[0].id) {
+        form.setValue('from', accounts.items[0].id);
+      }
     }
-  }, [dynamicPaymentMethods, form]);
 
-  // Reset payment method if not available for the new recipient
-  useEffect(() => {
+    // Auto-select single recipient if only one is available after account selection
+    if (selectedAccount && filteredRecipients.length === 1) {
+      const currentRecipient = form.getValues('to');
+      if (currentRecipient !== filteredRecipients[0].id) {
+        form.setValue('to', filteredRecipients[0].id);
+      }
+    }
+
+    // Auto-select single payment method if only one is available
+    if (paymentMethods.length === 1) {
+      const currentMethod = form.getValues('method');
+      if (currentMethod !== paymentMethods[0].id) {
+        form.setValue('method', paymentMethods[0].id);
+      }
+    }
+
+    // Auto-select payment method if only one is available for the selected recipient
+    if (dynamicPaymentMethods.length === 1) {
+      const currentMethod = form.getValues('method');
+      if (currentMethod !== dynamicPaymentMethods[0].id) {
+        form.setValue('method', dynamicPaymentMethods[0].id);
+      }
+    }
+
+    // Reset payment method if not available for the new recipient
     if (
       form.getValues('method') &&
       !dynamicPaymentMethods.some((pm) => pm.id === form.getValues('method'))
     ) {
       form.setValue('method', '');
     }
-  }, [dynamicPaymentMethods, form]);
 
-  // Reset recipient when account changes
-  useEffect(() => {
+    // Reset recipient when account changes
     if (selectedAccount) {
       const currentRecipient = form.getValues('to');
       const isRecipientStillValid = filteredRecipients.some(
@@ -240,7 +240,14 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         form.setValue('to', '');
       }
     }
-  }, [selectedAccount, filteredRecipients, form]);
+  }, [
+    accounts?.items,
+    selectedAccount,
+    filteredRecipients,
+    paymentMethods,
+    dynamicPaymentMethods,
+    form,
+  ]);
 
   // Derived state for recipient selection and warning
   const recipientSelectionState = useMemo(() => {
@@ -260,6 +267,8 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       }
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
+
+    // Show warning if recipientId is provided but not found in filtered recipients
     return { shouldSelectRecipient: false, recipientNotFound: true };
   }, [recipientId, filteredRecipients, form]);
 
@@ -314,8 +323,37 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     if (!dialogOpen) {
       setLocalSuccess(false);
       resetPayment();
+      resetForm(); // Reset the form when dialog closes
     }
-  }, [dialogOpen, resetPayment]);
+  }, [dialogOpen, resetPayment, resetForm]);
+
+  // Restore pre-selected values when dialog opens
+  useEffect(() => {
+    if (dialogOpen) {
+      // If there's a recipientId and accounts are loaded, restore pre-selection
+      if (recipientId && accounts?.items) {
+        // Auto-select single account if only one is available
+        if (accounts.items.length === 1) {
+          form.setValue('from', accounts.items[0].id);
+        }
+      }
+    }
+  }, [dialogOpen, recipientId, accounts?.items, form]);
+
+  // Restore recipient selection when recipients are loaded and dialog is open
+  useEffect(() => {
+    if (dialogOpen && recipientId && filteredRecipients.length > 0) {
+      const recipientExists = filteredRecipients.some(
+        (r: any) => r.id === recipientId
+      );
+      if (recipientExists) {
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', recipientId);
+        }
+      }
+    }
+  }, [dialogOpen, recipientId, filteredRecipients, form]);
 
   const amount = Number.parseFloat(form.watch('amount') || '0');
   const from = form.watch('from');
@@ -368,6 +406,15 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </CardHeader>
           <CardContent className="eb-space-y-4 eb-pt-0">
             <DialogDescription>{t('description')}</DialogDescription>
+
+            {/* Show recipient warning immediately if recipientId is invalid */}
+            {recipientNotFound && recipientId && (
+              <div className="eb-rounded-md eb-border eb-border-destructive/20 eb-bg-destructive/10 eb-p-3">
+                <div className="eb-text-sm eb-text-destructive">
+                  {t('warnings.recipientNotFound', { recipientId })}
+                </div>
+              </div>
+            )}
 
             {/* Make the form content scrollable if it grows */}
             <div className="eb-max-h-[70vh] eb-overflow-y-auto eb-pr-1">
@@ -452,24 +499,27 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </div>
                         ) : accountBalance?.balanceTypes?.length ? (
                           <div className="eb-space-y-1">
-                            {accountBalance.balanceTypes.map((balance) => (
-                              <div
-                                key={balance.typeCode}
-                                className="eb-flex eb-items-center eb-justify-between eb-text-sm"
-                              >
-                                <span className="eb-text-muted-foreground">
-                                  {balance.typeCode === 'ITAV'
-                                    ? 'Available Balance'
-                                    : balance.typeCode === 'ITBD'
-                                      ? 'Booked Balance'
-                                      : balance.typeCode}
-                                </span>
-                                <span className="eb-font-mono eb-font-medium">
-                                  ${balance.amount.toFixed(2)}{' '}
-                                  {accountBalance.currency}
-                                </span>
-                              </div>
-                            ))}
+                            {(() => {
+                              const availableBalanceData =
+                                accountBalance.balanceTypes.find(
+                                  (balance) => balance.typeCode === 'ITAV'
+                                );
+                              return availableBalanceData ? (
+                                <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
+                                  <span className="eb-text-muted-foreground">
+                                    Available Balance
+                                  </span>
+                                  <span className="eb-font-mono eb-font-medium">
+                                    ${availableBalanceData.amount.toFixed(2)}{' '}
+                                    {accountBalance.currency}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="eb-text-sm eb-text-muted-foreground">
+                                  No available balance information
+                                </div>
+                              );
+                            })()}
                           </div>
                         ) : (
                           <div className="eb-text-sm eb-text-muted-foreground">
@@ -516,11 +566,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                   : 'No recipients available'}
                               </div>
                             )}
-                          {recipientNotFound && (
-                            <div className="eb-py-2 eb-text-xs eb-text-destructive">
-                              {t('warnings.recipientNotFound', { recipientId })}
-                            </div>
-                          )}
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}

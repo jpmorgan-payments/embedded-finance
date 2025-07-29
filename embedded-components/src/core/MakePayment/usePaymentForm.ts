@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -60,10 +60,18 @@ export const usePaymentForm = () => {
     }
   };
 
-  const resetForm = () => {
-    form.reset();
-    setIsSuccess(false);
-  };
+  const resetForm = useCallback(() => {
+    // Only reset if there are actual values to reset
+    const currentValues = form.getValues();
+    const hasValues = Object.values(currentValues).some(
+      (value) => value !== '' && value !== undefined && value !== null
+    );
+
+    if (hasValues) {
+      form.reset();
+      setIsSuccess(false);
+    }
+  }, [form]);
 
   return {
     form,

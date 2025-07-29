@@ -963,22 +963,22 @@ export const GhostVariantNoIcon: Story = {
     triggerButtonVariant: 'ghost',
     icon: undefined, // No icon
     contentTokens: {
-      name: 'enUS', // Keep English but we'll show how to customize via content tokens
+      name: 'enUS',
+      tokens: {
+        'make-payment': {
+          buttons: {
+            makePayment: 'Pay',
+          },
+        },
+      },
     },
   },
   parameters: {
     docs: {
       description: {
         story:
-          'This story demonstrates the MakePayment component with a Ghost variant trigger button and no icon. The Ghost variant provides a subtle, minimal appearance suitable for secondary actions or less prominent UI elements. To customize button text, you can pass custom content tokens to the EBComponentsProvider with your own translation keys.',
+          'This story demonstrates the MakePayment component with a Ghost variant trigger button and no icon. The Ghost variant provides a subtle, minimal appearance suitable for secondary actions or less prominent UI elements. The button text is customized using content tokens to show "Pay" instead of the default text.',
       },
     },
-    // Example of how to customize button text via content tokens:
-    // You can pass custom content tokens to EBComponentsProvider like this:
-    // contentTokens: {
-    //   name: 'custom',
-    //   // This would load a custom translation file with your own button text
-    //   // The translation file would contain: { "buttons": { "makePayment": "Pay" } }
-    // }
   },
 };
