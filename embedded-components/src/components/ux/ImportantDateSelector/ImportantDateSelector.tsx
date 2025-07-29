@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,8 +19,6 @@ interface ImportantDateSelectorProps
   > {
   value?: Date;
   onChange?: (value: Date | null, errorMessage?: string) => void;
-  minDate?: Date;
-  maxDate?: Date;
   disabled?: boolean;
   format?: 'DMY' | 'YMD' | 'MDY';
   separator?: React.ReactNode;
@@ -40,10 +38,7 @@ const validateDate = (
   day: string,
   month: string,
   year: string,
-  minDate?: Date,
-  maxDate?: Date,
-  setErrorMsg?: (errorMessage: string) => void,
-  t?: (key: string) => string
+  t: (key: string) => string
 ) => {
   const dayNum = Number.parseInt(day, 10);
   const monthNum = Number.parseInt(month, 10);
@@ -52,9 +47,7 @@ const validateDate = (
   if (Number.isNaN(dayNum) || Number.isNaN(monthNum) || Number.isNaN(yearNum)) {
     return {
       isValid: false,
-      errorMessage:
-        t?.('fields.birthDate.validation.format') ??
-        'Please enter a valid date in MM/DD/YYYY format',
+      errorMessage: t('dateFormat'),
     };
   }
 
@@ -68,8 +61,7 @@ const validateDate = (
   ) {
     return {
       isValid: false,
-      errorMessage:
-        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date',
+      errorMessage: t('dateInvalid'),
     };
   }
 
@@ -81,26 +73,7 @@ const validateDate = (
   ) {
     return {
       isValid: false,
-      errorMessage:
-        t?.('fields.birthDate.validation.invalid') ?? 'Invalid date',
-    };
-  }
-
-  if (minDate && date < minDate) {
-    return {
-      isValid: false,
-      errorMessage:
-        t?.('fields.birthDate.validation.tooOld') ??
-        'Date indicates age over 120 years old. Please verify the date',
-    };
-  }
-
-  if (maxDate && date > maxDate) {
-    return {
-      isValid: false,
-      errorMessage:
-        t?.('fields.birthDate.validation.tooYoung') ??
-        'Must be at least 18 years old to proceed',
+      errorMessage: t('dateInvalid'),
     };
   }
 
@@ -110,8 +83,6 @@ const validateDate = (
 export function ImportantDateSelector({
   value,
   onChange,
-  minDate,
-  maxDate,
   disabled = false,
   format = 'MDY',
   separator = '',
@@ -128,7 +99,7 @@ export function ImportantDateSelector({
   const [isTouched, setIsTouched] = useState(false);
   const [isPrepopulated, setIsPrepopulated] = useState(!!value);
 
-  const { t } = useTranslation();
+  const { t } = useTranslation('common');
 
   const updateDate = useCallback(
     (newDay: string, newMonth: string, newYear: string) => {
@@ -136,8 +107,6 @@ export function ImportantDateSelector({
         newDay,
         newMonth,
         newYear,
-        minDate,
-        maxDate,
         t
       );
 
@@ -153,7 +122,7 @@ export function ImportantDateSelector({
         onChange?.(null, errorMessage);
       }
     },
-    [minDate, maxDate, onChange] // Added onChange to dependencies
+    [onChange]
   );
 
   useEffect(() => {

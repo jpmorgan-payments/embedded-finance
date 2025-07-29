@@ -1,6 +1,6 @@
 import { FC } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { useStepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui';

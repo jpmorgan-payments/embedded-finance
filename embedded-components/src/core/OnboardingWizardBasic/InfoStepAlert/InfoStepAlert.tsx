@@ -1,6 +1,6 @@
 import { FC } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { useTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';
 
 import { cn } from '@/lib/utils';

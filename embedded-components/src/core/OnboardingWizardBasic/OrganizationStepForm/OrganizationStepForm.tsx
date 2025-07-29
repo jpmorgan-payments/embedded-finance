@@ -50,8 +50,8 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { InfoIcon, XIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';

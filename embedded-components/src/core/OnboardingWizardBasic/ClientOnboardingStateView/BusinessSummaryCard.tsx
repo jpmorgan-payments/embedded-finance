@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { AlertCircle, Building, Upload } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { ClientResponse, ClientStatus } from '@/api/generated/smbdo.schemas';
 import {

@@ -1,6 +1,6 @@
 import React from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { AlertTriangle } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { useGetParty, useSmbdoListQuestions } from '@/api/generated/smbdo';
 import { ClientResponse } from '@/api/generated/smbdo.schemas';

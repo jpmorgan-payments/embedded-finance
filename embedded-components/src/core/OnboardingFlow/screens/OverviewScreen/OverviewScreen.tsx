@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
@@ -13,7 +14,6 @@ import {
   PencilIcon,
   XIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

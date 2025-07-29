@@ -2,7 +2,7 @@
   "welcomeText": "Welcome!",
   "screens": {
     "gateway": {
-      "title": "Let's help you get dstarted",
+      "title": "Let's help you get started",
       "description": "Select your business type and we'll explain what information you'll need to complete this application.",
       "nextButton": "Show me what's needed",
       "infoAlert": {

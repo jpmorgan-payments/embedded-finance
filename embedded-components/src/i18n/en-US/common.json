@@ -17,7 +17,9 @@
   "validation": {
     "required": "This field is required",
     "minItems": "Minimum {{count}} items required",
-    "maxItems": "Maximum {{count}} items allowed"
+    "maxItems": "Maximum {{count}} items allowed",
+    "dateFormat": "Please enter a valid date in MM/DD/YYYY format",
+    "dateInvalid": "Invalid date"
   },
   "countries": {
     "AE": "United Arab Emirates",

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
   FieldArray,
@@ -8,7 +9,6 @@ import {
   useFieldArray,
   UseFieldArrayProps,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';

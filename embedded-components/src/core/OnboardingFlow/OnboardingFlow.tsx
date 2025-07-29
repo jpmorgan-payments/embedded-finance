@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
-import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';

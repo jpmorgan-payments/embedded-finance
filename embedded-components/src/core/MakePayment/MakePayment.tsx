@@ -2,9 +2,9 @@
 
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import {

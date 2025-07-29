@@ -6,8 +6,8 @@ import {
   ReactPortal,
   useState,
 } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { ChevronDown, X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { _get, isValueEmpty } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
