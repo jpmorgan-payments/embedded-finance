@@ -149,7 +149,12 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Manage linked account status',
         'Secure account verification process',
       ],
-      component: <LinkedAccountWidget makePaymentComponent={<MakePayment />} />,
+      component: (
+        <LinkedAccountWidget
+          makePaymentComponent={<MakePayment />}
+          variant="singleAccount"
+        />
+      ),
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
