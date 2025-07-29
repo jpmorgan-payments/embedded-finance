@@ -46,64 +46,89 @@ export type View =
   | 'analytics'
   | 'growth';
 
-export function DashboardLayout() {
-  // Use TanStack Router's search param APIs
-  const searchParams = useSearch({ from: '/sellsense-demo' });
-  const navigate = useNavigate({ from: '/sellsense-demo' });
+// Enhanced skeleton loading component that matches dashboard structure
+function LoadingSkeleton() {
+  return (
+    <div className="p-4 md:p-6 lg:p-8 bg-sellsense-background-light min-h-screen animate-pulse">
+      {/* Header skeleton */}
+      <div className="mb-6 md:mb-8">
+        <div className="h-8 w-48 bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 w-32 bg-gray-200 rounded"></div>
+      </div>
 
-  // Mobile menu state
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+      {/* Stats Grid skeleton - matches dashboard overview structure */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5"
+          >
+            <div className="bg-gray-200 rounded-lg p-2 md:p-3 w-12 h-12 md:w-14 md:h-14"></div>
+            <div className="flex-1">
+              <div className="h-3 w-24 bg-gray-200 rounded mb-2"></div>
+              <div className="h-8 w-16 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
 
-  // Settings drawer state
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+      {/* Content area skeleton */}
+      <div className="space-y-6">
+        {/* Section header */}
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-32 bg-gray-200 rounded"></div>
+          <div className="h-8 w-24 bg-gray-200 rounded"></div>
+        </div>
 
-  // Initialize state from search params with defaults
-  const [clientScenario, setClientScenario] = useState<ClientScenario>(
-    (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
+        {/* Cards grid - matches wallet overview structure */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((column) => (
+            <div key={column} className="space-y-4">
+              {/* Component card skeleton */}
+              <div className="bg-white rounded-lg border p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-5 w-32 bg-gray-200 rounded"></div>
+                  <div className="flex gap-2">
+                    <div className="h-6 w-6 bg-gray-200 rounded"></div>
+                    <div className="h-6 w-6 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+
+                {/* Component content skeleton */}
+                <div className="space-y-3">
+                  <div className="h-4 w-full bg-gray-200 rounded"></div>
+                  <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+                </div>
+
+                {/* Action buttons skeleton */}
+                <div className="flex gap-2 mt-4">
+                  <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                  <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Additional content skeleton */}
+        <div className="bg-white rounded-lg border p-6">
+          <div className="h-5 w-40 bg-gray-200 rounded mb-4"></div>
+          <div className="space-y-3">
+            <div className="h-4 w-full bg-gray-200 rounded"></div>
+            <div className="h-4 w-5/6 bg-gray-200 rounded"></div>
+            <div className="h-4 w-4/6 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-  const [theme, setTheme] = useState<ThemeOption>(
-    searchParams.theme || 'SellSense',
-  );
-  const [contentTone, setContentTone] = useState<ContentTone>(
-    searchParams.contentTone || 'Standard',
-  );
-  const [activeView, setActiveView] = useState<View>(
-    searchParams.view ||
-      getInitialView(
-        (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
-      ),
-  );
+}
 
-  // Sync state with search params on change
-  useEffect(() => {
-    if (searchParams.scenario && searchParams.scenario !== clientScenario) {
-      setClientScenario(searchParams.scenario as ClientScenario);
-      setActiveView(
-        searchParams.view ||
-          getInitialView(searchParams.scenario as ClientScenario),
-      );
-    }
-    if (searchParams.theme && searchParams.theme !== theme) {
-      setTheme(searchParams.theme);
-    }
-    if (searchParams.contentTone && searchParams.contentTone !== contentTone) {
-      setContentTone(searchParams.contentTone);
-    }
-    if (searchParams.view && searchParams.view !== activeView) {
-      setActiveView(searchParams.view);
-    }
-  }, [searchParams]);
-
-  // Helper function to update search params
-  const updateSearchParams = (updates: Record<string, any>) => {
-    navigate({
-      search: (prev) => ({ ...prev, ...updates }),
-      replace: true,
-    });
-  };
-
-  // Helper function to emulate browser tab switch events
-  const emulateTabSwitch = () => {
+// Database reset utilities
+const DatabaseResetUtils = {
+  // Emulate browser tab switch events to trigger component refetch
+  emulateTabSwitch: () => {
     console.log('Emulating browser tab switch events...');
 
     // Simulate the sequence of events that occur when switching browser tabs:
@@ -148,9 +173,55 @@ export function DashboardLayout() {
         'Tab switch emulation complete - all embedded components should refetch',
       );
     }, 100);
-  };
+  },
 
-  function getInitialView(scenario: ClientScenario): View {
+  // Reset database for a specific scenario
+  resetDatabaseForScenario: async (
+    scenario: ClientScenario,
+    setIsLoading: (loading: boolean) => void,
+  ) => {
+    setIsLoading(true);
+
+    try {
+      // Check if this scenario has a reset DB scenario and trigger the reset
+      if (hasResetDbScenario(scenario)) {
+        const resetScenario = getResetDbScenario(scenario);
+        if (resetScenario) {
+          console.log(`Resetting DB with scenario: ${resetScenario}`);
+
+          // Call the MSW reset endpoint
+          const response = await fetch('/ef/do/v1/_reset', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ scenario: resetScenario }),
+          });
+
+          const data = await response.json();
+          console.log('Database reset successful:', data);
+        }
+      }
+
+      // Emulate tab switch event after 300ms to trigger refetch in all embedded components
+      setTimeout(() => {
+        DatabaseResetUtils.emulateTabSwitch();
+        // Clear loading state after tab switch emulation
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 100);
+      }, 300);
+    } catch (error) {
+      console.error('Database reset failed:', error);
+      setIsLoading(false);
+    }
+  },
+};
+
+// View utilities
+const ViewUtils = {
+  // Get initial view based on scenario
+  getInitialView: (scenario: ClientScenario): View => {
     const scenarioKey = getScenarioKeyByDisplayName(scenario);
     if (scenarioKey) {
       const config = getScenarioByKey(scenarioKey);
@@ -166,10 +237,49 @@ export function DashboardLayout() {
       default:
         return 'wallet';
     }
-  }
+  },
 
+  // Check if scenario is onboarding type
+  isOnboardingScenario: (scenario: ClientScenario): boolean => {
+    return [
+      'New Seller - Onboarding',
+      'Onboarding - Docs Needed',
+      'Onboarding - In Review',
+    ].includes(scenario);
+  },
+};
+
+export function DashboardLayout() {
+  // Router hooks
+  const searchParams = useSearch({ from: '/sellsense-demo' });
+  const navigate = useNavigate({ from: '/sellsense-demo' });
+
+  // State management
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize state from search params with defaults
+  const [clientScenario, setClientScenario] = useState<ClientScenario>(
+    (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
+  );
+  const [theme, setTheme] = useState<ThemeOption>(
+    searchParams.theme || 'SellSense',
+  );
+  const [contentTone, setContentTone] = useState<ContentTone>(
+    searchParams.contentTone || 'Standard',
+  );
+  const [activeView, setActiveView] = useState<View>(
+    searchParams.view ||
+      ViewUtils.getInitialView(
+        (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
+      ),
+  );
+
+  // Event handlers
   const handleScenarioChange = (scenario: ClientScenario) => {
-    const newView = getInitialView(scenario);
+    const newView = ViewUtils.getInitialView(scenario);
     setClientScenario(scenario);
     setActiveView(newView);
 
@@ -178,39 +288,8 @@ export function DashboardLayout() {
       view: newView,
     });
 
-    // Check if this scenario has a reset DB scenario and trigger the reset
-    if (hasResetDbScenario(scenario)) {
-      const resetScenario = getResetDbScenario(scenario);
-      if (resetScenario) {
-        console.log(`Resetting DB with scenario: ${resetScenario}`);
-
-        // Call the MSW reset endpoint
-        fetch('/ef/do/v1/_reset', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ scenario: resetScenario }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log('Database reset successful:', data);
-
-            // Emulate tab switch event after 300ms to trigger refetch in all embedded components
-            setTimeout(() => {
-              emulateTabSwitch();
-            }, 300);
-          })
-          .catch((error) => {
-            console.error('Database reset failed:', error);
-          });
-      }
-    } else {
-      // Even if no DB reset, still trigger tab switch emulation after 300ms
-      setTimeout(() => {
-        emulateTabSwitch();
-      }, 300);
-    }
+    // Reset database for the new scenario
+    DatabaseResetUtils.resetDatabaseForScenario(scenario, setIsLoading);
   };
 
   const handleThemeChange = (newTheme: ThemeOption) => {
@@ -229,14 +308,63 @@ export function DashboardLayout() {
     updateSearchParams({ view: newView });
   };
 
-  const isOnboardingScenario = [
-    'New Seller - Onboarding',
-    'Onboarding - Docs Needed',
-    'Onboarding - In Review',
-  ].includes(clientScenario);
+  // Helper function to update search params
+  const updateSearchParams = (updates: Record<string, any>) => {
+    navigate({
+      search: (prev) => ({ ...prev, ...updates }),
+      replace: true,
+    });
+  };
 
+  // Effects
+  // Handle initial load with URL parameters
+  useEffect(() => {
+    if (!hasProcessedInitialLoad && searchParams.scenario) {
+      const scenarioFromUrl = searchParams.scenario as ClientScenario;
+      console.log('Processing initial load with scenario:', scenarioFromUrl);
+
+      // Reset database for the scenario from URL
+      DatabaseResetUtils.resetDatabaseForScenario(
+        scenarioFromUrl,
+        setIsLoading,
+      );
+
+      // Mark as processed to avoid duplicate resets
+      setHasProcessedInitialLoad(true);
+    }
+  }, [searchParams.scenario, hasProcessedInitialLoad]);
+
+  // Sync state with search params on change
+  useEffect(() => {
+    if (searchParams.scenario && searchParams.scenario !== clientScenario) {
+      setClientScenario(searchParams.scenario as ClientScenario);
+      setActiveView(
+        searchParams.view ||
+          ViewUtils.getInitialView(searchParams.scenario as ClientScenario),
+      );
+    }
+    if (searchParams.theme && searchParams.theme !== theme) {
+      setTheme(searchParams.theme);
+    }
+    if (searchParams.contentTone && searchParams.contentTone !== contentTone) {
+      setContentTone(searchParams.contentTone);
+    }
+    if (searchParams.view && searchParams.view !== activeView) {
+      setActiveView(searchParams.view);
+    }
+  }, [searchParams]);
+
+  // Render functions
   const renderMainContent = () => {
-    if (isOnboardingScenario && activeView === 'onboarding') {
+    // Show loading skeleton if database reset is in progress
+    if (isLoading) {
+      return <LoadingSkeleton />;
+    }
+
+    if (
+      ViewUtils.isOnboardingScenario(clientScenario) &&
+      activeView === 'onboarding'
+    ) {
       return <KycOnboarding clientScenario={clientScenario} theme={theme} />;
     }
 
