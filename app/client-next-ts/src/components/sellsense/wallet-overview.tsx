@@ -33,6 +33,7 @@ interface ComponentInfo {
   componentDescription: string;
   componentFeatures: string[];
   component: React.ReactNode;
+  column?: 1 | 2; // Optional column assignment (1 = left, 2 = right)
 }
 
 export function WalletOverview(props: WalletOverviewProps = {}) {
@@ -95,6 +96,8 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   };
 
   // All available components with their configurations
+  // Column configuration: column: 1 = left column, column: 2 = right column
+  // Components without column assignment default to column 1
   const allComponents: Record<ComponentName, ComponentInfo> = {
     [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
       title: 'Make Payment',
@@ -113,6 +116,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           <MakePayment onTransactionSettled={handleTransactionSettled} />
         </div>
       ),
+      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.ACCOUNTS]: {
       title: 'Accounts',
@@ -138,6 +142,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           }}
         />
       ),
+      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.LINKED_ACCOUNTS]: {
       title: 'Linked Bank Accounts',
@@ -154,10 +159,13 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <LinkedAccountWidget
-          makePaymentComponent={<MakePayment />}
+          makePaymentComponent={
+            <MakePayment onTransactionSettled={handleTransactionSettled} />
+          }
           variant="singleAccount"
         />
       ),
+      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
@@ -181,6 +189,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           }}
         />
       ),
+      column: 2, // Default to column 2
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',
@@ -194,7 +203,14 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Edit recipient information',
         'Delete recipients when needed',
       ],
-      component: <Recipients makePaymentComponent={<MakePayment />} />,
+      component: (
+        <Recipients
+          makePaymentComponent={
+            <MakePayment onTransactionSettled={handleTransactionSettled} />
+          }
+        />
+      ),
+      column: 2, // Default to column 2
     },
   };
 
@@ -261,52 +277,106 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         headers={headers}
         contentTokens={contentTokens}
       >
-        <div
-          className={
-            layout === 'grid'
-              ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
-              : layout === 'columns'
-                ? 'columns-1 lg:columns-2 gap-6 space-y-6'
+        {layout === 'columns' ? (
+          // Column layout with component positioning
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Column 1 */}
+            <div className="space-y-6">
+              {(components || [])
+                .filter(
+                  (component) => component.column === 1 || !component.column,
+                )
+                .map((componentInfo, index) => (
+                  <div key={`col1-${index}`}>
+                    <EmbeddedComponentCard
+                      component={componentInfo.component}
+                      componentName={componentInfo.componentName}
+                      componentDescription={componentInfo.componentDescription}
+                      componentFeatures={componentInfo.componentFeatures}
+                      isAnyTooltipOpen={openTooltip !== null}
+                      onTooltipToggle={handleTooltipToggle}
+                      onFullScreen={() => {
+                        const fullscreenUrl = createFullscreenUrl(
+                          componentInfo.componentName,
+                          currentTheme,
+                        );
+                        window.open(fullscreenUrl, '_blank');
+                      }}
+                    />
+                  </div>
+                ))}
+            </div>
+
+            {/* Column 2 */}
+            <div className="space-y-6">
+              {(components || [])
+                .filter((component) => component.column === 2)
+                .map((componentInfo, index) => (
+                  <div key={`col2-${index}`}>
+                    <EmbeddedComponentCard
+                      component={componentInfo.component}
+                      componentName={componentInfo.componentName}
+                      componentDescription={componentInfo.componentDescription}
+                      componentFeatures={componentInfo.componentFeatures}
+                      isAnyTooltipOpen={openTooltip !== null}
+                      onTooltipToggle={handleTooltipToggle}
+                      onFullScreen={() => {
+                        const fullscreenUrl = createFullscreenUrl(
+                          componentInfo.componentName,
+                          currentTheme,
+                        );
+                        window.open(fullscreenUrl, '_blank');
+                      }}
+                    />
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : (
+          // Original grid and full-width layouts
+          <div
+            className={
+              layout === 'grid'
+                ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
                 : 'space-y-6'
-          }
-        >
-          {(components || []).map((componentInfo, index) => (
-            <div
-              key={index}
-              className={layout === 'columns' ? 'break-inside-avoid mb-6' : ''}
+            }
+          >
+            {(components || []).map((componentInfo, index) => (
+              <div key={index}>
+                <EmbeddedComponentCard
+                  component={componentInfo.component}
+                  componentName={componentInfo.componentName}
+                  componentDescription={componentInfo.componentDescription}
+                  componentFeatures={componentInfo.componentFeatures}
+                  isAnyTooltipOpen={openTooltip !== null}
+                  onTooltipToggle={handleTooltipToggle}
+                  onFullScreen={() => {
+                    const fullscreenUrl = createFullscreenUrl(
+                      componentInfo.componentName,
+                      currentTheme,
+                    );
+                    window.open(fullscreenUrl, '_blank');
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(components || []).length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500">
+              No components available for the current scenario. This may be due
+              to a database reset.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              <EmbeddedComponentCard
-                component={componentInfo.component}
-                componentName={componentInfo.componentName}
-                componentDescription={componentInfo.componentDescription}
-                componentFeatures={componentInfo.componentFeatures}
-                isAnyTooltipOpen={openTooltip !== null}
-                onTooltipToggle={handleTooltipToggle}
-                onFullScreen={() => {
-                  const fullscreenUrl = createFullscreenUrl(
-                    componentInfo.componentName,
-                    currentTheme,
-                  );
-                  window.open(fullscreenUrl, '_blank');
-                }}
-              />
-            </div>
-          ))}
-          {(components || []).length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">
-                No components available for the current scenario. This may be
-                due to a database reset.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Reload Page
-              </button>
-            </div>
-          )}
-        </div>
+              Reload Page
+            </button>
+          </div>
+        )}
       </EBComponentsProvider>
     </div>
   );
