@@ -314,8 +314,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     if (!dialogOpen) {
       setLocalSuccess(false);
       resetPayment();
+      resetForm(); // Reset the form when dialog closes
     }
-  }, [dialogOpen, resetPayment]);
+  }, [dialogOpen, resetPayment, resetForm]);
+
+  // Remove the problematic useEffect that was causing infinite loop
+  // The form will be reset when dialog closes, ensuring clean state on next open
 
   const amount = Number.parseFloat(form.watch('amount') || '0');
   const from = form.watch('from');
