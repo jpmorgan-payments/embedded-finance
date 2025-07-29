@@ -6,10 +6,11 @@ import {
   linkedAccountReadyForValidationMock,
   linkedAccountRejectedMock,
 } from '@/mocks/efLinkedAccounts.mock';
-import { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import { MakePayment } from '@/core/MakePayment';
 
 import { LinkedAccountWidget } from './LinkedAccountWidget';
 
@@ -18,11 +19,13 @@ const LinkedAccountsWithProvider = ({
   headers,
   theme,
   variant,
+  makePaymentComponent,
 }: {
   apiBaseUrl: string;
   headers: Record<string, string>;
   theme: Record<string, unknown>;
   variant?: 'default' | 'singleAccount';
+  makePaymentComponent?: React.ReactNode;
 }) => {
   return (
     <>
@@ -31,7 +34,10 @@ const LinkedAccountsWithProvider = ({
         headers={headers}
         theme={theme}
       >
-        <LinkedAccountWidget variant={variant} />
+        <LinkedAccountWidget
+          variant={variant}
+          makePaymentComponent={makePaymentComponent}
+        />
       </EBComponentsProvider>
     </>
   );
@@ -225,6 +231,89 @@ export const MixedStatuses: Story = {
               linkedAccountRejectedMock.recipients?.[0], // Rejected
               linkedAccountInactiveMock.recipients?.[0], // Inactive
             ].filter(Boolean),
+          });
+        }),
+      ],
+    },
+  },
+};
+
+export const WithMakePaymentComponent: Story = {
+  name: 'With MakePayment Component',
+  args: {
+    apiBaseUrl: '/',
+    variant: 'default',
+    makePaymentComponent: (
+      <MakePayment triggerButtonVariant="ghost" icon={undefined} />
+    ),
+  },
+  parameters: {
+    docs: {
+      story:
+        'This story demonstrates the LinkedAccountWidget with a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form.',
+    },
+    msw: {
+      handlers: [
+        http.get('/recipients', () => {
+          return HttpResponse.json(linkedAccountListMock);
+        }),
+        http.get('/accounts', () => {
+          return HttpResponse.json({
+            items: [
+              {
+                id: 'account1',
+                clientId: '0005199987',
+                label: 'MAIN_ACCOUNT',
+                state: 'OPEN',
+                paymentRoutingInformation: {
+                  accountNumber: '10000000001035',
+                  country: 'US',
+                  routingInformation: [
+                    {
+                      type: 'ABA',
+                      value: '028000024',
+                    },
+                  ],
+                },
+                createdAt: '2025-04-14T08:57:21.592681Z',
+                category: 'LIMITED_DDA',
+              },
+            ],
+          });
+        }),
+        http.get('/accounts/:accountId/balances', () => {
+          return HttpResponse.json({
+            balanceTypes: [
+              {
+                typeCode: 'ITAV',
+                amount: 5000.0,
+              },
+              {
+                typeCode: 'ITBD',
+                amount: 5200.0,
+              },
+            ],
+            currency: 'USD',
+          });
+        }),
+        http.post('/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'linkedAccount1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
           });
         }),
       ],
