@@ -71,6 +71,13 @@ interface PaymentMethod {
 
 interface PaymentComponentProps {
   triggerButton?: React.ReactNode;
+  triggerButtonVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
   accounts?: Account[];
   paymentMethods?: PaymentMethod[];
   icon?: string;
@@ -83,12 +90,13 @@ interface PaymentComponentProps {
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
+  triggerButtonVariant = 'default',
   paymentMethods = [
     { id: 'ACH', name: 'ACH', fee: 2.5 },
     { id: 'RTP', name: 'RTP', fee: 1 },
     { id: 'WIRE', name: 'WIRE', fee: 25 },
   ],
-  icon = 'CirclePlus',
+  icon,
   recipientId,
   onTransactionSettled,
 }) => {
@@ -342,6 +350,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         {triggerButton || (
           <Button
             onClick={() => setDialogOpen(true)}
+            variant={triggerButtonVariant}
             className="eb-flex eb-items-center eb-gap-2"
           >
             {IconComponent && <IconComponent className="eb-h-4 eb-w-4" />}

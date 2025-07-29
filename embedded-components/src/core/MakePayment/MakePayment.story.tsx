@@ -8,6 +8,13 @@ import { MakePayment } from './MakePayment';
 
 interface MakePaymentWithProviderProps extends EBConfig {
   triggerButton?: React.ReactNode;
+  triggerButtonVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
   accounts?: Array<{ id: string; name: string }>;
   paymentMethods?: Array<{
     id: string;
@@ -16,6 +23,7 @@ interface MakePaymentWithProviderProps extends EBConfig {
     description?: string;
   }>;
   recipientId?: string;
+  icon?: string;
   onTransactionSettled?: (response?: any, error?: any) => void;
 }
 
@@ -441,6 +449,8 @@ const meta: Meta<MakePaymentWithProviderProps> = {
         accounts,
         paymentMethods,
         recipientId,
+        triggerButtonVariant,
+        icon,
         onTransactionSettled,
       } = context.args;
       return (
@@ -467,6 +477,8 @@ const meta: Meta<MakePaymentWithProviderProps> = {
                   accounts,
                   paymentMethods,
                   recipientId,
+                  triggerButtonVariant,
+                  icon,
                   onTransactionSettled,
                 }}
               />
@@ -503,6 +515,7 @@ export const Default: Story = {
       name: 'enUS',
     },
     paymentMethods: defaultPaymentMethods,
+    icon: 'CirclePlus',
   },
   parameters: {
     docs: {
@@ -520,6 +533,10 @@ export const Default: Story = {
 export const LimitedDDAAccount: Story = {
   ...Default,
   name: 'LIMITED_DDA Account - Active Linked Accounts Only',
+  args: {
+    ...Default.args,
+    icon: 'CirclePlus',
+  },
   parameters: {
     docs: {
       description: {
@@ -836,6 +853,7 @@ export const WithPreselectedRecipient: Story = {
   args: {
     ...Default.args,
     recipientId: 'linkedAccount1',
+    icon: 'CirclePlus',
   },
   parameters: {
     docs: {
@@ -856,6 +874,7 @@ export const WithInvalidRecipientId: Story = {
   args: {
     ...Default.args,
     recipientId: 'non-existent-recipient-id',
+    icon: 'CirclePlus',
   },
   parameters: {
     docs: {
@@ -876,6 +895,7 @@ export const SingleAccountWithPreselectedRecipient: Story = {
   args: {
     ...Default.args,
     recipientId: 'linkedAccount1',
+    icon: 'CirclePlus',
   },
   parameters: {
     docs: {
@@ -929,5 +949,36 @@ export const SingleAccountWithPreselectedRecipient: Story = {
         }),
       ],
     },
+  },
+};
+
+/**
+ * Ghost Variant with No Icon: Demonstrates a subtle trigger button style.
+ */
+export const GhostVariantNoIcon: Story = {
+  ...Default,
+  name: 'Ghost Variant - No Icon',
+  args: {
+    ...Default.args,
+    triggerButtonVariant: 'ghost',
+    icon: undefined, // No icon
+    contentTokens: {
+      name: 'enUS', // Keep English but we'll show how to customize via content tokens
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the MakePayment component with a Ghost variant trigger button and no icon. The Ghost variant provides a subtle, minimal appearance suitable for secondary actions or less prominent UI elements. To customize button text, you can pass custom content tokens to the EBComponentsProvider with your own translation keys.',
+      },
+    },
+    // Example of how to customize button text via content tokens:
+    // You can pass custom content tokens to EBComponentsProvider like this:
+    // contentTokens: {
+    //   name: 'custom',
+    //   // This would load a custom translation file with your own button text
+    //   // The translation file would contain: { "buttons": { "makePayment": "Pay" } }
+    // }
   },
 };
