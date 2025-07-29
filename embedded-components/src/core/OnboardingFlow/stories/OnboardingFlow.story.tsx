@@ -138,6 +138,11 @@ Default.args = {
   },
   contentTokens: {
     name: 'enUS',
+    tokens: {
+      'onboarding-overview': {
+        welcomeText: 'hello',
+      },
+    },
   },
   alertOnExit: false,
   docUploadOnlyMode: false,

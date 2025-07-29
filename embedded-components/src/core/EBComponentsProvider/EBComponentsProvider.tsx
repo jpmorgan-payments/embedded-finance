@@ -12,6 +12,7 @@ import { i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
@@ -21,8 +22,20 @@ import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
 const queryClient = new QueryClient();
 
-const ContentTokensContext = createContext<
+// Create a map to store scoped content tokens by provider ID
+const scopedContentTokensMap = new Map<
+  string,
   EBConfig['contentTokens'] | undefined
+>();
+
+// Create a type for the content tokens context
+interface ContentTokensContextType {
+  providerId: string;
+  contentTokens: EBConfig['contentTokens'] | undefined;
+}
+
+const ContentTokensContext = createContext<
+  ContentTokensContextType | undefined
 >(undefined);
 
 // Create a context to track interceptor ready state
@@ -81,6 +94,18 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
   const [interceptorReady, setInterceptorReady] = useState(false);
+
+  // Create a unique ID for this provider instance
+  const providerId = useMemo(() => uuidv4(), []);
+
+  // Store the content tokens in the map for this provider instance
+  useEffect(() => {
+    scopedContentTokensMap.set(providerId, contentTokens);
+
+    return () => {
+      scopedContentTokensMap.delete(providerId);
+    };
+  }, [providerId, JSON.stringify(contentTokens)]);
 
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
@@ -154,14 +179,23 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
   // Set the global content tokens for common.json only
   useEffect(() => {
+    const namespacePrefix = `${providerId}-`;
     Object.entries(contentTokens.tokens || {}).forEach(
       ([namespace, tokens]) => {
-        // Load content tokens for each namespace
-        i18n.addResourceBundle(i18n.language, namespace, tokens, true, true);
+        // Use prefixed namespaces to isolate content tokens
+        const scopedNamespace = `${namespacePrefix}${namespace}`;
+        i18n.addResourceBundle(
+          i18n.language,
+          scopedNamespace,
+          tokens,
+          true,
+          true
+        );
+        console.log('Added content tokens for namespace:', scopedNamespace);
       }
     );
     i18n.changeLanguage(i18n.language);
-  }, [JSON.stringify(contentTokens.tokens), i18n.language]);
+  }, [providerId, JSON.stringify(contentTokens.tokens), i18n.language]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -195,7 +229,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
         <QueryClientProvider client={queryClient}>
-          <ContentTokensContext.Provider value={contentTokens}>
+          <ContentTokensContext.Provider value={{ providerId, contentTokens }}>
             <InterceptorContext.Provider value={{ interceptorReady }}>
               {children}
             </InterceptorContext.Provider>
@@ -218,7 +252,32 @@ export const useContentTokens = () => {
     );
   }
 
-  return context;
+  // Return the scoped content tokens for this provider
+  return context.contentTokens;
+};
+
+// Add a new hook to access the provider ID and content tokens together
+export const useScopedContentTokens = () => {
+  const context = useContext(ContentTokensContext);
+
+  if (context === undefined) {
+    throw new Error(
+      'useScopedContentTokens must be used within a ContentTokensProvider'
+    );
+  }
+
+  // Get tokens for a specific namespace with the provider's prefix
+  const getTokensForNamespace = (namespace: string) => {
+    const { providerId } = context;
+    const scopedNamespace = `${providerId}-${namespace}`;
+    return i18n.getResourceBundle(i18n.language, scopedNamespace);
+  };
+
+  return {
+    providerId: context.providerId,
+    contentTokens: context.contentTokens,
+    getTokensForNamespace,
+  };
 };
 
 export const useInterceptorStatus = () => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { useQueryClient } from '@tanstack/react-query';
 import { InfoIcon, Loader2Icon, XIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,

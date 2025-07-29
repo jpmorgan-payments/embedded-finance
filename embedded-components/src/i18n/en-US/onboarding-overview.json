@@ -2,7 +2,7 @@
   "welcomeText": "Welcome!",
   "screens": {
     "gateway": {
-      "title": "Let's help you get started",
+      "title": "Let's help you get dstarted",
       "description": "Select your business type and we'll explain what information you'll need to complete this application.",
       "nextButton": "Show me what's needed",
       "infoAlert": {
@@ -76,11 +76,8 @@
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
         "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ / @ & + % # ; , . : ' -})",
         "noNumbers": "$t(validation:text.noNumbers)",
-        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
-        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
         "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
         "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
       }
@@ -842,7 +839,7 @@
   },
   "generalOrganizationTypeDescriptions": {
     "SOLE_PROPRIETORSHIP": "I'm the sole owner of my business",
-    "REGISTERED_BUSINESS": "I manage a registered business, like a $t(organizationTypes.LIMITED_LIABILITY_COMPANY)",
+    "REGISTERED_BUSINESS": "I manage a registered business, like a $t(onboarding-overview:organizationTypes.LIMITED_LIABILITY_COMPANY)",
     "OTHER": "I work in a different organizational, like a non-profit or state-owned entity"
   },
   "jobTitles": {

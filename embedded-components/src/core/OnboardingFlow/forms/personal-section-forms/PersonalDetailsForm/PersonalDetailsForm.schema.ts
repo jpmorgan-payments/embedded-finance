@@ -1,6 +1,6 @@
-import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
+import { JOB_TITLES } from '@/core/OnboardingFlow/consts';
 import { getValidationMessage as v } from '@/core/OnboardingFlow/utils/formUtils';
 import {
   NAME_PATTERN,
@@ -19,96 +19,59 @@ export const PersonalDetailsFormSchema = z.object({
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveSpaces')
+      v('controllerFirstName', 'noConsecutiveSpaces')
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveHyphens')
+      v('controllerFirstName', 'noConsecutiveHyphens')
     ),
   controllerMiddleName: z
     .string()
-    .max(
-      30,
-      i18n.t('onboarding:fields.controllerMiddleName.validation.maxLength')
-    )
+    .max(30, v('controllerMiddleName', 'maxLength'))
     .refine(
       (val) => NAME_PATTERN.test(val),
-      i18n.t('onboarding:fields.controllerMiddleName.validation.pattern')
+      v('controllerMiddleName', 'pattern')
     ),
   controllerLastName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.controllerLastName.validation.minLength'))
-    .max(
-      30,
-      i18n.t('onboarding:fields.controllerLastName.validation.maxLength')
-    )
-    .refine(
-      (val) => NAME_PATTERN.test(val),
-      i18n.t('onboarding:fields.controllerLastName.validation.pattern')
-    )
+    .min(2, v('controllerLastName', 'minLength'))
+    .max(30, v('controllerLastName', 'maxLength'))
+    .refine((val) => NAME_PATTERN.test(val), v('controllerLastName', 'pattern'))
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveSpaces')
+      v('controllerLastName', 'noConsecutiveSpaces')
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveHyphens')
+      v('controllerLastName', 'noConsecutiveHyphens')
     ),
   controllerNameSuffix: z
     .string()
-    .min(
-      1,
-      i18n.t('onboarding:fields.controllerNameSuffix.validation.minLength')
-    )
-    .max(
-      5,
-      i18n.t('onboarding:fields.controllerNameSuffix.validation.maxLength')
-    )
+    .min(1, v('controllerNameSuffix', 'minLength'))
+    .max(5, v('controllerNameSuffix', 'maxLength'))
     .refine(
       (val) => SUFFIX_PATTERN.test(val),
-      i18n.t('onboarding:fields.controllerNameSuffix.validation.pattern')
+      v('controllerNameSuffix', 'pattern')
     ),
   controllerJobTitle: z
-    .union([
-      z.enum([
-        'CEO',
-        'CFO',
-        'COO',
-        'President',
-        'Chairman',
-        'Senior Branch Manager',
-        'Other',
-      ]),
-      z.literal(''),
-    ])
+    .union([z.enum(JOB_TITLES), z.literal('')])
     .refine((val) => val !== '', {
-      message: i18n.t('common:validation.required'),
+      message: v('controllerJobTitle', 'required'),
     }),
   controllerJobTitleDescription: z
     .string()
-    .max(
-      50,
-      i18n.t(
-        'onboarding:fields.controllerJobTitleDescription.validation.maxLength'
-      )
-    )
+    .max(50, v('controllerJobTitleDescription', 'maxLength'))
     .refine(
       (val) => /^[a-zA-Z0-9\s,.&-]+$/.test(val),
-      i18n.t(
-        'onboarding:fields.controllerJobTitleDescription.validation.pattern'
-      )
+      v('controllerJobTitleDescription', 'pattern')
     )
     .refine(
       (val) => !/(<[^>]*>)/.test(val),
-      i18n.t(
-        'onboarding:fields.controllerJobTitleDescription.validation.noHtml'
-      )
+      v('controllerJobTitleDescription', 'noHtml')
     )
     .refine(
       (val) => !/https?:\/\/[^\s]+/.test(val),
-      i18n.t(
-        'onboarding:fields.controllerJobTitleDescription.validation.noUrls'
-      )
+      v('controllerJobTitleDescription', 'noUrls')
     ),
 });
 
@@ -122,9 +85,7 @@ export const refinePersonalDetailsFormSchema = (
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: i18n.t(
-          'onboarding:fields.controllerJobTitleDescription.validation.required'
-        ),
+        message: v('controllerJobTitleDescription', 'required'),
         path: ['controllerJobTitleDescription'],
       });
     }
