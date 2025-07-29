@@ -101,6 +101,55 @@ export function DashboardLayout() {
     });
   };
 
+  // Helper function to emulate browser tab switch events
+  const emulateTabSwitch = () => {
+    console.log('Emulating browser tab switch events...');
+
+    // Simulate the sequence of events that occur when switching browser tabs:
+    // 1. Page becomes hidden (visibilitychange event)
+    // 2. Window loses focus (blur event)
+    // 3. Short delay
+    // 4. Page becomes visible again (visibilitychange event)
+    // 5. Window gains focus (focus event)
+
+    // Step 1: Simulate page becoming hidden
+    Object.defineProperty(document, 'hidden', {
+      value: true,
+      configurable: true,
+    });
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      configurable: true,
+    });
+
+
+    window.dispatchEvent(new Event('visibilitychange'));
+
+    // Step 2: Simulate window losing focus
+    window.dispatchEvent(new Event('blur'));
+
+    // Step 3: Short delay to simulate time spent in other tab
+    setTimeout(() => {
+      // Step 4: Simulate page becoming visible again
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        configurable: true,
+      });
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true,
+      });
+      window.dispatchEvent(new Event('visibilitychange'));
+
+      // Step 5: Simulate window gaining focus
+      window.dispatchEvent(new Event('focus'));
+
+      console.log(
+        'Tab switch emulation complete - all embedded components should refetch',
+      );
+    }, 100);
+  };
+
   function getInitialView(scenario: ClientScenario): View {
     const scenarioKey = getScenarioKeyByDisplayName(scenario);
     if (scenarioKey) {
@@ -146,11 +195,21 @@ export function DashboardLayout() {
           .then((response) => response.json())
           .then((data) => {
             console.log('Database reset successful:', data);
+
+            // Emulate tab switch event after 300ms to trigger refetch in all embedded components
+            setTimeout(() => {
+              emulateTabSwitch();
+            }, 300);
           })
           .catch((error) => {
             console.error('Database reset failed:', error);
           });
       }
+    } else {
+      // Even if no DB reset, still trigger tab switch emulation after 300ms
+      setTimeout(() => {
+        emulateTabSwitch();
+      }, 300);
     }
   };
 

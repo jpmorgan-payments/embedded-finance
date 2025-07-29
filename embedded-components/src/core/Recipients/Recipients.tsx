@@ -64,6 +64,8 @@ export interface RecipientsProps {
   showCreateButton?: boolean;
   /** Configuration for payment methods and validation rules */
   config?: RecipientsConfig;
+  /** Optional MakePayment component to render in each recipient card/row */
+  makePaymentComponent?: React.ReactNode;
   /** Callback when recipient is created */
   onRecipientCreated?: (recipient: Recipient) => void;
   /** Callback when recipient is updated */
@@ -101,6 +103,7 @@ const RecipientCard: React.FC<{
   onDeactivate: () => void;
   canDeactivate: boolean;
   isDeactivating: boolean;
+  makePaymentComponent?: React.ReactNode;
 }> = ({
   recipient,
   onView,
@@ -108,6 +111,7 @@ const RecipientCard: React.FC<{
   onDeactivate,
   canDeactivate,
   isDeactivating,
+  makePaymentComponent,
 }) => (
   <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
     <div className="eb-flex eb-items-center eb-justify-between">
@@ -151,48 +155,46 @@ const RecipientCard: React.FC<{
       )}
     </div>
     <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
-      <span
-        role="button"
-        tabIndex={0}
+      {makePaymentComponent && recipient.status === 'ACTIVE' && (
+        <div className="eb-ml-auto">
+          {React.cloneElement(makePaymentComponent as React.ReactElement, {
+            recipientId: recipient.id,
+          })}
+        </div>
+      )}
+      <Button
+        variant="link"
+        size="sm"
+        className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
         onClick={onView}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') onView();
-        }}
-        className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
         title="View details"
       >
         Details
-      </span>
-      <span
-        role="button"
-        tabIndex={0}
+      </Button>
+      <Button
+        variant="link"
+        size="sm"
+        className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
         onClick={onEdit}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') onEdit();
-        }}
-        className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
         title="Edit recipient"
       >
         Edit
-      </span>
+      </Button>
       {canDeactivate && (
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={onDeactivate}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') onDeactivate();
-          }}
-          className={`eb-cursor-pointer eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline ${
+        <Button
+          variant="link"
+          size="sm"
+          className={`eb-h-auto eb-px-2 eb-py-0 eb-text-xs ${
             isDeactivating
               ? 'eb-cursor-not-allowed eb-text-gray-400'
-              : 'eb-text-red-600'
+              : 'eb-text-red-600 hover:eb-text-red-700'
           }`}
+          onClick={onDeactivate}
+          disabled={isDeactivating}
           title="Deactivate recipient"
-          style={{ pointerEvents: isDeactivating ? 'none' : 'auto' }}
         >
           {isDeactivating ? 'Deactivating...' : 'Deactivate'}
-        </span>
+        </Button>
       )}
     </div>
   </Card>
@@ -203,6 +205,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   initialRecipientType = 'RECIPIENT',
   showCreateButton = true,
   config,
+  makePaymentComponent,
   onRecipientCreated,
   onRecipientUpdated,
   onRecipientDeactivated,
@@ -538,6 +541,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   onDeactivate={() => handleDeactivateRecipient(recipient)}
                   canDeactivate={recipient.status === 'ACTIVE'}
                   isDeactivating={isDeactivating}
+                  makePaymentComponent={makePaymentComponent}
                 />
               ))
             )}
@@ -582,48 +586,50 @@ export const Recipients: React.FC<RecipientsProps> = ({
                         </TableCell>
                         <TableCell>
                           <div className="eb-flex eb-gap-3">
-                            <span
-                              role="button"
-                              tabIndex={0}
+                            {makePaymentComponent &&
+                              recipient.status === 'ACTIVE' && (
+                                <div className="eb-mr-auto">
+                                  {React.cloneElement(
+                                    makePaymentComponent as React.ReactElement,
+                                    {
+                                      recipientId: recipient.id,
+                                    }
+                                  )}
+                                </div>
+                              )}
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
                               onClick={() => handleViewDetails(recipient)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ')
-                                  handleViewDetails(recipient);
-                              }}
-                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
                               title="View details"
                             >
                               Details
-                            </span>
-                            <span
-                              role="button"
-                              tabIndex={0}
+                            </Button>
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
                               onClick={() => handleEditRecipient(recipient)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ')
-                                  handleEditRecipient(recipient);
-                              }}
-                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
                               title="Edit recipient"
                             >
                               Edit
-                            </span>
+                            </Button>
                             {recipient.status === 'ACTIVE' && (
-                              <span
-                                role="button"
-                                tabIndex={0}
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
                                 onClick={() =>
                                   handleDeactivateRecipient(recipient)
                                 }
-                                onKeyPress={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ')
-                                    handleDeactivateRecipient(recipient);
-                                }}
-                                className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                disabled={isDeactivating}
                                 title="Deactivate recipient"
                               >
-                                Deactivate
-                              </span>
+                                {isDeactivating
+                                  ? 'Deactivating...'
+                                  : 'Deactivate'}
+                              </Button>
                             )}
                           </div>
                         </TableCell>
@@ -723,48 +729,50 @@ export const Recipients: React.FC<RecipientsProps> = ({
                         </TableCell>
                         <TableCell>
                           <div className="eb-flex eb-gap-3">
-                            <span
-                              role="button"
-                              tabIndex={0}
+                            {makePaymentComponent &&
+                              recipient.status === 'ACTIVE' && (
+                                <div className="eb-mr-auto">
+                                  {React.cloneElement(
+                                    makePaymentComponent as React.ReactElement,
+                                    {
+                                      recipientId: recipient.id,
+                                    }
+                                  )}
+                                </div>
+                              )}
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
                               onClick={() => handleViewDetails(recipient)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ')
-                                  handleViewDetails(recipient);
-                              }}
-                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
                               title="View details"
                             >
                               Details
-                            </span>
-                            <span
-                              role="button"
-                              tabIndex={0}
+                            </Button>
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
                               onClick={() => handleEditRecipient(recipient)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ')
-                                  handleEditRecipient(recipient);
-                              }}
-                              className="eb-cursor-pointer eb-text-blue-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
                               title="Edit recipient"
                             >
                               Edit
-                            </span>
+                            </Button>
                             {recipient.status === 'ACTIVE' && (
-                              <span
-                                role="button"
-                                tabIndex={0}
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
                                 onClick={() =>
                                   handleDeactivateRecipient(recipient)
                                 }
-                                onKeyPress={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ')
-                                    handleDeactivateRecipient(recipient);
-                                }}
-                                className="eb-cursor-pointer eb-text-red-600 eb-outline-none eb-transition-colors hover:eb-underline focus:eb-underline"
+                                disabled={isDeactivating}
                                 title="Deactivate recipient"
                               >
-                                Deactivate
-                              </span>
+                                {isDeactivating
+                                  ? 'Deactivating...'
+                                  : 'Deactivate'}
+                              </Button>
                             )}
                           </div>
                         </TableCell>

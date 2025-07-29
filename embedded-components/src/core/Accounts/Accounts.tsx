@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const CATEGORY_LABELS: Record<string, string> = {
   LIMITED_DDA: 'Limited DDA',
-  LIMITED_DDA_PAYMENTS: 'Limited DDA (Payments)',
+  LIMITED_DDA_PAYMENTS: 'Limited DDA Payments',
   // Add more mappings as needed
 };
 
@@ -267,15 +267,9 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
                     <span className="eb-font-medium">Routing Number:</span>
                     <span className="eb-font-mono eb-text-xs">
-                      {showSensitiveInfo
-                        ? account.paymentRoutingInformation.routingInformation
-                            .map((ri) => ri.value)
-                            .join(', ')
-                        : maskRoutingInfo(
-                            account.paymentRoutingInformation.routingInformation
-                              .map((ri) => ri.value)
-                              .join(', ')
-                          )}
+                      {account.paymentRoutingInformation.routingInformation
+                        .map((ri) => ri.value)
+                        .join(', ')}
                     </span>
                   </div>
                 )}
@@ -366,13 +360,6 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
 // Add display name for AccountCard
 AccountCard.displayName = 'AccountCard';
-
-function maskRoutingInfo(routingNumber: string): string {
-  if (!routingNumber) return 'N/A';
-  return routingNumber.length > 4
-    ? routingNumber.replace(/.(?=.{4})/g, '*')
-    : routingNumber;
-}
 
 function maskAccountNumber(accountNumber: string): string {
   if (!accountNumber) return 'N/A';

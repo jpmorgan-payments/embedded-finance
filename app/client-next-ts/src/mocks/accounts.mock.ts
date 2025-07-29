@@ -3,7 +3,7 @@ export const mockAccounts = {
     {
       id: 'acc-001',
       clientId: '0030000131',
-      label: 'Main Account',
+      label: 'MAIN9012',
       state: 'OPEN',
       category: 'LIMITED_DDA',
       createdAt: '2023-10-28T20:56:55.074Z',
@@ -16,7 +16,47 @@ export const mockAccounts = {
     {
       id: 'acc-002',
       clientId: '0030000131',
-      label: 'Payments Account',
+      label: 'MAIN1098',
+      state: 'OPEN',
+      category: 'LIMITED_DDA_PAYMENTS',
+      createdAt: '2023-10-28T20:56:55.074Z',
+      paymentRoutingInformation: {
+        accountNumber: '987654321098',
+        country: 'US',
+        routingInformation: [{ type: 'ABA', value: '123456789' }],
+      },
+    },
+  ],
+};
+
+// Scenario-based account initialization
+export const mockActiveAccounts = {
+  items: [
+    // Only acc-001 for ACTIVE scenario (similar to linked accounts only)
+    {
+      id: 'acc-001',
+      clientId: '0030000131',
+      label: 'MAIN9012',
+      state: 'OPEN',
+      category: 'LIMITED_DDA',
+      createdAt: '2023-10-28T20:56:55.074Z',
+      paymentRoutingInformation: {
+        accountNumber: '123456789012',
+        country: 'US',
+        routingInformation: [{ type: 'ABA', value: '987654321' }],
+      },
+    },
+  ],
+};
+
+export const mockActiveWithRecipientsAccounts = {
+  items: [
+    // Both accounts for ACTIVE_WITH_RECIPIENTS scenario
+
+    {
+      id: 'acc-002',
+      clientId: '0030000131',
+      label: 'MAIN1098',
       state: 'OPEN',
       category: 'LIMITED_DDA_PAYMENTS',
       createdAt: '2023-10-28T20:56:55.074Z',
@@ -50,3 +90,14 @@ export const mockAccountBalance2 = {
     { typeCode: 'ITBD', amount: 1345.67 },
   ],
 };
+
+// Scenario-based balance initialization
+export const mockActiveBalances = [
+  // Only balance for acc-001
+  mockAccountBalance,
+];
+
+export const mockActiveWithRecipientsBalances = [
+  // Both balances for ACTIVE_WITH_RECIPIENTS scenario
+  mockAccountBalance,
+];

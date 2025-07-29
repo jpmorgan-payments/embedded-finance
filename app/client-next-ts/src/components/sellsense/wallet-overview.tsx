@@ -111,7 +111,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <Accounts
-          allowedCategories={['LIMITED_DDA_PAYMENTS']}
+          allowedCategories={['LIMITED_DDA_PAYMENTS', 'LIMITED_DDA']}
           clientId="0030000131"
           ref={(ref) => {
             if (ref) {
@@ -149,7 +149,12 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Manage linked account status',
         'Secure account verification process',
       ],
-      component: <LinkedAccountWidget />,
+      component: (
+        <LinkedAccountWidget
+          makePaymentComponent={<MakePayment />}
+          variant="singleAccount"
+        />
+      ),
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
@@ -186,7 +191,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Edit recipient information',
         'Delete recipients when needed',
       ],
-      component: <Recipients />,
+      component: <Recipients makePaymentComponent={<MakePayment />} />,
     },
   };
 

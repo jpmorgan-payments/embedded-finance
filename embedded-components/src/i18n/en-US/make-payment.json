@@ -59,5 +59,8 @@
     "label": "Transfer fee: ${{amount}}",
     "toggle": "Toggle"
   },
-  "recipientGets": "Recipient gets: ${{amount}}"
+  "recipientGets": "Recipient gets: ${{amount}}",
+  "warnings": {
+    "recipientNotFound": "Warning: The specified recipient (ID: {{recipientId}}) was not found in the available recipients list."
+  }
 }
