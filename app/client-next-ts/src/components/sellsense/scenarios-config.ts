@@ -57,8 +57,8 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'active' as const, // Optional: triggers DB reset with active scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.MAKE_PAYMENT,
+      AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
       AVAILABLE_COMPONENTS.TRANSACTIONS,
     ] as ComponentName[],
@@ -72,8 +72,8 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'active-with-recipients' as const, // Optional: triggers DB reset with recipients scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.MAKE_PAYMENT,
+      AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
       AVAILABLE_COMPONENTS.TRANSACTIONS,
       AVAILABLE_COMPONENTS.RECIPIENTS,

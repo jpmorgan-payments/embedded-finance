@@ -96,6 +96,24 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
 
   // All available components with their configurations
   const allComponents: Record<ComponentName, ComponentInfo> = {
+    [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
+      title: 'Make Payment',
+      description: 'Send payments to recipients using your linked accounts.',
+      componentName: 'MakePayment',
+      componentDescription:
+        'A comprehensive widget for making payments to recipients.',
+      componentFeatures: [
+        'Select recipient from your list',
+        'Choose payment amount and account',
+        'Review and confirm payment details',
+      ],
+      component: (
+        <div className="bg-white rounded-lg border p-6">
+          <h2 className="text-xl font-semibold mb-4">Make Payment</h2>
+          <MakePayment onTransactionSettled={handleTransactionSettled} />
+        </div>
+      ),
+    },
     [AVAILABLE_COMPONENTS.ACCOUNTS]: {
       title: 'Accounts',
       description:
@@ -119,21 +137,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
             }
           }}
         />
-      ),
-    },
-    [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
-      title: 'Make Payment',
-      description: 'Send payments to recipients using your linked accounts.',
-      componentName: 'MakePayment',
-      componentDescription:
-        'A comprehensive widget for making payments to recipients.',
-      componentFeatures: [
-        'Select recipient from your list',
-        'Choose payment amount and account',
-        'Review and confirm payment details',
-      ],
-      component: (
-        <MakePayment onTransactionSettled={handleTransactionSettled} />
       ),
     },
     [AVAILABLE_COMPONENTS.LINKED_ACCOUNTS]: {
