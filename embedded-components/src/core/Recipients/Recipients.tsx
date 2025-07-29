@@ -155,7 +155,7 @@ const RecipientCard: React.FC<{
       )}
     </div>
     <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
-      {makePaymentComponent && (
+      {makePaymentComponent && recipient.status === 'ACTIVE' && (
         <div className="eb-ml-auto">
           {React.cloneElement(makePaymentComponent as React.ReactElement, {
             recipientId: recipient.id,
@@ -586,16 +586,17 @@ export const Recipients: React.FC<RecipientsProps> = ({
                         </TableCell>
                         <TableCell>
                           <div className="eb-flex eb-gap-3">
-                            {makePaymentComponent && (
-                              <div className="eb-mr-auto">
-                                {React.cloneElement(
-                                  makePaymentComponent as React.ReactElement,
-                                  {
-                                    recipientId: recipient.id,
-                                  }
-                                )}
-                              </div>
-                            )}
+                            {makePaymentComponent &&
+                              recipient.status === 'ACTIVE' && (
+                                <div className="eb-mr-auto">
+                                  {React.cloneElement(
+                                    makePaymentComponent as React.ReactElement,
+                                    {
+                                      recipientId: recipient.id,
+                                    }
+                                  )}
+                                </div>
+                              )}
                             <Button
                               variant="link"
                               size="sm"
@@ -728,16 +729,17 @@ export const Recipients: React.FC<RecipientsProps> = ({
                         </TableCell>
                         <TableCell>
                           <div className="eb-flex eb-gap-3">
-                            {makePaymentComponent && (
-                              <div className="eb-mr-auto">
-                                {React.cloneElement(
-                                  makePaymentComponent as React.ReactElement,
-                                  {
-                                    recipientId: recipient.id,
-                                  }
-                                )}
-                              </div>
-                            )}
+                            {makePaymentComponent &&
+                              recipient.status === 'ACTIVE' && (
+                                <div className="eb-mr-auto">
+                                  {React.cloneElement(
+                                    makePaymentComponent as React.ReactElement,
+                                    {
+                                      recipientId: recipient.id,
+                                    }
+                                  )}
+                                </div>
+                              )}
                             <Button
                               variant="link"
                               size="sm"

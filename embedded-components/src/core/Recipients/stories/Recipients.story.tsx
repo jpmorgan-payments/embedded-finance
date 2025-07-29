@@ -509,7 +509,7 @@ export const WithMakePaymentComponent: Story = {
                   ],
                 },
                 createdAt: '2025-04-14T08:57:21.592681Z',
-                category: 'LIMITED_DDA',
+                category: 'LIMITED_DDA_PAYMENTS',
               },
             ],
           });
