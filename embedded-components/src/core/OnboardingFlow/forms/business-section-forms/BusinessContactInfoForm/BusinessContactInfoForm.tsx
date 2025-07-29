@@ -74,12 +74,6 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
           />
           <OnboardingFormField
             control={form.control}
-            name="addresses.0.postalCode"
-            type="text"
-            className="eb-max-w-48"
-          />
-          <OnboardingFormField
-            control={form.control}
             name="addresses.0.city"
             type="text"
           />
@@ -88,6 +82,12 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             name="addresses.0.state"
             type="select"
             options={US_STATE_OPTIONS}
+          />
+          <OnboardingFormField
+            control={form.control}
+            name="addresses.0.postalCode"
+            type="text"
+            className="eb-max-w-48"
           />
         </div>
       </fieldset>
