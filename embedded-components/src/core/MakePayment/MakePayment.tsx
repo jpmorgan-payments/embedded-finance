@@ -74,6 +74,7 @@ interface PaymentComponentProps {
   accounts?: Account[];
   paymentMethods?: PaymentMethod[];
   icon?: string;
+  recipientId?: string; // Optional recipient ID to pre-select
   onTransactionSettled?: (
     response?: TransactionResponseV2,
     error?: ApiErrorV2
@@ -88,6 +89,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     { id: 'WIRE', name: 'WIRE', fee: 25 },
   ],
   icon = 'CirclePlus',
+  recipientId,
   onTransactionSettled,
 }) => {
   const { t } = useTranslation(['make-payment']);
@@ -231,6 +233,29 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       }
     }
   }, [selectedAccount, filteredRecipients, form]);
+
+  // Derived state for recipient selection and warning
+  const recipientSelectionState = useMemo(() => {
+    if (!recipientId || filteredRecipients.length === 0) {
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+
+    const recipientExists = filteredRecipients.some(
+      (r: any) => r.id === recipientId
+    );
+
+    if (recipientExists) {
+      // Auto-select the recipient if it exists and no recipient is currently selected
+      const currentRecipient = form.getValues('to');
+      if (!currentRecipient) {
+        form.setValue('to', recipientId);
+      }
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+    return { shouldSelectRecipient: false, recipientNotFound: true };
+  }, [recipientId, filteredRecipients, form]);
+
+  const { recipientNotFound } = recipientSelectionState;
 
   // Transaction mutation
   const {
@@ -482,6 +507,11 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                   : 'No recipients available'}
                               </div>
                             )}
+                          {recipientNotFound && (
+                            <div className="eb-py-2 eb-text-xs eb-text-destructive">
+                              {t('warnings.recipientNotFound', { recipientId })}
+                            </div>
+                          )}
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}

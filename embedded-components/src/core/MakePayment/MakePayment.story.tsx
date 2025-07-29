@@ -15,6 +15,7 @@ interface MakePaymentWithProviderProps extends EBConfig {
     fee: number;
     description?: string;
   }>;
+  recipientId?: string;
   onTransactionSettled?: (response?: any, error?: any) => void;
 }
 
@@ -439,6 +440,7 @@ const meta: Meta<MakePaymentWithProviderProps> = {
         contentTokens,
         accounts,
         paymentMethods,
+        recipientId,
         onTransactionSettled,
       } = context.args;
       return (
@@ -461,7 +463,12 @@ const meta: Meta<MakePaymentWithProviderProps> = {
           >
             <div className="eb-p-4">
               <Story
-                args={{ accounts, paymentMethods, onTransactionSettled }}
+                args={{
+                  accounts,
+                  paymentMethods,
+                  recipientId,
+                  onTransactionSettled,
+                }}
               />
             </div>
           </EBComponentsProvider>
@@ -816,6 +823,111 @@ export const WithTransactionError: Story = {
         story:
           'This story demonstrates error handling when a payment fails. Open the browser console to see the error response.',
       },
+    },
+  },
+};
+
+/**
+ * Pre-selected Recipient: Tests the recipientId prop functionality.
+ */
+export const WithPreselectedRecipient: Story = {
+  ...Default,
+  name: 'Pre-selected Recipient',
+  args: {
+    ...Default.args,
+    recipientId: 'linkedAccount1',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the recipientId prop functionality. When a valid recipientId is provided, the recipient will be automatically selected once an account is chosen.',
+      },
+    },
+  },
+};
+
+/**
+ * Invalid Recipient ID: Tests the warning when recipientId is not found.
+ */
+export const WithInvalidRecipientId: Story = {
+  ...Default,
+  name: 'Invalid Recipient ID Warning',
+  args: {
+    ...Default.args,
+    recipientId: 'non-existent-recipient-id',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the warning message that appears when a recipientId is provided but not found in the available recipients list.',
+      },
+    },
+  },
+};
+
+/**
+ * Single Account with Pre-selected Recipient: Tests auto-selection when only one account is available.
+ */
+export const SingleAccountWithPreselectedRecipient: Story = {
+  ...Default,
+  name: 'Single Account with Pre-selected Recipient',
+  args: {
+    ...Default.args,
+    recipientId: 'linkedAccount1',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the scenario where a recipientId is provided and there is only one account available. Both the account and recipient should be auto-selected.',
+      },
+    },
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json({
+            ...mockAccounts,
+            items: [mockAccounts.items[0]], // Only one account
+          });
+        }),
+        http.get('*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.post('*/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'linkedAccount1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
+          });
+        }),
+      ],
     },
   },
 };
