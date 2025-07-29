@@ -14,7 +14,11 @@ import {
   getClientIdFromScenario,
   getScenarioData,
 } from './sellsense-scenarios';
-import { isOnboardingDocsNeededScenario } from './scenarios-config';
+import {
+  isOnboardingDocsNeededScenario,
+  getHeaderTitleForScenario,
+  getHeaderDescriptionForScenario,
+} from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 
 interface KycOnboardingProps {
@@ -138,11 +142,10 @@ export function KycOnboarding({
         <h1
           className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
         >
-          KYC Onboarding
+          {getHeaderTitleForScenario(clientScenario)}
         </h1>
         <p className={themeStyles.getHeaderLabelStyles()}>
-          Complete the onboarding process to set up your embedded finance
-          account.
+          {getHeaderDescriptionForScenario(clientScenario)}
         </p>
       </div>
 

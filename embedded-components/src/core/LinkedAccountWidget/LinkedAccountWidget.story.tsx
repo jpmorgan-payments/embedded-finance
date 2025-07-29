@@ -58,6 +58,44 @@ export default meta;
 
 type Story = StoryObj<typeof LinkedAccountsWithProvider>;
 
+// Helper function to create handlers for both list and individual recipient requests
+const createRecipientHandlers = (mockData: typeof linkedAccountListMock) => [
+  http.get('/recipients', () => {
+    return HttpResponse.json(mockData);
+  }),
+  http.get('/recipients/:id', ({ params }) => {
+    const { id } = params;
+    const recipient = mockData.recipients?.find((r) => r.id === id);
+
+    if (!recipient) {
+      return HttpResponse.json(
+        { error: 'Recipient not found' },
+        { status: 404 }
+      );
+    }
+
+    return HttpResponse.json(recipient);
+  }),
+  http.post('/recipients/:id/verify-microdeposit', ({ params }) => {
+    const { id } = params;
+    const recipient = mockData.recipients?.find((r) => r.id === id);
+
+    if (!recipient) {
+      return HttpResponse.json(
+        { error: 'Recipient not found' },
+        { status: 404 }
+      );
+    }
+
+    // Mock successful verification response
+    return HttpResponse.json({
+      status: 'SUCCESS',
+      message: 'Microdeposits verified successfully',
+      recipientId: id,
+    });
+  }),
+];
+
 export const Primary: Story = {
   name: 'LinkedAccountWidget with Multiple Accounts',
   args: {
@@ -66,11 +104,7 @@ export const Primary: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountListMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountListMock),
     },
   },
 };
@@ -83,11 +117,7 @@ export const SingleAccount: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountListMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountListMock),
     },
   },
 };
@@ -100,14 +130,10 @@ export const WithNoRecipients: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json({
-            ...linkedAccountListMock,
-            recipients: [],
-          });
-        }),
-      ],
+      handlers: createRecipientHandlers({
+        ...linkedAccountListMock,
+        recipients: [],
+      }),
     },
   },
 };
@@ -120,11 +146,7 @@ export const BusinessAccounts: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountBusinessMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountBusinessMock),
     },
   },
 };
@@ -137,11 +159,7 @@ export const ReadyForValidation: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountReadyForValidationMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountReadyForValidationMock),
     },
   },
 };
@@ -154,11 +172,7 @@ export const MicrodepositsInitiated: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountMicrodepositListMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountMicrodepositListMock),
     },
   },
 };
@@ -171,11 +185,7 @@ export const RejectedAccounts: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountRejectedMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountRejectedMock),
     },
   },
 };
@@ -188,11 +198,7 @@ export const InactiveAccounts: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountInactiveMock);
-        }),
-      ],
+      handlers: createRecipientHandlers(linkedAccountInactiveMock),
     },
   },
 };
@@ -219,21 +225,19 @@ export const MixedStatuses: Story = {
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json({
-            page: 0,
-            limit: 10,
-            total_items: 4,
-            recipients: [
-              linkedAccountListMock.recipients?.[0], // Active
-              linkedAccountReadyForValidationMock.recipients?.[0], // Ready for validation
-              linkedAccountRejectedMock.recipients?.[0], // Rejected
-              linkedAccountInactiveMock.recipients?.[0], // Inactive
-            ].filter(Boolean),
-          });
-        }),
-      ],
+      handlers: createRecipientHandlers({
+        page: 0,
+        limit: 10,
+        total_items: 4,
+        recipients: [
+          linkedAccountListMock.recipients?.[0], // Active
+          linkedAccountReadyForValidationMock.recipients?.[0], // Ready for validation
+          linkedAccountRejectedMock.recipients?.[0], // Rejected
+          linkedAccountInactiveMock.recipients?.[0], // Inactive
+        ].filter((recipient): recipient is NonNullable<typeof recipient> =>
+          Boolean(recipient)
+        ),
+      }),
     },
   },
 };
@@ -254,9 +258,7 @@ export const WithMakePaymentComponent: Story = {
     },
     msw: {
       handlers: [
-        http.get('/recipients', () => {
-          return HttpResponse.json(linkedAccountListMock);
-        }),
+        ...createRecipientHandlers(linkedAccountListMock),
         http.get('/accounts', () => {
           return HttpResponse.json({
             items: [

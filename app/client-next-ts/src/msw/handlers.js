@@ -558,13 +558,20 @@ export const createHandlers = (apiUrl) => [
     );
     const regularRecipients = recipients.filter((r) => r.type === 'RECIPIENT');
 
+    // Determine current scenario based on data
+    let currentScenario;
+    if (recipients.length === 0) {
+      currentScenario = 'empty';
+    } else if (linkedAccounts.length > 0 && regularRecipients.length > 0) {
+      currentScenario = 'active-with-recipients';
+    } else {
+      currentScenario = 'active';
+    }
+
     return HttpResponse.json({
       ...status,
       scenario: {
-        current:
-          linkedAccounts.length > 0 && regularRecipients.length > 0
-            ? 'active-with-recipients'
-            : 'active',
+        current: currentScenario,
         linkedAccountsCount: linkedAccounts.length,
         regularRecipientsCount: regularRecipients.length,
       },
@@ -583,6 +590,12 @@ export const createHandlers = (apiUrl) => [
           name: 'Active with Recipients',
           description: 'Both regular recipients and linked accounts (default)',
           recipients: 'all-recipients',
+        },
+        empty: {
+          name: 'Empty',
+          description:
+            'Empty recipients/transactions, LIMITED_DDA with zero balance',
+          recipients: 'no-recipients',
         },
       },
       default: DEFAULT_SCENARIO,
@@ -648,11 +661,18 @@ export const createHandlers = (apiUrl) => [
       'c0712fc9-b7d5-4ee2-81bb-' + Math.random().toString(36).substring(2, 15);
     const timestamp = new Date().toISOString();
 
+    // Determine initial status based on recipient type
+    let initialStatus = data.status || 'ACTIVE';
+    if (data.type === 'LINKED_ACCOUNT' || data.type === undefined) {
+      // Linked accounts should start in microdeposit check state
+      initialStatus = 'READY_FOR_VALIDATION';
+    }
+
     // Create the recipient in the database
     const newRecipient = {
       id: recipientId,
       type: data.type || 'LINKED_ACCOUNT',
-      status: data.status || 'ACTIVE',
+      status: initialStatus,
       clientId: data.clientId || 'client-001',
       partyDetails: data.partyDetails,
       account: data.account,

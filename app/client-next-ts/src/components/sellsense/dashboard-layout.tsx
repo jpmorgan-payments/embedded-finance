@@ -163,6 +163,13 @@ const ViewUtils = {
 
   // Check if scenario is onboarding type
   isOnboardingScenario: (scenario: ClientScenario): boolean => {
+    const scenarioKey = getScenarioKeyByDisplayName(scenario);
+    if (scenarioKey) {
+      const config = getScenarioByKey(scenarioKey);
+      return config.category === 'onboarding';
+    }
+
+    // Fallback for legacy scenarios
     return [
       'New Seller - Onboarding',
       'Onboarding - Docs Needed',
@@ -301,7 +308,7 @@ export function DashboardLayout() {
           />
         );
       case 'wallet':
-        return <WalletOverview />;
+        return <WalletOverview clientScenario={clientScenario} theme={theme} />;
       case 'transactions':
         return <TransactionHistory />;
       case 'linked-accounts':

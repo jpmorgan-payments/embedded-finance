@@ -31,6 +31,7 @@ export const MAGIC_VALUES = {
 export const DB_SCENARIOS = {
   ACTIVE: 'active', // Only linked accounts, no regular recipients
   ACTIVE_WITH_RECIPIENTS: 'active-with-recipients', // Current behavior (default)
+  EMPTY: 'empty', // Empty recipients/transactions, LIMITED_DDA with zero balance
 };
 
 // Default scenario
@@ -581,6 +582,10 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
         // Only linked accounts, no regular recipients
         recipientsToInitialize = mockLinkedAccounts.recipients;
         console.log('Active scenario: Initializing only linked accounts');
+      } else if (scenario === DB_SCENARIOS.EMPTY) {
+        // Empty scenario: no recipients at all
+        recipientsToInitialize = [];
+        console.log('Empty scenario: Initializing no recipients');
       } else {
         // Default: both regular recipients and linked accounts
         recipientsToInitialize = [
@@ -616,6 +621,10 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
         // Only acc-001 for ACTIVE scenario
         accountsToInitialize = mockActiveAccounts.items;
         console.log('Active scenario: Initializing only acc-001');
+      } else if (scenario === DB_SCENARIOS.EMPTY) {
+        // Empty scenario: only acc-001 (LIMITED_DDA) with zero balance
+        accountsToInitialize = mockActiveAccounts.items;
+        console.log('Empty scenario: Initializing only acc-001 (LIMITED_DDA)');
       } else {
         // Default: both accounts for ACTIVE_WITH_RECIPIENTS scenario
         accountsToInitialize = mockActiveWithRecipientsAccounts.items;
@@ -640,18 +649,37 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
 
       // Initialize account balances from mock data
       console.log('\n=== Initializing Account Balances ===');
-      const mockBalances = [mockAccountBalance, mockAccountBalance2];
-      mockBalances.forEach((balance) => {
+
+      let balancesToInitialize = [];
+
+      if (scenario === DB_SCENARIOS.EMPTY) {
+        // Empty scenario: only acc-001 with zero balance
+        const emptyBalance = {
+          ...mockAccountBalance,
+          balanceTypes: [
+            { typeCode: 'ITAV', amount: 0 },
+            { typeCode: 'ITBD', amount: 0 },
+          ],
+          updatedAt: new Date().toISOString(),
+        };
+        balancesToInitialize = [emptyBalance];
+        console.log('Empty scenario: Initializing acc-001 with zero balance');
+      } else {
+        // Default: both balances for other scenarios
+        balancesToInitialize = [
+          { ...mockAccountBalance, updatedAt: new Date().toISOString() },
+          { ...mockAccountBalance2, updatedAt: new Date().toISOString() },
+        ];
+        console.log('Default scenario: Initializing both account balances');
+      }
+
+      balancesToInitialize.forEach((balance) => {
         try {
-          const newBalance = {
-            ...balance,
-            updatedAt: new Date().toISOString(),
-          };
           console.log(
             `Creating balance for account ${balance.accountId}:`,
-            newBalance,
+            balance,
           );
-          db.accountBalance.create(newBalance);
+          db.accountBalance.create(balance);
         } catch (error) {
           console.error('Error creating account balance:', error);
         }
@@ -659,7 +687,20 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
 
       // Initialize transactions from mock data
       console.log('\n=== Initializing Transactions ===');
-      mockTransactionsResponse.items.forEach((transaction) => {
+
+      let transactionsToInitialize = [];
+
+      if (scenario === DB_SCENARIOS.EMPTY) {
+        // Empty scenario: no transactions
+        transactionsToInitialize = [];
+        console.log('Empty scenario: Initializing no transactions');
+      } else {
+        // Default: all transactions for other scenarios
+        transactionsToInitialize = mockTransactionsResponse.items;
+        console.log('Default scenario: Initializing all transactions');
+      }
+
+      transactionsToInitialize.forEach((transaction) => {
         try {
           const newTransaction = {
             ...transaction,

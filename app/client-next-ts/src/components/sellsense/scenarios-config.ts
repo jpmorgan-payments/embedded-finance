@@ -4,8 +4,9 @@ export const SCENARIO_KEYS = {
   NEW_SELLER_ONBOARDING: 'new-seller-onboarding',
   ONBOARDING_DOCS_NEEDED: 'onboarding-docs-needed',
   ONBOARDING_IN_REVIEW: 'onboarding-in-review',
-  ACTIVE_SELLER_FRESH_START: 'active-seller-fresh-start',
-  ACTIVE_SELLER_ESTABLISHED: 'active-seller-established',
+  FRESH_START: 'fresh-start',
+  ACTIVE_SELLER_LIMITED_DDA: 'active-seller-limited-dda',
+  ACTIVE_SELLER_LIMITED_DDA_PAYMENTS: 'active-seller-limited-dda-payments',
 } as const;
 
 export type ScenarioKey = (typeof SCENARIO_KEYS)[keyof typeof SCENARIO_KEYS];
@@ -31,6 +32,9 @@ export const SCENARIOS_CONFIG = {
     clientId: undefined,
     scenarioId: 'scenario5',
     category: 'onboarding' as const,
+    headerTitle: 'Complete Your Business Onboarding',
+    headerDescription:
+      'Set up your business profile and verify your identity to start accepting payments.',
   },
   [SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED]: {
     displayName: 'Onboarding - Docs Needed',
@@ -39,6 +43,9 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000133',
     scenarioId: 'scenario3',
     category: 'onboarding' as const,
+    headerTitle: 'Additional Documents Required',
+    headerDescription:
+      'Please provide the requested documentation to complete your business verification.',
   },
   [SCENARIO_KEYS.ONBOARDING_IN_REVIEW]: {
     displayName: 'Onboarding - In Review',
@@ -47,8 +54,27 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000134',
     scenarioId: 'scenario4',
     category: 'onboarding' as const,
+    headerTitle: 'Application Under Review',
+    headerDescription:
+      "Your business application is being reviewed. We'll notify you once the verification is complete.",
   },
-  [SCENARIO_KEYS.ACTIVE_SELLER_FRESH_START]: {
+  [SCENARIO_KEYS.FRESH_START]: {
+    displayName: 'Linked Bank Account',
+    shortName: 'Linked Bank Account',
+    description: 'Linked Bank Account',
+    clientId: '0030000131',
+    scenarioId: 'scenario1',
+    category: 'active' as const,
+    resetDbScenario: 'empty' as const, // Optional: triggers DB reset with active scenario
+    visibleComponents: [
+      AVAILABLE_COMPONENTS.ACCOUNTS,
+      AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
+    ] as ComponentName[],
+    headerTitle: 'Get Started with Your Bank Account',
+    headerDescription:
+      'Connect your external bank account to start making payments and managing your finances.',
+  },
+  [SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA]: {
     displayName: 'Seller with Limited DDA',
     shortName: 'Limited DDA',
     description: 'US Sole Proprietor (onboarding completed, fresh seller)',
@@ -57,13 +83,15 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'active' as const, // Optional: triggers DB reset with active scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.MAKE_PAYMENT,
       AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
       AVAILABLE_COMPONENTS.TRANSACTIONS,
     ] as ComponentName[],
+    headerTitle: 'Wallet Management',
+    headerDescription:
+      'Manage your embedded finance wallet, linked accounts, and transactions.',
   },
-  [SCENARIO_KEYS.ACTIVE_SELLER_ESTABLISHED]: {
+  [SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS]: {
     displayName: 'Seller with Limited DDA Payments',
     shortName: 'Limited DDA Payments',
     description: 'US LLC (established seller with transaction history)',
@@ -72,12 +100,14 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'active-with-recipients' as const, // Optional: triggers DB reset with recipients scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.MAKE_PAYMENT,
       AVAILABLE_COMPONENTS.ACCOUNTS,
       AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
       AVAILABLE_COMPONENTS.TRANSACTIONS,
       AVAILABLE_COMPONENTS.RECIPIENTS,
     ] as ComponentName[],
+    headerTitle: 'Wallet Management with Limited DDA Payments account',
+    headerDescription:
+      'Manage your embedded finance wallet, linked accounts, transactions and recipients.',
   },
 } as const;
 
@@ -86,8 +116,9 @@ export const SCENARIO_ORDER: ScenarioKey[] = [
   SCENARIO_KEYS.NEW_SELLER_ONBOARDING,
   SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED,
   SCENARIO_KEYS.ONBOARDING_IN_REVIEW,
-  SCENARIO_KEYS.ACTIVE_SELLER_FRESH_START,
-  SCENARIO_KEYS.ACTIVE_SELLER_ESTABLISHED,
+  SCENARIO_KEYS.FRESH_START,
+  SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA,
+  SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS,
 ];
 
 // Utility functions
@@ -213,6 +244,33 @@ export const getResetDbScenario = (
   }
   const scenario = SCENARIOS_CONFIG[scenarioKey];
   return (scenario as any).resetDbScenario;
+};
+
+// Utility function to get header title for a scenario
+export const getHeaderTitleForScenario = (
+  scenarioDisplayName: string,
+): string => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return 'Wallet Management'; // Fallback
+  }
+  const scenario = SCENARIOS_CONFIG[scenarioKey];
+  return (scenario as any).headerTitle || 'Wallet Management';
+};
+
+// Utility function to get header description for a scenario
+export const getHeaderDescriptionForScenario = (
+  scenarioDisplayName: string,
+): string => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return 'Manage your embedded finance wallet, linked accounts, and transactions.'; // Fallback
+  }
+  const scenario = SCENARIOS_CONFIG[scenarioKey];
+  return (
+    (scenario as any).headerDescription ||
+    'Manage your embedded finance wallet, linked accounts, and transactions.'
+  );
 };
 
 // Utility function to check if a scenario is the ONBOARDING_DOCS_NEEDED scenario
