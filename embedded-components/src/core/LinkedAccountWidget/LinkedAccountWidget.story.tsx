@@ -332,12 +332,15 @@ export const SellSenseTheme: Story = {
     apiBaseUrl: '/',
     variant: 'default',
     theme: SELLSENSE_THEME,
+    makePaymentComponent: (
+      <MakePayment triggerButtonVariant="ghost" icon={undefined} />
+    ),
   },
   tags: ['@sellsense', '@theme'],
   parameters: {
     docs: {
       story:
-        'This story demonstrates the LinkedAccountWidget with SellSense brand theming. The component uses the official SellSense color palette with orange primary colors, warm backgrounds, and brand-consistent typography.',
+        'This story demonstrates the LinkedAccountWidget with SellSense brand theming and a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form.',
     },
     msw: {
       handlers: createRecipientHandlers(linkedAccountListMock),
