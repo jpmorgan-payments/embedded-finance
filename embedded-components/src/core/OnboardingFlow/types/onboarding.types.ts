@@ -36,6 +36,7 @@ export type OnboardingConfigUsedInContext = {
   availableOrganizationTypes?: Array<OrganizationType>;
   docUploadOnlyMode?: boolean;
   docUploadMaxFileSizeBytes?: number;
+  hideLinkAccountSection?: boolean;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &

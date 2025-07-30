@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n/config';
+import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -808,3 +808,44 @@ export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
     {} as Record<string, any>
   );
 }
+
+/**
+ * Helper type to extract validation message keys for a specific field
+ * Uses conditional types to handle fields that might not have a validation key
+ */
+export type ValidationMessageKeysFor<
+  Field extends
+    keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
+> =
+  (typeof defaultResources)['enUS']['onboarding-overview']['fields'][Field] extends {
+    validation: infer V;
+  }
+    ? keyof V
+    : string;
+
+/**
+ * Retrieves a localized validation message for a specific field and message key
+ * @param field - Field name from the onboarding-overview resources
+ * @param messageKey - Specific validation message key for the selected field
+ * @param count - Optional count parameter for pluralized messages
+ * @returns The localized validation message string
+ */
+export const getValidationMessage = <
+  Field extends
+    keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
+>(
+  field: Field,
+  messageKey: ValidationMessageKeysFor<Field>,
+  count?: number
+): string => {
+  // Build translation key path with validation prefix
+  const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
+
+  const fieldName = i18n.t([
+    `onboarding-overview:fields.${field}.validationFieldName`,
+    `onboarding-overview:fields.${field}.label`,
+  ]);
+
+  // Return translation with optional count parameter for pluralization
+  return i18n.t([translationKey], { fieldName, count });
+};

@@ -1,5 +1,5 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -66,12 +66,6 @@ export const ContactDetailsForm: FormStepComponent = () => {
         />
         <OnboardingFormField
           control={form.control}
-          name="controllerAddresses.0.postalCode"
-          type="text"
-          className="eb-max-w-48"
-        />
-        <OnboardingFormField
-          control={form.control}
           name="controllerAddresses.0.city"
           type="text"
         />
@@ -80,6 +74,12 @@ export const ContactDetailsForm: FormStepComponent = () => {
           name="controllerAddresses.0.state"
           type="combobox"
           options={US_STATE_OPTIONS}
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="controllerAddresses.0.postalCode"
+          type="text"
+          className="eb-max-w-48"
         />
       </fieldset>
     </div>

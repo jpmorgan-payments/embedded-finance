@@ -1,5 +1,5 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import { AlertTriangleIcon, PencilIcon, TriangleAlertIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { AlertTitle } from '@/components/ui/alert';

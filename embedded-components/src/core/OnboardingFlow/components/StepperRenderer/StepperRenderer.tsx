@@ -227,7 +227,12 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     return 'Previous';
   };
 
-  const prevButtonDisabled = !canNavigateToPrevSection;
+  const prevButtonDisabled =
+    currentStepNumber === 1 &&
+    !checkAnswersMode &&
+    !reviewMode &&
+    originScreenId !== 'owners-section' &&
+    !canNavigateToPrevSection;
 
   const { stepValidationMap } = getStepperValidation(
     steps,
