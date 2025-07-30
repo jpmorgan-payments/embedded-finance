@@ -108,7 +108,7 @@ export function InfoIcon({ onClick, title }: InfoIconProps) {
   return (
     <button
       onClick={onClick}
-      className="w-5 h-5 rounded-full bg-white/80 hover:bg-amber-200 flex items-center justify-center transition-colors"
+      className="w-5 h-5 rounded-full flex items-center justify-center transition-colors hover:bg-amber-200/20"
       title={title}
     >
       <Info size={12} className="text-amber-700" />

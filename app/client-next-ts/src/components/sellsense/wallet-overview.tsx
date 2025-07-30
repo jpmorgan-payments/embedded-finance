@@ -18,8 +18,10 @@ import {
   getVisibleComponentsForScenario,
   getHeaderTitleForScenario,
   getHeaderDescriptionForScenario,
+  getGridDimensions,
   AVAILABLE_COMPONENTS,
   type ComponentName,
+  type ComponentConfig,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import { AutomationTrigger } from './automation';
@@ -36,7 +38,6 @@ interface ComponentInfo {
   componentDescription: string;
   componentFeatures: string[];
   component: React.ReactNode;
-  column?: 1 | 2; // Optional column assignment (1 = left, 2 = right)
 }
 
 export function WalletOverview(props: WalletOverviewProps = {}) {
@@ -56,9 +57,12 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ? scenarioDisplayNames[0]
       : 'Active Seller with Direct Payouts');
 
-  // Get visible components for the current scenario
+  // Get visible components with positions for the current scenario
   const visibleComponents =
     getVisibleComponentsForScenario(currentScenario) || [];
+
+  // Get grid dimensions for the current scenario
+  const { maxRows, maxColumns } = getGridDimensions(currentScenario);
 
   // Get theme-aware styles
   const themeStyles = useThemeStyles(currentTheme as any);
@@ -99,8 +103,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   };
 
   // All available components with their configurations
-  // Column configuration: column: 1 = left column, column: 2 = right column
-  // Components without column assignment default to column 1
   const allComponents: Record<ComponentName, ComponentInfo> = {
     [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
       title: 'Make Payment',
@@ -119,7 +121,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           <MakePayment onTransactionSettled={handleTransactionSettled} />
         </div>
       ),
-      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.ACCOUNTS]: {
       title: 'Accounts',
@@ -145,10 +146,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           }}
         />
       ),
-      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.LINKED_ACCOUNTS]: {
-      title: 'Linked Bank Accounts',
+      title: 'Linked Bank Account',
       description:
         'Connect and manage your external bank accounts for payments.',
       componentName: 'LinkedAccountWidget',
@@ -168,7 +168,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           variant="singleAccount"
         />
       ),
-      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
@@ -192,7 +191,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           }}
         />
       ),
-      column: 2, // Default to column 2
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',
@@ -209,22 +207,140 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       component: (
         <Recipients
           makePaymentComponent={
-            <MakePayment onTransactionSettled={handleTransactionSettled} />
+            <MakePayment
+              onTransactionSettled={handleTransactionSettled}
+              triggerButtonVariant="secondary"
+            />
           }
         />
       ),
-      column: 2, // Default to column 2
     },
   };
 
-  // Filter components based on scenario configuration with safety checks
-  const components = (visibleComponents || [])
-    .map((componentName) => allComponents[componentName])
-    .filter(Boolean);
+  // Create a map of component configs with their info
+  const componentConfigsWithInfo = visibleComponents.map(
+    (config: ComponentConfig) => ({
+      ...config,
+      ...allComponents[config.component],
+    }),
+  );
 
   // Get header content from scenario configuration
   const headerTitle = getHeaderTitleForScenario(currentScenario);
   const headerDescription = getHeaderDescriptionForScenario(currentScenario);
+
+  // Helper function to render components in grid layout
+  const renderGridLayout = () => {
+    // Create a 2D grid array based on maxRows and maxColumns
+    const grid: ((typeof componentConfigsWithInfo)[0] | null)[][] = Array(
+      maxRows,
+    )
+      .fill(null)
+      .map(() => Array(maxColumns).fill(null));
+
+    // Place components in their positions
+    componentConfigsWithInfo.forEach((componentConfig) => {
+      const { x, y } = componentConfig.position;
+      if (x < maxRows && y < maxColumns) {
+        grid[x][y] = componentConfig;
+      }
+    });
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {grid.map((row, rowIndex) =>
+          row.map((componentConfig, colIndex) => {
+            if (!componentConfig) return null;
+
+            return (
+              <div key={`${rowIndex}-${colIndex}`}>
+                <EmbeddedComponentCard
+                  component={componentConfig.component}
+                  componentName={componentConfig.componentName}
+                  componentDescription={componentConfig.componentDescription}
+                  componentFeatures={componentConfig.componentFeatures}
+                  isAnyTooltipOpen={openTooltip !== null}
+                  onTooltipToggle={handleTooltipToggle}
+                  onFullScreen={() => {
+                    const fullscreenUrl = createFullscreenUrl(
+                      componentConfig.componentName,
+                      currentTheme,
+                    );
+                    window.open(fullscreenUrl, '_blank');
+                  }}
+                />
+              </div>
+            );
+          }),
+        )}
+      </div>
+    );
+  };
+
+  // Helper function to render components in column layout
+  const renderColumnLayout = () => {
+    // Sort components by position (x first, then y)
+    const sortedComponents = [...componentConfigsWithInfo].sort((a, b) => {
+      if (a.position.x !== b.position.x) {
+        return a.position.x - b.position.x;
+      }
+      return a.position.y - b.position.y;
+    });
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column */}
+        <div className="space-y-6">
+          {sortedComponents
+            .filter((_, index) => index % 2 === 0)
+            .map((componentConfig, index) => (
+              <div key={`left-${index}`}>
+                <EmbeddedComponentCard
+                  component={componentConfig.component}
+                  componentName={componentConfig.componentName}
+                  componentDescription={componentConfig.componentDescription}
+                  componentFeatures={componentConfig.componentFeatures}
+                  isAnyTooltipOpen={openTooltip !== null}
+                  onTooltipToggle={handleTooltipToggle}
+                  onFullScreen={() => {
+                    const fullscreenUrl = createFullscreenUrl(
+                      componentConfig.componentName,
+                      currentTheme,
+                    );
+                    window.open(fullscreenUrl, '_blank');
+                  }}
+                />
+              </div>
+            ))}
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-6">
+          {sortedComponents
+            .filter((_, index) => index % 2 === 1)
+            .map((componentConfig, index) => (
+              <div key={`right-${index}`}>
+                <EmbeddedComponentCard
+                  component={componentConfig.component}
+                  componentName={componentConfig.componentName}
+                  componentDescription={componentConfig.componentDescription}
+                  componentFeatures={componentConfig.componentFeatures}
+                  isAnyTooltipOpen={openTooltip !== null}
+                  onTooltipToggle={handleTooltipToggle}
+                  onFullScreen={() => {
+                    const fullscreenUrl = createFullscreenUrl(
+                      componentConfig.componentName,
+                      currentTheme,
+                    );
+                    window.open(fullscreenUrl, '_blank');
+                  }}
+                />
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -276,82 +392,25 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         headers={headers}
         contentTokens={contentTokens}
       >
-        {layout === 'columns' ? (
-          // Column layout with component positioning
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Column 1 */}
-            <div className="space-y-6">
-              {(components || [])
-                .filter(
-                  (component) => component.column === 1 || !component.column,
-                )
-                .map((componentInfo, index) => (
-                  <div key={`col1-${index}`}>
-                    <EmbeddedComponentCard
-                      component={componentInfo.component}
-                      componentName={componentInfo.componentName}
-                      componentDescription={componentInfo.componentDescription}
-                      componentFeatures={componentInfo.componentFeatures}
-                      isAnyTooltipOpen={openTooltip !== null}
-                      onTooltipToggle={handleTooltipToggle}
-                      onFullScreen={() => {
-                        const fullscreenUrl = createFullscreenUrl(
-                          componentInfo.componentName,
-                          currentTheme,
-                        );
-                        window.open(fullscreenUrl, '_blank');
-                      }}
-                    />
-                  </div>
-                ))}
-            </div>
-
-            {/* Column 2 */}
-            <div className="space-y-6">
-              {(components || [])
-                .filter((component) => component.column === 2)
-                .map((componentInfo, index) => (
-                  <div key={`col2-${index}`}>
-                    <EmbeddedComponentCard
-                      component={componentInfo.component}
-                      componentName={componentInfo.componentName}
-                      componentDescription={componentInfo.componentDescription}
-                      componentFeatures={componentInfo.componentFeatures}
-                      isAnyTooltipOpen={openTooltip !== null}
-                      onTooltipToggle={handleTooltipToggle}
-                      onFullScreen={() => {
-                        const fullscreenUrl = createFullscreenUrl(
-                          componentInfo.componentName,
-                          currentTheme,
-                        );
-                        window.open(fullscreenUrl, '_blank');
-                      }}
-                    />
-                  </div>
-                ))}
-            </div>
-          </div>
+        {layout === 'grid' ? (
+          renderGridLayout()
+        ) : layout === 'columns' ? (
+          renderColumnLayout()
         ) : (
-          // Original grid and full-width layouts
-          <div
-            className={
-              layout === 'grid'
-                ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
-                : 'space-y-6'
-            }
-          >
-            {(components || []).map((componentInfo, index) => (
+          // Full-width layout
+          <div className="space-y-6">
+            {componentConfigsWithInfo.map((componentConfig, index) => (
               <div key={index}>
                 <EmbeddedComponentCard
-                  component={componentInfo.component}
-                  componentName={componentInfo.componentName}
-                  componentDescription={componentInfo.componentDescription}
-                  componentFeatures={componentInfo.componentFeatures}
+                  component={componentConfig.component}
+                  componentName={componentConfig.componentName}
+                  componentDescription={componentConfig.componentDescription}
+                  componentFeatures={componentConfig.componentFeatures}
                   isAnyTooltipOpen={openTooltip !== null}
                   onTooltipToggle={handleTooltipToggle}
                   onFullScreen={() => {
                     const fullscreenUrl = createFullscreenUrl(
-                      componentInfo.componentName,
+                      componentConfig.componentName,
                       currentTheme,
                     );
                     window.open(fullscreenUrl, '_blank');
@@ -362,7 +421,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           </div>
         )}
 
-        {(components || []).length === 0 && (
+        {componentConfigsWithInfo.length === 0 && (
           <div className="text-center py-8">
             <p className="text-gray-500">
               No components available for the current scenario. This may be due
