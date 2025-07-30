@@ -2,15 +2,10 @@ import { mockTransactionsResponse } from '@/mocks/transactions.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-
-
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { SELLSENSE_THEME } from '@/core/themes';
 
-
-
 import { TransactionsDisplay } from './TransactionsDisplay';
-
 
 const TransactionsDisplayWithProvider = ({
   apiBaseUrl,
