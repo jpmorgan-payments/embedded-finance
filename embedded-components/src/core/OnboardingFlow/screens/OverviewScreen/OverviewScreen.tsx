@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
@@ -8,12 +9,10 @@ import {
   Clock9Icon,
   DownloadIcon,
   InfoIcon,
-  Loader2Icon,
   LockIcon,
   PencilIcon,
   XIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -37,7 +36,8 @@ import {
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
-  const { organizationType, clientData } = useOnboardingContext();
+  const { organizationType, clientData, hideLinkAccountSection } =
+    useOnboardingContext();
   const { sections, goTo, sessionData, updateSessionData } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
@@ -113,7 +113,6 @@ export const OverviewScreen = () => {
                     {t(
                       'screens.overview.verifyBusinessSection.reviewInProgress.description'
                     )}
-                    <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
                   </AlertDescription>
                 </Alert>
               )}
@@ -131,7 +130,6 @@ export const OverviewScreen = () => {
                     {t(
                       'screens.overview.verifyBusinessSection.documentsReceived.description'
                     )}
-                    <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
                   </AlertDescription>
                 </Alert>
               )}
@@ -379,91 +377,93 @@ export const OverviewScreen = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
-          <CardHeader className="eb-p-3">
-            <CardTitle>
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t('screens.overview.bankAccountSection.title')}
-              </h2>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="eb-p-3 eb-pt-0">
-            <div className="eb-space-y-3">
-              <div>
-                <p
-                  className={cn(
-                    'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
-                    {
-                      'eb-text-muted-foreground': !kycCompleted,
-                    }
-                  )}
-                >
-                  <LockIcon className="eb-size-4" />
-                  {t('screens.overview.bankAccountSection.lockedMessage')}
-                </p>
-                <Card
-                  className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
-                    'eb-border-dashed eb-border-muted-foreground':
-                      !kycCompleted,
-                  })}
-                >
-                  <div className="eb-flex eb-w-full eb-justify-between">
-                    <div className="eb-flex eb-items-center eb-gap-2">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M5.5 4V3H6.5V4H5.5Z"
-                          fill="#4C5157"
-                          fillOpacity="0.4"
-                        />
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
-                          fill="#4C5157"
-                          fillOpacity={kycCompleted ? '1' : '0.8'}
-                        />
-                      </svg>
-                      <h3
-                        className={cn(
-                          'eb-font-header eb-text-lg eb-font-medium',
-                          {
-                            'eb-text-muted-foreground': !kycCompleted,
-                          }
-                        )}
-                      >
-                        {t(
-                          'screens.overview.bankAccountSection.linkAccountTitle'
-                        )}
-                      </h3>
-                    </div>
+        {!hideLinkAccountSection && (
+          <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
+            <CardHeader className="eb-p-3">
+              <CardTitle>
+                <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                  {t('screens.overview.bankAccountSection.title')}
+                </h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="eb-p-3 eb-pt-0">
+              <div className="eb-space-y-3">
+                <div>
+                  <p
+                    className={cn(
+                      'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
+                      {
+                        'eb-text-muted-foreground': !kycCompleted,
+                      }
+                    )}
+                  >
+                    <LockIcon className="eb-size-4" />
+                    {t('screens.overview.bankAccountSection.lockedMessage')}
+                  </p>
+                  <Card
+                    className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
+                      'eb-border-dashed eb-border-muted-foreground':
+                        !kycCompleted,
+                    })}
+                  >
+                    <div className="eb-flex eb-w-full eb-justify-between">
+                      <div className="eb-flex eb-items-center eb-gap-2">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M5.5 4V3H6.5V4H5.5Z"
+                            fill="#4C5157"
+                            fillOpacity="0.4"
+                          />
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
+                            fill="#4C5157"
+                            fillOpacity={kycCompleted ? '1' : '0.8'}
+                          />
+                        </svg>
+                        <h3
+                          className={cn(
+                            'eb-font-header eb-text-lg eb-font-medium',
+                            {
+                              'eb-text-muted-foreground': !kycCompleted,
+                            }
+                          )}
+                        >
+                          {t(
+                            'screens.overview.bankAccountSection.linkAccountTitle'
+                          )}
+                        </h3>
+                      </div>
 
-                    <div className="eb-flex [&_svg]:eb-size-4">
-                      <CircleDashedIcon className="eb-stroke-gray-600" />
-                      <span className="eb-sr-only">Not started</span>
+                      <div className="eb-flex [&_svg]:eb-size-4">
+                        <CircleDashedIcon className="eb-stroke-gray-600" />
+                        <span className="eb-sr-only">Not started</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="eb-flex eb-justify-end">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="eb-mt-3"
-                      disabled={!kycCompleted}
-                    >
-                      {t('common:start')}
-                      <ChevronRightIcon />
-                    </Button>
-                  </div>
-                </Card>
+                    <div className="eb-flex eb-justify-end">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="eb-mt-3"
+                        disabled={!kycCompleted}
+                      >
+                        {t('common:start')}
+                        <ChevronRightIcon />
+                      </Button>
+                    </div>
+                  </Card>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </StepLayout>
   );

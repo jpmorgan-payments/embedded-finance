@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { ChevronDownIcon, InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OrganizationIdentityDtoIdType } from '@/api/generated/smbdo.schemas';
