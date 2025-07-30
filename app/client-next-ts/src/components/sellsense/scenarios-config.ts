@@ -56,7 +56,7 @@ export const SCENARIOS_CONFIG = {
     category: 'onboarding' as const,
     headerTitle: 'Application Under Review',
     headerDescription:
-      "Your business application is being reviewed. We'll notify you once the verification is complete.",
+      "Seller onboarding data is partially prefilled. Please review and complete the remaining information.",
   },
   [SCENARIO_KEYS.FRESH_START]: {
     displayName: 'Linked Bank Account',

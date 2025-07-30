@@ -16,14 +16,20 @@ import { Recipients, RecipientsProps } from '../Recipients';
 // Wrapper component that follows the same pattern as TransactionsDisplay
 const RecipientsWithProvider = ({
   children,
+  theme = {},
+  contentTokens = { name: 'enUS' },
   ...recipientsProps
-}: RecipientsProps & { children?: React.ReactNode }) => {
+}: RecipientsProps & {
+  children?: React.ReactNode;
+  theme?: Record<string, any>;
+  contentTokens?: Record<string, any>;
+}) => {
   return (
     <EBComponentsProvider
       apiBaseUrl="https://api.example.com"
       headers={{}}
-      theme={{}}
-      contentTokens={{ name: 'enUS' }}
+      theme={theme}
+      contentTokens={contentTokens}
     >
       <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
         <Recipients {...recipientsProps} />
@@ -32,7 +38,43 @@ const RecipientsWithProvider = ({
   );
 };
 
-const meta: Meta<typeof Recipients> = {
+const meta: Meta<typeof Recipients> & {
+  argTypes: {
+    clientId: {
+      control: 'text';
+      description: string;
+    };
+    initialRecipientType: {
+      control: { type: 'select' };
+      options: string[];
+      description: string;
+    };
+    showCreateButton: {
+      control: 'boolean';
+      description: string;
+    };
+    onRecipientCreated: {
+      action: string;
+      description: string;
+    };
+    onRecipientUpdated: {
+      action: string;
+      description: string;
+    };
+    userEventsHandler: {
+      action: string;
+      description: string;
+    };
+    theme: {
+      control: 'object';
+      description: string;
+    };
+    contentTokens: {
+      control: 'object';
+      description: string;
+    };
+  };
+} = {
   title: 'Recipients',
   component: Recipients,
   parameters: {
@@ -70,10 +112,23 @@ const meta: Meta<typeof Recipients> = {
       action: 'user-event',
       description: 'Handler for user events',
     },
+    theme: {
+      control: 'object',
+      description: 'Theme configuration for the EBComponentsProvider',
+    },
+    contentTokens: {
+      control: 'object',
+      description: 'Content tokens configuration for the EBComponentsProvider',
+    },
   },
 };
 export default meta;
-type Story = StoryObj<typeof Recipients>;
+type Story = StoryObj<typeof Recipients> & {
+  args?: Partial<RecipientsProps> & {
+    theme?: Record<string, any>;
+    contentTokens?: Record<string, any>;
+  };
+};
 
 // Default story with all recipients
 export const Default: Story = {
@@ -81,6 +136,8 @@ export const Default: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: {},
+    contentTokens: { name: 'enUS' },
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
@@ -422,19 +479,104 @@ export const MobileView: Story = {
   },
 };
 
-// Story for dark theme
-export const DarkTheme: Story = {
+// Story for SellSense theme
+export const SellSenseTheme: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: {
+      variables: {
+        fontFamily: 'Inter',
+        headerFontFamily: 'Inter',
+        buttonFontFamily: 'Inter',
+
+        // SellSense brand colors
+        primaryColor: '#f55727',
+        primaryHoverColor: '#e14d1f',
+        primaryActiveColor: '#cc4319',
+        primaryForegroundColor: '#ffffff',
+
+        // Enhanced secondary button with outline support
+        secondaryColor: '#FDF7F0',
+        secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
+        secondaryActiveColor: '#2CB9AC',
+        secondaryForegroundColor: '#f55727',
+        secondaryForegroundHoverColor: '#e14d1f',
+        secondaryForegroundActiveColor: '#2CB9AC',
+        secondaryBorderWidth: '1px',
+
+        // Background and layout
+        backgroundColor: '#FAF9F7',
+        foregroundColor: '#1e293b',
+        cardColor: '#F7F3F0',
+        cardForegroundColor: '#1e293b',
+
+        // Enhanced muted and accent colors
+        mutedColor: '#f8fafc',
+        mutedForegroundColor: '#64748b',
+        accentColor: '#f1f5f9',
+        accentForegroundColor: '#475569',
+
+        // Enhanced alert system colors
+        alertColor: '#FDF7F0',
+        alertForegroundColor: '#1e293b',
+        informativeColor: '#0ea5e9',
+        informativeAccentColor: '#e0f2fe',
+        warningColor: '#f59e0b',
+        warningAccentColor: '#fef3c7',
+        successColor: '#10b981',
+        successAccentColor: '#d1fae5',
+
+        // Destructive colors
+        destructiveColor: '#ef4444',
+        destructiveHoverColor: '#dc2626',
+        destructiveActiveColor: '#b91c1c',
+        destructiveForegroundColor: '#ffffff',
+        destructiveForegroundHoverColor: '#fef2f2',
+        destructiveForegroundActiveColor: '#fee2e2',
+
+        // Input styling
+        inputColor: '#FFFFFF',
+        inputBorderColor: '#0000004d',
+        borderColor: '#0000004d',
+
+        // Border radius
+        borderRadius: '8px',
+        inputBorderRadius: '4px',
+        buttonBorderRadius: '8px',
+
+        // Enhanced button styling
+        buttonFontWeight: '600',
+        buttonFontSize: '0.875rem',
+        buttonLineHeight: '1.25rem',
+        buttonTextTransform: 'uppercase',
+        buttonLetterSpacing: '0.6px',
+
+        // Button weights
+        primaryButtonFontWeight: '600',
+        secondaryButtonFontWeight: '600',
+        destructiveButtonFontWeight: '600',
+
+        // Form label design tokens
+        formLabelFontSize: '0.875rem',
+        formLabelFontWeight: '600',
+        formLabelLineHeight: '1.25rem',
+
+        // Border widths
+        primaryBorderWidth: '0px',
+        destructiveBorderWidth: '0px',
+
+        // Spacing and effects
+        spacingUnit: '0.25rem',
+        shiftButtonOnActive: false,
+        zIndexOverlay: 1000,
+      },
+    },
+    contentTokens: { name: 'enUS' },
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
-    backgrounds: {
-      default: 'dark',
-      values: [{ name: 'dark', value: '#1a1a1a' }],
-    },
     msw: {
       handlers: [
         http.get('*/recipients', () => {
@@ -453,6 +595,34 @@ export const WithEventTracking: Story = {
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
       console.log('User event:', event);
+    },
+    theme: {},
+    contentTokens: { name: 'enUS' },
+  },
+  render: (args) => <RecipientsWithProvider {...args} />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json(mockRecipientsResponse);
+        }),
+      ],
+    },
+  },
+};
+
+// Story with custom content tokens
+export const CustomContentTokens: Story = {
+  args: {
+    clientId: 'client-001',
+    showCreateButton: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: {},
+    contentTokens: {
+      name: 'esES',
+      currency: 'EUR',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h',
     },
   },
   render: (args) => <RecipientsWithProvider {...args} />,
