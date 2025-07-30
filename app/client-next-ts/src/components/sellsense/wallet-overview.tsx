@@ -38,6 +38,10 @@ interface ComponentInfo {
   componentDescription: string;
   componentFeatures: string[];
   component: React.ReactNode;
+  contentTokens?: {
+    name?: 'enUS';
+    tokens?: Record<string, any>;
+  };
 }
 
 export function WalletOverview(props: WalletOverviewProps = {}) {
@@ -75,8 +79,8 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   const accountsRef = useRef<{ refresh: () => void } | null>(null);
   const transactionsRef = useRef<{ refresh: () => void } | null>(null);
 
-  // Create content tokens that respond to tone changes
-  const contentTokens = {
+  // Create base content tokens that respond to tone changes
+  const baseContentTokens = {
     name: 'enUS' as const,
   };
 
@@ -102,7 +106,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     }, 1000);
   };
 
-  // All available components with their configurations
+  // All available components with their configurations and custom content tokens
   const allComponents: Record<ComponentName, ComponentInfo> = {
     [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
       title: 'Make Payment',
@@ -229,6 +233,45 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   const headerTitle = getHeaderTitleForScenario(currentScenario);
   const headerDescription = getHeaderDescriptionForScenario(currentScenario);
 
+  // Helper function to render a component with its own provider
+  const renderComponentWithProvider = (componentConfig: any, key: string) => {
+    const { component, contentTokens: componentContentTokens = {} } =
+      componentConfig;
+
+    // Merge component-specific content tokens with base tokens
+    const mergedContentTokens = {
+      ...baseContentTokens,
+      ...componentContentTokens,
+    };
+
+    return (
+      <div key={key}>
+        <EBComponentsProvider
+          apiBaseUrl="/ef/do/v1/"
+          theme={themeObject}
+          headers={headers}
+          contentTokens={mergedContentTokens}
+        >
+          <EmbeddedComponentCard
+            component={component}
+            componentName={componentConfig.componentName}
+            componentDescription={componentConfig.componentDescription}
+            componentFeatures={componentConfig.componentFeatures}
+            isAnyTooltipOpen={openTooltip !== null}
+            onTooltipToggle={handleTooltipToggle}
+            onFullScreen={() => {
+              const fullscreenUrl = createFullscreenUrl(
+                componentConfig.componentName,
+                currentTheme,
+              );
+              window.open(fullscreenUrl, '_blank');
+            }}
+          />
+        </EBComponentsProvider>
+      </div>
+    );
+  };
+
   // Helper function to render components in grid layout
   const renderGridLayout = () => {
     // Create a 2D grid array based on maxRows and maxColumns
@@ -252,24 +295,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           row.map((componentConfig, colIndex) => {
             if (!componentConfig) return null;
 
-            return (
-              <div key={`${rowIndex}-${colIndex}`}>
-                <EmbeddedComponentCard
-                  component={componentConfig.component}
-                  componentName={componentConfig.componentName}
-                  componentDescription={componentConfig.componentDescription}
-                  componentFeatures={componentConfig.componentFeatures}
-                  isAnyTooltipOpen={openTooltip !== null}
-                  onTooltipToggle={handleTooltipToggle}
-                  onFullScreen={() => {
-                    const fullscreenUrl = createFullscreenUrl(
-                      componentConfig.componentName,
-                      currentTheme,
-                    );
-                    window.open(fullscreenUrl, '_blank');
-                  }}
-                />
-              </div>
+            return renderComponentWithProvider(
+              componentConfig,
+              `grid-${rowIndex}-${colIndex}`,
             );
           }),
         )}
@@ -293,50 +321,18 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         <div className="space-y-6">
           {sortedComponents
             .filter((_, index) => index % 2 === 0)
-            .map((componentConfig, index) => (
-              <div key={`left-${index}`}>
-                <EmbeddedComponentCard
-                  component={componentConfig.component}
-                  componentName={componentConfig.componentName}
-                  componentDescription={componentConfig.componentDescription}
-                  componentFeatures={componentConfig.componentFeatures}
-                  isAnyTooltipOpen={openTooltip !== null}
-                  onTooltipToggle={handleTooltipToggle}
-                  onFullScreen={() => {
-                    const fullscreenUrl = createFullscreenUrl(
-                      componentConfig.componentName,
-                      currentTheme,
-                    );
-                    window.open(fullscreenUrl, '_blank');
-                  }}
-                />
-              </div>
-            ))}
+            .map((componentConfig, index) =>
+              renderComponentWithProvider(componentConfig, `left-${index}`),
+            )}
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
           {sortedComponents
             .filter((_, index) => index % 2 === 1)
-            .map((componentConfig, index) => (
-              <div key={`right-${index}`}>
-                <EmbeddedComponentCard
-                  component={componentConfig.component}
-                  componentName={componentConfig.componentName}
-                  componentDescription={componentConfig.componentDescription}
-                  componentFeatures={componentConfig.componentFeatures}
-                  isAnyTooltipOpen={openTooltip !== null}
-                  onTooltipToggle={handleTooltipToggle}
-                  onFullScreen={() => {
-                    const fullscreenUrl = createFullscreenUrl(
-                      componentConfig.componentName,
-                      currentTheme,
-                    );
-                    window.open(fullscreenUrl, '_blank');
-                  }}
-                />
-              </div>
-            ))}
+            .map((componentConfig, index) =>
+              renderComponentWithProvider(componentConfig, `right-${index}`),
+            )}
         </div>
       </div>
     );
@@ -386,56 +382,33 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       </div>
 
       {/* Components Grid */}
-      <EBComponentsProvider
-        apiBaseUrl="/ef/do/v1/"
-        theme={themeObject}
-        headers={headers}
-        contentTokens={contentTokens}
-      >
-        {layout === 'grid' ? (
-          renderGridLayout()
-        ) : layout === 'columns' ? (
-          renderColumnLayout()
-        ) : (
-          // Full-width layout
-          <div className="space-y-6">
-            {componentConfigsWithInfo.map((componentConfig, index) => (
-              <div key={index}>
-                <EmbeddedComponentCard
-                  component={componentConfig.component}
-                  componentName={componentConfig.componentName}
-                  componentDescription={componentConfig.componentDescription}
-                  componentFeatures={componentConfig.componentFeatures}
-                  isAnyTooltipOpen={openTooltip !== null}
-                  onTooltipToggle={handleTooltipToggle}
-                  onFullScreen={() => {
-                    const fullscreenUrl = createFullscreenUrl(
-                      componentConfig.componentName,
-                      currentTheme,
-                    );
-                    window.open(fullscreenUrl, '_blank');
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+      {layout === 'grid' ? (
+        renderGridLayout()
+      ) : layout === 'columns' ? (
+        renderColumnLayout()
+      ) : (
+        // Full-width layout
+        <div className="space-y-6">
+          {componentConfigsWithInfo.map((componentConfig, index) =>
+            renderComponentWithProvider(componentConfig, `full-width-${index}`),
+          )}
+        </div>
+      )}
 
-        {componentConfigsWithInfo.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">
-              No components available for the current scenario. This may be due
-              to a database reset.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Reload Page
-            </button>
-          </div>
-        )}
-      </EBComponentsProvider>
+      {componentConfigsWithInfo.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            No components available for the current scenario. This may be due to
+            a database reset.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Reload Page
+          </button>
+        </div>
+      )}
 
       {/* Simple Automation Trigger */}
       <AutomationTrigger currentScenario={currentScenario} />
