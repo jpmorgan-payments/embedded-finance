@@ -1,8 +1,8 @@
 import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { defaultResources, i18n } from '@/i18n/config';
-import { useTranslation } from '@/i18n/useTranslation';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { cn, loadContentTokens } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';

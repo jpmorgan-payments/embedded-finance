@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import {
   AlertCircleIcon,
   BellIcon,
@@ -10,6 +9,7 @@ import {
   PauseCircleIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ClientStatus } from '@/api/generated/smbdo.schemas';

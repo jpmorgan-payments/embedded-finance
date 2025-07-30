@@ -1,6 +1,5 @@
-import { FlatNamespace, KeyPrefix, TFunction } from 'i18next';
+import { FlatNamespace, KeyPrefix, Namespace, TFunction } from 'i18next';
 import {
-  FallbackNs,
   useTranslation as useI18nextTranslation,
   UseTranslationOptions,
 } from 'react-i18next';
@@ -27,6 +26,12 @@ function getNestedValue(
   return current;
 }
 
+type FallbackNs<Ns> = Ns extends undefined
+  ? 'common'
+  : Ns extends Namespace
+    ? Ns
+    : 'common';
+
 /**
  * Custom hook to handle translations with scoped namespaces
  * Wraps the i18next useTranslation hook to prepend providerId to namespaces
@@ -39,7 +44,7 @@ export function useTranslation<
   KPrefix extends KeyPrefix<FallbackNs<Ns>> = undefined,
 >(
   namespace: Ns,
-  options?: UseTranslationOptions<KPrefix>
+  options?: UseTranslationOptions<undefined>
 ): { t: TFunction<FallbackNs<Ns>, KPrefix> } {
   const { tokens } = useContentTokens();
   const defaultNamespace = Array.isArray(namespace) ? namespace[0] : namespace;

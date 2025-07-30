@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import {
   ClockIcon,
   FileCheckIcon,
@@ -8,6 +7,7 @@ import {
   ShieldCheckIcon,
   UserCheckIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const STAGE_DURATION_MS = 4000; // 4 seconds per stage
 const ICON_STROKE_WIDTH = 1.5; // Consistent stroke width

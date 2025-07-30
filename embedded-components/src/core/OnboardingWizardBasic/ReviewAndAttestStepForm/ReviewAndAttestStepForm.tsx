@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import { AlertCircle, Upload, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   ClientResponse,

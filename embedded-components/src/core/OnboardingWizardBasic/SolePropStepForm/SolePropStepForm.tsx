@@ -6,7 +6,7 @@
  */
 
 import { FC } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
+import { useTranslation } from 'react-i18next';
 
 import { Form } from '@/components/ui/form';
 

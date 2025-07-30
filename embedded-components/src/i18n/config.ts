@@ -23,16 +23,15 @@ export const defaultResources = {
     'onboarding-overview': enUS_onboardingOverview,
     'make-payment': enUS_makePayment,
     zod: en_zod,
-    translation: {},
   },
   frCA: {
     locale: 'fr-CA',
     common: frCA_common,
+    validation: enUS_validation,
     onboarding: frCA_onboarding,
     'onboarding-overview': enUS_onboardingOverview,
     'make-payment': frCA_makePayment,
     zod: fr_zod,
-    translation: {},
   },
 };
 

@@ -47,7 +47,7 @@ const validateDate = (
   if (Number.isNaN(dayNum) || Number.isNaN(monthNum) || Number.isNaN(yearNum)) {
     return {
       isValid: false,
-      errorMessage: t('dateFormat'),
+      errorMessage: t('validation.dateFormat'),
     };
   }
 
@@ -61,7 +61,7 @@ const validateDate = (
   ) {
     return {
       isValid: false,
-      errorMessage: t('dateInvalid'),
+      errorMessage: t('validation.dateInvalid'),
     };
   }
 
@@ -73,7 +73,7 @@ const validateDate = (
   ) {
     return {
       isValid: false,
-      errorMessage: t('dateInvalid'),
+      errorMessage: t('validation.dateInvalid'),
     };
   }
 
@@ -107,7 +107,7 @@ export function ImportantDateSelector({
         newDay,
         newMonth,
         newYear,
-        t
+        t as (key: string) => string
       );
 
       setIsValid(newIsValid);
