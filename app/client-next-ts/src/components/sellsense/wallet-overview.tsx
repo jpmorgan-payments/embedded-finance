@@ -172,6 +172,15 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           variant="singleAccount"
         />
       ),
+      contentTokens: {
+        tokens: {
+          'make-payment': {
+            buttons: {
+              makePayment: 'Pay123',
+            },
+          },
+        },
+      },
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
