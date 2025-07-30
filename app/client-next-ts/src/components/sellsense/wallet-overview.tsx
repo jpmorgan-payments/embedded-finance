@@ -16,10 +16,13 @@ import { useSellSenseThemes } from './use-sellsense-themes';
 import {
   getScenarioDisplayNames,
   getVisibleComponentsForScenario,
+  getHeaderTitleForScenario,
+  getHeaderDescriptionForScenario,
   AVAILABLE_COMPONENTS,
   type ComponentName,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
+import { AutomationTrigger } from './automation';
 
 interface WalletOverviewProps {
   clientScenario?: any;
@@ -219,24 +222,20 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     .map((componentName) => allComponents[componentName])
     .filter(Boolean);
 
+  // Get header content from scenario configuration
+  const headerTitle = getHeaderTitleForScenario(currentScenario);
+  const headerDescription = getHeaderDescriptionForScenario(currentScenario);
+
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1
           className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
         >
-          Wallet Management
+          {headerTitle}
         </h1>
         <p className={themeStyles.getHeaderLabelStyles()}>
-          Manage your embedded finance wallet, linked accounts, and
-          transactions.
-          {(visibleComponents || []).includes(
-            AVAILABLE_COMPONENTS.RECIPIENTS,
-          ) && (
-            <span className="ml-1 text-green-600 font-medium">
-              Recipients management available
-            </span>
-          )}
+          {headerDescription}
         </p>
 
         {/* Layout Controls */}
@@ -378,6 +377,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           </div>
         )}
       </EBComponentsProvider>
+
+      {/* Simple Automation Trigger */}
+      <AutomationTrigger currentScenario={currentScenario} />
     </div>
   );
 }

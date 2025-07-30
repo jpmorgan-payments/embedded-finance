@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '../EBComponentsProvider';
+import { SELLSENSE_THEME } from '../themes';
 import { Accounts, AccountsProps } from './Accounts';
 
 // --- Mock Data (aligned with JPMorgan API docs) ---
@@ -81,6 +82,7 @@ const AccountsWithProvider = (props: AccountsProps) => {
 const meta: Meta<typeof Accounts> = {
   title: 'Core/Accounts',
   component: Accounts,
+  tags: ['@core', '@accounts'],
   parameters: {
     layout: 'centered',
     docs: {
@@ -220,6 +222,38 @@ export const MultipleCategories: Story = {
     clientId: 'client-001',
   },
   render: (args) => <AccountsWithProvider {...args} />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/accounts', () => HttpResponse.json(mockAccountsResponse)),
+        http.get('*/accounts/:id/balances', () =>
+          HttpResponse.json(mockBalanceResponse)
+        ),
+      ],
+    },
+  },
+};
+
+export const SellSenseTheme: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
+    clientId: 'client-001',
+  },
+  tags: ['@sellsense', '@theme'],
+  render: (args) => (
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      theme={SELLSENSE_THEME}
+      contentTokens={{ name: 'enUS' }}
+    >
+      <QueryClientProvider client={new QueryClient()}>
+        <div className="eb-mx-auto eb-max-w-2xl eb-p-6">
+          <Accounts {...args} />
+        </div>
+      </QueryClientProvider>
+    </EBComponentsProvider>
+  ),
   parameters: {
     msw: {
       handlers: [

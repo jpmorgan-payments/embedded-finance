@@ -12,7 +12,8 @@ const CLIENT_ID = '0030000132';
 
 const meta: Meta<OnboardingFlowWithProviderProps> = {
   ...defaultMeta,
-  title: 'Onboarding Flow / Mocked Client Status',
+  title: 'Core/OnboardingFlow/Mocks',
+  tags: ['@core', '@onboarding'],
 };
 export default meta;
 

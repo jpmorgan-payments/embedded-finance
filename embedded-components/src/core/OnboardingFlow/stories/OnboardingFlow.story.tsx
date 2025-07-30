@@ -6,14 +6,16 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import { OnboardingFlow, OnboardingFlowProps } from '@/core/OnboardingFlow';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
+import { SELLSENSE_THEME } from '@/core/themes';
 
 import { handlers } from './msw.handlers';
 
 export type OnboardingFlowWithProviderProps = OnboardingFlowProps & EBConfig;
 
 const meta: Meta<OnboardingFlowWithProviderProps> = {
-  title: 'Onboarding Flow / Appearance & Theme',
+  title: 'Core/OnboardingFlow',
   component: OnboardingFlow,
+  tags: ['@core', '@onboarding'],
   parameters: {
     layout: 'fullscreen',
     msw: {
@@ -173,3 +175,11 @@ STheme.args = {
     },
   },
 };
+
+export const SellSenseTheme = Default.bind({});
+SellSenseTheme.storyName = 'SellSense Theme';
+SellSenseTheme.args = {
+  ...Default.args,
+  theme: SELLSENSE_THEME,
+};
+SellSenseTheme.tags = ['@sellsense', '@theme'];

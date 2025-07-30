@@ -270,13 +270,13 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 {/* Routing Numbers - Enhanced Display */}
                 <div className="eb-flex eb-flex-col eb-gap-1">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                    <span className="eb-font-medium">ACH/RTP Routing:</span>
+                    <span className="eb-font-medium">ACH Routing:</span>
                     <span className="eb-font-mono eb-text-xs eb-font-semibold">
                       028000024
                     </span>
                   </div>
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                    <span className="eb-font-medium">Wire Routing:</span>
+                    <span className="eb-font-medium">Wire/RTP Routing:</span>
                     <span className="eb-font-mono eb-text-xs eb-font-semibold">
                       021000021
                     </span>

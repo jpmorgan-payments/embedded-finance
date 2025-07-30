@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
+import { SELLSENSE_THEME } from '@/core/themes';
 
 import { MakePayment } from './MakePayment';
 
@@ -391,8 +392,9 @@ const mockAccountBalances = {
 };
 
 const meta: Meta<MakePaymentWithProviderProps> = {
-  title: 'Payment / Make Payment',
+  title: 'Core/MakePayment',
   component: MakePayment,
+  tags: ['@core', '@payment'],
   parameters: {
     layout: 'centered',
     msw: {
@@ -978,6 +980,28 @@ export const GhostVariantNoIcon: Story = {
       description: {
         story:
           'This story demonstrates the MakePayment component with a Ghost variant trigger button and no icon. The Ghost variant provides a subtle, minimal appearance suitable for secondary actions or less prominent UI elements. The button text is customized using content tokens to show "Pay" instead of the default text.',
+      },
+    },
+  },
+};
+
+/**
+ * SellSense Theme: Demonstrates the component with SellSense brand theming.
+ */
+export const SellSenseTheme: Story = {
+  ...Default,
+  name: 'SellSense Theme',
+  args: {
+    ...Default.args,
+    theme: SELLSENSE_THEME,
+    icon: 'CirclePlus',
+  },
+  tags: ['@sellsense', '@theme'],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the MakePayment component with SellSense brand theming. The component uses the official SellSense color palette with orange primary colors, warm backgrounds, and brand-consistent typography.',
       },
     },
   },
