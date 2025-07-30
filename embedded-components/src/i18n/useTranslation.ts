@@ -7,6 +7,8 @@ import { $Tuple } from 'react-i18next/helpers';
 
 import { useContentTokens } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
+const CONTENT_TOKEN_NOT_FOUND_CODE = 'CONTENT_TOKEN_NOT_FOUND';
+
 function getNestedValue(
   obj: Record<string, any> | string | undefined,
   path: string
@@ -95,7 +97,10 @@ export function useTranslation<
           if (token !== undefined) {
             return token;
           }
-          return originalT(k, tOptions);
+          return originalT(k, {
+            ...tOptions,
+            defaultValue: CONTENT_TOKEN_NOT_FOUND_CODE,
+          });
         }
         if (typeof k === 'string' && !k.includes(':')) {
           const token = getNestedValue(
@@ -105,15 +110,25 @@ export function useTranslation<
           if (token !== undefined) {
             return token;
           }
-          return originalT(k, tOptions);
+          return originalT(k, {
+            ...tOptions,
+            defaultValue: CONTENT_TOKEN_NOT_FOUND_CODE,
+          });
         }
-        return '';
+        return undefined;
       });
 
-      return valueList.find((value) => value !== undefined);
+      return (
+        valueList.find(
+          (value) =>
+            value !== undefined && value !== CONTENT_TOKEN_NOT_FOUND_CODE
+        ) ??
+        tOptions.defaultValue ??
+        key[0]
+      );
     }
 
-    return key;
+    return JSON.stringify(key);
   };
 
   wrappedT.$TFunctionBrand = originalT.$TFunctionBrand;

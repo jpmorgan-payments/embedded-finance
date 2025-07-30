@@ -132,7 +132,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       stepperGoTo(checkAnswersStepId);
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
-      goTo('review-attest-section');
+      goTo('review-attest-section', {
+        reviewScreenOpenedSectionId: currentSection?.id,
+      });
     } else if (currentStepNumber < steps.length) {
       stepperNext();
     } else if (
@@ -190,7 +192,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       stepperGoTo(checkAnswersStepId);
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
-      goTo('review-attest-section');
+      goTo('review-attest-section', {
+        reviewScreenOpenedSectionId: currentSection?.id,
+      });
     } else if (
       originScreenId === 'owners-section' &&
       currentScreenId !== 'review-attest-section' &&

@@ -393,7 +393,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   // Loading state
   if (isLoading) {
     return (
-      <Card className="eb-w-full">
+      <Card className="eb-component eb-w-full">
         <CardHeader>
           <div className="eb-flex eb-items-center eb-justify-between">
             <Skeleton className="eb-h-6 eb-w-32" />
@@ -414,7 +414,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   // Error state
   if (isError) {
     return (
-      <Card className="eb-w-full">
+      <Card className="eb-component eb-w-full">
         <CardContent className="eb-pt-6">
           <Alert variant="destructive">
             <AlertCircle className="eb-h-4 eb-w-4" />
@@ -435,7 +435,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   }
 
   return (
-    <Card className="eb-w-full" ref={containerRef}>
+    <Card className="eb-component eb-w-full" ref={containerRef}>
       <CardHeader>
         <div className="eb-flex eb-items-center eb-justify-between">
           <CardTitle className="eb-text-xl eb-font-semibold">

@@ -11,20 +11,6 @@
   body {
     @apply eb-bg-background eb-font-sans eb-text-foreground eb-antialiased;
   }
-
-  /* Remove browser's default outset border styling from buttons in Storybook */
-  button {
-    border-style: solid !important;
-    border-color: transparent !important;
-    border-width: 0 !important;
-  }
-
-  /* Allow component's own border styling to work */
-  button[class*='eb-'] {
-    border-width: inherit !important;
-    border-color: inherit !important;
-    border-style: inherit !important;
-  }
 }
 
 @layer components {
