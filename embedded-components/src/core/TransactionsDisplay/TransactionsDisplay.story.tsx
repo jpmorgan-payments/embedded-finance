@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import { SELLSENSE_THEME } from '@/core/themes';
 
 import { TransactionsDisplay } from './TransactionsDisplay';
 
@@ -31,8 +32,9 @@ const TransactionsDisplayWithProvider = ({
 };
 
 const meta: Meta<typeof TransactionsDisplayWithProvider> = {
-  title: 'Transactions Display',
+  title: 'Core/TransactionsDisplay',
   component: TransactionsDisplayWithProvider,
+  tags: ['@core', '@transactions'],
   parameters: {
     msw: {
       handlers: [
@@ -80,6 +82,25 @@ export const Error: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 })
         ),
+      ],
+    },
+  },
+};
+
+export const SellSenseTheme: Story = {
+  name: 'SellSense Theme',
+  args: {
+    apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
+    accountId: 'debtor-acc-001',
+    theme: SELLSENSE_THEME,
+  },
+  tags: ['@sellsense', '@theme'],
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/transactions', () => {
+          return HttpResponse.json(mockTransactionsResponse);
+        }),
       ],
     },
   },

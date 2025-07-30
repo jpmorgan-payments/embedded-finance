@@ -14,8 +14,9 @@ function BuggyComponent() {
 }
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
-  title: 'Onboarding Wizard Basic/ Error States',
+  title: 'Legacy/OnboardingWizardBasic/ErrorStates',
   component: BuggyComponent,
+  tags: ['@legacy', '@onboarding'],
 
   decorators: [
     (Story, context) => {

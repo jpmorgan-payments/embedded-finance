@@ -11,6 +11,7 @@ import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { MakePayment } from '@/core/MakePayment';
+import { SELLSENSE_THEME } from '@/core/themes';
 
 import { LinkedAccountWidget } from './LinkedAccountWidget';
 
@@ -44,8 +45,9 @@ const LinkedAccountsWithProvider = ({
 };
 
 const meta: Meta<typeof LinkedAccountsWithProvider> = {
-  title: 'LinkedAccounts with EBComponentsProvider',
+  title: 'Core/LinkedAccountWidget',
   component: LinkedAccountsWithProvider,
+  tags: ['@core', '@linked-accounts'],
   argTypes: {
     variant: {
       control: { type: 'select' },
@@ -319,6 +321,25 @@ export const WithMakePaymentComponent: Story = {
           });
         }),
       ],
+    },
+  },
+};
+
+export const SellSenseTheme: Story = {
+  name: 'SellSense Theme',
+  args: {
+    apiBaseUrl: '/',
+    variant: 'default',
+    theme: SELLSENSE_THEME as unknown as Record<string, unknown>,
+  },
+  tags: ['@sellsense', '@theme'],
+  parameters: {
+    docs: {
+      story:
+        'This story demonstrates the LinkedAccountWidget with SellSense brand theming. The component uses the official SellSense color palette with orange primary colors, warm backgrounds, and brand-consistent typography.',
+    },
+    msw: {
+      handlers: createRecipientHandlers(linkedAccountListMock),
     },
   },
 };
