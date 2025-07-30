@@ -5,94 +5,7 @@
  * across all component stories for consistent theming.
  */
 
-export interface ThemeVariables {
-  // Typography
-  fontFamily?: string;
-  headerFontFamily?: string;
-  buttonFontFamily?: string;
-
-  // Colors
-  primaryColor?: string;
-  primaryHoverColor?: string;
-  primaryActiveColor?: string;
-  primaryForegroundColor?: string;
-
-  secondaryColor?: string;
-  secondaryHoverColor?: string;
-  secondaryActiveColor?: string;
-  secondaryForegroundColor?: string;
-  secondaryForegroundHoverColor?: string;
-  secondaryForegroundActiveColor?: string;
-  secondaryBorderWidth?: string;
-
-  backgroundColor?: string;
-  foregroundColor?: string;
-  cardColor?: string;
-  cardForegroundColor?: string;
-
-  mutedColor?: string;
-  mutedForegroundColor?: string;
-  accentColor?: string;
-  accentForegroundColor?: string;
-
-  // Alert colors
-  alertColor?: string;
-  alertForegroundColor?: string;
-  informativeColor?: string;
-  informativeAccentColor?: string;
-  warningColor?: string;
-  warningAccentColor?: string;
-  successColor?: string;
-  successAccentColor?: string;
-
-  // Destructive colors
-  destructiveColor?: string;
-  destructiveHoverColor?: string;
-  destructiveActiveColor?: string;
-  destructiveForegroundColor?: string;
-  destructiveForegroundHoverColor?: string;
-  destructiveForegroundActiveColor?: string;
-
-  // Input styling
-  inputColor?: string;
-  inputBorderColor?: string;
-  borderColor?: string;
-
-  // Border radius
-  borderRadius?: string;
-  inputBorderRadius?: string;
-  buttonBorderRadius?: string;
-
-  // Button styling
-  buttonFontWeight?: string;
-  buttonFontSize?: string;
-  buttonLineHeight?: string;
-  buttonTextTransform?: string;
-  buttonLetterSpacing?: string;
-
-  // Button weights
-  primaryButtonFontWeight?: string;
-  secondaryButtonFontWeight?: string;
-  destructiveButtonFontWeight?: string;
-
-  // Form label design tokens
-  formLabelFontSize?: string;
-  formLabelFontWeight?: string;
-  formLabelLineHeight?: string;
-
-  // Border widths
-  primaryBorderWidth?: string;
-  destructiveBorderWidth?: string;
-
-  // Spacing and effects
-  spacingUnit?: string;
-  shiftButtonOnActive?: boolean;
-  zIndexOverlay?: number;
-}
-
-export interface ThemeConfig {
-  variables: ThemeVariables;
-}
+import { EBTheme } from './EBComponentsProvider/config.types';
 
 /**
  * SellSense Theme Configuration
@@ -103,7 +16,7 @@ export interface ThemeConfig {
  * - Typography: Inter font family
  * - Modern, clean design with proper contrast
  */
-export const SELLSENSE_THEME: ThemeConfig = {
+export const SELLSENSE_THEME: EBTheme = {
   variables: {
     fontFamily: 'Inter',
     headerFontFamily: 'Inter',
@@ -197,7 +110,7 @@ export const SELLSENSE_THEME: ThemeConfig = {
  *
  * Clean, neutral theme for general use
  */
-export const DEFAULT_THEME: ThemeConfig = {
+export const DEFAULT_THEME: EBTheme = {
   variables: {
     fontFamily: 'Inter',
     headerFontFamily: 'Inter',

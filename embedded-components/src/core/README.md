@@ -94,6 +94,8 @@ import { SELLSENSE_THEME } from '@/core/themes';
 theme: SELLSENSE_THEME;
 ```
 
+The theme types are derived from `EBComponentsProvider/config.types.ts` and use the `EBTheme` interface.
+
 ## 🔍 Navigation Tips
 
 ### **Find Core Components**

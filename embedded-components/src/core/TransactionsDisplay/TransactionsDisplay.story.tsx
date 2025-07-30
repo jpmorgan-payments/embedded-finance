@@ -2,10 +2,15 @@ import { mockTransactionsResponse } from '@/mocks/transactions.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
+
+
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { SELLSENSE_THEME } from '@/core/themes';
 
+
+
 import { TransactionsDisplay } from './TransactionsDisplay';
+
 
 const TransactionsDisplayWithProvider = ({
   apiBaseUrl,
@@ -92,7 +97,7 @@ export const SellSenseTheme: Story = {
   args: {
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
     accountId: 'debtor-acc-001',
-    theme: SELLSENSE_THEME,
+    theme: SELLSENSE_THEME as unknown as Record<string, unknown>,
   },
   tags: ['@sellsense', '@theme'],
   parameters: {

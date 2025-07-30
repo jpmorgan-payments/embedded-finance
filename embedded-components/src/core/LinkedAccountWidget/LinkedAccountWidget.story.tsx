@@ -10,6 +10,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import { EBTheme } from '@/core/EBComponentsProvider/config.types';
 import { MakePayment } from '@/core/MakePayment';
 import { SELLSENSE_THEME } from '@/core/themes';
 
@@ -24,7 +25,7 @@ const LinkedAccountsWithProvider = ({
 }: {
   apiBaseUrl: string;
   headers: Record<string, string>;
-  theme: Record<string, unknown>;
+  theme: EBTheme;
   variant?: 'default' | 'singleAccount';
   makePaymentComponent?: React.ReactNode;
 }) => {
@@ -330,7 +331,7 @@ export const SellSenseTheme: Story = {
   args: {
     apiBaseUrl: '/',
     variant: 'default',
-    theme: SELLSENSE_THEME as unknown as Record<string, unknown>,
+    theme: SELLSENSE_THEME,
   },
   tags: ['@sellsense', '@theme'],
   parameters: {
