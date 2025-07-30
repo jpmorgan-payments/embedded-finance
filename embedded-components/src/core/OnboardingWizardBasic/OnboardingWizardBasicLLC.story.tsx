@@ -25,8 +25,9 @@ export type OnboardingWizardBasicWithProviderProps =
   OnboardingWizardBasicProps & EBConfig;
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
-  title: 'Onboarding Wizard Basic/ Steps (EP, US, LLC)',
+  title: 'Legacy/OnboardingWizardBasic/StepsLLC',
   component: OnboardingWizardBasic,
+  tags: ['@legacy', '@onboarding'],
   args: {
     onPostClientResponse: (data, error) => {
       if (data) {

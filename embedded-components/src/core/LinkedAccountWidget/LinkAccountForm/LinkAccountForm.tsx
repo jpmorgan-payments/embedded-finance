@@ -33,7 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge, Checkbox, Separator } from '@/components/ui';
+import { Separator } from '@/components/ui/separator';
+import { Badge, Checkbox } from '@/components/ui';
 
 import {
   LinkAccountFormDataType,
@@ -175,8 +176,37 @@ export const LinkAccountFormDialogTrigger: FC<
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="eb-space-y-6"
+                className="eb-space-y-6 eb-px-4 eb-py-2"
               >
+                {/* Error Summary for Debugging */}
+                {Object.keys(form.formState.errors).length > 0 && (
+                  <div className="eb-mb-4 eb-rounded eb-border eb-border-red-200 eb-bg-red-50 eb-p-3">
+                    <p className="eb-mb-2 eb-font-semibold eb-text-red-700">
+                      Form Errors:
+                    </p>
+                    <ul className="eb-list-inside eb-list-disc eb-text-xs eb-text-red-600">
+                      {Object.entries(form.formState.errors).map(
+                        ([key, value]) => {
+                          if (
+                            value &&
+                            typeof value === 'object' &&
+                            'message' in value &&
+                            typeof value.message === 'string' &&
+                            value.message
+                          ) {
+                            return (
+                              <li key={key}>
+                                <strong>{key}:</strong> {value.message}
+                              </li>
+                            );
+                          }
+                          return null;
+                        }
+                      )}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Account Type Section */}
                 <div className="eb-space-y-4">
                   <FormField

@@ -11,19 +11,26 @@ import { userEvent, within } from '@test-utils';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
+import { SELLSENSE_THEME } from '../../themes';
 import { Recipients, RecipientsProps } from '../Recipients';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay
 const RecipientsWithProvider = ({
   children,
+  theme = {},
+  contentTokens = { name: 'enUS' },
   ...recipientsProps
-}: RecipientsProps & { children?: React.ReactNode }) => {
+}: RecipientsProps & {
+  children?: React.ReactNode;
+  theme?: Record<string, any>;
+  contentTokens?: Record<string, any>;
+}) => {
   return (
     <EBComponentsProvider
       apiBaseUrl="https://api.example.com"
       headers={{}}
-      theme={{}}
-      contentTokens={{ name: 'enUS' }}
+      theme={theme}
+      contentTokens={contentTokens}
     >
       <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
         <Recipients {...recipientsProps} />
@@ -32,9 +39,46 @@ const RecipientsWithProvider = ({
   );
 };
 
-const meta: Meta<typeof Recipients> = {
-  title: 'Recipients',
+const meta: Meta<typeof Recipients> & {
+  argTypes: {
+    clientId: {
+      control: 'text';
+      description: string;
+    };
+    initialRecipientType: {
+      control: { type: 'select' };
+      options: string[];
+      description: string;
+    };
+    showCreateButton: {
+      control: 'boolean';
+      description: string;
+    };
+    onRecipientCreated: {
+      action: string;
+      description: string;
+    };
+    onRecipientUpdated: {
+      action: string;
+      description: string;
+    };
+    userEventsHandler: {
+      action: string;
+      description: string;
+    };
+    theme: {
+      control: 'object';
+      description: string;
+    };
+    contentTokens: {
+      control: 'object';
+      description: string;
+    };
+  };
+} = {
+  title: 'Core/Recipients',
   component: Recipients,
+  tags: ['@core', '@recipients'],
   parameters: {
     layout: 'fullscreen',
     docs: {
@@ -70,10 +114,23 @@ const meta: Meta<typeof Recipients> = {
       action: 'user-event',
       description: 'Handler for user events',
     },
+    theme: {
+      control: 'object',
+      description: 'Theme configuration for the EBComponentsProvider',
+    },
+    contentTokens: {
+      control: 'object',
+      description: 'Content tokens configuration for the EBComponentsProvider',
+    },
   },
 };
 export default meta;
-type Story = StoryObj<typeof Recipients>;
+type Story = StoryObj<typeof Recipients> & {
+  args?: Partial<RecipientsProps> & {
+    theme?: Record<string, any>;
+    contentTokens?: Record<string, any>;
+  };
+};
 
 // Default story with all recipients
 export const Default: Story = {
@@ -81,6 +138,8 @@ export const Default: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: {},
+    contentTokens: { name: 'enUS' },
   },
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
@@ -422,19 +481,18 @@ export const MobileView: Story = {
   },
 };
 
-// Story for dark theme
-export const DarkTheme: Story = {
+// Story for SellSense theme
+export const SellSenseTheme: Story = {
   args: {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: SELLSENSE_THEME,
+    contentTokens: { name: 'enUS' },
   },
+  tags: ['@sellsense', '@theme'],
   render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
-    backgrounds: {
-      default: 'dark',
-      values: [{ name: 'dark', value: '#1a1a1a' }],
-    },
     msw: {
       handlers: [
         http.get('*/recipients', () => {
@@ -453,6 +511,34 @@ export const WithEventTracking: Story = {
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
       console.log('User event:', event);
+    },
+    theme: {},
+    contentTokens: { name: 'enUS' },
+  },
+  render: (args) => <RecipientsWithProvider {...args} />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json(mockRecipientsResponse);
+        }),
+      ],
+    },
+  },
+};
+
+// Story with custom content tokens
+export const CustomContentTokens: Story = {
+  args: {
+    clientId: 'client-001',
+    showCreateButton: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: {},
+    contentTokens: {
+      name: 'esES',
+      currency: 'EUR',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h',
     },
   },
   render: (args) => <RecipientsWithProvider {...args} />,

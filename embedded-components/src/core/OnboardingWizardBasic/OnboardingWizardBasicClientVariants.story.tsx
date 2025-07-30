@@ -15,7 +15,8 @@ import OnboardingWizardBasicMeta, {
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
-  title: 'Onboarding Wizard Basic / Client Variants',
+  title: 'Legacy/OnboardingWizardBasic/ClientVariants',
+  tags: ['@legacy', '@onboarding'],
 };
 export default meta;
 

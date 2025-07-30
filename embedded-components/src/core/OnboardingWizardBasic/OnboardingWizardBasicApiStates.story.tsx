@@ -12,7 +12,8 @@ import OnboardingWizardBasicMeta, {
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
-  title: 'Onboarding Wizard Basic / API States',
+  title: 'Legacy/OnboardingWizardBasic/ApiStates',
+  tags: ['@legacy', '@onboarding'],
 };
 export default meta;
 

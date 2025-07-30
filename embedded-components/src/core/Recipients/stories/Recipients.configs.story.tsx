@@ -29,8 +29,9 @@ const RecipientsWithProvider = ({
 };
 
 const meta: Meta<typeof Recipients> = {
-  title: 'Recipients/Configuration Examples',
+  title: 'Core/Recipients/Configuration',
   component: Recipients,
+  tags: ['@core', '@recipients'],
   parameters: {
     layout: 'fullscreen',
     docs: {

@@ -28,8 +28,9 @@ const RecipientsWithProvider = ({
 };
 
 const meta: Meta<typeof Recipients> = {
-  title: 'Recipients/Validation Scenarios',
+  title: 'Core/Recipients/Validation',
   component: Recipients,
+  tags: ['@core', '@recipients'],
   parameters: {
     layout: 'fullscreen',
     docs: {

@@ -7,7 +7,8 @@ import OnboardingWizardBasicMeta, {
 
 const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
   ...OnboardingWizardBasicMeta,
-  title: 'Onboarding Wizard Basic / Content Tokens',
+  title: 'Legacy/OnboardingWizardBasic/ContentTokens',
+  tags: ['@legacy', '@onboarding'],
 };
 export default meta;
 

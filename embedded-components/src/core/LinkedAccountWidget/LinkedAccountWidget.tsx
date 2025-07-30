@@ -169,7 +169,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     </Button>
                   </MicrodepositsFormDialogTrigger>
                 )}
-                {makePaymentComponent && (
+                {makePaymentComponent && recipient.status === 'ACTIVE' && (
                   <div className="eb-ml-auto">
                     {React.cloneElement(
                       makePaymentComponent as React.ReactElement,

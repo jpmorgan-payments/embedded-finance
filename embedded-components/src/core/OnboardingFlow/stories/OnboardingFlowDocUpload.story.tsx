@@ -11,7 +11,8 @@ import { SThemeWithMock } from './OnboardingFlowMocks.story';
 
 const meta: Meta<OnboardingFlowWithProviderProps> = {
   ...defaultMeta,
-  title: 'Onboarding Flow / Document Upload Mode',
+  title: 'Core/OnboardingFlow/DocumentUpload',
+  tags: ['@core', '@onboarding'],
 };
 export default meta;
 
