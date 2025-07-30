@@ -178,7 +178,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         tokens: {
           'make-payment': {
             buttons: {
-              makePayment: 'PAY NOW!!!',
+              makePayment: 'PAY OUT',
             },
           },
         },
@@ -229,6 +229,16 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           }
         />
       ),
+      contentTokens: {
+        name: 'enUS',
+        tokens: {
+          'make-payment': {
+            buttons: {
+              makePayment: 'Send Money',
+            },
+          },
+        },
+      },
     },
     [AVAILABLE_COMPONENTS.ONBOARDING_FLOW]: {
       title: 'Onboarding Flow',
