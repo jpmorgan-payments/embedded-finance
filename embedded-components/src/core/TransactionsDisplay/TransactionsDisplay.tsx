@@ -118,7 +118,7 @@ export const TransactionsDisplay = forwardRef<
   ); // Include dependencies that the methods use
 
   return (
-    <Card className="eb-w-full">
+    <Card className="eb-component eb-w-full">
       <CardHeader className="eb-flex eb-flex-row eb-items-center eb-justify-between eb-gap-2">
         <CardTitle className="eb-flex-1 eb-text-xl eb-font-semibold">
           Transactions

@@ -389,7 +389,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           <Button
             onClick={() => setDialogOpen(true)}
             variant={triggerButtonVariant}
-            className="eb-flex eb-items-center eb-gap-2"
+            className="eb-component eb-flex eb-items-center eb-gap-2"
           >
             {IconComponent && <IconComponent className="eb-h-4 eb-w-4" />}
             {t('buttons.makePayment')}
