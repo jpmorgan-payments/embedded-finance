@@ -102,6 +102,10 @@ const meta: Meta<typeof Recipients> & {
       control: 'boolean',
       description: 'Show/hide create functionality',
     },
+    isWidget: {
+      control: 'boolean',
+      description: 'Force widget layout with minimal columns and no filters',
+    },
     onRecipientCreated: {
       action: 'recipient-created',
       description: 'Callback when recipient is created',
@@ -594,7 +598,186 @@ export const WithMakePaymentComponent: Story = {
                     },
                   ],
                 },
-                createdAt: '2025-04-14T08:57:21.592681Z',
+                createdAt: '2025-04-14T08:58:21.592681Z',
+                category: 'LIMITED_DDA_PAYMENTS',
+              },
+            ],
+          });
+        }),
+        http.get('*/accounts/:accountId/balances', () => {
+          return HttpResponse.json({
+            balanceTypes: [
+              {
+                typeCode: 'ITAV',
+                amount: 5000.0,
+              },
+              {
+                typeCode: 'ITBD',
+                amount: 5200.0,
+              },
+            ],
+            currency: 'USD',
+          });
+        }),
+        http.post('*/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'recipient1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
+          });
+        }),
+      ],
+    },
+  },
+};
+
+// Story demonstrating widget layout
+export const WidgetLayout: Story = {
+  args: {
+    clientId: 'client-001',
+    showCreateButton: false,
+    isWidget: true,
+    makePaymentComponent: (
+      <MakePayment triggerButtonVariant="link" icon={undefined} />
+    ),
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
+  },
+  render: (args) => <RecipientsWithProvider {...args} />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the Recipients component in widget mode. The widget layout features:\n\n- Minimal columns (Name, Status, Account, Actions)\n- No filters (only search functionality)\n- Clickable recipient names that open details dialog\n- Only send payment action (no edit/deactivate buttons)\n- Compact table layout regardless of screen size\n\nThis layout is ideal for embedding in smaller containers or when you need a simplified interface focused on quick recipient selection and payment actions.',
+      },
+    },
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json(mockRecipientsResponse);
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json({
+            items: [
+              {
+                id: 'account1',
+                clientId: '0005199987',
+                label: 'MAIN_ACCOUNT',
+                state: 'OPEN',
+                paymentRoutingInformation: {
+                  accountNumber: '10000000001035',
+                  country: 'US',
+                  routingInformation: [
+                    {
+                      type: 'ABA',
+                      value: '028000024',
+                    },
+                  ],
+                },
+                createdAt: '2025-04-14T08:58:21.592681Z',
+                category: 'LIMITED_DDA_PAYMENTS',
+              },
+            ],
+          });
+        }),
+        http.get('*/accounts/:accountId/balances', () => {
+          return HttpResponse.json({
+            balanceTypes: [
+              {
+                typeCode: 'ITAV',
+                amount: 5000.0,
+              },
+              {
+                typeCode: 'ITBD',
+                amount: 5200.0,
+              },
+            ],
+            currency: 'USD',
+          });
+        }),
+        http.post('*/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'recipient1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
+          });
+        }),
+      ],
+    },
+  },
+};
+
+// Story demonstrating widget layout with mobile viewport
+export const WidgetLayoutMobile: Story = {
+  args: {
+    clientId: 'client-001',
+    showCreateButton: false,
+    isWidget: true,
+    makePaymentComponent: (
+      <MakePayment triggerButtonVariant="link" icon={undefined} />
+    ),
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
+  },
+  render: (args) => <RecipientsWithProvider {...args} />,
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the widget layout on mobile devices. Even in widget mode, the component maintains a table layout on mobile for consistency, with clickable recipient names and minimal actions.',
+      },
+    },
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json(mockRecipientsResponse);
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json({
+            items: [
+              {
+                id: 'account1',
+                clientId: '0005199987',
+                label: 'MAIN_ACCOUNT',
+                state: 'OPEN',
+                paymentRoutingInformation: {
+                  accountNumber: '10000000001035',
+                  country: 'US',
+                  routingInformation: [
+                    {
+                      type: 'ABA',
+                      value: '028000024',
+                    },
+                  ],
+                },
+                createdAt: '2025-04-14T08:58:21.592681Z',
                 category: 'LIMITED_DDA_PAYMENTS',
               },
             ],
