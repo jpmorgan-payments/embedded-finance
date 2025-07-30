@@ -8,7 +8,6 @@ import {
   useState,
   type ErrorInfo,
 } from 'react';
-import { i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -151,17 +150,6 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       }
     );
   }, [AXIOS_INSTANCE]);
-
-  // Set the global content tokens for common.json only
-  useEffect(() => {
-    Object.entries(contentTokens.tokens || {}).forEach(
-      ([namespace, tokens]) => {
-        // Load content tokens for each namespace
-        i18n.addResourceBundle(i18n.language, namespace, tokens, true, true);
-      }
-    );
-    i18n.changeLanguage(i18n.language);
-  }, [JSON.stringify(contentTokens.tokens), i18n.language]);
 
   // Add color scheme class to the root element
   useEffect(() => {

@@ -96,6 +96,7 @@ export const getRecipientLabel = (recipient: Recipient) => {
   return `${name} (...${recipient.account ? recipient.account.number?.slice(-4) : ''})`;
 };
 
+// DEPRECATED - to remove
 export const loadContentTokens = (
   language: string,
   namespace: string,
