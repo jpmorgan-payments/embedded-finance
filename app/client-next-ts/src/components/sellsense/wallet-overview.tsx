@@ -168,7 +168,10 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       component: (
         <LinkedAccountWidget
           makePaymentComponent={
-            <MakePayment onTransactionSettled={handleTransactionSettled} />
+            <MakePayment
+              onTransactionSettled={handleTransactionSettled}
+              triggerButtonVariant="link"
+            />
           }
           variant="singleAccount"
         />
@@ -221,10 +224,11 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <Recipients
+          isWidget
           makePaymentComponent={
             <MakePayment
               onTransactionSettled={handleTransactionSettled}
-              triggerButtonVariant="secondary"
+              triggerButtonVariant="link"
             />
           }
         />
