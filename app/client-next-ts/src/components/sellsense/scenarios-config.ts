@@ -48,10 +48,10 @@ export const SCENARIOS_CONFIG = {
       'Please provide the requested documentation to complete your business verification.',
   },
   [SCENARIO_KEYS.ONBOARDING_IN_REVIEW]: {
-    displayName: 'Onboarding - In Review',
-    shortName: 'In Review',
+    displayName: 'Onboarding - Seller with prefilled data',
+    shortName: 'Seller with prefilled data',
     description: 'US LLC (review in progress)',
-    clientId: '0030000134',
+    clientId: '0030000132',
     scenarioId: 'scenario4',
     category: 'onboarding' as const,
     headerTitle: 'Application Under Review',
@@ -114,8 +114,8 @@ export const SCENARIOS_CONFIG = {
 // Scenario order for cycling
 export const SCENARIO_ORDER: ScenarioKey[] = [
   SCENARIO_KEYS.NEW_SELLER_ONBOARDING,
-  SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED,
   SCENARIO_KEYS.ONBOARDING_IN_REVIEW,
+  SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED,
   SCENARIO_KEYS.FRESH_START,
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA,
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS,
