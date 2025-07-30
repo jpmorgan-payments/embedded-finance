@@ -22,6 +22,7 @@ import {
   type ComponentName,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
+import { AutomationTrigger } from './automation';
 
 interface WalletOverviewProps {
   clientScenario?: any;
@@ -376,6 +377,9 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           </div>
         )}
       </EBComponentsProvider>
+
+      {/* Simple Automation Trigger */}
+      <AutomationTrigger currentScenario={currentScenario} />
     </div>
   );
 }
