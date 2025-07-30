@@ -82,6 +82,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Create base content tokens that respond to tone changes
   const baseContentTokens = {
     name: 'enUS' as const,
+    tokens: {} as Record<string, any>,
   };
 
   // Create headers that might include scenario-specific information
@@ -173,10 +174,11 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         />
       ),
       contentTokens: {
+        name: 'enUS',
         tokens: {
           'make-payment': {
             buttons: {
-              makePayment: 'Pay123',
+              makePayment: 'PAY NOW!!!',
             },
           },
         },
@@ -228,6 +230,31 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         />
       ),
     },
+    [AVAILABLE_COMPONENTS.ONBOARDING_FLOW]: {
+      title: 'Onboarding Flow',
+      description:
+        'Complete your business onboarding and verification process.',
+      componentName: 'OnboardingFlow',
+      componentDescription:
+        'A comprehensive widget for business onboarding and verification.',
+      componentFeatures: [
+        'Complete business profile setup',
+        'Identity verification process',
+        'Document upload and review',
+        'Real-time status updates',
+      ],
+      component: (
+        <div className="bg-white rounded-lg border p-6">
+          <h2 className="text-xl font-semibold mb-4">Onboarding Flow</h2>
+          <div className="text-gray-500 text-center py-8">
+            <p>OnboardingFlow component would be rendered here</p>
+            <p className="text-sm mt-2">
+              This component is available but not yet implemented in this demo
+            </p>
+          </div>
+        </div>
+      ),
+    },
   };
 
   // Create a map of component configs with their info
@@ -251,6 +278,10 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     const mergedContentTokens = {
       ...baseContentTokens,
       ...componentContentTokens,
+      tokens: {
+        ...baseContentTokens.tokens,
+        ...componentContentTokens.tokens,
+      },
     };
 
     return (

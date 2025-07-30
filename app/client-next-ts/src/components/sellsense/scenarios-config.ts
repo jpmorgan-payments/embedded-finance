@@ -18,6 +18,7 @@ export const AVAILABLE_COMPONENTS = {
   LINKED_ACCOUNTS: 'LinkedAccountWidget',
   TRANSACTIONS: 'TransactionsDisplay',
   RECIPIENTS: 'Recipients',
+  ONBOARDING_FLOW: 'OnboardingFlow',
 } as const;
 
 export type ComponentName =
