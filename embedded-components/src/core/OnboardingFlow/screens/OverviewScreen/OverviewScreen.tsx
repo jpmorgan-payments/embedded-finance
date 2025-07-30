@@ -9,7 +9,6 @@ import {
   Clock9Icon,
   DownloadIcon,
   InfoIcon,
-  Loader2Icon,
   LockIcon,
   PencilIcon,
   XIcon,
@@ -113,7 +112,6 @@ export const OverviewScreen = () => {
                     {t(
                       'screens.overview.verifyBusinessSection.reviewInProgress.description'
                     )}
-                    <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
                   </AlertDescription>
                 </Alert>
               )}
@@ -131,7 +129,6 @@ export const OverviewScreen = () => {
                     {t(
                       'screens.overview.verifyBusinessSection.documentsReceived.description'
                     )}
-                    <Loader2Icon className="eb-mt-1.5 eb-size-9 eb-animate-spin eb-stroke-primary" />
                   </AlertDescription>
                 </Alert>
               )}
