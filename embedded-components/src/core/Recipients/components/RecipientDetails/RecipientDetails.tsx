@@ -34,14 +34,22 @@ export interface RecipientDetailsProps {
   recipient: Recipient;
   onClose: () => void;
   onEdit?: (recipient: Recipient) => void;
+  onDeactivate?: (recipient: Recipient) => void;
   showEditButton?: boolean;
+  showDeactivateButton?: boolean;
+  canDeactivate?: boolean;
+  isDeactivating?: boolean;
 }
 
 export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
   recipient,
   onClose,
   onEdit,
+  onDeactivate,
   showEditButton = false,
+  showDeactivateButton = false,
+  canDeactivate = false,
+  isDeactivating = false,
 }) => {
   const { color, icon: StatusIcon } = getStatusColor(recipient.status!);
   const statusDescription = getStatusDescription(recipient.status!);
@@ -77,6 +85,36 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
           </Button>
         )}
       </div>
+
+      {/* Action Buttons */}
+      {(showEditButton || showDeactivateButton) && (
+        <>
+          <Separator />
+          <div className="eb-flex eb-gap-2">
+            {showEditButton && onEdit && (
+              <Button
+                onClick={() => onEdit(recipient)}
+                variant="secondary"
+                size="sm"
+              >
+                Edit Recipient
+              </Button>
+            )}
+            {showDeactivateButton && onDeactivate && canDeactivate && (
+              <Button
+                onClick={() => onDeactivate(recipient)}
+                variant="secondary"
+                size="sm"
+                disabled={isDeactivating}
+                className="eb-text-red-600 hover:eb-bg-red-50 hover:eb-text-red-700"
+              >
+                {isDeactivating ? 'Deactivating...' : 'Deactivate Recipient'}
+              </Button>
+            )}
+          </div>
+          <Separator />
+        </>
+      )}
 
       {/* Status Alert */}
       <Alert>

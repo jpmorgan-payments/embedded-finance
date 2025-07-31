@@ -18,10 +18,23 @@ export const AVAILABLE_COMPONENTS = {
   LINKED_ACCOUNTS: 'LinkedAccountWidget',
   TRANSACTIONS: 'TransactionsDisplay',
   RECIPIENTS: 'Recipients',
+  ONBOARDING_FLOW: 'OnboardingFlow',
 } as const;
 
 export type ComponentName =
   (typeof AVAILABLE_COMPONENTS)[keyof typeof AVAILABLE_COMPONENTS];
+
+// Component position interface
+export interface ComponentPosition {
+  x: number; // Row number (0-based)
+  y: number; // Column number (0-based)
+}
+
+// Component configuration with position
+export interface ComponentConfig {
+  component: ComponentName;
+  position: ComponentPosition;
+}
 
 // Scenario configuration with display names and metadata
 export const SCENARIOS_CONFIG = {
@@ -56,7 +69,7 @@ export const SCENARIOS_CONFIG = {
     category: 'onboarding' as const,
     headerTitle: 'Application Under Review',
     headerDescription:
-      "Seller onboarding data is partially prefilled. Please review and complete the remaining information.",
+      'Seller onboarding data is partially prefilled. Please review and complete the remaining information.',
   },
   [SCENARIO_KEYS.FRESH_START]: {
     displayName: 'Linked Bank Account',
@@ -67,9 +80,15 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'empty' as const, // Optional: triggers DB reset with active scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.ACCOUNTS,
-      AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
-    ] as ComponentName[],
+      {
+        component: AVAILABLE_COMPONENTS.ACCOUNTS,
+        position: { x: 0, y: 0 }, // Top left
+      },
+      {
+        component: AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
+        position: { x: 0, y: 1 }, // Top right
+      },
+    ] as ComponentConfig[],
     headerTitle: 'Get Started with Your Bank Account',
     headerDescription:
       'Connect your external bank account to start making payments and managing your finances.',
@@ -83,11 +102,20 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'active' as const, // Optional: triggers DB reset with active scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.ACCOUNTS,
-      AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
-      AVAILABLE_COMPONENTS.TRANSACTIONS,
-    ] as ComponentName[],
-    headerTitle: 'Wallet Management',
+      {
+        component: AVAILABLE_COMPONENTS.ACCOUNTS,
+        position: { x: 0, y: 0 }, // Top left
+      },
+      {
+        component: AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
+        position: { x: 0, y: 1 }, // Top right
+      },
+      {
+        component: AVAILABLE_COMPONENTS.TRANSACTIONS,
+        position: { x: 1, y: 0 }, // Bottom left (spans both columns)
+      },
+    ] as ComponentConfig[],
+    headerTitle: 'Seller with Limited DDA',
     headerDescription:
       'Manage your embedded finance wallet, linked accounts, and transactions.',
   },
@@ -100,12 +128,24 @@ export const SCENARIOS_CONFIG = {
     category: 'active' as const,
     resetDbScenario: 'active-with-recipients' as const, // Optional: triggers DB reset with recipients scenario
     visibleComponents: [
-      AVAILABLE_COMPONENTS.ACCOUNTS,
-      AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
-      AVAILABLE_COMPONENTS.TRANSACTIONS,
-      AVAILABLE_COMPONENTS.RECIPIENTS,
-    ] as ComponentName[],
-    headerTitle: 'Wallet Management with Limited DDA Payments account',
+      {
+        component: AVAILABLE_COMPONENTS.ACCOUNTS,
+        position: { x: 0, y: 0 }, // Top left
+      },
+      {
+        component: AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
+        position: { x: 0, y: 1 }, // Top right
+      },
+      {
+        component: AVAILABLE_COMPONENTS.TRANSACTIONS,
+        position: { x: 1, y: 1 }, // Bottom right
+      },
+      {
+        component: AVAILABLE_COMPONENTS.RECIPIENTS,
+        position: { x: 1, y: 0 }, // Bottom left
+      },
+    ] as ComponentConfig[],
+    headerTitle: 'Limited DDA Payments account',
     headerDescription:
       'Manage your embedded finance wallet, linked accounts, transactions and recipients.',
   },
@@ -179,13 +219,17 @@ export const shouldShowRecipientsForScenario = (
   if (scenario.category === 'onboarding') {
     return false;
   }
-  return scenario.visibleComponents.includes(AVAILABLE_COMPONENTS.RECIPIENTS);
+  const visibleComponents = (scenario as any).visibleComponents || [];
+  return visibleComponents.some(
+    (config: ComponentConfig) =>
+      config.component === AVAILABLE_COMPONENTS.RECIPIENTS,
+  );
 };
 
-// Generic utility function to get visible components for a scenario
+// Enhanced utility function to get visible components with positions for a scenario
 export const getVisibleComponentsForScenario = (
   scenarioDisplayName: string,
-): ComponentName[] => {
+): ComponentConfig[] => {
   // Safety check for undefined or empty scenario name
   if (!scenarioDisplayName || typeof scenarioDisplayName !== 'string') {
     console.warn(
@@ -208,7 +252,15 @@ export const getVisibleComponentsForScenario = (
   if (scenario.category === 'onboarding') {
     return [];
   }
-  return scenario.visibleComponents || [];
+  return (scenario as any).visibleComponents || [];
+};
+
+// Utility function to get just component names (for backward compatibility)
+export const getVisibleComponentNamesForScenario = (
+  scenarioDisplayName: string,
+): ComponentName[] => {
+  const componentConfigs = getVisibleComponentsForScenario(scenarioDisplayName);
+  return componentConfigs.map((config) => config.component);
 };
 
 // Utility function to check if a specific component should be visible for a scenario
@@ -218,7 +270,39 @@ export const isComponentVisibleForScenario = (
 ): boolean => {
   const visibleComponents =
     getVisibleComponentsForScenario(scenarioDisplayName);
-  return visibleComponents.includes(componentName);
+  return visibleComponents.some((config) => config.component === componentName);
+};
+
+// Utility function to get component position for a scenario
+export const getComponentPosition = (
+  scenarioDisplayName: string,
+  componentName: ComponentName,
+): ComponentPosition | null => {
+  const visibleComponents =
+    getVisibleComponentsForScenario(scenarioDisplayName);
+  const componentConfig = visibleComponents.find(
+    (config) => config.component === componentName,
+  );
+  return componentConfig?.position || null;
+};
+
+// Utility function to get grid dimensions for a scenario
+export const getGridDimensions = (
+  scenarioDisplayName: string,
+): { maxRows: number; maxColumns: number } => {
+  const visibleComponents =
+    getVisibleComponentsForScenario(scenarioDisplayName);
+
+  if (visibleComponents.length === 0) {
+    return { maxRows: 0, maxColumns: 0 };
+  }
+
+  const maxRows =
+    Math.max(...visibleComponents.map((config) => config.position.x)) + 1;
+  const maxColumns =
+    Math.max(...visibleComponents.map((config) => config.position.y)) + 1;
+
+  return { maxRows, maxColumns };
 };
 
 // Utility function to check if a scenario has a reset DB scenario

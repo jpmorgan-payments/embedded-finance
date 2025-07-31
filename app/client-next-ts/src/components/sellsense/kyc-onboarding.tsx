@@ -118,10 +118,10 @@ export function KycOnboarding({
           'LIMITED_PARTNERSHIP',
           'C_CORPORATION',
         ]}
-        alertOnExit={true}
         userEventsToTrack={['click', 'submit', 'navigation']}
         userEventsHandler={handleUserEvents}
         docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
+        hideLinkAccountSection
       />
     </EBComponentsProvider>
   );
