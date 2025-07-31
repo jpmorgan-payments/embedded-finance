@@ -272,9 +272,10 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             )}
 
           {/* Third Row: Remaining Info in Two Columns */}
-          <div className="eb-flex eb-flex-col sm:eb-flex-row sm:eb-justify-between">
+          <div className="eb-grid eb-grid-cols-2 eb-gap-4 eb-items-stretch">
             {/* Left Column */}
             <div className="eb-flex eb-flex-col eb-gap-2">
+              <div className="eb-mb-1 eb-text-sm eb-font-medium">Account Information</div>
               {account.paymentRoutingInformation?.accountNumber && (
                 <div className="eb-flex eb-flex-col eb-gap-1">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
@@ -325,7 +326,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             </div>
 
             {/* Right Column */}
-            <div className="eb-mt-4 eb-flex eb-min-w-[180px] eb-max-w-xs eb-flex-col eb-items-end eb-justify-end eb-gap-1 sm:eb-mt-0">
+            <div className="eb-flex eb-flex-col eb-items-end eb-gap-1">
               <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
               {isBalanceLoading ? (
                 <Skeleton className="eb-h-4 eb-w-1/2" />
