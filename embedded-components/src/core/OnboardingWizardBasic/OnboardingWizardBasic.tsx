@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
-import { defaultResources } from '@/i18n/config';
+import { defaultResources, i18n } from '@/i18n/config';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -67,7 +67,6 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   ...props
 }) => {
   const { tokens: globalContentTokens = {} } = useContentTokens();
-  const { i18n } = useTranslation('onboarding');
 
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [

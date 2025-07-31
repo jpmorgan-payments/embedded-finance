@@ -34,7 +34,7 @@ const LinkedAccountsWithProvider = ({
       <EBComponentsProvider
         apiBaseUrl={apiBaseUrl}
         headers={headers}
-        theme={theme}
+        theme={{ colorScheme: 'light', ...theme }}
       >
         <LinkedAccountWidget
           variant={variant}

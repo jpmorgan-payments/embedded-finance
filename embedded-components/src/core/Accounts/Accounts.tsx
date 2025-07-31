@@ -104,7 +104,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (isLoading) {
       return (
-        <Card className="eb-w-full">
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
@@ -129,7 +129,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (isError) {
       return (
-        <Card className="eb-w-full">
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
@@ -147,7 +147,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (!filteredAccounts.length) {
       return (
-        <Card className="eb-w-full">
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
@@ -163,7 +163,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     // If more than one account, wrap each in its own Card for visual separation
     if (filteredAccounts.length > 1) {
       return (
-        <Card className="eb-w-full">
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
@@ -192,7 +192,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     // Single account, no extra wrapper
     return (
-      <Card className="eb-w-full">
+      <Card className="eb-component eb-w-full">
         <CardHeader>
           <CardTitle className="eb-text-xl eb-font-semibold">{title}</CardTitle>
         </CardHeader>

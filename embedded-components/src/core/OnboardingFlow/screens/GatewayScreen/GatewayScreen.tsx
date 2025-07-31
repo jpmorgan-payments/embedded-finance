@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 import { useQueryClient } from '@tanstack/react-query';
 import { InfoIcon, Loader2Icon, XIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -75,7 +75,7 @@ export const GatewayScreen = () => {
   } = useOnboardingContext();
   const { goTo, sessionData, updateSessionData } = useFlowContext();
 
-  const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-overview', 'common']);
 
   const form = useFormWithFilters({
     clientData,
@@ -379,13 +379,8 @@ export const GatewayScreen = () => {
                   )
                   .map((type) => ({
                     value: type,
-                    label: t([
-                      `organizationTypes.${type}`,
-                      `onboarding:organizationTypes.${type}`,
-                    ]),
-                    description: t(
-                      `onboarding:organizationTypeDescriptions.${type}`
-                    ),
+                    label: t(`organizationTypes.${type}`),
+                    description: t(`organizationTypeDescriptions.${type}`),
                   }))}
                 required
                 disabled={isFormDisabled}
