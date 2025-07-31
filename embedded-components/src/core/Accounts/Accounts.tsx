@@ -19,6 +19,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, string> = {
   LIMITED_DDA: 'Limited DDA',
@@ -260,13 +262,12 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             account.category === 'LIMITED_DDA_PAYMENTS' && (
               <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
                 {/* Info Tooltip */}
-                <div className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-bg-blue-50 eb-p-2 eb-text-xs eb-text-blue-700">
-                  <Info className="eb-mt-0.5 eb-h-4 eb-w-4 eb-flex-shrink-0" />
-                  <span>
-                    Account can be funded from external sources and is
-                    externally addressable via routing/account numbers below
-                  </span>
-                </div>
+                <Alert variant="informative" density="sm" className="eb-mb-4">
+                  <InfoIcon className="eb-h-4 eb-w-4" />
+                  <AlertDescription>
+                  Account can be funded from external sources and is externally addressable via routing/account numbers below
+                  </AlertDescription>
+                </Alert>
                 {/* Routing Numbers - Enhanced Display */}
                 <div className="eb-flex eb-flex-col eb-gap-1">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
