@@ -675,7 +675,7 @@ class FormAutomationUtils {
             await this.fillInputField(field, fieldDelay);
             break;
           case 'checkbox':
-            await this.fillCheckboxField(field, fieldDelay);
+            await this.fillCheckboxField(field);
             break;
         }
 
@@ -717,7 +717,6 @@ class FormAutomationUtils {
 
   private static async fillCheckboxField(
     field: AutomationField,
-    delay: number,
   ): Promise<void> {
     const { selectors, value } = field;
     const selectorString = selectors.join(', ');

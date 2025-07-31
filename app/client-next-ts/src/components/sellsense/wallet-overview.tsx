@@ -25,12 +25,6 @@ import {
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import { AutomationTrigger } from './automation';
-
-interface WalletOverviewProps {
-  clientScenario?: any;
-  theme?: any;
-}
-
 interface ComponentInfo {
   title: string;
   description: string;
@@ -44,7 +38,7 @@ interface ComponentInfo {
   };
 }
 
-export function WalletOverview(props: WalletOverviewProps = {}) {
+export function WalletOverview() {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
     'columns',
   );

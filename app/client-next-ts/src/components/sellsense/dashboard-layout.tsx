@@ -308,7 +308,7 @@ export function DashboardLayout() {
           />
         );
       case 'wallet':
-        return <WalletOverview clientScenario={clientScenario} theme={theme} />;
+        return <WalletOverview />;
       case 'transactions':
         return <TransactionHistory />;
       case 'linked-accounts':
