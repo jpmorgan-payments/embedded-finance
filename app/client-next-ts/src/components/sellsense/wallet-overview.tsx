@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import {
   Accounts,
@@ -18,17 +18,14 @@ import {
   getVisibleComponentsForScenario,
   getHeaderTitleForScenario,
   getHeaderDescriptionForScenario,
+  getGridDimensions,
   AVAILABLE_COMPONENTS,
   type ComponentName,
+  type ComponentConfig,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import { AutomationTrigger } from './automation';
-
-interface WalletOverviewProps {
-  clientScenario?: any;
-  theme?: any;
-}
-
+import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 interface ComponentInfo {
   title: string;
   description: string;
@@ -36,10 +33,13 @@ interface ComponentInfo {
   componentDescription: string;
   componentFeatures: string[];
   component: React.ReactNode;
-  column?: 1 | 2; // Optional column assignment (1 = left, 2 = right)
+  contentTokens?: {
+    name?: 'enUS';
+    tokens?: Record<string, any>;
+  };
 }
 
-export function WalletOverview(props: WalletOverviewProps = {}) {
+export function WalletOverview() {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
     'columns',
   );
@@ -56,9 +56,12 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ? scenarioDisplayNames[0]
       : 'Active Seller with Direct Payouts');
 
-  // Get visible components for the current scenario
+  // Get visible components with positions for the current scenario
   const visibleComponents =
     getVisibleComponentsForScenario(currentScenario) || [];
+
+  // Get grid dimensions for the current scenario
+  const { maxRows, maxColumns } = getGridDimensions(currentScenario);
 
   // Get theme-aware styles
   const themeStyles = useThemeStyles(currentTheme as any);
@@ -67,13 +70,10 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Create theme object using the proper theme system
   const themeObject = mapThemeOption(currentTheme as any);
 
-  // Refs for component refetch functions
-  const accountsRef = useRef<{ refresh: () => void } | null>(null);
-  const transactionsRef = useRef<{ refresh: () => void } | null>(null);
-
-  // Create content tokens that respond to tone changes
-  const contentTokens = {
+  // Create base content tokens that respond to tone changes
+  const baseContentTokens = {
     name: 'enUS' as const,
+    tokens: {} as Record<string, any>,
   };
 
   // Create headers that might include scenario-specific information
@@ -88,19 +88,25 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     setOpenTooltip(isOpen ? componentName : null);
   };
 
-  // Handle transaction settlement - refetch accounts and transactions
+  // Handle transaction settlement - trigger component refetch
   const handleTransactionSettled = () => {
     // Add a small delay to ensure the transaction is processed
     setTimeout(() => {
-      console.log('Transaction settled - refetching accounts and transactions');
-      accountsRef.current?.refresh();
-      transactionsRef.current?.refresh();
+      console.log('Transaction settled - triggering component refetch');
+      DatabaseResetUtils.emulateTabSwitch();
     }, 1000);
   };
 
-  // All available components with their configurations
-  // Column configuration: column: 1 = left column, column: 2 = right column
-  // Components without column assignment default to column 1
+  // Handle linked account settlement - trigger component refetch
+  const handleLinkedAccountSettled = () => {
+    // Add a small delay to ensure the linked account is processed
+    setTimeout(() => {
+      console.log('Linked account settled - triggering component refetch');
+      DatabaseResetUtils.emulateTabSwitch();
+    }, 1000);
+  };
+
+  // All available components with their configurations and custom content tokens
   const allComponents: Record<ComponentName, ComponentInfo> = {
     [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
       title: 'Make Payment',
@@ -119,7 +125,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
           <MakePayment onTransactionSettled={handleTransactionSettled} />
         </div>
       ),
-      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.ACCOUNTS]: {
       title: 'Accounts',
@@ -138,17 +143,11 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         <Accounts
           allowedCategories={['LIMITED_DDA_PAYMENTS', 'LIMITED_DDA']}
           clientId="0030000131"
-          ref={(ref) => {
-            if (ref) {
-              accountsRef.current = ref;
-            }
-          }}
         />
       ),
-      column: 1, // Always in column 1
     },
     [AVAILABLE_COMPONENTS.LINKED_ACCOUNTS]: {
-      title: 'Linked Bank Accounts',
+      title: 'Linked Bank Account',
       description:
         'Connect and manage your external bank accounts for payments.',
       componentName: 'LinkedAccountWidget',
@@ -162,13 +161,26 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <LinkedAccountWidget
+          onLinkedAccountSettled={handleLinkedAccountSettled}
           makePaymentComponent={
-            <MakePayment onTransactionSettled={handleTransactionSettled} />
+            <MakePayment
+              onTransactionSettled={handleTransactionSettled}
+              triggerButtonVariant="link"
+            />
           }
           variant="singleAccount"
         />
       ),
-      column: 1, // Always in column 1
+      contentTokens: {
+        name: 'enUS',
+        tokens: {
+          'make-payment': {
+            buttons: {
+              makePayment: 'PAY OUT',
+            },
+          },
+        },
+      },
     },
     [AVAILABLE_COMPONENTS.TRANSACTIONS]: {
       title: 'Transaction History',
@@ -182,17 +194,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Display transaction details and status',
         'Real-time transaction updates',
       ],
-      component: (
-        <TransactionsDisplay
-          accountId="0030000131"
-          ref={(ref) => {
-            if (ref) {
-              transactionsRef.current = ref;
-            }
-          }}
-        />
-      ),
-      column: 2, // Default to column 2
+      component: <TransactionsDisplay accountId="0030000131" />,
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',
@@ -208,23 +210,173 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <Recipients
+          isWidget
           makePaymentComponent={
-            <MakePayment onTransactionSettled={handleTransactionSettled} />
+            <MakePayment
+              onTransactionSettled={handleTransactionSettled}
+              triggerButtonVariant="link"
+            />
           }
         />
       ),
-      column: 2, // Default to column 2
+      contentTokens: {
+        name: 'enUS',
+        tokens: {
+          'make-payment': {
+            buttons: {
+              makePayment: 'Send Money',
+            },
+          },
+        },
+      },
+    },
+    [AVAILABLE_COMPONENTS.ONBOARDING_FLOW]: {
+      title: 'Onboarding Flow',
+      description:
+        'Complete your business onboarding and verification process.',
+      componentName: 'OnboardingFlow',
+      componentDescription:
+        'A comprehensive widget for business onboarding and verification.',
+      componentFeatures: [
+        'Complete business profile setup',
+        'Identity verification process',
+        'Document upload and review',
+        'Real-time status updates',
+      ],
+      component: (
+        <div className="bg-white rounded-lg border p-6">
+          <h2 className="text-xl font-semibold mb-4">Onboarding Flow</h2>
+          <div className="text-gray-500 text-center py-8">
+            <p>OnboardingFlow component would be rendered here</p>
+            <p className="text-sm mt-2">
+              This component is available but not yet implemented in this demo
+            </p>
+          </div>
+        </div>
+      ),
     },
   };
 
-  // Filter components based on scenario configuration with safety checks
-  const components = (visibleComponents || [])
-    .map((componentName) => allComponents[componentName])
-    .filter(Boolean);
+  // Create a map of component configs with their info
+  const componentConfigsWithInfo = visibleComponents.map(
+    (config: ComponentConfig) => ({
+      ...config,
+      ...allComponents[config.component],
+    }),
+  );
 
   // Get header content from scenario configuration
   const headerTitle = getHeaderTitleForScenario(currentScenario);
   const headerDescription = getHeaderDescriptionForScenario(currentScenario);
+
+  // Helper function to render a component with its own provider
+  const renderComponentWithProvider = (componentConfig: any, key: string) => {
+    const { component, contentTokens: componentContentTokens = {} } =
+      componentConfig;
+
+    // Merge component-specific content tokens with base tokens
+    const mergedContentTokens = {
+      ...baseContentTokens,
+      ...componentContentTokens,
+      tokens: {
+        ...baseContentTokens.tokens,
+        ...componentContentTokens.tokens,
+      },
+    };
+
+    return (
+      <div key={key}>
+        <EBComponentsProvider
+          apiBaseUrl="/ef/do/v1/"
+          theme={themeObject}
+          headers={headers}
+          contentTokens={mergedContentTokens}
+        >
+          <EmbeddedComponentCard
+            component={component}
+            componentName={componentConfig.componentName}
+            componentDescription={componentConfig.componentDescription}
+            componentFeatures={componentConfig.componentFeatures}
+            isAnyTooltipOpen={openTooltip !== null}
+            onTooltipToggle={handleTooltipToggle}
+            onFullScreen={() => {
+              const fullscreenUrl = createFullscreenUrl(
+                componentConfig.componentName,
+                currentTheme,
+              );
+              window.open(fullscreenUrl, '_blank');
+            }}
+          />
+        </EBComponentsProvider>
+      </div>
+    );
+  };
+
+  // Helper function to render components in grid layout
+  const renderGridLayout = () => {
+    // Create a 2D grid array based on maxRows and maxColumns
+    const grid: ((typeof componentConfigsWithInfo)[0] | null)[][] = Array(
+      maxRows,
+    )
+      .fill(null)
+      .map(() => Array(maxColumns).fill(null));
+
+    // Place components in their positions
+    componentConfigsWithInfo.forEach((componentConfig) => {
+      const { x, y } = componentConfig.position;
+      if (x < maxRows && y < maxColumns) {
+        grid[x][y] = componentConfig;
+      }
+    });
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {grid.map((row, rowIndex) =>
+          row.map((componentConfig, colIndex) => {
+            if (!componentConfig) return null;
+
+            return renderComponentWithProvider(
+              componentConfig,
+              `grid-${rowIndex}-${colIndex}`,
+            );
+          }),
+        )}
+      </div>
+    );
+  };
+
+  // Helper function to render components in column layout
+  const renderColumnLayout = () => {
+    // Sort components by position (x first, then y)
+    const sortedComponents = [...componentConfigsWithInfo].sort((a, b) => {
+      if (a.position.x !== b.position.x) {
+        return a.position.x - b.position.x;
+      }
+      return a.position.y - b.position.y;
+    });
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column */}
+        <div className="space-y-6">
+          {sortedComponents
+            .filter((_, index) => index % 2 === 0)
+            .map((componentConfig, index) =>
+              renderComponentWithProvider(componentConfig, `left-${index}`),
+            )}
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-6">
+          {sortedComponents
+            .filter((_, index) => index % 2 === 1)
+            .map((componentConfig, index) =>
+              renderComponentWithProvider(componentConfig, `right-${index}`),
+            )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -270,113 +422,33 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       </div>
 
       {/* Components Grid */}
-      <EBComponentsProvider
-        apiBaseUrl="/ef/do/v1/"
-        theme={themeObject}
-        headers={headers}
-        contentTokens={contentTokens}
-      >
-        {layout === 'columns' ? (
-          // Column layout with component positioning
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Column 1 */}
-            <div className="space-y-6">
-              {(components || [])
-                .filter(
-                  (component) => component.column === 1 || !component.column,
-                )
-                .map((componentInfo, index) => (
-                  <div key={`col1-${index}`}>
-                    <EmbeddedComponentCard
-                      component={componentInfo.component}
-                      componentName={componentInfo.componentName}
-                      componentDescription={componentInfo.componentDescription}
-                      componentFeatures={componentInfo.componentFeatures}
-                      isAnyTooltipOpen={openTooltip !== null}
-                      onTooltipToggle={handleTooltipToggle}
-                      onFullScreen={() => {
-                        const fullscreenUrl = createFullscreenUrl(
-                          componentInfo.componentName,
-                          currentTheme,
-                        );
-                        window.open(fullscreenUrl, '_blank');
-                      }}
-                    />
-                  </div>
-                ))}
-            </div>
+      {layout === 'grid' ? (
+        renderGridLayout()
+      ) : layout === 'columns' ? (
+        renderColumnLayout()
+      ) : (
+        // Full-width layout
+        <div className="space-y-6">
+          {componentConfigsWithInfo.map((componentConfig, index) =>
+            renderComponentWithProvider(componentConfig, `full-width-${index}`),
+          )}
+        </div>
+      )}
 
-            {/* Column 2 */}
-            <div className="space-y-6">
-              {(components || [])
-                .filter((component) => component.column === 2)
-                .map((componentInfo, index) => (
-                  <div key={`col2-${index}`}>
-                    <EmbeddedComponentCard
-                      component={componentInfo.component}
-                      componentName={componentInfo.componentName}
-                      componentDescription={componentInfo.componentDescription}
-                      componentFeatures={componentInfo.componentFeatures}
-                      isAnyTooltipOpen={openTooltip !== null}
-                      onTooltipToggle={handleTooltipToggle}
-                      onFullScreen={() => {
-                        const fullscreenUrl = createFullscreenUrl(
-                          componentInfo.componentName,
-                          currentTheme,
-                        );
-                        window.open(fullscreenUrl, '_blank');
-                      }}
-                    />
-                  </div>
-                ))}
-            </div>
-          </div>
-        ) : (
-          // Original grid and full-width layouts
-          <div
-            className={
-              layout === 'grid'
-                ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
-                : 'space-y-6'
-            }
+      {componentConfigsWithInfo.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            No components available for the current scenario. This may be due to
+            a database reset.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            {(components || []).map((componentInfo, index) => (
-              <div key={index}>
-                <EmbeddedComponentCard
-                  component={componentInfo.component}
-                  componentName={componentInfo.componentName}
-                  componentDescription={componentInfo.componentDescription}
-                  componentFeatures={componentInfo.componentFeatures}
-                  isAnyTooltipOpen={openTooltip !== null}
-                  onTooltipToggle={handleTooltipToggle}
-                  onFullScreen={() => {
-                    const fullscreenUrl = createFullscreenUrl(
-                      componentInfo.componentName,
-                      currentTheme,
-                    );
-                    window.open(fullscreenUrl, '_blank');
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {(components || []).length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">
-              No components available for the current scenario. This may be due
-              to a database reset.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Reload Page
-            </button>
-          </div>
-        )}
-      </EBComponentsProvider>
+            Reload Page
+          </button>
+        </div>
+      )}
 
       {/* Simple Automation Trigger */}
       <AutomationTrigger currentScenario={currentScenario} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react'; 
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Calendar,
@@ -9,6 +9,7 @@ import {
   MapPin,
   ChevronsUpDown,
   Check,
+  Github,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -85,6 +86,10 @@ export function ComponentsSection() {
         'Interactive date picker with validation and formatting options',
       icon: <Calendar className="h-5 w-5" />,
       status: 'available',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/components/ux/ImportantDateSelector',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/ANALYSIS.md',
       preview: (
         <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
           <div className="space-y-1">
@@ -157,6 +162,8 @@ export function ComponentsSection() {
         'Hierarchical selector for industry categories and subcategories',
       icon: <ListFilter className="h-5 w-5" />,
       status: 'available',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/OnboardingFlow/components/IndustryTypeSelect',
       preview: (
         <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
           <div className="w-full">
@@ -347,7 +354,9 @@ export function ComponentsSection() {
                             : 'bg-orange-100 text-orange-800'
                         }`}
                       >
-                        {comp.status === 'available' ? 'Available' : 'Coming Soon'}
+                        {comp.status === 'available'
+                          ? 'Available'
+                          : 'Coming Soon'}
                       </span>
                     </div>
                   </div>
@@ -358,6 +367,45 @@ export function ComponentsSection() {
                   </p>
 
                   <div className="flex-1 mb-4">{comp.preview}</div>
+
+                  {/* Action buttons for available components */}
+                  {(comp.githubUrl || comp.recipeUrl) && (
+                    <div className="flex justify-center gap-3 mt-4 pt-3 border-t border-gray-100">
+                      {comp.githubUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                            onClick={() =>
+                              window.open(comp.githubUrl, '_blank')
+                            }
+                            title="View Source Code"
+                          >
+                            <Github className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Source Code
+                          </div>
+                        </div>
+                      )}
+
+                      {comp.recipeUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-jpm-brown-100 hover:bg-jpm-brown-200 text-jpm-brown transition-colors"
+                            onClick={() =>
+                              window.open(comp.recipeUrl, '_blank')
+                            }
+                            title="View Implementation Recipe"
+                          >
+                            <FileText className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Implementation Recipe
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

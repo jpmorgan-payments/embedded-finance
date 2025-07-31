@@ -76,6 +76,8 @@ export interface RecipientsProps {
   userEventsToTrack?: string[];
   /** Handler for user events */
   userEventsHandler?: ({ actionName }: { actionName: string }) => void;
+  /** Force widget layout with minimal columns and no filters */
+  isWidget?: boolean;
 }
 
 // Status badge component
@@ -104,6 +106,7 @@ const RecipientCard: React.FC<{
   canDeactivate: boolean;
   isDeactivating: boolean;
   makePaymentComponent?: React.ReactNode;
+  isWidget?: boolean;
 }> = ({
   recipient,
   onView,
@@ -112,11 +115,23 @@ const RecipientCard: React.FC<{
   canDeactivate,
   isDeactivating,
   makePaymentComponent,
+  isWidget = false,
 }) => (
   <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
     <div className="eb-flex eb-items-center eb-justify-between">
       <div className="eb-truncate eb-text-base eb-font-semibold">
-        {formatRecipientName(recipient)}
+        {isWidget ? (
+          <Button
+            variant="link"
+            className="eb-h-auto eb-p-0 eb-text-left eb-font-semibold hover:eb-underline"
+            onClick={onView}
+            title="View recipient details"
+          >
+            {formatRecipientName(recipient)}
+          </Button>
+        ) : (
+          formatRecipientName(recipient)
+        )}
       </div>
       <Badge variant="outline" className="eb-text-sm">
         {recipient.partyDetails?.type === 'INDIVIDUAL'
@@ -156,45 +171,49 @@ const RecipientCard: React.FC<{
     </div>
     <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
       {makePaymentComponent && recipient.status === 'ACTIVE' && (
-        <div className="eb-ml-auto">
+        <div className={isWidget ? 'eb-ml-auto' : 'eb-mr-auto'}>
           {React.cloneElement(makePaymentComponent as React.ReactElement, {
             recipientId: recipient.id,
           })}
         </div>
       )}
-      <Button
-        variant="link"
-        size="sm"
-        className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-        onClick={onView}
-        title="View details"
-      >
-        Details
-      </Button>
-      <Button
-        variant="link"
-        size="sm"
-        className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-        onClick={onEdit}
-        title="Edit recipient"
-      >
-        Edit
-      </Button>
-      {canDeactivate && (
-        <Button
-          variant="link"
-          size="sm"
-          className={`eb-h-auto eb-px-2 eb-py-0 eb-text-xs ${
-            isDeactivating
-              ? 'eb-cursor-not-allowed eb-text-gray-400'
-              : 'eb-text-red-600 hover:eb-text-red-700'
-          }`}
-          onClick={onDeactivate}
-          disabled={isDeactivating}
-          title="Deactivate recipient"
-        >
-          {isDeactivating ? 'Deactivating...' : 'Deactivate'}
-        </Button>
+      {!isWidget && (
+        <>
+          <Button
+            variant="link"
+            size="sm"
+            className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
+            onClick={onView}
+            title="View details"
+          >
+            Details
+          </Button>
+          <Button
+            variant="link"
+            size="sm"
+            className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
+            onClick={onEdit}
+            title="Edit recipient"
+          >
+            Edit
+          </Button>
+          {canDeactivate && (
+            <Button
+              variant="link"
+              size="sm"
+              className={`eb-h-auto eb-px-2 eb-py-0 eb-text-xs ${
+                isDeactivating
+                  ? 'eb-cursor-not-allowed eb-text-gray-400'
+                  : 'eb-text-red-600 hover:eb-text-red-700'
+              }`}
+              onClick={onDeactivate}
+              disabled={isDeactivating}
+              title="Deactivate recipient"
+            >
+              {isDeactivating ? 'Deactivating...' : 'Deactivate'}
+            </Button>
+          )}
+        </>
       )}
     </div>
   </Card>
@@ -210,6 +229,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   onRecipientUpdated,
   onRecipientDeactivated,
   userEventsHandler,
+  isWidget = false,
 }) => {
   // Merge user config with defaults
   const resolvedConfig = createRecipientsConfig(config);
@@ -232,6 +252,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const isMobile = containerWidth > 0 && containerWidth < 640;
   const isTablet = containerWidth >= 640 && containerWidth < 1024;
   // const isDesktop = containerWidth >= 1024; // Not used directly
+
+  // Determine layout based on isWidget prop and screen size
+  const shouldUseWidgetLayout = isWidget;
+  const shouldUseMobileLayout = !isWidget && isMobile;
+  const shouldUseTabletLayout = !isWidget && isTablet;
 
   // API queries
   const {
@@ -464,68 +489,137 @@ export const Recipients: React.FC<RecipientsProps> = ({
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="eb-flex eb-flex-wrap eb-gap-2 sm:eb-flex-nowrap">
-            <Select
-              value={filters.type || 'all'}
-              onValueChange={(value) =>
-                updateFilter(
-                  'type',
-                  value === 'all' ? undefined : (value as RecipientType)
-                )
-              }
-            >
-              <SelectTrigger className="eb-h-9 eb-w-36">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="RECIPIENT">Recipient</SelectItem>
-                <SelectItem value="LINKED_ACCOUNT">Linked Account</SelectItem>
-                <SelectItem value="SETTLEMENT_ACCOUNT">
-                  Settlement Account
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Filters - Only show when not in widget mode */}
+          {!shouldUseWidgetLayout && (
+            <div className="eb-flex eb-flex-wrap eb-gap-2 sm:eb-flex-nowrap">
+              <Select
+                value={filters.type || 'all'}
+                onValueChange={(value) =>
+                  updateFilter(
+                    'type',
+                    value === 'all' ? undefined : (value as RecipientType)
+                  )
+                }
+              >
+                <SelectTrigger className="eb-h-9 eb-w-36">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="RECIPIENT">Recipient</SelectItem>
+                  <SelectItem value="LINKED_ACCOUNT">Linked Account</SelectItem>
+                  <SelectItem value="SETTLEMENT_ACCOUNT">
+                    Settlement Account
+                  </SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select
-              value={filters.status || 'all'}
-              onValueChange={(value) =>
-                updateFilter(
-                  'status',
-                  value === 'all' ? undefined : (value as RecipientStatus)
-                )
-              }
-            >
-              <SelectTrigger className="eb-h-9 eb-w-36">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
-                <SelectItem value="MICRODEPOSITS_INITIATED">
-                  Microdeposits Initiated
-                </SelectItem>
-                <SelectItem value="READY_FOR_VALIDATION">
-                  Ready for Validation
-                </SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select
+                value={filters.status || 'all'}
+                onValueChange={(value) =>
+                  updateFilter(
+                    'status',
+                    value === 'all' ? undefined : (value as RecipientStatus)
+                  )
+                }
+              >
+                <SelectTrigger className="eb-h-9 eb-w-36">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="MICRODEPOSITS_INITIATED">
+                    Microdeposits Initiated
+                  </SelectItem>
+                  <SelectItem value="READY_FOR_VALIDATION">
+                    Ready for Validation
+                  </SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button
-              variant="secondary"
-              onClick={clearFilters}
-              className="eb-h-9 eb-px-3"
-            >
-              Clear Filters
-            </Button>
-          </div>
+              <Button
+                variant="secondary"
+                onClick={clearFilters}
+                className="eb-h-9 eb-px-3"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Recipients List/Table */}
-        {isMobile ? (
+        {shouldUseWidgetLayout ? (
+          <div className="eb-overflow-hidden eb-rounded-md eb-border">
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Account</TableHead>
+                    <TableHead className="eb-text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRecipients.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="eb-py-8 eb-text-center eb-text-gray-500"
+                      >
+                        No recipients found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredRecipients.map((recipient) => (
+                      <TableRow key={recipient.id}>
+                        <TableCell className="eb-truncate eb-font-medium">
+                          <Button
+                            variant="link"
+                            className="eb-h-auto eb-p-0 eb-text-left eb-font-medium hover:eb-underline"
+                            onClick={() => handleViewDetails(recipient)}
+                            title="View recipient details"
+                          >
+                            {formatRecipientName(recipient)}
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={recipient.status!} />
+                        </TableCell>
+                        <TableCell>
+                          <span className="eb-text-sm eb-text-gray-600">
+                            {recipient.account?.number
+                              ? `****${recipient.account.number.slice(-4)}`
+                              : 'N/A'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="eb-text-right">
+                          <div className="eb-flex eb-justify-end">
+                            {makePaymentComponent &&
+                              recipient.status === 'ACTIVE' && (
+                                <div>
+                                  {React.cloneElement(
+                                    makePaymentComponent as React.ReactElement,
+                                    {
+                                      recipientId: recipient.id,
+                                    }
+                                  )}
+                                </div>
+                              )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ) : shouldUseMobileLayout ? (
           <div>
             {filteredRecipients.length === 0 ? (
               <div className="eb-py-8 eb-text-center eb-text-gray-500">
@@ -542,11 +636,12 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   canDeactivate={recipient.status === 'ACTIVE'}
                   isDeactivating={isDeactivating}
                   makePaymentComponent={makePaymentComponent}
+                  isWidget={shouldUseWidgetLayout}
                 />
               ))
             )}
           </div>
-        ) : isTablet ? (
+        ) : shouldUseTabletLayout ? (
           <div className="eb-overflow-hidden eb-rounded-md eb-border">
             <div>
               <Table>
@@ -827,6 +922,12 @@ export const Recipients: React.FC<RecipientsProps> = ({
               <RecipientDetails
                 recipient={selectedRecipient}
                 onClose={() => setIsDetailsDialogOpen(false)}
+                onEdit={handleEditRecipient}
+                onDeactivate={handleDeactivateRecipient}
+                showEditButton
+                showDeactivateButton
+                canDeactivate={selectedRecipient.status === 'ACTIVE'}
+                isDeactivating={isDeactivating}
               />
             )}
           </div>

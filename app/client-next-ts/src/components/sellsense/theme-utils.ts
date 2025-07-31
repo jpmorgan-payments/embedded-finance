@@ -1,6 +1,5 @@
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
-import { getThemeVariables, type ThemeOption } from './use-sellsense-themes';
 import { useMemo } from 'react';
+import type { ThemeOption } from './use-sellsense-themes';
 
 /**
  * Centralized theme utilities for SellSense demo portal

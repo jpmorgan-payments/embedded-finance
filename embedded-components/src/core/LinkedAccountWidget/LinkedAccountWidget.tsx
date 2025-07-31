@@ -1,8 +1,12 @@
 import React from 'react';
 
 import { getRecipientLabel } from '@/lib/utils';
-import { useGetAllRecipients } from '@/api/generated/ef-v1';
-import { RecipientStatus } from '@/api/generated/ef-v1.schemas';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import {
+  ApiError,
+  Recipient,
+  RecipientStatus,
+} from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
@@ -46,12 +50,14 @@ type LinkedAccountWidgetProps = {
   variant?: 'default' | 'singleAccount';
   showCreateButton?: boolean;
   makePaymentComponent?: React.ReactNode; // Optional MakePayment component to render in each card
+  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   variant = 'default',
   showCreateButton = true,
   makePaymentComponent,
+  onLinkedAccountSettled,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, status, failureReason } = useGetAllRecipients({
@@ -79,7 +85,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 (recipient) => recipient.status === 'ACTIVE'
               )
             ) && (
-              <LinkAccountFormDialogTrigger>
+              <LinkAccountFormDialogTrigger
+                onLinkedAccountSettled={onLinkedAccountSettled}
+              >
                 <Button>Link A New Account</Button>
               </LinkAccountFormDialogTrigger>
             )}
@@ -158,7 +166,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
               </div>
               <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
                 {recipient.status === 'READY_FOR_VALIDATION' && (
-                  <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
+                  <MicrodepositsFormDialogTrigger
+                    recipientId={recipient.id}
+                    onLinkedAccountSettled={onLinkedAccountSettled}
+                  >
                     <Button
                       variant="outline"
                       size="sm"
@@ -178,32 +189,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       }
                     )}
                   </div>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="eb-text-xs"
-                  title="View details"
-                >
-                  Details
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="eb-text-xs"
-                  title="Edit linked account"
-                >
-                  Edit
-                </Button>
-                {recipient.status === 'ACTIVE' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="eb-text-xs eb-text-red-600 hover:eb-text-red-700"
-                    title="Deactivate linked account"
-                  >
-                    Deactivate
-                  </Button>
                 )}
               </div>
             </div>

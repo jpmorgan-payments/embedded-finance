@@ -22,23 +22,32 @@ const LinkedAccountsWithProvider = ({
   theme,
   variant,
   makePaymentComponent,
+  contentTokens,
+  onLinkedAccountSettled,
 }: {
   apiBaseUrl: string;
   headers: Record<string, string>;
   theme: EBTheme;
   variant?: 'default' | 'singleAccount';
   makePaymentComponent?: React.ReactNode;
+  contentTokens?: {
+    name?: 'enUS';
+    tokens?: Record<string, any>;
+  };
+  onLinkedAccountSettled?: (recipient?: any, error?: any) => void;
 }) => {
   return (
     <>
       <EBComponentsProvider
         apiBaseUrl={apiBaseUrl}
         headers={headers}
-        theme={{ colorScheme: 'light', ...theme }}
+        theme={theme}
+        contentTokens={contentTokens}
       >
         <LinkedAccountWidget
           variant={variant}
           makePaymentComponent={makePaymentComponent}
+          onLinkedAccountSettled={onLinkedAccountSettled}
         />
       </EBComponentsProvider>
     </>
@@ -253,11 +262,21 @@ export const WithMakePaymentComponent: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="ghost" icon={undefined} />
     ),
+    contentTokens: {
+      name: 'enUS',
+      tokens: {
+        'make-payment': {
+          buttons: {
+            makePayment: 'Pay',
+          },
+        },
+      },
+    },
   },
   parameters: {
     docs: {
       story:
-        'This story demonstrates the LinkedAccountWidget with a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form.',
+        'This story demonstrates the LinkedAccountWidget with a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form. The story also showcases content token customization for the MakePayment component, with the "Pay" button text being customized.',
     },
     msw: {
       handlers: [
@@ -332,15 +351,96 @@ export const SellSenseTheme: Story = {
     apiBaseUrl: '/',
     variant: 'default',
     theme: SELLSENSE_THEME,
+    makePaymentComponent: (
+      <MakePayment triggerButtonVariant="ghost" icon={undefined} />
+    ),
   },
   tags: ['@sellsense', '@theme'],
   parameters: {
     docs: {
       story:
-        'This story demonstrates the LinkedAccountWidget with SellSense brand theming. The component uses the official SellSense color palette with orange primary colors, warm backgrounds, and brand-consistent typography.',
+        'This story demonstrates the LinkedAccountWidget with SellSense brand theming and a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form.',
     },
     msw: {
       handlers: createRecipientHandlers(linkedAccountListMock),
+    },
+  },
+};
+
+export const WithCallback: Story = {
+  name: 'With onLinkedAccountSettled Callback',
+  args: {
+    apiBaseUrl: '/',
+    variant: 'default',
+    onLinkedAccountSettled: (recipient, error) => {
+      if (error) {
+        console.error('Linked account error:', error);
+        alert(`Error: ${error.title || 'Unknown error'}`);
+      } else if (recipient) {
+        console.log('Linked account success:', recipient);
+        alert(`Successfully linked account: ${recipient.id}`);
+      }
+    },
+  },
+  parameters: {
+    docs: {
+      story:
+        'This story demonstrates the LinkedAccountWidget with the onLinkedAccountSettled callback. The callback is invoked when a linked account is added or edited. In this example, it shows an alert with the result. In a real application, you might use this callback to update UI state, show notifications, or trigger other business logic.',
+    },
+    msw: {
+      handlers: [
+        ...createRecipientHandlers(linkedAccountListMock),
+        http.post('/recipients', () => {
+          return HttpResponse.json({
+            id: 'new-recipient-123',
+            type: 'LINKED_ACCOUNT',
+            status: 'MICRODEPOSITS_INITIATED',
+            partyDetails: {
+              type: 'INDIVIDUAL',
+              firstName: 'John',
+              lastName: 'Doe',
+            },
+            account: {
+              type: 'CHECKING',
+              number: '1234567890',
+              routingInformation: [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber: '123456789',
+                  transactionType: 'ACH',
+                },
+              ],
+              countryCode: 'US',
+            },
+            createdAt: new Date().toISOString(),
+          });
+        }),
+        http.post('/recipients/:id/verify-microdeposit', () => {
+          return HttpResponse.json({
+            id: 'verified-recipient-123',
+            type: 'LINKED_ACCOUNT',
+            status: 'ACTIVE',
+            partyDetails: {
+              type: 'INDIVIDUAL',
+              firstName: 'John',
+              lastName: 'Doe',
+            },
+            account: {
+              type: 'CHECKING',
+              number: '1234567890',
+              routingInformation: [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber: '123456789',
+                  transactionType: 'ACH',
+                },
+              ],
+              countryCode: 'US',
+            },
+            createdAt: new Date().toISOString(),
+          });
+        }),
+      ],
     },
   },
 };

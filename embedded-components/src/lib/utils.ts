@@ -5,7 +5,7 @@ import DOMPurify from 'dompurify';
 import { getI18n } from 'react-i18next';
 import { extendTailwindMerge } from 'tailwind-merge';
 
-import { Recipient } from '@/api/generated/ef-v1.schemas';
+import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
 const twMerge = extendTailwindMerge({
   prefix: 'eb-',

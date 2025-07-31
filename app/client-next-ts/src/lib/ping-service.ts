@@ -7,7 +7,7 @@ interface PingResponse {
 }
 
 class PingService {
-  private intervalId: NodeJS.Timeout | null = null;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
   private isActive = false;
   private pingInterval = 30000; // 30 seconds default
   private retryCount = 0;
@@ -28,7 +28,7 @@ class PingService {
     this.retryCount = 0;
 
     console.log(`Starting MSW ping service with ${intervalMs}ms interval`);
-    
+
     // Send initial ping immediately
     this.sendPing();
 
@@ -47,9 +47,9 @@ class PingService {
     }
 
     console.log('Stopping MSW ping service');
-    
+
     this.isActive = false;
-    
+
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -93,11 +93,13 @@ class PingService {
    */
   private handlePingFailure(): void {
     this.retryCount++;
-    
+
     if (this.retryCount <= this.maxRetries) {
       const backoffDelay = Math.min(1000 * Math.pow(2, this.retryCount), 10000);
-      console.log(`Retrying ping in ${backoffDelay}ms (attempt ${this.retryCount}/${this.maxRetries})`);
-      
+      console.log(
+        `Retrying ping in ${backoffDelay}ms (attempt ${this.retryCount}/${this.maxRetries})`,
+      );
+
       setTimeout(() => {
         if (this.isActive) {
           this.sendPing();
@@ -128,4 +130,4 @@ class PingService {
 export const pingService = new PingService();
 
 // Export the class for testing or custom instances
-export { PingService }; 
+export { PingService };

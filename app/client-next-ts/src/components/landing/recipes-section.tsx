@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowRight, UserCog } from 'lucide-react';
+import { Calendar, UserCog } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 export function RecipesSection() {

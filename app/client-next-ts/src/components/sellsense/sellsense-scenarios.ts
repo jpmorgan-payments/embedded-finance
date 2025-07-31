@@ -11,7 +11,7 @@ export type ClientScenario = ReturnType<typeof getScenarioDisplayNames>[number];
 // Mapping SellSense client scenarios to onboarding scenario data
 // This is now derived from the centralized configuration
 export const sellSenseScenarioMapping = Object.fromEntries(
-  Object.entries(SCENARIOS_CONFIG).map(([key, config]) => [
+  Object.entries(SCENARIOS_CONFIG).map(([, config]) => [
     config.displayName,
     {
       clientId: config.clientId,

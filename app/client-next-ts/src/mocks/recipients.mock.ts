@@ -1,10 +1,6 @@
-import type {
-  ListRecipientsResponse,
-  Recipient,
-} from '@jpmorgan-payments/embedded-finance-components';
 
 // Mock recipients data for Recipients component
-export const mockRecipientsResponse: ListRecipientsResponse = {
+export const mockRecipientsResponse = {
   page: 0,
   limit: 10,
   total_items: 4,
@@ -145,7 +141,7 @@ export const mockRecipientsResponse: ListRecipientsResponse = {
 };
 
 // Mock empty recipients response
-export const mockEmptyRecipientsResponse: ListRecipientsResponse = {
+export const mockEmptyRecipientsResponse = {
   page: 0,
   limit: 10,
   total_items: 0,
@@ -174,8 +170,8 @@ export const mockVerificationFailure = {
 
 // Function to create mock recipient
 export const createMockRecipient = (
-  overrides: Partial<Recipient> = {},
-): Recipient => {
+  overrides: Partial<any> = {},
+): any => {
   return {
     id: `recipient-${Date.now()}`,
     type: 'RECIPIENT',
@@ -219,10 +215,10 @@ export const createMockRecipient = (
 
 // Function to create paginated recipients response
 export const createMockRecipientsResponse = (
-  recipients: Recipient[] = mockRecipientsResponse.recipients,
+  recipients: any[] = mockRecipientsResponse.recipients,
   page: number = 1,
   limit: number = 10,
-): ListRecipientsResponse => {
+): any => {
   // Convert 1-based page to 0-based index
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;

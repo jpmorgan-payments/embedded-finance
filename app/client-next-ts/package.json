@@ -5,12 +5,12 @@
   "scripts": {
     "dev": "vite --port 3000",
     "start": "vite --port 3000",
-    "build": "vite build",
+    "build": "rimraf dist && tsc && vite build",
     "serve": "vite preview",
     "test": "vitest run"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.8.6",
+    "@jpmorgan-payments/embedded-finance-components": "^0.8.11",
     "@mswjs/data": "^0.16.2",
     "@tanstack/react-router": "^1.114.3",
     "@tanstack/react-router-devtools": "^1.114.3",
@@ -38,6 +38,7 @@
     "jsdom": "^26.0.0",
     "postcss": "^8.4.49",
     "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
     "typescript": "^5.7.2",
     "vite": "^6.1.0",
     "vitest": "^3.0.5",
