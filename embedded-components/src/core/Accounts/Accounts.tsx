@@ -275,10 +275,6 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           <div className="eb-flex eb-flex-col sm:eb-flex-row sm:eb-justify-between">
             {/* Left Column */}
             <div className="eb-flex eb-flex-col eb-gap-2">
-              <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
-                <span className="eb-font-medium">State:</span>
-                <span>{account.state}</span>
-              </div>
               {account.paymentRoutingInformation?.accountNumber && (
                 <div className="eb-flex eb-flex-col eb-gap-1">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
