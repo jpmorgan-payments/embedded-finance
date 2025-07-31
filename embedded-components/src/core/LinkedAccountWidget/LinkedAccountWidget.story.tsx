@@ -23,6 +23,7 @@ const LinkedAccountsWithProvider = ({
   variant,
   makePaymentComponent,
   contentTokens,
+  onLinkedAccountSettled,
 }: {
   apiBaseUrl: string;
   headers: Record<string, string>;
@@ -33,6 +34,7 @@ const LinkedAccountsWithProvider = ({
     name?: 'enUS';
     tokens?: Record<string, any>;
   };
+  onLinkedAccountSettled?: (recipient?: any, error?: any) => void;
 }) => {
   return (
     <>
@@ -45,6 +47,7 @@ const LinkedAccountsWithProvider = ({
         <LinkedAccountWidget
           variant={variant}
           makePaymentComponent={makePaymentComponent}
+          onLinkedAccountSettled={onLinkedAccountSettled}
         />
       </EBComponentsProvider>
     </>
@@ -360,6 +363,84 @@ export const SellSenseTheme: Story = {
     },
     msw: {
       handlers: createRecipientHandlers(linkedAccountListMock),
+    },
+  },
+};
+
+export const WithCallback: Story = {
+  name: 'With onLinkedAccountSettled Callback',
+  args: {
+    apiBaseUrl: '/',
+    variant: 'default',
+    onLinkedAccountSettled: (recipient, error) => {
+      if (error) {
+        console.error('Linked account error:', error);
+        alert(`Error: ${error.title || 'Unknown error'}`);
+      } else if (recipient) {
+        console.log('Linked account success:', recipient);
+        alert(`Successfully linked account: ${recipient.id}`);
+      }
+    },
+  },
+  parameters: {
+    docs: {
+      story:
+        'This story demonstrates the LinkedAccountWidget with the onLinkedAccountSettled callback. The callback is invoked when a linked account is added or edited. In this example, it shows an alert with the result. In a real application, you might use this callback to update UI state, show notifications, or trigger other business logic.',
+    },
+    msw: {
+      handlers: [
+        ...createRecipientHandlers(linkedAccountListMock),
+        http.post('/recipients', () => {
+          return HttpResponse.json({
+            id: 'new-recipient-123',
+            type: 'LINKED_ACCOUNT',
+            status: 'MICRODEPOSITS_INITIATED',
+            partyDetails: {
+              type: 'INDIVIDUAL',
+              firstName: 'John',
+              lastName: 'Doe',
+            },
+            account: {
+              type: 'CHECKING',
+              number: '1234567890',
+              routingInformation: [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber: '123456789',
+                  transactionType: 'ACH',
+                },
+              ],
+              countryCode: 'US',
+            },
+            createdAt: new Date().toISOString(),
+          });
+        }),
+        http.post('/recipients/:id/verify-microdeposit', () => {
+          return HttpResponse.json({
+            id: 'verified-recipient-123',
+            type: 'LINKED_ACCOUNT',
+            status: 'ACTIVE',
+            partyDetails: {
+              type: 'INDIVIDUAL',
+              firstName: 'John',
+              lastName: 'Doe',
+            },
+            account: {
+              type: 'CHECKING',
+              number: '1234567890',
+              routingInformation: [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber: '123456789',
+                  transactionType: 'ACH',
+                },
+              ],
+              countryCode: 'US',
+            },
+            createdAt: new Date().toISOString(),
+          });
+        }),
+      ],
     },
   },
 };

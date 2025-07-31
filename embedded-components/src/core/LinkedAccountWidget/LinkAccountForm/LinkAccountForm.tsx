@@ -5,7 +5,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getRecipientLabel } from '@/lib/utils';
-import { useCreateRecipient, useGetAllRecipients } from '@/api/generated/ef-v1';
+import {
+  useCreateRecipient,
+  useGetAllRecipients,
+} from '@/api/generated/ep-recipients';
+import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -43,11 +47,12 @@ import {
 
 type LinkAccountFormDialogTriggerProps = {
   children: ReactNode;
+  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
 export const LinkAccountFormDialogTrigger: FC<
   LinkAccountFormDialogTriggerProps
-> = ({ children }) => {
+> = ({ children, onLinkedAccountSettled }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [selectedAccountType, setSelectedAccountType] = useState('INDIVIDUAL'); // Default to INDIVIDUAL
 
@@ -109,8 +114,13 @@ export const LinkAccountFormDialogTrigger: FC<
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
           refetchCreateRecipient();
+          onLinkedAccountSettled?.(response);
+        },
+        onError: (error) => {
+          const apiError = error.response?.data as ApiError;
+          onLinkedAccountSettled?.(undefined, apiError);
         },
       }
     );
