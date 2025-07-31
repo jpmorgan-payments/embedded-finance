@@ -118,6 +118,10 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                     financial capabilities without requiring users to leave your
                     platform.
                   </p>
+                  <p className="text-sm text-gray-600">
+                    Everything is fully based on the existing documentation and
+                    API specifications from J.P. Morgan Payments.
+                  </p>
                 </CardContent>
               </Card>
 
@@ -145,6 +149,13 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span className="text-sm">API-driven functionality</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm">
+                      All API operations fully mocked using MSW client-side
+                      library - no actual backend calls
+                    </span>
                   </div>
                 </CardContent>
               </Card>
