@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import {
   Accounts,
@@ -25,12 +25,7 @@ import {
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import { AutomationTrigger } from './automation';
-
-interface WalletOverviewProps {
-  clientScenario?: any;
-  theme?: any;
-}
-
+import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 interface ComponentInfo {
   title: string;
   description: string;
@@ -44,7 +39,7 @@ interface ComponentInfo {
   };
 }
 
-export function WalletOverview(props: WalletOverviewProps = {}) {
+export function WalletOverview() {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
     'columns',
   );
@@ -75,10 +70,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
   // Create theme object using the proper theme system
   const themeObject = mapThemeOption(currentTheme as any);
 
-  // Refs for component refetch functions
-  const accountsRef = useRef<{ refresh: () => void } | null>(null);
-  const transactionsRef = useRef<{ refresh: () => void } | null>(null);
-
   // Create base content tokens that respond to tone changes
   const baseContentTokens = {
     name: 'enUS' as const,
@@ -97,13 +88,21 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
     setOpenTooltip(isOpen ? componentName : null);
   };
 
-  // Handle transaction settlement - refetch accounts and transactions
+  // Handle transaction settlement - trigger component refetch
   const handleTransactionSettled = () => {
     // Add a small delay to ensure the transaction is processed
     setTimeout(() => {
-      console.log('Transaction settled - refetching accounts and transactions');
-      accountsRef.current?.refresh();
-      transactionsRef.current?.refresh();
+      console.log('Transaction settled - triggering component refetch');
+      DatabaseResetUtils.emulateTabSwitch();
+    }, 1000);
+  };
+
+  // Handle linked account settlement - trigger component refetch
+  const handleLinkedAccountSettled = () => {
+    // Add a small delay to ensure the linked account is processed
+    setTimeout(() => {
+      console.log('Linked account settled - triggering component refetch');
+      DatabaseResetUtils.emulateTabSwitch();
     }, 1000);
   };
 
@@ -144,11 +143,6 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         <Accounts
           allowedCategories={['LIMITED_DDA_PAYMENTS', 'LIMITED_DDA']}
           clientId="0030000131"
-          ref={(ref) => {
-            if (ref) {
-              accountsRef.current = ref;
-            }
-          }}
         />
       ),
     },
@@ -167,6 +161,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
       ],
       component: (
         <LinkedAccountWidget
+          onLinkedAccountSettled={handleLinkedAccountSettled}
           makePaymentComponent={
             <MakePayment
               onTransactionSettled={handleTransactionSettled}
@@ -199,16 +194,7 @@ export function WalletOverview(props: WalletOverviewProps = {}) {
         'Display transaction details and status',
         'Real-time transaction updates',
       ],
-      component: (
-        <TransactionsDisplay
-          accountId="0030000131"
-          ref={(ref) => {
-            if (ref) {
-              transactionsRef.current = ref;
-            }
-          }}
-        />
-      ),
+      component: <TransactionsDisplay accountId="0030000131" />,
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',

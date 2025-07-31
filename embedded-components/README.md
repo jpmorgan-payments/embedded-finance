@@ -452,11 +452,12 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 
 #### Props:
 
-| Prop Name              | Type                           | Required | Description                                                 |
-| ---------------------- | ------------------------------ | -------- | ----------------------------------------------------------- |
-| `variant`              | `'default' \| 'singleAccount'` | No       | Display variant for different use cases                     |
-| `showCreateButton`     | `boolean`                      | No       | Show/hide create functionality                              |
-| `makePaymentComponent` | `React.ReactNode`              | No       | MakePayment component to render in each linked account card |
+| Prop Name                | Type                                                | Required | Description                                                         |
+| ------------------------ | --------------------------------------------------- | -------- | ------------------------------------------------------------------- |
+| `variant`                | `'default' \| 'singleAccount'`                      | No       | Display variant for different use cases                             |
+| `showCreateButton`       | `boolean`                                           | No       | Show/hide create functionality                                      |
+| `makePaymentComponent`   | `React.ReactNode`                                   | No       | MakePayment component to render in each linked account card         |
+| `onLinkedAccountSettled` | `(recipient?: Recipient, error?: ApiError) => void` | No       | Callback function for linked account creation/verification response |
 
 #### Usage:
 

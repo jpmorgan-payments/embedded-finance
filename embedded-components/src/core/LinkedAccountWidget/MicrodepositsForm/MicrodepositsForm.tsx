@@ -8,7 +8,8 @@ import { getRecipientLabel } from '@/lib/utils';
 import {
   useGetRecipient,
   useRecipientsVerification,
-} from '@/api/generated/ef-v1';
+} from '@/api/generated/ep-recipients';
+import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,11 +40,12 @@ import {
 type MicrodepositsFormDialogTriggerProps = {
   children: ReactNode;
   recipientId: string;
+  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
 export const MicrodepositsFormDialogTrigger: FC<
   MicrodepositsFormDialogTriggerProps
-> = ({ children, recipientId }) => {
+> = ({ children, recipientId, onLinkedAccountSettled }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const {
     data: recipient,
@@ -69,12 +71,23 @@ export const MicrodepositsFormDialogTrigger: FC<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit = (data: z.infer<typeof MicrodepositsFormSchema>) => {
     // Handle account linking logic here
-    verify({
-      id: recipientId,
-      data: {
-        amounts: [data.amount1, data.amount2],
+    verify(
+      {
+        id: recipientId,
+        data: {
+          amounts: [data.amount1, data.amount2],
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          onLinkedAccountSettled?.(recipient);
+        },
+        onError: (error) => {
+          const apiError = error.response?.data as ApiError;
+          onLinkedAccountSettled?.(undefined, apiError);
+        },
+      }
+    );
   };
 
   // Helper function to get recipient display name
