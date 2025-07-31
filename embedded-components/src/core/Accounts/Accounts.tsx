@@ -256,6 +256,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
               {account.label}
             </div>
           </div>
+          <hr className="eb-my-4 eb-border-gray-200" />
 
           {/* Second Row: Info Tooltip */}
           {account.paymentRoutingInformation?.accountNumber &&
