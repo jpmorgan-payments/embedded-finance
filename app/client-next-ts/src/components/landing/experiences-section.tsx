@@ -9,6 +9,8 @@ import {
   ExternalLink,
   FileText,
   Zap,
+  Play,
+  Github,
 } from 'lucide-react';
 
 export function ExperiencesSection() {
@@ -22,6 +24,10 @@ export function ExperiencesSection() {
       status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=onboarding&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/OnboardingFlow',
       steps: [
         'Create client with basic business information',
         'Collect party details and due diligence responses',
@@ -42,6 +48,10 @@ export function ExperiencesSection() {
       status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#3-linkedaccountwidget',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/LinkedAccountWidget',
       steps: [
         'Add recipient with account details and party information',
         'Trigger Account Validation Service (AVS) checks',
@@ -62,6 +72,10 @@ export function ExperiencesSection() {
       status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=recipients&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Recipients',
       steps: [
         'View, search, filter, and sort all saved recipients',
         'Add new recipients with dynamic forms based on selected payment methods',
@@ -83,6 +97,10 @@ export function ExperiencesSection() {
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
       icon: <List className="h-5 w-5" />,
       status: 'coming soon',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/TransactionsDisplay',
       steps: [
         'Fetch transaction data with filtering options',
         'Display transaction details and status',
@@ -102,6 +120,10 @@ export function ExperiencesSection() {
         'Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to external recipients and linked accounts.',
       icon: <Zap className="h-5 w-5" />,
       status: 'coming soon',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/MakePayment',
       steps: [
         'Get debtor account ID from your Embedded account',
         'Create payment request with recipient and amount',
@@ -119,6 +141,9 @@ export function ExperiencesSection() {
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
       icon: <List className="h-5 w-5" />,
       status: 'soon',
+      demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
       steps: [
         'View accounts details and balances',
         'Mask sensitive account information for security',
@@ -140,7 +165,15 @@ export function ExperiencesSection() {
           </h2>
           <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
             Pre-built workflows and implementation patterns for common embedded
-            finance use cases.
+            finance use cases.{' '}
+            <a
+              href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-jpm-blue hover:text-jpm-blue-dark underline"
+            >
+              View full documentation →
+            </a>
           </p>
 
           {/* Grid Layout */}
@@ -187,6 +220,36 @@ export function ExperiencesSection() {
 
                   {/* Always visible, centrally aligned action buttons */}
                   <div className="flex justify-center items-center gap-3 mt-auto pt-3 pb-1 border-t border-gray-100 flex-shrink-0 min-h-[3.5rem]">
+                    {exp.demoUrl && (
+                      <div className="relative group">
+                        <button
+                          className="p-2.5 rounded-full bg-green-100 hover:bg-green-200 text-green-600 transition-colors"
+                          onClick={() => window.open(exp.demoUrl, '_blank')}
+                          title="View Live Demo"
+                        >
+                          <Play className="h-5 w-5" />
+                        </button>
+                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          Live Demo
+                        </div>
+                      </div>
+                    )}
+
+                    {exp.githubUrl && (
+                      <div className="relative group">
+                        <button
+                          className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                          onClick={() => window.open(exp.githubUrl, '_blank')}
+                          title="View Source Code"
+                        >
+                          <Github className="h-5 w-5" />
+                        </button>
+                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          Source Code
+                        </div>
+                      </div>
+                    )}
+
                     {exp.recipeUrl && (
                       <div className="relative group">
                         <button
