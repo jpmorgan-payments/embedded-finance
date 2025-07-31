@@ -5,13 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AlertCircle, Eye, EyeOff, Info } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Info, InfoIcon } from 'lucide-react';
 
 import {
   useGetAccountBalance,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Popover,
@@ -244,30 +245,41 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
     return (
       <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row sm:eb-items-stretch">
-        {/* Left: Main Info */}
-        <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
-          <div className="eb-flex eb-items-center eb-gap-2 eb-truncate eb-text-base eb-font-semibold">
-            {CATEGORY_LABELS[account.category] || account.category}
-            <span className="eb-text-xs eb-font-normal eb-text-muted-foreground">
+        <div className="eb-grid eb-w-full eb-gap-4">
+          {/* First Row: Account Category and Label */}
+          <div className="eb-flex eb-items-center eb-justify-between">
+            <div className="eb-text-base eb-font-semibold">
+              {CATEGORY_LABELS[account.category] || account.category}
+            </div>
+            <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
               {account.label}
-            </span>
+            </div>
           </div>
-          <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-gray-600">
-            <span className="eb-font-medium">State:</span>
-            <span>{account.state}</span>
-          </div>
+          <hr className="eb-my-4 eb-border-gray-200" />
+
+          {/* Second Row: Info Tooltip */}
           {account.paymentRoutingInformation?.accountNumber &&
             account.category === 'LIMITED_DDA_PAYMENTS' && (
-              <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
-                {/* Info Tooltip */}
-                <div className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-bg-blue-50 eb-p-2 eb-text-xs eb-text-blue-700">
-                  <Info className="eb-mt-0.5 eb-h-4 eb-w-4 eb-flex-shrink-0" />
-                  <span>
-                    Account can be funded from external sources and is
-                    externally addressable via routing/account numbers below
-                  </span>
-                </div>
-                {/* Routing Numbers - Enhanced Display */}
+              <Alert variant="informative" density="sm" className="eb-mb-4">
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertTitle className="eb-text-sm eb-font-semibold">
+                  Account can be funded from external sources and is externally
+                  addressable via routing/account numbers below
+                </AlertTitle>
+                <AlertDescription>
+                  {/* Additional description or details can go here if needed */}
+                </AlertDescription>
+              </Alert>
+            )}
+
+          {/* Third Row: Remaining Info in Two Columns */}
+          <div className="eb-grid eb-w-full eb-grid-cols-2 eb-items-stretch eb-gap-4">
+            {/* Left Column */}
+            <div className="eb-flex eb-flex-col eb-gap-2">
+              <div className="eb-mb-1 eb-text-sm eb-font-medium">
+                Account Information
+              </div>
+              {account.paymentRoutingInformation?.accountNumber && (
                 <div className="eb-flex eb-flex-col eb-gap-1">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
                     <span className="eb-font-medium">ACH Routing:</span>
@@ -281,86 +293,87 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                       021000021
                     </span>
                   </div>
+                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
+                    <span className="eb-font-medium">Account Number:</span>
+                    <span className="eb-font-mono eb-text-xs eb-font-semibold">
+                      {showSensitiveInfo
+                        ? account.paymentRoutingInformation.accountNumber
+                        : maskAccountNumber(
+                            account.paymentRoutingInformation.accountNumber
+                          )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={toggleSensitiveInfo}
+                      className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      title={
+                        showSensitiveInfo
+                          ? 'Hide account details'
+                          : 'Show account details'
+                      }
+                      aria-label={
+                        showSensitiveInfo
+                          ? 'Hide account details'
+                          : 'Show account details'
+                      }
+                    >
+                      {showSensitiveInfo ? (
+                        <EyeOff className="eb-h-3 eb-w-3" />
+                      ) : (
+                        <Eye className="eb-h-3 eb-w-3" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                {/* Account Number */}
-                <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                  <span className="eb-font-medium">Account Number:</span>
-                  <span className="eb-font-mono eb-text-xs eb-font-semibold">
-                    {showSensitiveInfo
-                      ? account.paymentRoutingInformation.accountNumber
-                      : maskAccountNumber(
-                          account.paymentRoutingInformation.accountNumber
-                        )}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={toggleSensitiveInfo}
-                    className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                    title={
-                      showSensitiveInfo
-                        ? 'Hide account details'
-                        : 'Show account details'
-                    }
-                    aria-label={
-                      showSensitiveInfo
-                        ? 'Hide account details'
-                        : 'Show account details'
-                    }
-                  >
-                    {showSensitiveInfo ? (
-                      <EyeOff className="eb-h-3 eb-w-3" />
-                    ) : (
-                      <Eye className="eb-h-3 eb-w-3" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-        </div>
-        {/* Right: Balances - Aligned to bottom */}
-        <div className="eb-mt-4 eb-flex eb-min-w-[180px] eb-max-w-xs eb-flex-col eb-items-end eb-justify-end eb-gap-1 sm:eb-mt-0">
-          <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
-          {isBalanceLoading ? (
-            <Skeleton className="eb-h-4 eb-w-1/2" />
-          ) : balanceData?.balanceTypes?.length ? (
-            <div className="eb-flex eb-w-full eb-flex-col eb-gap-1">
-              {balanceData.balanceTypes.map((b) => (
-                <div
-                  key={b.typeCode}
-                  className="eb-flex eb-items-center eb-justify-end eb-gap-2"
-                >
-                  <span className="eb-text-sm eb-font-medium">
-                    {BALANCE_TYPE_LABELS[String(b.typeCode)]?.label ||
-                      b.typeCode}
-                  </span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <span
-                        className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400"
-                        title="Info"
-                      >
-                        <Info
-                          className="eb-h-4 eb-w-5 eb-text-blue-400 hover:eb-text-blue-600"
-                          aria-label="Info"
-                        />
-                      </span>
-                    </PopoverTrigger>
-                    <PopoverContent className="eb-max-w-xs eb-text-xs">
-                      {BALANCE_TYPE_LABELS[String(b.typeCode)]?.description ||
-                        'No description.'}
-                    </PopoverContent>
-                  </Popover>
-                  <span className="eb-font-mono eb-text-right eb-text-sm">
-                    {Number(b.amount).toFixed(2)} {balanceData.currency}
-                  </span>
-                </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <span className="eb-text-xs eb-text-muted-foreground">
-              No balance data.
-            </span>
-          )}
+
+            {/* Right Column */}
+            <div className="eb-flex eb-flex-col eb-items-end eb-gap-1">
+              <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
+              {isBalanceLoading ? (
+                <Skeleton className="eb-h-4 eb-w-1/2" />
+              ) : balanceData?.balanceTypes?.length ? (
+                <div className="eb-flex eb-w-full eb-flex-col eb-gap-1">
+                  {balanceData.balanceTypes.map((b) => (
+                    <div
+                      key={b.typeCode}
+                      className="eb-flex eb-items-center eb-justify-end eb-gap-2"
+                    >
+                      <span className="eb-text-sm eb-font-medium">
+                        {BALANCE_TYPE_LABELS[String(b.typeCode)]?.label ||
+                          b.typeCode}
+                      </span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <span
+                            className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400"
+                            title="Info"
+                          >
+                            <Info
+                              className="eb-h-4 eb-w-5 eb-text-blue-400 hover:eb-text-blue-600"
+                              aria-label="Info"
+                            />
+                          </span>
+                        </PopoverTrigger>
+                        <PopoverContent className="eb-max-w-xs eb-text-xs">
+                          {BALANCE_TYPE_LABELS[String(b.typeCode)]
+                            ?.description || 'No description.'}
+                        </PopoverContent>
+                      </Popover>
+                      <span className="eb-font-mono eb-text-right eb-text-sm">
+                        {Number(b.amount).toFixed(2)} {balanceData.currency}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <span className="eb-text-xs eb-text-muted-foreground">
+                  No balance data.
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </Card>
     );
