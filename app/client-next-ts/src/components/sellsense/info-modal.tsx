@@ -150,8 +150,8 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span className="text-sm">API-driven functionality</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
                     <span className="text-sm">
                       All API operations fully mocked using MSW client-side
                       library - no actual backend calls
