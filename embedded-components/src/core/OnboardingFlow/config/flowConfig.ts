@@ -24,19 +24,52 @@ import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/Gatew
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
 import { OwnersSectionScreen } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/OwnersSectionScreen';
-import { ownerSteps } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/ownerSteps';
 import { ReviewForm } from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
 import { TermsAndConditionsForm } from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/TermsAndConditionsForm/TermsAndConditionsForm';
 import {
   FlowConfig,
   SectionScreenConfig,
   StaticScreenConfig,
+  StepConfig,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
   clientHasOutstandingDocRequests,
   getActiveOwners,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
+
+const ownerSteps: StepConfig[] = [
+  {
+    id: 'personal-details',
+    stepType: 'form',
+    title: 'Personal details',
+    description:
+      'We collect personal information to verify individuals for security and compliance.',
+    Component: PersonalDetailsForm,
+  },
+  {
+    id: 'identity-document',
+    stepType: 'form',
+    title: 'Identity document',
+    description:
+      'We need some additional details to verify individuals for security and compliance.',
+    Component: IndividualIdentityForm,
+  },
+  {
+    id: 'contact-details',
+    stepType: 'form',
+    title: 'Contact details',
+    description: 'We need some additional details to confirm your identity.',
+    Component: ContactDetailsForm,
+  },
+  {
+    id: 'check-answers',
+    stepType: 'check-answers',
+    title: 'Check your answers',
+    description:
+      'Please ensure your answers are accurate and complete anything you may have missed.',
+  },
+];
 
 const staticScreens: StaticScreenConfig[] = [
   {
@@ -265,6 +298,7 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
+      excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
       label: 'Owners and key roles',
       icon: Users2Icon,
       requirementsList: [

@@ -123,7 +123,7 @@ export function useTranslation<
           (value) =>
             value !== undefined && value !== CONTENT_TOKEN_NOT_FOUND_CODE
         ) ??
-        tOptions.defaultValue ??
+        tOptions?.defaultValue ??
         key[0]
       );
     }
