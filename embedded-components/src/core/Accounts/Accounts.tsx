@@ -5,13 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AlertCircle, Eye, EyeOff, Info } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Info, InfoIcon } from 'lucide-react';
 
 import {
   useGetAccountBalance,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Popover,
@@ -19,8 +20,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { InfoIcon } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, string> = {
   LIMITED_DDA: 'Limited DDA',
@@ -246,7 +245,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
     return (
       <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row sm:eb-items-stretch">
-        <div className="eb-grid eb-gap-4 eb-w-full">
+        <div className="eb-grid eb-w-full eb-gap-4">
           {/* First Row: Account Category and Label */}
           <div className="eb-flex eb-items-center eb-justify-between">
             <div className="eb-text-base eb-font-semibold">
@@ -264,7 +263,8 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
               <Alert variant="informative" density="sm" className="eb-mb-4">
                 <InfoIcon className="eb-h-4 eb-w-4" />
                 <AlertTitle className="eb-text-sm eb-font-semibold">
-                  Account can be funded from external sources and is externally addressable via routing/account numbers below
+                  Account can be funded from external sources and is externally
+                  addressable via routing/account numbers below
                 </AlertTitle>
                 <AlertDescription>
                   {/* Additional description or details can go here if needed */}
@@ -273,10 +273,12 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             )}
 
           {/* Third Row: Remaining Info in Two Columns */}
-          <div className="eb-grid eb-grid-cols-2 eb-gap-4 eb-items-stretch eb-w-full">
+          <div className="eb-grid eb-w-full eb-grid-cols-2 eb-items-stretch eb-gap-4">
             {/* Left Column */}
             <div className="eb-flex eb-flex-col eb-gap-2">
-              <div className="eb-mb-1 eb-text-sm eb-font-medium">Account Information</div>
+              <div className="eb-mb-1 eb-text-sm eb-font-medium">
+                Account Information
+              </div>
               {account.paymentRoutingInformation?.accountNumber && (
                 <div className="eb-flex eb-flex-col eb-gap-1">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
@@ -355,8 +357,8 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                           </span>
                         </PopoverTrigger>
                         <PopoverContent className="eb-max-w-xs eb-text-xs">
-                          {BALANCE_TYPE_LABELS[String(b.typeCode)]?.description ||
-                            'No description.'}
+                          {BALANCE_TYPE_LABELS[String(b.typeCode)]
+                            ?.description || 'No description.'}
                         </PopoverContent>
                       </Popover>
                       <span className="eb-font-mono eb-text-right eb-text-sm">
