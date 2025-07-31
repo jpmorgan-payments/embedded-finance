@@ -248,7 +248,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row sm:eb-items-stretch">
         <div className="eb-grid eb-gap-4 eb-w-full">
           {/* First Row: Account Category and Label */}
-          <div className="eb-flex eb-items-center eb-gap-4">
+          <div className="eb-flex eb-items-center eb-justify-between">
             <div className="eb-text-base eb-font-semibold">
               {CATEGORY_LABELS[account.category] || account.category}
             </div>
