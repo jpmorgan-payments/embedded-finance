@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Users,
   Link,
-  List,
+  UserCheck,
+  Receipt,
+  Zap,
+  Building2,
   Box,
   ExternalLink,
   FileText,
-  Zap,
   Play,
   Github,
 } from 'lucide-react';
@@ -68,7 +70,7 @@ export function ExperiencesSection() {
       title: 'Recipients Management',
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
-      icon: <List className="h-5 w-5" />,
+      icon: <UserCheck className="h-5 w-5" />,
       status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
@@ -95,7 +97,7 @@ export function ExperiencesSection() {
       title: 'Transaction History & Management',
       description:
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
-      icon: <List className="h-5 w-5" />,
+      icon: <Receipt className="h-5 w-5" />,
       status: 'coming soon',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
@@ -139,7 +141,7 @@ export function ExperiencesSection() {
       title: 'Accounts Management',
       description:
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
-      icon: <List className="h-5 w-5" />,
+      icon: <Building2 className="h-5 w-5" />,
       status: 'soon',
       demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
       githubUrl:
