@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.8.6",
+    "@jpmorgan-payments/embedded-finance-components": "^0.8.10",
     "@mswjs/data": "^0.16.2",
     "@tanstack/react-router": "^1.114.3",
     "@tanstack/react-router-devtools": "^1.114.3",

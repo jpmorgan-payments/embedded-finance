@@ -22,19 +22,25 @@ const LinkedAccountsWithProvider = ({
   theme,
   variant,
   makePaymentComponent,
+  contentTokens,
 }: {
   apiBaseUrl: string;
   headers: Record<string, string>;
   theme: EBTheme;
   variant?: 'default' | 'singleAccount';
   makePaymentComponent?: React.ReactNode;
+  contentTokens?: {
+    name?: 'enUS';
+    tokens?: Record<string, any>;
+  };
 }) => {
   return (
     <>
       <EBComponentsProvider
         apiBaseUrl={apiBaseUrl}
         headers={headers}
-        theme={{ colorScheme: 'light', ...theme }}
+        theme={theme}
+        contentTokens={contentTokens}
       >
         <LinkedAccountWidget
           variant={variant}
@@ -253,11 +259,21 @@ export const WithMakePaymentComponent: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="ghost" icon={undefined} />
     ),
+    contentTokens: {
+      name: 'enUS',
+      tokens: {
+        'make-payment': {
+          buttons: {
+            makePayment: 'Pay',
+          },
+        },
+      },
+    },
   },
   parameters: {
     docs: {
       story:
-        'This story demonstrates the LinkedAccountWidget with a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form.',
+        'This story demonstrates the LinkedAccountWidget with a MakePayment component integrated into each linked account card. The MakePayment component appears as a ghost button within the actions section of each account card. When clicked, the recipient ID is automatically passed to the MakePayment component, pre-selecting that recipient in the payment form. The story also showcases content token customization for the MakePayment component, with the "Pay" button text being customized.',
     },
     msw: {
       handlers: [

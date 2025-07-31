@@ -179,32 +179,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     )}
                   </div>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="eb-text-xs"
-                  title="View details"
-                >
-                  Details
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="eb-text-xs"
-                  title="Edit linked account"
-                >
-                  Edit
-                </Button>
-                {recipient.status === 'ACTIVE' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="eb-text-xs eb-text-red-600 hover:eb-text-red-700"
-                    title="Deactivate linked account"
-                  >
-                    Deactivate
-                  </Button>
-                )}
               </div>
             </div>
           ))}
