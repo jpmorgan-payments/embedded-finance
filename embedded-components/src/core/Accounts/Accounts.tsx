@@ -246,7 +246,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
     return (
       <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row sm:eb-items-stretch">
-        <div className="eb-flex eb-flex-col eb-gap-4">
+        <div className="eb-grid eb-gap-4 eb-w-full">
           {/* First Row: Account Category and Label */}
           <div className="eb-flex eb-items-center eb-gap-4">
             <div className="eb-text-base eb-font-semibold">
@@ -272,7 +272,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             )}
 
           {/* Third Row: Remaining Info in Two Columns */}
-          <div className="eb-grid eb-grid-cols-2 eb-gap-4 eb-items-stretch">
+          <div className="eb-grid eb-grid-cols-2 eb-gap-4 eb-items-stretch eb-w-full">
             {/* Left Column */}
             <div className="eb-flex eb-flex-col eb-gap-2">
               <div className="eb-mb-1 eb-text-sm eb-font-medium">Account Information</div>
