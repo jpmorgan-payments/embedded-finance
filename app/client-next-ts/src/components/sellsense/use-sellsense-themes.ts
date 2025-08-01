@@ -323,7 +323,7 @@ export const useSellSenseThemes = () => {
           // Background and layout
           backgroundColor: '#FAF9F7', // Matching useThemes.ts
           foregroundColor: '#1e293b',
-          cardColor: '#F7F3F0', // Matching useThemes.ts
+          cardColor: '#FFFFFF', // Matching useThemes.ts
           cardForegroundColor: '#1e293b',
 
           // Enhanced muted and accent colors

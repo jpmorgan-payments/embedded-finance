@@ -236,6 +236,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Create Commerce':
           return 'h-fit bg-[#38474E] border-[#0000004D]'; // popoverColor: '#38474E', borderColor: '#0000004D'
         case 'SellSense':
+          return 'h-fit bg-[#FFFFFF] border-[#0000004d]'; // Updated cardColor to match use-sellsense-themes.ts
         case 'PayFicient':
           return 'h-fit bg-[#F7F3F0] border-[#0000004d]'; // cardColor: '#F7F3F0', borderColor: '#0000004d'
         default:
