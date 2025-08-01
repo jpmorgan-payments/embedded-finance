@@ -46,7 +46,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Create Commerce':
           return 'bg-[#3D5C6B] border-[#0000004D]'; // backgroundColor: '#3D5C6B', borderColor: '#0000004D'
         case 'SellSense':
-          return 'bg-[#FAF9F7] border-[#0000004d]'; // backgroundColor: '#FAF9F7', borderColor: '#0000004d'
+          return 'bg-[#F7F3F0] border-[#0000004d]'; // Updated background color to #F7F3F0
         case 'PayFicient':
           return 'bg-[#FFFCF6] border-[#0000004d]'; // backgroundColor: '#FFFCF6', borderColor: '#0000004d'
         default:
