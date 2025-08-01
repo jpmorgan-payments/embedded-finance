@@ -147,7 +147,7 @@ export function EmbeddedComponentCard({
 
   return (
     <div
-      className={`rounded-lg border border-gray-300 bg-transparent relative ${
+      className={`rounded-lg border border-white bg-transparent relative ${
         showTooltip ? 'p-6' : 'p-0'
       }`}
     >
