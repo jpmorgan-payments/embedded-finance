@@ -9,6 +9,7 @@ import {
   ChevronDown,
   SkipBack,
   SkipForward,
+  Info,
 } from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -39,6 +40,8 @@ interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
+  isInfoModalOpen: boolean;
+  setIsInfoModalOpen: (open: boolean) => void;
 }
 
 export function Header({
@@ -50,6 +53,8 @@ export function Header({
   setIsMobileMenuOpen,
   isSettingsOpen,
   setIsSettingsOpen,
+  isInfoModalOpen,
+  setIsInfoModalOpen,
 }: HeaderProps) {
   const themeStyles = useThemeStyles(theme);
 
@@ -202,6 +207,17 @@ export function Header({
             <SkipForward className="h-4 w-4 text-gray-600" />
           </Button>
         </div>
+
+        {/* Info button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
+          onClick={() => setIsInfoModalOpen(!isInfoModalOpen)}
+          title="Show demo information"
+        >
+          <Info className="h-4 w-4 lg:h-5 lg:w-5" />
+        </Button>
 
         {/* Settings button */}
         <Button

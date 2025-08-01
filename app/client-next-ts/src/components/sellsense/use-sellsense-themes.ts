@@ -323,7 +323,7 @@ export const useSellSenseThemes = () => {
           // Background and layout
           backgroundColor: '#FAF9F7', // Matching useThemes.ts
           foregroundColor: '#1e293b',
-          cardColor: '#F7F3F0', // Matching useThemes.ts
+          cardColor: '#FFFFFF', // Matching useThemes.ts
           cardForegroundColor: '#1e293b',
 
           // Enhanced muted and accent colors
@@ -335,8 +335,8 @@ export const useSellSenseThemes = () => {
           // Enhanced alert system colors (v0.6.15) - SellSense themed
           alertColor: '#FDF7F0', // SellSense themed alert background
           alertForegroundColor: '#1e293b',
-          informativeColor: '#0ea5e9',
-          informativeAccentColor: '#e0f2fe',
+          informativeColor: '#2cb9ac',
+          informativeAccentColor: '#f0fffd',
           warningColor: '#f59e0b',
           warningAccentColor: '#fef3c7',
           successColor: '#10b981',

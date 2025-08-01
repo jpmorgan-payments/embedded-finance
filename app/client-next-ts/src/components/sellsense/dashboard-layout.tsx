@@ -12,6 +12,7 @@ import {
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import { SettingsDrawer } from './settings-drawer';
+import { InfoModal } from './info-modal';
 import { DashboardOverview } from './dashboard-overview';
 import { KycOnboarding } from './kyc-onboarding';
 import { WalletOverview } from './wallet-overview';
@@ -94,6 +95,7 @@ export function DashboardLayout() {
   // State management
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -405,6 +407,8 @@ export function DashboardLayout() {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         isSettingsOpen={isSettingsOpen}
         setIsSettingsOpen={setIsSettingsOpen}
+        isInfoModalOpen={isInfoModalOpen}
+        setIsInfoModalOpen={setIsInfoModalOpen}
       />
 
       {/* Mobile-first responsive layout */}
@@ -444,6 +448,13 @@ export function DashboardLayout() {
         setTheme={handleThemeChange}
         contentTone={contentTone}
         setContentTone={handleContentToneChange}
+      />
+
+      {/* Info Modal */}
+      <InfoModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+        theme={theme}
       />
     </div>
   );

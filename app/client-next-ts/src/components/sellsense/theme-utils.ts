@@ -24,6 +24,7 @@ export interface ThemeStyleUtils {
   getIconStyles: () => string;
   getTagStyles: () => string;
   getDialogStyles: () => string;
+  getModalStyles: () => string;
   getContentAreaStyles: () => string;
   getLogoPath: () => string;
   getLogoAlt: () => string;
@@ -45,7 +46,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Create Commerce':
           return 'bg-[#3D5C6B] border-[#0000004D]'; // backgroundColor: '#3D5C6B', borderColor: '#0000004D'
         case 'SellSense':
-          return 'bg-[#FAF9F7] border-[#0000004d]'; // backgroundColor: '#FAF9F7', borderColor: '#0000004d'
+          return 'bg-[#F7F3F0] border-[#0000004d]'; // Updated background color to #F7F3F0
         case 'PayFicient':
           return 'bg-[#FFFCF6] border-[#0000004d]'; // backgroundColor: '#FFFCF6', borderColor: '#0000004d'
         default:
@@ -235,6 +236,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Create Commerce':
           return 'h-fit bg-[#38474E] border-[#0000004D]'; // popoverColor: '#38474E', borderColor: '#0000004D'
         case 'SellSense':
+          return 'h-fit bg-[#FFFFFF] border-[#0000004d]'; // Updated cardColor to match use-sellsense-themes.ts
         case 'PayFicient':
           return 'h-fit bg-[#F7F3F0] border-[#0000004d]'; // cardColor: '#F7F3F0', borderColor: '#0000004d'
         default:
@@ -302,6 +304,26 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
 
     // Dialog styles (for component tech details)
     getDialogStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'bg-white text-gray-900 border-gray-300'; // Neutral styling for showing component defaults
+        case 'Default Blue':
+          return 'bg-white text-slate-800 border-slate-200'; // backgroundColor: '#ffffff', foregroundColor: '#1e293b', borderColor: '#e2e8f0'
+        case 'S&P Theme':
+          return 'bg-[#f6f7f8] text-slate-800 border-[#0000004D]'; // backgroundColor: '#f6f7f8', foregroundColor: '#1e293b', borderColor: '#0000004D'
+        case 'Create Commerce':
+          return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000004D]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000004D'
+        case 'SellSense':
+          return 'bg-[#FAF9F7] text-slate-800 border-[#0000004d]'; // backgroundColor: '#FAF9F7', foregroundColor: '#1e293b', borderColor: '#0000004d'
+        case 'PayFicient':
+          return 'bg-[#FFFCF6] text-slate-800 border-[#0000004d]'; // backgroundColor: '#FFFCF6', foregroundColor: '#1e293b', borderColor: '#0000004d'
+        default:
+          return 'bg-white text-gray-900 border-gray-300';
+      }
+    },
+
+    // Modal styles (for info modal)
+    getModalStyles: () => {
       switch (theme) {
         case 'Empty':
           return 'bg-white text-gray-900 border-gray-300'; // Neutral styling for showing component defaults
