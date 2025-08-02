@@ -80,7 +80,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
           <OnboardingFormField
             control={form.control}
             name="addresses.0.state"
-            type="select"
+            type="combobox"
             options={US_STATE_OPTIONS}
           />
           <OnboardingFormField
