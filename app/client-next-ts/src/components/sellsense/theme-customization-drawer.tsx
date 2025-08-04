@@ -239,20 +239,6 @@ export function ThemeCustomizationDrawer({
   const [isCopied, setIsCopied] = useState(false);
   const [isUrlCopied, setIsUrlCopied] = useState(false);
 
-  // Helper function to determine step value based on token context
-  const getStepValue = (token: string): number => {
-    if (token.includes('zIndex')) return 1;
-    if (token.includes('fontWeight')) return 100;
-    if (token.includes('fontSize') || token.includes('lineHeight')) return 0.1;
-    if (
-      token.includes('spacing') ||
-      token.includes('radius') ||
-      token.includes('width')
-    )
-      return 1;
-    return 0.1; // Default step
-  };
-
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
     if (token.includes('fontWeight')) {
