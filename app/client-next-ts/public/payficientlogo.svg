@@ -1,0 +1,47 @@
+<svg width="200" height="220" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- 
+    This SVG (Scalable Vector Graphics) file recreates the PayFicient logo.
+
+    - It imports 'Source Serif Pro' and 'Inter' from Google Fonts.
+    - The 'P' icon is created using 'Source Serif Pro' for a distinct, stylized look.
+    - The "PayFicient" text is set in 'Inter' for a clean, modern feel.
+    - The entire logo is grouped (<g>) and centered.
+    - The background is transparent for versatility.
+  -->
+    <defs>
+        <style>
+            @import
+            url('https://fonts.googleapis.com/css2?family=Inter:wght@500&amp;family=Source+Serif+Pro:wght@900&amp;display=swap');
+        </style>
+    </defs>
+
+    <!-- Group for the entire logo -->
+    <g transform="translate(100, 110)">
+
+        <!-- 'P' Icon -->
+        <text
+            y="-20"
+            font-family="'Inter', sans-serif"
+            font-weight="700"
+            font-size="110"
+            fill="#20503C"
+            text-anchor="middle"
+        >
+            P
+        </text>
+
+        <!-- "PayFicient" Text -->
+        <text
+            y="25"
+            font-family="'Inter', sans-serif"
+            font-weight="500"
+            font-size="40"
+            fill="#20503C"
+            text-anchor="middle"
+            letter-spacing="0.5"
+        >
+            PayFicient
+        </text>
+
+    </g>
+</svg>

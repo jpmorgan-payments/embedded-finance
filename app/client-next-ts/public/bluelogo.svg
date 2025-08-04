@@ -1,0 +1,47 @@
+<svg width="350" height="70" viewBox="0 0 350 70" xmlns="http://www.w3.org/2000/svg"
+    font-family="sans-serif">
+    <!-- 
+    This SVG (Scalable Vector Graphics) file recreates the provided logo.
+    - A <circle> creates the blue icon background.
+    - Two <text> elements are used for the 'B' and the "BLUELOGO" text.
+    - Using a viewBox allows the SVG to scale without losing quality.
+    - Background is transparent for embedding flexibility.
+  -->
+    <defs>
+        <style>
+            .logo-text {
+            font-weight: bold;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            }
+        </style>
+    </defs>
+
+    <!-- Blue Circle for the Icon -->
+    <circle cx="35" cy="35" r="25" fill="#0A4DAA" />
+
+    <!-- White 'B' inside the circle -->
+    <text
+        x="35"
+        y="38"
+        font-size="36"
+        fill="white"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        class="logo-text"
+    >
+        B
+    </text>
+
+    <!-- "BLUELOGO" Text -->
+    <text
+        x="70"
+        y="35"
+        font-size="34"
+        fill="#0A4DAA"
+        dominant-baseline="middle"
+        class="logo-text"
+        letter-spacing="-0.5"
+    >
+        BLUELOGO
+    </text>
+</svg>

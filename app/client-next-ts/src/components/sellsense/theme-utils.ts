@@ -348,9 +348,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Empty':
           return ''; // No logo for empty theme - shows component defaults
         case 'PayFicient':
-          return '/placeholder-logo.svg'; // Custom placeholder for PayFicient theme
+          return '/payficientlogo.svg';
         case 'Default Blue':
+          return '/bluelogo.svg';
         case 'S&P Theme':
+          return '/logo-jpm-brown.svg';
         case 'Create Commerce':
           return '/CreateCommerceLogo.svg';
         case 'SellSense':
@@ -380,9 +382,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Empty':
           return 'hidden'; // Hide logo completely for empty theme
         case 'PayFicient':
-          return 'h-8 w-auto max-w-[120px] object-contain'; // Responsive sizing for placeholder logo
+          return 'mt-5 h-[80px] w-auto max-w-[300px] object-contain'; // Even larger sizing for PayFicient logo
         case 'Default Blue':
+          return 'h-12 w-auto max-w-[250px] object-contain'; // Standard sizing for Default Blue logo
         case 'S&P Theme':
+          return 'h-9 w-auto max-w-[250px] object-contain'; // Standard sizing for S&P Theme logo
         case 'Create Commerce':
           return 'h-9 w-auto max-w-[250px]';
         case 'SellSense':
