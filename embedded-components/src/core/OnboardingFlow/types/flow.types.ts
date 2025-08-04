@@ -1,7 +1,11 @@
 import { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
 
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  OrganizationType,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
 
 type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any>>>;
 
@@ -10,6 +14,7 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     currentPartyData?: PartyResponse;
   }> & {
     schema: TSchema;
+    createSchema?: (orgType?: OrganizationType) => TSchema;
     refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
     modifyFormValuesBeforeSubmit?: (
       values: z.output<TSchema>,

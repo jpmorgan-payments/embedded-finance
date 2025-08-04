@@ -142,7 +142,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
-  const { clientData } = useOnboardingContext();
+  const { clientData, organizationType } = useOnboardingContext();
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
@@ -182,8 +182,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     const key = `fields.${tName}.${id}`;
     const stepperFlowKey = `onboarding:${key}`;
     const overviewFlowKey = `onboarding-overview:${key}`;
+    const overviewFlowKeyWithOrgType = `onboarding-overview:${key}.${organizationType}`;
     return t(
       [
+        overviewFlowKeyWithOrgType,
         overviewFlowKey,
         stepperFlowKey,
         'common:noTokenFallback',
