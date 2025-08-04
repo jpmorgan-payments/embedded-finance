@@ -2,12 +2,14 @@
 
 import type { ClientScenario, ContentTone, View } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
 interface DashboardOverviewProps {
   onViewChange: (view: View) => void;
   clientScenario: ClientScenario;
   contentTone: ContentTone;
   theme: ThemeOption;
+  customThemeVariables?: EBThemeVariables;
 }
 
 export function DashboardOverview({
@@ -15,6 +17,7 @@ export function DashboardOverview({
   clientScenario,
   contentTone: _contentTone,
   theme: _theme,
+  customThemeVariables: _customThemeVariables,
 }: DashboardOverviewProps) {
   return (
     <div className="p-4 md:p-6 lg:p-8 bg-sellsense-background-light min-h-screen">
@@ -96,7 +99,6 @@ export function DashboardOverview({
             </h3>
           </div>
         </div>
-
       </div>
 
       {/* Charts Section */}

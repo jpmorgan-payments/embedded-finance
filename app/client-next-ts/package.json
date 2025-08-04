@@ -12,7 +12,13 @@
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "^0.8.13",
     "@mswjs/data": "^0.16.2",
+    "@radix-ui/react-accordion": "^1.2.11",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-scroll-area": "^1.2.9",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tabs": "^1.1.12",
     "@tanstack/react-router": "^1.114.3",
     "@tanstack/react-router-devtools": "^1.114.3",
     "@tanstack/router-plugin": "^1.114.3",
