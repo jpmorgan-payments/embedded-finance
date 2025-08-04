@@ -641,11 +641,10 @@ export function ThemeCustomizationDrawer({
         {/* Content */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Info Alert */}
-          <div className="p-4 border-b border-gray-200 flex-shrink-0">
+          <div className="px-4 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-start gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
               <Info className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-blue-800">
-                <p className="font-medium mb-0.5">Theme Customization</p>
                 <p className="text-xs">
                   Customize design tokens to create your own theme. Changes are
                   applied in real-time.
