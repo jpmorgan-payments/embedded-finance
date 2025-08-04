@@ -5,7 +5,10 @@ import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { AlertTitle } from '@/components/ui/alert';
 import { Alert, Button, Card } from '@/components/ui';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
-import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
 import { StepConfig } from '@/core/OnboardingFlow/types/flow.types';
 import { OnboardingFormValuesInitial } from '@/core/OnboardingFlow/types/form.types';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
@@ -24,7 +27,8 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
 }) => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
-  const { clientData } = useOnboardingContext();
+  const { clientData, organizationType } = useOnboardingContext();
+  const { isSoleProp } = useFlowContext();
   const formValues = convertPartyResponseToFormValues(partyData ?? {});
   const { stepValidationMap } = getStepperValidation(
     steps,
@@ -86,10 +90,23 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
               )}
 
               {step.stepType === 'form' &&
-                Object.keys(step.Component.schema.shape).map((field) => {
-                  const fieldConfig = partyFieldMap?.[
-                    field as keyof OnboardingFormValuesInitial
-                  ] as {
+                Object.keys(
+                  (
+                    step.Component?.createSchema?.(organizationType) ??
+                    step.Component.schema
+                  ).shape
+                ).map((key) => {
+                  let field = key as keyof OnboardingFormValuesInitial;
+
+                  let value = formValues?.[field];
+
+                  // EXCEPTION HANDLING
+                  if (isSoleProp && field === 'organizationIds' && !value) {
+                    field = 'controllerIds';
+                    value = formValues?.[field];
+                  }
+
+                  const fieldConfig = partyFieldMap?.[field] as {
                     toStringFn?: (
                       val: any,
                       values: Partial<OnboardingFormValuesInitial>
@@ -99,8 +116,6 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                   } & {
                     [key: string]: any;
                   };
-                  const value =
-                    formValues?.[field as keyof OnboardingFormValuesInitial];
 
                   if (fieldConfig?.isHiddenInReview?.(value)) {
                     return null;

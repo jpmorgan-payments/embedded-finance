@@ -349,8 +349,12 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   prevButtonDisabled = false,
 }) => {
   const queryClient = useQueryClient();
-  const { clientData, onPostClientSettled, onPostPartySettled } =
-    useOnboardingContext();
+  const {
+    clientData,
+    organizationType,
+    onPostClientSettled,
+    onPostPartySettled,
+  } = useOnboardingContext();
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -375,7 +379,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
   const form = useFormWithFilters({
     clientData,
-    schema: Component.schema,
+    schema: Component.createSchema?.(organizationType) ?? Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
     overrideDefaultValues: formValuesFromResponse,
     disabled: isFormSubmitting,

@@ -203,6 +203,7 @@
       "label": "Legal name of the company",
       "validationFieldName": "Business name",
       "description": "Please enter this exactly as it appears on your business registration documents",
+      "description.SOLE_PROPRIETORSHIP": "Your sole proprietorship's name is the same as your legal name. Update it in the personal details section.",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -239,6 +240,15 @@
         "maxItems": "Maximum 6 Business Identifications allowed",
         "uniqueTypes": "Each Business Identification type must be unique"
       }
+    },
+    "ssnOrEin": {
+      "label": "How do you identify your business?",
+      "description": "",
+      "tooltip": ""
+    },
+    "ssnAsSolePropId": {
+      "description": "Update your ID in the personal details section",
+      "tooltip": ""
     },
     "controllerIds": {
       "value": {

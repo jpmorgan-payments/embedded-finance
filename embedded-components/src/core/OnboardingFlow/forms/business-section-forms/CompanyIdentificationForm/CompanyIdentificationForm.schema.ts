@@ -1,6 +1,7 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
+import { OrganizationType } from '@/api/generated/smbdo.schemas';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -116,54 +117,70 @@ const OrganizationIdSchema = z
     })
   );
 
-export const CompanyIdentificationFormSchema = z.object({
-  countryOfFormation: z
-    .string()
-    .length(
-      2,
-      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
-    )
-    .refine(
-      (val) => COUNTRIES_OF_FORMATION.includes(val),
-      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
-    ),
-  organizationName: z
-    .string()
-    .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))
-    .max(100, i18n.t('onboarding:fields.organizationName.validation.maxLength'))
-    .refine(
-      (val) => NAME_PATTERN.test(val),
-      i18n.t('onboarding:fields.organizationName.validation.pattern')
-    )
-    .refine(
-      (val) => !/\s\s/.test(val),
-      i18n.t(
-        'onboarding:fields.organizationName.validation.noConsecutiveSpaces'
+export const createCompanyIdentificationFormSchema = (
+  orgType?: OrganizationType
+) =>
+  z.object({
+    countryOfFormation: z
+      .string()
+      .length(
+        2,
+        i18n.t(
+          'onboarding:fields.countryOfFormation.validation.exactlyTwoChars'
+        )
       )
-    )
-    .refine(
-      (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
-      i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
-    ),
-  yearOfFormation: z
-    .string()
-    .refine(
-      (val) => /^(19|20)\d{2}$/.test(val),
-      i18n.t('onboarding:fields.yearOfFormation.validation.format')
-    )
-    .refine((val) => {
-      const year = parseInt(val, 10);
-      return year >= 1800;
-    }, i18n.t('onboarding:fields.yearOfFormation.validation.min'))
-    .refine((val) => {
-      const year = parseInt(val, 10);
-      return year <= CURRENT_YEAR;
-    }, i18n.t('onboarding:fields.yearOfFormation.validation.max')),
-  organizationIds: z
-    .array(OrganizationIdSchema)
-    .max(6, i18n.t('onboarding:fields.organizationIds.validation.maxIds'))
-    .refine((ids) => {
-      const types = ids.map((id) => id.idType);
-      return new Set(types).size === types.length;
-    }, i18n.t('onboarding:fields.organizationIds.validation.uniqueTypes')),
-});
+      .refine(
+        (val) => COUNTRIES_OF_FORMATION.includes(val),
+        i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
+      ),
+    organizationName:
+      orgType === 'SOLE_PROPRIETORSHIP'
+        ? z.string().optional()
+        : z
+            .string()
+            .min(
+              2,
+              i18n.t('onboarding:fields.organizationName.validation.minLength')
+            )
+            .max(
+              100,
+              i18n.t('onboarding:fields.organizationName.validation.maxLength')
+            )
+            .refine(
+              (val) => NAME_PATTERN.test(val),
+              i18n.t('onboarding:fields.organizationName.validation.pattern')
+            )
+            .refine(
+              (val) => !/\s\s/.test(val),
+              i18n.t(
+                'onboarding:fields.organizationName.validation.noConsecutiveSpaces'
+              )
+            )
+            .refine(
+              (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
+              i18n.t(
+                'onboarding:fields.organizationName.validation.noSpecialAtStart'
+              )
+            ),
+    yearOfFormation: z
+      .string()
+      .refine(
+        (val) => /^(19|20)\d{2}$/.test(val),
+        i18n.t('onboarding:fields.yearOfFormation.validation.format')
+      )
+      .refine((val) => {
+        const year = parseInt(val, 10);
+        return year >= 1800;
+      }, i18n.t('onboarding:fields.yearOfFormation.validation.min'))
+      .refine((val) => {
+        const year = parseInt(val, 10);
+        return year <= CURRENT_YEAR;
+      }, i18n.t('onboarding:fields.yearOfFormation.validation.max')),
+    organizationIds: z
+      .array(OrganizationIdSchema)
+      .max(6, i18n.t('onboarding:fields.organizationIds.validation.maxIds'))
+      .refine((ids) => {
+        const types = ids.map((id) => id.idType);
+        return new Set(types).size === types.length;
+      }, i18n.t('onboarding:fields.organizationIds.validation.uniqueTypes')),
+  });
