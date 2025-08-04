@@ -18,8 +18,10 @@ const sellsenseDemoSearchSchema = z.object({
       'Create Commerce',
       'SellSense',
       'PayFicient',
+      'Custom',
     ])
     .optional(),
+  customTheme: z.string().optional(), // JSON string of custom theme variables
   contentTone: z.enum(['Standard', 'Friendly']).optional(),
   view: z
     .enum([

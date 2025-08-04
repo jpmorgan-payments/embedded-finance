@@ -10,6 +10,7 @@ import {
   SkipBack,
   SkipForward,
   Info,
+  Brush,
 } from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -20,6 +21,9 @@ import {
   getScenarioByKey,
   getScenarioKeyByDisplayName,
 } from './scenarios-config';
+import { ThemeCustomizationDrawer } from './theme-customization-drawer';
+import { useState } from 'react';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
 // Company data - always the same
 const getCompanyInfo = () => {
@@ -33,7 +37,7 @@ interface HeaderProps {
   clientScenario: ClientScenario;
   setClientScenario: (scenario: ClientScenario) => void;
   theme: ThemeOption;
-  setTheme: (theme: ThemeOption) => void;
+  setTheme: (theme: ThemeOption, customVariables?: EBThemeVariables) => void;
   contentTone: ContentTone;
   setContentTone: (tone: ContentTone) => void;
   isMobileMenuOpen: boolean;
@@ -42,12 +46,14 @@ interface HeaderProps {
   setIsSettingsOpen: (open: boolean) => void;
   isInfoModalOpen: boolean;
   setIsInfoModalOpen: (open: boolean) => void;
+  customThemeData?: any; // Full custom theme data with baseTheme
 }
 
 export function Header({
   clientScenario,
   setClientScenario,
   theme,
+  setTheme,
   contentTone,
   isMobileMenuOpen,
   setIsMobileMenuOpen,
@@ -55,8 +61,10 @@ export function Header({
   setIsSettingsOpen,
   isInfoModalOpen,
   setIsInfoModalOpen,
+  customThemeData = {},
 }: HeaderProps) {
   const themeStyles = useThemeStyles(theme);
+  const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
 
   // Get current scenario key and next/previous scenarios
   const currentScenarioKey = getScenarioKeyByDisplayName(clientScenario);
@@ -106,152 +114,174 @@ export function Header({
   };
 
   return (
-    <header
-      className={`border-b shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 px-4 lg:px-6 ${themeStyles.getHeaderStyles()}`}
-    >
-      {/* Left side - Logo and Mobile Menu Button */}
-      <div className="flex items-center gap-3">
-        {/* Mobile menu button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
+    <>
+      <header
+        className={`border-b shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 px-4 lg:px-6 ${themeStyles.getHeaderStyles()}`}
+      >
+        {/* Left side - Logo and Mobile Menu Button */}
+        <div className="flex items-center gap-3">
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+
+          {/* Logo */}
+          {themeStyles.getLogoPath() && (
+            <img
+              src={themeStyles.getLogoPath()}
+              alt={themeStyles.getLogoAlt()}
+              className={`${themeStyles.getLogoStyles()} hidden sm:block`}
+            />
           )}
-        </Button>
+        </div>
 
-        {/* Logo */}
-        {themeStyles.getLogoPath() && (
-          <img
-            src={themeStyles.getLogoPath()}
-            alt={themeStyles.getLogoAlt()}
-            className={`${themeStyles.getLogoStyles()} hidden sm:block`}
-          />
-        )}
-      </div>
-
-      {/* Center - Demo Settings Summary */}
-      <div className="flex-1 flex items-center justify-center max-w-3xl mx-4">
-        <button
-          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md ${
-            isSettingsOpen ? 'bg-gray-100 border-gray-300 shadow-md' : ''
-          }`}
-          title="Click to open demo settings"
-        >
-          {/* Mobile summary - minimal */}
-          <div className="flex items-center gap-1.5 sm:hidden text-gray-700">
-            <span className="font-medium">
-              {getShortScenario(clientScenario)}
-            </span>
-            <span className="text-gray-400">•</span>
-            <span className="font-medium">{getShortTheme(theme)}</span>
-            <span className="text-gray-400">•</span>
-            <span className="font-medium">{contentTone}</span>
-            <ChevronDown className="h-3 w-3 text-gray-500 ml-1" />
-          </div>
-
-          {/* Desktop summary - detailed */}
-          <div className="hidden sm:flex items-center gap-3 text-gray-700">
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500">Scenario:</span>
-              <span className="font-medium">{clientScenario}</span>
-            </div>
-            <div className="text-gray-400">•</div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500">Theme:</span>
-              <span className="font-medium">{theme}</span>
-            </div>
-            <div className="text-gray-400">•</div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500">Tone:</span>
+        {/* Center - Demo Settings Summary */}
+        <div className="flex-1 flex items-center justify-center max-w-3xl mx-4">
+          <button
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 shadow-sm hover:shadow-md ${
+              isSettingsOpen ? 'bg-gray-100 border-gray-300 shadow-md' : ''
+            }`}
+            title="Click to open demo settings"
+          >
+            {/* Mobile summary - minimal */}
+            <div className="flex items-center gap-1.5 sm:hidden text-gray-700">
+              <span className="font-medium">
+                {getShortScenario(clientScenario)}
+              </span>
+              <span className="text-gray-400">•</span>
+              <span className="font-medium">{getShortTheme(theme)}</span>
+              <span className="text-gray-400">•</span>
               <span className="font-medium">{contentTone}</span>
+              <ChevronDown className="h-3 w-3 text-gray-500 ml-1" />
             </div>
-            <ChevronDown className="h-4 w-4 text-gray-500 ml-2" />
-          </div>
-        </button>
-      </div>
 
-      {/* Right side - User section, Scenario Navigation, and Settings */}
-      <div className="flex items-center space-x-2 lg:space-x-3">
-        {/* Scenario Navigation Buttons - Desktop Only */}
-        <div className="hidden lg:flex items-center gap-1 pr-2">
+            {/* Desktop summary - detailed */}
+            <div className="hidden sm:flex items-center gap-3 text-gray-700">
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">Scenario:</span>
+                <span className="font-medium">{clientScenario}</span>
+              </div>
+              <div className="text-gray-400">•</div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">Theme:</span>
+                <span className="font-medium">{theme}</span>
+              </div>
+              <div className="text-gray-400">•</div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">Tone:</span>
+                <span className="font-medium">{contentTone}</span>
+              </div>
+              <ChevronDown className="h-4 w-4 text-gray-500 ml-2" />
+            </div>
+          </button>
+        </div>
+
+        {/* Right side - User section, Scenario Navigation, and Settings */}
+        <div className="flex items-center space-x-2 lg:space-x-3">
+          {/* Scenario Navigation Buttons - Desktop Only */}
+          <div className="hidden lg:flex items-center gap-1 pr-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePrevScenario}
+              disabled={isFirstScenario}
+              className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${
+                isFirstScenario ? 'opacity-50 cursor-not-allowed' : ''
+              } ${themeStyles.getHeaderButtonStyles()}`}
+              title={`Previous scenario: ${prevScenario.displayName}`}
+            >
+              <SkipBack className="h-4 w-4 text-gray-600" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextScenario}
+              disabled={isLastScenario}
+              className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${
+                isLastScenario ? 'opacity-50 cursor-not-allowed' : ''
+              } ${themeStyles.getHeaderButtonStyles()}`}
+              title={`Next scenario: ${nextScenario.displayName}`}
+            >
+              <SkipForward className="h-4 w-4 text-gray-600" />
+            </Button>
+          </div>
+
+          {/* Info button */}
           <Button
             variant="ghost"
             size="icon"
-            onClick={handlePrevScenario}
-            disabled={isFirstScenario}
-            className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${
-              isFirstScenario ? 'opacity-50 cursor-not-allowed' : ''
-            } ${themeStyles.getHeaderButtonStyles()}`}
-            title={`Previous scenario: ${prevScenario.displayName}`}
+            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => setIsInfoModalOpen(!isInfoModalOpen)}
+            title="Show demo information"
           >
-            <SkipBack className="h-4 w-4 text-gray-600" />
+            <Info className="h-4 w-4 lg:h-5 lg:w-5" />
           </Button>
 
+          {/* Theme Customization button */}
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleNextScenario}
-            disabled={isLastScenario}
-            className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:bg-gray-100 hover:shadow-sm ${
-              isLastScenario ? 'opacity-50 cursor-not-allowed' : ''
-            } ${themeStyles.getHeaderButtonStyles()}`}
-            title={`Next scenario: ${nextScenario.displayName}`}
+            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => setIsThemeDrawerOpen(true)}
+            title="Customize theme"
           >
-            <SkipForward className="h-4 w-4 text-gray-600" />
+            <Brush className="h-4 w-4 lg:h-5 lg:w-5" />
           </Button>
-        </div>
 
-        {/* Info button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
-          onClick={() => setIsInfoModalOpen(!isInfoModalOpen)}
-          title="Show demo information"
-        >
-          <Info className="h-4 w-4 lg:h-5 lg:w-5" />
-        </Button>
+          {/* Settings button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 rounded-full p-1 ${
+              isSettingsOpen ? 'bg-gray-100 bg-opacity-20' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+          >
+            <Settings className="h-4 w-4 lg:h-5 lg:w-5" />
+          </Button>
 
-        {/* Settings button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-8 w-8 rounded-full p-1 ${
-            isSettingsOpen ? 'bg-gray-100 bg-opacity-20' : ''
-          } ${themeStyles.getHeaderButtonStyles()}`}
-          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-        >
-          <Settings className="h-4 w-4 lg:h-5 lg:w-5" />
-        </Button>
-
-        <div className="flex items-center space-x-2">
-          <Avatar className="h-8 w-8 bg-sellsense-primary">
-            <AvatarFallback className="text-white text-sm font-medium">
-              JD
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden sm:flex flex-col">
-            <span
-              className={`text-sm font-medium ${themeStyles.getHeaderTextStyles()}`}
-            >
-              John Doe
-            </span>
-            <span
-              className={`text-xs ${themeStyles.getHeaderCompanyTextStyles()}`}
-              title={getCompanyInfo().description}
-            >
-              {getCompanyInfo().name}
-            </span>
+          <div className="flex items-center space-x-2">
+            <Avatar className="h-8 w-8 bg-sellsense-primary">
+              <AvatarFallback className="text-white text-sm font-medium">
+                JD
+              </AvatarFallback>
+            </Avatar>
+            <div className="hidden sm:flex flex-col">
+              <span
+                className={`text-sm font-medium ${themeStyles.getHeaderTextStyles()}`}
+              >
+                John Doe
+              </span>
+              <span
+                className={`text-xs ${themeStyles.getHeaderCompanyTextStyles()}`}
+                title={getCompanyInfo().description}
+              >
+                {getCompanyInfo().name}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Theme Customization Drawer */}
+      <ThemeCustomizationDrawer
+        isOpen={isThemeDrawerOpen}
+        onClose={() => setIsThemeDrawerOpen(false)}
+        currentTheme={theme}
+        onThemeChange={setTheme}
+        customThemeData={customThemeData}
+      />
+    </>
   );
 }

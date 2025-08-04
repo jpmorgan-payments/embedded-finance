@@ -37,7 +37,7 @@ export function ExperiencesSection() {
         'Submit for verification and monitor status',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/OnboardingFlow/ONBOARDING_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
@@ -61,7 +61,7 @@ export function ExperiencesSection() {
         'Activate linked account for payments',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/LINKED_ACCOUNTS_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/LinkedAccountWidget/LINKED_ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
     },
@@ -111,7 +111,7 @@ export function ExperiencesSection() {
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/TRANSACTIONS_DISPLAY_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2',
     },
@@ -133,6 +133,8 @@ export function ExperiencesSection() {
       ],
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-makepayment',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/MakePayment/MAKE_PAYMENT_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
     },
@@ -153,6 +155,8 @@ export function ExperiencesSection() {
       ],
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#1-accountsdisplay',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Accounts/ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
     },

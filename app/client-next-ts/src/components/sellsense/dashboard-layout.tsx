@@ -9,6 +9,7 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import { SettingsDrawer } from './settings-drawer';
@@ -17,7 +18,6 @@ import { DashboardOverview } from './dashboard-overview';
 import { KycOnboarding } from './kyc-onboarding';
 import { WalletOverview } from './wallet-overview';
 import { TransactionHistory } from './transaction-history';
-import { LinkedAccounts } from './linked-accounts';
 import { PayoutSettings } from './payout-settings';
 import { LoadingSkeleton } from './loading-skeleton';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -99,6 +99,50 @@ export function DashboardLayout() {
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Initialize customThemeVariables from URL if present
+  const getInitialCustomThemeVariables = (): EBThemeVariables => {
+    if (searchParams.theme === 'Custom' && searchParams.customTheme) {
+      try {
+        const parsed = JSON.parse(searchParams.customTheme as string);
+
+        // Check if it's the new structure with baseTheme and variables
+        if (parsed.baseTheme && parsed.variables) {
+          // New structure - return just the variables for backward compatibility
+          return parsed.variables;
+        } else {
+          // Legacy structure - return the entire object
+          return parsed;
+        }
+      } catch (error) {
+        console.error('Failed to parse custom theme from URL:', error);
+        return {};
+      }
+    }
+    return {};
+  };
+
+  // Store the full custom theme data for the theme drawer
+  const getInitialCustomThemeData = (): any => {
+    if (searchParams.theme === 'Custom' && searchParams.customTheme) {
+      try {
+        const parsed = JSON.parse(searchParams.customTheme as string);
+        return parsed;
+      } catch (error) {
+        console.error('Failed to parse custom theme from URL:', error);
+        return {};
+      }
+    }
+    return {};
+  };
+
+  const [customThemeVariables, setCustomThemeVariables] =
+    useState<EBThemeVariables>(getInitialCustomThemeVariables());
+
+  // Store the full custom theme data for the theme drawer
+  const [customThemeData, setCustomThemeData] = useState<any>(
+    getInitialCustomThemeData(),
+  );
+
   // Initialize state from search params with defaults
   const [clientScenario, setClientScenario] = useState<ClientScenario>(
     (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
@@ -149,9 +193,50 @@ export function DashboardLayout() {
     }
   };
 
-  const handleThemeChange = (newTheme: ThemeOption) => {
+  const handleThemeChange = (
+    newTheme: ThemeOption,
+    customVariables?: EBThemeVariables | any,
+  ) => {
     setTheme(newTheme);
-    updateSearchParams({ theme: newTheme });
+
+    // Handle CustomThemeData structure
+    if (customVariables && typeof customVariables === 'object') {
+      if (customVariables.baseTheme && customVariables.variables) {
+        // This is a CustomThemeData structure
+        setCustomThemeVariables(customVariables.variables);
+        setCustomThemeData(customVariables); // Store the full structure
+        // Store the base theme information in the URL
+        const customThemeData = {
+          baseTheme: customVariables.baseTheme,
+          variables: customVariables.variables,
+        };
+        const updates: Record<string, any> = { theme: newTheme };
+        updates.customTheme = JSON.stringify(customThemeData);
+        updateSearchParams(updates);
+        return;
+      } else if (Object.keys(customVariables).length > 0) {
+        // This is just variables (legacy structure)
+        setCustomThemeVariables(customVariables);
+        setCustomThemeData({ variables: customVariables }); // Legacy structure
+      }
+    }
+
+    // Clear custom variables if switching to a predefined theme or no custom variables
+    if (!customVariables || Object.keys(customVariables || {}).length === 0) {
+      setCustomThemeVariables({});
+      setCustomThemeData({});
+    }
+
+    // Update URL with theme and custom variables if present
+    const updates: Record<string, any> = { theme: newTheme };
+    if (customVariables && Object.keys(customVariables).length > 0) {
+      updates.customTheme = JSON.stringify(customVariables);
+    } else {
+      // Remove customTheme from URL if switching to predefined theme or no custom variables
+      updates.customTheme = undefined;
+    }
+
+    updateSearchParams(updates);
   };
 
   const handleContentToneChange = (newContentTone: ContentTone) => {
@@ -168,7 +253,20 @@ export function DashboardLayout() {
   // Helper function to update search params
   const updateSearchParams = (updates: Record<string, any>) => {
     navigate({
-      search: (prev) => ({ ...prev, ...updates }),
+      search: (prev) => {
+        const newSearch = { ...prev } as Record<string, any>;
+
+        // Apply updates, removing parameters that are undefined
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === undefined) {
+            delete newSearch[key];
+          } else {
+            newSearch[key] = value;
+          }
+        });
+
+        return newSearch;
+      },
       replace: true,
     });
   };
@@ -202,6 +300,19 @@ export function DashboardLayout() {
     }
     if (searchParams.theme && searchParams.theme !== theme) {
       setTheme(searchParams.theme);
+
+      // Handle custom theme variables from URL
+      if (searchParams.theme === 'Custom' && searchParams.customTheme) {
+        try {
+          const customTheme = JSON.parse(searchParams.customTheme as string);
+          setCustomThemeVariables(customTheme);
+        } catch (error) {
+          console.error('Failed to parse custom theme from URL:', error);
+          setCustomThemeVariables({});
+        }
+      } else if (searchParams.theme !== 'Custom') {
+        setCustomThemeVariables({});
+      }
     }
     if (searchParams.contentTone && searchParams.contentTone !== contentTone) {
       setContentTone(searchParams.contentTone);
@@ -222,7 +333,13 @@ export function DashboardLayout() {
       ViewUtils.isOnboardingScenario(clientScenario) &&
       activeView === 'onboarding'
     ) {
-      return <KycOnboarding clientScenario={clientScenario} theme={theme} />;
+      return (
+        <KycOnboarding
+          clientScenario={clientScenario}
+          theme={theme}
+          customThemeVariables={customThemeVariables}
+        />
+      );
     }
 
     switch (activeView) {
@@ -231,16 +348,20 @@ export function DashboardLayout() {
           <DashboardOverview
             clientScenario={clientScenario}
             theme={theme}
+            customThemeVariables={customThemeVariables}
             contentTone={contentTone}
             onViewChange={handleViewChange}
           />
         );
       case 'wallet':
-        return <WalletOverview />;
+        return (
+          <WalletOverview
+            theme={theme}
+            customThemeVariables={customThemeVariables}
+          />
+        );
       case 'transactions':
         return <TransactionHistory />;
-      case 'linked-accounts':
-        return <LinkedAccounts clientScenario={clientScenario} theme={theme} />;
       case 'payout':
         return <PayoutSettings />;
       case 'payments':
@@ -250,6 +371,7 @@ export function DashboardLayout() {
           <DashboardOverview
             clientScenario={clientScenario}
             theme={theme}
+            customThemeVariables={customThemeVariables}
             contentTone={contentTone}
             onViewChange={handleViewChange}
           />
@@ -265,7 +387,7 @@ export function DashboardLayout() {
     const themeObject = {
       colorScheme: 'light' as const,
       variables: {
-        primaryColor: fullscreenTheme === 'SellSense' ? '#ff6b35' : '#6366f1',
+        primaryColor: '#6366f1', // Default blue color
         backgroundColor: '#ffffff',
         foregroundColor: '#1e293b',
         borderColor: '#e2e8f0',
@@ -277,13 +399,6 @@ export function DashboardLayout() {
       case 'onboarding':
         return (
           <KycOnboarding
-            clientScenario={clientScenario}
-            theme={fullscreenTheme}
-          />
-        );
-      case 'linked-accounts':
-        return (
-          <LinkedAccounts
             clientScenario={clientScenario}
             theme={fullscreenTheme}
           />
@@ -409,6 +524,7 @@ export function DashboardLayout() {
         setIsSettingsOpen={setIsSettingsOpen}
         isInfoModalOpen={isInfoModalOpen}
         setIsInfoModalOpen={setIsInfoModalOpen}
+        customThemeData={customThemeData}
       />
 
       {/* Mobile-first responsive layout */}

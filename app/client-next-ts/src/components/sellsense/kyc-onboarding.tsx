@@ -20,26 +20,33 @@ import {
   getHeaderDescriptionForScenario,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
   theme?: ThemeOption;
+  customThemeVariables?: EBThemeVariables;
 }
 
 export function KycOnboarding({
   clientScenario,
-  theme = 'SellSense',
+  theme,
+  customThemeVariables = {},
 }: KycOnboardingProps) {
   const { mapThemeOption } = useSellSenseThemes();
-  const themeStyles = useThemeStyles(theme);
-  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
-
-  // Use TanStack Router's search and navigation APIs
   const searchParams = useSearch({ from: '/sellsense-demo' });
+
+  // Use theme from props or fallback to URL search params
+  const currentTheme = theme || searchParams.theme || 'SellSense';
+  const themeStyles = useThemeStyles(currentTheme as ThemeOption);
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
 
   const clientId = getClientIdFromScenario(clientScenario);
   const scenarioData = getScenarioData(clientScenario);
-  const ebTheme = mapThemeOption(theme);
+  const ebTheme = mapThemeOption(
+    currentTheme as ThemeOption,
+    customThemeVariables,
+  );
 
   const handleFullScreen = () => {
     const fullscreenUrl = createFullscreenUrl(
