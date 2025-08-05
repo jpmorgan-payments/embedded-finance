@@ -96,12 +96,14 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
   const currentIdType = form.watch('organizationIds.0.idType');
 
   useEffect(() => {
-    if (isSoleProp && solePropForm.watch('ssnOrEin') === 'EIN') {
+    if (
+      (isSoleProp && solePropForm.watch('ssnOrEin') === 'EIN') ||
+      (!isSoleProp && form.watch('organizationIds.0.issuer') !== 'US')
+    ) {
       form.setValue('organizationIds.0.idType', 'EIN');
+      form.setValue('organizationIds.0.issuer', 'US');
     } else if (isSoleProp && solePropForm.watch('ssnOrEin') === 'SSN') {
       form.setValue('organizationIds', []);
-    } else if (!isSoleProp && form.watch('organizationIds.0.issuer') !== 'US') {
-      form.setValue('organizationIds.0.issuer', 'US');
     }
   }, [
     isSoleProp,
@@ -121,6 +123,8 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
       form.setValue('organizationName', orgName);
     }
   }, []);
+
+  console.log(form.formState.errors);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
