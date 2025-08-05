@@ -11,7 +11,7 @@
 
 ---
 
-## Design Philosophy Alignment
+## Technical Design Philosophy Alignment
 
 ### Integration Scenarios
 
@@ -27,7 +27,7 @@
 - **Generated Types**: `TransactionGetResponseV2`, `ListTransactionsResponseV2`, `TransactionDetailsResponse`
 - **API Endpoints**: `/transactions`, `/transactions/{id}`
 
-### Key Principles
+### Key Technical Design Principles
 
 - **OAS-Driven Development**: All types and API contracts generated from OpenAPI Specification
 - **Generated Hooks Integration**: Use Orval-generated React Query hooks for data fetching
@@ -109,9 +109,9 @@
   - Support multiple currencies
   - Handle negative amounts for PAYOUT transactions
 
-### Phase 4: User Experience & Polish
+### Phase 4: User Experience & Technical Design Polish
 
-- **Responsive Design**
+- **Responsive Technical Design**
   - Data table for desktop view
   - Card layout for mobile view
   - Consistent spacing and typography
@@ -265,7 +265,7 @@ interface TransactionsDisplayRef {
 
 ### Usability
 
-- Mobile-responsive design
+- Mobile-responsive technical design
 - Clear visual hierarchy
 - Intuitive transaction information display
 - Consistent with other embedded components

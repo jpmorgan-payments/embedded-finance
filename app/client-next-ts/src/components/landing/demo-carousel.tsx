@@ -15,7 +15,7 @@ const demos = [
       'A marketplace platform with embedded finance tools for sellers to manage payments and onboarding.',
     image: '/marketplace-dashboard.png',
     link: '/sellsense-demo?scenario=New+Seller+-+Onboarding',
-    active: true,
+    status: 'testing',
   },
   {
     id: 'commerce',
@@ -24,7 +24,7 @@ const demos = [
       'An e-commerce platform with integrated payment processing and financial management tools.',
     image: '/ecommerce-platform-concept.png',
     link: '#',
-    active: false,
+    status: 'coming soon',
   },
   {
     id: 'platform',
@@ -33,7 +33,7 @@ const demos = [
       'A comprehensive platform showcasing all embedded finance capabilities in one interface.',
     image: '/modern-finance-platform.png',
     link: '#',
-    active: false,
+    status: 'coming soon',
   },
 ];
 
@@ -95,12 +95,18 @@ export function DemoCarousel() {
                           <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                             <span
                               className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
-                                demo.active
+                                demo.status === 'available'
                                   ? 'bg-green-100 text-green-800'
-                                  : 'bg-orange-100 text-orange-800'
+                                  : demo.status === 'testing'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-orange-100 text-orange-800'
                               }`}
                             >
-                              {demo.active ? 'Available' : 'Coming Soon'}
+                              {demo.status === 'available'
+                                ? 'Available'
+                                : demo.status === 'testing'
+                                  ? 'Testing'
+                                  : 'Coming Soon'}
                             </span>
                           </div>
                         </div>
@@ -116,7 +122,7 @@ export function DemoCarousel() {
                         <p className="text-sm sm:text-base md:text-page-body text-jpm-gray leading-relaxed mb-4 sm:mb-5 md:mb-6">
                           {demo.description}
                         </p>
-                        {demo.active ? (
+                        {demo.status === 'available' ? (
                           <Link to={demo.link} className="block w-full">
                             <Button
                               variant="default"
@@ -125,6 +131,14 @@ export function DemoCarousel() {
                               Launch Demo
                             </Button>
                           </Link>
+                        ) : demo.status === 'testing' ? (
+                          <Button
+                            variant="outline"
+                            className="w-full rounded-page-md font-semibold text-sm sm:text-base border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100"
+                            disabled
+                          >
+                            Testing
+                          </Button>
                         ) : (
                           <Button
                             variant="outline"
