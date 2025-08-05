@@ -11,159 +11,259 @@
 
 ---
 
-## 1. Overview
+## Design Philosophy Alignment
 
-The Accounts Management Embedded Component provides a read-only, responsive UI for displaying all accounts associated with a client, including their categories, states, routing information, and balances. It is designed for use in embedded finance solutions, supporting business users and platform operators.
+### Integration Scenarios
 
-### 1.1 Account Types Supported
+- **Platform Dashboard**: Display client accounts with balances and routing information
+- **Account Management**: Show filtered accounts by category (LIMITED_DDA, LIMITED_DDA_PAYMENTS)
+- **Balance Monitoring**: Real-time balance display with multiple balance types (ITAV, ITBD)
+- **Routing Information**: Display payment routing details for external funding
 
-- **LIMITED_DDA**: Used for client funds management.
-- **LIMITED_DDA_PAYMENTS**: Used for client payments.
-- **Other categories**: (e.g., PROCESSING, MANAGEMENT, DDA) as returned by the API and optionally filtered via component props.
+### OAS & Code Generation
 
----
+- **Primary OAS**: `embedded-finance-pub-ep-accounts-1.0.23.yaml`
+- **Generated Hooks**: `useGetAccounts`, `useGetAccountBalance`
+- **Generated Types**: `AccountResponse`, `AccountBalanceResponse`, `ListAccountsResponse`
+- **API Endpoints**: `/accounts`, `/accounts/{id}/balances`
 
-## 2. Target Users
+### Key Principles
 
-- Platform operators managing client accounts
-- Business users viewing account details and balances
-- Support and operations teams
-
----
-
-## 3. Functional Requirements
-
-### 3.1 View Accounts List
-
-- Fetch and display all accounts for a client using the [List Accounts API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccounts).
-- Filter accounts by category via component props (e.g., show only LIMITED_DDA and/or LIMITED_DDA_PAYMENTS).
-- Display each account as a horizontal panel/card, showing:
-  - **Category** (with human-friendly label)
-  - **Label** (e.g., MAIN)
-  - **State** (OPEN, CLOSED, etc.)
-  - **Masked account number** (last 4 digits)
-  - **Routing information** (all routing numbers, if present)
-  - **Balances** (all available types, e.g., ITAV, ITBD, with English labels and info popover)
-- If multiple accounts, visually separate each with its own card and spacing.
-- Responsive layout: horizontal on desktop, stacked on mobile.
-- Show loading skeletons while fetching.
-- Show error state if API fails.
-- Show empty state if no accounts are found.
-
-### 3.2 Account Details
-
-- Mask account numbers except for the last 4 digits.
-- Show all routing numbers associated with the account.
-- Display all available balances, mapping ITAV/ITBD to user-friendly labels and providing info popovers for each.
-- Show currency for each balance.
-
-### 3.3 Filtering and Customization
-
-- Allow filtering by account category via `allowedCategories` prop.
-- Allow filtering by clientId via `clientId` prop.
+- **OAS-Driven Development**: All types and API contracts generated from OpenAPI Specification
+- **Generated Hooks Integration**: Use Orval-generated React Query hooks for data fetching
+- **Opinionated Layer**: Enhanced UX with balance type mapping, sensitive data masking, and responsive layouts
+- **Type Safety**: Full TypeScript integration with generated types ensuring API-UI consistency
 
 ---
 
-## 4. Non-Functional Requirements
+## Implementation Plan
 
-### 4.1 Performance
+### Phase 1: Core Architecture & Data Models
 
-- Accounts list should load within 2 seconds.
-- Balance fetches should be parallelized for multiple accounts.
+- **OAS-Based Code Generation Setup**
+  - Configure Orval for `embedded-finance-pub-ep-accounts-1.0.23.yaml`
+  - Generate `useGetAccounts` and `useGetAccountBalance` hooks
+  - Generate `AccountResponse`, `AccountBalanceResponse`, `ListAccountsResponse` types
+- **Generated Data Structures**
 
-### 4.2 Usability
+  ```typescript
+  // Generated from OAS
+  interface AccountResponse {
+    id: string;
+    clientId: string;
+    label: string;
+    state: string;
+    category: string;
+    paymentRoutingInformation?: PaymentRoutingInformation;
+    createdAt: string;
+  }
 
-- Consistent UI/UX with other components (Recipients, TransactionsDisplay).
-- Mobile-responsive design.
-- Tooltips and info icons for balance types.
+  interface AccountBalanceResponse {
+    id: string;
+    date: string;
+    currency: string;
+    balanceTypes: BalanceType[];
+  }
+  ```
 
-### 4.3 Accessibility
+- **Client ID Requirements**
+  - Requires client ID to be provided by parent application (cannot create clients)
+  - Support optional client ID filtering via props
 
-- All interactive elements (info popovers) must be keyboard accessible.
-- Proper ARIA labels for info icons and popovers.
-- Color contrast must meet WCAG standards.
+### Phase 2: Core Components
 
-### 4.4 Security
+- **Accounts Container Component**
+  - Filter accounts by `allowedCategories` prop
+  - Handle loading, error, and empty states
+  - Responsive layout for single vs multiple accounts
+- **AccountCard Component**
+  - Display account information with masked sensitive data
+  - Show routing information and balance types
+  - Toggle sensitive information visibility
+- **Balance Display Component**
+  - Map balance type codes to user-friendly labels
+  - Show info popovers for balance type descriptions
+  - Format currency amounts with proper precision
 
-- Mask all sensitive account numbers.
-- Do not display full routing/account numbers in the UI.
-- API calls must use secure authentication and HTTPS.
+### Phase 3: Business Logic & Integration
+
+- **Account Filtering Logic**
+  - Filter by allowed categories from props
+  - Support client ID filtering
+  - Handle empty states gracefully
+- **Balance Type Configuration**
+  ```typescript
+  const BALANCE_TYPE_LABELS: Record<
+    string,
+    { label: string; description: string }
+  > = {
+    ITAV: {
+      label: 'Available Balance',
+      description: 'Interim available balance',
+    },
+    ITBD: { label: 'Booked Balance', description: 'Interim booked balance' },
+  };
+  ```
+- **Sensitive Data Management**
+  - Mask account numbers (show only last 4 digits)
+  - Toggle visibility for sensitive information
+  - Secure display of routing information
+
+### Phase 4: User Experience & Polish
+
+- **Responsive Design**
+  - Horizontal layout for desktop, stacked for mobile
+  - Visual separation for multiple accounts
+  - Consistent spacing and typography
+- **Loading States**
+  - Skeleton loading for accounts list
+  - Individual balance loading states
+  - Progressive loading for better UX
+- **Error Handling**
+  - Graceful API error display
+  - Retry mechanisms for failed requests
+  - User-friendly error messages
+
+### Phase 5: Testing & Documentation
+
+- **Generated Code Testing**
+  - Test generated hooks integration
+  - Verify type safety with generated types
+  - Mock API responses using MSW
+- **Component Testing**
+  - Test account filtering logic
+  - Test sensitive data masking
+  - Test responsive layout behavior
+- **Storybook Integration**
+  - Multiple account scenarios
+  - Loading and error states
+  - Theme variations
 
 ---
 
-## 5. Technical Integration Points
+## Functional Requirements
 
-### 5.1 API Integration
+### Account Display
 
-- Use `/accounts` endpoint to fetch accounts.
-- Use `/accounts/{id}/balances` endpoint to fetch balances for each account.
-- Handle API errors gracefully.
+- **Account Information**: Category, label, state, routing details
+- **Balance Information**: Multiple balance types with descriptions
+- **Sensitive Data**: Masked account numbers with toggle visibility
+- **Routing Information**: ACH, Wire/RTP routing numbers for payment accounts
 
-### 5.2 Theming and Localization
+### Filtering & Customization
 
-- Support content tokens for localization.
-- Use design tokens for colors, spacing, and typography.
+- **Category Filtering**: Display only specified account categories
+- **Client Filtering**: Filter by provided client ID
+- **Responsive Layout**: Adapt to single vs multiple accounts
 
----
+### Data Management
 
-## 6. User Flows
-
-### 6.1 Viewing Accounts
-
-1. User navigates to the Accounts section/component.
-2. System fetches accounts for the client.
-3. System displays each account as a horizontal card/panel.
-4. User can view all balances and routing info for each account.
-5. If no accounts are found, show an empty state.
+- **Real-time Balances**: Fetch and display current account balances
+- **Balance Types**: Support ITAV (Available) and ITBD (Booked) balances
+- **Currency Display**: Show proper currency formatting
 
 ---
 
-## 7. Data Model
+## Technical Integration Points
 
-### 7.1 Account
+### API Integration
 
-- **id**: Unique account identifier
-- **clientId**: Client identifier
-- **label**: Account label (e.g., MAIN)
-- **category**: Account category (LIMITED_DDA, etc.)
-- **state**: Account state (OPEN, CLOSED, etc.)
-- **paymentRoutingInformation**: Object containing:
-  - **accountNumber**: Account number (masked in UI)
-  - **country**: Country code
-  - **routingInformation**: Array of routing numbers (type, value)
-- **createdAt**: Creation timestamp
+- **Generated Hooks**: Use `useGetAccounts` and `useGetAccountBalance` from OAS
+- **Error Handling**: Graceful handling of API failures
+- **Caching**: Leverage React Query caching for performance
 
-### 7.2 Balance
+### Authentication Integration
 
-- **id**: Account identifier
-- **date**: Balance date
-- **currency**: Currency code (e.g., USD)
-- **balanceTypes**: Array of balances:
-  - **typeCode**: ITAV, ITBD, etc.
-  - **amount**: Numeric value
+- **Client ID Management**: Requires client ID from parent application
+- **Secure Display**: Mask sensitive routing and account information
+
+### Content Management Integration
+
+- **Localization**: Support content tokens for labels and descriptions
+- **Theme Integration**: Use design tokens for consistent styling
 
 ---
 
-## 8. Metrics & Analytics
+## Configuration System
 
-- Number of accounts loaded per client
-- Time to load accounts and balances
-- Error rates for API calls
+### Account Categories
+
+```typescript
+const ALLOWED_CATEGORIES = ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'] as const;
+```
+
+### Balance Type Mapping
+
+```typescript
+const BALANCE_TYPE_LABELS = {
+  ITAV: {
+    label: 'Available Balance',
+    description: 'Interim available balance',
+  },
+  ITBD: { label: 'Booked Balance', description: 'Interim booked balance' },
+};
+```
+
+### Component Props
+
+```typescript
+interface AccountsProps {
+  allowedCategories: string[];
+  clientId?: string;
+  title?: string;
+}
+```
 
 ---
 
-## 9. Implementation Considerations
+## Testing Strategy
 
-- Use React Query for data fetching and caching.
-- Use MSW for mocking in Storybook and tests.
-- Use Tailwind CSS with `eb-` prefix for all custom classes.
-- Use Radix UI and Lucide icons for popovers and info icons.
-- Ensure all code is TypeScript strict-mode compatible.
+### Generated Code Testing
+
+- Test `useGetAccounts` and `useGetAccountBalance` hook integration
+- Verify generated types match API responses
+- Test error handling for API failures
+
+### Component Testing
+
+- Test account filtering by category
+- Test client ID filtering
+- Test sensitive data masking and toggle
+- Test responsive layout behavior
+- Test loading and error states
+
+### Integration Testing
+
+- Test with real API endpoints
+- Test theme integration
+- Test accessibility compliance
 
 ---
 
-## 10. Additional Resources
+## Non-Functional Requirements
 
-- [JPMorgan Add Account Guide](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account)
-- [List Accounts API Reference](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccounts)
-- [Get Account Balance API Reference](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccountBalance)
+### Performance
+
+- Load accounts within 2 seconds
+- Parallel balance fetching for multiple accounts
+- Efficient re-rendering with React Query caching
+
+### Accessibility
+
+- WCAG 2.1 compliance
+- Keyboard navigation for interactive elements
+- Proper ARIA labels for info popovers
+- Color contrast standards
+
+### Security
+
+- Mask sensitive account and routing information
+- Secure API communication
+- No sensitive data in client-side logs
+
+### Usability
+
+- Mobile-responsive design
+- Clear visual hierarchy
+- Intuitive information display
+- Consistent with other embedded components

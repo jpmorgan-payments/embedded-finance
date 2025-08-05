@@ -1,11 +1,13 @@
 import { createContext, useContext, useState } from 'react';
 
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FlowConfig,
   FlowSessionData,
   ScreenId,
   SectionScreenConfig,
   SectionScreenId,
+  StaticScreenConfig,
 } from '@/core/OnboardingFlow/types/flow.types';
 
 type EditingPartyIds = {
@@ -30,6 +32,7 @@ const FlowContext = createContext<{
     screenId: ScreenId,
     partyId: string | undefined
   ) => void;
+  staticScreens: StaticScreenConfig[];
   sections: SectionScreenConfig[];
   sessionData: FlowSessionData;
   updateSessionData: (updates: Partial<FlowSessionData>) => void;
@@ -50,6 +53,7 @@ const FlowContext = createContext<{
   updateEditingPartyId: () => {
     throw new Error('updateEditingPartyId() must be used within FlowProvider');
   },
+  staticScreens: [],
   sections: [],
   sessionData: {},
   updateSessionData: () => {
@@ -79,9 +83,17 @@ export const FlowProvider: React.FC<{
   );
   const [sessionData, setSessionData] = useState<FlowSessionData>({});
 
+  const { organizationType } = useOnboardingContext();
+
   const currentScreenId = history[history.length - 1];
 
-  const sections = flowConfig.screens.filter((s) => s.isSection);
+  const staticScreens = flowConfig.screens.filter((s) => !s.isSection);
+  const sections = flowConfig.screens
+    .filter((s) => s.isSection)
+    .filter(
+      (s) =>
+        !s.sectionConfig.excludedForOrgTypes?.includes(organizationType ?? '')
+    );
 
   const goTo = (id: ScreenId, config?: GoToConfig) => {
     setEditingPartyIds((prev) => ({
@@ -125,6 +137,7 @@ export const FlowProvider: React.FC<{
         originScreenId,
         editingPartyIds,
         updateEditingPartyId,
+        staticScreens,
         sections,
         sessionData,
         updateSessionData,

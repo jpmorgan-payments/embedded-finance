@@ -70,6 +70,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     helpText?: string;
     onHoldText?: string;
     requirementsList?: string[];
+    excludedForOrgTypes?: string[];
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,

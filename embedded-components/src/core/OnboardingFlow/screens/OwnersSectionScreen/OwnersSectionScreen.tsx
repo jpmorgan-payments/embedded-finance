@@ -48,8 +48,6 @@ import {
   getStepperValidations,
 } from '@/core/OnboardingFlow/utils/flowUtils';
 
-import { ownerSteps } from './ownerSteps';
-
 export const OwnersSectionScreen = () => {
   const {
     clientData,
@@ -66,8 +64,14 @@ export const OwnersSectionScreen = () => {
       party.active
   );
 
-  const { originScreenId, goTo, sections, sessionData, updateSessionData } =
-    useFlowContext();
+  const {
+    originScreenId,
+    goTo,
+    staticScreens,
+    sections,
+    sessionData,
+    updateSessionData,
+  } = useFlowContext();
 
   const { sectionStatuses } = getFlowProgress(
     sections,
@@ -193,6 +197,10 @@ export const OwnersSectionScreen = () => {
   const activeOwners = ownersData.filter(
     (owner) => owner.active || owner.status === 'ACTIVE'
   );
+
+  const ownerSteps =
+    staticScreens.find((screen) => screen.id === 'owner-stepper')?.stepperConfig
+      ?.steps || [];
 
   const ownersValidation = getStepperValidations(
     ownerSteps,

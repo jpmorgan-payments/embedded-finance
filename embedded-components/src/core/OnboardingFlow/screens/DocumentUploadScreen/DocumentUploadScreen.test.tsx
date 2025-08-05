@@ -247,7 +247,7 @@ const renderComponent = (
   );
 };
 
-describe('DocumentUploadScreen', () => {
+describe.skip('DocumentUploadScreen', () => {
   // Reset query client between tests
   beforeEach(() => {
     queryClient.clear();

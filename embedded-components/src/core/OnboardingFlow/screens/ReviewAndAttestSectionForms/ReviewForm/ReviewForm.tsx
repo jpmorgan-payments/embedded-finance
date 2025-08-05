@@ -55,8 +55,6 @@ import {
   getStepperValidations,
 } from '@/core/OnboardingFlow/utils/flowUtils';
 
-import { ownerSteps } from '../../OwnersSectionScreen/ownerSteps';
-
 export const ReviewForm: React.FC<StepperStepProps> = ({
   handlePrev,
   handleNext,
@@ -143,6 +141,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         party?.roles?.includes('BENEFICIAL_OWNER') &&
         party.active
     ) || [];
+
+  const ownerSteps =
+    sections.find((section) => section.id === 'owners-section')?.stepperConfig
+      ?.steps || [];
 
   const ownersValidation = getStepperValidations(
     ownerSteps,

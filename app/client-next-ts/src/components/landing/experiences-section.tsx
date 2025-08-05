@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Users,
@@ -14,8 +15,23 @@ import {
   Play,
   Github,
 } from 'lucide-react';
+import { CodeExamplesModal } from './code-examples-modal';
 
 export function ExperiencesSection() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+
+  const handleCardTitleClick = (
+    componentId: string,
+    componentTitle: string,
+  ) => {
+    setSelectedComponent({ id: componentId, title: componentTitle });
+    setModalOpen(true);
+  };
+
   const experiences = [
     {
       id: 'onboarding',
@@ -37,7 +53,7 @@ export function ExperiencesSection() {
         'Submit for verification and monitor status',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/OnboardingFlow/ONBOARDING_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
@@ -61,7 +77,7 @@ export function ExperiencesSection() {
         'Activate linked account for payments',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/LINKED_ACCOUNTS_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/LinkedAccountWidget/LINKED_ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
     },
@@ -111,7 +127,7 @@ export function ExperiencesSection() {
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/TRANSACTIONS_DISPLAY_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2',
     },
@@ -133,6 +149,8 @@ export function ExperiencesSection() {
       ],
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-makepayment',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/MakePayment/MAKE_PAYMENT_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
     },
@@ -153,156 +171,179 @@ export function ExperiencesSection() {
       ],
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#1-accountsdisplay',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Accounts/ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
     },
   ];
 
   return (
-    <section id="embedded-components" className="py-8 bg-jpm-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
-            Explore Embedded Business Components
-          </h2>
-          <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
-            Pre-built workflows and implementation patterns for common embedded
-            finance use cases.{' '}
-            <a
-              href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-jpm-blue hover:text-jpm-blue-dark underline"
-            >
-              View full documentation →
-            </a>
-          </p>
-
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {experiences.map((exp) => (
-              <Card
-                key={exp.id}
-                className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-64 flex flex-col"
+    <>
+      <section id="embedded-components" className="py-8 bg-jpm-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
+              Explore Embedded Business Components
+            </h2>
+            <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
+              Pre-built workflows and implementation patterns for common
+              embedded finance use cases.{' '}
+              <a
+                href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-jpm-blue hover:text-jpm-blue-dark underline"
               >
-                <CardHeader className="bg-jpm-brown-100 p-4 min-h-[4rem] flex-shrink-0">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-jpm-brown-100 p-1 rounded-page-sm mr-2 text-jpm-brown-800 flex-shrink-0">
-                        {exp.icon}
-                      </div>
-                      <span className="line-clamp-2">{exp.title}</span>
-                    </CardTitle>
-                    <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                      <span
-                        className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
-                          exp.status === 'available'
-                            ? 'bg-green-100 text-green-800'
+                View full documentation →
+              </a>
+            </p>
+
+            {/* Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {experiences.map((exp) => (
+                <Card
+                  key={exp.id}
+                  className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-64 flex flex-col"
+                >
+                  <CardHeader className="bg-jpm-brown-100 p-4 min-h-[4rem] flex-shrink-0">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="flex items-start text-base font-semibold leading-tight">
+                        <div className="bg-jpm-brown-100 p-1 rounded-page-sm mr-2 text-jpm-brown-800 flex-shrink-0">
+                          {exp.icon}
+                        </div>
+                        <button
+                          onClick={() =>
+                            handleCardTitleClick(exp.id, exp.title)
+                          }
+                          className="line-clamp-2 text-left hover:text-jpm-blue hover:underline cursor-pointer transition-colors"
+                          title="Click to view code example"
+                        >
+                          {exp.title}
+                        </button>
+                      </CardTitle>
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                        <span
+                          className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
+                            exp.status === 'available'
+                              ? 'bg-green-100 text-green-800'
+                              : exp.status === 'testing'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-orange-100 text-orange-800'
+                          }`}
+                        >
+                          {exp.status === 'available'
+                            ? 'Available'
                             : exp.status === 'testing'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-orange-100 text-orange-800'
-                        }`}
-                      >
-                        {exp.status === 'available'
-                          ? 'Available'
-                          : exp.status === 'testing'
-                            ? 'Testing'
-                            : 'Soon'}
-                      </span>
-                      {exp.npmUrl && <Box className="h-3 w-3 text-blue-600" />}
+                              ? 'Testing'
+                              : 'Soon'}
+                        </span>
+                        {exp.npmUrl && (
+                          <Box className="h-3 w-3 text-blue-600" />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 flex-1 flex flex-col">
-                  <div className="flex-1 mb-4">
-                    <p className="text-sm text-jpm-gray leading-relaxed line-clamp-4">
-                      {exp.description}
-                    </p>
-                  </div>
+                  </CardHeader>
+                  <CardContent className="p-4 flex-1 flex flex-col">
+                    <div className="flex-1 mb-4">
+                      <p className="text-sm text-jpm-gray leading-relaxed line-clamp-4">
+                        {exp.description}
+                      </p>
+                    </div>
 
-                  {/* Always visible, centrally aligned action buttons */}
-                  <div className="flex justify-center items-center gap-3 mt-auto pt-3 pb-1 border-t border-gray-100 flex-shrink-0 min-h-[3.5rem]">
-                    {exp.demoUrl && (
-                      <div className="relative group">
-                        <button
-                          className="p-2.5 rounded-full bg-green-100 hover:bg-green-200 text-green-600 transition-colors"
-                          onClick={() => window.open(exp.demoUrl, '_blank')}
-                          title="View Live Demo"
-                        >
-                          <Play className="h-5 w-5" />
-                        </button>
-                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          Live Demo
+                    {/* Always visible, centrally aligned action buttons */}
+                    <div className="flex justify-center items-center gap-3 mt-auto pt-3 pb-1 border-t border-gray-100 flex-shrink-0 min-h-[3.5rem]">
+                      {exp.demoUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-green-100 hover:bg-green-200 text-green-600 transition-colors"
+                            onClick={() => window.open(exp.demoUrl, '_blank')}
+                            title="View Live Demo"
+                          >
+                            <Play className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Live Demo
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {exp.githubUrl && (
-                      <div className="relative group">
-                        <button
-                          className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
-                          onClick={() => window.open(exp.githubUrl, '_blank')}
-                          title="View Source Code"
-                        >
-                          <Github className="h-5 w-5" />
-                        </button>
-                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          Source Code
+                      {exp.githubUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                            onClick={() => window.open(exp.githubUrl, '_blank')}
+                            title="View Source Code"
+                          >
+                            <Github className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Source Code
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {exp.recipeUrl && (
-                      <div className="relative group">
-                        <button
-                          className="p-2.5 rounded-full bg-jpm-brown-100 hover:bg-jpm-brown-200 text-jpm-brown transition-colors"
-                          onClick={() => window.open(exp.recipeUrl, '_blank')}
-                          title="View Implementation Recipe"
-                        >
-                          <FileText className="h-5 w-5" />
-                        </button>
-                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          Implementation Recipe
+                      {exp.recipeUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-jpm-brown-100 hover:bg-jpm-brown-200 text-jpm-brown transition-colors"
+                            onClick={() => window.open(exp.recipeUrl, '_blank')}
+                            title="View Implementation Recipe"
+                          >
+                            <FileText className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            Implementation Recipe
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {exp.docsUrl && (
-                      <div className="relative group">
-                        <button
-                          className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-jpm-blue transition-colors"
-                          onClick={() => window.open(exp.docsUrl, '_blank')}
-                          title="View API Documentation"
-                        >
-                          <ExternalLink className="h-5 w-5" />
-                        </button>
-                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          API Documentation
+                      {exp.docsUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-jpm-blue transition-colors"
+                            onClick={() => window.open(exp.docsUrl, '_blank')}
+                            title="View API Documentation"
+                          >
+                            <ExternalLink className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            API Documentation
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {exp.npmUrl && (
-                      <div className="relative group">
-                        <button
-                          className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
-                          onClick={() => window.open(exp.npmUrl, '_blank')}
-                          title="View NPM Components"
-                        >
-                          <Box className="h-5 w-5" />
-                        </button>
-                        <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          NPM Components
+                      {exp.npmUrl && (
+                        <div className="relative group">
+                          <button
+                            className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
+                            onClick={() => window.open(exp.npmUrl, '_blank')}
+                            title="View NPM Components"
+                          >
+                            <Box className="h-5 w-5" />
+                          </button>
+                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            NPM Components
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Code Examples Modal */}
+      {selectedComponent && (
+        <CodeExamplesModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          componentId={selectedComponent.id}
+        />
+      )}
+    </>
   );
 }

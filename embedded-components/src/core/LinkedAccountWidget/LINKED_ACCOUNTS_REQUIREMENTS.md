@@ -11,9 +11,259 @@
 > - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 > - [Verify Microdeposits API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/recipientsVerification)
 
+## Design Philosophy Alignment
+
+This component follows the Embedded UI Components design philosophy outlined in the main README.md:
+
+### Integration Scenarios and Use Cases
+
+The LinkedAccountWidget component is designed for flexible integration into parent web applications, offering several customization points:
+
+- **Runtime Customization**: Inject design tokens to match parent app's theme, override content tokens from parent app's CMS systems, connect to parent app's monitoring via `userEventsHandler`
+- **Component Configuration**: Configure API endpoints via provider, customize component behavior through props
+- **Client ID Management**: Requires client ID to be provided by parent application (cannot create clients)
+- **Variant Support**: Supports both default (multi-account) and singleAccount variants for different use cases
+
+### OpenAPI Specification (OAS) & Code Generation
+
+**IMPORTANT**: This component is built using the latest available OpenAPI Specification (OAS) from the JPMC API Portal. The implementation follows the automated code generation approach:
+
+1. **OAS as Source of Truth**: The OpenAPI Specification defines API contracts and types
+2. **Automated Code Generation**: Orval generates from OAS:
+   - TypeScript interfaces
+   - Type-safe React Query hooks
+   - API client utilities
+3. **Type Consistency**: Ensures type consistency between API and UI
+4. **Opinionated Layer**: Built using generated types and hooks with an opinionated layer providing:
+   - Enhanced client validations based on API specifications
+   - Smart payload formation
+   - Error mapping & recovery
+   - UX optimizations implemented based on best practices
+
+### Key Principles
+
+- **OAS-Driven Development**: All API interactions are based on the latest OAS from the JPMC API Portal
+- **Type Safety**: Generated TypeScript types ensure compile-time safety
+- **Automated Hooks**: React Query hooks are generated automatically from OAS
+- **Consistent Error Handling**: Standardized error mapping based on API specifications
+- **Smart UX**: Intelligent navigation, field prepopulation, and cognitive load reduction
+- **Microdeposit Verification**: Specialized workflow for account verification through microdeposits
+
+## Implementation Plan
+
+### Phase 1: Core Architecture & Data Models (Week 1-2)
+
+#### 1.1 Technology Stack Selection
+
+- **Frontend Framework**: Choose between React, Vue, Angular, or vanilla JavaScript
+- **State Management**: Implement appropriate state management (Redux, Vuex, Zustand, or custom)
+- **Form Management**: Select form library (React Hook Form, Formik, VeeValidate, or custom)
+- **Validation**: Implement validation strategy (Zod, Yup, Joi, or custom)
+- **UI Framework**: Choose UI component library or build custom components
+- **HTTP Client**: Select HTTP client (Axios, Fetch API, or framework-specific)
+- **Testing**: Choose testing framework (Jest, Vitest, or framework-specific)
+
+#### 1.2 Client ID Requirements
+
+- **Required Client ID**: Component requires client ID to be provided by parent application
+- **No Client Creation**: Component cannot create clients (only onboarding flow can create clients)
+- **Client ID Validation**: Validate that client ID is provided before making API calls
+- **Error Handling**: Display appropriate error if client ID is missing
+
+#### 1.3 OAS-Based Code Generation Setup
+
+- **OpenAPI Specification**: Use the latest OAS from JPMC API Portal for recipients endpoints
+- **Code Generation Tool**: Implement Orval or similar tool for automated code generation
+- **Generated Types**: TypeScript interfaces for Recipient, RecipientRequest, UpdateRecipientRequest
+- **Generated Hooks**: React Query hooks for CRUD operations (useCreateRecipient, useAmendRecipient, useGetAllRecipients, useRecipientsVerification)
+- **API Client**: Generated HTTP client with proper authentication and error handling
+
+#### 1.4 Data Model Implementation
+
+**Note**: The following data models should be generated from the latest OAS specification. These are examples based on the current API structure:
+
+```typescript
+// Generated from OAS - Linked Account types
+interface Recipient {
+  id: string;
+  type: 'LINKED_ACCOUNT';
+  status:
+    | 'ACTIVE'
+    | 'MICRODEPOSITS_INITIATED'
+    | 'REJECTED'
+    | 'READY_FOR_VALIDATION'
+    | 'INACTIVE';
+  clientId: string;
+  createdAt: string;
+  updatedAt: string;
+  partyDetails: PartyDetails;
+  partyId: string;
+  account: AccountDetails;
+}
+
+interface PartyDetails {
+  type: 'INDIVIDUAL' | 'ORGANIZATION';
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  alternativeName?: string;
+  address?: Address;
+  contacts: Contact[];
+}
+
+interface AccountDetails {
+  type: 'CHECKING' | 'SAVINGS';
+  number: string;
+  countryCode: string;
+  bankName?: string;
+  routingInformation: RoutingInfo[];
+}
+
+// Generated from OAS - API request/response types
+interface RecipientRequest {
+  // Generated from OAS specification
+}
+
+interface UpdateRecipientRequest {
+  // Generated from OAS specification
+}
+
+interface ListRecipientsResponse {
+  // Generated from OAS specification
+}
+
+// Generated from OAS - Microdeposit verification types
+interface MicrodepositVerificationRequest {
+  amounts: number[];
+}
+
+interface MicrodepositVerificationResponse {
+  status: 'VERIFIED' | 'FAILED';
+}
+```
+
+#### 1.5 Configuration System
+
+- Implement flexible configuration system for account types and verification methods
+- Create validation rule engine for routing numbers and account numbers
+- Build field dependency management system
+- Design extensible microdeposit verification workflow
+
+#### 1.6 Generated Hooks Integration
+
+- **useCreateRecipient**: Generated hook for creating new linked accounts
+- **useAmendRecipient**: Generated hook for updating existing linked accounts
+- **useGetAllRecipients**: Generated hook for fetching linked accounts with pagination
+- **useRecipientsVerification**: Generated hook for microdeposit verification
+- **useGetRecipient**: Generated hook for fetching individual recipient details
+- **Error Handling**: Leverage generated error types and handling patterns
+- **Loading States**: Use generated loading states from React Query hooks
+
+### Phase 2: Core Components (Week 3-4)
+
+#### 2.1 LinkedAccountWidget Component
+
+- Implement data fetching with pagination using generated `useGetAllRecipients` hook
+- Create variant support (default vs singleAccount)
+- Build responsive card layout for linked accounts
+- Add action buttons (Link New Account, Verify Microdeposits, Edit, Deactivate)
+- Implement responsive design for mobile/desktop
+- Use generated loading states and error handling
+- Support MakePayment component integration
+
+#### 2.2 LinkAccountForm Component
+
+- Build dynamic form with account type selection (Individual/Organization)
+- Implement routing number and account number validation
+- Create validation system with real-time feedback
+- Add form state management using generated types
+- Implement authorization checkbox requirement
+- Use generated `useCreateRecipient` hook
+- Support pre-population for editing existing accounts
+
+#### 2.3 MicrodepositsForm Component
+
+- Create microdeposit verification form
+- Implement amount validation (decimal values > $0.01)
+- Build verification status handling
+- Add retry logic for failed verifications
+- Use generated `useRecipientsVerification` hook
+- Display verification progress and results
+
+### Phase 3: Business Logic & Integration (Week 5-6)
+
+#### 3.1 API Integration Layer
+
+- Implement CRUD operations for linked accounts using generated hooks
+- Add error handling and retry logic based on generated error types
+- Create request/response transformers using generated types
+- Implement caching strategy with React Query
+- Leverage generated authentication patterns from OAS
+
+#### 3.2 Microdeposit Verification Logic
+
+- Build microdeposit initiation workflow
+- Implement verification status tracking
+- Create retry mechanism for failed verifications
+- Add maximum attempts handling
+- Design verification result handling
+
+#### 3.3 Form Validation Engine
+
+- Implement progressive validation
+- Create routing number validation (9-digit USABA)
+- Add account number validation (4-17 digits)
+- Build authorization checkbox validation
+- Design contextual validation system
+
+### Phase 4: User Experience & Polish (Week 7-8)
+
+#### 4.1 User Interface Enhancements
+
+- Implement loading states and skeletons
+- Add error handling with user-friendly messages
+- Create success notifications
+- Build confirmation dialogs for account deactivation
+- Design microdeposit verification progress indicators
+
+#### 4.2 Accessibility & Internationalization
+
+- Implement WCAG 2.1 compliance
+- Add keyboard navigation support
+- Create content token system for localization
+- Implement screen reader support
+- Design focus management for dialog components
+
+#### 4.3 Performance Optimization
+
+- Implement efficient account list rendering
+- Add debounced search functionality
+- Create efficient re-rendering strategies
+- Optimize bundle size
+- Implement virtual scrolling for large account lists
+
+### Phase 5: Testing & Documentation (Week 9-10)
+
+#### 5.1 Testing Strategy
+
+- Unit tests for business logic
+- Integration tests for API interactions using generated hooks
+- Component tests for UI behavior
+- Accessibility testing
+- Performance testing
+- Microdeposit verification flow testing
+
+#### 5.2 Documentation
+
+- API documentation
+- Component usage guides
+- Configuration documentation
+- Migration guides
+- Microdeposit verification process documentation
+
 ## 1. Overview
 
-The Linked Accounts Management Embedded Component is a crucial component of the Embedded application, enabling users to link and manage their external bank accounts for use within the application. This component provides functionality for creating, viewing, editing, and deactivating linked accounts, as well as verifying accounts through microdeposits when necessary.
+The Linked Accounts Management Embedded Component enables users to link and manage their external bank accounts for use within the embedded finance application. This component provides functionality for creating, viewing, editing, and deactivating linked accounts, as well as verifying accounts through microdeposits when necessary.
 
 Linked accounts (type: LINKED_ACCOUNT) represent external bank accounts belonging to the user or their organization that can be used as sources for payments. These accounts must be verified before they can be used for financial transactions.
 
@@ -38,121 +288,195 @@ The Linked Accounts functionality has the following constraints:
 
 #### 3.1.1 View Linked Accounts List
 
-- Users must be able to view a list of all linked accounts using the [getAllRecipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients) with type=LINKED_ACCOUNT
-- The list should display key account information:
-  - Account holder name (individual or business)
-  - Account type (individual or organization)
-  - Status (ACTIVE, MICRODEPOSITS_INITIATED, etc.)
-  - Last 4 digits of account number (masked for security)
-  - Supported payment methods (ACH, WIRE, RTP)
-  - Date added
-- Each account in the list should show action buttons for View Details, Edit, and Deactivate (if active)
-- For accounts pending verification, a "Verify Microdeposits" action should be displayed
-- Error states should be handled gracefully with appropriate messaging if the API fails to retrieve accounts
+**Core Requirements:**
+
+- Display a list of all linked accounts using the getAllRecipients API with type=LINKED_ACCOUNT
+- Show key account information: account holder name, account type, status, masked account number, supported payment methods, date added
+- Support pagination with configurable page sizes
+- Enable account selection for viewing details or making payments
+- Provide filtering by status and search by account holder name
+- Support sorting by name, date created, and date modified
+- Display action buttons for View Details, Edit, Deactivate, and Verify Microdeposits
+- Handle error states gracefully with appropriate messaging
+
+**Technical Considerations:**
+
+- Implement efficient data fetching with caching using generated hooks
+- Create responsive card layout for mobile/desktop
+- Build search functionality with debouncing
+- Implement loading states and skeleton screens
+- Use generated loading states and error handling
 
 #### 3.1.2 Link New Accounts
 
-- Users must be able to add new external bank accounts with the following information:
-  - **Account Type** (INDIVIDUAL or ORGANIZATION)
-  - **Account Holder Information**:
-    - For individuals: First name, Last name
-    - For organizations: Business name
-  - **Bank Account Information**:
-    - Routing number (9-digit USABA)
-    - Account number
-  - **Authorization** checkbox to certify ownership of the account
-- Form validation must enforce proper formatting and required fields:
-  - Routing number must be exactly 9 digits
-  - Account number must not be empty
-  - Authorization checkbox must be checked
-- The form should dynamically adjust based on the selected account type (individual vs. organization)
-- Upon successful creation, the system should show a confirmation and explain next steps:
-  - If the account is immediately verified: Account is ready to use
-  - If microdeposits are required: Explanation of the verification process
-- Success and error states should be clearly communicated to users
+**Core Requirements:**
+
+- Allow users to add new external bank accounts with comprehensive information
+- Present account type selection first (INDIVIDUAL or ORGANIZATION)
+- Collect account holder information (first/last name for individuals, business name for organizations)
+- Collect bank account information (routing number, account number)
+- Require authorization checkbox to certify ownership
+- Implement form validation with proper formatting and required fields
+- Support dynamic form adjustment based on selected account type
+- Display success/error states clearly
+- Explain next steps after successful creation
+
+**Technical Considerations:**
+
+- Build dynamic form field management system
+- Implement real-time validation feedback
+- Create routing number validation (9-digit USABA)
+- Design extensible form architecture
+- Use generated `useCreateRecipient` hook
 
 #### 3.1.3 View Linked Account Details
 
-- Users must be able to view detailed information about each linked account
-- Details should be organized in logical groups (Account Holder Info, Bank Account Info)
-- From the details view, users should be able to:
-  - Edit account information
-  - Deactivate the account (if active)
-  - Verify microdeposits (if pending verification)
-- The details view should display all supported payment methods for the account
-- The interface should clearly indicate the account's status
-- For security, account numbers should be masked with only the last 4 digits visible
-- The detail view should include creation date and last modified date information
+**Core Requirements:**
+
+- Display detailed information about each linked account
+- Organize information in logical groups (Account Holder Info, Bank Account Info)
+- Provide action buttons for Edit, Deactivate, and Verify Microdeposits
+- Show all supported payment methods for the account
+- Indicate account's status clearly
+- Mask sensitive data (account numbers)
+- Display creation and last modified dates
+
+**Technical Considerations:**
+
+- Implement secure data masking
+- Create responsive detail view layout
+- Build action button system
+- Design information organization structure
+- Use generated recipient types for type safety
 
 #### 3.1.4 Edit Linked Accounts
 
-- Users must be able to update linked account information using the [amendRecipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
-- Updates should maintain the same recipient ID but allow changes to account holder details and contact information
-- Form validation rules apply to edits the same as to creation
-- Success/error notifications must be displayed upon completion
-- The system should preserve the account's history and status while applying the requested changes
-- The edit form should be pre-populated with all existing account information
-- Changes should be tracked for audit purposes with the "updatedAt" timestamp
+**Core Requirements:**
+
+- Allow updates to linked account information using the amendRecipient API
+- Maintain account ID while allowing changes to account holder details
+- Apply same validation rules as creation
+- Display success/error notifications
+- Preserve account history and status
+- Pre-populate form with existing data
+- Allow canceling edits
+- Track changes with "updatedAt" timestamp
+
+**Technical Considerations:**
+
+- Implement form pre-population logic
+- Create change tracking system
+- Build validation consistency between create/edit
+- Design undo/cancel functionality
+- Use generated `useAmendRecipient` hook
 
 #### 3.1.5 Deactivate Linked Accounts
 
-- Users must be able to deactivate linked accounts that are no longer needed
-- A confirmation dialog must be displayed before deactivation with clear warning about the consequences
-- Success notification must be shown upon successful deactivation
-- The system should handle API failures gracefully and inform the user if deactivation fails
-- Deactivated accounts should be clearly marked as inactive in the UI
-- The list view should refresh automatically after successful deactivation
+**Core Requirements:**
+
+- Allow deactivation of linked accounts that are no longer needed
+- Display confirmation dialog with clear warning about consequences
+- Show success notification upon completion
+- Handle API failures gracefully
+- Ensure deactivated accounts are clearly marked as inactive
+- Refresh list view after successful deactivation
+
+**Technical Considerations:**
+
+- Implement confirmation dialog system
+- Create error handling for deactivation operations
+- Build list refresh mechanism
+- Design audit trail for deactivations
 
 ### 3.2 Microdeposit Verification
 
 #### 3.2.1 Microdeposit Process
 
-- When a linked account requires verification, the system should:
-  - Automatically initiate microdeposits to the account
-  - Update the account status to MICRODEPOSITS_INITIATED
-  - Display an explanation of the process to the user
-- The UI should clearly indicate that microdeposits may take 1-3 business days to appear
-- Users should receive clear instructions on how to complete verification once deposits appear
+**Core Requirements:**
+
+- Automatically initiate microdeposits to the account when verification is required
+- Update account status to MICRODEPOSITS_INITIATED
+- Display explanation of the process to the user
+- Clearly indicate that microdeposits may take 1-3 business days to appear
+- Provide clear instructions on how to complete verification
+
+**Technical Considerations:**
+
+- Implement microdeposit initiation workflow
+- Create status tracking system
+- Build user notification system
+- Design verification process explanation
 
 #### 3.2.2 Verify Microdeposits
 
-- Users must be able to verify microdeposits using the [verifyMicrodeposit API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/verifyMicrodeposit)
-- The verification form should:
-  - Allow users to enter two microdeposit amounts
-  - Validate that amounts are valid decimal numbers (> $0.01)
-  - Submit both amounts to the verification API
-- The system should handle verification results:
-  - Success: Update account status to ACTIVE and notify user
-  - Failure: Show error message with remaining attempts count
-  - Maximum attempts reached: Show appropriate error and guidance
-- Clear feedback should be provided for all states of the verification process
+**Core Requirements:**
+
+- Allow users to verify microdeposits using the verifyMicrodeposit API
+- Provide form for entering two microdeposit amounts
+- Validate that amounts are valid decimal numbers (> $0.01)
+- Submit both amounts to the verification API
+- Handle verification results (success, failure, maximum attempts)
+- Provide clear feedback for all verification states
+
+**Technical Considerations:**
+
+- Build microdeposit verification form
+- Implement amount validation logic
+- Create verification status handling
+- Add retry mechanism for failed verifications
+- Use generated `useRecipientsVerification` hook
 
 ### 3.3 Payment Method Support
 
 #### 3.3.1 Payment Method Configuration
 
-- The system should automatically determine and display supported payment methods:
-  - ACH: Standard electronic fund transfers
-  - WIRE: Wire transfers for larger amounts
-  - RTP: Real-time payments for immediate transfers
-- Payment methods should be displayed as badges on the linked account list and details views
-- The payment methods should be determined based on the routing number capabilities
+**Core Requirements:**
+
+- Automatically determine and display supported payment methods
+- Show ACH, WIRE, and RTP as available options
+- Display payment methods as badges on account list and details views
+- Determine payment methods based on routing number capabilities
+
+**Technical Considerations:**
+
+- Implement payment method detection logic
+- Create payment method display system
+- Build routing number capability analysis
+- Design payment method badge system
 
 ### 3.4 Validation & Error Handling
 
 #### 3.4.1 Form Validation
 
-- Implement comprehensive validation for all linked account form fields including:
-  - Required field validation (based on account type)
-  - Format validation (routing number: 9 digits, amounts: valid decimal values)
-  - Authorization validation (certify checkbox must be checked)
+**Core Requirements:**
+
+- Implement comprehensive validation for all linked account form fields
+- Validate required fields based on account type
+- Validate format (routing number: 9 digits, amounts: valid decimal values)
+- Require authorization checkbox to be checked
 - Display clear error messages for invalid inputs
 
+**Technical Considerations:**
+
+- Build validation rule engine
+- Create error message system
+- Implement real-time validation
+- Design validation state management
+
 #### 3.4.2 API Error Handling
+
+**Core Requirements:**
 
 - Display appropriate error messages for API failures
 - Show notifications for successful operations
 - Handle network/server errors gracefully with proper user feedback
+
+**Technical Considerations:**
+
+- Implement error boundary system
+- Create notification/toast system
+- Build retry logic for failed requests
+- Design error message categorization
 
 ## 4. Non-Functional Requirements
 
@@ -164,7 +488,7 @@ The Linked Accounts functionality has the following constraints:
 
 ### 4.2 Usability
 
-- The interface should follow established UI patterns using Radix UI primitives and Tailwind CSS
+- Interface should follow established UI patterns
 - Consistent notification patterns for success/error states
 - Mobile-responsive design with appropriate layout adjustments for smaller viewports
 - Tooltips and help text for complex fields
@@ -184,7 +508,7 @@ The Linked Accounts functionality has the following constraints:
 
 ### 4.5 Security
 
-- All sensitive account information must be properly masked when displayed (account numbers)
+- All sensitive account information must be properly masked when displayed
 - Field validation must prevent potentially malicious input
 - All communication with API endpoints must be encrypted using TLS
 - Authentication tokens must be properly managed and secured
@@ -193,216 +517,205 @@ The Linked Accounts functionality has the following constraints:
 
 ### 5.1 API Integration
 
-- RESTful API endpoints for CRUD operations on linked accounts
-- Error handling with appropriate status codes
-- React Query for data fetching and mutation
+- **OAS-Driven Integration**: All API interactions based on latest OpenAPI Specification
+- **Generated Hooks**: Use `useCreateRecipient`, `useAmendRecipient`, `useGetAllRecipients`, `useRecipientsVerification` hooks
+- **Type Safety**: Generated TypeScript types ensure compile-time safety
+- **Pagination Support**: Generated pagination types for listing linked accounts
+- **Error Handling**: Generated error types with appropriate status codes
 
-### 5.2 React Query Integration
+### 5.2 Authentication Integration
 
-- Cache management for linked accounts data
-- Optimistic updates for improved UX
-- Query invalidation on successful mutations
+- **Generated Auth Patterns**: Leverage authentication patterns from OAS
+- **Token Handling**: Use generated authentication utilities
+- **Integration**: Seamless integration with parent application's authentication system
 
-### 5.3 Component Architecture
+### 5.3 Content Management Integration
 
-- Proper component hierarchy following project structure
-- Component composition for reusability
-- State management using React hooks
+- **Content Tokens**: Support for content tokens from parent app's CMS systems
+- **Localization**: Integration with content management system for internationalization
+- **Runtime Customization**: Override content tokens from parent application
 
 ## 6. User Flows
 
 ### 6.1 Viewing Linked Accounts List
 
-1. User navigates to the Linked Accounts section of the application
-2. System fetches linked accounts data using the [getAllRecipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients) with type=LINKED_ACCOUNT
-3. System displays a list with the following for each account:
-   - Account holder name
-   - Account type badge (Individual/Business)
-   - Status badge
-   - Last 4 digits of account number
-   - Supported payment methods as badges
-   - Date added
-   - Action buttons (Details, Edit, Deactivate)
-4. If the API call fails, system displays appropriate error messaging with retry option
+1. User navigates to the Linked Accounts section
+2. System fetches linked accounts data using getAllRecipients API with type=LINKED_ACCOUNT
+3. System displays list with account information and action buttons
+4. User can sort, filter, search, and navigate between pages
+5. If API call fails, system displays appropriate error messaging with retry option
 
 ### 6.2 Linking a New Account
 
 1. User clicks "Link A New Account" button
-2. System displays a dialog with a form containing:
-   - Account type selector (Individual/Organization)
-   - Account holder fields (dynamically adjusted based on selected type)
-   - Bank account information fields (routing number, account number)
-   - Authorization checkbox
-3. User completes the form and submits
+2. System displays dialog with form containing account type selector and relevant fields
+3. User completes form and submits
 4. System validates all inputs
-5. Upon successful submission:
-   - System creates the linked account via the API
-   - Dialog shows success confirmation
-   - Account list is refreshed to include the new account
-   - If microdeposits are required, user is informed about the verification process
+5. Upon successful submission, system creates linked account and shows confirmation
+6. If microdeposits are required, user is informed about verification process
 
 ### 6.3 Verifying Microdeposits
 
 1. User receives microdeposits in their bank account (1-3 business days)
-2. User returns to Linked Accounts section and clicks "Verify Microdeposits" for the pending account
-3. System displays verification dialog with:
-   - Explanation of the verification process
-   - Two input fields for the microdeposit amounts
-4. User enters the two amounts and submits
-5. System validates inputs and calls the verification API
-6. System displays result:
-   - Success: Account status updates to ACTIVE, success message shown
-   - Failure: Error message with remaining attempts information
-7. Dialog closes and the account list refreshes to show updated status
+2. User returns to Linked Accounts section and clicks "Verify Microdeposits"
+3. System displays verification dialog with two input fields for amounts
+4. User enters amounts and submits
+5. System validates inputs and calls verification API
+6. System displays result and updates account status accordingly
 
 ### 6.4 Editing a Linked Account
 
 1. User clicks "Edit" for a linked account
-2. System displays dialog with pre-populated form containing current account information
-3. User modifies the desired fields
+2. System displays dialog with pre-populated form
+3. User modifies desired fields
 4. System validates inputs on submission
-5. Upon successful update:
-   - System updates the account via the API
-   - Dialog shows success confirmation
-   - Account list refreshes to show updated information
+5. Upon successful update, system shows confirmation and refreshes list
 
 ### 6.5 Deactivating a Linked Account
 
 1. User clicks "Deactivate" for an active linked account
-2. System displays confirmation dialog with warning about consequences
+2. System displays confirmation dialog with warning
 3. User confirms deactivation
-4. System calls the API to deactivate the account
-5. Upon success:
-   - System shows success notification
-   - Account list refreshes to show updated status (INACTIVE)
-   - Deactivate button is removed from the account's actions
+4. System calls API to deactivate account
+5. Upon success, system shows notification and refreshes list
 
-## 7. API Integration Details
+## 7. Data Model
 
-### 7.1 Create Linked Account
+### 7.1 Generated Data Structures
 
-**Endpoint:** POST /recipients
+**IMPORTANT**: All data structures should be generated from the latest OpenAPI Specification (OAS) from the JPMC API Portal. The following are examples based on current API structure:
 
-**Request Example:**
+```typescript
+// Generated from OAS - Linked Account types
+interface Recipient {
+  id: string;
+  type: 'LINKED_ACCOUNT';
+  status:
+    | 'ACTIVE'
+    | 'MICRODEPOSITS_INITIATED'
+    | 'REJECTED'
+    | 'READY_FOR_VALIDATION'
+    | 'INACTIVE';
+  clientId: string;
+  createdAt: string;
+  updatedAt: string;
+  partyDetails: PartyDetails;
+  partyId: string;
+  account: AccountDetails;
+}
 
-```json
-{
-  "type": "LINKED_ACCOUNT",
-  "partyDetails": {
-    "type": "INDIVIDUAL",
-    "firstName": "John",
-    "lastName": "Doe"
-  },
-  "account": {
-    "type": "CHECKING",
-    "number": "123456789012",
-    "routingInformation": [
-      {
-        "routingCodeType": "USABA",
-        "routingNumber": "021000021",
-        "transactionType": "ACH"
-      }
-    ],
-    "countryCode": "US"
-  }
+interface PartyDetails {
+  type: 'INDIVIDUAL' | 'ORGANIZATION';
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  alternativeName?: string;
+  address?: Address;
+  contacts: Contact[];
+}
+
+interface AccountDetails {
+  type: 'CHECKING' | 'SAVINGS';
+  number: string;
+  countryCode: string;
+  bankName?: string;
+  routingInformation: RoutingInfo[];
+}
+
+// Generated from OAS - API Request/Response types
+interface RecipientRequest {
+  // Generated from OAS specification
+}
+
+interface UpdateRecipientRequest {
+  // Generated from OAS specification
+}
+
+interface ListRecipientsResponse {
+  // Generated from OAS specification
+}
+
+// Generated from OAS - Microdeposit verification types
+interface MicrodepositVerificationRequest {
+  amounts: number[];
+}
+
+interface MicrodepositVerificationResponse {
+  status: 'VERIFIED' | 'FAILED';
+}
+
+// Generated from OAS - Error types
+interface ApiError {
+  // Generated from OAS specification
 }
 ```
 
-**Response Statuses:**
+### 7.2 Account Type Configuration
 
-- **ACTIVE:** Account is verified and ready to use
-- **MICRODEPOSITS_INITIATED:** Verification needed through microdeposits
-- **REJECTED:** Account could not be verified
-
-### 7.2 Verify Microdeposits
-
-**Endpoint:** POST /recipients/{id}/verify-microdeposit
-
-**Request Example:**
-
-```json
-{
-  "amounts": [0.25, 0.15]
+```typescript
+interface AccountTypeConfig {
+  type: 'INDIVIDUAL' | 'ORGANIZATION';
+  requiredFields: string[];
+  optionalFields: string[];
+  validations: ValidationRules;
+  displayName: string;
 }
 ```
 
-**Response Example:**
+### 7.3 Form Validation Rules
 
-```json
-{
-  "status": "VERIFIED"
+- **Routing Number**: Required, exactly 9 digits for USABA routing numbers
+- **Account Number**: Required, 4-17 digits
+- **Individual Name**: First/last name required for INDIVIDUAL type, max 70 characters each
+- **Business Name**: Required for ORGANIZATION type, max 100 characters
+- **Authorization**: Checkbox must be checked to certify ownership
+- **Microdeposit Amounts**: Valid decimal values > $0.01
+
+## 8. Configuration System
+
+### 8.1 Account Type Configuration
+
+The system must support a flexible configuration system that determines field requirements based on selected account types:
+
+```typescript
+interface AccountTypeFieldConfig {
+  requiredFields: string[];
+  optionalFields: string[];
+  hiddenFields?: string[];
+  validations: ValidationRules;
+  fieldDependencies?: FieldDependencyRules;
+  helperText?: Record<string, string>;
 }
 ```
 
-### 7.3 Status Workflow
+### 8.2 Microdeposit Verification Configuration
 
-1. **Initial Creation**:
-   - If instant verification is available: ACTIVE
-   - If microdeposits required: MICRODEPOSITS_INITIATED
-2. **After Microdeposits Sent**: READY_FOR_VALIDATION
-3. **After Verification**:
-   - Successful: ACTIVE
-   - Failed (< 3 attempts): READY_FOR_VALIDATION
-   - Failed (3 attempts): REJECTED
-4. **After Deactivation**: INACTIVE
+- **Verification Workflow**: Configure microdeposit initiation and verification process
+- **Retry Logic**: Set maximum verification attempts
+- **Amount Validation**: Configure minimum/maximum amount requirements
+- **Status Tracking**: Define verification status transitions
 
-## 8. Implementation Guidelines
+## 9. Testing Strategy
 
-### 8.1 Component Structure
+### 9.1 Test Categories
 
-```
-LinkedAccountWidget/
-├── LinkedAccountWidget.tsx
-├── LinkedAccountWidget.test.tsx
-├── LinkedAccountWidget.story.tsx
-├── LinkAccountForm/
-│   ├── LinkAccountForm.tsx
-│   ├── LinkAccountForm.test.tsx
-│   ├── LinkAccountForm.schema.ts
-│   └── index.ts
-├── MicrodepositsForm/
-│   ├── MicrodepositsForm.tsx
-│   ├── MicrodepositsForm.test.tsx
-│   ├── MicrodepositsForm.schema.ts
-│   └── index.ts
-└── index.ts
-```
+- **Unit Tests**: Business logic, validation rules, data transformations
+- **Integration Tests**: API interactions using generated hooks, form submissions, data flow
+- **Component Tests**: UI behavior, user interactions, accessibility
+- **End-to-End Tests**: Complete user workflows, cross-browser compatibility
+- **Generated Code Tests**: Test generated types and hooks for type safety
+- **Microdeposit Tests**: Test verification workflow and edge cases
 
-### 8.2 State Management
+### 9.2 Test Coverage Requirements
 
-- Use React Query for server state management
-- Use local component state for UI state
-- Implement optimistic updates for improved UX
-
-### 8.3 Form Management
-
-- Use react-hook-form for form handling
-- Use zod for schema validation
-- Implement dynamic form fields based on context
-
-### 8.4 Testing Strategy
-
-- Unit tests for component rendering and behavior
-- Integration tests for form submission
-- Mock API responses for different scenarios
+- Minimum 80% line coverage
+- Cover all user interaction paths
+- Test all API integration points using generated hooks
+- Verify error handling and edge cases with generated error types
 - Test accessibility features
-
-## 9. Future Enhancements
-
-### 9.1 Instant Verification
-
-- Integration with third-party verification services for immediate account validation
-- Eliminate waiting period for microdeposits when possible
-
-### 9.2 Multi-Account Management
-
-- Batch operations for managing multiple linked accounts
-- Account categorization and tagging
-
-### 9.3 Enhanced Security
-
-- Multi-factor authentication for sensitive operations
-- Risk scoring for linked accounts
+- Include integration tests for complex flows
+- Test OAS-generated code integration
+- Test microdeposit verification scenarios
 
 ## 10. Additional Resources
 
@@ -413,4 +726,3 @@ LinkedAccountWidget/
 - [Update Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 - [Verify Microdeposits API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/recipientsVerification)
-

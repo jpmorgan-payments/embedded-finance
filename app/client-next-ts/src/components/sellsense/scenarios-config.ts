@@ -67,7 +67,7 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000132',
     scenarioId: 'scenario4',
     category: 'onboarding' as const,
-    headerTitle: 'Application Under Review',
+    headerTitle: 'Almost there - review and complete',
     headerDescription:
       'Seller onboarding data is partially prefilled. Please review and complete the remaining information.',
   },

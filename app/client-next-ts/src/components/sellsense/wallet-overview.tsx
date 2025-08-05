@@ -26,6 +26,9 @@ import {
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import { AutomationTrigger } from './automation';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import type { ThemeOption } from './use-sellsense-themes';
+
 interface ComponentInfo {
   title: string;
   description: string;
@@ -39,7 +42,15 @@ interface ComponentInfo {
   };
 }
 
-export function WalletOverview() {
+interface WalletOverviewProps {
+  theme?: ThemeOption;
+  customThemeVariables?: EBThemeVariables;
+}
+
+export function WalletOverview({
+  theme,
+  customThemeVariables = {},
+}: WalletOverviewProps) {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
     'columns',
   );
@@ -47,7 +58,6 @@ export function WalletOverview() {
   const searchParams = useSearch({ from: '/sellsense-demo' });
 
   // Get all parameters from URL to ensure components respond to all changes
-  const currentTheme = searchParams.theme || 'SellSense';
   const currentTone = searchParams.contentTone || 'Standard';
   const scenarioDisplayNames = getScenarioDisplayNames();
   const currentScenario =
@@ -63,12 +73,18 @@ export function WalletOverview() {
   // Get grid dimensions for the current scenario
   const { maxRows, maxColumns } = getGridDimensions(currentScenario);
 
+  // Use theme from props or fallback to URL search params
+  const currentTheme = theme || searchParams.theme || 'SellSense';
+
   // Get theme-aware styles
-  const themeStyles = useThemeStyles(currentTheme as any);
+  const themeStyles = useThemeStyles(currentTheme as ThemeOption);
   const { mapThemeOption } = useSellSenseThemes();
 
-  // Create theme object using the proper theme system
-  const themeObject = mapThemeOption(currentTheme as any);
+  // Create theme object using the proper theme system with custom variables
+  const themeObject = mapThemeOption(
+    currentTheme as ThemeOption,
+    customThemeVariables,
+  );
 
   // Create base content tokens that respond to tone changes
   const baseContentTokens = {
