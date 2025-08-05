@@ -11,9 +11,9 @@
 > - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 > - [Verify Microdeposits API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/recipientsVerification)
 
-## Design Philosophy Alignment
+## Technical Design Philosophy Alignment
 
-This component follows the Embedded UI Components design philosophy outlined in the main README.md:
+This component follows the Embedded UI Components technical design philosophy outlined in the main README.md:
 
 ### Integration Scenarios and Use Cases
 
@@ -40,7 +40,7 @@ The LinkedAccountWidget component is designed for flexible integration into pare
    - Error mapping & recovery
    - UX optimizations implemented based on best practices
 
-### Key Principles
+### Key Technical Design Principles
 
 - **OAS-Driven Development**: All API interactions are based on the latest OAS from the JPMC API Portal
 - **Type Safety**: Generated TypeScript types ensure compile-time safety
@@ -167,7 +167,7 @@ interface MicrodepositVerificationResponse {
 - Create variant support (default vs singleAccount)
 - Build responsive card layout for linked accounts
 - Add action buttons (Link New Account, Verify Microdeposits, Edit, Deactivate)
-- Implement responsive design for mobile/desktop
+- Implement responsive technical design for mobile/desktop
 - Use generated loading states and error handling
 - Support MakePayment component integration
 
@@ -216,7 +216,7 @@ interface MicrodepositVerificationResponse {
 - Build authorization checkbox validation
 - Design contextual validation system
 
-### Phase 4: User Experience & Polish (Week 7-8)
+### Phase 4: User Experience & Technical Design Polish (Week 7-8)
 
 #### 4.1 User Interface Enhancements
 

@@ -331,7 +331,7 @@ export const useSellSenseThemes = () => {
             secondaryBorderWidth: '1px',
 
             // Background and layout
-            backgroundColor: '#FAF9F7', // Matching useThemes.ts
+            backgroundColor: '#f7fafc', // Matching useThemes.ts
             foregroundColor: '#1e293b',
             cardColor: '#FFFFFF', // Matching useThemes.ts
             cardForegroundColor: '#1e293b',

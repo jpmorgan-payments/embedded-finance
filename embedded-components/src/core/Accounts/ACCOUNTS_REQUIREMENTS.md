@@ -11,7 +11,7 @@
 
 ---
 
-## Design Philosophy Alignment
+## Technical Design Philosophy Alignment
 
 ### Integration Scenarios
 
@@ -27,7 +27,7 @@
 - **Generated Types**: `AccountResponse`, `AccountBalanceResponse`, `ListAccountsResponse`
 - **API Endpoints**: `/accounts`, `/accounts/{id}/balances`
 
-### Key Principles
+### Key Technical Design Principles
 
 - **OAS-Driven Development**: All types and API contracts generated from OpenAPI Specification
 - **Generated Hooks Integration**: Use Orval-generated React Query hooks for data fetching
@@ -109,9 +109,9 @@
   - Toggle visibility for sensitive information
   - Secure display of routing information
 
-### Phase 4: User Experience & Polish
+### Phase 4: User Experience & Technical Design Polish
 
-- **Responsive Design**
+- **Responsive Technical Design**
   - Horizontal layout for desktop, stacked for mobile
   - Visual separation for multiple accounts
   - Consistent spacing and typography
@@ -263,7 +263,7 @@ interface AccountsProps {
 
 ### Usability
 
-- Mobile-responsive design
+- Mobile-responsive technical design
 - Clear visual hierarchy
 - Intuitive information display
 - Consistent with other embedded components
