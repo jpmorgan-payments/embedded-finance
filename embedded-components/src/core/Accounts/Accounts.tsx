@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AlertCircle, Eye, EyeOff, Info, InfoIcon } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Info, InfoIcon, ClipboardCopy } from 'lucide-react';
 
 import {
   useGetAccountBalance,
@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/toast';
 
 const CATEGORY_LABELS: Record<string, string> = {
   LIMITED_DDA: 'Limited DDA',
@@ -225,10 +226,8 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       refetch,
     } = useGetAccountBalance(account.id);
 
-    // State for showing/hiding sensitive information
     const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
 
-    // Expose refresh method to parent component
     useImperativeHandle(
       ref,
       () => ({
@@ -243,137 +242,78 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       setShowSensitiveInfo(!showSensitiveInfo);
     };
 
+    const formattedCategory =
+      account.category === 'LIMITED_DDA_PAYMENTS'
+        ? 'Payments DDA'
+        : account.category;
+
+    const maskedAccountNumber =
+      account.paymentRoutingInformation?.accountNumber
+        ? `...${account.paymentRoutingInformation.accountNumber.slice(-4)}`
+        : 'N/A';
+
     return (
-      <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm sm:eb-flex-row sm:eb-items-stretch">
-        <div className="eb-grid eb-w-full eb-gap-1">
-          {/* First Row: Account Category and Label */}
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <div className="eb-text-base eb-font-semibold">
-              {CATEGORY_LABELS[account.category] || account.category}
-            </div>
-            <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
-              {account.label}
-            </div>
-          </div>
-          <hr className="eb-my-4 eb-border-gray-200" />
+      <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm">
+        {/* Title Section */}
+        <div className="eb-text-xl eb-font-semibold eb-mb-4">
+          {formattedCategory} | {maskedAccountNumber}
+        </div>
 
-          {/* Second Row: Info Tooltip */}
-          {account.paymentRoutingInformation?.accountNumber &&
-            account.category === 'LIMITED_DDA_PAYMENTS' && (
-              <Alert variant="informative" density="sm" className="eb-mb-4">
-                <InfoIcon className="eb-h-4 eb-w-4" />
-                <AlertTitle className="eb-text-sm eb-font-semibold">
-                  Account can be funded from external sources and is externally
-                  addressable via routing/account numbers below
-                </AlertTitle>
-                <AlertDescription>
-                  {/* Additional description or details can go here if needed */}
-                </AlertDescription>
-              </Alert>
-            )}
-
-          {/* Third Row: Remaining Info in Two Columns */}
-          <div className="eb-grid eb-w-full eb-grid-cols-2 eb-items-stretch eb-gap-4">
-            {/* Left Column */}
-            <div className="eb-flex eb-flex-col eb-gap-2">
-              <div className="eb-mb-1 eb-text-sm eb-font-medium">
-                Account Information
+        <div className="eb-flex eb-gap-4">
+          {/* Left Card: Balances */}
+          <Card
+            className={`eb-p-4 eb-shadow-sm ${
+              account.category === 'LIMITED_DDA_PAYMENTS' ? 'eb-flex-1' : 'eb-w-1/2'
+            }`}
+          >
+            <div className="eb-text-lg eb-font-semibold eb-mb-2">Balances</div>
+            {isBalanceLoading ? (
+              <Skeleton className="eb-h-4 eb-w-1/2" />
+            ) : balanceData?.balanceTypes?.length ? (
+              <div className="eb-flex eb-flex-col eb-gap-2">
+                {balanceData.balanceTypes.map((b) => (
+                  <div
+                    key={b.typeCode}
+                    className="eb-flex eb-items-center eb-justify-between"
+                  >
+                    <span className="eb-text-sm eb-font-medium">
+                      {b.typeCode === 'ITAV'
+                        ? 'Available Balance'
+                        : b.typeCode === 'ITBD'
+                        ? 'Current Balance'
+                        : b.typeCode}
+                    </span>
+                    <span className="eb-font-mono eb-text-sm">
+                      {Number(b.amount).toFixed(2)} {balanceData.currency}
+                    </span>
+                  </div>
+                ))}
               </div>
-              {account.paymentRoutingInformation?.accountNumber && (
-                <div className="eb-flex eb-flex-col eb-gap-1">
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                    <span className="eb-font-medium">ACH Routing:</span>
-                    <span className="eb-font-mono eb-text-xs eb-font-semibold">
-                      028000024
-                    </span>
-                  </div>
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                    <span className="eb-font-medium">Wire/RTP Routing:</span>
-                    <span className="eb-font-mono eb-text-xs eb-font-semibold">
-                      021000021
-                    </span>
-                  </div>
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-gray-600">
-                    <span className="eb-font-medium">Account Number:</span>
-                    <span className="eb-font-mono eb-text-xs eb-font-semibold">
-                      {showSensitiveInfo
-                        ? account.paymentRoutingInformation.accountNumber
-                        : maskAccountNumber(
-                            account.paymentRoutingInformation.accountNumber
-                          )}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={toggleSensitiveInfo}
-                      className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                      title={
-                        showSensitiveInfo
-                          ? 'Hide account details'
-                          : 'Show account details'
-                      }
-                      aria-label={
-                        showSensitiveInfo
-                          ? 'Hide account details'
-                          : 'Show account details'
-                      }
-                    >
-                      {showSensitiveInfo ? (
-                        <EyeOff className="eb-h-3 eb-w-3" />
-                      ) : (
-                        <Eye className="eb-h-3 eb-w-3" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            ) : (
+              <span className="eb-text-xs eb-text-muted-foreground">
+                No balance data.
+              </span>
+            )}
+          </Card>
 
-            {/* Right Column */}
-            <div className="eb-flex eb-flex-col eb-items-end eb-gap-1">
-              <div className="eb-mb-1 eb-text-sm eb-font-medium">Balances</div>
-              {isBalanceLoading ? (
-                <Skeleton className="eb-h-4 eb-w-1/2" />
-              ) : balanceData?.balanceTypes?.length ? (
-                <div className="eb-flex eb-w-full eb-flex-col eb-gap-1">
-                  {balanceData.balanceTypes.map((b) => (
-                    <div
-                      key={b.typeCode}
-                      className="eb-flex eb-items-center eb-justify-end eb-gap-2"
-                    >
-                      <span className="eb-text-sm eb-font-medium">
-                        {BALANCE_TYPE_LABELS[String(b.typeCode)]?.label ||
-                          b.typeCode}
-                      </span>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <span
-                            className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400"
-                            title="Info"
-                          >
-                            <Info
-                              className="eb-h-4 eb-w-5 eb-text-blue-400 hover:eb-text-blue-600"
-                              aria-label="Info"
-                            />
-                          </span>
-                        </PopoverTrigger>
-                        <PopoverContent className="eb-max-w-xs eb-text-xs">
-                          {BALANCE_TYPE_LABELS[String(b.typeCode)]
-                            ?.description || 'No description.'}
-                        </PopoverContent>
-                      </Popover>
-                      <span className="eb-font-mono eb-text-right eb-text-sm">
-                        {Number(b.amount).toFixed(2)} {balanceData.currency}
-                      </span>
-                    </div>
-                  ))}
+          {/* Right Card: Account Details */}
+          {account.category !== 'LIMITED_DDA_PAYMENTS' && (
+            <Card className="eb-w-1/2 eb-p-4 eb-shadow-sm">
+              <div className="eb-text-lg eb-font-semibold eb-mb-2">
+                Account Details
+              </div>
+              <div className="eb-flex eb-flex-col eb-gap-2">
+                <div className="eb-text-sm">
+                  <span className="eb-font-medium">Account Number:</span>{' '}
+                  {account.paymentRoutingInformation?.accountNumber || 'N/A'}
                 </div>
-              ) : (
-                <span className="eb-text-xs eb-text-muted-foreground">
-                  No balance data.
-                </span>
-              )}
-            </div>
-          </div>
+                <div className="eb-text-sm">
+                  <span className="eb-font-medium">Routing Number:</span>{' '}
+                  {account.paymentRoutingInformation?.routingNumber || 'N/A'}
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </Card>
     );
