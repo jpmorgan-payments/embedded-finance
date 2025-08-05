@@ -118,7 +118,9 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
         controllerParty?.individualDetails?.middleName,
         controllerParty?.individualDetails?.lastName,
         controllerParty?.individualDetails?.nameSuffix,
-      ].join(' ');
+      ]
+        .filter(Boolean)
+        .join(' ');
 
       form.setValue('organizationName', orgName);
     }
