@@ -124,8 +124,6 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
     }
   }, []);
 
-  console.log(form.formState.errors);
-
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
