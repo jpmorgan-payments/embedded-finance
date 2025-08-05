@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRightIcon,
@@ -12,6 +11,7 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,

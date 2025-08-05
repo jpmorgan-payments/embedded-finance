@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   ControllerProps,
@@ -7,6 +6,7 @@ import {
   FieldValues,
   useFormContext,
 } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
