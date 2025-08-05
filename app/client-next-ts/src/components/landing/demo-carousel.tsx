@@ -122,7 +122,8 @@ export function DemoCarousel() {
                         <p className="text-sm sm:text-base md:text-page-body text-jpm-gray leading-relaxed mb-4 sm:mb-5 md:mb-6">
                           {demo.description}
                         </p>
-                        {demo.status === 'available' ? (
+                        {demo.status === 'available' ||
+                        demo.status === 'testing' ? (
                           <Link to={demo.link} className="block w-full">
                             <Button
                               variant="default"
@@ -131,14 +132,6 @@ export function DemoCarousel() {
                               Launch Demo
                             </Button>
                           </Link>
-                        ) : demo.status === 'testing' ? (
-                          <Button
-                            variant="outline"
-                            className="w-full rounded-page-md font-semibold text-sm sm:text-base border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100"
-                            disabled
-                          >
-                            Testing
-                          </Button>
                         ) : (
                           <Button
                             variant="outline"
