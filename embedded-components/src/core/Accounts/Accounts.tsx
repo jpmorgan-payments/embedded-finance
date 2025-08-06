@@ -269,7 +269,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             className={`eb-p-4 ${
               account.category === 'LIMITED_DDA_PAYMENTS'
                 ? 'eb-flex-1'
-                : 'eb-w-1/2'
+                : 'eb-w-2/5'
             }`}
           >
             <div className="eb-mb-4 eb-text-sm eb-font-semibold">Overview</div>
@@ -314,7 +314,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
-            <Card className="eb-w-1/2 eb-p-4">
+            <Card className="eb-w-3/5 eb-p-4">
               <div className="eb-mb-4 eb-text-sm eb-font-semibold">
                 Account Details
               </div>
