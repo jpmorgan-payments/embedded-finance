@@ -14,6 +14,7 @@ import {
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { InfoPopover } from '@/components/LearnMorePopover/InfoPopover';
 
 export interface AccountsProps {
   allowedCategories: string[];
@@ -293,8 +294,14 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           {/* Right Section: Account Details */}
           {account.category !== 'LIMITED_DDA' && (
             <div className="eb-w-3/5 eb-p-4">
-              <div className="eb-mb-4 eb-text-sm eb-font-semibold">
-                Account Details
+              <div className="eb-mb-4 eb-flex eb-items-center eb-gap-1.5">
+                <span className="eb-text-sm eb-font-semibold">
+                  Account Details
+                </span>
+                <InfoPopover className="eb-ml-4">
+                  Account can be funded from external sources and is externally
+                  addressable via routing/account numbers here
+                </InfoPopover>
               </div>
               <div className="eb-flex eb-flex-col eb-gap-2">
                 <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
