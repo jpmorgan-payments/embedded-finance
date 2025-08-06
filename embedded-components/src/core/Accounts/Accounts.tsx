@@ -189,6 +189,13 @@ interface AccountCardProps {
   account: AccountResponse;
 }
 
+const formatNumberWithCommas = (value: number) => {
+  // Format the number with thousands separators but keep decimal places separate
+  const parts = value.toFixed(2).split('.');
+  const formattedWhole = new Intl.NumberFormat('en-US').format(Number(parts[0]));
+  return { whole: formattedWhole, decimal: parts[1] };
+};
+
 const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
   ({ account }, ref) => {
     const {
@@ -264,10 +271,10 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                           ? 'Current Balance'
                           : b.typeCode}
                     </span>
-                    <span className="eb-font-mono eb-text-lg">
-                      {Number(b.amount).toFixed(2).split('.')[0]}
+                    <span className="eb-font-mono eb-text-lg eb-text-metricAccent">
+                      {formatNumberWithCommas(Number(b.amount)).whole}
                       <span className="eb-text-sm">
-                        .{Number(b.amount).toFixed(2).split('.')[1]}{' '}
+                        .{formatNumberWithCommas(Number(b.amount)).decimal}{' '}
                         {balanceData.currency}
                       </span>
                     </span>
