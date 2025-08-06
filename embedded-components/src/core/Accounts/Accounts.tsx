@@ -257,7 +257,10 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           : account.category;
 
     const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
-      ? account.paymentRoutingInformation.accountNumber.replace(/.(?=.{4})/g, '*')
+      ? account.paymentRoutingInformation.accountNumber.replace(
+          /.(?=.{4})/g,
+          '*'
+        )
       : 'N/A';
 
     return (
@@ -270,14 +273,13 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
         <div className="eb-flex eb-gap-4">
           {/* Left Card: Balances */}
           <Card
-            className={`eb-border-transparent eb-p-4 eb-bg-primaryForegroundColor ${
+            className={`eb-border-2 eb-p-4 ${
               account.category === 'LIMITED_DDA_PAYMENTS'
                 ? 'eb-flex-1'
                 : 'eb-w-1/2'
             }`}
           >
-            <div className="eb-mb-2 eb-text-base eb-font-semibold">Overview</div>
-            <hr className="eb-my-2 eb-border-t eb-border-gray-300" />
+            <div className="eb-mb-1 eb-text-sm eb-font-semibold">Overview</div>
             {isBalanceLoading ? (
               <Skeleton className="eb-h-4 eb-w-1/2" />
             ) : balanceData?.balanceTypes?.length ? (
@@ -293,7 +295,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     key={b.typeCode}
                     className="eb-flex eb-w-full eb-flex-col eb-items-start"
                   >
-                    <span className="eb-text-xs eb-font-medium">
+                    <span className="eb-text-xs eb-font-medium eb-text-gray-500">
                       {b.typeCode === 'ITAV'
                         ? 'Available Balance'
                         : b.typeCode === 'ITBD'
@@ -301,7 +303,10 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                           : b.typeCode}
                     </span>
                     <span className="eb-font-mono eb-text-lg">
-                      {Number(b.amount).toFixed(2)} {balanceData.currency}
+                      {Number(b.amount).toFixed(2).split('.')[0]}
+                      <span className="eb-text-sm">
+                        .{Number(b.amount).toFixed(2).split('.')[1]} {balanceData.currency}
+                      </span>
                     </span>
                   </div>
                 ))}
@@ -315,20 +320,20 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
-            <Card className="eb-w-1/2 eb-border-2 eb-border-transparent eb-p-4 eb-bg-primaryForegroundColor">
-              <div className="eb-mb-2 eb-text-base eb-font-semibold">
+            <Card className="eb-w-1/2 eb-border-2 eb-p-4">
+              <div className="eb-mb-1 eb-text-sm eb-font-semibold">
                 Account Details
               </div>
-              <hr className="eb-my-2 eb-border-t eb-border-gray-300" />
               <div className="eb-flex eb-flex-col eb-gap-2">
                 <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
-                  <span className="eb-text-xs eb-font-medium">
+                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
                     Account Number:
                   </span>
                   <div className="eb-flex eb-items-center eb-gap-2">
                     <span className="eb-font-mono eb-text-lg">
                       {showSensitiveInfo
-                        ? account.paymentRoutingInformation?.accountNumber || 'N/A'
+                        ? account.paymentRoutingInformation?.accountNumber ||
+                          'N/A'
                         : maskedAccountNumber}
                     </span>
                     <button
@@ -355,11 +360,12 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   </div>
                 </div>
                 <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
-                  <span className="eb-text-xs eb-font-medium">
+                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
                     Routing Number:
                   </span>
                   <span className="eb-font-mono eb-text-lg">
-                    {account.paymentRoutingInformation?.routingNumber || '028000024'}
+                    {account.paymentRoutingInformation?.routingNumber ||
+                      '028000024'}
                   </span>
                 </div>
               </div>
