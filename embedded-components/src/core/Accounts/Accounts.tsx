@@ -245,6 +245,8 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     const formattedCategory =
       account.category === 'LIMITED_DDA_PAYMENTS'
         ? 'Payments DDA'
+        : account.category === 'LIMITED_DDA'
+        ? 'Limited DDA'
         : account.category;
 
     const maskedAccountNumber =
@@ -255,7 +257,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     return (
       <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4">
         {/* Title Section */}
-        <div className="eb-text-xl eb-font-semibold eb-mb-4">
+        <div className="eb-text-xl eb-font-semibold eb-mb-4 eb-pl-4">
           {formattedCategory} | {maskedAccountNumber}
         </div>
 
