@@ -267,9 +267,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           {/* Left Section: Balances */}
           <div
             className={`eb-p-4 ${
-              account.category === 'LIMITED_DDA_PAYMENTS'
-                ? 'eb-flex-1'
-                : 'eb-w-2/5'
+              account.category === 'LIMITED_DDA' ? 'eb-flex-1' : 'eb-w-2/5'
             }`}
           >
             <div className="eb-mb-4 eb-text-sm eb-font-semibold">Overview</div>
@@ -278,7 +276,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             ) : balanceData?.balanceTypes?.length ? (
               <div
                 className={`eb-flex eb-gap-2 ${
-                  account.category === 'LIMITED_DDA_PAYMENTS'
+                  account.category === 'LIMITED_DDA'
                     ? 'eb-flex-row'
                     : 'eb-flex-col'
                 }`}
@@ -313,7 +311,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           </div>
 
           {/* Right Section: Account Details */}
-          {account.category !== 'LIMITED_DDA_PAYMENTS' && (
+          {account.category !== 'LIMITED_DDA' && (
             <div className="eb-w-3/5 eb-p-4">
               <div className="eb-mb-4 eb-text-sm eb-font-semibold">
                 Account Details
@@ -366,26 +364,34 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     </button>
                   </div>
                 </div>
-                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-                    Routing Number:
-                  </span>
-                  <div className="eb-flex eb-items-center">
-                    <span className="eb-font-mono eb-text-sm">
-                      {account.paymentRoutingInformation?.routingNumber ||
-                        '028000024'}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText('028000024')}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                      title="Copy routing number"
-                      aria-label="Copy routing number"
+                {account.paymentRoutingInformation?.routingInformation?.map(
+                  (routing, index) => (
+                    <div
+                      key={index}
+                      className="eb-flex eb-w-full eb-items-center eb-justify-between"
                     >
-                      <Copy className="eb-h-3 eb-w-3" />
-                    </button>
-                  </div>
-                </div>
+                      <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                        Routing Number ({routing.type}):
+                      </span>
+                      <div className="eb-flex eb-items-center">
+                        <span className="eb-font-mono eb-text-sm">
+                          {routing.value}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigator.clipboard.writeText(routing.value)
+                          }
+                          className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                          title={`Copy routing number (${routing.type})`}
+                          aria-label={`Copy routing number (${routing.type})`}
+                        >
+                          <Copy className="eb-h-3 eb-w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
