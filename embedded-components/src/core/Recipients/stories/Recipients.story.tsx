@@ -491,7 +491,29 @@ export const SellSenseTheme: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: SELLSENSE_THEME,
+    theme: { ...SELLSENSE_THEME, colorScheme: 'light' },
+    contentTokens: { name: 'enUS' },
+  },
+  tags: ['@sellsense', '@theme'],
+  render: (args) => <RecipientsWithProvider {...args} />,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json(mockRecipientsResponse);
+        }),
+      ],
+    },
+  },
+};
+
+// Story for SellSense theme
+export const DarkSellSenseTheme: Story = {
+  args: {
+    clientId: 'client-001',
+    showCreateButton: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
+    theme: { ...SELLSENSE_THEME, colorScheme: 'dark' },
     contentTokens: { name: 'enUS' },
   },
   tags: ['@sellsense', '@theme'],

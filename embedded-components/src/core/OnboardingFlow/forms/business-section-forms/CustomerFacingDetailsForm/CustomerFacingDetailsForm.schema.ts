@@ -22,7 +22,11 @@ export const CustomerFacingDetailsFormSchema = z.object({
       i18n.t('onboarding:fields.dbaName.validation.minLength')
     ),
   dbaNameNotAvailable: z.boolean(),
-  organizationDescription: z.string().min(10).max(500).transform(sanitizeInput),
+  organizationDescription: z
+    .string()
+    .min(10)
+    .max(1000)
+    .transform(sanitizeInput),
   website: z
     .string()
     .url(i18n.t('onboarding:fields.website.validation.invalid'))

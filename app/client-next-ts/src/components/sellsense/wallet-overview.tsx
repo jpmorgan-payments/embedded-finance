@@ -181,7 +181,7 @@ export function WalletOverview({
           makePaymentComponent={
             <MakePayment
               onTransactionSettled={handleTransactionSettled}
-              triggerButtonVariant="link"
+              triggerButtonVariant="secondary"
             />
           }
           variant="singleAccount"
@@ -230,7 +230,7 @@ export function WalletOverview({
           makePaymentComponent={
             <MakePayment
               onTransactionSettled={handleTransactionSettled}
-              triggerButtonVariant="link"
+              triggerButtonVariant="secondary"
             />
           }
         />
