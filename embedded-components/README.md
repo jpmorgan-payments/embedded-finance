@@ -956,7 +956,7 @@ const convertThemeVariablesToCssVariables = (
 
 ### 4. **Add to Tailwind Config** (if needed)
 
-If your token should be available as a Tailwind class, add it to `tailwind.config.js`:
+If your token should be available as a Tailwind class, add it to `tailwind.config.js`. The configuration uses Tailwind's `theme.extend` to add new design tokens without overriding existing defaults:
 
 ```javascript
 module.exports = {
@@ -981,6 +981,43 @@ module.exports = {
     },
   },
 };
+```
+
+#### How Tailwind Applies Design Tokens
+
+The `tailwind.config.js` file uses Tailwind's configuration system to map CSS custom properties to utility classes:
+
+1. **Theme Extension**: The `theme.extend` object adds new values to existing Tailwind categories without overriding defaults
+2. **CSS Variable Integration**: Design tokens are converted to CSS variables (e.g., `--eb-custom-spacing`) and referenced in the config
+3. **Utility Class Generation**: Tailwind automatically generates utility classes based on the configuration:
+
+   - `spacing` → `eb-p-{value}`, `eb-m-{value}`, `eb-gap-{value}`, etc.
+   - `colors` → `eb-bg-{color}`, `eb-text-{color}`, `eb-border-{color}`, etc.
+   - `borderRadius` → `eb-rounded-{value}`, `eb-rounded-t-{value}`, etc.
+   - `fontSize` → `eb-text-{size}`, `eb-text-{size}/{lineHeight}`, etc.
+
+4. **Prefix Application**: The `prefix: 'eb-'` setting ensures all generated classes are prefixed to avoid conflicts
+
+> **📚 Learn More**: For detailed information about how Tailwind's `theme.extend` configuration works, see the [official Tailwind CSS documentation on theme customization](https://tailwindcss.com/docs/theme#extending-the-default-theme).
+
+**Example Token Flow:**
+
+```javascript
+// 1. Theme variable defined
+customSpacing: '2rem'
+
+// 2. Converted to CSS variable
+'--eb-custom-spacing': '2rem'
+
+// 3. Added to Tailwind config
+spacing: {
+  custom: 'var(--eb-custom-spacing)',
+}
+
+// 4. Available as utility classes
+<div className="eb-p-custom">Content</div>
+<div className="eb-m-custom">Margin</div>
+<div className="eb-gap-custom">Grid gap</div>
 ```
 
 ### 5. **Add Default Value**
