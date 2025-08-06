@@ -54,7 +54,7 @@
       "description": "",
       "tooltip": "A brief description of your business and its activities",
       "validation": {
-        "maxLength": "Business description must be 500 characters or less",
+        "maxLength": "Business description must be 1000 characters or less",
         "minLength": "Business description must be at least 10 characters",
         "noHtml": "Business description cannot contain HTML tags",
         "noUrls": "Business description cannot contain URLs"
