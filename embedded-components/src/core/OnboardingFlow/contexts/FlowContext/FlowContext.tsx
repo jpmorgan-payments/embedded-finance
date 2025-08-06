@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 
+import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FlowConfig,
@@ -40,6 +41,9 @@ const FlowContext = createContext<{
   reviewScreenOpenedSectionId: SectionScreenId | null;
   initialStepperStepId: string | null;
   shortLabelOverride: string | null;
+  orgParty: PartyResponse | undefined;
+  controllerParty: PartyResponse | undefined;
+  isSoleProp: boolean;
 }>({
   currentScreenId: 'overview',
   originScreenId: null,
@@ -63,6 +67,9 @@ const FlowContext = createContext<{
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
   shortLabelOverride: null,
+  orgParty: undefined,
+  controllerParty: undefined,
+  isSoleProp: false,
 });
 
 export const FlowProvider: React.FC<{
@@ -83,7 +90,7 @@ export const FlowProvider: React.FC<{
   );
   const [sessionData, setSessionData] = useState<FlowSessionData>({});
 
-  const { organizationType } = useOnboardingContext();
+  const { organizationType, clientData } = useOnboardingContext();
 
   const currentScreenId = history[history.length - 1];
 
@@ -128,6 +135,17 @@ export const FlowProvider: React.FC<{
     }));
   };
 
+  const orgParty = clientData?.parties?.find((p) =>
+    p.roles?.includes('CLIENT')
+  );
+
+  const controllerParty = clientData?.parties?.find((p) =>
+    p.roles?.includes('CONTROLLER')
+  );
+
+  const isSoleProp =
+    orgParty?.organizationDetails?.organizationType === 'SOLE_PROPRIETORSHIP';
+
   return (
     <FlowContext.Provider
       value={{
@@ -145,6 +163,9 @@ export const FlowProvider: React.FC<{
         reviewScreenOpenedSectionId,
         initialStepperStepId,
         shortLabelOverride,
+        orgParty,
+        controllerParty,
+        isSoleProp,
       }}
     >
       {children}

@@ -8,7 +8,7 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import {
   BusinessContactInfoFormSchema,
-  CompanyIdentificationFormSchema,
+  createCompanyIdentificationFormSchema,
   CustomerFacingDetailsFormSchema,
   IndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
@@ -26,7 +26,7 @@ const ONBOARDING_FORM_SCHEMAS = [
   IndividualIdentityFormSchema,
   ContactDetailsFormSchema,
   IndustryFormSchema,
-  CompanyIdentificationFormSchema,
+  createCompanyIdentificationFormSchema(),
   CustomerFacingDetailsFormSchema,
   BusinessContactInfoFormSchema,
 ] as const;

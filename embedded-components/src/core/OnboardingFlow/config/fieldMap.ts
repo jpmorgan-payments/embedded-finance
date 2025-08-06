@@ -503,7 +503,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
-    baseRule: { display: 'visible', required: true, defaultValue: '' },
+    baseRule: { display: 'visible', required: true, defaultValue: 'US' },
     toStringFn: (val) => `${i18n.t(`common:countries.${val}`)} (${val})`,
   },
   controllerFirstName: {
