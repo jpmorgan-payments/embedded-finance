@@ -45,12 +45,31 @@ export const getPartyByAssociatedPartyFilters = (
   return (
     clientData?.parties?.find((party) => {
       return (
+        party.active &&
         party.partyType === associatedPartyFilters?.partyType &&
         associatedPartyFilters?.roles?.every((role) =>
           party.roles?.includes(role)
         )
       );
     }) ?? {}
+  );
+};
+
+export const getOrganizationParty = (clientData?: ClientResponse) => {
+  return clientData?.parties?.find(
+    (party) =>
+      party.active &&
+      party.partyType === 'ORGANIZATION' &&
+      party.roles?.includes('CLIENT')
+  );
+};
+
+export const getControllerParty = (clientData?: ClientResponse) => {
+  return clientData?.parties?.find(
+    (party) =>
+      party.active &&
+      party.partyType === 'INDIVIDUAL' &&
+      party.roles?.includes('CONTROLLER')
   );
 };
 

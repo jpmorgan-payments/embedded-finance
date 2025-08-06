@@ -1,4 +1,3 @@
-import { useTranslation } from '@/i18n/useTranslation';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
   FieldArray,
@@ -9,6 +8,7 @@ import {
   useFieldArray,
   UseFieldArrayProps,
 } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';

@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-// import { useTranslation } from '@/i18n/useTranslation';
+// import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -82,20 +82,36 @@ export const PersonalDetailsForm: FormStepComponent = () => {
 PersonalDetailsForm.schema = PersonalDetailsFormSchema;
 PersonalDetailsForm.refineSchemaFn = refinePersonalDetailsFormSchema;
 PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
-  values: Partial<z.output<typeof PersonalDetailsFormSchema>>,
-  partyData
+  values: Partial<z.output<typeof PersonalDetailsFormSchema>>
+  // partyData
 ) => {
-  // If the controller job title is not "Other", remove jobTitleDescription
-  if (values.controllerJobTitle !== 'Other') {
-    delete values.controllerJobTitleDescription;
-  }
+  const { controllerJobTitleDescription, ...rest } = values;
 
-  // Set the country of residence as it is required
-  const modifiedValues = {
-    ...values,
-    countryOfResidence:
-      partyData?.individualDetails?.countryOfResidence ?? 'US',
+  return {
+    ...rest,
+    // If the controller job title is not "Other", remove jobTitleDescription
+    ...(values.controllerJobTitle === 'Other'
+      ? { controllerJobTitleDescription }
+      : { controllerJobTitleDescription: undefined }),
+    // Set the country of residence as it is required
+    countryOfResidence: 'US',
+    // To be used when more countries are supported
+    // partyData?.individualDetails?.countryOfResidence ?? 'US',
   };
-
-  return modifiedValues;
+};
+PersonalDetailsForm.updateAnotherPartyOnSubmit = {
+  partyFilters: {
+    partyType: 'ORGANIZATION',
+    roles: ['CLIENT'],
+  },
+  getValues: (values) => ({
+    organizationName: [
+      values.controllerFirstName,
+      values.controllerMiddleName,
+      values.controllerLastName,
+      values.controllerNameSuffix,
+    ]
+      .filter(Boolean)
+      .join(' '),
+  }),
 };

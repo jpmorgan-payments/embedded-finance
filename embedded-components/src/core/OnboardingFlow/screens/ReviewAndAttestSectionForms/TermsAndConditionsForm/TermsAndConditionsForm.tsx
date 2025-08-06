@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from '@/i18n/useTranslation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
@@ -11,6 +10,7 @@ import {
   Loader2Icon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 

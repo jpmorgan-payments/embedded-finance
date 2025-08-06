@@ -1,11 +1,8 @@
 import { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
 
-import {
-  ClientResponse,
-  OrganizationType,
-  PartyResponse,
-} from '@/api/generated/smbdo.schemas';
+import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 
 type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any>>>;
 
@@ -14,12 +11,17 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     currentPartyData?: PartyResponse;
   }> & {
     schema: TSchema;
-    createSchema?: (orgType?: OrganizationType) => TSchema;
     refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
     modifyFormValuesBeforeSubmit?: (
       values: z.output<TSchema>,
-      partyData: any | undefined
-    ) => z.output<TSchema>;
+      partyData: PartyResponse | undefined
+    ) => Partial<OnboardingFormValuesSubmit>;
+    updateAnotherPartyOnSubmit?: {
+      partyFilters: AssociatedPartyFilters;
+      getValues: (
+        values: Partial<OnboardingFormValuesSubmit>
+      ) => Partial<OnboardingFormValuesSubmit>;
+    };
   };
 
 export type StepConfig = BaseStep | FormStep;

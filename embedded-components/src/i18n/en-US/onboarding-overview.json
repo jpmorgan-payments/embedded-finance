@@ -230,7 +230,7 @@
       }
     },
     "organizationIds": {
-      "label": "Business Identification",
+      "label": "Business identification",
       "itemLabel": "Business Identification",
       "itemLabelNumbered": "Business Identification {{number}}",
       "appendLabel": "Add Business Identification",
@@ -241,7 +241,15 @@
         "uniqueTypes": "Each Business Identification type must be unique"
       }
     },
-    "ssnOrEin": {
+    "solePropOrganizationId": {
+      "label": "Business identification",
+      "description": "",
+      "tooltip": "Should match your business registration document's ID value",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "solePropPersonalIdOrEin": {
       "label": "How do you identify your business?",
       "description": "",
       "tooltip": ""

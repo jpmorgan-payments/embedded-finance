@@ -1,5 +1,5 @@
-import { useTranslation } from '@/i18n/useTranslation';
 import { AlertTriangleIcon, PencilIcon, TriangleAlertIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { AlertTitle } from '@/components/ui/alert';
@@ -12,7 +12,10 @@ import {
 import { StepConfig } from '@/core/OnboardingFlow/types/flow.types';
 import { OnboardingFormValuesInitial } from '@/core/OnboardingFlow/types/form.types';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
-import { convertPartyResponseToFormValues } from '@/core/OnboardingFlow/utils/formUtils';
+import {
+  convertPartyResponseToFormValues,
+  useFormUtilsWithClientContext,
+} from '@/core/OnboardingFlow/utils/formUtils';
 
 type StepsReviewCardsProps = {
   steps: StepConfig[];
@@ -27,7 +30,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
 }) => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
-  const { clientData, organizationType } = useOnboardingContext();
+  const { clientData } = useOnboardingContext();
   const { isSoleProp } = useFlowContext();
   const formValues = convertPartyResponseToFormValues(partyData ?? {});
   const { stepValidationMap } = getStepperValidation(
@@ -36,12 +39,29 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
     clientData
   );
 
+  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+
   return (
     <div className="eb-space-y-4" key={partyData?.id}>
       {steps
         .filter((step) => step.stepType !== 'check-answers')
         .map((step) => {
           const { isValid, result } = stepValidationMap[step.id];
+
+          let schemaKeys: string[] = [];
+          if (step.stepType === 'form') {
+            const modifiedSchema = modifySchema(
+              step.Component.schema,
+              step.Component.refineSchemaFn
+            );
+            schemaKeys = Object.keys(
+              'shape' in modifiedSchema
+                ? modifiedSchema.shape
+                : 'innerType' in modifiedSchema
+                  ? modifiedSchema.innerType().shape
+                  : {}
+            );
+          }
 
           return (
             <Card
@@ -89,82 +109,73 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                 </Alert>
               )}
 
-              {step.stepType === 'form' &&
-                Object.keys(
-                  (
-                    step.Component?.createSchema?.(organizationType) ??
-                    step.Component.schema
-                  ).shape
-                ).map((key) => {
-                  let field = key as keyof OnboardingFormValuesInitial;
+              {schemaKeys.map((key) => {
+                let field = key as keyof OnboardingFormValuesInitial;
 
-                  let value = formValues?.[field];
+                let value = formValues?.[field];
 
-                  // EXCEPTION HANDLING
-                  if (isSoleProp && field === 'organizationIds' && !value) {
-                    field = 'controllerIds';
-                    value = formValues?.[field];
-                  }
+                // EXCEPTION HANDLING
+                if (isSoleProp && field === 'organizationIds' && !value) {
+                  field = 'controllerIds';
+                  value = formValues?.[field];
+                }
 
-                  const fieldConfig = partyFieldMap?.[field] as {
-                    toStringFn?: (
-                      val: any,
-                      values: Partial<OnboardingFormValuesInitial>
-                    ) => string | string[] | undefined;
-                    generateLabelStringFn?: (val: any) => string | undefined;
-                    isHiddenInReview?: (val: any) => boolean;
-                  } & {
-                    [key: string]: any;
-                  };
+                const fieldConfig = partyFieldMap?.[field] as {
+                  toStringFn?: (
+                    val: any,
+                    values: Partial<OnboardingFormValuesInitial>
+                  ) => string | string[] | undefined;
+                  generateLabelStringFn?: (val: any) => string | undefined;
+                  isHiddenInReview?: (val: any) => boolean;
+                } & {
+                  [key: string]: any;
+                };
 
-                  if (fieldConfig?.isHiddenInReview?.(value)) {
-                    return null;
-                  }
-                  const labelString =
-                    fieldConfig?.generateLabelStringFn?.(value) ??
-                    t([
-                      `onboarding-overview:fields.${field}.reviewLabel`,
-                      `onboarding-overview:fields.${field}.label`,
-                      `onboarding:fields.${field}.label`,
-                    ] as unknown as TemplateStringsArray);
+                if (fieldConfig?.isHiddenInReview?.(value)) {
+                  return null;
+                }
+                const labelString =
+                  fieldConfig?.generateLabelStringFn?.(value) ??
+                  t([
+                    `onboarding-overview:fields.${field}.reviewLabel`,
+                    `onboarding-overview:fields.${field}.label`,
+                    `onboarding:fields.${field}.label`,
+                  ] as unknown as TemplateStringsArray);
 
-                  const valueString =
-                    value !== undefined
-                      ? fieldConfig?.toStringFn
-                        ? fieldConfig.toStringFn(value, formValues)
-                        : String(value)
-                      : undefined;
+                const valueString = fieldConfig?.toStringFn
+                  ? fieldConfig.toStringFn(value, formValues)
+                  : String(value);
 
-                  return (
-                    <div className="eb-space-y-0.5" key={field}>
-                      <p className="eb-text-label eb-font-label eb-text-label-foreground">
-                        {labelString}
-                      </p>
-                      <div className="eb-flex eb-flex-col">
-                        {result?.error?.issues
-                          .map((issue) => issue.path?.[0])
-                          ?.includes(field) ? (
-                          <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
-                            <TriangleAlertIcon className="eb-size-4" />
-                            <p className="eb-italic">This field is missing</p>
-                          </div>
-                        ) : Array.isArray(valueString) ? (
-                          valueString.map((val, index) => (
-                            <p className="eb-text-sm" key={index}>
-                              {val}
-                            </p>
-                          ))
-                        ) : valueString ? (
-                          <p className="eb-text-sm">{valueString}</p>
-                        ) : (
-                          <span className="eb-text-sm eb-italic eb-text-muted-foreground">
-                            {t('common:empty')}
-                          </span>
-                        )}
-                      </div>
+                return (
+                  <div className="eb-space-y-0.5" key={field}>
+                    <p className="eb-text-label eb-font-label eb-text-label-foreground">
+                      {labelString}
+                    </p>
+                    <div className="eb-flex eb-flex-col">
+                      {result?.error?.issues
+                        .map((issue) => issue.path?.[0])
+                        ?.includes(field) ? (
+                        <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
+                          <TriangleAlertIcon className="eb-size-4" />
+                          <p className="eb-italic">This field is missing</p>
+                        </div>
+                      ) : Array.isArray(valueString) ? (
+                        valueString.map((val, index) => (
+                          <p className="eb-text-sm" key={index}>
+                            {val}
+                          </p>
+                        ))
+                      ) : valueString ? (
+                        <p className="eb-text-sm">{valueString}</p>
+                      ) : (
+                        <span className="eb-text-sm eb-italic eb-text-muted-foreground">
+                          {t('common:empty')}
+                        </span>
+                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
             </Card>
           );
         })}

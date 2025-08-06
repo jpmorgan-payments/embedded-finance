@@ -210,6 +210,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       goTo(prevSection.id, {
         editingPartyId: prevSectionPartyData.id,
       });
+    } else if (currentScreenId === 'review-attest-section') {
+      goTo('overview');
     } else {
       stepperPrev();
     }
@@ -349,12 +351,8 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   prevButtonDisabled = false,
 }) => {
   const queryClient = useQueryClient();
-  const {
-    clientData,
-    organizationType,
-    onPostClientSettled,
-    onPostPartySettled,
-  } = useOnboardingContext();
+  const { clientData, onPostClientSettled, onPostPartySettled } =
+    useOnboardingContext();
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -379,7 +377,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
   const form = useFormWithFilters({
     clientData,
-    schema: Component.createSchema?.(organizationType) ?? Component.schema,
+    schema: Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
     overrideDefaultValues: formValuesFromResponse,
     disabled: isFormSubmitting,
@@ -392,6 +390,29 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     const modifiedValues = Component.modifyFormValuesBeforeSubmit
       ? Component.modifyFormValuesBeforeSubmit(values, existingPartyData)
       : values;
+
+    // Update another party if needed
+    if (Component.updateAnotherPartyOnSubmit && clientData) {
+      const targetParty = getPartyByAssociatedPartyFilters(
+        clientData,
+        Component.updateAnotherPartyOnSubmit.partyFilters
+      );
+      if (targetParty && targetParty.id) {
+        const updatedValues =
+          Component.updateAnotherPartyOnSubmit.getValues(modifiedValues);
+        updateParty(
+          {
+            partyId: targetParty.id,
+            data: generatePartyRequestBody(updatedValues, {}),
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartySettled?.(data, error?.response?.data);
+            },
+          }
+        );
+      }
+    }
 
     // Client data exists - therefore we are adding or updating a party
     if (clientData) {

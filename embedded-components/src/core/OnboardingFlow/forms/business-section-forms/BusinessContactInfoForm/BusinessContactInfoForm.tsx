@@ -1,5 +1,6 @@
-import { useTranslation } from '@/i18n/useTranslation';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -14,6 +15,12 @@ import { BusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema'
 export const BusinessContactInfoForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof BusinessContactInfoFormSchema>>();
+
+  useEffect(() => {
+    if (form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE') {
+      form.setValue('organizationPhone.phoneType', 'BUSINESS_PHONE');
+    }
+  });
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -96,14 +103,3 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
 };
 
 BusinessContactInfoForm.schema = BusinessContactInfoFormSchema;
-BusinessContactInfoForm.modifyFormValuesBeforeSubmit = (
-  values: Partial<z.output<typeof BusinessContactInfoFormSchema>>
-) => {
-  return {
-    ...values,
-    organizationPhone: {
-      ...values.organizationPhone,
-      phoneType: 'BUSINESS_PHONE',
-    },
-  };
-};
