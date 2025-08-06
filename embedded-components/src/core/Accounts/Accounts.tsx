@@ -262,28 +262,35 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
         <div className="eb-flex eb-gap-4">
           {/* Left Card: Balances */}
           <Card
-            className={`eb-p-4 eb-shadow-sm ${
+            className={`eb-p-4 eb-shadow-sm eb-border-2 eb-border-gray-200 ${
               account.category === 'LIMITED_DDA_PAYMENTS' ? 'eb-flex-1' : 'eb-w-1/2'
             }`}
           >
-            <div className="eb-text-lg eb-font-semibold eb-mb-2">Balances</div>
+            <div className="eb-text-base eb-font-semibold eb-mb-2">Balances</div>
+            <hr className="eb-border-t eb-border-gray-300 eb-my-2" />
             {isBalanceLoading ? (
               <Skeleton className="eb-h-4 eb-w-1/2" />
             ) : balanceData?.balanceTypes?.length ? (
-              <div className="eb-flex eb-flex-col eb-gap-2">
+              <div
+                className={`eb-flex eb-gap-2 ${
+                  account.category === 'LIMITED_DDA_PAYMENTS'
+                    ? 'eb-flex-row'
+                    : 'eb-flex-col'
+                }`}
+              >
                 {balanceData.balanceTypes.map((b) => (
                   <div
                     key={b.typeCode}
-                    className="eb-flex eb-items-center eb-justify-between"
+                    className="eb-flex eb-flex-col eb-items-start eb-w-full"
                   >
-                    <span className="eb-text-sm eb-font-medium">
+                    <span className="eb-text-xs eb-font-medium">
                       {b.typeCode === 'ITAV'
                         ? 'Available Balance'
                         : b.typeCode === 'ITBD'
                         ? 'Current Balance'
                         : b.typeCode}
                     </span>
-                    <span className="eb-font-mono eb-text-sm">
+                    <span className="eb-font-mono eb-text-lg">
                       {Number(b.amount).toFixed(2)} {balanceData.currency}
                     </span>
                   </div>
@@ -298,10 +305,11 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
-            <Card className="eb-w-1/2 eb-p-4 eb-shadow-sm">
-              <div className="eb-text-lg eb-font-semibold eb-mb-2">
+            <Card className="eb-w-1/2 eb-p-4 eb-shadow-sm eb-border-2 eb-border-gray-200">
+              <div className="eb-text-base eb-font-semibold eb-mb-2">
                 Account Details
               </div>
+              <hr className="eb-border-t eb-border-gray-300 eb-my-2" />
               <div className="eb-flex eb-flex-col eb-gap-2">
                 <div className="eb-text-sm">
                   <span className="eb-font-medium">Account Number:</span>{' '}
