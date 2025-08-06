@@ -364,34 +364,40 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     </button>
                   </div>
                 </div>
-                {account.paymentRoutingInformation?.routingInformation?.map(
-                  (routing, index) => (
-                    <div
-                      key={index}
-                      className="eb-flex eb-w-full eb-items-center eb-justify-between"
+                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                    ACH Routing:
+                  </span>
+                  <div className="eb-flex eb-items-center">
+                    <span className="eb-font-mono eb-text-sm">028000024</span>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText('028000024')}
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      title="Copy ACH Routing"
+                      aria-label="Copy ACH Routing"
                     >
-                      <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-                        Routing Number ({routing.type}):
-                      </span>
-                      <div className="eb-flex eb-items-center">
-                        <span className="eb-font-mono eb-text-sm">
-                          {routing.value}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigator.clipboard.writeText(routing.value)
-                          }
-                          className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                          title={`Copy routing number (${routing.type})`}
-                          aria-label={`Copy routing number (${routing.type})`}
-                        >
-                          <Copy className="eb-h-3 eb-w-3" />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                )}
+                      <Copy className="eb-h-3 eb-w-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                    Wire/RTP Routing:
+                  </span>
+                  <div className="eb-flex eb-items-center">
+                    <span className="eb-font-mono eb-text-sm">021000021</span>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText('021000021')}
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      title="Copy Wire/RTP Routing"
+                      aria-label="Copy Wire/RTP Routing"
+                    >
+                      <Copy className="eb-h-3 eb-w-3" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
