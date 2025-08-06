@@ -8,21 +8,56 @@
 import { EBTheme } from './EBComponentsProvider/config.types';
 
 /**
- * SellSense Light Theme Configuration
+ * SellSense Theme Configuration
  *
- * Official SellSense brand colors and styling:
- * - Primary: Orange (#f55727)
- * - Background: Warm off-white (#FAF9F7)
- * - Typography: Inter font family
- * - Modern, clean design with proper contrast
+ * Unified theme with light and dark mode support:
+ * - Common properties in `variables` (fonts, spacing, etc.)
+ * - Light mode specific colors in `light`
+ * - Dark mode specific colors in `dark`
+ * - Maintains SellSense brand identity across modes
  */
 export const SELLSENSE_THEME: EBTheme = {
+  colorScheme: 'system',
   variables: {
+    // Common properties that apply to both light and dark modes
     fontFamily: 'Inter',
     headerFontFamily: 'Inter',
     buttonFontFamily: 'Inter',
 
-    // SellSense brand colors (converted to HSL)
+    // Common spacing and layout
+    borderRadius: '8px',
+    inputBorderRadius: '4px',
+    buttonBorderRadius: '8px',
+    spacingUnit: '0.25rem',
+    zIndexOverlay: 1000,
+
+    // Common button styling
+    buttonFontWeight: '600',
+    buttonFontSize: '0.875rem',
+    buttonLineHeight: '1.25rem',
+    buttonTextTransform: 'uppercase',
+    buttonLetterSpacing: '0.6px',
+
+    // Common button weights
+    primaryButtonFontWeight: '600',
+    secondaryButtonFontWeight: '600',
+    destructiveButtonFontWeight: '600',
+
+    // Common form styling
+    formLabelFontSize: '0.875rem',
+    formLabelFontWeight: '600',
+    formLabelLineHeight: '1.25rem',
+
+    // Common border widths
+    primaryBorderWidth: '0px',
+    secondaryBorderWidth: '1px',
+    destructiveBorderWidth: '0px',
+
+    // Common behavior
+    shiftButtonOnActive: false,
+  },
+  light: {
+    // SellSense brand colors (light mode)
     primaryColor: 'hsl(14, 91%, 55%)',
     primaryHoverColor: 'hsl(14, 91%, 50%)',
     primaryActiveColor: 'hsl(14, 91%, 45%)',
@@ -35,7 +70,6 @@ export const SELLSENSE_THEME: EBTheme = {
     secondaryForegroundColor: 'hsl(14, 91%, 55%)',
     secondaryForegroundHoverColor: 'hsl(14, 91%, 50%)',
     secondaryForegroundActiveColor: 'hsl(175, 62%, 41%)',
-    secondaryBorderWidth: '1px',
 
     // Background and layout
     backgroundColor: 'hsl(30, 20%, 97%)',
@@ -71,55 +105,8 @@ export const SELLSENSE_THEME: EBTheme = {
     inputColor: 'hsl(0, 0%, 100%)',
     inputBorderColor: 'hsla(0, 0%, 0%, 0.3)',
     borderColor: 'hsla(0, 0%, 0%, 0.3)',
-
-    // Border radius
-    borderRadius: '8px',
-    inputBorderRadius: '4px',
-    buttonBorderRadius: '8px',
-
-    // Enhanced button styling
-    buttonFontWeight: '600',
-    buttonFontSize: '0.875rem',
-    buttonLineHeight: '1.25rem',
-    buttonTextTransform: 'uppercase',
-    buttonLetterSpacing: '0.6px',
-
-    // Button weights
-    primaryButtonFontWeight: '600',
-    secondaryButtonFontWeight: '600',
-    destructiveButtonFontWeight: '600',
-
-    // Form label design tokens
-    formLabelFontSize: '0.875rem',
-    formLabelFontWeight: '600',
-    formLabelLineHeight: '1.25rem',
-
-    // Border widths
-    primaryBorderWidth: '0px',
-    destructiveBorderWidth: '0px',
-
-    // Spacing and effects
-    spacingUnit: '0.25rem',
-    shiftButtonOnActive: false,
-    zIndexOverlay: 1000,
   },
-};
-
-/**
- * SellSense Dark Theme Configuration
- *
- * Dark variant of the SellSense theme with:
- * - Dark backgrounds with warm undertones
- * - Maintained orange primary color for brand consistency
- * - Proper contrast ratios for accessibility
- * - Complementary dark mode color palette
- */
-export const SELLSENSE_DARK_THEME: EBTheme = {
-  variables: {
-    fontFamily: 'Inter',
-    headerFontFamily: 'Inter',
-    buttonFontFamily: 'Inter',
-
+  dark: {
     // SellSense brand colors (maintained for brand consistency)
     primaryColor: 'hsl(14, 91%, 55%)',
     primaryHoverColor: 'hsl(14, 91%, 60%)',
@@ -133,7 +120,6 @@ export const SELLSENSE_DARK_THEME: EBTheme = {
     secondaryForegroundColor: 'hsl(14, 91%, 55%)',
     secondaryForegroundHoverColor: 'hsl(14, 91%, 60%)',
     secondaryForegroundActiveColor: 'hsl(175, 62%, 41%)',
-    secondaryBorderWidth: '1px',
 
     // Background and layout
     backgroundColor: 'hsl(215, 25%, 10%)',
@@ -169,37 +155,6 @@ export const SELLSENSE_DARK_THEME: EBTheme = {
     inputColor: 'hsl(215, 25%, 12%)',
     inputBorderColor: 'hsla(210, 40%, 98%, 0.3)',
     borderColor: 'hsla(210, 40%, 98%, 0.3)',
-
-    // Border radius
-    borderRadius: '8px',
-    inputBorderRadius: '4px',
-    buttonBorderRadius: '8px',
-
-    // Enhanced button styling
-    buttonFontWeight: '600',
-    buttonFontSize: '0.875rem',
-    buttonLineHeight: '1.25rem',
-    buttonTextTransform: 'uppercase',
-    buttonLetterSpacing: '0.6px',
-
-    // Button weights
-    primaryButtonFontWeight: '600',
-    secondaryButtonFontWeight: '600',
-    destructiveButtonFontWeight: '600',
-
-    // Form label design tokens
-    formLabelFontSize: '0.875rem',
-    formLabelFontWeight: '600',
-    formLabelLineHeight: '1.25rem',
-
-    // Border widths
-    primaryBorderWidth: '0px',
-    destructiveBorderWidth: '0px',
-
-    // Spacing and effects
-    spacingUnit: '0.25rem',
-    shiftButtonOnActive: false,
-    zIndexOverlay: 1000,
   },
 };
 
@@ -290,7 +245,6 @@ export const DEFAULT_THEME: EBTheme = {
  */
 export const THEMES = {
   SELLSENSE: SELLSENSE_THEME,
-  SELLSENSE_DARK: SELLSENSE_DARK_THEME,
   DEFAULT: DEFAULT_THEME,
 } as const;
 

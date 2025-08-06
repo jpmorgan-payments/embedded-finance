@@ -7,7 +7,7 @@ import { userEvent, within } from '@test-utils';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
-import { SELLSENSE_DARK_THEME, SELLSENSE_THEME } from '../../themes';
+import { SELLSENSE_THEME } from '../../themes';
 import { Recipients, RecipientsProps } from '../Recipients';
 
 
@@ -488,7 +488,7 @@ export const SellSenseTheme: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: SELLSENSE_THEME,
+    theme: { ...SELLSENSE_THEME, colorScheme: 'light' },
     contentTokens: { name: 'enUS' },
   },
   tags: ['@sellsense', '@theme'],
@@ -510,7 +510,7 @@ export const DarkSellSenseTheme: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: SELLSENSE_DARK_THEME,
+    theme: { ...SELLSENSE_THEME, colorScheme: 'dark' },
     contentTokens: { name: 'enUS' },
   },
   tags: ['@sellsense', '@theme'],
