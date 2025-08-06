@@ -5,14 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  AlertCircle,
-  ClipboardCopy,
-  Eye,
-  EyeOff,
-  Info,
-  InfoIcon,
-} from 'lucide-react';
+import { AlertCircle, Copy, Eye, EyeOff, Info, InfoIcon } from 'lucide-react';
 
 import {
   useGetAccountBalance,
@@ -358,16 +351,40 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                         <Eye className="eb-h-3 eb-w-3" />
                       )}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          account.paymentRoutingInformation?.accountNumber || ''
+                        )
+                      }
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      title="Copy account number"
+                      aria-label="Copy account number"
+                    >
+                      <Copy className="eb-h-3 eb-w-3" />
+                    </button>
                   </div>
                 </div>
                 <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
                   <span className="eb-text-xs eb-font-medium eb-text-gray-500">
                     Routing Number:
                   </span>
-                  <span className="eb-font-mono eb-text-sm">
-                    {account.paymentRoutingInformation?.routingNumber ||
-                      '028000024'}
-                  </span>
+                  <div className="eb-flex eb-items-center">
+                    <span className="eb-font-mono eb-text-sm">
+                      {account.paymentRoutingInformation?.routingNumber ||
+                        '028000024'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText('028000024')}
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      title="Copy routing number"
+                      aria-label="Copy routing number"
+                    >
+                      <Copy className="eb-h-3 eb-w-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </Card>
