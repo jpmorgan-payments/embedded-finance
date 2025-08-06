@@ -13,12 +13,17 @@ import { LearnMorePopoverTrigger } from './LearnMorePopover';
 interface InfoPopoverProps {
   children: React.ReactNode;
   popoutTooltip?: boolean;
+  className?: string;
 }
 
-export const InfoPopover = ({ children, popoutTooltip }: InfoPopoverProps) => {
+export const InfoPopover = ({
+  children,
+  popoutTooltip,
+  className,
+}: InfoPopoverProps) => {
   const button = (
-    <Button variant="ghost" size="icon" type="button">
-      <InfoIcon className="eb-stroke-blue-500" />
+    <Button variant="ghost" size="icon" type="button" className={className}>
+      <InfoIcon className="eb-h-3 eb-w-3 eb-text-gray-400 hover:eb-text-gray-600" />
     </Button>
   );
 

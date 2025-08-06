@@ -13,7 +13,7 @@
 
 ---
 
-## Design Philosophy Alignment
+## Technical Design Philosophy Alignment
 
 ### Integration Scenarios
 
@@ -29,7 +29,7 @@
 - **Generated Types**: `TransactionRequestV2`, `TransactionResponseV2`, `AccountResponse`, `RecipientResponse`
 - **API Endpoints**: `/transactions`, `/accounts`, `/recipients`, `/accounts/{id}/balances`
 
-### Key Principles
+### Key Technical Design Principles
 
 - **OAS-Driven Development**: All types and API contracts generated from OpenAPI Specification
 - **Generated Hooks Integration**: Use Orval-generated React Query hooks for data fetching and mutation
@@ -112,9 +112,9 @@
   - Calls `useCreateTransactionV2` on submit
   - Handles API errors and success callbacks
 
-### Phase 4: User Experience & Polish
+### Phase 4: User Experience & Technical Design Polish
 
-- **Responsive Design**
+- **Responsive Technical Design**
   - Works in modal/dialog or inline
   - Mobile-friendly form layout
 - **Loading & Error States**
@@ -280,7 +280,7 @@ interface MakePaymentProps {
 
 ### Usability
 
-- Mobile-responsive design
+- Mobile-responsive technical design
 - Clear visual hierarchy and error feedback
 - Intuitive payment workflow
 - Consistent with other embedded components

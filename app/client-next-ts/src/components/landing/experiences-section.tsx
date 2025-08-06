@@ -39,7 +39,7 @@ export function ExperiencesSection() {
       description:
         'Complete client verification with incremental information collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
-      status: 'available',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       demoUrl:
@@ -53,7 +53,7 @@ export function ExperiencesSection() {
         'Submit for verification and monitor status',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/OnboardingFlow/ONBOARDING_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
@@ -87,7 +87,7 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'testing',
+      status: 'in progress',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       demoUrl:
@@ -114,7 +114,7 @@ export function ExperiencesSection() {
       description:
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
       icon: <Receipt className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'in progress',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
       githubUrl:
@@ -160,7 +160,7 @@ export function ExperiencesSection() {
       description:
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
       icon: <Building2 className="h-5 w-5" />,
-      status: 'soon',
+      status: 'coming soon',
       demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
       githubUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
@@ -193,7 +193,7 @@ export function ExperiencesSection() {
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-jpm-blue hover:text-jpm-blue-dark underline"
+                className="text-jpm-blue hover:text-jpm-blue-dark underline whitespace-nowrap"
               >
                 View full documentation →
               </a>
@@ -229,14 +229,18 @@ export function ExperiencesSection() {
                               ? 'bg-green-100 text-green-800'
                               : exp.status === 'testing'
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-orange-100 text-orange-800'
+                                : exp.status === 'in progress'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-orange-100 text-orange-800'
                           }`}
                         >
                           {exp.status === 'available'
                             ? 'Available'
                             : exp.status === 'testing'
                               ? 'Testing'
-                              : 'Soon'}
+                              : exp.status === 'in progress'
+                                ? 'In Progress'
+                                : 'Coming Soon'}
                         </span>
                         {exp.npmUrl && (
                           <Box className="h-3 w-3 text-blue-600" />
