@@ -904,6 +904,167 @@ const customTheme = {
 5. **Follow the inheritance hierarchy** to avoid unexpected overrides
 6. **Use HSL color format** for better color manipulation and consistency
 
+## Adding New Design Tokens
+
+To add a new design token to the theme system, follow these steps:
+
+### 1. **Define the Token Type**
+
+First, determine which category your new token belongs to:
+
+- **Override Variable**: If it should override a default Tailwind value
+- **Semantic Color Variable**: If it's a color with semantic meaning
+- **Component-Specific Variable**: If it's for specific component behavior
+
+### 2. **Add to Type Definition**
+
+Add your new token to the `EBThemeVariables` type in `src/core/EBComponentsProvider/config.types.ts`:
+
+```typescript
+export type EBThemeVariables = {
+  // ... existing tokens ...
+
+  // New token examples
+  customSpacing?: string; // Override variable
+  customAccentColor?: string; // Semantic color variable
+  customComponentBehavior?: boolean; // Component-specific variable
+};
+```
+
+### 3. **Add to Theme Conversion**
+
+Add the token to the `convertThemeVariablesToCssVariables` function in `src/core/EBComponentsProvider/convert-theme-to-css-variables.ts`:
+
+```typescript
+const convertThemeVariablesToCssVariables = (
+  variables: EBThemeVariables
+): CSSVariables => {
+  const cssVariablesObject: CSSVariables = {
+    // ... existing variables ...
+
+    // New CSS variable mapping
+    '--eb-custom-spacing': variables.customSpacing,
+    '--eb-custom-accent': colorToHsl(variables.customAccentColor),
+    '--eb-custom-behavior': variables.customComponentBehavior
+      ? 'value'
+      : undefined,
+  };
+
+  return cssVariablesObject;
+};
+```
+
+### 4. **Add to Tailwind Config** (if needed)
+
+If your token should be available as a Tailwind class, add it to `tailwind.config.js`:
+
+```javascript
+module.exports = {
+  theme: {
+    extend: {
+      // For spacing tokens
+      spacing: {
+        custom: 'var(--eb-custom-spacing)',
+      },
+
+      // For color tokens
+      colors: {
+        custom: {
+          DEFAULT: 'hsl(var(--eb-custom-accent))',
+        },
+      },
+
+      // For component-specific tokens
+      customProperty: {
+        behavior: 'var(--eb-custom-behavior)',
+      },
+    },
+  },
+};
+```
+
+### 5. **Add Default Value**
+
+Add a default value to `src/core/EBComponentsProvider/defaultTheme.ts`:
+
+```typescript
+export const defaultTheme: EBTheme = {
+  variables: {
+    // ... existing defaults ...
+    customSpacing: '1rem',
+    customAccentColor: '#3b82f6',
+    customComponentBehavior: true,
+  },
+  // ... rest of theme
+};
+```
+
+### 6. **Usage in Components**
+
+Use your new token in components:
+
+```tsx
+// For spacing tokens
+<div className="eb-p-custom">Content</div>
+
+// For color tokens
+<button className="eb-bg-custom eb-text-white">Button</button>
+
+// For component-specific tokens
+<div className="eb-custom-behavior">Component</div>
+```
+
+### 7. **Documentation**
+
+Update the README token tables to include your new token:
+
+```markdown
+| Token Name      | Description          | Type   | Default  | Usage Context                 |
+| --------------- | -------------------- | ------ | -------- | ----------------------------- |
+| `customSpacing` | Custom spacing value | String | `"1rem"` | Used for custom spacing needs |
+```
+
+### Example: Adding a Custom Border Radius Token
+
+```typescript
+// 1. Add to EBThemeVariables
+export type EBThemeVariables = {
+  // ... existing tokens ...
+  customBorderRadius?: string;
+};
+
+// 2. Add to conversion function
+const cssVariablesObject: CSSVariables = {
+  // ... existing variables ...
+  '--eb-custom-radius': variables.customBorderRadius,
+};
+
+// 3. Add to Tailwind config
+borderRadius: {
+  custom: 'var(--eb-custom-radius)',
+},
+
+// 4. Add default value
+export const defaultTheme: EBTheme = {
+  variables: {
+    // ... existing defaults ...
+    customBorderRadius: '0.75rem',
+  },
+};
+
+// 5. Use in components
+<div className="eb-rounded-custom">Custom rounded element</div>
+```
+
+### Important Notes
+
+- **Color tokens** should use the `colorToHsl()` function for consistent processing
+- **Boolean tokens** should be converted to appropriate CSS values
+- **Numeric tokens** should include units (rem, px, etc.)
+- **Test your tokens** in both light and dark modes
+- **Follow naming conventions** (`--eb-` prefix for CSS variables)
+- **Update documentation** to reflect new tokens
+
 ## Internationalization
 
 The library supports internationalization with the following languages:
