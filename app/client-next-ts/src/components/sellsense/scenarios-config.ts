@@ -96,7 +96,7 @@ export const SCENARIOS_CONFIG = {
   [SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA]: {
     displayName: 'Seller with Limited DDA',
     shortName: 'Limited DDA',
-    description: 'US Sole Proprietor (onboarding completed, fresh seller)',
+    description: 'US Sole Proprietor with active Limited DDA and transaction history',
     clientId: '0030000131',
     scenarioId: 'scenario1',
     category: 'active' as const,
@@ -120,9 +120,9 @@ export const SCENARIOS_CONFIG = {
       'Manage your embedded finance wallet, linked accounts, and transactions.',
   },
   [SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS]: {
-    displayName: 'Seller with Limited DDA Payments',
-    shortName: 'Limited DDA Payments',
-    description: 'US LLC (established seller with transaction history)',
+    displayName: 'Seller with Payments DDA',
+    shortName: 'Payments DDA',
+    description: 'US LLC with the active Payments DDA account and transaction history',
     clientId: '0030000132',
     scenarioId: 'scenario2',
     category: 'active' as const,
