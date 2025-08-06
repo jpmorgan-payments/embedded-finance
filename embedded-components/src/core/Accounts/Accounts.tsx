@@ -273,7 +273,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
         <div className="eb-flex eb-gap-4">
           {/* Left Card: Balances */}
           <Card
-            className={`eb-border-2 eb-p-4 ${
+            className={`eb-p-4 ${
               account.category === 'LIMITED_DDA_PAYMENTS'
                 ? 'eb-flex-1'
                 : 'eb-w-1/2'
@@ -305,7 +305,8 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <span className="eb-font-mono eb-text-lg">
                       {Number(b.amount).toFixed(2).split('.')[0]}
                       <span className="eb-text-sm">
-                        .{Number(b.amount).toFixed(2).split('.')[1]} {balanceData.currency}
+                        .{Number(b.amount).toFixed(2).split('.')[1]}{' '}
+                        {balanceData.currency}
                       </span>
                     </span>
                   </div>
@@ -320,7 +321,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
-            <Card className="eb-w-1/2 eb-border-2 eb-p-4">
+            <Card className="eb-w-1/2 eb-p-4">
               <div className="eb-mb-4 eb-text-sm eb-font-semibold">
                 Account Details
               </div>
