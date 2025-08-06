@@ -628,76 +628,76 @@ The design token system works through a multi-stage process:
 
 #### Typography Tokens
 
-| Token Name | Description | Type | Default | Usage Context |
-|------------|-------------|------|---------|---------------|
-| `fontFamily` | Primary font stack for all text elements | String | `"Geist"` | Applied globally to all text elements as base font |
-| `headerFontFamily` | Specialized font stack for headings | String | Inherits from `fontFamily` | Used for h1-h6 elements to maintain visual hierarchy |
-| `buttonFontFamily` | Font stack for button elements | String | Inherits from `fontFamily` | Used for consistent typography across all action elements |
-| `formLabelFontSize` | Text size for form field labels | String | `"0.875rem"` (14px) | Provides appropriate visual weight for form labels |
-| `formLabelLineHeight` | Vertical spacing for form labels | String | `"1.25rem"` (20px) | Ensures consistent spacing in dense form layouts |
-| `formLabelFontWeight` | Weight of form label text | String | `"500"` (medium) | Balances readability with sufficient emphasis |
-| `formLabelForegroundColor` | Color of form label text | String | `"hsl(240 10% 3.9%)"` | Provides accessible contrast for form labels |
-| `buttonFontWeight` | Weight of button text | String | `"500"` (medium) | Ensures button text is clearly visible and legible |
-| `buttonFontSize` | Size of button text | String | `"0.875rem"` (14px) | Optimized for tap targets and readability |
-| `buttonLineHeight` | Vertical spacing in buttons | String | `"1.25rem"` (20px) | Creates proper vertical alignment for button content |
-| `buttonTextTransform` | Text capitalization for buttons | String | `"none"` | Controls case presentation of button text |
-| `buttonLetterSpacing` | Horizontal spacing between letters in button text | String | `"0em"` | Fine-tunes readability of button labels |
+| Token Name                 | Description                                       | Type   | Default                    | Usage Context                                             |
+| -------------------------- | ------------------------------------------------- | ------ | -------------------------- | --------------------------------------------------------- |
+| `fontFamily`               | Primary font stack for all text elements          | String | `"Geist"`                  | Applied globally to all text elements as base font        |
+| `headerFontFamily`         | Specialized font stack for headings               | String | Inherits from `fontFamily` | Used for h1-h6 elements to maintain visual hierarchy      |
+| `buttonFontFamily`         | Font stack for button elements                    | String | Inherits from `fontFamily` | Used for consistent typography across all action elements |
+| `formLabelFontSize`        | Text size for form field labels                   | String | `"0.875rem"` (14px)        | Provides appropriate visual weight for form labels        |
+| `formLabelLineHeight`      | Vertical spacing for form labels                  | String | `"1.25rem"` (20px)         | Ensures consistent spacing in dense form layouts          |
+| `formLabelFontWeight`      | Weight of form label text                         | String | `"500"` (medium)           | Balances readability with sufficient emphasis             |
+| `formLabelForegroundColor` | Color of form label text                          | String | `"hsl(240 10% 3.9%)"`      | Provides accessible contrast for form labels              |
+| `buttonFontWeight`         | Weight of button text                             | String | `"500"` (medium)           | Ensures button text is clearly visible and legible        |
+| `buttonFontSize`           | Size of button text                               | String | `"0.875rem"` (14px)        | Optimized for tap targets and readability                 |
+| `buttonLineHeight`         | Vertical spacing in buttons                       | String | `"1.25rem"` (20px)         | Creates proper vertical alignment for button content      |
+| `buttonTextTransform`      | Text capitalization for buttons                   | String | `"none"`                   | Controls case presentation of button text                 |
+| `buttonLetterSpacing`      | Horizontal spacing between letters in button text | String | `"0em"`                    | Fine-tunes readability of button labels                   |
 
 #### Color System Tokens
 
-| Token Name | Description | Type | Default | Color Role |
-|------------|-------------|------|---------|------------|
-| `backgroundColor` | Base page background | String | `"hsl(0 0% 100%)"` | Provides the foundation layer for all content |
-| `foregroundColor` | Primary text color | String | `"hsl(240 10% 3.9%)"` | Main content text with optimal contrast ratio |
-| `primaryColor` | Main brand color | String | `"#155C93"` | Used for primary actions, brand representation, and key UI elements |
-| `primaryHoverColor` | Hover state for primary elements | String | Auto-calculated (90% opacity) | Visual feedback for interactive primary elements |
-| `primaryActiveColor` | Active/pressed state for primary elements | String | Auto-calculated | Confirms user interaction with primary elements |
-| `primaryForegroundColor` | Text on primary background | String | `"hsl(0 0% 98%)"` | Ensures readable text on primary-colored backgrounds |
-| `secondaryColor` | Supporting color | String | `"hsl(240 4.8% 95.9%)"` | Used for secondary actions and supporting UI elements |
-| `destructiveColor` | Error/warning color | String | `"hsl(0 84.2% 60.2%)"` | Signals destructive actions or error states |
-| `destructiveAccentColor` | Light variation of destructive color | String | `"#FFECEA"` | Used as background for destructive alerts/notices |
-| `informativeColor` | Information notification color | String | `"#0078CF"` | Used for information alerts and notices |
-| `informativeAccentColor` | Light variation of informative color | String | `"#EAF6FF"` | Background for informative message containers |
-| `warningColor` | Alert/caution color | String | `"#C75300"` | Indicates caution states requiring attention |
-| `warningAccentColor` | Light variation of warning color | String | `"#FFECD9"` | Background for warning message containers |
-| `successColor` | Positive confirmation color | String | `"#00875D"` | Indicates successful operations |
-| `successAccentColor` | Light variation of success color | String | `"#EAF5F2"` | Background for success message containers |
-| `mutedColor` | Subtle background color | String | `"hsl(240 4.8% 95.9%)"` | Used for secondary containers and disabled elements |
-| `mutedForegroundColor` | Subtle text color | String | `"hsl(240 3.8% 46.1%)"` | Used for helper text, placeholders, and disabled content |
-| `cardColor` | Background for card components | String | `"hsl(0 0% 100%)"` | Provides visual separation for card-based content |
-| `cardForegroundColor` | Text color for card elements | String | `"hsl(240 10% 3.9%)"` | Ensures readable text on card backgrounds |
-| `popoverColor` | Background for popover components | String | `"hsl(0 0% 100%)"` | Creates consistent background for popovers and tooltips |
-| `popoverForegroundColor` | Text color for popovers | String | `"hsl(240 10% 3.9%)"` | Maintains readable text in popover elements |
-| `alertColor` | Background color for alerts | String | `"hsl(0 0% 100%)"` | Provides base for alert components |
-| `alertForegroundColor` | Text color for alerts | String | `"hsl(240 10% 3.9%)"` | Ensures readable alert messages |
-| `accentColor` | Color for UI accents | String | `"hsl(240 4.8% 95.9%)"` | Highlights specific UI elements |
-| `accentForegroundColor` | Text on accent background | String | `"hsl(240 5.9% 10%)"` | Ensures readable text on accent backgrounds |
-| `borderColor` | Color for UI boundaries | String | `"hsl(240 5.9% 90%)"` | Creates subtle visual division between UI sections |
-| `inputColor` | Background for input fields | String | `"hsl(0 0% 100%)"` | Establishes consistent background for form inputs |
-| `inputBorderColor` | Border color for input fields | String | `"hsl(240 5.9% 90%)"` | Creates visual boundaries for form elements |
-| `ringColor` | Color for focus indicators | String | `"hsl(240 10% 3.9%)"` | Provides accessible focus indication for keyboard navigation |
+| Token Name               | Description                               | Type   | Default                       | Color Role                                                          |
+| ------------------------ | ----------------------------------------- | ------ | ----------------------------- | ------------------------------------------------------------------- |
+| `backgroundColor`        | Base page background                      | String | `"hsl(0 0% 100%)"`            | Provides the foundation layer for all content                       |
+| `foregroundColor`        | Primary text color                        | String | `"hsl(240 10% 3.9%)"`         | Main content text with optimal contrast ratio                       |
+| `primaryColor`           | Main brand color                          | String | `"#155C93"`                   | Used for primary actions, brand representation, and key UI elements |
+| `primaryHoverColor`      | Hover state for primary elements          | String | Auto-calculated (90% opacity) | Visual feedback for interactive primary elements                    |
+| `primaryActiveColor`     | Active/pressed state for primary elements | String | Auto-calculated               | Confirms user interaction with primary elements                     |
+| `primaryForegroundColor` | Text on primary background                | String | `"hsl(0 0% 98%)"`             | Ensures readable text on primary-colored backgrounds                |
+| `secondaryColor`         | Supporting color                          | String | `"hsl(240 4.8% 95.9%)"`       | Used for secondary actions and supporting UI elements               |
+| `destructiveColor`       | Error/warning color                       | String | `"hsl(0 84.2% 60.2%)"`        | Signals destructive actions or error states                         |
+| `destructiveAccentColor` | Light variation of destructive color      | String | `"#FFECEA"`                   | Used as background for destructive alerts/notices                   |
+| `informativeColor`       | Information notification color            | String | `"#0078CF"`                   | Used for information alerts and notices                             |
+| `informativeAccentColor` | Light variation of informative color      | String | `"#EAF6FF"`                   | Background for informative message containers                       |
+| `warningColor`           | Alert/caution color                       | String | `"#C75300"`                   | Indicates caution states requiring attention                        |
+| `warningAccentColor`     | Light variation of warning color          | String | `"#FFECD9"`                   | Background for warning message containers                           |
+| `successColor`           | Positive confirmation color               | String | `"#00875D"`                   | Indicates successful operations                                     |
+| `successAccentColor`     | Light variation of success color          | String | `"#EAF5F2"`                   | Background for success message containers                           |
+| `mutedColor`             | Subtle background color                   | String | `"hsl(240 4.8% 95.9%)"`       | Used for secondary containers and disabled elements                 |
+| `mutedForegroundColor`   | Subtle text color                         | String | `"hsl(240 3.8% 46.1%)"`       | Used for helper text, placeholders, and disabled content            |
+| `cardColor`              | Background for card components            | String | `"hsl(0 0% 100%)"`            | Provides visual separation for card-based content                   |
+| `cardForegroundColor`    | Text color for card elements              | String | `"hsl(240 10% 3.9%)"`         | Ensures readable text on card backgrounds                           |
+| `popoverColor`           | Background for popover components         | String | `"hsl(0 0% 100%)"`            | Creates consistent background for popovers and tooltips             |
+| `popoverForegroundColor` | Text color for popovers                   | String | `"hsl(240 10% 3.9%)"`         | Maintains readable text in popover elements                         |
+| `alertColor`             | Background color for alerts               | String | `"hsl(0 0% 100%)"`            | Provides base for alert components                                  |
+| `alertForegroundColor`   | Text color for alerts                     | String | `"hsl(240 10% 3.9%)"`         | Ensures readable alert messages                                     |
+| `accentColor`            | Color for UI accents                      | String | `"hsl(240 4.8% 95.9%)"`       | Highlights specific UI elements                                     |
+| `accentForegroundColor`  | Text on accent background                 | String | `"hsl(240 5.9% 10%)"`         | Ensures readable text on accent backgrounds                         |
+| `borderColor`            | Color for UI boundaries                   | String | `"hsl(240 5.9% 90%)"`         | Creates subtle visual division between UI sections                  |
+| `inputColor`             | Background for input fields               | String | `"hsl(0 0% 100%)"`            | Establishes consistent background for form inputs                   |
+| `inputBorderColor`       | Border color for input fields             | String | `"hsl(240 5.9% 90%)"`         | Creates visual boundaries for form elements                         |
+| `ringColor`              | Color for focus indicators                | String | `"hsl(240 10% 3.9%)"`         | Provides accessible focus indication for keyboard navigation        |
 
 #### Spacing and Layout Tokens
 
-| Token Name | Description | Type | Default | Layout Impact |
-|------------|-------------|------|---------|---------------|
-| `spacingUnit` | Base unit for spacing scale | String | `"0.25rem"` (4px) | Establishes consistent spacing rhythm throughout the interface |
-| `borderRadius` | Default corner rounding | String | `"0.375rem"` (6px) | Defines the global corner style for UI elements |
-| `inputBorderRadius` | Corner rounding for form fields | String | Inherits from `borderRadius` | Maintains consistent visual style for input elements |
-| `buttonBorderRadius` | Corner rounding for buttons | String | Inherits from `borderRadius` | Ensures visual consistency across interactive elements |
-| `zIndexOverlay` | Stacking order for overlay elements | Number | `100` | Controls layering of modal dialogs, tooltips, and popovers |
+| Token Name           | Description                         | Type   | Default                      | Layout Impact                                                  |
+| -------------------- | ----------------------------------- | ------ | ---------------------------- | -------------------------------------------------------------- |
+| `spacingUnit`        | Base unit for spacing scale         | String | `"0.25rem"` (4px)            | Establishes consistent spacing rhythm throughout the interface |
+| `borderRadius`       | Default corner rounding             | String | `"0.375rem"` (6px)           | Defines the global corner style for UI elements                |
+| `inputBorderRadius`  | Corner rounding for form fields     | String | Inherits from `borderRadius` | Maintains consistent visual style for input elements           |
+| `buttonBorderRadius` | Corner rounding for buttons         | String | Inherits from `borderRadius` | Ensures visual consistency across interactive elements         |
+| `zIndexOverlay`      | Stacking order for overlay elements | Number | `100`                        | Controls layering of modal dialogs, tooltips, and popovers     |
 
 #### Component-Specific Tokens
 
-| Token Name | Description | Type | Default | Component Usage |
-|------------|-------------|------|---------|----------------|
-| `primaryBorderWidth` | Border width for primary elements | String | `"0rem"` | Controls border visibility on primary buttons and elements |
-| `secondaryBorderWidth` | Border width for secondary elements | String | `"0rem"` | Controls border visibility on secondary buttons and elements |
-| `destructiveBorderWidth` | Border width for destructive elements | String | `"0rem"` | Controls border visibility on destructive buttons and alerts |
-| `primaryButtonFontWeight` | Font weight for primary buttons | String | Inherits from `buttonFontWeight` | Can be used to emphasize primary actions |
-| `secondaryButtonFontWeight` | Font weight for secondary buttons | String | Inherits from `buttonFontWeight` | Provides consistent typography for secondary actions |
-| `destructiveButtonFontWeight` | Font weight for destructive buttons | String | Inherits from `buttonFontWeight` | Maintains consistent typography for destructive actions |
-| `shiftButtonOnActive` | Controls button press animation | Boolean | `true` | When true, provides 1px downward shift on button press for tactile feedback |
+| Token Name                    | Description                           | Type    | Default                          | Component Usage                                                             |
+| ----------------------------- | ------------------------------------- | ------- | -------------------------------- | --------------------------------------------------------------------------- |
+| `primaryBorderWidth`          | Border width for primary elements     | String  | `"0rem"`                         | Controls border visibility on primary buttons and elements                  |
+| `secondaryBorderWidth`        | Border width for secondary elements   | String  | `"0rem"`                         | Controls border visibility on secondary buttons and elements                |
+| `destructiveBorderWidth`      | Border width for destructive elements | String  | `"0rem"`                         | Controls border visibility on destructive buttons and alerts                |
+| `primaryButtonFontWeight`     | Font weight for primary buttons       | String  | Inherits from `buttonFontWeight` | Can be used to emphasize primary actions                                    |
+| `secondaryButtonFontWeight`   | Font weight for secondary buttons     | String  | Inherits from `buttonFontWeight` | Provides consistent typography for secondary actions                        |
+| `destructiveButtonFontWeight` | Font weight for destructive buttons   | String  | Inherits from `buttonFontWeight` | Maintains consistent typography for destructive actions                     |
+| `shiftButtonOnActive`         | Controls button press animation       | Boolean | `true`                           | When true, provides 1px downward shift on button press for tactile feedback |
 
 #### Example Usage in Components
 
@@ -747,6 +747,162 @@ const ThemedApplication = () => {
   );
 };
 ```
+
+## Adding Custom Themes
+
+The theme system supports three types of theme variables with different purposes and inheritance patterns:
+
+### Theme Variable Classification
+
+#### 1. **Override Variables** (Tailwind Default Overrides)
+
+These variables override default Tailwind CSS theme values and provide consistent design tokens across the component library.
+
+**When to use:** For fundamental design tokens that should be consistent across all components.
+
+**Examples:**
+
+- `fontFamily` - Overrides Tailwind's default sans font stack
+- `borderRadius` - Overrides Tailwind's default border radius scale
+- `spacingUnit` - Overrides Tailwind's default spacing scale
+- `zIndexOverlay` - Controls stacking order for overlays
+
+**Usage in Tailwind config:**
+
+```javascript
+// Overrides default Tailwind values
+fontFamily: {
+  sans: ['var(--eb-font-family)', ...defaultTheme.fontFamily.sans],
+},
+borderRadius: {
+  md: 'var(--eb-radius)',
+  button: 'var(--eb-button-radius)',
+},
+spacing: {
+  1: 'calc(var(--eb-spacing-unit) * 1)',
+  2: 'calc(var(--eb-spacing-unit) * 2)',
+}
+```
+
+#### 2. **Semantic Color Variables** (Component-Specific Colors)
+
+These variables define semantic color relationships and are used throughout components for consistent theming.
+
+**When to use:** For color tokens that have semantic meaning and should adapt to light/dark modes.
+
+**Examples:**
+
+- `primaryColor` / `primaryForegroundColor` - Brand colors and text on primary backgrounds
+- `destructiveColor` / `destructiveForegroundColor` - Error states and actions
+- `mutedColor` / `mutedForegroundColor` - Secondary content and disabled states
+- `cardColor` / `cardForegroundColor` - Card backgrounds and text
+
+**Usage in components:**
+
+```tsx
+<button className="eb-bg-primary eb-text-primary-foreground">
+  Primary Action
+</button>
+<div className="eb-bg-destructive eb-text-destructive-foreground">
+  Error Message
+</div>
+```
+
+#### 3. **Component-Specific Variables** (Custom Design Tokens)
+
+These variables provide fine-grained control over specific component behaviors and appearances.
+
+**When to use:** For component-specific styling that doesn't fit into semantic color patterns.
+
+**Examples:**
+
+- `buttonFontWeight` / `buttonFontSize` - Button typography control
+- `formLabelFontSize` / `formLabelFontWeight` - Form label styling
+- `shiftButtonOnActive` - Button press animation control
+- `buttonTextTransform` - Button text capitalization
+
+**Usage in components:**
+
+```tsx
+<button className="eb-font-button eb-text-button">
+  Custom Button
+</button>
+<label className="eb-text-label eb-font-label">
+  Form Label
+</label>
+```
+
+### Theme Inheritance Hierarchy
+
+The theme system uses a layered inheritance approach:
+
+1. **Base Layer:** `defaultTheme.variables` (always applied)
+2. **Global Override:** `theme.variables` (overrides base for all modes)
+3. **Mode-Specific:** `theme.light` or `theme.dark` (overrides for specific color schemes)
+
+```jsx
+const customTheme = {
+  variables: {
+    // Applied to all modes, overrides defaults
+    fontFamily: 'Inter, sans-serif',
+    primaryColor: '#2563eb',
+  },
+  light: {
+    // Applied only in light mode, overrides variables
+    backgroundColor: '#ffffff',
+    cardColor: '#f9fafb',
+  },
+  dark: {
+    // Applied only in dark mode, overrides variables
+    backgroundColor: '#1f2937',
+    cardColor: '#374151',
+  },
+};
+```
+
+### Creating a Complete Custom Theme
+
+```jsx
+const customTheme = {
+  colorScheme: 'light',
+  variables: {
+    // Override variables (affect all modes)
+    fontFamily: 'Inter, system-ui, sans-serif',
+    borderRadius: '0.5rem',
+    spacingUnit: '0.25rem',
+    buttonFontWeight: '600',
+    buttonFontSize: '0.875rem',
+
+    // Semantic colors (base for all modes)
+    primaryColor: '#2563eb',
+    destructiveColor: '#dc2626',
+    successColor: '#059669',
+  },
+  light: {
+    // Light mode specific overrides
+    backgroundColor: '#ffffff',
+    foregroundColor: '#1f2937',
+    cardColor: '#f9fafb',
+    borderColor: '#e5e7eb',
+  },
+  dark: {
+    // Dark mode specific overrides
+    backgroundColor: '#111827',
+    foregroundColor: '#f9fafb',
+    cardColor: '#1f2937',
+    borderColor: '#374151',
+  },
+};
+```
+
+### Best Practices
+
+1. **Use Override Variables** for fundamental design tokens that should be consistent across your application
+2. **Use Semantic Color Variables** for color relationships that need light/dark mode support
+3. **Use Component-Specific Variables** sparingly for fine-grained component control
+4. **Test in both light and dark modes** when creating custom themes
+5. **Follow the inheritance hierarchy** to avoid unexpected overrides
+6. **Use HSL color format** for better color manipulation and consistency
 
 ## Internationalization
 
