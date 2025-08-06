@@ -1,47 +1,19 @@
-import React, {
+import {
   forwardRef,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { AlertCircle, Copy, Eye, EyeOff, Info, InfoIcon } from 'lucide-react';
+import { AlertCircle, Copy, Eye, EyeOff } from 'lucide-react';
 
 import {
   useGetAccountBalance,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const CATEGORY_LABELS: Record<string, string> = {
-  LIMITED_DDA: 'Limited DDA',
-  LIMITED_DDA_PAYMENTS: 'Limited DDA Payments',
-  // Add more mappings as needed
-};
-
-const BALANCE_TYPE_LABELS: Record<
-  string,
-  { label: string; description: string }
-> = {
-  ITAV: {
-    label: 'Available Balance',
-    description:
-      'Interim available balance: the available balance at the time of the request.',
-  },
-  ITBD: {
-    label: 'Booked Balance',
-    description:
-      'Interim booked balance: the booked or cleared balance at the time of the request.',
-  },
-};
 
 export interface AccountsProps {
   allowedCategories: string[];
@@ -408,10 +380,3 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
 // Add display name for AccountCard
 AccountCard.displayName = 'AccountCard';
-
-function maskAccountNumber(accountNumber: string): string {
-  if (!accountNumber) return 'N/A';
-  return accountNumber.length > 4
-    ? accountNumber.replace(/.(?=.{4})/g, '*')
-    : accountNumber;
-}
