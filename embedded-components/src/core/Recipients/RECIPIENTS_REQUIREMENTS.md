@@ -10,9 +10,9 @@
 > - [Update Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 > - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 
-## Design Philosophy Alignment
+## Technical Design Philosophy Alignment
 
-This component follows the Embedded UI Components design philosophy outlined in the main README.md:
+This component follows the Embedded UI Components technical design philosophy outlined in the main README.md:
 
 ### Integration Scenarios and Use Cases
 
@@ -38,7 +38,7 @@ The Recipients component is designed for flexible integration into parent web ap
    - Error mapping & recovery
    - UX optimizations implemented based on best practices
 
-### Key Principles
+### Key Technical Design Principles
 
 - **OAS-Driven Development**: All API interactions are based on the latest OAS from the JPMC API Portal
 - **Type Safety**: Generated TypeScript types ensure compile-time safety
@@ -149,7 +149,7 @@ interface ListRecipientsResponse {
 - Create filtering and search functionality
 - Build sorting capabilities
 - Add action buttons (View, Edit, Delete, Make Payment)
-- Implement responsive design for mobile/desktop
+- Implement responsive technical design for mobile/desktop
 - Use generated loading states and error handling
 
 #### 2.2 Recipient Form Component
@@ -193,7 +193,7 @@ interface ListRecipientsResponse {
 - Add composite validation rules
 - Build contextual validation system
 
-### Phase 4: User Experience & Polish
+### Phase 4: User Experience & Technical Design Polish
 
 #### 4.1 User Interface Enhancements
 

@@ -39,7 +39,7 @@ export function ExperiencesSection() {
       description:
         'Complete client verification with incremental information collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
-      status: 'available',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       demoUrl:
@@ -87,7 +87,7 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'testing',
+      status: 'coming soon',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       demoUrl:
@@ -160,7 +160,7 @@ export function ExperiencesSection() {
       description:
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
       icon: <Building2 className="h-5 w-5" />,
-      status: 'soon',
+      status: 'coming soon',
       demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
       githubUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
@@ -193,7 +193,7 @@ export function ExperiencesSection() {
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-jpm-blue hover:text-jpm-blue-dark underline"
+                className="text-jpm-blue hover:text-jpm-blue-dark underline whitespace-nowrap"
               >
                 View full documentation →
               </a>
@@ -236,7 +236,7 @@ export function ExperiencesSection() {
                             ? 'Available'
                             : exp.status === 'testing'
                               ? 'Testing'
-                              : 'Soon'}
+                              : 'Coming Soon'}
                         </span>
                         {exp.npmUrl && (
                           <Box className="h-3 w-3 text-blue-600" />

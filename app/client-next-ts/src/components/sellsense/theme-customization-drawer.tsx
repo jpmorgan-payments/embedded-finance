@@ -30,6 +30,7 @@ import {
   X,
   Check,
   Info,
+  Clipboard,
 } from 'lucide-react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -238,6 +239,7 @@ export function ThemeCustomizationDrawer({
   );
   const [isCopied, setIsCopied] = useState(false);
   const [isUrlCopied, setIsUrlCopied] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -405,6 +407,88 @@ export function ThemeCustomizationDrawer({
       console.error('Failed to share theme URL:', error);
     }
   }, []);
+
+  // Import theme from clipboard
+  const importThemeFromClipboard = useCallback(async () => {
+    setIsImporting(true);
+
+    try {
+      // Check if clipboard API is available
+      if (!navigator.clipboard) {
+        throw new Error('Clipboard API not available');
+      }
+
+      // Read from clipboard
+      const clipboardText = await navigator.clipboard.readText();
+
+      if (!clipboardText.trim()) {
+        throw new Error('Clipboard is empty');
+      }
+
+      // Parse JSON
+      const parsedData = JSON.parse(clipboardText);
+
+      // Validate structure - support both { variables: {...} } and direct variables object
+      let variables: EBThemeVariables;
+      if (parsedData.variables && typeof parsedData.variables === 'object') {
+        variables = parsedData.variables;
+      } else if (typeof parsedData === 'object') {
+        // Direct variables object
+        variables = parsedData;
+      } else {
+        throw new Error(
+          'Invalid theme data structure. Expected { variables: { ... } } or direct variables object',
+        );
+      }
+
+      // Validate that we have some valid properties
+      const validProperties = Object.keys(variables).filter(
+        (key) =>
+          variables[key as keyof EBThemeVariables] !== undefined &&
+          variables[key as keyof EBThemeVariables] !== null,
+      );
+
+      if (validProperties.length === 0) {
+        throw new Error('No valid theme properties found in clipboard data');
+      }
+
+      // Merge with existing custom theme
+      const mergedTheme = { ...customTheme, ...variables };
+      setCustomTheme(mergedTheme);
+
+      // Update the theme with merged values
+      const currentBaseTheme = getCurrentBaseTheme();
+      const baseVariables = getThemeVariables(currentBaseTheme);
+
+      // Check if this makes the theme different from base
+      const hasChanges = Object.keys(mergedTheme).some(
+        (key) =>
+          mergedTheme[key as keyof EBThemeVariables] !==
+          baseVariables[key as keyof EBThemeVariables],
+      );
+
+      if (hasChanges) {
+        // Call onThemeChange with the correct parameters: theme name and variables object
+        onThemeChange('Custom', mergedTheme);
+      } else {
+        // If no changes from base, revert to base theme
+        onThemeChange(currentBaseTheme, {});
+      }
+
+      // Show success feedback
+      console.log('Theme imported successfully from clipboard');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to import from clipboard';
+      console.error('Import error:', errorMessage);
+      // You can replace this with your preferred error notification system
+      alert(`Import failed: ${errorMessage}`);
+    } finally {
+      setIsImporting(false);
+    }
+  }, [customTheme, getThemeVariables, getCurrentBaseTheme, onThemeChange]);
 
   // Reset to base theme
   const resetToBaseTheme = () => {
@@ -737,6 +821,24 @@ export function ThemeCustomizationDrawer({
                   <Share2 className="h-4 w-4" />
                 )}
                 {isUrlCopied ? 'Copied!' : 'Share URL'}
+              </Button>
+            </div>
+
+            {/* Import Button */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={importThemeFromClipboard}
+                className="flex items-center gap-2 w-full transition-all duration-200"
+                disabled={isImporting}
+              >
+                {isImporting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Clipboard className="h-4 w-4" />
+                )}
+                {isImporting ? 'Importing...' : 'Import from Clipboard'}
               </Button>
             </div>
           </div>
