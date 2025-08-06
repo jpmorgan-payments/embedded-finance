@@ -5,6 +5,7 @@ import { useSearch, useNavigate } from '@tanstack/react-router';
 import {
   Accounts,
   EBComponentsProvider,
+  LinkedAccountWidget,
   MakePayment,
   Recipients,
   TransactionsDisplay,
@@ -489,6 +490,31 @@ export function DashboardLayout() {
                   }}
                 >
                   <MakePayment />
+                </EBComponentsProvider>
+              </div>
+            </div>
+          </div>
+        );
+      case 'linked-accounts':
+        return (
+          <div className="h-screen p-6">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-2xl font-bold mb-6">Linked Accounts</h1>
+              <div className="bg-white rounded-lg border p-6">
+                <EBComponentsProvider
+                  apiBaseUrl="/ef/do/v1/"
+                  theme={themeObject}
+                  headers={{
+                    'Content-Type': 'application/json',
+                  }}
+                  contentTokens={{
+                    name: 'enUS',
+                  }}
+                >
+                  <LinkedAccountWidget
+                    variant="default"
+                    showCreateButton={true}
+                  />
                 </EBComponentsProvider>
               </div>
             </div>
