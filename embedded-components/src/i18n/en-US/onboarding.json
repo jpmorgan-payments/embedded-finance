@@ -461,7 +461,7 @@
         "label": "Business Identification value",
         "placeholder": "Enter Business Identification value",
         "description": "Business Identification value",
-        "tooltip": "should match your business registration documents  value",
+        "tooltip": "should match your business registration documents value",
         "validation": {
           "required": "Business Identification value is required",
           "maxLength": "Business Identification value must be 100 characters or less",

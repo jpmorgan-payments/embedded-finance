@@ -188,7 +188,7 @@ export const IndividualIdentityFormSchema = z.object({
       message: 'Only US is supported at this time.',
     }),
   controllerIds: z.array(controllerIdSchema).refine((ids) => {
-    const types = ids.map((id) => id.idType);
-    return new Set(types).size === types.length;
+    const types = ids?.map((id) => id.idType);
+    return new Set(types).size === types?.length;
   }, i18n.t('onboarding:fields.controllerIds.validation.uniqueTypes')),
 });

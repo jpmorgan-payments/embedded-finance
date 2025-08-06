@@ -202,7 +202,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const fieldLabel = (
     <>
       {label ?? getContentToken('label')}
-      {fieldRequired || noOptionalLabel ? (
+      {fieldRequired || fieldInteraction !== 'enabled' || noOptionalLabel ? (
         ''
       ) : (
         <span className="eb-font-normal eb-text-muted-foreground">

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { FormLoadingState, ServerErrorAlert } from './components';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
@@ -52,9 +53,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     setClientId(initialClientId ?? '');
   }, [initialClientId]);
 
-  const existingOrgParty = clientData?.parties?.find(
-    (party) => party.partyType === 'ORGANIZATION'
-  );
+  const existingOrgParty = getOrganizationParty(clientData);
 
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;

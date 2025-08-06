@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -14,6 +15,12 @@ import { ContactDetailsFormSchema } from './ContactDetailsForm.schema';
 export const ContactDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
+
+  useEffect(() => {
+    if (form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE') {
+      form.setValue('controllerPhone.phoneType', 'MOBILE_PHONE');
+    }
+  }, [form.watch('controllerPhone.phoneType')]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -87,14 +94,3 @@ export const ContactDetailsForm: FormStepComponent = () => {
 };
 
 ContactDetailsForm.schema = ContactDetailsFormSchema;
-ContactDetailsForm.modifyFormValuesBeforeSubmit = (
-  values: Partial<z.output<typeof ContactDetailsFormSchema>>
-) => {
-  return {
-    ...values,
-    controllerPhone: {
-      ...values.controllerPhone,
-      phoneType: 'MOBILE_PHONE',
-    },
-  };
-};

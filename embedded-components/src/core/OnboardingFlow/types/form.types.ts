@@ -8,7 +8,7 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import {
   BusinessContactInfoFormSchema,
-  createCompanyIdentificationFormSchema,
+  CompanyIdentificationFormSchema,
   CustomerFacingDetailsFormSchema,
   IndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
@@ -26,7 +26,7 @@ const ONBOARDING_FORM_SCHEMAS = [
   IndividualIdentityFormSchema,
   ContactDetailsFormSchema,
   IndustryFormSchema,
-  createCompanyIdentificationFormSchema(),
+  CompanyIdentificationFormSchema,
   CustomerFacingDetailsFormSchema,
   BusinessContactInfoFormSchema,
 ] as const;
@@ -102,7 +102,7 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
   }>;
   modifyErrorField?: (field: string) => string;
   toStringFn?: (
-    val: T,
+    val: T | undefined,
     values: Partial<OnboardingFormValuesSubmit>
   ) => string | string[] | undefined;
   generateLabelStringFn?: (val: T) => string | undefined;

@@ -19,23 +19,21 @@ import {
 import { Alert } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
-import {
-  useFlowContext,
-  useOnboardingContext,
-} from '@/core/OnboardingFlow/contexts';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
-import { createCompanyIdentificationFormSchema } from './CompanyIdentificationForm.schema';
+import {
+  CompanyIdentificationFormSchema,
+  refineCompanyIdentificationFormSchema,
+} from './CompanyIdentificationForm.schema';
 
 export const CompanyIdentificationForm: FormStepComponent = () => {
   const { t } = useTranslation(['onboarding-overview']);
 
-  const { organizationType } = useOnboardingContext();
   const { isSoleProp, controllerParty, orgParty } = useFlowContext();
 
-  const schema = createCompanyIdentificationFormSchema(organizationType);
-
-  const form = useFormContext<z.input<typeof schema>>();
+  const form =
+    useFormContext<z.input<typeof CompanyIdentificationFormSchema>>();
 
   const controllerHasSsn =
     controllerParty?.individualDetails?.individualIds?.some(
@@ -111,28 +109,12 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
     form.watch('organizationIds.0.issuer'),
   ]);
 
-  useEffect(() => {
-    if (isSoleProp) {
-      const orgName = [
-        controllerParty?.individualDetails?.firstName,
-        controllerParty?.individualDetails?.middleName,
-        controllerParty?.individualDetails?.lastName,
-        controllerParty?.individualDetails?.nameSuffix,
-      ]
-        .filter(Boolean)
-        .join(' ');
-
-      form.setValue('organizationName', orgName);
-    }
-  }, []);
-
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
         control={form.control}
         name="organizationName"
         type="text"
-        disabled={isSoleProp}
       />
       <OnboardingFormField
         control={form.control}
@@ -164,17 +146,18 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
           </AlertDescription>
         </Alert>
       </div>
+
       {isSoleProp && form.watch('countryOfFormation') === 'US' && (
         <div className="eb-space-y-6">
           <OnboardingFormField
             disableFieldRuleMapping
-            control={solePropForm.control}
-            name="ssnOrEin"
+            control={form.control}
+            name="solePropPersonalIdOrEin"
             type="radio-group"
             required
             options={[
               {
-                value: 'SSN',
+                value: 'PERSONAL',
                 label: `${getValueLabel('SSN')} / ${getValueLabel('ITIN')}`,
               },
               {
@@ -184,7 +167,7 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
             ]}
           />
 
-          {solePropForm.watch('ssnOrEin') === 'SSN' && (
+          {form.watch('solePropPersonalIdOrEin') === 'PERSONAL' && (
             <OnboardingFormField
               disableFieldRuleMapping
               control={solePropForm.control}
@@ -200,15 +183,14 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
               maskFormat={getMaskFormat('SSN')}
               maskChar="_"
               disabled
-              required
             />
           )}
 
-          {solePropForm.watch('ssnOrEin') === 'EIN' && (
+          {form.watch('solePropPersonalIdOrEin') === 'EIN' && (
             <OnboardingFormField
               disableFieldRuleMapping
               control={form.control}
-              name="organizationIds.0.value"
+              name="solePropOrganizationId"
               type="text"
               label={getValueLabel('EIN')}
               description={getValueDescription('EIN')}
@@ -269,5 +251,6 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
   );
 };
 
-CompanyIdentificationForm.schema = createCompanyIdentificationFormSchema();
-CompanyIdentificationForm.createSchema = createCompanyIdentificationFormSchema;
+CompanyIdentificationForm.schema = CompanyIdentificationFormSchema;
+CompanyIdentificationForm.refineSchemaFn =
+  refineCompanyIdentificationFormSchema;

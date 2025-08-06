@@ -29,6 +29,11 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import {
+  getControllerParty,
+  getOrganizationParty,
+  getPartyName,
+} from '@/core/OnboardingFlow/utils/dataUtils';
+import {
   convertClientResponseToFormValues,
   generateClientRequestBody,
   generatePartyRequestBody,
@@ -83,9 +88,7 @@ export const GatewayScreen = () => {
     defaultValues: {},
   });
 
-  const existingOrgParty = clientData?.parties?.find(
-    (party) => party.partyType === 'ORGANIZATION'
-  );
+  const existingOrgParty = getOrganizationParty(clientData);
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
@@ -188,6 +191,16 @@ export const GatewayScreen = () => {
 
       // Else update the party
       const partyRequestBody = generatePartyRequestBody(values, {});
+
+      // HANDLE ORG TYPE CHANGES
+      if (
+        partyRequestBody.organizationDetails?.organizationType ===
+        'SOLE_PROPRIETORSHIP'
+      ) {
+        partyRequestBody.organizationDetails.organizationName ===
+          getPartyName(getControllerParty(clientData));
+      }
+
       updateParty(
         { partyId: existingOrgParty.id, data: partyRequestBody },
         {
