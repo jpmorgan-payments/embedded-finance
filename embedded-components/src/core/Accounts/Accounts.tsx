@@ -5,7 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AlertCircle, Eye, EyeOff, Info, InfoIcon, ClipboardCopy } from 'lucide-react';
+import {
+  AlertCircle,
+  ClipboardCopy,
+  Eye,
+  EyeOff,
+  Info,
+  InfoIcon,
+} from 'lucide-react';
 
 import {
   useGetAccountBalance,
@@ -246,30 +253,33 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       account.category === 'LIMITED_DDA_PAYMENTS'
         ? 'Payments DDA'
         : account.category === 'LIMITED_DDA'
-        ? 'Limited DDA'
-        : account.category;
+          ? 'Limited DDA'
+          : account.category;
 
-    const maskedAccountNumber =
-      account.paymentRoutingInformation?.accountNumber
-        ? `...${account.paymentRoutingInformation.accountNumber.slice(-4)}`
-        : 'N/A';
+    const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
+      ? `...${account.paymentRoutingInformation.accountNumber.slice(-4)}`
+      : 'N/A';
 
     return (
       <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4">
         {/* Title Section */}
-        <div className="eb-text-xl eb-font-semibold eb-mb-4 eb-pl-4">
+        <div className="eb-mb-4 eb-pl-4 eb-text-xl eb-font-semibold">
           {formattedCategory} | {maskedAccountNumber}
         </div>
 
         <div className="eb-flex eb-gap-4">
           {/* Left Card: Balances */}
           <Card
-            className={`eb-p-4 eb-border-2 eb-border-transparent ${
-              account.category === 'LIMITED_DDA_PAYMENTS' ? 'eb-flex-1' : 'eb-w-1/2'
+            className={`eb-border-transparent eb-p-4 ${
+              account.category === 'LIMITED_DDA_PAYMENTS'
+                ? 'eb-flex-1'
+                : 'eb-w-1/2'
             }`}
           >
-            <div className="eb-text-base eb-font-semibold eb-mb-2">Balances</div>
-            <hr className="eb-border-t eb-border-gray-300 eb-my-2" />
+            <div className="eb-mb-2 eb-text-base eb-font-semibold">
+              Balances
+            </div>
+            <hr className="eb-my-2 eb-border-t eb-border-gray-300" />
             {isBalanceLoading ? (
               <Skeleton className="eb-h-4 eb-w-1/2" />
             ) : balanceData?.balanceTypes?.length ? (
@@ -283,14 +293,14 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 {balanceData.balanceTypes.map((b) => (
                   <div
                     key={b.typeCode}
-                    className="eb-flex eb-flex-col eb-items-start eb-w-full"
+                    className="eb-flex eb-w-full eb-flex-col eb-items-start"
                   >
                     <span className="eb-text-xs eb-font-medium">
                       {b.typeCode === 'ITAV'
                         ? 'Available Balance'
                         : b.typeCode === 'ITBD'
-                        ? 'Current Balance'
-                        : b.typeCode}
+                          ? 'Current Balance'
+                          : b.typeCode}
                     </span>
                     <span className="eb-font-mono eb-text-lg">
                       {Number(b.amount).toFixed(2)} {balanceData.currency}
@@ -307,20 +317,24 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
-            <Card className="eb-w-1/2 eb-p-4 eb-border-2 eb-border-transparent">
-              <div className="eb-text-base eb-font-semibold eb-mb-2">
+            <Card className="eb-w-1/2 eb-border-2 eb-border-transparent eb-p-4">
+              <div className="eb-mb-2 eb-text-base eb-font-semibold">
                 Account Details
               </div>
-              <hr className="eb-border-t eb-border-gray-300 eb-my-2" />
+              <hr className="eb-my-2 eb-border-t eb-border-gray-300" />
               <div className="eb-flex eb-flex-col eb-gap-2">
-                <div className="eb-flex eb-flex-col eb-items-start eb-w-full">
-                  <span className="eb-text-xs eb-font-medium">Account Number:</span>
+                <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
+                  <span className="eb-text-xs eb-font-medium">
+                    Account Number:
+                  </span>
                   <span className="eb-font-mono eb-text-lg">
                     {account.paymentRoutingInformation?.accountNumber || 'N/A'}
                   </span>
                 </div>
-                <div className="eb-flex eb-flex-col eb-items-start eb-w-full">
-                  <span className="eb-text-xs eb-font-medium">Routing Number:</span>
+                <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
+                  <span className="eb-text-xs eb-font-medium">
+                    Routing Number:
+                  </span>
                   <span className="eb-font-mono eb-text-lg">
                     {account.paymentRoutingInformation?.routingNumber || 'N/A'}
                   </span>
