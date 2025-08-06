@@ -83,6 +83,7 @@ const convertThemeVariablesToCssVariables = (
     '--eb-warning-accent': colorToHsl(variables.warningAccentColor),
     '--eb-success': colorToHsl(variables.successColor),
     '--eb-success-accent': colorToHsl(variables.successAccentColor),
+    '--eb-metric-accent': colorToHsl(variables.metricAccentColor),
     '--eb-alert-foreground': colorToHsl(variables.alertForegroundColor),
     '--eb-radius': variables.borderRadius,
     '--eb-button-radius':

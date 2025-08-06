@@ -58,6 +58,7 @@ export const SELLSENSE_THEME: EBTheme = {
     warningAccentColor: '#fef3c7',
     successColor: '#10b981',
     successAccentColor: '#d1fae5',
+    metricAccentColor: '#2FB9A9', // Using blue for balance values in SellSense theme
 
     // Destructive colors
     destructiveColor: '#ef4444',
@@ -148,6 +149,7 @@ export const DEFAULT_THEME: EBTheme = {
     warningAccentColor: '#fef3c7',
     successColor: '#f0fdf4',
     successAccentColor: '#dcfce7',
+    metricAccentColor: '#3b82f6', // Metric accent color - using primary for Default theme
 
     destructiveColor: '#ef4444',
     destructiveHoverColor: '#dc2626',
