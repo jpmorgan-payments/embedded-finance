@@ -279,7 +279,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 : 'eb-w-1/2'
             }`}
           >
-            <div className="eb-mb-1 eb-text-sm eb-font-semibold">Overview</div>
+            <div className="eb-mb-4 eb-text-sm eb-font-semibold">Overview</div>
             {isBalanceLoading ? (
               <Skeleton className="eb-h-4 eb-w-1/2" />
             ) : balanceData?.balanceTypes?.length ? (
@@ -321,16 +321,16 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
             <Card className="eb-w-1/2 eb-border-2 eb-p-4">
-              <div className="eb-mb-1 eb-text-sm eb-font-semibold">
+              <div className="eb-mb-4 eb-text-sm eb-font-semibold">
                 Account Details
               </div>
               <div className="eb-flex eb-flex-col eb-gap-2">
-                <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
+                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
                   <span className="eb-text-xs eb-font-medium eb-text-gray-500">
                     Account Number:
                   </span>
-                  <div className="eb-flex eb-items-center eb-gap-2">
-                    <span className="eb-font-mono eb-text-lg">
+                  <div className="eb-flex eb-items-center">
+                    <span className="eb-font-mono eb-text-sm">
                       {showSensitiveInfo
                         ? account.paymentRoutingInformation?.accountNumber ||
                           'N/A'
@@ -339,7 +339,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <button
                       type="button"
                       onClick={toggleSensitiveInfo}
-                      className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
                       title={
                         showSensitiveInfo
                           ? 'Hide account details'
@@ -359,11 +359,11 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     </button>
                   </div>
                 </div>
-                <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
+                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
                   <span className="eb-text-xs eb-font-medium eb-text-gray-500">
                     Routing Number:
                   </span>
-                  <span className="eb-font-mono eb-text-lg">
+                  <span className="eb-font-mono eb-text-sm">
                     {account.paymentRoutingInformation?.routingNumber ||
                       '028000024'}
                   </span>
