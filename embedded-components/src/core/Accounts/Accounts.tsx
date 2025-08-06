@@ -257,7 +257,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           : account.category;
 
     const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
-      ? `...${account.paymentRoutingInformation.accountNumber.slice(-4)}`
+      ? account.paymentRoutingInformation.accountNumber.replace(/.(?=.{4})/g, '*')
       : 'N/A';
 
     return (
@@ -276,9 +276,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 : 'eb-w-1/2'
             }`}
           >
-            <div className="eb-mb-2 eb-text-base eb-font-semibold">
-              Balances
-            </div>
+            <div className="eb-mb-2 eb-text-base eb-font-semibold">Overview</div>
             <hr className="eb-my-2 eb-border-t eb-border-gray-300" />
             {isBalanceLoading ? (
               <Skeleton className="eb-h-4 eb-w-1/2" />
@@ -327,16 +325,41 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   <span className="eb-text-xs eb-font-medium">
                     Account Number:
                   </span>
-                  <span className="eb-font-mono eb-text-lg">
-                    {account.paymentRoutingInformation?.accountNumber || 'N/A'}
-                  </span>
+                  <div className="eb-flex eb-items-center eb-gap-2">
+                    <span className="eb-font-mono eb-text-lg">
+                      {showSensitiveInfo
+                        ? account.paymentRoutingInformation?.accountNumber || 'N/A'
+                        : maskedAccountNumber}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={toggleSensitiveInfo}
+                      className="eb-ml-1 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      title={
+                        showSensitiveInfo
+                          ? 'Hide account details'
+                          : 'Show account details'
+                      }
+                      aria-label={
+                        showSensitiveInfo
+                          ? 'Hide account details'
+                          : 'Show account details'
+                      }
+                    >
+                      {showSensitiveInfo ? (
+                        <EyeOff className="eb-h-3 eb-w-3" />
+                      ) : (
+                        <Eye className="eb-h-3 eb-w-3" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="eb-flex eb-w-full eb-flex-col eb-items-start">
                   <span className="eb-text-xs eb-font-medium">
                     Routing Number:
                   </span>
                   <span className="eb-font-mono eb-text-lg">
-                    {account.paymentRoutingInformation?.routingNumber || 'N/A'}
+                    {account.paymentRoutingInformation?.routingNumber || '028000024'}
                   </span>
                 </div>
               </div>
