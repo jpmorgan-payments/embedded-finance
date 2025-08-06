@@ -311,13 +311,17 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
               </div>
               <hr className="eb-border-t eb-border-gray-300 eb-my-2" />
               <div className="eb-flex eb-flex-col eb-gap-2">
-                <div className="eb-text-sm">
-                  <span className="eb-font-medium">Account Number:</span>{' '}
-                  {account.paymentRoutingInformation?.accountNumber || 'N/A'}
+                <div className="eb-flex eb-flex-col eb-items-start eb-w-full">
+                  <span className="eb-text-xs eb-font-medium">Account Number:</span>
+                  <span className="eb-font-mono eb-text-lg">
+                    {account.paymentRoutingInformation?.accountNumber || 'N/A'}
+                  </span>
                 </div>
-                <div className="eb-text-sm">
-                  <span className="eb-font-medium">Routing Number:</span>{' '}
-                  {account.paymentRoutingInformation?.routingNumber || 'N/A'}
+                <div className="eb-flex eb-flex-col eb-items-start eb-w-full">
+                  <span className="eb-text-xs eb-font-medium">Routing Number:</span>
+                  <span className="eb-font-mono eb-text-lg">
+                    {account.paymentRoutingInformation?.routingNumber || 'N/A'}
+                  </span>
                 </div>
               </div>
             </Card>
