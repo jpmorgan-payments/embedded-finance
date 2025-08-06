@@ -24,7 +24,58 @@ export const SELLSENSE_THEME: EBTheme = {
     headerFontFamily: 'Inter',
     buttonFontFamily: 'Inter',
 
-    // Common spacing and layout
+    // SellSense brand colors
+    primaryColor: '#f55727',
+    primaryHoverColor: '#e14d1f',
+    primaryActiveColor: '#cc4319',
+    primaryForegroundColor: '#ffffff',
+
+    // Enhanced secondary button with outline support
+    secondaryColor: '#FDF7F0',
+    secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
+    secondaryActiveColor: '#2CB9AC',
+    secondaryForegroundColor: '#f55727',
+    secondaryForegroundHoverColor: '#e14d1f',
+    secondaryForegroundActiveColor: '#2CB9AC',
+    secondaryBorderWidth: '1px',
+
+    // Background and layout
+    backgroundColor: '#FAF9F7',
+    foregroundColor: '#1e293b',
+    cardColor: '#F7F3F0',
+    cardForegroundColor: '#1e293b',
+
+    // Enhanced muted and accent colors
+    mutedColor: '#f8fafc',
+    mutedForegroundColor: '#64748b',
+    accentColor: '#f1f5f9',
+    accentForegroundColor: '#475569',
+
+    // Enhanced alert system colors
+    alertColor: '#FDF7F0',
+    alertForegroundColor: '#1e293b',
+    informativeColor: '#2cb9ac',
+    informativeAccentColor: '#f0fffd',
+    warningColor: '#f59e0b',
+    warningAccentColor: '#fef3c7',
+    successColor: '#10b981',
+    successAccentColor: '#d1fae5',
+    metricAccentColor: '#2FB9A9', // Using blue for balance values in SellSense theme
+
+    // Destructive colors
+    destructiveColor: '#ef4444',
+    destructiveHoverColor: '#dc2626',
+    destructiveActiveColor: '#b91c1c',
+    destructiveForegroundColor: '#ffffff',
+    destructiveForegroundHoverColor: '#fef2f2',
+    destructiveForegroundActiveColor: '#fee2e2',
+
+    // Input styling
+    inputColor: '#FFFFFF',
+    inputBorderColor: '#0000004d',
+    borderColor: '#0000004d',
+
+    // Border radius
     borderRadius: '8px',
     inputBorderRadius: '4px',
     buttonBorderRadius: '8px',
@@ -50,7 +101,6 @@ export const SELLSENSE_THEME: EBTheme = {
 
     // Common border widths
     primaryBorderWidth: '0px',
-    secondaryBorderWidth: '1px',
     destructiveBorderWidth: '0px',
 
     // Common behavior
@@ -201,6 +251,7 @@ export const DEFAULT_THEME: EBTheme = {
     warningAccentColor: '#fef3c7',
     successColor: '#f0fdf4',
     successAccentColor: '#dcfce7',
+    metricAccentColor: '#3b82f6', // Metric accent color - using primary for Default theme
 
     destructiveColor: '#ef4444',
     destructiveHoverColor: '#dc2626',
