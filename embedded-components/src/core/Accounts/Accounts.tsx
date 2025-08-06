@@ -253,7 +253,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
         : 'N/A';
 
     return (
-      <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 eb-shadow-sm">
+      <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4">
         {/* Title Section */}
         <div className="eb-text-xl eb-font-semibold eb-mb-4">
           {formattedCategory} | {maskedAccountNumber}
@@ -262,7 +262,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
         <div className="eb-flex eb-gap-4">
           {/* Left Card: Balances */}
           <Card
-            className={`eb-p-4 eb-shadow-sm eb-border-2 eb-border-gray-200 ${
+            className={`eb-p-4 eb-border-2 eb-border-transparent ${
               account.category === 'LIMITED_DDA_PAYMENTS' ? 'eb-flex-1' : 'eb-w-1/2'
             }`}
           >
@@ -305,7 +305,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
 
           {/* Right Card: Account Details */}
           {account.category !== 'LIMITED_DDA_PAYMENTS' && (
-            <Card className="eb-w-1/2 eb-p-4 eb-shadow-sm eb-border-2 eb-border-gray-200">
+            <Card className="eb-w-1/2 eb-p-4 eb-border-2 eb-border-transparent">
               <div className="eb-text-base eb-font-semibold eb-mb-2">
                 Account Details
               </div>
