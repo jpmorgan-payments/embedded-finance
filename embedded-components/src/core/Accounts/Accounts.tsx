@@ -274,7 +274,7 @@ const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                           ? 'Current Balance'
                           : b.typeCode}
                     </span>
-                    <span className="eb-font-mono eb-text-metric eb-text-lg eb-font-bold">
+                    <span className="eb-font-mono eb-text-lg eb-font-bold eb-text-metric">
                       {formatNumberWithCommas(Number(b.amount)).whole}
                       <span className="eb-text-sm">
                         .{formatNumberWithCommas(Number(b.amount)).decimal}{' '}
