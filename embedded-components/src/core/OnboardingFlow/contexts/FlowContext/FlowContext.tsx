@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
+import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
   FlowConfig,
   FlowSessionData,
@@ -44,6 +45,8 @@ const FlowContext = createContext<{
   orgParty: PartyResponse | undefined;
   controllerParty: PartyResponse | undefined;
   isSoleProp: boolean;
+  savedFormValues?: Partial<OnboardingFormValuesSubmit>;
+  saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
 }>({
   currentScreenId: 'overview',
   originScreenId: null,
@@ -70,6 +73,10 @@ const FlowContext = createContext<{
   orgParty: undefined,
   controllerParty: undefined,
   isSoleProp: false,
+  savedFormValues: {},
+  saveFormValue: () => {
+    throw new Error('saveFormValue() must be used within FlowProvider');
+  },
 });
 
 export const FlowProvider: React.FC<{
@@ -89,6 +96,9 @@ export const FlowProvider: React.FC<{
     null
   );
   const [sessionData, setSessionData] = useState<FlowSessionData>({});
+  const [savedFormValues, setSavedFormValues] = useState<
+    Partial<OnboardingFormValuesSubmit>
+  >({});
 
   const { organizationType, clientData } = useOnboardingContext();
 
@@ -135,6 +145,16 @@ export const FlowProvider: React.FC<{
     }));
   };
 
+  const saveFormValue = (
+    field: keyof OnboardingFormValuesSubmit,
+    value: any
+  ) => {
+    setSavedFormValues((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const orgParty = clientData?.parties?.find((p) =>
     p.roles?.includes('CLIENT')
   );
@@ -163,6 +183,8 @@ export const FlowProvider: React.FC<{
         reviewScreenOpenedSectionId,
         initialStepperStepId,
         shortLabelOverride,
+        savedFormValues,
+        saveFormValue,
         orgParty,
         controllerParty,
         isSoleProp,

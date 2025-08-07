@@ -226,14 +226,21 @@ export function setApiFormErrors(
  * @param path - Dot notation path (e.g., 'user.address.street')
  * @param value - Value to set at the specified path
  * Creates nested objects/arrays as needed while traversing
+ * Joins arrays if they already exist at the same path
  */
 function setValueByPath(obj: any, path: string, value: any) {
-  const keys = path.split('.');
+  const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.');
   keys.reduce((acc, key, index) => {
     if (index === keys.length - 1) {
-      acc[key] = value;
+      // If the target is an array and the new value is also an array, join them
+      if (Array.isArray(acc[key]) && Array.isArray(value)) {
+        acc[key] = [...acc[key], ...value];
+      } else {
+        acc[key] = value;
+      }
     } else {
-      acc[key] = acc[key] || (key.match(/^\d+$/) ? [] : {});
+      // Create the path if it doesn't exist
+      acc[key] = acc[key] || (keys[index + 1].match(/^\d+$/) ? [] : {});
     }
     return acc[key];
   }, obj);
@@ -334,7 +341,7 @@ export function convertClientResponseToFormValues(
 
   objectKeys(partyFieldMap).forEach((fieldName) => {
     const config = getPartyFieldConfig(fieldName);
-    if (config.excludeFromMapping) {
+    if (config.excludeFromMapping && config.path === undefined) {
       return;
     }
     const pathTemplate = `parties.${partyIndex}.${config.path}`;
@@ -362,7 +369,7 @@ export function convertPartyResponseToFormValues(
   const formValues: Partial<OnboardingFormValuesInitial> = {};
   objectKeys(partyFieldMap).forEach((fieldName) => {
     const config = getPartyFieldConfig(fieldName);
-    if (config.excludeFromMapping) {
+    if (config.excludeFromMapping && config.path === undefined) {
       return;
     }
     const pathTemplate = `${config.path}`;

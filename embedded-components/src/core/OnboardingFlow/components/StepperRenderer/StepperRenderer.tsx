@@ -17,10 +17,12 @@ import {
   StepLayout,
   StepsReviewCards,
 } from '@/core/OnboardingFlow/components';
+import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
   FormStepComponent,
   StepConfig,
@@ -353,6 +355,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   const queryClient = useQueryClient();
   const { clientData, onPostClientSettled, onPostPartySettled } =
     useOnboardingContext();
+  const { savedFormValues, saveFormValue } = useFlowContext();
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -379,13 +382,21 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     clientData,
     schema: Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
-    overrideDefaultValues: formValuesFromResponse,
+    overrideDefaultValues: { ...savedFormValues, ...formValuesFromResponse },
     disabled: isFormSubmitting,
   });
 
   const { isDirty } = useFormState({ control: form.control });
 
   const onSubmit = form.handleSubmit((values) => {
+    Object.entries(values).forEach(([key, value]) => {
+      const fieldKey = key as keyof OnboardingFormValuesSubmit;
+      const fieldConfig = partyFieldMap[fieldKey];
+      if (fieldConfig?.saveResponseInContext) {
+        saveFormValue(fieldKey, value);
+      }
+    });
+
     // Perform step-defined transformations on the form values
     const modifiedValues = Component.modifyFormValuesBeforeSubmit
       ? Component.modifyFormValuesBeforeSubmit(values, existingPartyData)

@@ -134,6 +134,7 @@ export const GatewayScreen = () => {
         // TODO: Temporary workaround
         organizationName: 'PLACEHOLDER_ORG_NAME',
         countryOfFormation: 'US',
+        jurisdiction: 'US',
       },
     };
 

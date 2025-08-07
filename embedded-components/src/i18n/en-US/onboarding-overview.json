@@ -241,7 +241,7 @@
         "uniqueTypes": "Each Business Identification type must be unique"
       }
     },
-    "solePropOrganizationId": {
+    "organizationIdEin": {
       "label": "Business identification",
       "description": "",
       "tooltip": "Should match your business registration document's ID value",
@@ -249,10 +249,18 @@
         "required": "$t(validation:required)"
       }
     },
-    "solePropPersonalIdOrEin": {
-      "label": "How do you identify your business?",
+    "solePropHasEin": {
+      "label": "Does your business have an $t(onboarding-overview:idValueLabels.EIN)?",
+      "validationFieldName": "This field",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "options": {
+        "yes": "Yes, my business has an EIN",
+        "no": "No"
+      },
+      "validation": {
+        "required": "$t(validation:required)"
+      }
     },
     "ssnAsSolePropId": {
       "description": "Update your ID in the personal details section",

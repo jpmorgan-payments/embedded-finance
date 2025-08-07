@@ -237,7 +237,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               <>
                 <div className="eb-flex eb-items-center eb-space-x-2">
                   <FormLabel className={labelClassName}>{fieldLabel}</FormLabel>
-                  <InfoPopover popoutTooltip={popoutTooltip}>
+                  <InfoPopover
+                    popoutTooltip={popoutTooltip}
+                    className="eb-text-informative hover:eb-text-informative"
+                  >
                     {fieldTooltip}
                   </InfoPopover>
                 </div>
