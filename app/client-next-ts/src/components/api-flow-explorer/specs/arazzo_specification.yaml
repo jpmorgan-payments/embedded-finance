@@ -69,6 +69,33 @@ components:
       criteria:
         - condition: $statusCode == 400 || $statusCode == 422
 
+  parameters:
+    clientId:
+      name: id
+      in: path
+      description: Unique identifier for a client
+      required: true
+      schema:
+        type: string
+    
+    questionIds:
+      name: questionIds
+      in: query
+      description: List of question IDs to retrieve
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+    
+    documentId:
+      name: id
+      in: path
+      description: Unique identifier for a document
+      required: true
+      schema:
+        type: string
+
 workflows:
   - workflowId: soleProprietorshipOnboarding
     summary:
@@ -103,7 +130,7 @@ workflows:
           format: ipv4
     steps:
       - stepId: createClient
-        description: Create initial client profile (POST /do/v1/clients)
+        description: Create initial client profile
         operationId: postClients
         requestBody:
           contentType: application/json
@@ -151,7 +178,7 @@ workflows:
 
       - stepId: getDueDiligenceQuestions
         description:
-          Retrieve due diligence questions if required (GET /do/v1/questions)
+          Retrieve due diligence questions if required
         operationId: getQuestions
         parameters:
           - reference: $components.parameters.questionIds
@@ -163,7 +190,7 @@ workflows:
 
       - stepId: answerQuestions
         description:
-          Submit responses to due diligence questions (POST /do/v1/parties/{id})
+          Submit responses to due diligence questions
         operationId: postParty
         parameters:
           - reference: $components.parameters.clientId
@@ -179,8 +206,7 @@ workflows:
 
       - stepId: getAttestationDocuments
         description:
-          Get attestation documents if required (GET
-          /do/v1/document-requests/{id})
+          Get attestation documents (if required)
         operationId: getDocumentRequest
         parameters:
           - reference: $components.parameters.documentId
@@ -192,7 +218,7 @@ workflows:
 
       - stepId: downloadAttestationContent
         description:
-          Get attestation document content (GET /do/v1/documents/{id}/file)
+          Get attestation document content
         operationId: getDocumentFile
         parameters:
           - reference: $components.parameters.documentId
@@ -202,7 +228,7 @@ workflows:
 
       - stepId: uploadDocumentsIfRequested
         description:
-          Upload supporting documents if requested (POST /do/v1/documents)
+          Upload supporting documents if requested
         operationId: postDocuments
         requestBody:
           contentType: application/json
@@ -216,8 +242,7 @@ workflows:
 
       - stepId: submitAttestation
         description:
-          Submit attestation with owner's confirmation (POST
-          /do/v1/clients/{id})
+          Submit attestation with owner's confirmation
         operationId: postClientUpdate
         parameters:
           - reference: $components.parameters.clientId
@@ -236,7 +261,7 @@ workflows:
 
       - stepId: submitVerification
         description:
-          Submit for final verification (POST /do/v1/clients/{id}/verifications)
+          Submit for final verification
         operationId: postClientVerifications
         parameters:
           - reference: $components.parameters.clientId
@@ -266,8 +291,7 @@ workflows:
     steps:
       - stepId: getClientDetails
         description:
-          Retrieve existing client details and requirements (GET
-          /do/v1/clients/{id})
+          Retrieve existing client details and requirements
         operationId: getClient
         parameters:
           - reference: $components.parameters.clientId
@@ -347,8 +371,7 @@ workflows:
     steps:
       - stepId: createLLCClient
         description:
-          Create initial LLC profile with organization and controller (POST
-          /do/v1/clients)
+          Create initial LLC profile with organization and controller
         operationId: postClients
         requestBody:
           contentType: application/json
@@ -413,10 +436,349 @@ workflows:
 
       - stepId: submitVerification
         description:
-          Submit for final verification (POST /do/v1/clients/{id}/verifications)
+          Submit for final verification
         operationId: postClientVerifications
         parameters:
           - reference: $components.parameters.clientId
             value: $steps.createLLCClient.outputs.clientId
         successCriteria:
           - condition: $statusCode == 202
+
+  - workflowId: instmdRefDataOnlyOnboarding
+    summary: InstmdRefDataOnly Onboarding for Sole Proprietorship
+    description: |
+      This workflow implements the onboarding process for the INSTMD_REF_DATA_ONLY product.
+      It includes:
+      - Organization creation with minimal data
+      - Due diligence question responses
+      - Attestation handling
+      - Final verification
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+          description: Organization details for the client
+        businessAddress:
+          type: object
+          description: Business address details
+        businessPhone:
+          type: object
+          description: Business phone details
+        taxIdentification:
+          type: object
+          description: Tax identification information
+        email:
+          type: string
+          format: email
+          description: Business email address
+        questionResponses:
+          type: array
+          items:
+            type: object
+            properties:
+              questionId:
+                type: string
+              values:
+                type: array
+                items:
+                  type: string
+        attester:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            designation:
+              type: string
+        ipAddress:
+          type: string
+          format: ipv4
+          description: Client's IP address for attestation
+    steps:
+      - stepId: createClient
+        description: Create initial client profile with INSTMD_REF_DATA_ONLY product
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                roles:
+                  - CLIENT
+                email: $inputs.email
+                organizationDetails:
+                  organizationType: $inputs.organizationInfo.organizationType
+                  organizationName: $inputs.organizationInfo.organizationName
+                  addresses:
+                    - $inputs.businessAddress
+                  countryOfFormation: $inputs.organizationInfo.countryOfFormation
+                  dbaName: $inputs.organizationInfo.dbaName
+                  naics: $inputs.organizationInfo.naics
+                  jurisdiction: $inputs.organizationInfo.jurisdiction
+                  organizationDescription: $inputs.organizationInfo.organizationDescription
+                  phone: $inputs.businessPhone
+                  significantOwnership: $inputs.organizationInfo.significantOwnership
+                  yearOfFormation: $inputs.organizationInfo.yearOfFormation
+                  organizationIds:
+                    - $inputs.taxIdentification
+            products:
+              - INSTMD_REF_DATA_ONLY
+        successCriteria:
+          - condition: $statusCode == 201
+        onFailure:
+          - reference: $components.failureActions.retryOnServiceUnavailable
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+      
+      - stepId: getClient
+        description: Get client details after creation
+        operationId: getClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          clientDetails: $response.body
+      
+      - stepId: submitQuestionResponses
+        description: Submit responses to due diligence questions
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses: $inputs.questionResponses
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - reference: $components.failureActions.endOnValidationError
+      
+      - stepId: submitAttestation
+        description: Submit attestation for the client
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - documentId: $steps.createClient.outputs.outstandingAttestations[0]
+                attestationTime: $date.now()
+                attester: $inputs.attester
+                manualAttestation: "false"
+                ipAddress: $inputs.ipAddress
+        successCriteria:
+          - condition: $statusCode == 200
+      
+      - stepId: startVerification
+        description: Submit for final verification
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+        outputs:
+          verificationTime: $response.body.acceptedAt
+  
+  - workflowId: instmdKYCOnboarding
+    summary: InstmdKYC Onboarding for LLC
+    description: |
+      This workflow implements the onboarding process for the INSTMD_KYC product.
+      It includes:
+      - Organization and controller creation
+      - Multiple attestation documents handling
+      - Enhanced due diligence questions
+      - Final verification
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+          description: Organization details for the LLC client
+        businessAddress:
+          type: object
+          description: Business address details
+        businessPhone:
+          type: object
+          description: Business phone details
+        taxIdentification:
+          type: object
+          description: Tax identification information
+        email:
+          type: string
+          format: email
+          description: Business email address
+        controllerInfo:
+          type: object
+          description: Details of the controller individual
+        controllerAddress:
+          type: object
+          description: Residential address of the controller
+        controllerPhone:
+          type: object
+          description: Phone number of the controller
+        controllerIdentification:
+          type: object
+          description: Identity document for the controller
+        questionResponses:
+          type: array
+          items:
+            type: object
+            properties:
+              questionId:
+                type: string
+              values:
+                type: array
+                items:
+                  type: string
+        attesters:
+          type: array
+          items:
+            type: object
+            properties:
+              firstName:
+                type: string
+              lastName:
+                type: string
+              designation:
+                type: string
+        ipAddress:
+          type: string
+          format: ipv4
+          description: Client's IP address for attestation
+    steps:
+      - stepId: createClient
+        description: Create initial client profile with organization and controller (INSTMD_KYC)
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                roles:
+                  - CLIENT
+                email: $inputs.email
+                organizationDetails:
+                  organizationType: $inputs.organizationInfo.organizationType
+                  organizationName: $inputs.organizationInfo.organizationName
+                  addresses:
+                    - $inputs.businessAddress
+                  countryOfFormation: $inputs.organizationInfo.countryOfFormation
+                  dbaName: $inputs.organizationInfo.dbaName
+                  naics: $inputs.organizationInfo.naics
+                  website: $inputs.organizationInfo.website
+                  websiteAvailable: $inputs.organizationInfo.websiteAvailable
+                  yearOfFormation: $inputs.organizationInfo.yearOfFormation
+                  organizationIds:
+                    - $inputs.taxIdentification
+              - partyType: INDIVIDUAL
+                roles:
+                  - CONTROLLER
+                  - BENEFICIAL_OWNER
+                individualDetails:
+                  firstName: $inputs.controllerInfo.firstName
+                  lastName: $inputs.controllerInfo.lastName
+                  birthDate: $inputs.controllerInfo.birthDate
+                  addresses:
+                    - $inputs.controllerAddress
+                  countryOfResidence: $inputs.controllerInfo.countryOfResidence
+                  phone: $inputs.controllerPhone
+                  individualIds:
+                    - $inputs.controllerIdentification
+                  jobTitle: $inputs.controllerInfo.jobTitle
+            products:
+              - INSTMD_KYC
+        successCriteria:
+          - condition: $statusCode == 201
+        onFailure:
+          - reference: $components.failureActions.retryOnServiceUnavailable
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+      
+      - stepId: getClient
+        description: Get client details after creation
+        operationId: getClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          clientDetails: $response.body
+      
+      - stepId: submitQuestionResponses
+        description: Submit responses to enhanced due diligence questions
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses: $inputs.questionResponses
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - reference: $components.failureActions.endOnValidationError
+      
+      - stepId: submitFirstAttestation
+        description: Submit first attestation document
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - documentId: $steps.createClient.outputs.outstandingAttestations[0]
+                attestationTime: $date.now()
+                attester: $inputs.attesters[0]
+                manualAttestation: "false"
+                ipAddress: $inputs.ipAddress
+        successCriteria:
+          - condition: $statusCode == 200
+      
+      - stepId: submitSecondAttestation
+        description: Submit second attestation document
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - documentId: $steps.createClient.outputs.outstandingAttestations[1]
+                attestationTime: $date.now()
+                attester: $inputs.attesters[1]
+                manualAttestation: "false"
+                ipAddress: $inputs.ipAddress
+        successCriteria:
+          - condition: $statusCode == 200
+      
+      - stepId: startVerification
+        description: Submit for final verification
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+        outputs:
+          verificationTime: $response.body.acceptedAt
