@@ -48,6 +48,7 @@ export type EBThemeVariables = {
   warningAccentColor?: string;
   successColor?: string;
   successAccentColor?: string;
+  metricAccentColor?: string;
   alertColor?: string;
   alertForegroundColor?: string;
   mutedColor?: string;

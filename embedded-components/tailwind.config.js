@@ -88,6 +88,10 @@ module.exports = {
           DEFAULT: 'hsl(var(--eb-success))',
           accent: 'hsl(var(--eb-success-accent))',
         },
+        metric: {
+          DEFAULT: 'hsl(var(--eb-metric-accent))',
+          accent: 'hsl(var(--eb-metric-accent))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--eb-muted))',
           foreground: 'hsl(var(--eb-muted-foreground))',

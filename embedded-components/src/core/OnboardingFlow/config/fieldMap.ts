@@ -6,6 +6,7 @@ import {
 
 import {
   AddressDto,
+  OrganizationIdentityDto,
   OrganizationType,
   PhoneSmbdo,
 } from '@/api/generated/smbdo.schemas';
@@ -16,6 +17,7 @@ import { PartyFieldMap } from '@/core/OnboardingFlow/types/form.types';
 // path is used for handling server errors and mapping values from/to the API
 // rules are used for configuring field display, required, etc.
 export const partyFieldMap: PartyFieldMap = {
+  // #region Gateway
   organizationName: {
     path: 'organizationDetails.organizationName',
     baseRule: {
@@ -24,6 +26,17 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: '',
     },
     fromResponseFn: (val) => (val === 'PLACEHOLDER_ORG_NAME' ? '' : val),
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          interaction: 'readonly',
+          required: false,
+        },
+      },
+    ],
   },
   organizationTypeHierarchy: {
     path: 'organizationDetails.organizationType',
@@ -79,6 +92,7 @@ export const partyFieldMap: PartyFieldMap = {
       return val.specificOrganizationType;
     },
   },
+  // #endregion
   countryOfFormation: {
     path: 'organizationDetails.countryOfFormation',
     baseRule: {
@@ -162,6 +176,9 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: '',
     },
     toStringFn: (val) => {
+      if (val === undefined) {
+        return undefined;
+      }
       const industry = naicsCodes.find((code) => code.id === val);
       return `[${val}]  ${industry?.sectorDescription} - ${industry?.description}`;
     },
@@ -184,6 +201,9 @@ export const partyFieldMap: PartyFieldMap = {
   addresses: {
     path: 'organizationDetails.addresses',
     toStringFn: (addresses) => {
+      if (!addresses || addresses.length === 0) {
+        return undefined;
+      }
       const primaryAddress = addresses[0];
       return [
         primaryAddress.primaryAddressLine,
@@ -323,6 +343,58 @@ export const partyFieldMap: PartyFieldMap = {
   //     },
   //   },
   // },
+  solePropPersonalIdOrEin: {
+    excludeFromMapping: true,
+    isHiddenInReview: () => true,
+    baseRule: {
+      display: 'hidden',
+      defaultValue: 'PERSONAL',
+    },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          display: 'visible',
+        },
+      },
+    ],
+  },
+  solePropOrganizationId: {
+    path: 'organizationDetails.organizationIds.0',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          display: 'visible',
+        },
+      },
+    ],
+    toStringFn: (val) => {
+      if (val === undefined) {
+        return 'SSN / ITIN';
+      }
+      return val.replace(/(\d{2})(\d{7})/, '$1 - $2');
+    },
+    fromResponseFn: (val: OrganizationIdentityDto) => {
+      return val.value;
+    },
+    toRequestFn: (val): OrganizationIdentityDto => {
+      return {
+        issuer: 'US',
+        idType: 'EIN',
+        value: val,
+      };
+    },
+  },
   organizationIds: {
     path: 'organizationDetails.organizationIds',
     baseRule: {
@@ -350,6 +422,7 @@ export const partyFieldMap: PartyFieldMap = {
         rule: {
           minItems: 0,
           defaultValue: [],
+          display: 'hidden',
         },
       },
     ],
@@ -361,6 +434,9 @@ export const partyFieldMap: PartyFieldMap = {
       return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
+      if (val === undefined) {
+        return undefined;
+      }
       const primaryId = val[0];
       return primaryId.value.replace(/(\d{2})(\d{7})/, '$1 - $2');
     },
@@ -413,7 +489,8 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: { phoneType: 'BUSINESS_PHONE', phoneNumber: '' },
     },
-    toStringFn: (val) => formatPhoneNumberIntl(val.phoneNumber),
+    toStringFn: (val) =>
+      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
     fromResponseFn: (val: PhoneSmbdo) => ({
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,
@@ -493,13 +570,17 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
-    toStringFn: (val) =>
-      new Date(val).toLocaleDateString('default', {
+    toStringFn: (val) => {
+      if (val === undefined) {
+        return undefined;
+      }
+      return new Date(val).toLocaleDateString('default', {
         month: 'long',
         day: '2-digit',
         year: 'numeric',
         timeZone: 'UTC',
-      }),
+      });
+    },
   },
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
@@ -583,6 +664,9 @@ export const partyFieldMap: PartyFieldMap = {
       return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
+      if (val === undefined) {
+        return undefined;
+      }
       const primaryId = val[0];
       return primaryId.value.replace(/(\d{3})(\d{2})(\d{4})/, 'XXX-XX-$3');
     },
@@ -742,13 +826,6 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: { display: 'hidden' },
       },
-      {
-        condition: {
-          product: ['EMBEDDED_PAYMENTS'],
-          entityType: ['SOLE_PROPRIETORSHIP'],
-        },
-        rule: { interaction: 'disabled' },
-      },
     ],
   },
   // ownerJobTitleDescription: {
@@ -778,6 +855,9 @@ export const partyFieldMap: PartyFieldMap = {
   controllerAddresses: {
     path: 'individualDetails.addresses',
     toStringFn: (addresses) => {
+      if (!addresses || addresses.length === 0) {
+        return undefined;
+      }
       const primaryAddress = addresses[0];
       return [
         primaryAddress.primaryAddressLine,
@@ -1006,7 +1086,8 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
     },
-    toStringFn: (val) => formatPhoneNumberIntl(val.phoneNumber),
+    toStringFn: (val) =>
+      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
     fromResponseFn: (val: PhoneSmbdo) => ({
       phoneType: val.phoneType!,
       phoneNumber: `${val.countryCode}${val.phoneNumber}`,

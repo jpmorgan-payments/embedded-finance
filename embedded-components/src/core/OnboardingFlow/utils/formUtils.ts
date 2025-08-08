@@ -622,8 +622,6 @@ export function modifySchemaByClientContext(
       clientContext
     );
 
-    getFieldRuleByClientContext('addresses.0', clientContext);
-
     // Skip hidden fields
     if (fieldRule.display === 'hidden') {
       return;
@@ -677,10 +675,11 @@ export function modifySchemaByClientContext(
             );
           }
           // Apply min and max to the underlying array
-          const modifiedInner = z
+          const modifiedInner: z.ZodType<any> = z
             .array(newElementSchema)
             .min(min, minMessage)
             .max(max, maxMessage);
+
           // Rebuild the ZodEffects with the modified inner schema
           modifiedSchema = new z.ZodEffects({
             schema: modifiedInner,
