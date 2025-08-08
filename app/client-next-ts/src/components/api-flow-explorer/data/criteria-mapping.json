@@ -1,0 +1,114 @@
+{
+  "mappings": {
+    "EMBEDDED_PAYMENTS-US-LLC": {
+      "product": "EMBEDDED_PAYMENTS",
+      "jurisdiction": "US",
+      "legalEntityType": "LLC",
+      "arazzoFile": "/api-flow-explorer/data/arazzo-specs/embedded-payments-us-llc.yaml",
+      "requiredOperations": [
+        "createClient",
+        "submitBusinessInformation",
+        "uploadDocuments",
+        "verifyBusinessOwners",
+        "setupPaymentAccount"
+      ],
+      "displayName": "Embedded Payments - US LLC",
+      "description": "Complete onboarding workflow for US-based Limited Liability Companies using Embedded Payments services"
+    },
+    "EMBEDDED_PAYMENTS-US-CORPORATION": {
+      "product": "EMBEDDED_PAYMENTS",
+      "jurisdiction": "US",
+      "legalEntityType": "CORPORATION",
+      "arazzoFile": "/api-flow-explorer/data/arazzo-specs/embedded-payments-us-corporation.yaml",
+      "requiredOperations": [
+        "createClient",
+        "submitBusinessInformation",
+        "uploadDocuments",
+        "verifyBusinessOwners",
+        "verifyBoardResolution",
+        "setupPaymentAccount"
+      ],
+      "displayName": "Embedded Payments - US Corporation",
+      "description": "Complete onboarding workflow for US-based Corporations using Embedded Payments services"
+    },
+    "EMBEDDED_PAYMENTS-CA-CORPORATION": {
+      "product": "EMBEDDED_PAYMENTS",
+      "jurisdiction": "CA",
+      "legalEntityType": "CORPORATION",
+      "arazzoFile": "/api-flow-explorer/data/arazzo-specs/embedded-payments-ca-corporation.yaml",
+      "requiredOperations": [
+        "createClient",
+        "submitBusinessInformation",
+        "uploadDocuments",
+        "verifyBusinessOwners",
+        "verifyCanadianCompliance",
+        "setupPaymentAccount"
+      ],
+      "displayName": "Embedded Payments - CA Corporation",
+      "description": "Complete onboarding workflow for Canadian Corporations using Embedded Payments services"
+    },
+    "MERCHANT_SERVICES-US-LLC": {
+      "product": "MERCHANT_SERVICES",
+      "jurisdiction": "US",
+      "legalEntityType": "LLC",
+      "arazzoFile": "/api-flow-explorer/data/arazzo-specs/merchant-services-us-llc.yaml",
+      "requiredOperations": [
+        "createClient",
+        "submitBusinessInformation",
+        "uploadDocuments",
+        "verifyBusinessOwners",
+        "setupMerchantAccount",
+        "configurePosIntegration"
+      ],
+      "displayName": "Merchant Services - US LLC",
+      "description": "Complete onboarding workflow for US-based Limited Liability Companies using Merchant Services"
+    },
+    "MERCHANT_SERVICES-CA-CORPORATION": {
+      "product": "MERCHANT_SERVICES",
+      "jurisdiction": "CA",
+      "legalEntityType": "CORPORATION",
+      "arazzoFile": "/api-flow-explorer/data/arazzo-specs/merchant-services-ca-corporation.yaml",
+      "requiredOperations": [
+        "createClient",
+        "submitBusinessInformation",
+        "uploadDocuments",
+        "verifyBusinessOwners",
+        "verifyCanadianCompliance",
+        "setupMerchantAccount",
+        "configurePosIntegration"
+      ],
+      "displayName": "Merchant Services - CA Corporation",
+      "description": "Complete onboarding workflow for Canadian Corporations using Merchant Services"
+    }
+  },
+  "defaultCriteria": {
+    "product": "EMBEDDED_PAYMENTS",
+    "jurisdiction": "US",
+    "legalEntityType": "LLC"
+  },
+  "supportedCombinations": [
+    "EMBEDDED_PAYMENTS-US-LLC",
+    "EMBEDDED_PAYMENTS-US-CORPORATION",
+    "EMBEDDED_PAYMENTS-CA-CORPORATION",
+    "MERCHANT_SERVICES-US-LLC",
+    "MERCHANT_SERVICES-CA-CORPORATION"
+  ],
+  "validationRules": {
+    "requiredFields": ["product", "jurisdiction", "legalEntityType"],
+    "productConstraints": {
+      "EMBEDDED_PAYMENTS": {
+        "supportedJurisdictions": ["US", "CA"],
+        "supportedEntityTypes": ["LLC", "CORPORATION"]
+      },
+      "MERCHANT_SERVICES": {
+        "supportedJurisdictions": ["US", "CA"],
+        "supportedEntityTypes": ["LLC", "CORPORATION", "PARTNERSHIP"]
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-08",
+    "description": "Configuration mapping for onboarding criteria to Arazzo workflow specifications"
+  }
+}

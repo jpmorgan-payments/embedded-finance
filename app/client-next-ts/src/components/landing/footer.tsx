@@ -1,6 +1,9 @@
 import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
+import { ApiFlowExplorer } from '../api-flow-explorer';
 
 export function Footer() {
+  const [isExplorerOpen, setIsExplorerOpen] = useState(false);
   return (
     <footer className="bg-jpm-gray-900 text-jpm-white py-16">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -49,6 +52,14 @@ export function Footer() {
                   GitHub Repository
                 </Link>
               </li>
+              <li>
+                <button
+                  onClick={() => setIsExplorerOpen(true)}
+                  className="text-jpm-gray-300 hover:text-jpm-white text-page-body transition-colors duration-200 text-left"
+                >
+                  API Flow Explorer
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -65,6 +76,12 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      {/* API Flow Explorer Modal */}
+      <ApiFlowExplorer
+        isOpen={isExplorerOpen}
+        onClose={() => setIsExplorerOpen(false)}
+      />
     </footer>
   );
 }

@@ -1,0 +1,256 @@
+arazzo: 1.0.0
+info:
+  title: Merchant Services US LLC Onboarding Workflow
+  summary:
+    Complete onboarding workflow for US-based LLCs using Merchant Services
+  description: |
+    This workflow defines the complete onboarding process for US-based Limited Liability Companies
+    using Merchant Services. It includes additional POS integration configuration steps.
+  version: 1.0.0
+
+sourceDescriptions:
+  - name: embedded-finance-api
+    url: /api-specs/embedded-finance-pub-smbdo-1.0.16.yaml
+    type: openapi
+
+workflows:
+  - workflowId: merchant-services-us-llc-onboarding
+    info:
+      title: US LLC Merchant Services Onboarding
+      description:
+        Complete onboarding workflow for US LLC entities using Merchant Services
+    steps:
+      - stepId: create-client
+        description: Create a new client record in the system
+        operationId: createClient
+        parameters:
+          - name: Content-Type
+            in: header
+            value: application/json
+        requestBody:
+          contentType: application/json
+          payload:
+            clientType: BUSINESS
+            businessInfo:
+              legalEntityType: LLC
+              jurisdiction: US
+            serviceType: MERCHANT_SERVICES
+        successCriteria:
+          - condition: $statusCode == 201
+          - condition: $response.body.clientId != null
+        onSuccess:
+          - stepId: submit-business-information
+        onFailure:
+          - stepId: handle-client-creation-error
+
+      - stepId: submit-business-information
+        description: Submit detailed business information for the LLC
+        operationId: submitBusinessInformation
+        parameters:
+          - name: clientId
+            in: path
+            value: $steps.create-client.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            businessName: $inputs.businessName
+            dbaName: $inputs.dbaName
+            businessAddress:
+              street: $inputs.businessAddress.street
+              city: $inputs.businessAddress.city
+              state: $inputs.businessAddress.state
+              postalCode: $inputs.businessAddress.postalCode
+              country: US
+            taxId: $inputs.taxId
+            businessType: LLC
+            industryCode: $inputs.industryCode
+            businessDescription: $inputs.businessDescription
+            website: $inputs.website
+            phoneNumber: $inputs.phoneNumber
+            email: $inputs.email
+            merchantInfo:
+              averageTransactionAmount: $inputs.merchantInfo.averageTransactionAmount
+              monthlyVolume: $inputs.merchantInfo.monthlyVolume
+              businessModel: $inputs.merchantInfo.businessModel
+              cardPresentPercentage: $inputs.merchantInfo.cardPresentPercentage
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.status == "SUBMITTED"
+        onSuccess:
+          - stepId: upload-documents
+        onFailure:
+          - stepId: handle-business-info-error
+
+      - stepId: upload-documents
+        description: Upload required business documents for LLC verification
+        operationId: uploadDocuments
+        parameters:
+          - name: clientId
+            in: path
+            value: $steps.create-client.outputs.clientId
+        requestBody:
+          contentType: multipart/form-data
+          payload:
+            documentType: ARTICLES_OF_ORGANIZATION
+            file: $inputs.articlesOfOrganization
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.documentId != null
+        onSuccess:
+          - stepId: verify-business-owners
+        onFailure:
+          - stepId: handle-document-upload-error
+
+      - stepId: verify-business-owners
+        description: Submit business owner information for verification
+        operationId: verifyBusinessOwners
+        parameters:
+          - name: clientId
+            in: path
+            value: $steps.create-client.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            owners:
+              - firstName: $inputs.owner.firstName
+                lastName: $inputs.owner.lastName
+                dateOfBirth: $inputs.owner.dateOfBirth
+                ssn: $inputs.owner.ssn
+                address:
+                  street: $inputs.owner.address.street
+                  city: $inputs.owner.address.city
+                  state: $inputs.owner.address.state
+                  postalCode: $inputs.owner.address.postalCode
+                  country: US
+                ownershipPercentage: $inputs.owner.ownershipPercentage
+                title: $inputs.owner.title
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.verificationStatus == "PENDING"
+        onSuccess:
+          - stepId: setup-merchant-account
+        onFailure:
+          - stepId: handle-owner-verification-error
+
+      - stepId: setup-merchant-account
+        description: Set up the merchant account for payment processing
+        operationId: setupMerchantAccount
+        parameters:
+          - name: clientId
+            in: path
+            value: $steps.create-client.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            accountType: MERCHANT_ACCOUNT
+            processingInfo:
+              merchantCategoryCode: $inputs.processingInfo.merchantCategoryCode
+              processingCurrency: USD
+              settlementCurrency: USD
+              riskProfile: $inputs.processingInfo.riskProfile
+            bankingInfo:
+              routingNumber: $inputs.bankingInfo.routingNumber
+              accountNumber: $inputs.bankingInfo.accountNumber
+              accountHolderName: $inputs.businessName
+            feeStructure:
+              interchangePlus: $inputs.feeStructure.interchangePlus
+              transactionFee: $inputs.feeStructure.transactionFee
+              monthlyFee: $inputs.feeStructure.monthlyFee
+        successCriteria:
+          - condition: $statusCode == 201
+          - condition: $response.body.merchantAccountId != null
+          - condition: $response.body.status == "ACTIVE"
+        onSuccess:
+          - stepId: configure-pos-integration
+        onFailure:
+          - stepId: handle-merchant-setup-error
+
+      - stepId: configure-pos-integration
+        description: Configure Point of Sale system integration
+        operationId: configurePosIntegration
+        parameters:
+          - name: clientId
+            in: path
+            value: $steps.create-client.outputs.clientId
+          - name: merchantAccountId
+            in: path
+            value: $steps.setup-merchant-account.outputs.merchantAccountId
+        requestBody:
+          contentType: application/json
+          payload:
+            integrationType: $inputs.posIntegration.integrationType
+            terminalConfiguration:
+              terminalType: $inputs.posIntegration.terminalType
+              quantity: $inputs.posIntegration.quantity
+              features: $inputs.posIntegration.features
+            apiConfiguration:
+              webhookUrl: $inputs.posIntegration.webhookUrl
+              apiKeys: $inputs.posIntegration.apiKeys
+              encryptionSettings: $inputs.posIntegration.encryptionSettings
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.integrationId != null
+          - condition: $response.body.status == "CONFIGURED"
+        onSuccess:
+          - stepId: onboarding-complete
+        onFailure:
+          - stepId: handle-pos-integration-error
+
+      - stepId: onboarding-complete
+        description: Onboarding process completed successfully
+        operationId: notifyOnboardingComplete
+        parameters:
+          - name: clientId
+            in: path
+            value: $steps.create-client.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+
+      # Error handling steps
+      - stepId: handle-client-creation-error
+        description: Handle client creation errors
+        operationId: logError
+        parameters:
+          - name: errorType
+            in: query
+            value: CLIENT_CREATION_FAILED
+
+      - stepId: handle-business-info-error
+        description: Handle business information submission errors
+        operationId: logError
+        parameters:
+          - name: errorType
+            in: query
+            value: BUSINESS_INFO_FAILED
+
+      - stepId: handle-document-upload-error
+        description: Handle document upload errors
+        operationId: logError
+        parameters:
+          - name: errorType
+            in: query
+            value: DOCUMENT_UPLOAD_FAILED
+
+      - stepId: handle-owner-verification-error
+        description: Handle business owner verification errors
+        operationId: logError
+        parameters:
+          - name: errorType
+            in: query
+            value: OWNER_VERIFICATION_FAILED
+
+      - stepId: handle-merchant-setup-error
+        description: Handle merchant account setup errors
+        operationId: logError
+        parameters:
+          - name: errorType
+            in: query
+            value: MERCHANT_SETUP_FAILED
+
+      - stepId: handle-pos-integration-error
+        description: Handle POS integration configuration errors
+        operationId: logError
+        parameters:
+          - name: errorType
+            in: query
+            value: POS_INTEGRATION_FAILED
