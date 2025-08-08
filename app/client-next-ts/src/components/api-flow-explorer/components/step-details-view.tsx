@@ -4,14 +4,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DataTable, EmptyRow, HighlightCode } from './ui-components';
-import { type ArazzoWorkflowStep, type HttpVerb, HTTP_VERB_STYLES, type OasOperationInfo } from '../types';
-import { 
-  detectHttpVerb, 
-  extractValidationConstraints, 
-  flattenJsonPaths, 
-  getSchemaForPath, 
-  getStepPayload 
+import {
+  type ArazzoWorkflowStep,
+  type HttpVerb,
+  HTTP_VERB_STYLES,
+  type OasOperationInfo,
+} from '../types';
+import {
+  detectHttpVerb,
+  extractValidationConstraints,
+  flattenJsonPaths,
+  getSchemaForPath,
+  getStepPayload,
 } from '../utils/schema-utils';
+import { getUiValidationForPath } from '../utils/ui-validation-map';
 
 interface StepDetailsViewProps {
   selectedStep: ArazzoWorkflowStep | null;
@@ -22,10 +28,10 @@ interface StepDetailsViewProps {
 /**
  * StepDetailsView component for displaying detailed information about a workflow step
  */
-export const StepDetailsView: React.FC<StepDetailsViewProps> = ({ 
+export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
   selectedStep,
   selectedOasOperation,
-  oasSpec
+  oasSpec,
 }) => {
   // Format schema data for display
   const formatSchema = (schema: any): string => {
@@ -36,9 +42,12 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
       return 'Invalid schema';
     }
   };
-  
+
   return (
-    <Tabs defaultValue="step" className="w-full h-full flex flex-col max-h-full">
+    <Tabs
+      defaultValue="step"
+      className="w-full h-full flex flex-col max-h-full"
+    >
       <div className="shrink-0 bg-jpm-brown-100 border-b border-jpm-brown-300 px-2 sm:px-4">
         <TabsList className="bg-transparent h-10 p-0 gap-1">
           <TabsTrigger
@@ -82,25 +91,31 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
       </div>
       <div className="flex-1 overflow-auto p-3 sm:p-4 max-h-[calc(100%-50px)]">
         <TabsContent value="step" className="m-0 h-full overflow-auto">
-          <HighlightCode 
-            code={selectedStep
-              ? JSON.stringify(selectedStep, null, 2)
-              : '// Select a step on the left'
+          <HighlightCode
+            code={
+              selectedStep
+                ? JSON.stringify(selectedStep, null, 2)
+                : '// Select a step on the left'
             }
             language="json"
           />
         </TabsContent>
-        
+
         <TabsContent value="payload-json" className="m-0 h-full overflow-auto">
-          <HighlightCode 
-            code={getStepPayload(selectedStep ?? undefined)
-              ? JSON.stringify(getStepPayload(selectedStep ?? undefined), null, 2)
-              : '// No payload for this step'
+          <HighlightCode
+            code={
+              getStepPayload(selectedStep ?? undefined)
+                ? JSON.stringify(
+                    getStepPayload(selectedStep ?? undefined),
+                    null,
+                    2,
+                  )
+                : '// No payload for this step'
             }
             language="json"
           />
         </TabsContent>
-        
+
         <TabsContent value="payload-table" className="m-0 h-full overflow-auto">
           {(() => {
             const payload = getStepPayload(selectedStep ?? undefined);
@@ -110,44 +125,56 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                   No payload for this step.
                 </div>
               );
-            
+
             const rows = flattenJsonPaths(payload);
-            
+
             // Extract validation details for each field from the OAS spec
-            const rowsWithValidation = rows.map(row => {
+            const rowsWithValidation = rows.map((row) => {
               // Get schema for this path
               const schema = getSchemaForPath(
-                row.path, 
-                oasSpec, 
-                selectedStep?.operationId
+                row.path,
+                oasSpec,
+                selectedStep?.operationId,
               );
-              
+
               // Extract validation constraints
               const validationText = extractValidationConstraints(schema);
-              
+
               return {
                 ...row,
                 validation: validationText,
-                schemaInfo: schema
+                schemaInfo: schema,
               };
             });
-            
+
             return (
-              <DataTable headers={['JSON Path', 'Validation', 'Description']}>
+              <DataTable
+                headers={[
+                  'JSON Path',
+                  'OAS validation',
+                  'UI validation',
+                  'Description',
+                ]}
+              >
                 {rowsWithValidation.map((r) => (
-                  <tr
-                    key={r.path}
-                    className="border-b last:border-0"
-                  >
-                    <td className="py-2 pr-4 font-mono text-xs">
-                      {r.path}
-                    </td>
+                  <tr key={r.path} className="border-b last:border-0">
+                    <td className="py-2 pr-4 font-mono text-xs">{r.path}</td>
                     <td className="py-2 pr-4 text-xs">
                       {r.validation ? (
                         <div className="text-xs text-muted-foreground">
                           {r.validation}
                         </div>
                       ) : null}
+                    </td>
+                    <td className="py-2 pr-4 text-xs">
+                      {(() => {
+                        const uiValidation = getUiValidationForPath(r.path);
+                        return uiValidation ? (
+                          <div className="text-xs text-muted-foreground">
+                            {uiValidation}
+                          </div>
+                        ) : null;
+                      })()}
                     </td>
                     <td className="py-2 text-xs text-muted-foreground">
                       {r.schemaInfo?.description || ''}
@@ -158,7 +185,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
             );
           })()}
         </TabsContent>
-        
+
         <TabsContent value="meta" className="m-0 h-full overflow-auto">
           {(() => {
             const s = selectedStep as any;
@@ -189,13 +216,8 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                       <EmptyRow />
                     ) : (
                       success.map((cond: string, idx: number) => (
-                        <tr
-                          key={idx}
-                          className="border-b last:border-0"
-                        >
-                          <td className="py-2 font-mono text-xs">
-                            {cond}
-                          </td>
+                        <tr key={idx} className="border-b last:border-0">
+                          <td className="py-2 font-mono text-xs">{cond}</td>
                         </tr>
                       ))
                     )}
@@ -203,42 +225,28 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="text-sm font-medium mb-2">
-                      On Success
-                    </div>
+                    <div className="text-sm font-medium mb-2">On Success</div>
                     <DataTable headers={['Reference']}>
                       {onSuccess.length === 0 ? (
                         <EmptyRow />
                       ) : (
                         onSuccess.map((ref: string, idx: number) => (
-                          <tr
-                            key={idx}
-                            className="border-b last:border-0"
-                          >
-                            <td className="py-2 font-mono text-xs">
-                              {ref}
-                            </td>
+                          <tr key={idx} className="border-b last:border-0">
+                            <td className="py-2 font-mono text-xs">{ref}</td>
                           </tr>
                         ))
                       )}
                     </DataTable>
                   </div>
                   <div>
-                    <div className="text-sm font-medium mb-2">
-                      On Failure
-                    </div>
+                    <div className="text-sm font-medium mb-2">On Failure</div>
                     <DataTable headers={['Reference']}>
                       {onFailure.length === 0 ? (
                         <EmptyRow />
                       ) : (
                         onFailure.map((ref: string, idx: number) => (
-                          <tr
-                            key={idx}
-                            className="border-b last:border-0"
-                          >
-                            <td className="py-2 font-mono text-xs">
-                              {ref}
-                            </td>
+                          <tr key={idx} className="border-b last:border-0">
+                            <td className="py-2 font-mono text-xs">{ref}</td>
                           </tr>
                         ))
                       )}
@@ -246,26 +254,19 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium mb-2">
-                    Outputs
-                  </div>
+                  <div className="text-sm font-medium mb-2">Outputs</div>
                   <DataTable headers={['Name', 'Value']}>
                     {Object.keys(outputs).length === 0 ? (
                       <EmptyRow colSpan={2} />
                     ) : (
-                      Object.entries(outputs).map(
-                        ([k, v]: [string, any]) => (
-                          <tr
-                            key={k}
-                            className="border-b last:border-0"
-                          >
-                            <td className="py-2 pr-4 text-xs">{k}</td>
-                            <td className="py-2 font-mono text-[11px] text-muted-foreground">
-                              {String(v)}
-                            </td>
-                          </tr>
-                        ),
-                      )
+                      Object.entries(outputs).map(([k, v]: [string, any]) => (
+                        <tr key={k} className="border-b last:border-0">
+                          <td className="py-2 pr-4 text-xs">{k}</td>
+                          <td className="py-2 font-mono text-[11px] text-muted-foreground">
+                            {String(v)}
+                          </td>
+                        </tr>
+                      ))
                     )}
                   </DataTable>
                 </div>
@@ -273,7 +274,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
             );
           })()}
         </TabsContent>
-        
+
         <TabsContent value="api" className="m-0 h-full overflow-auto">
           {(() => {
             if (!selectedOasOperation) {
@@ -283,22 +284,22 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 </div>
               );
             }
-            
+
             // Extract operation details
-            const { 
-              verb, 
-              path, 
-              summary, 
-              description, 
-              parameters = [], 
+            const {
+              verb,
+              path,
+              summary,
+              description,
+              parameters = [],
               requestBody,
-              responses = {} 
+              responses = {},
             } = selectedOasOperation;
-            
+
             // Get content type and schema from request body
             let requestContentType = '';
             let requestSchema = null;
-            
+
             if (requestBody?.content) {
               // Get the first content type (usually application/json)
               const contentTypes = Object.keys(requestBody.content);
@@ -307,16 +308,16 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 requestSchema = requestBody.content[requestContentType]?.schema;
               }
             }
-            
+
             return (
               <div className="space-y-6">
                 {/* Operation Overview */}
                 <div>
                   <div className="flex items-center gap-2">
-                    <Badge 
+                    <Badge
                       className={cn(
                         'text-xs px-2 py-1 border',
-                        HTTP_VERB_STYLES[verb as HttpVerb]
+                        HTTP_VERB_STYLES[verb as HttpVerb],
                       )}
                       variant="outline"
                     >
@@ -324,27 +325,40 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                     </Badge>
                     <span className="text-sm font-mono">{path}</span>
                   </div>
-                  
+
                   {(summary || description) && (
                     <div className="mt-3 text-sm">
                       {summary && <p className="font-medium mb-1">{summary}</p>}
-                      {description && <p className="text-muted-foreground">{description}</p>}
+                      {description && (
+                        <p className="text-muted-foreground">{description}</p>
+                      )}
                     </div>
                   )}
                 </div>
-                
+
                 {/* Parameters */}
                 {parameters.length > 0 && (
                   <div>
                     <div className="text-sm font-medium mb-2">Parameters</div>
-                    <DataTable headers={['Name', 'Location', 'Type', 'Required', 'Description']}>
+                    <DataTable
+                      headers={[
+                        'Name',
+                        'Location',
+                        'Type',
+                        'Required',
+                        'Description',
+                      ]}
+                    >
                       {parameters.map((param: any, idx: number) => (
                         <tr key={idx} className="border-b last:border-0">
-                          <td className="py-2 pr-4 font-mono text-xs">{param.name}</td>
+                          <td className="py-2 pr-4 font-mono text-xs">
+                            {param.name}
+                          </td>
                           <td className="py-2 pr-4 text-xs">{param.in}</td>
                           <td className="py-2 pr-4 text-xs">
                             {param.schema?.type || 'object'}
-                            {param.schema?.format && ` (${param.schema.format})`}
+                            {param.schema?.format &&
+                              ` (${param.schema.format})`}
                           </td>
                           <td className="py-2 pr-4 text-xs">
                             {param.required ? 'Yes' : 'No'}
@@ -357,12 +371,13 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                     </DataTable>
                   </div>
                 )}
-                
+
                 {/* Request Body */}
                 {requestBody && (
                   <div>
                     <div className="text-sm font-medium mb-2">
-                      Request Body {requestContentType && `(${requestContentType})`}
+                      Request Body{' '}
+                      {requestContentType && `(${requestContentType})`}
                     </div>
                     {requestBody.description && (
                       <p className="text-sm text-muted-foreground mb-2">
@@ -379,57 +394,74 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                     )}
                   </div>
                 )}
-                
+
                 {/* Response Codes */}
                 {Object.keys(responses).length > 0 && (
                   <div>
                     <div className="text-sm font-medium mb-2">Responses</div>
-                    <DataTable headers={['Status', 'Description', 'Content Type']}>
-                      {Object.entries(responses).map(([status, respObj]: [string, any]) => {
-                        const contentTypes = respObj.content 
-                          ? Object.keys(respObj.content).join(', ') 
-                          : '';
-                        
-                        return (
-                          <tr key={status} className="border-b last:border-0">
-                            <td className="py-2 pr-4 text-xs">
-                              {status}
-                              {status === '200' && (
-                                <Badge className="ml-2 bg-green-100 text-green-800 border-green-300" variant="outline">
-                                  OK
-                                </Badge>
-                              )}
-                              {status.startsWith('4') && (
-                                <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-300" variant="outline">
-                                  Error
-                                </Badge>
-                              )}
-                              {status.startsWith('5') && (
-                                <Badge className="ml-2 bg-red-100 text-red-800 border-red-300" variant="outline">
-                                  Error
-                                </Badge>
-                              )}
-                            </td>
-                            <td className="py-2 pr-4 text-xs">
-                              {respObj.description || ''}
-                            </td>
-                            <td className="py-2 text-xs font-mono">
-                              {contentTypes}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                    <DataTable
+                      headers={['Status', 'Description', 'Content Type']}
+                    >
+                      {Object.entries(responses).map(
+                        ([status, respObj]: [string, any]) => {
+                          const contentTypes = respObj.content
+                            ? Object.keys(respObj.content).join(', ')
+                            : '';
+
+                          return (
+                            <tr key={status} className="border-b last:border-0">
+                              <td className="py-2 pr-4 text-xs">
+                                {status}
+                                {status === '200' && (
+                                  <Badge
+                                    className="ml-2 bg-green-100 text-green-800 border-green-300"
+                                    variant="outline"
+                                  >
+                                    OK
+                                  </Badge>
+                                )}
+                                {status.startsWith('4') && (
+                                  <Badge
+                                    className="ml-2 bg-amber-100 text-amber-800 border-amber-300"
+                                    variant="outline"
+                                  >
+                                    Error
+                                  </Badge>
+                                )}
+                                {status.startsWith('5') && (
+                                  <Badge
+                                    className="ml-2 bg-red-100 text-red-800 border-red-300"
+                                    variant="outline"
+                                  >
+                                    Error
+                                  </Badge>
+                                )}
+                              </td>
+                              <td className="py-2 pr-4 text-xs">
+                                {respObj.description || ''}
+                              </td>
+                              <td className="py-2 text-xs font-mono">
+                                {contentTypes}
+                              </td>
+                            </tr>
+                          );
+                        },
+                      )}
                     </DataTable>
-                    
+
                     {/* Example Response Schema */}
-                    {responses['200']?.content?.['application/json']?.schema && (
+                    {responses['200']?.content?.['application/json']
+                      ?.schema && (
                       <div className="mt-4">
                         <div className="text-xs font-medium mb-2">
                           Success Response Schema
                         </div>
                         <div className="bg-white rounded-lg border p-3 overflow-auto max-h-[200px]">
                           <HighlightCode
-                            code={formatSchema(responses['200'].content['application/json'].schema)}
+                            code={formatSchema(
+                              responses['200'].content['application/json']
+                                .schema,
+                            )}
                             language="json"
                           />
                         </div>

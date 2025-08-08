@@ -3,7 +3,12 @@ import React from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { type ArazzoWorkflowStep, HTTP_VERB_STYLES, type HttpVerb, type OasOperationInfo } from '../types';
+import {
+  type ArazzoWorkflowStep,
+  HTTP_VERB_STYLES,
+  type HttpVerb,
+  type OasOperationInfo,
+} from '../types';
 import { detectHttpVerb } from '../utils/schema-utils';
 
 interface TableProps {
@@ -15,13 +20,24 @@ interface TableProps {
 /**
  * DataTable component for displaying structured data
  */
-export const DataTable: React.FC<TableProps> = ({ headers, children, className }) => (
-  <div className={cn("overflow-auto max-h-[calc(100%-20px)]", className)}>
-    <table className="w-full text-sm">
+export const DataTable: React.FC<TableProps> = ({
+  headers,
+  children,
+  className,
+}) => (
+  <div
+    className={cn(
+      'overflow-x-auto overflow-y-auto max-h-[calc(100%-20px)]',
+      className,
+    )}
+  >
+    <table className="w-full min-w-[800px] text-sm">
       <thead className="sticky top-0 bg-jpm-brown-50 z-10">
         <tr className="text-left border-b">
           {headers.map((header, idx) => (
-            <th key={idx} className="py-2 pr-4">{header}</th>
+            <th key={idx} className="py-2 pr-4">
+              {header}
+            </th>
           ))}
         </tr>
       </thead>
@@ -35,10 +51,7 @@ export const DataTable: React.FC<TableProps> = ({ headers, children, className }
  */
 export const EmptyRow: React.FC<{ colSpan?: number }> = ({ colSpan = 1 }) => (
   <tr>
-    <td 
-      className="py-2 text-xs text-muted-foreground" 
-      colSpan={colSpan}
-    >
+    <td className="py-2 text-xs text-muted-foreground" colSpan={colSpan}>
       None
     </td>
   </tr>
@@ -47,10 +60,16 @@ export const EmptyRow: React.FC<{ colSpan?: number }> = ({ colSpan = 1 }) => (
 /**
  * HighlightCode component for syntax highlighting code blocks
  */
-export const HighlightCode: React.FC<{ code: string; language: string }> = ({ code, language }) => (
+export const HighlightCode: React.FC<{ code: string; language: string }> = ({
+  code,
+  language,
+}) => (
   <Highlight theme={themes.vsLight} code={code} language={language}>
     {({ className, style, tokens, getLineProps, getTokenProps }) => (
-      <pre className={`${className} text-xs max-h-full overflow-auto`} style={style}>
+      <pre
+        className={`${className} text-xs max-h-full overflow-auto`}
+        style={style}
+      >
         {tokens.map((line, i) => (
           <div key={i} {...getLineProps({ line })}>
             {line.map((token, key) => (
@@ -73,9 +92,14 @@ interface StepCardProps {
 /**
  * StepCard component for displaying workflow steps
  */
-export const StepCard: React.FC<StepCardProps> = ({ step, isSelected, onClick, oasOperation }) => {
+export const StepCard: React.FC<StepCardProps> = ({
+  step,
+  isSelected,
+  onClick,
+  oasOperation,
+}) => {
   const verb = oasOperation?.verb || detectHttpVerb(step.operationId);
-  
+
   return (
     <button
       key={step.stepId}
@@ -90,7 +114,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step, isSelected, onClick, o
         <Badge
           className={cn(
             'text-[10px] px-2 py-0.5 border',
-            HTTP_VERB_STYLES[verb as HttpVerb]
+            HTTP_VERB_STYLES[verb as HttpVerb],
           )}
           variant="outline"
         >
