@@ -84,6 +84,7 @@ export const GatewayScreen = () => {
 
   const form = useFormWithFilters({
     clientData,
+    screenId: 'gateway',
     schema: GatewayScreenFormSchema,
     defaultValues: {},
   });
@@ -134,6 +135,7 @@ export const GatewayScreen = () => {
         // TODO: Temporary workaround
         organizationName: 'PLACEHOLDER_ORG_NAME',
         countryOfFormation: 'US',
+        jurisdiction: 'US',
       },
     };
 
@@ -192,13 +194,41 @@ export const GatewayScreen = () => {
       // Else update the party
       const partyRequestBody = generatePartyRequestBody(values, {});
 
-      // HANDLE ORG TYPE CHANGES
+      // HANDLE ORG TYPE CHANGES - Special handling for SOLE_PROPRIETORSHIP
       if (
         partyRequestBody.organizationDetails?.organizationType ===
         'SOLE_PROPRIETORSHIP'
       ) {
-        partyRequestBody.organizationDetails.organizationName ===
-          getPartyName(getControllerParty(clientData));
+        const controllerParty = getControllerParty(clientData);
+        // Set organization name to controller's name for sole proprietorship
+        if (controllerParty) {
+          partyRequestBody.organizationDetails.organizationName =
+            getPartyName(controllerParty);
+
+          // Update controller party to include beneficial owner role if needed
+          if (
+            controllerParty &&
+            !controllerParty.roles?.includes('BENEFICIAL_OWNER') &&
+            controllerParty.id
+          ) {
+            updateParty(
+              {
+                partyId: controllerParty.id,
+                data: {
+                  roles: [...(controllerParty.roles || []), 'BENEFICIAL_OWNER'],
+                },
+              },
+              {
+                onError: (error) => {
+                  console.error('Failed to update controller roles:', error);
+                },
+              }
+            );
+          }
+        }
+
+        // Ensure country of formation is set to US for sole proprietorship
+        partyRequestBody.organizationDetails.countryOfFormation = 'US';
       }
 
       updateParty(

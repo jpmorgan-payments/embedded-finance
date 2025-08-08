@@ -37,6 +37,9 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
     return () => subscription.unsubscribe();
   }, [form]);
 
+  const orgName =
+    currentPartyData?.organizationDetails?.organizationName ?? undefined;
+
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <div className="eb-space-y-3">
@@ -46,7 +49,9 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
           type="text"
           valueOverride={
             form.watch('dbaNameNotAvailable')
-              ? (currentPartyData?.organizationDetails?.organizationName ?? '')
+              ? orgName === 'PLACEHOLDER_ORG_NAME'
+                ? 'N/A'
+                : orgName
               : undefined
           }
           disabled={form.watch('dbaNameNotAvailable')}

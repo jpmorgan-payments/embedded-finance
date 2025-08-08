@@ -1,6 +1,7 @@
 import React from 'react';
 import { InfoIcon } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -22,8 +23,13 @@ export const InfoPopover = ({
   className,
 }: InfoPopoverProps) => {
   const button = (
-    <Button variant="ghost" size="icon" type="button" className={className}>
-      <InfoIcon className="eb-h-3 eb-w-3 eb-text-gray-400 hover:eb-text-gray-600" />
+    <Button
+      variant="ghost"
+      size="icon"
+      type="button"
+      className={cn('eb-text-gray-400 hover:eb-text-gray-600', className)}
+    >
+      <InfoIcon />
     </Button>
   );
 
