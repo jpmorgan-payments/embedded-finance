@@ -1,0 +1,422 @@
+arazzo: 1.0.0
+info:
+  title: Small Medium Business Digital Onboarding Base Specification
+  summary:
+    Base specification defining client onboarding journeys for Embedded Payments
+    (SMBDO)
+  description: |
+    This Arazzo specification defines the base components for onboarding clients to Embedded Payments:
+    - All possible input schemas
+    - Reusable parameters
+    - Success/failure actions
+    - Step definitions
+    - Validation criteria
+
+    This Arazzo specification defines three main onboarding workflows:
+    1. Sole Proprietorship - Complete creation flow (minimal or full data)
+    2. Pre-created Sole PropClient - Complete onboarding for existing client
+    3. LLC - Full workflow with multiple parties
+  version: 1.0.0
+
+sourceDescriptions:
+  - name: smbdoApi
+    url: https://apigateway.jpmorgan.com/tsapi/ef/do/v1
+    type: openapi
+
+components:
+  successActions:
+    continueOnSuccess:
+      name: continueFlow
+      type: goto
+      criteria:
+        - condition:
+            $statusCode == 200 || $statusCode == 201 || $statusCode == 202
+
+    stopOnMissingInfo:
+      name: stopForInfo
+      type: end
+      criteria:
+        - condition:
+            $response.body.outstanding.questionIds.length > 0 ||
+            $response.body.outstanding.documentRequestIds.length > 0 ||
+            $response.body.outstanding.attestationDocumentIds.length > 0
+
+    skipOnNoQuestions:
+      name: skipQuestions
+      type: goto
+      criteria:
+        - condition: $response.body.outstanding.questionIds.length == 0
+
+  failureActions:
+    retryOnServiceUnavailable:
+      name: retryService
+      type: retry
+      retryAfter: 1
+      retryLimit: 3
+      criteria:
+        - condition: $statusCode == 503
+    retryOnTimeout:
+      name: retryTimeout
+      type: retry
+      retryAfter: 5
+      retryLimit: 2
+      criteria:
+        - condition: $statusCode == 408
+
+    endOnValidationError:
+      name: endValidation
+      type: end
+      criteria:
+        - condition: $statusCode == 400 || $statusCode == 422
+
+workflows:
+  - workflowId: soleProprietorshipOnboarding
+    summary:
+      Complete Sole Proprietorship Onboarding with minimal-then-enrich strategy
+      and final verification
+    description: |
+      Creates and completes onboarding for a sole proprietorship. Can start with:
+      - Minimal required data followed by updates
+      - Complete data in initial creation
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+          description: Organization details per docs
+        businessAddress:
+          type: object
+        businessPhone:
+          type: object
+        taxIdentification:
+          type: object
+        ownerInfo:
+          type: object
+        ownerAddress:
+          type: object
+        ownerPhone:
+          type: object
+        ownerIdentification:
+          type: object
+        ipAddress:
+          type: string
+          format: ipv4
+    steps:
+      - stepId: createClient
+        description: Create initial client profile (POST /do/v1/clients)
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                roles:
+                  - CLIENT
+                organizationDetails: $inputs.organizationInfo
+                addresses:
+                  - $inputs.businessAddress
+                phone: $inputs.businessPhone
+                organizationIds:
+                  - $inputs.taxIdentification
+              - partyType: INDIVIDUAL
+                roles:
+                  - CONTROLLER
+                  - BENEFICIAL_OWNER
+                individualDetails:
+                  firstName: $inputs.ownerInfo.firstName
+                  lastName: $inputs.ownerInfo.lastName
+                  countryOfResidence: $inputs.ownerInfo.countryOfResidence
+                  birthDate: $inputs.ownerInfo.birthDate
+                  addresses:
+                    - $inputs.ownerAddress
+                  phone: $inputs.ownerPhone
+                  individualIds:
+                    - $inputs.ownerIdentification
+                  soleOwner: true
+                  natureOfOwnership: Direct
+            products:
+              - EMBEDDED_PAYMENTS
+        successCriteria:
+          - condition: $statusCode == 201
+        onSuccess:
+          - reference: $components.successActions.stopOnMissingInfo
+        onFailure:
+          - reference: $components.failureActions.retryOnServiceUnavailable
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+
+      - stepId: getDueDiligenceQuestions
+        description:
+          Retrieve due diligence questions if required (GET /do/v1/questions)
+        operationId: getQuestions
+        parameters:
+          - reference: $components.parameters.questionIds
+            value: $steps.createClient.outputs.outstandingQuestions
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          questions: $response.body.questions
+
+      - stepId: answerQuestions
+        description:
+          Submit responses to due diligence questions (POST /do/v1/parties/{id})
+        operationId: postParty
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses: $inputs.questionAnswers
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - reference: $components.failureActions.endOnValidationError
+
+      - stepId: getAttestationDocuments
+        description:
+          Get attestation documents if required (GET
+          /do/v1/document-requests/{id})
+        operationId: getDocumentRequest
+        parameters:
+          - reference: $components.parameters.documentId
+            value: $steps.createClient.outputs.outstandingAttestations[0]
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          documentType: $response.body.documentType
+
+      - stepId: downloadAttestationContent
+        description:
+          Get attestation document content (GET /do/v1/documents/{id}/file)
+        operationId: getDocumentFile
+        parameters:
+          - reference: $components.parameters.documentId
+            value: $steps.createClient.outputs.outstandingAttestations[0]
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: uploadDocumentsIfRequested
+        description:
+          Upload supporting documents if requested (POST /do/v1/documents)
+        operationId: postDocuments
+        requestBody:
+          contentType: application/json
+          payload:
+            documentType: 'BUSINESS_DOCUMENT'
+            fileName: 'sample.pdf'
+            mimeType: 'application/pdf'
+            metadata: {}
+        successCriteria:
+          - condition: $statusCode == 201
+
+      - stepId: submitAttestation
+        description:
+          Submit attestation with owner's confirmation (POST
+          /do/v1/clients/{id})
+        operationId: postClientUpdate
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - attesterFullName:
+                  $inputs.ownerInfo.firstName + " " + $inputs.ownerInfo.lastName
+                attestationTime: $date.now()
+                documentId: $steps.createClient.outputs.outstandingAttestations[0]
+                ipAddress: $inputs.ipAddress
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: submitVerification
+        description:
+          Submit for final verification (POST /do/v1/clients/{id}/verifications)
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+        outputs:
+          verificationTime: $response.body.acceptedAt
+
+  - workflowId: completeExistingClientOnboarding
+    summary: Complete onboarding for pre-created client
+    description: |
+      Completes the onboarding process for a client that already exists in the system.
+      Handles outstanding requirements including questions, documents, and attestations.
+    inputs:
+      type: object
+      properties:
+        clientId:
+          type: string
+        questionAnswers:
+          type: object
+        attesterName:
+          type: string
+        ipAddress:
+          type: string
+          format: ipv4
+    steps:
+      - stepId: getClientDetails
+        description:
+          Retrieve existing client details and requirements (GET
+          /do/v1/clients/{id})
+        operationId: getClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $inputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+          partyId: $response.body.partyId
+
+      # Remaining steps are similar to soleProprietorshipOnboarding
+      - stepId: getDueDiligenceQuestions
+        description: Get outstanding questions
+        operationId: getQuestions
+        parameters:
+          - reference: $components.parameters.questionIds
+            value: $steps.getClientDetails.outputs.outstandingQuestions
+        successCriteria:
+          - condition: $statusCode == 200
+      - stepId: presentAttestationIfRequired
+        description: Present and capture attestation if required
+        operationId: getDocumentRequest
+        parameters:
+          - reference: $components.parameters.documentId
+            value: $steps.getClientDetails.outputs.outstandingAttestations[0]
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: submitVerification
+        description: Submit for final verification
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $inputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+
+      # ... [Similar steps continue for questions, attestations, and verification]
+
+  - workflowId: llcCompleteOnboarding
+    summary: Complete LLC Onboarding
+    description: |
+      Full onboarding workflow for LLC including:
+      - Organization details
+      - Controller
+      - Multiple beneficial owners
+      - Decision makers
+      - Due diligence and attestations
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+        businessAddress:
+          type: object
+        businessPhone:
+          type: object
+        taxIdentification:
+          type: object
+        controller:
+          type: object
+        controllerIdentification:
+          type: object
+        beneficialOwners:
+          type: array
+          items:
+            type: object
+        decisionMakers:
+          type: array
+          items:
+            type: object
+        ipAddress:
+          type: string
+          format: ipv4
+    steps:
+      - stepId: createLLCClient
+        description:
+          Create initial LLC profile with organization and controller (POST
+          /do/v1/clients)
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                roles:
+                  - CLIENT
+                organizationDetails: $inputs.organizationInfo
+                addresses:
+                  - $inputs.businessAddress
+                phone: $inputs.businessPhone
+                organizationIds:
+                  - $inputs.taxIdentification
+              - partyType: INDIVIDUAL
+                roles:
+                  - CONTROLLER
+                individualDetails: $inputs.controller
+                individualIds:
+                  - $inputs.controllerIdentification
+            products:
+              - EMBEDDED_PAYMENTS
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+
+      - stepId: addBeneficialOwners
+        description: Add beneficial owners to LLC
+        operationId: postClientUpdate
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createLLCClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addParties:
+              - $map: $inputs.beneficialOwners
+                template:
+                  partyType: INDIVIDUAL
+                  roles:
+                    - BENEFICIAL_OWNER
+                  individualDetails: $item
+
+      - stepId: addDecisionMakers
+        description: Add decision makers to LLC
+        operationId: postClientUpdate
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createLLCClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addParties:
+              - $map: $inputs.decisionMakers
+                template:
+                  partyType: INDIVIDUAL
+                  roles:
+                    - DECISION_MAKER
+                  individualDetails: $item
+
+      - stepId: submitVerification
+        description:
+          Submit for final verification (POST /do/v1/clients/{id}/verifications)
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createLLCClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
