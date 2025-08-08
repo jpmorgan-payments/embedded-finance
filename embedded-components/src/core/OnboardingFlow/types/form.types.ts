@@ -18,6 +18,7 @@ import {
   PersonalDetailsFormSchema,
 } from '@/core/OnboardingFlow/forms/personal-section-forms';
 import { GatewayScreenFormSchema } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen.schema';
+import { ScreenId } from '@/core/OnboardingFlow/types/flow.types';
 
 // MAINTAIN: When adding a new schema, just add it to this array
 const ONBOARDING_FORM_SCHEMAS = [
@@ -69,7 +70,12 @@ export type FieldRule<T = any> = {
   interaction?: FieldInteractionConfig;
   required?: boolean;
   contentTokenOverrides?: {
-    [key in 'label' | 'description' | 'tooltip' | 'placeholder']?: string;
+    [key in
+      | 'label'
+      | 'description'
+      | 'tooltip'
+      | 'placeholder'
+      | 'fieldName']?: string;
   };
   defaultValue: T;
 };
@@ -94,6 +100,7 @@ export type FieldRuleCondition = {
   product?: ClientProduct[];
   jurisdiction?: CountryCodeIsoAlpha2[];
   entityType?: OrganizationType[];
+  screenId?: ScreenId[];
 };
 
 //  Base configuration for all fields

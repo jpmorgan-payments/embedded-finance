@@ -21,6 +21,7 @@ import {
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
+import { ScreenId } from '@/core/OnboardingFlow/types';
 import {
   AnyFieldConfiguration,
   ArrayFieldConfigurationGeneric,
@@ -393,7 +394,8 @@ export function convertPartyResponseToFormValues(
  */
 function evaluateFieldRules(
   fieldConfig: AnyFieldConfiguration,
-  clientContext: ClientContext
+  clientContext: ClientContext,
+  currentScreenId: ScreenId
 ):
   | FieldRule
   | ArrayFieldRule
@@ -411,7 +413,8 @@ function evaluateFieldRules(
           condition.jurisdiction.includes(clientContext.jurisdiction))) &&
       (!condition.entityType ||
         (clientContext.entityType &&
-          condition.entityType.includes(clientContext.entityType)));
+          condition.entityType.includes(clientContext.entityType))) &&
+      (!condition.screenId || condition.screenId.includes(currentScreenId));
 
     if (isConditionMet) {
       rule = { ...rule, ...conditionalRule };
@@ -428,7 +431,8 @@ function evaluateFieldRules(
  * Used to adapt form behavior based on client context
  */
 export function useFormUtilsWithClientContext(
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  currentScreenId: ScreenId
 ) {
   const organizationParty = clientData?.parties?.find(
     (party) => party?.partyType === 'ORGANIZATION'
@@ -452,49 +456,36 @@ export function useFormUtilsWithClientContext(
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>
   ) {
-    return modifySchemaByClientContext(schema, clientContext, refineFn);
+    return modifySchemaByClientContext(
+      schema,
+      clientContext,
+      currentScreenId,
+      refineFn
+    );
   }
 
   function modifyDefaultValues(
     defaultValues: Partial<OnboardingFormValuesSubmit>
   ) {
-    return modifyDefaultValuesByClientContext(defaultValues, clientContext);
+    return modifyDefaultValuesByClientContext(
+      defaultValues,
+      clientContext,
+      currentScreenId
+    );
   }
 
   function getFieldRule(fieldName: FieldPath<OnboardingFormValuesSubmit>) {
-    return getFieldRuleByClientContext(fieldName, clientContext);
-  }
-
-  // TODO: remove these functions when all fields are using OnboardingFormField
-  // Use for fields that don't use OnboardingFormField
-  function isFieldVisible(fieldName: keyof OnboardingFormValuesSubmit) {
-    const { fieldRule } = getFieldRule(fieldName);
-    return fieldRule.display !== 'hidden';
-  }
-  function isFieldDisabled(fieldName: keyof OnboardingFormValuesSubmit) {
-    const { fieldRule } = getFieldRule(fieldName);
-    return (
-      fieldRule.interaction === 'disabled' ||
-      fieldRule.interaction === 'readonly'
+    return getFieldRuleByClientContext(
+      fieldName,
+      clientContext,
+      currentScreenId
     );
-  }
-  function isFieldRequired(fieldName: keyof OnboardingFormValuesSubmit) {
-    const { fieldRule, ruleType } = getFieldRule(fieldName);
-    return ruleType === 'single' && fieldRule.required;
-  }
-  function getArrayFieldRule(fieldName: keyof OnboardingFormValuesSubmit) {
-    const { fieldRule, ruleType } = getFieldRule(fieldName);
-    return ruleType === 'array' ? fieldRule : undefined;
   }
 
   return {
     modifySchema,
     modifyDefaultValues,
     getFieldRule,
-    isFieldVisible,
-    isFieldDisabled,
-    isFieldRequired,
-    getArrayFieldRule,
     clientContext,
   };
 }
@@ -507,7 +498,8 @@ export function useFormUtilsWithClientContext(
  */
 export function getFieldRuleByClientContext(
   fieldName: FieldPath<OnboardingFormValuesSubmit>,
-  clientContext: ClientContext
+  clientContext: ClientContext,
+  currentScreenId: ScreenId
 ):
   | { fieldRule: OptionalDefaults<FieldRule>; ruleType: 'single' }
   | { fieldRule: OptionalDefaults<ArrayFieldRule>; ruleType: 'array' } {
@@ -515,7 +507,11 @@ export function getFieldRuleByClientContext(
   const baseFieldName = fieldNameParts[0] as keyof OnboardingFormValuesSubmit;
 
   let currentConfig = getPartyFieldConfig(baseFieldName);
-  let currentFieldRule = evaluateFieldRules(currentConfig, clientContext);
+  let currentFieldRule = evaluateFieldRules(
+    currentConfig,
+    clientContext,
+    currentScreenId
+  );
 
   // Drill down into subfields for the remaining segments
   for (let i = 1; i < fieldNameParts.length; i += 1) {
@@ -543,7 +539,11 @@ export function getFieldRuleByClientContext(
         );
       }
 
-      const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
+      const subFieldRule = evaluateFieldRules(
+        subFieldConfig,
+        clientContext,
+        currentScreenId
+      );
 
       currentConfig = subFieldConfig;
       currentFieldRule = {
@@ -576,7 +576,11 @@ export function getFieldRuleByClientContext(
     // Merge each subfield's default, letting subfields override
     for (const subFieldName of objectKeys(currentConfig.subFields)) {
       const subFieldConfig = currentConfig.subFields[subFieldName];
-      const subFieldRule = evaluateFieldRules(subFieldConfig, clientContext);
+      const subFieldRule = evaluateFieldRules(
+        subFieldConfig,
+        clientContext,
+        currentScreenId
+      );
 
       // If the subfield has a default, override the parent's property
       if (subFieldRule.defaultValue !== undefined) {
@@ -611,6 +615,7 @@ export function getFieldRuleByClientContext(
 export function modifySchemaByClientContext(
   schema: z.ZodObject<Record<string, z.ZodType<any>>>,
   clientContext: ClientContext,
+  currentScreenId: ScreenId,
   refineFn?: (
     schema: z.ZodObject<Record<string, z.ZodType<any>>>
   ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>,
@@ -626,7 +631,8 @@ export function modifySchemaByClientContext(
 
     const { fieldRule, ruleType } = getFieldRuleByClientContext(
       fullKey as FieldPath<OnboardingFormValuesSubmit>,
-      clientContext
+      clientContext,
+      currentScreenId
     );
 
     // Skip hidden fields
@@ -677,6 +683,7 @@ export function modifySchemaByClientContext(
             newElementSchema = modifySchemaByClientContext(
               elementSchema,
               clientContext,
+              currentScreenId,
               undefined,
               `${fullKey}.0`
             );
@@ -705,6 +712,7 @@ export function modifySchemaByClientContext(
           newElementSchema = modifySchemaByClientContext(
             elementSchema,
             clientContext,
+            currentScreenId,
             undefined,
             `${fullKey}.0`
           );
@@ -742,12 +750,17 @@ export function modifySchemaByClientContext(
  */
 export function modifyDefaultValuesByClientContext(
   defaultValues: Partial<OnboardingFormValuesSubmit>,
-  clientContext: ClientContext
+  clientContext: ClientContext,
+  currentScreenId: ScreenId
 ): Partial<OnboardingFormValuesSubmit> {
   const filteredDefaultValues: Partial<OnboardingFormValuesSubmit> = {};
 
   objectEntries(defaultValues).forEach(([key, value]) => {
-    const { fieldRule } = getFieldRuleByClientContext(key, clientContext);
+    const { fieldRule } = getFieldRuleByClientContext(
+      key,
+      clientContext,
+      currentScreenId
+    );
     if (fieldRule.display !== 'hidden') {
       filteredDefaultValues[key] = value ?? fieldRule.defaultValue ?? '';
     }
@@ -760,6 +773,7 @@ export function useFormWithFilters<
 >(
   props: Omit<UseFormProps<z.input<TSchema>>, 'resolver'> & {
     clientData: ClientResponse | undefined;
+    screenId: ScreenId;
     schema: TSchema;
     refineSchemaFn?: (
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
@@ -768,7 +782,8 @@ export function useFormWithFilters<
   }
 ): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
-    props.clientData
+    props.clientData,
+    props.screenId
   );
   const defaultValues = modifyDefaultValues(
     shapeFormValuesBySchema(

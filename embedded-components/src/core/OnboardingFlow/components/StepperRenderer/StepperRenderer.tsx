@@ -357,7 +357,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   const queryClient = useQueryClient();
   const { clientData, onPostClientSettled, onPostPartySettled } =
     useOnboardingContext();
-  const { savedFormValues, saveFormValue } = useFlowContext();
+  const { savedFormValues, saveFormValue, currentScreenId } = useFlowContext();
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -382,6 +382,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
   const form = useFormWithFilters({
     clientData,
+    screenId: currentScreenId,
     schema: Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
     overrideDefaultValues: { ...savedFormValues, ...formValuesFromResponse },

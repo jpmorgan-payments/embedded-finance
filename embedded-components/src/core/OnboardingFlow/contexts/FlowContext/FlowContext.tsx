@@ -1,6 +1,5 @@
 import { createContext, useContext, useState } from 'react';
 
-import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
@@ -42,9 +41,6 @@ const FlowContext = createContext<{
   reviewScreenOpenedSectionId: SectionScreenId | null;
   initialStepperStepId: string | null;
   shortLabelOverride: string | null;
-  orgParty: PartyResponse | undefined;
-  controllerParty: PartyResponse | undefined;
-  isSoleProp: boolean;
   savedFormValues?: Partial<OnboardingFormValuesSubmit>;
   saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
 }>({
@@ -70,9 +66,6 @@ const FlowContext = createContext<{
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
   shortLabelOverride: null,
-  orgParty: undefined,
-  controllerParty: undefined,
-  isSoleProp: false,
   savedFormValues: {},
   saveFormValue: () => {
     throw new Error('saveFormValue() must be used within FlowProvider');
@@ -100,7 +93,7 @@ export const FlowProvider: React.FC<{
     Partial<OnboardingFormValuesSubmit>
   >({});
 
-  const { organizationType, clientData } = useOnboardingContext();
+  const { organizationType } = useOnboardingContext();
 
   const currentScreenId = history[history.length - 1];
 
@@ -155,17 +148,6 @@ export const FlowProvider: React.FC<{
     }));
   };
 
-  const orgParty = clientData?.parties?.find((p) =>
-    p.roles?.includes('CLIENT')
-  );
-
-  const controllerParty = clientData?.parties?.find((p) =>
-    p.roles?.includes('CONTROLLER')
-  );
-
-  const isSoleProp =
-    orgParty?.organizationDetails?.organizationType === 'SOLE_PROPRIETORSHIP';
-
   return (
     <FlowContext.Provider
       value={{
@@ -185,9 +167,6 @@ export const FlowProvider: React.FC<{
         shortLabelOverride,
         savedFormValues,
         saveFormValue,
-        orgParty,
-        controllerParty,
-        isSoleProp,
       }}
     >
       {children}

@@ -42,6 +42,7 @@ import {
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldRule,
@@ -143,7 +144,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
   const { clientData, organizationType } = useOnboardingContext();
-  const { getFieldRule } = useFormUtilsWithClientContext(clientData);
+  const { currentScreenId } = useFlowContext();
+  const { getFieldRule } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
 
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
 

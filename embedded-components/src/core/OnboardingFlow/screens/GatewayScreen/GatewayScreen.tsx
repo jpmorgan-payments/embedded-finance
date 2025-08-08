@@ -84,6 +84,7 @@ export const GatewayScreen = () => {
 
   const form = useFormWithFilters({
     clientData,
+    screenId: 'gateway',
     schema: GatewayScreenFormSchema,
     defaultValues: {},
   });
