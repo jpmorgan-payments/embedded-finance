@@ -104,6 +104,7 @@ export const partyFieldMap: PartyFieldMap = {
       {
         condition: {
           product: ['EMBEDDED_PAYMENTS'],
+          entityType: ['SOLE_PROPRIETORSHIP'],
         },
         rule: {
           interaction: 'disabled',
@@ -118,6 +119,20 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          contentTokenOverrides: {
+            label: i18n.t(
+              'onboarding-overview:fields.organizationEmail.label.soleProp'
+            ),
+          },
+        },
+      },
+    ],
   },
   controllerEmail: {
     path: 'email',
@@ -542,7 +557,7 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: false,
     },
-    fromResponseFn: (val: boolean) => !val,
+    fromResponseFn: (val: boolean) => val === false,
     toRequestFn: (val): boolean => !val,
   },
   dbaNameNotAvailable: {

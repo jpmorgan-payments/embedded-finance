@@ -177,23 +177,29 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     .find((part) => !Number.isNaN(Number(part)));
   const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
-  const getContentToken = (id: string) => {
+  const getContentToken = (
+    id: 'placeholder' | 'tooltip' | 'label' | 'description'
+  ) => {
     // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
     const stepperFlowKey = `onboarding:${key}`;
     const overviewFlowKey = `onboarding-overview:${key}`;
     const overviewFlowKeyWithOrgType = `onboarding-overview:${key}.${organizationType}`;
-    return t(
-      [
-        overviewFlowKeyWithOrgType,
-        overviewFlowKey,
-        stepperFlowKey,
-        'common:noTokenFallback',
-      ] as unknown as TemplateStringsArray,
-      {
-        number,
-        key,
-      }
+    const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
+    return (
+      contentTokenOverride ??
+      t(
+        [
+          overviewFlowKeyWithOrgType,
+          overviewFlowKey,
+          stepperFlowKey,
+          'common:noTokenFallback',
+        ] as unknown as TemplateStringsArray,
+        {
+          number,
+          key,
+        }
+      )
     );
   };
 
@@ -251,7 +257,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               <p className="eb-font-bold">
                 {(options
                   ? options.find(({ value }) => value === field.value)?.label
-                  : field.value) ?? 'N/A'}
+                  : (valueOverride ?? field.value)) ?? 'N/A'}
               </p>
             ) : (
               (() => {

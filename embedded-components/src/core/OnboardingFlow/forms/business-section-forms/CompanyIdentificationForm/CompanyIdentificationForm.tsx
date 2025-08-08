@@ -120,6 +120,7 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
               description={getValueDescription('EIN')}
               maskFormat={getMaskFormat('EIN')}
               maskChar="_"
+              required
             />
           )}
         </div>

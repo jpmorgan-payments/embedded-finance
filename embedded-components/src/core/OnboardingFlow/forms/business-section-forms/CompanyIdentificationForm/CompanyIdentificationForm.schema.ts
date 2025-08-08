@@ -190,7 +190,7 @@ export const refineCompanyIdentificationFormSchema = (
     if (
       values.countryOfFormation === 'US' &&
       values.solePropHasEin === 'yes' &&
-      !values.solePropOrganizationId
+      !values.organizationIdEin
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
