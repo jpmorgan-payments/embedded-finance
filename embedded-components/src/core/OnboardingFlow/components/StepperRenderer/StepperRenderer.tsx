@@ -52,9 +52,9 @@ type StepperRendererProps = StepperConfig & {
 
 export const StepperRenderer: React.FC<StepperRendererProps> = ({
   steps,
-  defaultPartyRequestBody,
+  getDefaultPartyRequestBody,
 }) => {
-  const { clientData } = useOnboardingContext();
+  const { clientData, organizationType } = useOnboardingContext();
 
   const {
     currentScreenId,
@@ -305,7 +305,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
             key={currentStep.id}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
-            defaultPartyRequestBody={defaultPartyRequestBody}
+            defaultPartyRequestBody={getDefaultPartyRequestBody?.(
+              organizationType
+            )}
             existingPartyData={existingPartyData}
             setExistingPartyData={setExistingPartyData}
             {...sharedProps}

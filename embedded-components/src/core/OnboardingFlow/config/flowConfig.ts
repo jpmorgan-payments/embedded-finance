@@ -93,10 +93,10 @@ const staticScreens: StaticScreenConfig[] = [
         partyType: 'INDIVIDUAL',
         roles: ['BENEFICIAL_OWNER'],
       },
-      defaultPartyRequestBody: {
+      getDefaultPartyRequestBody: () => ({
         partyType: 'INDIVIDUAL',
         roles: ['BENEFICIAL_OWNER'],
-      },
+      }),
       steps: ownerSteps,
     },
   },
@@ -161,10 +161,13 @@ const sectionScreens: SectionScreenConfig[] = [
         partyType: 'INDIVIDUAL',
         roles: ['CONTROLLER'],
       },
-      defaultPartyRequestBody: {
+      getDefaultPartyRequestBody: (organizationType) => ({
         partyType: 'INDIVIDUAL',
-        roles: ['CONTROLLER'],
-      },
+        roles:
+          organizationType === 'SOLE_PROPRIETORSHIP'
+            ? ['CONTROLLER', 'BENEFICIAL_OWNER']
+            : ['CONTROLLER'],
+      }),
       steps: [
         {
           id: 'personal-details',
@@ -248,10 +251,10 @@ const sectionScreens: SectionScreenConfig[] = [
         partyType: 'ORGANIZATION',
         roles: ['CLIENT'],
       },
-      defaultPartyRequestBody: {
+      getDefaultPartyRequestBody: () => ({
         partyType: 'ORGANIZATION',
         roles: ['CLIENT'],
-      },
+      }),
       steps: [
         {
           id: 'industry',
