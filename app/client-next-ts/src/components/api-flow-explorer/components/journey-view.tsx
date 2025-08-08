@@ -53,7 +53,7 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
           }
           
           // Add validation info to rows
-          const rowsWithValidation = rows.map((r, idx) => {
+          const rowsWithValidation = rows.map((r) => {
             const step = postSteps.find(s => s.operationId === r.operation);
             const stepId = step?.stepId || '';
             const operation = step?.operationId || '';

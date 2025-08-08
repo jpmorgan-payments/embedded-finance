@@ -16,7 +16,7 @@ import oasSpecRaw from './specs/embedded-finance-pub-smbdo-1.0.16.yaml?raw';
  * Main component for visualizing Arazzo workflows with OpenAPI details
  */
 
-export function ArazzoFlowDialogContent(): JSX.Element {
+export function ArazzoFlowDialogContent(): React.ReactElement {
   const arazzoSpec = React.useMemo(() => parseArazzoSpec(arazzoSpecRaw), []);
   const oasSpec = React.useMemo(() => parseOasSpec(oasSpecRaw), []);
   
