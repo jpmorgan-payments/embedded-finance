@@ -312,9 +312,13 @@
       }
     },
     "organizationEmail": {
-      "label": "Company email address",
-      "label.soleProp": "Business email address",
-      "description": "Provide the best email address to contact the business",
+      "label": {
+        "default": "Company email address",
+        "soleProp": "Business email address"
+      },
+      "description": {
+        "default": "Provide the best email address to contact the business"
+      },
       "tooltip": "",
       "validation": {
         "invalid": "$t(validation:email.invalid)",

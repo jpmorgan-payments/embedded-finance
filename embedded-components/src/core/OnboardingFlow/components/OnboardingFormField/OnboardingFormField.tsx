@@ -143,7 +143,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
-  const { clientData, organizationType } = useOnboardingContext();
+  const { clientData } = useOnboardingContext();
   const { currentScreenId } = useFlowContext();
   const { getFieldRule } = useFormUtilsWithClientContext(
     clientData,
@@ -187,17 +187,17 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   ) => {
     // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
-    const stepperFlowKey = `onboarding:${key}`;
-    const overviewFlowKey = `onboarding-overview:${key}`;
-    const overviewFlowKeyWithOrgType = `onboarding-overview:${key}.${organizationType}`;
+    const oldContentTokenKey = `onboarding:${key}`;
+    const contentTokenKey = `onboarding-overview:${key}`;
+    const contentTokenKeyWithDefault = `onboarding-overview:${key}.default`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
     return (
       contentTokenOverride ??
       t(
         [
-          overviewFlowKeyWithOrgType,
-          overviewFlowKey,
-          stepperFlowKey,
+          contentTokenKeyWithDefault,
+          contentTokenKey,
+          oldContentTokenKey,
           'common:noTokenFallback',
         ] as unknown as TemplateStringsArray,
         {
