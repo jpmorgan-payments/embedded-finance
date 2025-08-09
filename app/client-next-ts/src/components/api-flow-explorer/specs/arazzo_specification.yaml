@@ -1,0 +1,697 @@
+arazzo: 1.0.0
+info:
+  title: Small Medium Business Digital Onboarding Base Specification
+  summary:
+    Base specification defining client onboarding journeys for Embedded Payments
+    (SMBDO)
+  description: |
+    This Arazzo specification defines the base components for onboarding clients to Embedded Payments:
+    - All possible input schemas
+    - Reusable parameters
+    - Success/failure actions
+    - Step definitions
+    - Validation criteria
+
+    This Arazzo specification defines three main onboarding workflows:
+    1. Sole Proprietorship - Complete creation flow (minimal or full data)
+    2. Pre-created Sole PropClient - Complete onboarding for existing client
+    3. LLC - Full workflow with multiple parties
+  version: 1.0.0
+
+sourceDescriptions:
+  - name: smbdoApi
+    url: https://apigateway.jpmorgan.com/tsapi/ef/do/v1
+    type: openapi
+
+components:
+  successActions:
+    continueOnSuccess:
+      name: continueFlow
+      type: goto
+      criteria:
+        - condition:
+            $statusCode == 200 || $statusCode == 201 || $statusCode == 202
+
+    stopOnMissingInfo:
+      name: stopForInfo
+      type: end
+      criteria:
+        - condition:
+            $response.body.outstanding.questionIds.length > 0 ||
+            $response.body.outstanding.documentRequestIds.length > 0 ||
+            $response.body.outstanding.attestationDocumentIds.length > 0
+
+    skipOnNoQuestions:
+      name: skipQuestions
+      type: goto
+      criteria:
+        - condition: $response.body.outstanding.questionIds.length == 0
+
+  failureActions:
+    retryOnServiceUnavailable:
+      name: retryService
+      type: retry
+      retryAfter: 1
+      retryLimit: 3
+      criteria:
+        - condition: $statusCode == 503
+    retryOnTimeout:
+      name: retryTimeout
+      type: retry
+      retryAfter: 5
+      retryLimit: 2
+      criteria:
+        - condition: $statusCode == 408
+
+    endOnValidationError:
+      name: endValidation
+      type: end
+      criteria:
+        - condition: $statusCode == 400 || $statusCode == 422
+
+  parameters:
+    clientId:
+      name: id
+      value: ''
+
+    questionIds:
+      name: questionIds
+      value: []
+
+    documentId:
+      name: id
+      value: ''
+
+workflows:
+  - workflowId: soleProprietorshipOnboarding
+    summary:
+      Complete Sole Proprietorship Onboarding with minimal-then-enrich strategy
+      and final verification
+    description: |
+      Creates and completes onboarding for a sole proprietorship. Can start with:
+      - Minimal required data followed by updates
+      - Complete data in initial creation
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+          description: Organization details per docs
+        businessAddress:
+          type: object
+        businessPhone:
+          type: object
+        taxIdentification:
+          type: object
+        ownerInfo:
+          type: object
+        ownerAddress:
+          type: object
+        ownerPhone:
+          type: object
+        ownerIdentification:
+          type: object
+        ipAddress:
+          type: string
+          format: ipv4
+    steps:
+      - stepId: createClient
+        description: Create initial client profile
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                externalId: TCU1234
+                email: monica@cpgetaways.com
+                roles:
+                  - CLIENT
+                organizationDetails:
+                  organizationType: SOLE_PROPRIETORSHIP
+                  organizationName: Central Park Getaways
+                  dbaName: CP Getaways
+                  organizationDescription:
+                    Relax, unwind and experience the comforting charm of our
+                    apartment while exploring New York
+                  industryCategory: Accommodation and Food Services
+                  industryType: All Other Traveler Accommodation
+                  countryOfFormation: US
+                  yearOfFormation: '2023'
+                  significantOwnership: true
+                  entitiesInOwnership: false
+                  addresses:
+                    - addressType: BUSINESS_ADDRESS
+                      addressLines:
+                        - 90 Bedford Street
+                      city: New York
+                      state: NY
+                      postalCode: '10014'
+                      country: US
+                  phone:
+                    phoneType: BUSINESS_PHONE
+                    countryCode: '+1'
+                    phoneNumber: '6316215110'
+                  organizationIds:
+                    - idType: EIN
+                      issuer: US
+                      value: '000000001'
+              - partyType: INDIVIDUAL
+                externalId: TCU12344
+                email: monicagellar@gmail.com
+                roles:
+                  - CONTROLLER
+                  - BENEFICIAL_OWNER
+                individualDetails:
+                  firstName: Monica
+                  lastName: Gellar
+                  birthDate: '1990-10-09'
+                  countryOfResidence: US
+                  natureOfOwnership: Direct
+                  jobTitle: Other
+                  jobTitleDescription: CEO
+                  soleOwner: true
+                  addresses:
+                    - addressType: RESIDENTIAL_ADDRESS
+                      addressLines:
+                        - 90 Bedford Street
+                        - Apt 2E
+                      city: New York
+                      state: NY
+                      postalCode: '10014'
+                      country: US
+                  individualIds:
+                    - idType: SSN
+                      issuer: US
+                      value: '100010001'
+            products:
+              - EMBEDDED_PAYMENTS
+        successCriteria:
+          - condition: $statusCode == 201
+        onSuccess:
+          - reference: $components.successActions.stopOnMissingInfo
+        onFailure:
+          - reference: $components.failureActions.retryOnServiceUnavailable
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+
+      - stepId: getDueDiligenceQuestions
+        description: Retrieve due diligence questions if required
+        operationId: getQuestions
+        parameters:
+          - reference: $components.parameters.questionIds
+            value: $steps.createClient.outputs.outstandingQuestions
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          questions: $response.body.questions
+
+      - stepId: answerQuestions
+        description: Submit responses to due diligence questions
+        operationId: postParty
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses:
+              - questionId: '300026'
+                values:
+                  - false
+              - questionId: '300005'
+                values:
+                  - '100000'
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - reference: $components.failureActions.endOnValidationError
+
+      - stepId: getAttestationDocuments
+        description: Get attestation documents (if required)
+        operationId: getDocumentRequest
+        parameters:
+          - reference: $components.parameters.documentId
+            value: $steps.createClient.outputs.outstandingAttestations[0]
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          documentType: $response.body.documentType
+
+      - stepId: downloadAttestationContent
+        description: Get attestation document content
+        operationId: getDocumentFile
+        parameters:
+          - reference: $components.parameters.documentId
+            value: $steps.createClient.outputs.outstandingAttestations[0]
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: uploadDocumentsIfRequested
+        description: Upload supporting documents if requested
+        operationId: postDocuments
+        requestBody:
+          contentType: application/json
+          payload:
+            documentType: BUSINESS_DOCUMENT
+            fileName: sample.pdf
+            mimeType: application/pdf
+            metadata:
+              clientId: '1000010400'
+              description: Utility bill for address verification
+              tags:
+                - onboarding
+                - address-proof
+        successCriteria:
+          - condition: $statusCode == 201
+
+      - stepId: submitAttestation
+        description: Submit attestation with owner's confirmation
+        operationId: postClientUpdate
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - attesterFullName: Monica Gellar
+                attestationTime: '2024-10-09T12:34:56.000Z'
+                documentId: 851e9279-f619-4069-893b-d6902db9c68b
+                ipAddress: 159.53.174.248
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: submitVerification
+        description: Submit for final verification
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+        outputs:
+          verificationTime: $response.body.acceptedAt
+
+  - workflowId: instmdRefDataOnlyOnboarding
+    summary: InstmdRefDataOnly Onboarding for Sole Proprietorship
+    description: |
+      This workflow implements the onboarding process for the INSTMD_REF_DATA_ONLY product.
+      It includes:
+      - Organization creation with minimal data
+      - Due diligence question responses
+      - Attestation handling
+      - Final verification
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+          description: Organization details for the client
+        businessAddress:
+          type: object
+          description: Business address details
+        businessPhone:
+          type: object
+          description: Business phone details
+        taxIdentification:
+          type: object
+          description: Tax identification information
+        email:
+          type: string
+          format: email
+          description: Business email address
+        questionResponses:
+          type: array
+          items:
+            type: object
+            properties:
+              questionId:
+                type: string
+              values:
+                type: array
+                items:
+                  type: string
+        attester:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            designation:
+              type: string
+        ipAddress:
+          type: string
+          format: ipv4
+          description: Client's IP address for attestation
+    steps:
+      - stepId: createClient
+        description:
+          Create initial client profile with INSTMD_REF_DATA_ONLY product
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                email: contact@ppthospital.gmail.com
+                roles:
+                  - CLIENT
+                organizationDetails:
+                  organizationType: LIMITED_LIABILITY_PARTNERSHIP
+                  organizationName: Princeton Plainsboro Teaching Hospital
+                  dbaName: PPT Hospital
+                  organizationDescription: Hospital services provider
+                  countryOfFormation: CA
+                  yearOfFormation: '1984'
+                  jurisdiction: CA-BC
+                  naics: 621111
+                  significantOwnership: false
+                  addresses:
+                    - addressType: BUSINESS_ADDRESS
+                      addressLines:
+                        - 500 Upper Wentworth St
+                      city: Hamilton
+                      state: ON
+                      postalCode: L9A 4X5
+                      country: CA
+                  phone:
+                    phoneType: BUSINESS_PHONE
+                    countryCode: '+1'
+                    phoneNumber: '5551112222'
+                  organizationIds:
+                    - idType: EIN
+                      issuer: CA
+                      value: '300030003'
+            products:
+              - INSTMD_REF_DATA_ONLY
+        successCriteria:
+          - condition: $statusCode == 201
+        onFailure:
+          - reference: $components.failureActions.retryOnServiceUnavailable
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+
+      - stepId: getClient
+        description: Get client details after creation
+        operationId: getClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          clientDetails: $response.body
+
+      - stepId: submitQuestionResponses
+        description: Submit responses to due diligence questions
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses:
+              - questionId: '300026'
+                values:
+                  - false
+              - questionId: '300005'
+                values:
+                  - '100000'
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - reference: $components.failureActions.endOnValidationError
+
+      - stepId: submitAttestation
+        description: Submit attestation for the client
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - documentId: 851e9279-f619-4069-893b-d6902db9c68b
+                attestationTime: '2024-10-09T12:34:56.000Z'
+                attester:
+                  firstName: Monica
+                  lastName: Gellar
+                  designation: Owner
+                manualAttestation: 'false'
+                ipAddress: 159.53.174.248
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: startVerification
+        description: Submit for final verification
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+        outputs:
+          verificationTime: $response.body.acceptedAt
+
+  - workflowId: instmdKYCOnboarding
+    summary: InstmdKYC Onboarding for LLC
+    description: |
+      This workflow implements the onboarding process for the INSTMD_KYC product.
+      It includes:
+      - Organization and controller creation
+      - Multiple attestation documents handling
+      - Enhanced due diligence questions
+      - Final verification
+    inputs:
+      type: object
+      properties:
+        organizationInfo:
+          type: object
+          description: Organization details for the LLC client
+        businessAddress:
+          type: object
+          description: Business address details
+        businessPhone:
+          type: object
+          description: Business phone details
+        taxIdentification:
+          type: object
+          description: Tax identification information
+        email:
+          type: string
+          format: email
+          description: Business email address
+        controllerInfo:
+          type: object
+          description: Details of the controller individual
+        controllerAddress:
+          type: object
+          description: Residential address of the controller
+        controllerPhone:
+          type: object
+          description: Phone number of the controller
+        controllerIdentification:
+          type: object
+          description: Identity document for the controller
+        questionResponses:
+          type: array
+          items:
+            type: object
+            properties:
+              questionId:
+                type: string
+              values:
+                type: array
+                items:
+                  type: string
+        attesters:
+          type: array
+          items:
+            type: object
+            properties:
+              firstName:
+                type: string
+              lastName:
+                type: string
+              designation:
+                type: string
+        ipAddress:
+          type: string
+          format: ipv4
+          description: Client's IP address for attestation
+    steps:
+      - stepId: createClient
+        description:
+          Create initial client profile with organization and controller
+          (INSTMD_KYC)
+        operationId: postClients
+        requestBody:
+          contentType: application/json
+          payload:
+            parties:
+              - partyType: ORGANIZATION
+                email: ops@acme-llc.com
+                roles:
+                  - CLIENT
+                organizationDetails:
+                  organizationType: LIMITED_LIABILITY_COMPANY
+                  organizationName: Acme Widgets LLC
+                  dbaName: Acme Widgets
+                  organizationDescription:
+                    Manufacturer and distributor of widgets
+                  countryOfFormation: US
+                  yearOfFormation: '2018'
+                  website: https://acme-widgets.example.com
+                  websiteAvailable: true
+                  naics: 423840
+                  addresses:
+                    - addressType: BUSINESS_ADDRESS
+                      addressLines:
+                        - 251 N Bristol Ave
+                      city: Los Angeles
+                      state: CA
+                      postalCode: '90049'
+                      country: US
+                  phone:
+                    phoneType: BUSINESS_PHONE
+                    countryCode: '+1'
+                    phoneNumber: '7606810558'
+                  organizationIds:
+                    - idType: EIN
+                      issuer: US
+                      value: '300030003'
+              - partyType: INDIVIDUAL
+                roles:
+                  - CONTROLLER
+                  - BENEFICIAL_OWNER
+                individualDetails:
+                  firstName: Philip
+                  lastName: Banks
+                  birthDate: '1945-01-30'
+                  countryOfResidence: US
+                  jobTitle: CEO
+                  addresses:
+                    - addressType: RESIDENTIAL_ADDRESS
+                      addressLines:
+                        - 251 N Bristol Ave
+                      city: Los Angeles
+                      state: CA
+                      postalCode: '90049'
+                      country: US
+                  phone:
+                    phoneType: BUSINESS_PHONE
+                    phoneNumber: '7606810553'
+                    countryCode: '+1'
+                  individualIds:
+                    - idType: SSN
+                      value: '300040004'
+                      issuer: US
+            products:
+              - INSTMD_KYC
+        successCriteria:
+          - condition: $statusCode == 201
+        onFailure:
+          - reference: $components.failureActions.retryOnServiceUnavailable
+        outputs:
+          clientId: $response.body.id
+          partyId: $response.body.partyId
+          outstandingQuestions: $response.body.outstanding.questionIds
+          outstandingAttestations: $response.body.outstanding.attestationDocumentIds
+          outstandingDocuments: $response.body.outstanding.documentRequestIds
+
+      - stepId: getClient
+        description: Get client details after creation
+        operationId: getClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          clientDetails: $response.body
+
+      - stepId: submitQuestionResponses
+        description: Submit responses to enhanced due diligence questions
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            questionResponses:
+              - questionId: '300026'
+                values:
+                  - false
+              - questionId: '300005'
+                values:
+                  - '100000'
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - reference: $components.failureActions.endOnValidationError
+
+      - stepId: submitFirstAttestation
+        description: Submit first attestation document
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - documentId: 851e9279-f619-4069-893b-d6902db9c68b
+                attestationTime: '2024-10-09T12:34:56.000Z'
+                attester:
+                  firstName: Philip
+                  lastName: Banks
+                  designation: CEO
+                manualAttestation: 'false'
+                ipAddress: 159.53.174.248
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: submitSecondAttestation
+        description: Submit second attestation document
+        operationId: patchClient
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        requestBody:
+          contentType: application/json
+          payload:
+            addAttestations:
+              - documentId: 3b2c8c1a-4f10-4a4a-9b6a-1a2b3c4d5e6f
+                attestationTime: '2024-10-10T09:20:00.000Z'
+                attester:
+                  firstName: Dahlia
+                  lastName: Banks
+                  designation: CFO
+                manualAttestation: 'false'
+                ipAddress: 159.53.174.248
+        successCriteria:
+          - condition: $statusCode == 200
+
+      - stepId: startVerification
+        description: Submit for final verification
+        operationId: postClientVerifications
+        parameters:
+          - reference: $components.parameters.clientId
+            value: $steps.createClient.outputs.clientId
+        successCriteria:
+          - condition: $statusCode == 202
+        outputs:
+          verificationTime: $response.body.acceptedAt

@@ -1,0 +1,186 @@
+[
+  {
+    "path": "$.organization.organizationName",
+    "rules": [
+      "required",
+      "min:2",
+      "max:100",
+      "pattern: name characters",
+      "no consecutive spaces",
+      "no special char at start"
+    ],
+    "source": "CompanyIdentificationForm.schema.ts"
+  },
+  {
+    "path": "$.organization.yearOfFormation",
+    "rules": ["format: YYYY", "min:1800", "max:currentYear"],
+    "source": "CompanyIdentificationForm.schema.ts"
+  },
+  {
+    "path": "$.organization.organizationIds[*].idType",
+    "rules": [
+      "enum: EIN|BUSINESS_REGISTRATION_ID|BUSINESS_NUMBER|BUSINESS_REGISTRATION_NUMBER"
+    ],
+    "source": "CompanyIdentificationForm.schema.ts"
+  },
+  {
+    "path": "$.organization.organizationIds[*].value",
+    "rules": ["required", "max:100", "pattern: alphanumeric or dash"],
+    "source": "CompanyIdentificationForm.schema.ts"
+  },
+  {
+    "path": "$.organization.organizationIds[*].issuer",
+    "rules": ["required", "max:500"],
+    "source": "CompanyIdentificationForm.schema.ts"
+  },
+  {
+    "path": "$.organization.organizationIds[*].expiryDate",
+    "rules": [
+      "format: YYYY-MM-DD",
+      "valid date",
+      "future only",
+      "≤ 10y from now"
+    ],
+    "source": "CompanyIdentificationForm.schema.ts"
+  },
+  {
+    "path": "$.organizationEmail",
+    "rules": ["email", "max:100"],
+    "source": "BusinessContactInfoForm.schema.ts"
+  },
+  {
+    "path": "$.organizationPhone.phoneType",
+    "rules": ["enum: BUSINESS_PHONE|MOBILE_PHONE|ALTERNATE_PHONE"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.organizationPhone.phoneNumber",
+    "rules": ["phone: E.164"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].addressType",
+    "rules": [
+      "enum: LEGAL_ADDRESS|MAILING_ADDRESS|BUSINESS_ADDRESS|RESIDENTIAL_ADDRESS"
+    ],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].primaryAddressLine",
+    "rules": ["required", "min:1", "max:60"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].additionalAddressLines[*].value",
+    "rules": ["min:1", "max:60"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].city",
+    "rules": ["required", "min:1", "max:34"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].state",
+    "rules": ["required", "format: US state code"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].postalCode",
+    "rules": ["required", "max:10", "pattern: 12345 or 12345-6789"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.addresses[*].country",
+    "rules": ["length:2"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.birthDate",
+    "rules": ["format: YYYY-MM-DD", "not future", "age ≥ 18", "age ≤ 120"],
+    "source": "IndividualIdentityForm.schema.ts"
+  },
+  {
+    "path": "$.controller.firstName",
+    "rules": ["required", "min:1", "max:100"],
+    "source": "IndividualIdentityForm.schema.ts (assumed)"
+  },
+  {
+    "path": "$.controller.lastName",
+    "rules": ["required", "min:1", "max:100"],
+    "source": "IndividualIdentityForm.schema.ts (assumed)"
+  },
+  {
+    "path": "$.controller.countryOfResidence",
+    "rules": ["length:2", "equals: US"],
+    "source": "IndividualIdentityForm.schema.ts"
+  },
+  {
+    "path": "$.controller.controllerIds[*].idType",
+    "rules": [
+      "enum: SSN|ITIN|NATIONAL_ID|DRIVERS_LICENSE|PASSPORT|SOCIAL_INSURANCE_NUMBER|OTHER_GOVERNMENT_ID"
+    ],
+    "source": "IndividualIdentityForm.schema.ts"
+  },
+  {
+    "path": "$.controller.controllerIds[*].issuer",
+    "rules": ["length:2"],
+    "source": "IndividualIdentityForm.schema.ts"
+  },
+  {
+    "path": "$.controller.controllerIds[*].value",
+    "rules": [
+      "required",
+      "no spaces",
+      "conditional format by idType (SSN/ITIN/etc)"
+    ],
+    "source": "IndividualIdentityForm.schema.ts"
+  },
+  {
+    "path": "$.controller.addresses[*].addressType",
+    "rules": [
+      "enum: LEGAL_ADDRESS|MAILING_ADDRESS|BUSINESS_ADDRESS|RESIDENTIAL_ADDRESS"
+    ],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.addresses[*].primaryAddressLine",
+    "rules": ["required", "min:1", "max:60"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.addresses[*].city",
+    "rules": ["required", "min:1", "max:34"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.addresses[*].state",
+    "rules": ["required", "format: US state code"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.addresses[*].postalCode",
+    "rules": ["required", "max:10", "pattern: 12345 or 12345-6789"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.addresses[*].country",
+    "rules": ["length:2"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.phone.phoneType",
+    "rules": ["enum: BUSINESS_PHONE|MOBILE_PHONE|ALTERNATE_PHONE"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.controller.phone.phoneNumber",
+    "rules": ["phone: E.164"],
+    "source": "commonSchemas.ts"
+  },
+  {
+    "path": "$.organizationPhone.countryCode",
+    "rules": ["optional", "length:2"],
+    "source": "commonSchemas.ts (assumed)"
+  }
+]

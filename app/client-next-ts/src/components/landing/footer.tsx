@@ -1,4 +1,12 @@
 import { Link } from '@tanstack/react-router';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ArazzoFlowDialogContent } from '@/components/api-flow-explorer/arazzo-flow-dialog';
 
 export function Footer() {
   return (
@@ -48,6 +56,25 @@ export function Footer() {
                 >
                   GitHub Repository
                 </Link>
+              </li>
+              <li>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <a
+                      href="#"
+                      className="text-jpm-gray-300 hover:text-jpm-white text-page-body transition-colors duration-200"
+                      aria-label="Open API Flow Explorer"
+                    >
+                      API Workflows Explorer (BETA)
+                    </a>
+                  </DialogTrigger>
+                  <DialogContent className="w-[96vw] max-w-[1600px] h-[85vh]">
+                    <DialogHeader>
+                      <DialogTitle>API Flow Explorer</DialogTitle>
+                    </DialogHeader>
+                    <ArazzoFlowDialogContent />
+                  </DialogContent>
+                </Dialog>
               </li>
             </ul>
           </div>
