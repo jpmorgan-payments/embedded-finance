@@ -1,5 +1,44 @@
 # Recipients Management Embedded Component Requirements
 
+## Introduction
+
+### Purpose and Vision
+
+The Recipients Management Embedded Component is designed to streamline the way businesses manage their payment relationships with vendors, suppliers, and service providers. This component serves as the central hub for creating, storing, and managing recipient information needed to facilitate seamless payments within Embedded Finance ecosystem.
+
+### Core Value Proposition
+
+This component enables platform operators to provide their end-users with a frictionless experience for managing payment recipients, with benefits including:
+
+- **Reduced Payment Friction**: Streamlined workflows for adding and managing payment recipients
+- **Error Reduction**: Intelligent validation to prevent payment routing errors
+- **Payment Method Optimization**: Smart selection of appropriate payment rails based on recipient details
+- **Secure Information Management**: Proper handling of sensitive financial information
+- **Time Savings**: Quick access to previously saved recipient information
+- **Process Integration**: Seamless connection between recipient management and payment initiation
+
+### Primary User Personas
+
+1. **Finance Manager**
+   - **Description**: Professional who oversees accounts payable operations
+   - **Key Needs**: Efficient vendor management, data validation, centralized recipient system
+
+2. **Business Owner**
+   - **Description**: Decision maker managing business operations with limited technical expertise
+   - **Key Needs**: Simplified workflows, intuitive interface, minimal administrative overhead
+
+3. **Accounting Specialist**
+   - **Description**: Team member handling payment processing across multiple departments
+   - **Key Needs**: Batch operations, search/filter functionality, payment method flexibility
+
+4. **Platform Administrator**
+   - **Description**: Technical user responsible for embedded finance implementation
+   - **Key Needs**: Customization options, detailed logging, troubleshooting tools
+
+5. **Integration Developer**
+   - **Description**: Software engineer implementing embedded finance components into applications
+   - **Key Needs**: Clear documentation, type safety, consistent APIs, flexible configuration
+
 > **Documentation References:**
 >
 > - [JPMorgan Chase Embedded Payments - Third-Party Recipients](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/third-party-recipient)
