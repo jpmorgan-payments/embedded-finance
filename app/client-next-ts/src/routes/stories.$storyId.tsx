@@ -110,10 +110,10 @@ function Story() {
           <Link to="/stories">
             <Button
               variant="outline"
-              className="border-jpm-gray-300 text-jpm-gray hover:bg-jpm-gray-100 rounded-page-md flex items-center"
+              className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md flex items-center"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Recipes
+              BACK TO RECIPES
             </Button>
           </Link>
         </div>
@@ -141,7 +141,7 @@ function Story() {
             {story.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-jpm-brown-100 text-jpm-brown text-page-small rounded-page-sm"
+                className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
               >
                 {tag}
               </span>

@@ -324,7 +324,7 @@ export function ComponentsSection() {
   ];
 
   return (
-    <section id="utility-components" className="py-8 bg-jpm-gray-100">
+    <section id="utility-components" className="py-8 bg-sp-bg">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-page-h2 mb-4 text-center text-jpm-gray-900">
@@ -338,10 +338,10 @@ export function ComponentsSection() {
                 key={comp.id}
                 className="border-0 shadow-page-card bg-jpm-white rounded-page-lg h-auto flex flex-col"
               >
-                <div className="bg-jpm-brown-200 p-4 min-h-[4rem] flex-shrink-0 rounded-t-page-lg">
+                <div className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 rounded-t-page-lg border-b border-sp-border">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-jpm-brown-200 p-1 rounded-page-sm mr-2 text-jpm-brown-900 flex-shrink-0">
+                      <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
                         {comp.icon}
                       </div>
                       <span className="line-clamp-2">{comp.title}</span>
@@ -391,7 +391,7 @@ export function ComponentsSection() {
                       {comp.recipeUrl && (
                         <div className="relative group">
                           <button
-                            className="p-2.5 rounded-full bg-jpm-brown-100 hover:bg-jpm-brown-200 text-jpm-brown transition-colors"
+                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
                             onClick={() =>
                               window.open(comp.recipeUrl, '_blank')
                             }

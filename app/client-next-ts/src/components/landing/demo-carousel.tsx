@@ -85,10 +85,10 @@ export function DemoCarousel() {
                     style={{ width: `${itemWidthPercent}%` }}
                   >
                     <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">
-                      <div className="bg-jpm-brown-50 p-4 min-h-[4rem] flex-shrink-0">
+                      <div className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start text-base font-semibold leading-tight">
-                            <span className="line-clamp-2 text-jpm-brown-800">
+                            <span className="line-clamp-2 text-sp-brand">
                               {demo.title}
                             </span>
                           </div>
@@ -127,9 +127,9 @@ export function DemoCarousel() {
                           <Link to={demo.link} className="block w-full">
                             <Button
                               variant="default"
-                              className="w-full rounded-page-md font-semibold text-sm sm:text-base bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white shadow-page-card"
+                              className="w-full rounded-page-md font-semibold text-sm sm:text-base bg-sp-brand hover:bg-sp-brand-700 text-white shadow-page-card"
                             >
-                              Launch Demo
+                              LAUNCH DEMO
                             </Button>
                           </Link>
                         ) : (
@@ -138,7 +138,7 @@ export function DemoCarousel() {
                             className="w-full rounded-page-md font-semibold text-sm sm:text-base border-jpm-gray-300 text-jpm-gray opacity-50 cursor-not-allowed"
                             disabled
                           >
-                            Coming Soon
+                            COMING SOON
                           </Button>
                         )}
                       </CardContent>
@@ -154,22 +154,22 @@ export function DemoCarousel() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-3 md:-translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-3 md:-translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-sp-border hover:bg-sp-accent disabled:opacity-50 disabled:cursor-not-allowed z-10"
                   onClick={prevSlide}
                   disabled={!canGoPrev}
                 >
-                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-jpm-gray" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-sp-brand" />
                   <span className="sr-only">Previous</span>
                 </Button>
 
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-3 md:translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-jpm-gray-200 hover:bg-jpm-gray-100 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-3 md:translate-x-4 bg-jpm-white rounded-full h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 shadow-page-card border-sp-border hover:bg-sp-accent disabled:opacity-50 disabled:cursor-not-allowed z-10"
                   onClick={nextSlide}
                   disabled={!canGoNext}
                 >
-                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-jpm-gray" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-sp-brand" />
                   <span className="sr-only">Next</span>
                 </Button>
               </>
@@ -183,7 +183,7 @@ export function DemoCarousel() {
                 <button
                   key={index}
                   className={`h-2 w-2 rounded-full transition-colors ${
-                    currentIndex === index ? 'bg-jpm-brown' : 'bg-jpm-gray-300'
+                    currentIndex === index ? 'bg-sp-brand' : 'bg-jpm-gray-300'
                   }`}
                   onClick={() => goToSlide(index)}
                   aria-label={`Go to position ${index + 1}`}

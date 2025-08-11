@@ -193,7 +193,7 @@ export function ExperiencesSection() {
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-jpm-blue hover:text-jpm-blue-dark underline whitespace-nowrap"
+                className="text-sp-brand hover:text-sp-brand-700 underline whitespace-nowrap"
               >
                 View full documentation →
               </a>
@@ -206,17 +206,17 @@ export function ExperiencesSection() {
                   key={exp.id}
                   className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-64 flex flex-col"
                 >
-                  <CardHeader className="bg-jpm-brown-100 p-4 min-h-[4rem] flex-shrink-0">
+                  <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
                     <div className="flex items-start justify-between">
                       <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                        <div className="bg-jpm-brown-100 p-1 rounded-page-sm mr-2 text-jpm-brown-800 flex-shrink-0">
+                        <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
                           {exp.icon}
                         </div>
                         <button
                           onClick={() =>
                             handleCardTitleClick(exp.id, exp.title)
                           }
-                          className="line-clamp-2 text-left hover:text-jpm-blue hover:underline cursor-pointer transition-colors"
+                          className="line-clamp-2 text-left hover:text-sp-brand hover:underline cursor-pointer transition-colors"
                           title="Click to view code example"
                         >
                           {exp.title}
@@ -243,7 +243,7 @@ export function ExperiencesSection() {
                                 : 'Coming Soon'}
                         </span>
                         {exp.npmUrl && (
-                          <Box className="h-3 w-3 text-blue-600" />
+                          <Box className="h-3 w-3 text-sp-brand" />
                         )}
                       </div>
                     </div>
@@ -290,7 +290,7 @@ export function ExperiencesSection() {
                       {exp.recipeUrl && (
                         <div className="relative group">
                           <button
-                            className="p-2.5 rounded-full bg-jpm-brown-100 hover:bg-jpm-brown-200 text-jpm-brown transition-colors"
+                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
                             onClick={() => window.open(exp.recipeUrl, '_blank')}
                             title="View Implementation Recipe"
                           >
@@ -305,7 +305,7 @@ export function ExperiencesSection() {
                       {exp.docsUrl && (
                         <div className="relative group">
                           <button
-                            className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-jpm-blue transition-colors"
+                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
                             onClick={() => window.open(exp.docsUrl, '_blank')}
                             title="View API Documentation"
                           >
@@ -320,7 +320,7 @@ export function ExperiencesSection() {
                       {exp.npmUrl && (
                         <div className="relative group">
                           <button
-                            className="p-2.5 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
+                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
                             onClick={() => window.open(exp.npmUrl, '_blank')}
                             title="View NPM Components"
                           >

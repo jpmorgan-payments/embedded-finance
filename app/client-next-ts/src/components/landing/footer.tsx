@@ -16,7 +16,7 @@ export function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center mb-6">
               <div className="w-8 h-8 bg-jpm-white rounded-page-sm flex items-center justify-center mr-3">
-                <span className="text-jpm-brown font-semibold text-page-small">
+                <span className="text-sp-brand font-semibold text-page-small">
                   EF
                 </span>
               </div>

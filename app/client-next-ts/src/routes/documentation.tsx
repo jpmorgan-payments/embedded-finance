@@ -16,11 +16,11 @@ function DocumentationPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 bg-jpm-gray-100">
+    <div className="min-h-screen py-16 bg-sp-bg">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
-          <div className="bg-jpm-brown-100 p-4 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-            <FileText className="h-12 w-12 text-jpm-brown" />
+          <div className="bg-sp-accent border border-sp-border p-4 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+            <FileText className="h-12 w-12 text-sp-brand" />
           </div>
           <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-6">
             Documentation
@@ -46,7 +46,7 @@ function DocumentationPage() {
                 make it easy for you to build an account and payment ecosystem.
               </p>
 
-              <div className="bg-jpm-brown-100 p-6 rounded-page-md mb-8">
+              <div className="bg-sp-accent p-6 rounded-page-md mb-8 border border-sp-border">
                 <h3 className="font-semibold text-jpm-gray-900 mb-2">
                   API Features
                 </h3>
@@ -60,10 +60,10 @@ function DocumentationPage() {
 
               <Button
                 onClick={handleDocumentationClick}
-                className="bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white font-semibold px-8 py-3 rounded-page-md shadow-page-card border-0"
+                className="bg-sp-brand hover:bg-sp-brand-700 text-white font-semibold px-8 py-3 rounded-page-md shadow-page-card border-0"
               >
                 <FileText className="mr-2 h-5 w-5" />
-                View API Documentation
+                VIEW API DOCUMENTATION
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>

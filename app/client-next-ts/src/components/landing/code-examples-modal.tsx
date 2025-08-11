@@ -612,12 +612,12 @@ function ComponentSection() {
         </DialogHeader>
 
         {/* Installation Section - Full width at top */}
-        <div className="mt-6 p-4 bg-jpm-brown-50 rounded-lg border border-jpm-brown-200">
-          <h4 className="font-semibold text-jpm-brown-900 mb-2 text-sm">
+        <div className="mt-6 p-4 bg-sp-accent rounded-lg border border-sp-border">
+          <h4 className="font-semibold text-sp-brand mb-2 text-sm">
             Installation:
           </h4>
-          <div className="bg-jpm-brown-100 rounded p-2 border border-jpm-brown-300">
-            <code className="text-jpm-brown-800 text-xs">
+          <div className="bg-white rounded p-2 border border-sp-border">
+            <code className="text-sp-brand text-xs">
               npm install @jpmorgan-payments/embedded-finance-components
             </code>
           </div>
@@ -625,8 +625,8 @@ function ComponentSection() {
 
         <div className="mt-6 flex gap-6 h-[60vh]">
           {/* Left Panel - Key Features and Configuration */}
-          <div className="w-80 flex-shrink-0 border-r border-jpm-brown-200 pr-4">
-            <h3 className="font-semibold text-jpm-brown-900 mb-4">
+          <div className="w-80 flex-shrink-0 border-r border-sp-border pr-4">
+            <h3 className="font-semibold text-sp-brand mb-4">
               Key Features and Configuration
             </h3>
             <div className="space-y-2">
@@ -636,12 +636,12 @@ function ComponentSection() {
                   onClick={() => setSelectedStep(step.id)}
                   className={`w-full text-left p-3 rounded-lg border transition-colors ${
                     selectedStep === step.id
-                      ? 'border-jpm-brown bg-jpm-brown-50 text-jpm-brown-700'
-                      : 'border-jpm-brown-200 hover:border-jpm-brown-300 hover:bg-jpm-brown-50'
+                      ? 'border-sp-brand bg-sp-accent text-sp-brand'
+                      : 'border-sp-border hover:border-sp-brand hover:bg-sp-accent'
                   }`}
                 >
                   <div className="font-medium text-sm">{step.title}</div>
-                  <div className="text-xs text-jpm-brown-600 mt-1">
+                  <div className="text-xs text-sp-brand mt-1">
                     {step.description}
                   </div>
                 </button>
@@ -651,12 +651,12 @@ function ComponentSection() {
 
           {/* Right Panel - Code Highlighting */}
           <div className="flex-1 overflow-hidden">
-            <div className="bg-jpm-brown-50 rounded-lg overflow-hidden h-full border border-jpm-brown-200">
-              <div className="bg-jpm-brown-100 px-4 py-2 border-b border-jpm-brown-300 flex items-center justify-between">
-                <span className="text-jpm-brown-900 text-sm font-medium">
+            <div className="bg-sp-accent rounded-lg overflow-hidden h-full border border-sp-border">
+              <div className="bg-white px-4 py-2 border-b border-sp-border flex items-center justify-between">
+                <span className="text-sp-brand text-sm font-medium">
                   Usage Example
                 </span>
-                <span className="text-jpm-brown-700 text-xs">
+                <span className="text-sp-brand text-xs">
                   Lines {startLine}-{endLine} selected
                 </span>
               </div>
@@ -683,10 +683,10 @@ function ComponentSection() {
                           <div
                             key={i}
                             {...getLineProps({ line })}
-                            className={`${isHighlighted ? 'bg-jpm-brown-100 border-l-2 border-jpm-brown' : ''}`}
+                            className={`${isHighlighted ? 'bg-sp-accent border-l-2 border-sp-brand' : ''}`}
                             data-line={lineNumber}
                           >
-                            <span className="text-jpm-brown-500 text-xs mr-4 select-none">
+                            <span className="text-sp-brand text-xs mr-4 select-none">
                               {lineNumber.toString().padStart(2, ' ')}
                             </span>
                             {line.map((token, key) => (

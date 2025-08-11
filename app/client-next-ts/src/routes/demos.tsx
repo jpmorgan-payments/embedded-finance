@@ -58,7 +58,7 @@ const demos = [
 
 function DemosPage() {
   return (
-    <div className="min-h-screen py-16 bg-jpm-gray-100">
+    <div className="min-h-screen py-16 bg-sp-bg">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
           <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-6">
@@ -91,7 +91,7 @@ function DemosPage() {
                   <span
                     className={`px-2 py-1 text-page-small font-medium rounded-page-sm ${
                       demo.status === 'active'
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-sp-accent text-sp-brand border border-sp-border'
                         : 'bg-orange-100 text-orange-800'
                     }`}
                   >
@@ -123,7 +123,7 @@ function DemosPage() {
                   variant={demo.status === 'active' ? 'default' : 'outline'}
                   className={`w-full rounded-page-md font-semibold ${
                     demo.status === 'active'
-                      ? 'bg-jpm-brown hover:bg-jpm-brown-700 text-jpm-white shadow-page-card border-0'
+                      ? 'bg-sp-brand hover:bg-sp-brand-700 text-white shadow-page-card border-0'
                       : 'border-jpm-gray-300 text-jpm-gray opacity-50 cursor-not-allowed'
                   }`}
                   disabled={demo.status !== 'active'}
@@ -131,11 +131,11 @@ function DemosPage() {
                   {demo.status === 'active' ? (
                     <Link to={demo.link} className="flex items-center">
                       <Play className="mr-2 h-4 w-4" />
-                      Launch Demo
+                      LAUNCH DEMO
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Link>
                   ) : (
-                    <span>Coming Soon</span>
+                    <span>COMING SOON</span>
                   )}
                 </Button>
               </CardContent>
