@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const Route = createFileRoute('/solutions')({
   component: SolutionsPage,
@@ -11,16 +11,40 @@ function SolutionsPage() {
     'buildItYourself-0': false,
     'buildItYourself-1': false,
     'buildItYourself-2': false,
-    'dropInUI': false,
-    'jpmHosted': false,
+    dropInUI: false,
+    jpmHosted: false,
   });
-  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const cardsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        cardsRef.current &&
+        !cardsRef.current.contains(event.target as Node)
+      ) {
+        setExpandedCards({
+          'buildItYourself-0': false,
+          'buildItYourself-1': false,
+          'buildItYourself-2': false,
+          dropInUI: false,
+          jpmHosted: false,
+        });
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const toggleCard = (cardId: string) => {
-    setExpandedCards(prev => ({
+    setExpandedCards((prev) => ({
       ...prev,
-      [cardId]: !prev[cardId]
+      [cardId]: !prev[cardId],
     }));
   };
+
   const implementationApproaches = [
     {
       title: 'Fully Hosted UI Solutions',
@@ -54,279 +78,285 @@ function SolutionsPage() {
       benefit: 'Rapid prototyping and reduced boilerplate coding.',
     },
   ];
-  
+
   // Group implementation approaches into categories for our 3-column layout
   const buildItYourselfOptions = [
     implementationApproaches[2], // Embedded UI Components
     implementationApproaches[3], // UI/UX Cookbooks
     implementationApproaches[4], // Machine-Readable Specifications
   ];
-  
+
   const dropInUIOption = implementationApproaches[1]; // Runtime UI Injection
   const jpmHostedOption = implementationApproaches[0]; // Fully Hosted UI Solutions
 
   return (
     <div className="min-h-screen py-16 bg-jpm-gray-100">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-6">
-            Accelerating API Implementation: From Calls to Workflows
-          </h1>
-          <p className="text-page-body text-jpm-gray max-w-4xl mx-auto leading-relaxed">
-            In the world of APIs, individual calls rarely stand alone. More
-            often, business capabilities require a series of steps - a workflow.
-            The Digital Onboarding APIs, for instance, offer powerful tools for
-            managing digital processes. But how can API providers help consumers
-            create user-friendly, efficient experiences tailored to their
-            specific business needs?
-          </p>
-        </div>
+      <div className="grid grid-cols-5 gap-4">
+        {/* Mobile Menu Button - improved position */}
+        <button
+          className="lg:hidden fixed top-24 left-6 z-50 p-2 rounded-md bg-jpm-white shadow-md"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-jpm-gray-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          {/* Column 1: Build It Yourself Options */}
-          <div className="flex flex-col space-y-6">
-            {/* Summary Block with Visualization */}
-            <div className="bg-gradient-to-br from-jpm-gray-200 to-jpm-gray-100 p-6 rounded-page-lg shadow-sm">
-              <h2 className="text-page-h3 font-bold text-jpm-gray-900 mb-4">
-                Build It Yourself
-              </h2>
-              <div className="flex justify-center mb-4">
-                <div className="w-24 h-24 flex items-center justify-center rounded-full bg-jpm-white shadow-md mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-jpm-brown" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                  </svg>
+        {/* Main Content Area */}
+        <div className="col-span-5 lg:col-span-5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div id="overview" className="text-center mb-16">
+              <p className="text-sm font-semibold text-jpm-brown mb-2">
+                IMPLEMENTATION OPTIONS
+              </p>
+              <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-8">
+                Solutions for Every Integration Need
+              </h1>
+              <div className="bg-jpm-brown py-4 px-4 rounded-t-page-lg">
+                <div className="text-page-h4 font-bold text-white">
+                  Choose Your Integration Approach
                 </div>
               </div>
-              <p className="text-jpm-gray-700 text-center text-page-body mb-0">
-                Fully customizable solutions that give you complete control over the user experience.
-              </p>
             </div>
-            
-            {buildItYourselfOptions.map((approach, index) => {
-              const cardId = `buildItYourself-${index}`;
-              const isExpanded = expandedCards[cardId];
-              
-              return (
-                <Card
-                  key={index}
-                  className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden"
-                >
-                  <CardHeader 
-                    className="cursor-pointer hover:bg-jpm-gray-50 transition-colors" 
-                    onClick={() => toggleCard(cardId)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-page-h4 text-jpm-gray-900">
-                        {approach.title}
-                      </CardTitle>
-                      <div className="text-jpm-gray-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`h-5 w-5 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`}
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
+
+            <div id="integration-options" className="mb-16" ref={cardsRef}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+                {/* Column 1: Build It Yourself Options */}
+                <div id="build-it-yourself" className="flex flex-col space-y-6">
+                  {/* Summary Block with Visualization */}{' '}
+                  <div className="bg-white rounded-page-lg shadow-page-card border border-jpm-gray-200 hover:shadow-lg transition-all h-[220px] flex flex-col">
+                    <div className="bg-jpm-brown-50 rounded-t-page-lg h-36 overflow-hidden">
+                      {' '}
+                      <div
+                        className="h-full w-full"
+                        style={{
+                          backgroundImage:
+                            'url("https://developer.payments.jpmorgan.com/api/download/en/docs/commerce/online-payments/overview-cfs/direct-api-Integration.png?type=image")',
+                          backgroundSize: '200%',
+                          backgroundPosition: 'center 25%',
+                          backgroundRepeat: 'no-repeat',
+                          filter:
+                            'sepia(0.3) brightness(0.95) contrast(1.05) saturate(0.75)',
+                        }}
+                      ></div>
                     </div>
-                  </CardHeader>
-                  <div 
-                    className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[500px]' : 'max-h-0'}`}
-                  >
-                    <CardContent className="p-6">
-                      <p className="text-page-body text-jpm-gray leading-relaxed mb-4">
-                        {approach.description}
+                    <div className="p-4 flex flex-col flex-1 justify-center">
+                      <h2 className="text-page-h4 font-semibold text-jpm-gray-900 mb-2 text-center">
+                        Build It Yourself
+                      </h2>
+                      <p className="text-jpm-gray-600 text-center text-page-small">
+                        Fully customizable solutions that give you complete
+                        control over the user experience.
                       </p>
-                      <div className="bg-jpm-brown-100 p-4 rounded-page-md">
-                        <p className="text-page-small font-semibold text-jpm-brown">
-                          Key Benefit: {approach.benefit}
-                        </p>
+                    </div>
+                  </div>
+                  {buildItYourselfOptions.map((approach, index) => {
+                    const cardId = `buildItYourself-${index}`;
+                    const isExpanded = expandedCards[cardId];
+
+                    return (
+                      <Card
+                        key={index}
+                        className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden"
+                      >
+                        <CardHeader
+                          className="cursor-pointer hover:bg-jpm-gray-50 transition-colors"
+                          onClick={() => toggleCard(cardId)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <CardTitle className="text-page-h4 text-jpm-gray-900">
+                              {approach.title}
+                            </CardTitle>
+                            <div className="text-jpm-gray-600">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={`h-5 w-5 transition-transform ${isExpanded ? 'transform rotate-180' : ''}`}
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[500px]' : 'max-h-0'}`}
+                        >
+                          <CardContent className="p-6">
+                            <p className="text-page-body text-jpm-gray leading-relaxed mb-4">
+                              {approach.description}
+                            </p>
+                            <div className="bg-jpm-brown-100 p-4 rounded-page-md">
+                              <p className="text-page-small font-semibold text-jpm-brown">
+                                Key Benefit: {approach.benefit}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Column 2: Drop-in UI */}
+                <div id="drop-in-ui" className="flex flex-col space-y-6">
+                  {/* Summary Block with Visualization */}{' '}
+                  <div className="bg-white rounded-page-lg shadow-page-card border border-jpm-gray-200 hover:shadow-lg transition-all h-[220px] flex flex-col">
+                    <div className="bg-jpm-brown-50 rounded-t-page-lg h-36 overflow-hidden">
+                      {' '}
+                      <div
+                        className="h-full w-full"
+                        style={{
+                          backgroundImage:
+                            'url("https://developer.payments.jpmorgan.com/api/download/en/docs/commerce/online-payments/overview-cfs/drop-in-checkout.png?type=image")',
+                          backgroundSize: '200%',
+                          backgroundPosition: 'center 25%',
+                          backgroundRepeat: 'no-repeat',
+                          filter:
+                            'sepia(0.3) brightness(0.95) contrast(1.05) saturate(0.75)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="p-4 flex flex-col flex-1 justify-center">
+                      <h2 className="text-page-h4 font-semibold text-jpm-gray-900 mb-2 text-center">
+                        Drop-in UI
+                      </h2>
+                      <p className="text-jpm-gray-600 text-center text-page-small">
+                        Ready-made UI components that can be easily integrated
+                        into your existing applications.
+                      </p>
+                    </div>
+                  </div>
+                  <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden">
+                    <CardHeader
+                      className="cursor-pointer hover:bg-jpm-gray-50 transition-colors"
+                      onClick={() => toggleCard('dropInUI')}
+                    >
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-page-h4 text-jpm-gray-900">
+                          {dropInUIOption.title}
+                        </CardTitle>
+                        <div className="text-jpm-gray-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-5 w-5 transition-transform ${expandedCards['dropInUI'] ? 'transform rotate-180' : ''}`}
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
                       </div>
-                    </CardContent>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Column 2: Drop-in UI */}
-          <div className="flex flex-col space-y-6">
-            {/* Summary Block with Visualization */}
-            <div className="bg-gradient-to-br from-jpm-gray-200 to-jpm-gray-100 p-6 rounded-page-lg shadow-sm">
-              <h2 className="text-page-h3 font-bold text-jpm-gray-900 mb-4">
-                Drop-in UI
-              </h2>
-              <div className="flex justify-center mb-4">
-                <div className="w-24 h-24 flex items-center justify-center rounded-full bg-jpm-white shadow-md mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-jpm-brown" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-jpm-gray-700 text-center text-page-body mb-0">
-                Ready-made UI components that can be easily integrated into your existing applications.
-              </p>
-            </div>
-            
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden">
-              <CardHeader 
-                className="cursor-pointer hover:bg-jpm-gray-50 transition-colors" 
-                onClick={() => toggleCard('dropInUI')}
-              >
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-page-h4 text-jpm-gray-900">
-                    {dropInUIOption.title}
-                  </CardTitle>
-                  <div className="text-jpm-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-5 w-5 transition-transform ${expandedCards['dropInUI'] ? 'transform rotate-180' : ''}`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                    </CardHeader>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${expandedCards['dropInUI'] ? 'max-h-[500px]' : 'max-h-0'}`}
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
+                      <CardContent className="p-6">
+                        <p className="text-page-body text-jpm-gray leading-relaxed mb-4">
+                          {dropInUIOption.description}
+                        </p>
+                        <div className="bg-jpm-brown-100 p-4 rounded-page-md">
+                          <p className="text-page-small font-semibold text-jpm-brown">
+                            Key Benefit: {dropInUIOption.benefit}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Card>
                 </div>
-              </CardHeader>
-              <div 
-                className={`overflow-hidden transition-all duration-300 ${expandedCards['dropInUI'] ? 'max-h-[500px]' : 'max-h-0'}`}
-              >
-                <CardContent className="p-6">
-                  <p className="text-page-body text-jpm-gray leading-relaxed mb-4">
-                    {dropInUIOption.description}
-                  </p>
-                  <div className="bg-jpm-brown-100 p-4 rounded-page-md">
-                    <p className="text-page-small font-semibold text-jpm-brown">
-                      Key Benefit: {dropInUIOption.benefit}
-                    </p>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
-          </div>
 
-          {/* Column 3: JPM Hosted */}
-          <div className="flex flex-col space-y-6">
-            {/* Summary Block with Visualization */}
-            <div className="bg-gradient-to-br from-jpm-gray-200 to-jpm-gray-100 p-6 rounded-page-lg shadow-sm">
-              <h2 className="text-page-h3 font-bold text-jpm-gray-900 mb-4">
-                JPM Hosted
-              </h2>
-              <div className="flex justify-center mb-4">
-                <div className="w-24 h-24 flex items-center justify-center rounded-full bg-jpm-white shadow-md mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-jpm-brown" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-jpm-gray-700 text-center text-page-body mb-0">
-                Complete turnkey solutions hosted and maintained by JPMorgan Chase.
-              </p>
-            </div>
-            
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden">
-              <CardHeader 
-                className="cursor-pointer hover:bg-jpm-gray-50 transition-colors" 
-                onClick={() => toggleCard('jpmHosted')}
-              >
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-page-h4 text-jpm-gray-900">
-                    {jpmHostedOption.title}
-                  </CardTitle>
-                  <div className="text-jpm-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-5 w-5 transition-transform ${expandedCards['jpmHosted'] ? 'transform rotate-180' : ''}`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                {/* Column 3: JPM Hosted */}
+                <div id="jpm-hosted" className="flex flex-col space-y-6">
+                  {/* Summary Block with Visualization */}
+                  <div className="bg-white rounded-page-lg shadow-page-card border border-jpm-gray-200 hover:shadow-lg transition-all h-[220px] flex flex-col">
+                    {' '}
+                    <div className="bg-jpm-brown-50 rounded-t-page-lg h-36 overflow-hidden">
+                      {' '}
+                      <div
+                        className="h-full w-full"
+                        style={{
+                          backgroundImage:
+                            'url("https://developer.payments.jpmorgan.com/api/download/en/docs/commerce/online-payments/overview-cfs/checkout-hosted-pay-page.png?type=image")',
+                          backgroundSize: '200%',
+                          backgroundPosition: 'center 25%',
+                          backgroundRepeat: 'no-repeat',
+                          filter:
+                            'sepia(0.3) brightness(0.95) contrast(1.05) saturate(0.75)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="p-4 flex flex-col flex-1 justify-center">
+                      <h2 className="text-page-h4 font-semibold text-jpm-gray-900 mb-2 text-center">
+                        JPM Hosted
+                      </h2>
+                      <p className="text-jpm-gray-600 text-center text-page-small">
+                        Complete turnkey solutions hosted and maintained by
+                        JPMorgan Chase.
+                      </p>
+                    </div>
+                  </div>
+                  <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden">
+                    <CardHeader
+                      className="cursor-pointer hover:bg-jpm-gray-50 transition-colors"
+                      onClick={() => toggleCard('jpmHosted')}
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-page-h4 text-jpm-gray-900">
+                          {jpmHostedOption.title}
+                        </CardTitle>
+                        <div className="text-jpm-gray-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-5 w-5 transition-transform ${expandedCards['jpmHosted'] ? 'transform rotate-180' : ''}`}
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${expandedCards['jpmHosted'] ? 'max-h-[500px]' : 'max-h-0'}`}
+                    >
+                      <CardContent className="p-6">
+                        <p className="text-page-body text-jpm-gray leading-relaxed mb-4">
+                          {jpmHostedOption.description}
+                        </p>
+                        <div className="bg-jpm-brown-100 p-4 rounded-page-md">
+                          <p className="text-page-small font-semibold text-jpm-brown">
+                            Key Benefit: {jpmHostedOption.benefit}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Card>
                 </div>
-              </CardHeader>
-              <div 
-                className={`overflow-hidden transition-all duration-300 ${expandedCards['jpmHosted'] ? 'max-h-[500px]' : 'max-h-0'}`}
-              >
-                <CardContent className="p-6">
-                  <p className="text-page-body text-jpm-gray leading-relaxed mb-4">
-                    {jpmHostedOption.description}
-                  </p>
-                  <div className="bg-jpm-brown-100 p-4 rounded-page-md">
-                    <p className="text-page-small font-semibold text-jpm-brown">
-                      Key Benefit: {jpmHostedOption.benefit}
-                    </p>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
-          </div>
-        </div>
-        
-        <div className="bg-jpm-brown-100 rounded-page-lg p-8">
-          <h3 className="text-page-h3 font-bold text-jpm-gray-900 mb-6 text-center">
-            The Digital Onboarding Example
-          </h3>
-          <div className="max-w-4xl mx-auto">
-            <p className="text-page-body text-jpm-gray leading-relaxed mb-6">
-              Consider a digital onboarding process. An API provider could
-              offer:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-jpm-white p-6 rounded-page-md shadow-page-card">
-                <h4 className="font-semibold text-jpm-gray-900 mb-2">
-                  1. Fully hosted solution
-                </h4>
-                <p className="text-page-small text-jpm-gray">
-                  For immediate implementation
-                </p>
-              </div>
-              <div className="bg-jpm-white p-6 rounded-page-md shadow-page-card">
-                <h4 className="font-semibold text-jpm-gray-900 mb-2">
-                  2. Embeddable components
-                </h4>
-                <p className="text-page-small text-jpm-gray">
-                  For key steps (e.g., ID verification)
-                </p>
-              </div>
-              <div className="bg-jpm-white p-6 rounded-page-md shadow-page-card">
-                <h4 className="font-semibold text-jpm-gray-900 mb-2">
-                  3. Detailed cookbook
-                </h4>
-                <p className="text-page-small text-jpm-gray">
-                  Outlining the entire workflow
-                </p>
-              </div>
-              <div className="bg-jpm-white p-6 rounded-page-md shadow-page-card">
-                <h4 className="font-semibold text-jpm-gray-900 mb-2">
-                  4. Arazzo specification
-                </h4>
-                <p className="text-page-small text-jpm-gray">
-                  Describing the process structure
-                </p>
               </div>
             </div>
-            <p className="text-page-body text-jpm-gray leading-relaxed mt-6 text-center">
-              This multi-faceted approach allows API consumers to choose the
-              implementation method that best fits their needs, timeline, and
-              resources. By providing these accelerators, API providers do more
-              than just offer endpoints – they become partners in their
-              consumers' success.
-            </p>
           </div>
         </div>
       </div>
