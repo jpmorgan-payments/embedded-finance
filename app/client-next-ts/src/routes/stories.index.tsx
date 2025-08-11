@@ -76,7 +76,7 @@ function StoriesIndex() {
                     {story.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-jpm-brown-100 text-jpm-brown text-page-small rounded-page-sm"
+                        className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
                       >
                         {tag}
                       </span>
@@ -85,9 +85,9 @@ function StoriesIndex() {
                   <Link to="/stories/$storyId" params={{ storyId: story.id }}>
                     <Button
                       variant="outline"
-                      className="border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                      className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
                     >
-                      Read More
+                      READ MORE
                       <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
                     </Button>
                   </Link>

@@ -59,10 +59,10 @@ export function RecipesSection() {
                 key={recipe.id}
                 className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-70 flex flex-col"
               >
-                <CardHeader className="bg-jpm-brown-100 p-4 min-h-[4rem] flex-shrink-0">
+                <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
                   <div className="flex items-start justify-between">
                     <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-jpm-brown-100 p-1 rounded-page-sm mr-2 text-jpm-brown-800 flex-shrink-0">
+                      <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
                         {recipe.icon ? (
                           recipe.icon
                         ) : (
@@ -83,7 +83,7 @@ export function RecipesSection() {
                     {recipe.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-jpm-brown-100 text-jpm-brown text-page-small rounded-page-sm"
+                        className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
                       >
                         {tag}
                       </span>
@@ -95,7 +95,7 @@ export function RecipesSection() {
                       <Button
                         asChild
                         variant="outline"
-                        className="border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                        className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
                       >
                         <a
                           href={recipe.link}
@@ -109,7 +109,7 @@ export function RecipesSection() {
                       <Link to={recipe.link}>
                         <Button
                           variant="outline"
-                          className="border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                          className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
                         >
                           Read More
                         </Button>

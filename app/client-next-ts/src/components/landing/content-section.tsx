@@ -3,7 +3,7 @@ import { Package, FileText, Server } from 'lucide-react';
 
 export function ContentSection() {
   return (
-    <section className="py-12 bg-jpm-gray-100">
+    <section className="py-12 bg-sp-bg">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h2 className="text-page-h2 text-jpm-gray-900 mb-6">
@@ -25,8 +25,8 @@ export function ContentSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-jpm-brown-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Package className="h-8 w-8 text-jpm-brown" />
+                <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
+                  <Package className="h-8 w-8 text-sp-brand" />
                 </div>
                 <h4 className="text-page-h4 text-jpm-gray-900 mb-4">
                   Embedded Components
@@ -40,8 +40,8 @@ export function ContentSection() {
 
             <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-jpm-brown-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FileText className="h-8 w-8 text-jpm-brown" />
+                <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
+                  <FileText className="h-8 w-8 text-sp-brand" />
                 </div>
                 <h4 className="text-page-h4 text-jpm-gray-900 mb-4">
                   UI/UX Recipes
@@ -55,8 +55,8 @@ export function ContentSection() {
 
             <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-jpm-brown-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Server className="h-8 w-8 text-jpm-brown" />
+                <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
+                  <Server className="h-8 w-8 text-sp-brand" />
                 </div>
                 <h4 className="text-page-h4 text-jpm-gray-900 mb-4">
                   Hosted Solutions

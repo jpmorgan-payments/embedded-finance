@@ -1,4 +1,12 @@
 import { Link } from '@tanstack/react-router';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ArazzoFlowDialogContent } from '@/components/api-flow-explorer/arazzo-flow-dialog';
 
 export function Footer() {
   return (
@@ -8,7 +16,7 @@ export function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center mb-6">
               <div className="w-8 h-8 bg-jpm-white rounded-page-sm flex items-center justify-center mr-3">
-                <span className="text-jpm-brown font-semibold text-page-small">
+                <span className="text-sp-brand font-semibold text-page-small">
                   EF
                 </span>
               </div>
@@ -48,6 +56,25 @@ export function Footer() {
                 >
                   GitHub Repository
                 </Link>
+              </li>
+              <li>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <a
+                      href="#"
+                      className="text-jpm-gray-300 hover:text-jpm-white text-page-body transition-colors duration-200"
+                      aria-label="Open API Flow Explorer"
+                    >
+                      API Workflows Explorer (BETA)
+                    </a>
+                  </DialogTrigger>
+                  <DialogContent className="w-[96vw] max-w-[1600px] h-[85vh]">
+                    <DialogHeader>
+                      <DialogTitle>API Flow Explorer</DialogTitle>
+                    </DialogHeader>
+                    <ArazzoFlowDialogContent />
+                  </DialogContent>
+                </Dialog>
               </li>
             </ul>
           </div>

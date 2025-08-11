@@ -57,6 +57,15 @@ export default {
           4: 'hsl(var(--chart-4))',
           5: 'hsl(var(--chart-5))',
         },
+        // S&P Theme brand colors
+        'sp-brand': {
+          DEFAULT: '#1B7F9E',
+          700: '#166b85',
+          800: '#145a71',
+        },
+        'sp-accent': '#e6f3f7',
+        'sp-bg': '#f6f7f8',
+        'sp-border': '#0000004D',
         // JP Morgan Brand Colors with updated brown primary
         'jpm-blue': {
           DEFAULT: '#1c2752',
