@@ -143,11 +143,9 @@ function SolutionsPage() {
                         style={{
                           backgroundImage:
                             'url("https://developer.payments.jpmorgan.com/api/download/en/docs/commerce/online-payments/overview-cfs/direct-api-Integration.png?type=image")',
-                          backgroundSize: '200%',
+                          backgroundSize: '250%',
                           backgroundPosition: 'center 25%',
                           backgroundRepeat: 'no-repeat',
-                          filter:
-                            'sepia(0.3) brightness(0.95) contrast(1.05) saturate(0.75)',
                         }}
                       ></div>
                     </div>
@@ -224,11 +222,9 @@ function SolutionsPage() {
                         style={{
                           backgroundImage:
                             'url("https://developer.payments.jpmorgan.com/api/download/en/docs/commerce/online-payments/overview-cfs/drop-in-checkout.png?type=image")',
-                          backgroundSize: '200%',
+                          backgroundSize: '250%',
                           backgroundPosition: 'center 25%',
                           backgroundRepeat: 'no-repeat',
-                          filter:
-                            'sepia(0.3) brightness(0.95) contrast(1.05) saturate(0.75)',
                         }}
                       ></div>
                     </div>
@@ -296,11 +292,9 @@ function SolutionsPage() {
                         style={{
                           backgroundImage:
                             'url("https://developer.payments.jpmorgan.com/api/download/en/docs/commerce/online-payments/overview-cfs/checkout-hosted-pay-page.png?type=image")',
-                          backgroundSize: '200%',
+                          backgroundSize: '250%',
                           backgroundPosition: 'center 25%',
                           backgroundRepeat: 'no-repeat',
-                          filter:
-                            'sepia(0.3) brightness(0.95) contrast(1.05) saturate(0.75)',
                         }}
                       ></div>
                     </div>
