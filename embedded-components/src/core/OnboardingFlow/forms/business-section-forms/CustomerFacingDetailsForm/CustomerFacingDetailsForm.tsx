@@ -65,41 +65,6 @@ export const CustomerFacingDetailsForm: FormStepComponent = ({
           noOptionalLabel
         />
       </div>
-      <div>
-        <OnboardingFormField
-          control={form.control}
-          name="organizationDescription"
-          type="textarea"
-          popoutTooltip
-          tooltip={
-            <div className="eb-space-y-3">
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t(
-                  'fields.organizationDescription.tooltipContent.exampleTitle'
-                )}
-              </h2>
-              <p className="eb-text-sm">
-                {t('fields.organizationDescription.tooltipContent.exampleText')}
-              </p>
-              <p className="eb-pb-1 eb-text-sm">
-                {t(
-                  'fields.organizationDescription.tooltipContent.alignmentNote'
-                )}
-              </p>
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t(
-                  'fields.organizationDescription.tooltipContent.visibilityTitle'
-                )}
-              </h2>
-              <p className="eb-pb-1 eb-text-sm">
-                {t(
-                  'fields.organizationDescription.tooltipContent.visibilityText'
-                )}
-              </p>
-            </div>
-          }
-        />
-      </div>
       <div className="eb-space-y-3">
         <OnboardingFormField
           control={form.control}

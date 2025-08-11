@@ -1,6 +1,6 @@
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { AlertDescription } from '@/components/ui/alert';
@@ -11,8 +11,10 @@ import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { IndustryFormSchema } from './IndustryForm.schema';
 
 export const IndustryForm: FormStepComponent = () => {
-  // const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof IndustryFormSchema>>();
+
+  // const description = form.watch('organizationDescription');
 
   return (
     <div className="eb-mt-1 eb-space-y-6">
@@ -23,6 +25,43 @@ export const IndustryForm: FormStepComponent = () => {
           your selection is accurate.
         </AlertDescription>
       </Alert>
+
+      <div>
+        <OnboardingFormField
+          control={form.control}
+          name="organizationDescription"
+          type="textarea"
+          popoutTooltip
+          tooltip={
+            <div className="eb-space-y-3">
+              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                {t(
+                  'fields.organizationDescription.tooltipContent.exampleTitle'
+                )}
+              </h2>
+              <p className="eb-text-sm">
+                {t('fields.organizationDescription.tooltipContent.exampleText')}
+              </p>
+              <p className="eb-pb-1 eb-text-sm">
+                {t(
+                  'fields.organizationDescription.tooltipContent.alignmentNote'
+                )}
+              </p>
+              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                {t(
+                  'fields.organizationDescription.tooltipContent.visibilityTitle'
+                )}
+              </h2>
+              <p className="eb-pb-1 eb-text-sm">
+                {t(
+                  'fields.organizationDescription.tooltipContent.visibilityText'
+                )}
+              </p>
+            </div>
+          }
+        />
+      </div>
+
       <OnboardingFormField
         control={form.control}
         name="industry"

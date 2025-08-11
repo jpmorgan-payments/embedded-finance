@@ -1,8 +1,6 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
-import { sanitizeInput } from '@/lib/utils';
-
 const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
 
 export const CustomerFacingDetailsFormSchema = z.object({
@@ -22,11 +20,6 @@ export const CustomerFacingDetailsFormSchema = z.object({
       i18n.t('onboarding:fields.dbaName.validation.minLength')
     ),
   dbaNameNotAvailable: z.boolean(),
-  organizationDescription: z
-    .string()
-    .min(10)
-    .max(1000)
-    .transform(sanitizeInput),
   website: z
     .string()
     .url(i18n.t('onboarding:fields.website.validation.invalid'))
