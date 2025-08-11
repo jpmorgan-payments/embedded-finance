@@ -31,7 +31,7 @@ export function LandingHeader() {
               to="/solutions"
               className="text-jpm-gray hover:text-jpm-brown font-medium text-sm lg:text-page-small transition-colors duration-200"
             >
-              Solutions
+              DeveloperSolutions
             </Link>
             <Link
               to="/documentation"
@@ -75,7 +75,7 @@ export function LandingHeader() {
                     to="/solutions"
                     className="block text-jpm-gray hover:text-jpm-brown font-medium text-base transition-colors duration-200 py-2"
                   >
-                    Solutions
+                    Developer Solutions
                   </Link>
                   <Link
                     to="/documentation"
