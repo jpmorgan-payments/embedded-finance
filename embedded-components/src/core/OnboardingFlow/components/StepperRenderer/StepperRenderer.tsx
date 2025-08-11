@@ -245,7 +245,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const { stepValidationMap } = getStepperValidation(
     steps,
     existingPartyData,
-    clientData
+    clientData,
+    currentScreenId
   );
 
   // Scroll to top on step change

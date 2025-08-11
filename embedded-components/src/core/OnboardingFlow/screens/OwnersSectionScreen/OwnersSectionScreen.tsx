@@ -66,6 +66,7 @@ export const OwnersSectionScreen = () => {
 
   const {
     originScreenId,
+    currentScreenId,
     goTo,
     staticScreens,
     sections,
@@ -76,7 +77,8 @@ export const OwnersSectionScreen = () => {
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
-    clientData
+    clientData,
+    currentScreenId
   );
 
   const reviewMode = originScreenId === 'review-attest-section';
@@ -205,7 +207,8 @@ export const OwnersSectionScreen = () => {
   const ownersValidation = getStepperValidations(
     ownerSteps,
     activeOwners,
-    clientData
+    clientData,
+    'owner-stepper'
   );
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string | null) => {

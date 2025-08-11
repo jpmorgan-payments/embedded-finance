@@ -125,6 +125,7 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
+        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -218,6 +219,7 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
+        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -309,13 +311,14 @@ const sectionScreens: SectionScreenConfig[] = [
         'Government issued identifier (e.g. social security number)',
         'Address and contact details',
       ],
-      statusResolver: (sessionData, clientData) => {
+      statusResolver: (sessionData, clientData, screenId) => {
         const activeOwners = getActiveOwners(clientData);
         const allOwnersValid = activeOwners?.every((owner) => {
           const { allStepsValid } = getStepperValidation(
             ownerSteps,
             owner,
-            clientData
+            clientData,
+            screenId
           );
           return allStepsValid;
         });

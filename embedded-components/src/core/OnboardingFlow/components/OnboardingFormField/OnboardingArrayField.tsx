@@ -11,7 +11,10 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
-import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
 import {
   ArrayFieldRule,
   OnboardingTopLevelArrayFieldNames,
@@ -89,7 +92,11 @@ export function OnboardingArrayField<
   ...props
 }: OnboardingArrayFieldProps<TFieldValues, TFieldArrayName>) {
   const { clientData } = useOnboardingContext();
-  const { getFieldRule } = useFormUtilsWithClientContext(clientData);
+  const { currentScreenId } = useFlowContext();
+  const { getFieldRule } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
 
   const { t } = useTranslation(['onboarding', 'common']);
 

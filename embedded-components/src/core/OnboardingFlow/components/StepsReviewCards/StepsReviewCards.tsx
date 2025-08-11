@@ -5,7 +5,10 @@ import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { AlertTitle } from '@/components/ui/alert';
 import { Alert, Button, Card } from '@/components/ui';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
-import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
 import { StepConfig } from '@/core/OnboardingFlow/types/flow.types';
 import { OnboardingFormValuesInitial } from '@/core/OnboardingFlow/types/form.types';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
@@ -28,14 +31,19 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
   const formValues = convertPartyResponseToFormValues(partyData ?? {});
   const { stepValidationMap } = getStepperValidation(
     steps,
     partyData,
-    clientData
+    clientData,
+    currentScreenId
   );
 
-  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+  const { modifySchema } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
 
   return (
     <div className="eb-space-y-4" key={partyData?.id}>

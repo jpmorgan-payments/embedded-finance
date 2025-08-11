@@ -85,6 +85,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
+      screenId: ScreenId,
       allStepsValid: boolean,
       stepValidationMap: StepValidationMap
     ) => SectionStatus;

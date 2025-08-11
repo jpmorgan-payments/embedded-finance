@@ -2,6 +2,7 @@ import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
 import {
   FlowProgress,
   FlowSessionData,
+  ScreenId,
   SectionScreenConfig,
   SectionStatus,
   StepConfig,
@@ -20,7 +21,8 @@ import {
 export function getFlowProgress(
   sections: SectionScreenConfig[],
   sessionData: FlowSessionData,
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  screenId: ScreenId
 ): FlowProgress {
   const sectionStatuses: Partial<FlowProgress['sectionStatuses']> = {};
   const stepValidations: Partial<FlowProgress['stepValidations']> = {};
@@ -42,7 +44,8 @@ export function getFlowProgress(
       const stepperValidation = getStepperValidation(
         section.stepperConfig.steps,
         partyData,
-        clientData
+        clientData,
+        screenId
       );
 
       stepValidations[section.id] = stepperValidation.stepValidationMap;
@@ -53,6 +56,7 @@ export function getFlowProgress(
       status = section.sectionConfig.statusResolver(
         sessionData,
         clientData,
+        screenId,
         allStepsValid,
         stepValidations[section.id] || {}
       );
@@ -72,7 +76,8 @@ export function getFlowProgress(
 export const getStepperValidation = (
   steps: StepConfig[],
   partyData: Partial<PartyResponse> | undefined,
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  screenId: ScreenId
 ): StepperValidation => {
   const stepValidationMap: Record<string, any> = {};
   let allStepsValid = true;
@@ -83,6 +88,7 @@ export const getStepperValidation = (
       const modifiedSchema = modifySchemaByClientContext(
         step.Component.schema,
         getClientContext(clientData),
+        screenId,
         step.Component.refineSchemaFn
       );
 
@@ -112,12 +118,18 @@ export const getStepperValidation = (
 export const getStepperValidations = (
   steps: StepConfig[],
   parties: PartyResponse[],
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  screenId: ScreenId
 ) => {
   const partyValidations: Record<string, StepperValidation> = {};
 
   parties.forEach((party) => {
-    const stepperValidation = getStepperValidation(steps, party, clientData);
+    const stepperValidation = getStepperValidation(
+      steps,
+      party,
+      clientData,
+      screenId
+    );
     if (party.id) {
       partyValidations[party.id] = stepperValidation;
     }
