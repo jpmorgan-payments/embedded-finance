@@ -238,8 +238,8 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'completed';
         }
         const isAnyStepValid = Object.entries(stepValidationMap).some(
-          ([, stepValidation]) => {
-            return stepValidation.isValid;
+          ([key, stepValidation]) => {
+            return stepValidation.isValid && key !== 'customer-facing-details';
           }
         );
         if (isAnyStepValid) {

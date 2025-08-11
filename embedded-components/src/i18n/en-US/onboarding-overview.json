@@ -502,6 +502,7 @@
       "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don't use special characters (e.g. * @ %, etc).",
       "tooltip": "",
       "validation": {
+        "required": "$t(validation:required)",
         "maxLength": "$t(validation:common.maxLength, {'count': 500})",
         "minLength": "$t(validation:common.minLength, {'count': 10})",
         "noHtml": "$t(validation:common.noHtml)",
