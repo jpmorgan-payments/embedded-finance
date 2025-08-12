@@ -31,15 +31,19 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   const { clientData } = useOnboardingContext();
-  const { isSoleProp } = useFlowContext();
+  const { currentScreenId } = useFlowContext();
   const formValues = convertPartyResponseToFormValues(partyData ?? {});
   const { stepValidationMap } = getStepperValidation(
     steps,
     partyData,
-    clientData
+    clientData,
+    currentScreenId
   );
 
-  const { modifySchema } = useFormUtilsWithClientContext(clientData);
+  const { modifySchema } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
 
   return (
     <div className="eb-space-y-4" key={partyData?.id}>
@@ -110,15 +114,9 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
               )}
 
               {schemaKeys.map((key) => {
-                let field = key as keyof OnboardingFormValuesInitial;
+                const field = key as keyof OnboardingFormValuesInitial;
 
-                let value = formValues?.[field];
-
-                // EXCEPTION HANDLING
-                if (isSoleProp && field === 'organizationIds' && !value) {
-                  field = 'controllerIds';
-                  value = formValues?.[field];
-                }
+                const value = formValues?.[field];
 
                 const fieldConfig = partyFieldMap?.[field] as {
                   toStringFn?: (

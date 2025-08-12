@@ -17,10 +17,12 @@ import {
   StepLayout,
   StepsReviewCards,
 } from '@/core/OnboardingFlow/components';
+import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
   FormStepComponent,
   StepConfig,
@@ -50,9 +52,9 @@ type StepperRendererProps = StepperConfig & {
 
 export const StepperRenderer: React.FC<StepperRendererProps> = ({
   steps,
-  defaultPartyRequestBody,
+  getDefaultPartyRequestBody,
 }) => {
-  const { clientData } = useOnboardingContext();
+  const { clientData, organizationType } = useOnboardingContext();
 
   const {
     currentScreenId,
@@ -243,7 +245,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const { stepValidationMap } = getStepperValidation(
     steps,
     existingPartyData,
-    clientData
+    clientData,
+    currentScreenId
   );
 
   // Scroll to top on step change
@@ -303,7 +306,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
             key={currentStep.id}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
-            defaultPartyRequestBody={defaultPartyRequestBody}
+            defaultPartyRequestBody={getDefaultPartyRequestBody?.(
+              organizationType
+            )}
             existingPartyData={existingPartyData}
             setExistingPartyData={setExistingPartyData}
             {...sharedProps}
@@ -353,6 +358,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   const queryClient = useQueryClient();
   const { clientData, onPostClientSettled, onPostPartySettled } =
     useOnboardingContext();
+  const { savedFormValues, saveFormValue, currentScreenId } = useFlowContext();
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -377,15 +383,24 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
   const form = useFormWithFilters({
     clientData,
+    screenId: currentScreenId,
     schema: Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
-    overrideDefaultValues: formValuesFromResponse,
+    overrideDefaultValues: { ...savedFormValues, ...formValuesFromResponse },
     disabled: isFormSubmitting,
   });
 
   const { isDirty } = useFormState({ control: form.control });
 
   const onSubmit = form.handleSubmit((values) => {
+    Object.entries(values).forEach(([key, value]) => {
+      const fieldKey = key as keyof OnboardingFormValuesSubmit;
+      const fieldConfig = partyFieldMap[fieldKey];
+      if (fieldConfig?.saveResponseInContext) {
+        saveFormValue(fieldKey, value);
+      }
+    });
+
     // Perform step-defined transformations on the form values
     const modifiedValues = Component.modifyFormValuesBeforeSubmit
       ? Component.modifyFormValuesBeforeSubmit(values, existingPartyData)

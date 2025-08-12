@@ -64,8 +64,13 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const { clientData } = useOnboardingContext();
   const { t } = useTranslation(['onboarding', 'common']);
 
-  const { sections, goTo, sessionData, reviewScreenOpenedSectionId } =
-    useFlowContext();
+  const {
+    sections,
+    goTo,
+    sessionData,
+    reviewScreenOpenedSectionId,
+    currentScreenId,
+  } = useFlowContext();
 
   const form = useForm({
     defaultValues: {
@@ -84,7 +89,8 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
-    clientData
+    clientData,
+    currentScreenId
   );
 
   // Get outstanding question IDs and existing question responses
@@ -149,7 +155,8 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const ownersValidation = getStepperValidations(
     ownerSteps,
     activeOwners,
-    clientData
+    clientData,
+    currentScreenId
   );
 
   const sectionIdsToReview: SectionScreenId[] = [

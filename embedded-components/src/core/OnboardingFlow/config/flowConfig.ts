@@ -93,10 +93,10 @@ const staticScreens: StaticScreenConfig[] = [
         partyType: 'INDIVIDUAL',
         roles: ['BENEFICIAL_OWNER'],
       },
-      defaultPartyRequestBody: {
+      getDefaultPartyRequestBody: () => ({
         partyType: 'INDIVIDUAL',
         roles: ['BENEFICIAL_OWNER'],
-      },
+      }),
       steps: ownerSteps,
     },
   },
@@ -125,6 +125,7 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
+        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -161,10 +162,13 @@ const sectionScreens: SectionScreenConfig[] = [
         partyType: 'INDIVIDUAL',
         roles: ['CONTROLLER'],
       },
-      defaultPartyRequestBody: {
+      getDefaultPartyRequestBody: (organizationType) => ({
         partyType: 'INDIVIDUAL',
-        roles: ['CONTROLLER'],
-      },
+        roles:
+          organizationType === 'SOLE_PROPRIETORSHIP'
+            ? ['CONTROLLER', 'BENEFICIAL_OWNER']
+            : ['CONTROLLER'],
+      }),
       steps: [
         {
           id: 'personal-details',
@@ -215,6 +219,7 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
+        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -233,8 +238,8 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'completed';
         }
         const isAnyStepValid = Object.entries(stepValidationMap).some(
-          ([, stepValidation]) => {
-            return stepValidation.isValid;
+          ([key, stepValidation]) => {
+            return stepValidation.isValid && key !== 'customer-facing-details';
           }
         );
         if (isAnyStepValid) {
@@ -248,10 +253,10 @@ const sectionScreens: SectionScreenConfig[] = [
         partyType: 'ORGANIZATION',
         roles: ['CLIENT'],
       },
-      defaultPartyRequestBody: {
+      getDefaultPartyRequestBody: () => ({
         partyType: 'ORGANIZATION',
         roles: ['CLIENT'],
-      },
+      }),
       steps: [
         {
           id: 'industry',
@@ -306,13 +311,14 @@ const sectionScreens: SectionScreenConfig[] = [
         'Government issued identifier (e.g. social security number)',
         'Address and contact details',
       ],
-      statusResolver: (sessionData, clientData) => {
+      statusResolver: (sessionData, clientData, screenId) => {
         const activeOwners = getActiveOwners(clientData);
         const allOwnersValid = activeOwners?.every((owner) => {
           const { allStepsValid } = getStepperValidation(
             ownerSteps,
             owner,
-            clientData
+            clientData,
+            screenId
           );
           return allStepsValid;
         });

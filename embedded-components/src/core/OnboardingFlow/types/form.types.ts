@@ -18,6 +18,7 @@ import {
   PersonalDetailsFormSchema,
 } from '@/core/OnboardingFlow/forms/personal-section-forms';
 import { GatewayScreenFormSchema } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen.schema';
+import { ScreenId } from '@/core/OnboardingFlow/types/flow.types';
 
 // MAINTAIN: When adding a new schema, just add it to this array
 const ONBOARDING_FORM_SCHEMAS = [
@@ -68,6 +69,14 @@ export type FieldRule<T = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
   required?: boolean;
+  contentTokenOverrides?: {
+    [key in
+      | 'label'
+      | 'description'
+      | 'tooltip'
+      | 'placeholder'
+      | 'fieldName']?: string;
+  };
   defaultValue: T;
 };
 
@@ -91,6 +100,7 @@ export type FieldRuleCondition = {
   product?: ClientProduct[];
   jurisdiction?: CountryCodeIsoAlpha2[];
   entityType?: OrganizationType[];
+  screenId?: ScreenId[];
 };
 
 //  Base configuration for all fields
@@ -106,7 +116,7 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     values: Partial<OnboardingFormValuesSubmit>
   ) => string | string[] | undefined;
   generateLabelStringFn?: (val: T) => string | undefined;
-  isHiddenInReview?: (val: T) => boolean;
+  isHiddenInReviewFn?: (val: T) => boolean;
 };
 
 type DefaultKeys<Rule> = Extract<
@@ -129,6 +139,7 @@ type FieldConfigurationGeneric<
   | ({
       key?: K; // phantom property
       excludeFromMapping?: false;
+      saveResponseInContext?: never;
       path: string;
       fromResponseFn?: (val: any) => T;
       toRequestFn?: (val: OnboardingFormValuesSubmit[K]) => any;
@@ -136,8 +147,9 @@ type FieldConfigurationGeneric<
   | ({
       key?: K; // phantom property
       excludeFromMapping: true;
-      path?: never;
-      fromResponseFn?: never;
+      saveResponseInContext?: boolean;
+      path?: string;
+      fromResponseFn?: (val: any) => T;
       toRequestFn?: never;
     } & BaseFieldConfiguration<T, IsSubfield>);
 

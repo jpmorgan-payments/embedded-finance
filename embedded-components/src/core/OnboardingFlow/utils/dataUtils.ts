@@ -118,3 +118,39 @@ export const clientHasOutstandingDocRequests = (
 ): boolean => {
   return (clientData?.outstanding.documentRequestIds?.length ?? 0) > 0;
 };
+
+export const convertClientToSoleProprietorship = (
+  clientData: ClientResponse | undefined
+): ClientResponse | undefined => {
+  if (!clientData) return undefined;
+
+  const updatedClientData = { ...clientData };
+
+  // Update organization type to SOLE_PROPRIETORSHIP
+  const orgParty = getOrganizationParty(updatedClientData);
+  const controllerParty = getControllerParty(updatedClientData);
+
+  if (orgParty) {
+    orgParty.organizationDetails = {
+      ...orgParty.organizationDetails,
+      organizationType: 'SOLE_PROPRIETORSHIP',
+      countryOfFormation: 'US',
+    };
+
+    if (controllerParty) {
+      orgParty.organizationDetails.organizationName =
+        getPartyName(controllerParty);
+    }
+  }
+
+  if (controllerParty) {
+    if (!controllerParty.roles?.includes('BENEFICIAL_OWNER')) {
+      controllerParty.roles = [
+        ...(controllerParty.roles || []),
+        'BENEFICIAL_OWNER',
+      ];
+    }
+  }
+
+  return updatedClientData;
+};

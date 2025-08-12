@@ -104,6 +104,7 @@ export const partyFieldMap: PartyFieldMap = {
       {
         condition: {
           product: ['EMBEDDED_PAYMENTS'],
+          entityType: ['SOLE_PROPRIETORSHIP'],
         },
         rule: {
           interaction: 'disabled',
@@ -118,6 +119,20 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          contentTokenOverrides: {
+            label: i18n.t(
+              'onboarding-overview:fields.organizationEmail.label.soleProp'
+            ),
+          },
+        },
+      },
+    ],
   },
   controllerEmail: {
     path: 'email',
@@ -343,12 +358,15 @@ export const partyFieldMap: PartyFieldMap = {
   //     },
   //   },
   // },
-  solePropPersonalIdOrEin: {
+  solePropHasEin: {
     excludeFromMapping: true,
-    isHiddenInReview: () => true,
+    saveResponseInContext: true,
+    path: 'organizationDetails.organizationIds',
+    isHiddenInReviewFn: () => true,
     baseRule: {
       display: 'hidden',
-      defaultValue: 'PERSONAL',
+      required: true,
+      defaultValue: '',
     },
     conditionalRules: [
       {
@@ -360,9 +378,12 @@ export const partyFieldMap: PartyFieldMap = {
         },
       },
     ],
+    fromResponseFn: (val: OrganizationIdentityDto[]) => {
+      return val.some((id) => id.idType === 'EIN') ? 'yes' : 'no';
+    },
   },
-  solePropOrganizationId: {
-    path: 'organizationDetails.organizationIds.0',
+  organizationIdEin: {
+    path: 'organizationDetails.organizationIds',
     baseRule: {
       display: 'hidden',
       required: false,
@@ -380,108 +401,110 @@ export const partyFieldMap: PartyFieldMap = {
     ],
     toStringFn: (val) => {
       if (val === undefined) {
-        return 'SSN / ITIN';
+        return undefined;
       }
       return val.replace(/(\d{2})(\d{7})/, '$1 - $2');
     },
-    fromResponseFn: (val: OrganizationIdentityDto) => {
-      return val.value;
+    fromResponseFn: (val: OrganizationIdentityDto[]) => {
+      return val.find((id) => id.idType === 'EIN')?.value ?? '';
     },
-    toRequestFn: (val): OrganizationIdentityDto => {
-      return {
-        issuer: 'US',
-        idType: 'EIN',
-        value: val,
-      };
-    },
-  },
-  organizationIds: {
-    path: 'organizationDetails.organizationIds',
-    baseRule: {
-      display: 'visible',
-      minItems: 1,
-      maxItems: 1,
-      defaultValue: [
+    toRequestFn: (val): OrganizationIdentityDto[] => {
+      return [
         {
-          idType: 'EIN',
           issuer: 'US',
-          value: '',
+          idType: 'EIN',
+          value: val,
         },
-      ],
-      defaultAppendValue: {
-        idType: 'EIN',
-        issuer: 'US',
-        value: '',
-      },
-    },
-    conditionalRules: [
-      {
-        condition: {
-          entityType: ['SOLE_PROPRIETORSHIP'],
-        },
-        rule: {
-          minItems: 0,
-          defaultValue: [],
-          display: 'hidden',
-        },
-      },
-    ],
-    generateLabelStringFn: (val) => {
-      const primaryId = val?.[0];
-      if (!primaryId) {
-        return undefined;
-      }
-      return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
-    },
-    toStringFn: (val) => {
-      if (val === undefined) {
-        return undefined;
-      }
-      const primaryId = val[0];
-      return primaryId.value.replace(/(\d{2})(\d{7})/, '$1 - $2');
-    },
-    subFields: {
-      idType: {
-        baseRule: { display: 'visible', required: true },
-      },
-      issuer: {
-        baseRule: { display: 'visible', required: true },
-        conditionalRules: [
-          {
-            condition: {
-              product: ['EMBEDDED_PAYMENTS'],
-            },
-            rule: { interaction: 'disabled', defaultValue: 'US' },
-          },
-        ],
-      },
-      value: {
-        baseRule: { display: 'visible', required: true },
-      },
-      description: {
-        baseRule: { display: 'visible', required: false },
-        conditionalRules: [
-          {
-            condition: {
-              product: ['EMBEDDED_PAYMENTS'],
-            },
-            rule: { display: 'hidden' },
-          },
-        ],
-      },
-      expiryDate: {
-        baseRule: { display: 'visible', required: false },
-        conditionalRules: [
-          {
-            condition: {
-              product: ['EMBEDDED_PAYMENTS'],
-            },
-            rule: { display: 'hidden' },
-          },
-        ],
-      },
+      ];
     },
   },
+  // organizationIds: {
+  //   path: 'organizationDetails.organizationIds',
+  //   baseRule: {
+  //     display: 'visible',
+  //     minItems: 1,
+  //     maxItems: 1,
+  //     defaultValue: [
+  //       {
+  //         idType: 'EIN',
+  //         issuer: 'US',
+  //         value: '',
+  //       },
+  //     ],
+  //     defaultAppendValue: {
+  //       idType: 'EIN',
+  //       issuer: 'US',
+  //       value: '',
+  //     },
+  //   },
+  //   conditionalRules: [
+  //     {
+  //       condition: {
+  //         entityType: ['SOLE_PROPRIETORSHIP'],
+  //       },
+  //       rule: {
+  //         minItems: 0,
+  //         defaultValue: [],
+  //         display: 'hidden',
+  //       },
+  //     },
+  //   ],
+  //   generateLabelStringFn: (val) => {
+  //     const primaryId = val?.[0];
+  //     if (!primaryId) {
+  //       return undefined;
+  //     }
+  //     return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
+  //   },
+  //   toStringFn: (val) => {
+  //     if (val === undefined) {
+  //       return undefined;
+  //     }
+  //     const primaryId = val[0];
+  //     return primaryId.value.replace(/(\d{2})(\d{7})/, '$1 - $2');
+  //   },
+  //   subFields: {
+  //     idType: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     issuer: {
+  //       baseRule: { display: 'visible', required: true },
+  //       conditionalRules: [
+  //         {
+  //           condition: {
+  //             product: ['EMBEDDED_PAYMENTS'],
+  //           },
+  //           rule: { interaction: 'disabled', defaultValue: 'US' },
+  //         },
+  //       ],
+  //     },
+  //     value: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     description: {
+  //       baseRule: { display: 'visible', required: false },
+  //       conditionalRules: [
+  //         {
+  //           condition: {
+  //             product: ['EMBEDDED_PAYMENTS'],
+  //           },
+  //           rule: { display: 'hidden' },
+  //         },
+  //       ],
+  //     },
+  //     expiryDate: {
+  //       baseRule: { display: 'visible', required: false },
+  //       conditionalRules: [
+  //         {
+  //           condition: {
+  //             product: ['EMBEDDED_PAYMENTS'],
+  //           },
+  //           rule: { display: 'hidden' },
+  //         },
+  //       ],
+  //     },
+  //   },
+  // },
   organizationPhone: {
     path: 'organizationDetails.phone',
     baseRule: {
@@ -528,18 +551,19 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   websiteNotAvailable: {
     path: 'organizationDetails.websiteAvailable',
-    isHiddenInReview: () => true,
+    isHiddenInReviewFn: () => true,
     baseRule: {
       display: 'visible',
       required: false,
       defaultValue: false,
     },
-    fromResponseFn: (val: boolean) => !val,
+    fromResponseFn: (val: boolean) => val === false,
     toRequestFn: (val): boolean => !val,
   },
   dbaNameNotAvailable: {
     excludeFromMapping: true,
-    isHiddenInReview: () => true,
+    saveResponseInContext: true,
+    isHiddenInReviewFn: () => true,
     baseRule: {
       display: 'visible',
       required: false,

@@ -173,7 +173,7 @@
       "description": "Please select your current country of residence",
       "validation": {
         "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
       }
     },
     "countryOfCitizenship": {
@@ -182,7 +182,7 @@
       "description": "The country where you hold citizenship",
       "validation": {
         "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
       }
     },
     "industry": {
@@ -241,7 +241,7 @@
         "uniqueTypes": "Each Business Identification type must be unique"
       }
     },
-    "solePropOrganizationId": {
+    "organizationIdEin": {
       "label": "Business identification",
       "description": "",
       "tooltip": "Should match your business registration document's ID value",
@@ -249,10 +249,18 @@
         "required": "$t(validation:required)"
       }
     },
-    "solePropPersonalIdOrEin": {
-      "label": "How do you identify your business?",
+    "solePropHasEin": {
+      "label": "Does your business have an $t(onboarding-overview:idValueLabels.EIN)?",
+      "validationFieldName": "This field",
       "description": "",
-      "tooltip": ""
+      "tooltip": "",
+      "options": {
+        "yes": "Yes, my business has an EIN",
+        "no": "No"
+      },
+      "validation": {
+        "required": "$t(validation:required)"
+      }
     },
     "ssnAsSolePropId": {
       "description": "Update your ID in the personal details section",
@@ -304,8 +312,13 @@
       }
     },
     "organizationEmail": {
-      "label": "Company email address",
-      "description": "Provide the best email address to contact the business",
+      "label": {
+        "default": "Company email address",
+        "soleProp": "Business email address"
+      },
+      "description": {
+        "default": "Provide the best email address to contact the business"
+      },
       "tooltip": "",
       "validation": {
         "invalid": "$t(validation:email.invalid)",
@@ -334,12 +347,12 @@
         "description": ""
       },
       "primaryAddressLine": {
-        "description": "$t(validation:location.address.poBox)",
+        "description": "P.O. box is not accepted",
         "tooltip": "",
         "validation": {
           "required": "$t(validation:required)",
           "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-          "pattern": "$t(validation:location.address.pattern)"
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
         }
       },
       "postalCode": {
@@ -347,8 +360,7 @@
         "description": "",
         "validation": {
           "required": "$t(validation:required)",
-          "pattern": "$t(validation:location.postalCode.pattern, {'count': 5})",
-          "maxLength": "$t(validation:location.postalCode.maxLength, {'count': 10})"
+          "pattern": "Postal code must be exactly 5 digits"
         }
       },
       "city": {
@@ -374,12 +386,12 @@
         "value": {
           "validation": {
             "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-            "pattern": "$t(validation:location.address.pattern)"
+            "pattern": "Address can only contain letters, numbers, and basic punctuation"
           }
         },
         "validation": {
-          "minItems": "$t(validation:collection.minItems_one, {'count': 1, 'item': 'address line'})",
-          "maxItems": "$t(validation:collection.maxItems_one, {'count': 1, 'item': 'address line'})"
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
         }
       }
     },
@@ -390,12 +402,14 @@
         "description": ""
       },
       "primaryAddressLine": {
-        "description": "$t(validation:location.address.poBox)",
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "P.O. box is not accepted",
         "tooltip": "",
         "validation": {
           "required": "$t(validation:required)",
           "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-          "pattern": "$t(validation:location.address.pattern)"
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
         }
       },
       "postalCode": {
@@ -403,7 +417,7 @@
         "description": "",
         "validation": {
           "required": "$t(validation:required)",
-          "pattern": "$t(validation:location.postalCode.pattern, {'count': 5})"
+          "pattern": "Postal code must be exactly 5 digits"
         }
       },
       "city": {
@@ -427,20 +441,20 @@
         "value": {
           "validation": {
             "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-            "pattern": "$t(validation:location.address.pattern)"
+            "pattern": "Address can only contain letters, numbers, and basic punctuation"
           }
         },
         "validation": {
-          "minItems": "$t(validation:collection.minItems_one, {'count': 1, 'item': 'address line'})",
-          "maxItems": "$t(validation:collection.maxItems_one, {'count': 1, 'item': 'address line'})"
+          "minItems": "At least {{count}} address line is required",
+          "maxItems": "Maximum {{count}} address lines allowed"
         }
       },
       "validation": {
-        "minItems_one": "$t(validation:collection.minItems_one, {'count': 1, 'item': 'address'})",
-        "minItems_other": "$t(validation:collection.minItems_other, {'count': '{{count}}', 'item': 'address'})",
-        "maxItems_one": "$t(validation:collection.maxItems_one, {'count': 1, 'item': 'address'})",
-        "maxItems_other": "$t(validation:collection.maxItems_other, {'count': '{{count}}', 'item': 'address'})",
-        "uniqueTypes": "$t(validation:collection.uniqueTypes, {'type': 'address type'})"
+        "minItems_one": "At least one address is required",
+        "minItems_other": "At least {{count}} addresses are required",
+        "maxItems_one": "Maximum {{count}} address allowed",
+        "maxItems_other": "Maximum {{count}} addresses allowed",
+        "uniqueTypes": "Each address type must be unique"
       }
     },
     "dbaNameNotAvailable": {
@@ -488,6 +502,7 @@
       "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don't use special characters (e.g. * @ %, etc).",
       "tooltip": "",
       "validation": {
+        "required": "$t(validation:required)",
         "maxLength": "$t(validation:common.maxLength, {'count': 500})",
         "minLength": "$t(validation:common.minLength, {'count': 10})",
         "noHtml": "$t(validation:common.noHtml)",
@@ -542,9 +557,9 @@
       "itemLabelNumbered": "Individual Identification {{number}}",
       "validation": {
         "required": "At least one government ID is required",
-        "minItems": "$t(validation:collection.minItems_one, {'count': '{{count}}', 'item': 'ID'})",
-        "maxItems": "$t(validation:collection.maxItems_one, {'count': '{{count}}', 'item': 'ID'})",
-        "uniqueTypes": "$t(validation:collection.uniqueTypes, {'type': 'ID type'})"
+        "minItems": "Minimum {{count}} IDs required",
+        "maxItems": "Maximum {{count}} IDs allowed",
+        "uniqueTypes": "Each ID type must be unique"
       },
       "idType": {
         "label": "ID type",
@@ -595,7 +610,7 @@
         "description": "Organization ID issuer",
         "tooltip": "should match your business registration documents ID issuer",
         "validation": {
-          "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
+          "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
         }
       },
       "group": "identification"
@@ -863,7 +878,7 @@
         "validation": {
           "required": "$t(validation:required)",
           "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-          "pattern": "$t(validation:location.address.pattern)"
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
         }
       },
       "additionalAddressLines": {
@@ -919,7 +934,7 @@
         "description": "Country of the owner's address",
         "tooltip": "",
         "validation": {
-          "exactlyTwoChars": "$t(validation:location.country.exactlyTwoChars, {'count': 2})"
+          "exactlyTwoChars": "$t(validation:.exactLength, {'count': 2})"
         }
       }
     },

@@ -1,7 +1,11 @@
 import { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
 
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  OrganizationType,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 
 type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any>>>;
@@ -81,6 +85,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
+      screenId: ScreenId,
       allStepsValid: boolean,
       stepValidationMap: StepValidationMap
     ) => SectionStatus;
@@ -104,7 +109,9 @@ interface BaseScreenStepperConfig {
 export interface StepperConfig {
   steps: StepConfig[];
   associatedPartyFilters?: AssociatedPartyFilters;
-  defaultPartyRequestBody?: Partial<PartyResponse>;
+  getDefaultPartyRequestBody?: (
+    orgType?: OrganizationType
+  ) => Partial<PartyResponse>;
 }
 
 export interface AssociatedPartyFilters {

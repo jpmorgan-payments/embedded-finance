@@ -42,6 +42,7 @@ import {
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldRule,
@@ -142,8 +143,12 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
-  const { clientData, organizationType } = useOnboardingContext();
-  const { getFieldRule } = useFormUtilsWithClientContext(clientData);
+  const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
+  const { getFieldRule } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
 
   const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
 
@@ -177,23 +182,29 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     .find((part) => !Number.isNaN(Number(part)));
   const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
-  const getContentToken = (id: string) => {
+  const getContentToken = (
+    id: 'placeholder' | 'tooltip' | 'label' | 'description'
+  ) => {
     // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
-    const stepperFlowKey = `onboarding:${key}`;
-    const overviewFlowKey = `onboarding-overview:${key}`;
-    const overviewFlowKeyWithOrgType = `onboarding-overview:${key}.${organizationType}`;
-    return t(
-      [
-        overviewFlowKeyWithOrgType,
-        overviewFlowKey,
-        stepperFlowKey,
-        'common:noTokenFallback',
-      ] as unknown as TemplateStringsArray,
-      {
-        number,
-        key,
-      }
+    const oldContentTokenKey = `onboarding:${key}`;
+    const contentTokenKey = `onboarding-overview:${key}`;
+    const contentTokenKeyWithDefault = `onboarding-overview:${key}.default`;
+    const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
+    return (
+      contentTokenOverride ??
+      t(
+        [
+          contentTokenKeyWithDefault,
+          contentTokenKey,
+          oldContentTokenKey,
+          'common:noTokenFallback',
+        ] as unknown as TemplateStringsArray,
+        {
+          number,
+          key,
+        }
+      )
     );
   };
 
@@ -237,7 +248,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               <>
                 <div className="eb-flex eb-items-center eb-space-x-2">
                   <FormLabel className={labelClassName}>{fieldLabel}</FormLabel>
-                  <InfoPopover popoutTooltip={popoutTooltip}>
+                  <InfoPopover
+                    popoutTooltip={popoutTooltip}
+                    className="eb-text-informative hover:eb-text-informative"
+                  >
                     {fieldTooltip}
                   </InfoPopover>
                 </div>
@@ -248,7 +262,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               <p className="eb-font-bold">
                 {(options
                   ? options.find(({ value }) => value === field.value)?.label
-                  : field.value) ?? 'N/A'}
+                  : (valueOverride ?? field.value)) ?? 'N/A'}
               </p>
             ) : (
               (() => {
