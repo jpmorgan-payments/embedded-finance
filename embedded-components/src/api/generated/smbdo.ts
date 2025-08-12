@@ -50,6 +50,8 @@ import type {
   QuestionResponse,
   SmbdoDownloadDocument200Six,
   SmbdoGetAllDocumentDetailsParams,
+  SmbdoGetRecommendations200,
+  SmbdoGetRecommendationsBody,
   SmbdoListClientsParams,
   SmbdoListDocumentRequestsParams,
   SmbdoListQuestionsParams,
@@ -59,6 +61,112 @@ import type {
 } from './smbdo.schemas';
 
 type SecondParameter<T extends (...args: any) => any> = Parameters<T>[1];
+
+/**
+ * Retrieves recommendations based on the provided resource type and values.
+ * @summary Get resource recommendations
+ */
+export const smbdoGetRecommendations = (
+  smbdoGetRecommendationsBody: BodyType<SmbdoGetRecommendationsBody>,
+  options?: SecondParameter<typeof ebInstance>
+) => {
+  return ebInstance<SmbdoGetRecommendations200>(
+    {
+      url: `/recommendations`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: smbdoGetRecommendationsBody,
+    },
+    options
+  );
+};
+
+export const getSmbdoGetRecommendationsMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N422Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof smbdoGetRecommendations>>,
+    TError,
+    { data: BodyType<SmbdoGetRecommendationsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof ebInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof smbdoGetRecommendations>>,
+  TError,
+  { data: BodyType<SmbdoGetRecommendationsBody> },
+  TContext
+> => {
+  const { mutation: mutationOptions, request: requestOptions } = options ?? {};
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof smbdoGetRecommendations>>,
+    { data: BodyType<SmbdoGetRecommendationsBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return smbdoGetRecommendations(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SmbdoGetRecommendationsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof smbdoGetRecommendations>>
+>;
+export type SmbdoGetRecommendationsMutationBody =
+  BodyType<SmbdoGetRecommendationsBody>;
+export type SmbdoGetRecommendationsMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N422Response
+  | N500Response
+  | N503Response
+>;
+
+/**
+ * @summary Get resource recommendations
+ */
+export const useSmbdoGetRecommendations = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N422Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof smbdoGetRecommendations>>,
+    TError,
+    { data: BodyType<SmbdoGetRecommendationsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof ebInstance>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof smbdoGetRecommendations>>,
+  TError,
+  { data: BodyType<SmbdoGetRecommendationsBody> },
+  TContext
+> => {
+  const mutationOptions = getSmbdoGetRecommendationsMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
 
 /**
  * Returns a list of clients associated with your platform.

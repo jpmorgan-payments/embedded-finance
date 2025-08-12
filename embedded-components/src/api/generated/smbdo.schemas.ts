@@ -5,6 +5,21 @@
  * Embedded Finance & Solutions APIs from J.P. Morgan.
  * OpenAPI spec version: 1.0.12
  */
+export type GetAllPartiesParams = {
+/**
+ * Unique party identifier.
+ */
+parentPartyId?: ParentPartyIdInQueryParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
+};
+
 export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
 
 export type SmbdoUploadDocumentBody = {
@@ -13,37 +28,96 @@ export type SmbdoUploadDocumentBody = {
   file: Blob;
 };
 
+export type SmbdoListDocumentRequestsParams = {
+/**
+ * Unique Client identifier.
+ */
+clientId?: ClientIdQueryParameter;
+/**
+ * Unique Party identifier.
+ */
+partyId?: PartyIdQueryParameter;
+};
+
+export type SmbdoListQuestionsParams = {
+/**
+ * Comma-separated list of Question IDs.
+ */
+questionIds?: QuestionIdListInQueryParameter;
+};
+
+export type SmbdoListClientsParams = {
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+};
+
+/**
+ * The type of resource for which recommendations were requested.
+ */
+export type SmbdoGetRecommendations200ResourceType = typeof SmbdoGetRecommendations200ResourceType[keyof typeof SmbdoGetRecommendations200ResourceType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SmbdoGetRecommendations200ResourceType = {
+  NAICS_CODE: 'NAICS_CODE',
+} as const;
+
+export type SmbdoGetRecommendations200ResourceItem = {
+  /** The NAICS code identifier. */
+  naicsCode: string;
+  /** The description of the NAICS code. */
+  naicsDescription: string;
+};
+
+export type SmbdoGetRecommendations200 = {
+  /** Optional message with additional information about the recommendations. */
+  message?: string;
+  /** List of recommended resources based on the input. */
+  resource: SmbdoGetRecommendations200ResourceItem[];
+  /** The type of resource for which recommendations were requested. */
+  resourceType: SmbdoGetRecommendations200ResourceType;
+};
+
+export type SmbdoGetRecommendationsBodyValuesItem = {
+  /** The key identifier for the information. */
+  key: string;
+  /** The value associated with the key. */
+  value: string;
+};
+
+/**
+ * The type of resource for which recommendations are requested.
+ */
+export type SmbdoGetRecommendationsBodyResourceType = typeof SmbdoGetRecommendationsBodyResourceType[keyof typeof SmbdoGetRecommendationsBodyResourceType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SmbdoGetRecommendationsBodyResourceType = {
+  NAICS_CODE: 'NAICS_CODE',
+} as const;
+
+export type SmbdoGetRecommendationsBody = {
+  /** The type of resource for which recommendations are requested. */
+  resourceType: SmbdoGetRecommendationsBodyResourceType;
+  /** List of key-value pairs containing information about the organization. */
+  values: SmbdoGetRecommendationsBodyValuesItem[];
+};
+
 /**
  * Number of records per page.
  */
 export type PageSizeParameter = number;
 
-export type GetAllPartiesParams = {
-  /**
-   * Unique party identifier.
-   */
-  parentPartyId?: ParentPartyIdInQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-};
-
 /**
  * Comma-separated list of Question IDs.
  */
 export type QuestionIdListInQueryParameter = string;
-
-export type SmbdoListQuestionsParams = {
-  /**
-   * Comma-separated list of Question IDs.
-   */
-  questionIds?: QuestionIdListInQueryParameter;
-};
 
 /**
  * Unique Party identifier.
@@ -55,50 +129,28 @@ export type PartyIdQueryParameter = string;
  */
 export type ClientIdQueryParameter = string;
 
-export type SmbdoListDocumentRequestsParams = {
-  /**
-   * Unique Client identifier.
-   */
-  clientId?: ClientIdQueryParameter;
-  /**
-   * Unique Party identifier.
-   */
-  partyId?: PartyIdQueryParameter;
-};
-
 /**
  * Page number.
  */
 export type PageNumberParameter = number;
 
 export type SmbdoGetAllDocumentDetailsParams = {
-  /**
-   * Unique Client identifier.
-   */
-  clientId?: ClientIdQueryParameter;
-  /**
-   * Unique Party identifier.
-   */
-  partyId?: PartyIdQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-};
-
-export type SmbdoListClientsParams = {
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
+/**
+ * Unique Client identifier.
+ */
+clientId?: ClientIdQueryParameter;
+/**
+ * Unique Party identifier.
+ */
+partyId?: PartyIdQueryParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
 };
 
 /**
@@ -269,7 +321,7 @@ export type RequestId = string;
  */
 export interface PostUploadDocument {
   /** The base64 encoded string of the file data. The maximum allowed file size is 2MB. Use the base64 content itself and omit headers like `data:image/png;base64`.
-   */
+ */
   documentContent: string;
   /** Document metadata. */
   documentMetadata: PostUploadDocumentDocumentMetadata;
@@ -283,20 +335,6 @@ export interface PostUploadDocument {
   documentType: string;
   requestId?: RequestId;
 }
-
-export type DocumentMetadataKeyEnum =
-  (typeof DocumentMetadataKeyEnum)[keyof typeof DocumentMetadataKeyEnum];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DocumentMetadataKeyEnum = {
-  DOCUMENT_REQUEST_ID: 'DOCUMENT_REQUEST_ID',
-  PARTY_ID: 'PARTY_ID',
-  FILE_EXTENSION: 'FILE_EXTENSION',
-  COUNTRY: 'COUNTRY',
-  STATUS: 'STATUS',
-  UPLOAD_TIME: 'UPLOAD_TIME',
-  UPLOADED_FILE_NAME: 'UPLOADED_FILE_NAME',
-} as const;
 
 export interface DocumentMetadataSmbdo {
   key?: DocumentMetadataKeyEnum;
@@ -322,6 +360,20 @@ export interface ListDocumentsResponse {
   metadata?: PageMetaData;
 }
 
+export type DocumentMetadataKeyEnum = typeof DocumentMetadataKeyEnum[keyof typeof DocumentMetadataKeyEnum];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DocumentMetadataKeyEnum = {
+  DOCUMENT_REQUEST_ID: 'DOCUMENT_REQUEST_ID',
+  PARTY_ID: 'PARTY_ID',
+  FILE_EXTENSION: 'FILE_EXTENSION',
+  COUNTRY: 'COUNTRY',
+  STATUS: 'STATUS',
+  UPLOAD_TIME: 'UPLOAD_TIME',
+  UPLOADED_FILE_NAME: 'UPLOADED_FILE_NAME',
+} as const;
+
 export interface DocumentRequestListResponse {
   /**
    * @minItems 0
@@ -338,8 +390,8 @@ export interface DocumentRequestListResponse {
  */
 export type ValidForDays = number;
 
-export type DocumentRequestStatus =
-  (typeof DocumentRequestStatus)[keyof typeof DocumentRequestStatus];
+export type DocumentRequestStatus = typeof DocumentRequestStatus[keyof typeof DocumentRequestStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentRequestStatus = {
@@ -348,28 +400,14 @@ export const DocumentRequestStatus = {
   EXPIRED: 'EXPIRED',
 } as const;
 
-export type DocumentRequestRequirementLevel =
-  (typeof DocumentRequestRequirementLevel)[keyof typeof DocumentRequestRequirementLevel];
+export type DocumentRequestRequirementLevel = typeof DocumentRequestRequirementLevel[keyof typeof DocumentRequestRequirementLevel];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentRequestRequirementLevel = {
   PRIMARY: 'PRIMARY',
   SECONDARY: 'SECONDARY',
 } as const;
-
-export interface DocumentRequestRequirement {
-  /**
-   * @minItems 1
-   * @maxItems 100
-   */
-  documentTypes: DocumentTypeSmbdo[];
-  level?: DocumentRequestRequirementLevel;
-  /**
-   * @minimum 1
-   * @maximum 10
-   */
-  minRequired?: number;
-}
 
 /**
  * Unique Document Request identifier.
@@ -380,8 +418,8 @@ export type DocumentRequestId = string;
 /**
  * Supported document types
  */
-export type DocumentTypeSmbdo =
-  (typeof DocumentTypeSmbdo)[keyof typeof DocumentTypeSmbdo];
+export type DocumentTypeSmbdo = typeof DocumentTypeSmbdo[keyof typeof DocumentTypeSmbdo];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentTypeSmbdo = {
@@ -436,6 +474,20 @@ export const DocumentTypeSmbdo = {
   TRUST_DEED: 'TRUST_DEED',
   UTILITY_BILL: 'UTILITY_BILL',
 } as const;
+
+export interface DocumentRequestRequirement {
+  /**
+   * @minItems 1
+   * @maxItems 100
+   */
+  documentTypes: DocumentTypeSmbdo[];
+  level?: DocumentRequestRequirementLevel;
+  /**
+   * @minimum 1
+   * @maximum 10
+   */
+  minRequired?: number;
+}
 
 /**
  * Outstanding items on the document request.
@@ -497,8 +549,8 @@ export type QuestionResponseSubQuestionsItem = {
   questionIds?: QuestionIdList;
 };
 
-export type ResponseSchemaType =
-  (typeof ResponseSchemaType)[keyof typeof ResponseSchemaType];
+export type ResponseSchemaType = typeof ResponseSchemaType[keyof typeof ResponseSchemaType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseSchemaType = {
@@ -506,21 +558,11 @@ export const ResponseSchemaType = {
 } as const;
 
 /**
- * A subset of JSON Schema used to validate the response values.
- */
-export interface ResponseSchema {
-  items?: ResponseSchemaItem;
-  maxItems?: number;
-  minItems?: number;
-  type?: ResponseSchemaType;
-}
-
-/**
  * The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
 
  */
-export type ResponseSchemaItemType =
-  (typeof ResponseSchemaItemType)[keyof typeof ResponseSchemaItemType];
+export type ResponseSchemaItemType = typeof ResponseSchemaItemType[keyof typeof ResponseSchemaItemType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseSchemaItemType = {
@@ -534,8 +576,8 @@ export const ResponseSchemaItemType = {
 /**
  * Only applicable to string, number, and integer.
  */
-export type ResponseSchemaItemFormat =
-  (typeof ResponseSchemaItemFormat)[keyof typeof ResponseSchemaItemFormat];
+export type ResponseSchemaItemFormat = typeof ResponseSchemaItemFormat[keyof typeof ResponseSchemaItemFormat];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseSchemaItemFormat = {
@@ -567,8 +609,18 @@ export interface ResponseSchemaItem {
   /** Only applicable to string. */
   pattern?: string;
   /** The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
-   */
+ */
   type: ResponseSchemaItemType;
+}
+
+/**
+ * A subset of JSON Schema used to validate the response values.
+ */
+export interface ResponseSchema {
+  items?: ResponseSchemaItem;
+  maxItems?: number;
+  minItems?: number;
+  type?: ResponseSchemaType;
 }
 
 /**
@@ -616,14 +668,106 @@ export interface ClientVerificationRequest {
   consumerDevice?: ConsumerDevice;
 }
 
-export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
-  UpdatePartyRequestInline;
-
 /**
  * Describes which attestation to remove. An existing attestation with a matching `documentId` will be removed.
  */
 export interface AttestationRemoval {
   documentId: DocumentId;
+}
+
+/**
+ * The preferences of the party.
+ */
+export type UpdatePartyRequestInlinePreferences = {
+  defaultLanguage?: DefaultLanguagePreferenceEnum;
+};
+
+/**
+ * Update a party inline within the clients API by supplying its ID.
+ */
+export interface UpdatePartyRequestInline {
+  access?: AccessList;
+  email?: Email;
+  id?: PartyId;
+  individualDetails?: IndividualDetails;
+  organizationDetails?: OrganizationDetails;
+  /** The preferences of the party. */
+  preferences?: UpdatePartyRequestInlinePreferences;
+  roles?: PartyRoleList;
+}
+
+export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline & UpdatePartyRequestInline;
+
+export type ClientResponseOutstanding = {
+  attestationDocumentIds?: DocumentIdList;
+  documentRequestIds?: DocumentRequestIdList;
+  partyIds?: PartyIdList;
+  partyRoles?: PartyRoleList;
+  questionIds?: QuestionIdList;
+};
+
+export interface ClientResponse {
+  /**
+   * @minItems 0
+   * @maxItems 10
+   */
+  attestations?: Attestation[];
+  /** Date and time when the client was created */
+  createdAt?: string;
+  id: ClientId;
+  outstanding: ClientResponseOutstanding;
+  /** @minItems 0 */
+  parties?: PartyResponse[];
+  partyId: PartyId;
+  products: ClientProductList;
+  /**
+   * @minItems 0
+   * @maxItems 200
+   */
+  questionResponses?: ClientQuestionResponse[];
+  results?: ClientResults;
+  status: ClientStatus;
+}
+
+export type ClientUpdatedResponse = ClientResponse & {
+  consumerDevice?: ConsumerDevice;
+};
+
+/**
+ * The status of the customer identification process.
+ */
+export type CustomerIdentityStatus = typeof CustomerIdentityStatus[keyof typeof CustomerIdentityStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CustomerIdentityStatus = {
+  APPROVED: 'APPROVED',
+  INFORMATION_REQUESTED: 'INFORMATION_REQUESTED',
+  NOT_STARTED: 'NOT_STARTED',
+  REVIEW_IN_PROGRESS: 'REVIEW_IN_PROGRESS',
+} as const;
+
+/**
+ * The results of the client verification process.
+ */
+export interface ClientResults {
+  customerIdentityStatus: CustomerIdentityStatus;
+}
+
+/**
+ * The values of a question response. Each item is a string that will be validated according to the question's responseSchema.
+
+ * @minItems 1
+ * @maxItems 20
+ */
+export type ResponseValueList = string[];
+
+/**
+ * The client's response to a question.
+ */
+export interface ClientQuestionResponse {
+  questionId?: QuestionId;
+  values?: ResponseValueList;
 }
 
 export interface UpdateClientRequestSmbdo {
@@ -657,76 +801,6 @@ export interface UpdateClientRequestSmbdo {
 /**
  * The preferences of the party.
  */
-export type UpdatePartyRequestInlinePreferences = {
-  defaultLanguage?: DefaultLanguagePreferenceEnum;
-};
-
-/**
- * Update a party inline within the clients API by supplying its ID.
- */
-export interface UpdatePartyRequestInline {
-  access?: AccessList;
-  email?: Email;
-  id?: PartyId;
-  individualDetails?: IndividualDetails;
-  organizationDetails?: OrganizationDetails;
-  /** The preferences of the party. */
-  preferences?: UpdatePartyRequestInlinePreferences;
-  roles?: PartyRoleList;
-}
-
-export type ClientUpdatedResponse = ClientResponse & {
-  consumerDevice?: ConsumerDevice;
-};
-
-export type ClientResponseOutstanding = {
-  attestationDocumentIds?: DocumentIdList;
-  documentRequestIds?: DocumentRequestIdList;
-  partyIds?: PartyIdList;
-  partyRoles?: PartyRoleList;
-  questionIds?: QuestionIdList;
-};
-
-/**
- * The status of the customer identification process.
- */
-export type CustomerIdentityStatus =
-  (typeof CustomerIdentityStatus)[keyof typeof CustomerIdentityStatus];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const CustomerIdentityStatus = {
-  APPROVED: 'APPROVED',
-  INFORMATION_REQUESTED: 'INFORMATION_REQUESTED',
-  NOT_STARTED: 'NOT_STARTED',
-  REVIEW_IN_PROGRESS: 'REVIEW_IN_PROGRESS',
-} as const;
-
-/**
- * The results of the client verification process.
- */
-export interface ClientResults {
-  customerIdentityStatus: CustomerIdentityStatus;
-}
-
-/**
- * The values of a question response. Each item is a string that will be validated according to the question's responseSchema.
-
- * @minItems 1
- * @maxItems 20
- */
-export type ResponseValueList = string[];
-
-/**
- * The client's response to a question.
- */
-export interface ClientQuestionResponse {
-  questionId?: QuestionId;
-  values?: ResponseValueList;
-}
-
-/**
- * The preferences of the party.
- */
 export type PartyResponsePreferences = {
   defaultLanguage?: DefaultLanguagePreferenceEnum;
 };
@@ -750,29 +824,6 @@ export interface PartyResponse {
   roles?: PartyRoleList;
   status?: PartyStatus;
   validationResponse?: ValidationResponse;
-}
-
-export interface ClientResponse {
-  /**
-   * @minItems 0
-   * @maxItems 10
-   */
-  attestations?: Attestation[];
-  /** Date and time when the client was created */
-  createdAt?: string;
-  id: ClientId;
-  outstanding: ClientResponseOutstanding;
-  /** @minItems 0 */
-  parties?: PartyResponse[];
-  partyId: PartyId;
-  products: ClientProductList;
-  /**
-   * @minItems 0
-   * @maxItems 200
-   */
-  questionResponses?: ClientQuestionResponse[];
-  results?: ClientResults;
-  status: ClientStatus;
 }
 
 /**
@@ -815,8 +866,8 @@ export type DiscoverDebtRepayment = boolean;
  * The American Express status code for the merchant if they are terminated or reinstated. The payment provider must provide this if the merchant was previously terminated and AMEX_OPT_BLUE is a selected method of payment.
 
  */
-export type ServiceEstablishmentStatus =
-  (typeof ServiceEstablishmentStatus)[keyof typeof ServiceEstablishmentStatus];
+export type ServiceEstablishmentStatus = typeof ServiceEstablishmentStatus[keyof typeof ServiceEstablishmentStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ServiceEstablishmentStatus = {
@@ -829,8 +880,8 @@ export const ServiceEstablishmentStatus = {
  * The mechanism used to provide details at the merchant's terminal for transactions.  Required when DISCOVER is selected.
 
  */
-export type TransactionDeviceType =
-  (typeof TransactionDeviceType)[keyof typeof TransactionDeviceType];
+export type TransactionDeviceType = typeof TransactionDeviceType[keyof typeof TransactionDeviceType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TransactionDeviceType = {
@@ -845,8 +896,8 @@ export const TransactionDeviceType = {
  * The merchant's preferred currency for transactions. Required when AMEX_OPT_BLUE is selected.
 
  */
-export type NetworkRegistrationCurrencyCode =
-  (typeof NetworkRegistrationCurrencyCode)[keyof typeof NetworkRegistrationCurrencyCode];
+export type NetworkRegistrationCurrencyCode = typeof NetworkRegistrationCurrencyCode[keyof typeof NetworkRegistrationCurrencyCode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const NetworkRegistrationCurrencyCode = {
@@ -859,8 +910,8 @@ export const NetworkRegistrationCurrencyCode = {
 /**
  * The type of Visa debit card acceptance. Required when VISA is selected.
  */
-export type VisaDebitAcceptance =
-  (typeof VisaDebitAcceptance)[keyof typeof VisaDebitAcceptance];
+export type VisaDebitAcceptance = typeof VisaDebitAcceptance[keyof typeof VisaDebitAcceptance];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const VisaDebitAcceptance = {
@@ -873,8 +924,8 @@ export const VisaDebitAcceptance = {
 /**
  * The method of payment used in network registration.
  */
-export type SettlementPaymentMethods =
-  (typeof SettlementPaymentMethods)[keyof typeof SettlementPaymentMethods];
+export type SettlementPaymentMethods = typeof SettlementPaymentMethods[keyof typeof SettlementPaymentMethods];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SettlementPaymentMethods = {
@@ -896,7 +947,7 @@ export interface NetworkRegistration {
   jcbAccepted?: JcbAccepted;
   serviceEstablishmentStatus?: ServiceEstablishmentStatus;
   /** The last update date of the service establishment status.  Required if the service establishment status is provided.
-   */
+ */
   serviceEstablishmentStatusUpdateDate?: string;
   /**
    * The selection of method of payments used in network registration.
@@ -905,7 +956,7 @@ export interface NetworkRegistration {
    */
   settlementPaymentMethods?: SettlementPaymentMethods[];
   /** The opting out of settlement payment method selection. Required to specify true if the merchant is not selecting any settlement payment method.
-   */
+ */
   settlementPaymentMethodsOptOut?: boolean;
   transactionDeviceType?: TransactionDeviceType;
   visaDebitAcceptance?: VisaDebitAcceptance;
@@ -938,8 +989,8 @@ export interface PartyField {
 | LIVENESS_CHECK | Validation of the liveliness of an individual party. This validation can be completed with a LIVENESS_CHECK-type party session. |
 
  */
-export type ValidationType =
-  (typeof ValidationType)[keyof typeof ValidationType];
+export type ValidationType = typeof ValidationType[keyof typeof ValidationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ValidationType = {
@@ -951,8 +1002,8 @@ export const ValidationType = {
  * Status of a party validation. Missing fields result in `NEEDS_INFO`.
 
  */
-export type ValidationStatus =
-  (typeof ValidationStatus)[keyof typeof ValidationStatus];
+export type ValidationStatus = typeof ValidationStatus[keyof typeof ValidationStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ValidationStatus = {
@@ -994,7 +1045,8 @@ export type Active = boolean;
 /**
  * @deprecated
  */
-export type PartyStatus = (typeof PartyStatus)[keyof typeof PartyStatus];
+export type PartyStatus = typeof PartyStatus[keyof typeof PartyStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PartyStatus = {
@@ -1002,7 +1054,8 @@ export const PartyStatus = {
   INACTIVE: 'INACTIVE',
 } as const;
 
-export type ProfileStatus = (typeof ProfileStatus)[keyof typeof ProfileStatus];
+export type ProfileStatus = typeof ProfileStatus[keyof typeof ProfileStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProfileStatus = {
@@ -1014,6 +1067,11 @@ export const ProfileStatus = {
   SUSPENDED: 'SUSPENDED',
   TERMINATED: 'TERMINATED',
 } as const;
+
+/**
+ * Create a party within the clients payload.
+ */
+export type CreatePartyRequestInlineRequired = CreatePartyRequestInline;
 
 export interface CreateClientRequestSmbdo {
   /**
@@ -1037,8 +1095,8 @@ export interface CreateClientRequestSmbdo {
  * @minLength 5
  * @maxLength 5
  */
-export type DefaultLanguagePreferenceEnum =
-  (typeof DefaultLanguagePreferenceEnum)[keyof typeof DefaultLanguagePreferenceEnum];
+export type DefaultLanguagePreferenceEnum = typeof DefaultLanguagePreferenceEnum[keyof typeof DefaultLanguagePreferenceEnum];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DefaultLanguagePreferenceEnum = {
@@ -1052,6 +1110,8 @@ export const DefaultLanguagePreferenceEnum = {
 export type CreatePartyRequestInlinePreferences = {
   defaultLanguage?: DefaultLanguagePreferenceEnum;
 };
+
+export type OrganizationDetailsRequired = OrganizationDetails;
 
 /**
  * Create a party within the clients payload.
@@ -1068,11 +1128,6 @@ export interface CreatePartyRequestInline {
   preferences?: CreatePartyRequestInlinePreferences;
   roles?: PartyRoleList;
 }
-
-/**
- * Create a party within the clients payload.
- */
-export type CreatePartyRequestInlineRequired = CreatePartyRequestInline;
 
 /**
  * Year of company formation.
@@ -1097,8 +1152,8 @@ export type Website = string;
 /**
  * The ID type
  */
-export type OrganizationIdentityDtoIdType =
-  (typeof OrganizationIdentityDtoIdType)[keyof typeof OrganizationIdentityDtoIdType];
+export type OrganizationIdentityDtoIdType = typeof OrganizationIdentityDtoIdType[keyof typeof OrganizationIdentityDtoIdType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrganizationIdentityDtoIdType = {
@@ -1135,8 +1190,8 @@ export interface OrganizationIdentityDto {
   value: string;
 }
 
-export type OrganizationType =
-  (typeof OrganizationType)[keyof typeof OrganizationType];
+export type OrganizationType = typeof OrganizationType[keyof typeof OrganizationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrganizationType = {
@@ -1176,8 +1231,8 @@ export type OrganizationName = string;
  */
 export type MerchantCategoryCode = string;
 
-export type OrganizationIndustryCodeType =
-  (typeof OrganizationIndustryCodeType)[keyof typeof OrganizationIndustryCodeType];
+export type OrganizationIndustryCodeType = typeof OrganizationIndustryCodeType[keyof typeof OrganizationIndustryCodeType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrganizationIndustryCodeType = {
@@ -1221,6 +1276,61 @@ export type EntitiesInOwnership = boolean;
  * @maxLength 100
  */
 export type DbaName = string;
+
+export type IndividualDetailsRequired = IndividualDetails;
+
+export type SoleOwner = boolean;
+
+/**
+ * Social media profile URL.
+ * @minLength 1
+ * @maxLength 100
+ * @pattern ^[A-Za-z0-9-_:.,;!?~*'()/=+&%@#]+$
+ */
+export type SocialMediaUrl = string;
+
+/**
+ * The platform of the social media profile.
+| Platform | Description |
+| -- | -- |
+| FACEBOOK | Facebook, the social media profile at facebook.com. |
+| INSTAGRAM | Instagram, the social media profile at instagram.com. |
+| X | X (formerly known as Twitter), the social media profile at x.com. |
+
+ */
+export type SocialMediaProfilePlatform = typeof SocialMediaProfilePlatform[keyof typeof SocialMediaProfilePlatform];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SocialMediaProfilePlatform = {
+  FACEBOOK: 'FACEBOOK',
+  INSTAGRAM: 'INSTAGRAM',
+  X: 'X',
+} as const;
+
+export interface SocialMedia {
+  /** The platform of the social media profile.
+| Platform | Description |
+| -- | -- |
+| FACEBOOK | Facebook, the social media profile at facebook.com. |
+| INSTAGRAM | Instagram, the social media profile at instagram.com. |
+| X | X (formerly known as Twitter), the social media profile at x.com. |
+ */
+  profilePlatform: SocialMediaProfilePlatform;
+  /**
+   * The social media username. This field should contain only alphanumeric characters and underscores.
+   * @minLength 1
+   * @maxLength 50
+   */
+  username: string;
+}
+
+/**
+ * The entity's social media profiles.
+ * @minItems 1
+ * @maxItems 3
+ */
+export type SocialMediaList = SocialMedia[];
 
 /**
  * Details of an organization.
@@ -1266,101 +1376,14 @@ export interface OrganizationDetails {
   yearOfFormation?: YearOfFormation;
 }
 
-export type OrganizationDetailsRequired = OrganizationDetails;
-
-export type IndividualDetailsRequired = IndividualDetails;
-
-export type SoleOwner = boolean;
-
-/**
- * Social media profile URL.
- * @minLength 1
- * @maxLength 100
- * @pattern ^[A-Za-z0-9-_:.,;!?~*'()/=+&%@#]+$
- */
-export type SocialMediaUrl = string;
-
-/**
- * Details of an individual.
- */
-export interface IndividualDetails {
-  /**
-   * @minItems 1
-   * @maxItems 5
-   */
-  addresses?: AddressDto[];
-  birthDate?: BirthDate;
-  countryOfResidence?: CountryCodeIsoAlpha2;
-  firstName?: FirstName;
-  /**
-   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
-   * @minItems 0
-   * @maxItems 16
-   */
-  individualIds?: IndividualIdentity[];
-  jobTitle?: IndividualJobTitle;
-  jobTitleDescription?: IndividualJobTitleDescription;
-  lastName?: LastName;
-  middleName?: MiddleName;
-  nameSuffix?: NameSuffix;
-  natureOfOwnership?: NatureOfOwnership;
-  phone?: PhoneSmbdo;
-  socialMedia?: SocialMediaList;
-  socialMediaUrl?: SocialMediaUrl;
-  soleOwner?: SoleOwner;
-}
-
-/**
- * The platform of the social media profile.
-| Platform | Description |
-| -- | -- |
-| FACEBOOK | Facebook, the social media profile at facebook.com. |
-| INSTAGRAM | Instagram, the social media profile at instagram.com. |
-| X | X (formerly known as Twitter), the social media profile at x.com. |
-
- */
-export type SocialMediaProfilePlatform =
-  (typeof SocialMediaProfilePlatform)[keyof typeof SocialMediaProfilePlatform];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SocialMediaProfilePlatform = {
-  FACEBOOK: 'FACEBOOK',
-  INSTAGRAM: 'INSTAGRAM',
-  X: 'X',
-} as const;
-
-export interface SocialMedia {
-  /** The platform of the social media profile.
-| Platform | Description |
-| -- | -- |
-| FACEBOOK | Facebook, the social media profile at facebook.com. |
-| INSTAGRAM | Instagram, the social media profile at instagram.com. |
-| X | X (formerly known as Twitter), the social media profile at x.com. |
- */
-  profilePlatform: SocialMediaProfilePlatform;
-  /**
-   * The social media username. This field should contain only alphanumeric characters and underscores.
-   * @minLength 1
-   * @maxLength 50
-   */
-  username: string;
-}
-
-/**
- * The entity's social media profiles.
- * @minItems 1
- * @maxItems 3
- */
-export type SocialMediaList = SocialMedia[];
-
 /**
  * Nature of ownership. Allowed values are: `Direct`, `Indirect`.
 
  */
 export type NatureOfOwnership = string;
 
-export type PhoneSmbdoPhoneType =
-  (typeof PhoneSmbdoPhoneType)[keyof typeof PhoneSmbdoPhoneType];
+export type PhoneSmbdoPhoneType = typeof PhoneSmbdoPhoneType[keyof typeof PhoneSmbdoPhoneType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PhoneSmbdoPhoneType = {
@@ -1406,11 +1429,41 @@ export type IndividualJobTitleDescription = string;
 export type IndividualJobTitle = string;
 
 /**
+ * Details of an individual.
+ */
+export interface IndividualDetails {
+  /**
+   * @minItems 1
+   * @maxItems 5
+   */
+  addresses?: AddressDto[];
+  birthDate?: BirthDate;
+  countryOfResidence?: CountryCodeIsoAlpha2;
+  firstName?: FirstName;
+  /**
+   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
+   * @minItems 0
+   * @maxItems 16
+   */
+  individualIds?: IndividualIdentity[];
+  jobTitle?: IndividualJobTitle;
+  jobTitleDescription?: IndividualJobTitleDescription;
+  lastName?: LastName;
+  middleName?: MiddleName;
+  nameSuffix?: NameSuffix;
+  natureOfOwnership?: NatureOfOwnership;
+  phone?: PhoneSmbdo;
+  socialMedia?: SocialMediaList;
+  socialMediaUrl?: SocialMediaUrl;
+  soleOwner?: SoleOwner;
+}
+
+/**
  * `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
 
  */
-export type IndividualIdentityIdType =
-  (typeof IndividualIdentityIdType)[keyof typeof IndividualIdentityIdType];
+export type IndividualIdentityIdType = typeof IndividualIdentityIdType[keyof typeof IndividualIdentityIdType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const IndividualIdentityIdType = {
@@ -1435,7 +1488,7 @@ export interface IndividualIdentity {
   description?: string;
   expiryDate?: string;
   /** `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
-   */
+ */
   idType: IndividualIdentityIdType;
   /**
    * Identification issuer country code e.g. US
@@ -1498,8 +1551,8 @@ export type BirthDate = string;
 /**
  * Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`.
  */
-export type AddressDtoAddressType =
-  (typeof AddressDtoAddressType)[keyof typeof AddressDtoAddressType];
+export type AddressDtoAddressType = typeof AddressDtoAddressType[keyof typeof AddressDtoAddressType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AddressDtoAddressType = {
@@ -1551,7 +1604,8 @@ export interface AddressDto {
 /**
  * The party type
  */
-export type PartyType = (typeof PartyType)[keyof typeof PartyType];
+export type PartyType = typeof PartyType[keyof typeof PartyType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PartyType = {
@@ -1654,8 +1708,8 @@ export interface Attester {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorContextLocation =
-  (typeof ApiErrorContextLocation)[keyof typeof ApiErrorContextLocation];
+export type ApiErrorContextLocation = typeof ApiErrorContextLocation[keyof typeof ApiErrorContextLocation];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApiErrorContextLocation = {
@@ -1702,7 +1756,8 @@ export interface SchemasApiError {
 /**
  * The client's status.
  */
-export type ClientStatus = (typeof ClientStatus)[keyof typeof ClientStatus];
+export type ClientStatus = typeof ClientStatus[keyof typeof ClientStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ClientStatus = {
@@ -1746,7 +1801,8 @@ export interface ClientListResponse {
 - `AUTHORIZED_USER`: Deprecated.
 
  */
-export type Role = (typeof Role)[keyof typeof Role];
+export type Role = typeof Role[keyof typeof Role];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const Role = {
@@ -1824,7 +1880,8 @@ export type ClientSummaryResponseOutstanding = {
 | MERCHANT_SERVICES | JPMorgan solution for online or point-of-sale payment processing |
 
  */
-export type ClientProduct = (typeof ClientProduct)[keyof typeof ClientProduct];
+export type ClientProduct = typeof ClientProduct[keyof typeof ClientProduct];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ClientProduct = {
@@ -1890,8 +1947,8 @@ export interface PageMetaData {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location =
-  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
+export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApiErrorReasonV2Location = {
@@ -1942,3 +1999,4 @@ export interface ApiError {
   /** Internal assigned traced identifier */
   traceId?: string;
 }
+
