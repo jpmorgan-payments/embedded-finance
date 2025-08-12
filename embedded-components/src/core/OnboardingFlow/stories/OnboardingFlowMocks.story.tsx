@@ -124,6 +124,9 @@ MockEmptyRecommendations.parameters = {
         return HttpResponse.json(efClientCorpEBMockNoIndustry);
       }),
       http.post('/recommendations', async () => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 1000);
+        });
         // Intentionally return empty recommendations to show the warning
         return HttpResponse.json({
           resourceType: 'NAICS_CODE',
@@ -151,6 +154,9 @@ MockSingleRecommendation.parameters = {
         return HttpResponse.json(efClientCorpEBMockNoIndustry);
       }),
       http.post('/recommendations', async () => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 1000);
+        });
         return HttpResponse.json({
           resourceType: 'NAICS_CODE',
           message: 'Recommended NAICS code for restaurant business',
@@ -182,6 +188,9 @@ MockMultipleRecommendations.parameters = {
         return HttpResponse.json(efClientCorpEBMockNoIndustry);
       }),
       http.post('/recommendations', async () => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 2000);
+        });
         return HttpResponse.json({
           resourceType: 'NAICS_CODE',
           message: 'Recommended NAICS codes for software consulting business',

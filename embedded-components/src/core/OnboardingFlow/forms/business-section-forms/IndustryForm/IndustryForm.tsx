@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   AlertTriangleIcon,
   ExternalLinkIcon,
@@ -9,77 +8,31 @@ import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { useSmbdoGetRecommendations } from '@/api/generated/smbdo';
-import { SmbdoGetRecommendationsBodyResourceType } from '@/api/generated/smbdo.schemas';
 import { AlertDescription } from '@/components/ui/alert';
 import { Alert, Button } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 import { IndustryFormSchema } from './IndustryForm.schema';
+import { useIndustrySuggestions } from './useIndustrySuggestions';
 
 export const IndustryForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof IndustryFormSchema>>();
-  const [recommendations, setRecommendations] = useState<
-    Array<{ naicsCode: string; naicsDescription: string }>
-  >([]);
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [isFeatureFlagEnabled, setIsFeatureFlagEnabled] = useState(false);
-  const [showEmptyRecommendationWarning, setShowEmptyRecommendationWarning] =
-    useState(false);
-
+  
+  // Get the business description from the form
   const description = form.watch('organizationDescription');
-
-  const { mutate: getRecommendations, isPending } =
-    useSmbdoGetRecommendations();
-
-  useEffect(() => {
-    // Check for feature flag in localStorage
-    const featureFlag = localStorage.getItem('NAICS_SUGGESTION_FEATURE_FLAG');
-    setIsFeatureFlagEnabled(featureFlag === 'true');
-  }, []);
-  const handleSuggest = () => {
-    if (!description) return;
-
-    // Reset warnings when user tries again
-    setShowEmptyRecommendationWarning(false);
-
-    const values = [
-      {
-        key: 'organizationDescription',
-        value: description,
-      },
-    ];
-
-    getRecommendations(
-      {
-        data: {
-          resourceType: SmbdoGetRecommendationsBodyResourceType.NAICS_CODE,
-          values,
-        },
-      },
-      {
-        onSuccess: (data) => {
-          if (data.resource?.length) {
-            setRecommendations(data.resource);
-            setShowRecommendations(true);
-            setShowEmptyRecommendationWarning(false);
-          } else {
-            setRecommendations([]);
-            setShowRecommendations(false);
-            setShowEmptyRecommendationWarning(true);
-          }
-        },
-        onError: () => {
-          // Hide recommendations and don't show the empty warning on error
-          setShowRecommendations(false);
-          setShowEmptyRecommendationWarning(false);
-          setRecommendations([]);
-        },
-      }
-    );
-  };
+  
+  // Use our custom hook for AI industry suggestions
+  const {
+    isFeatureFlagEnabled,
+    recommendations,
+    showRecommendations,
+    showEmptyRecommendationWarning,
+    isPending,
+    handleSuggest,
+    setShowRecommendations,
+  } = useIndustrySuggestions(description);
 
   const handleRecommendationClick = (code: string) => {
     form.setValue('industry', code);
@@ -211,6 +164,12 @@ export const IndustryForm: FormStepComponent = () => {
             </Button>
           )}
         </div>
+        {isPending && (
+          <div className="eb-mt-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+            <div className="eb-size-3 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+            <span>Analyzing your business description...</span>
+          </div>
+        )}
         {showRecommendations && recommendations.length > 0 && (
           <div className="eb-mt-3 eb-max-w-full eb-overflow-hidden eb-rounded-lg eb-bg-card eb-p-4 eb-shadow-sm">
             <div className="eb-mb-3 eb-flex eb-items-center eb-gap-2">
