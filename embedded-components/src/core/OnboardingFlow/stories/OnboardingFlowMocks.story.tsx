@@ -121,7 +121,19 @@ MockEmptyRecommendations.parameters = {
   msw: {
     handlers: [
       http.get(`/clients/${CLIENT_ID}`, () => {
-        return HttpResponse.json(efClientCorpEBMockNoIndustry);
+        return HttpResponse.json({
+          ...efClientCorpEBMockNoIndustry,
+          parties: efClientCorpEBMockNoIndustry.parties?.map((party) => ({
+            ...party,
+            organizationDetails: party.organizationDetails
+              ? {
+                  ...party.organizationDetails,
+                  organizationDescription:
+                    'We do business stuff and make money.',
+                }
+              : party.organizationDetails,
+          })),
+        });
       }),
       http.post('/recommendations', async () => {
         await new Promise<void>((resolve) => {
@@ -151,7 +163,19 @@ MockSingleRecommendation.parameters = {
   msw: {
     handlers: [
       http.get(`/clients/${CLIENT_ID}`, () => {
-        return HttpResponse.json(efClientCorpEBMockNoIndustry);
+        return HttpResponse.json({
+          ...efClientCorpEBMockNoIndustry,
+          parties: efClientCorpEBMockNoIndustry.parties?.map((party) => ({
+            ...party,
+            organizationDetails: party.organizationDetails
+              ? {
+                  ...party.organizationDetails,
+                  businessDescription:
+                    'We operate a fast-casual restaurant serving burgers, fries, and beverages to customers for dine-in and takeout.',
+                }
+              : party.organizationDetails,
+          })),
+        });
       }),
       http.post('/recommendations', async () => {
         await new Promise<void>((resolve) => {
@@ -185,7 +209,19 @@ MockMultipleRecommendations.parameters = {
   msw: {
     handlers: [
       http.get(`/clients/${CLIENT_ID}`, () => {
-        return HttpResponse.json(efClientCorpEBMockNoIndustry);
+        return HttpResponse.json({
+          ...efClientCorpEBMockNoIndustry,
+          parties: efClientCorpEBMockNoIndustry.parties?.map((party) => ({
+            ...party,
+            organizationDetails: party.organizationDetails
+              ? {
+                  ...party.organizationDetails,
+                  organizationDescription:
+                    'We provide custom software development services, web application development, and technology consulting to help businesses digitize their operations and improve efficiency.',
+                }
+              : party.organizationDetails,
+          })),
+        });
       }),
       http.post('/recommendations', async () => {
         await new Promise<void>((resolve) => {
