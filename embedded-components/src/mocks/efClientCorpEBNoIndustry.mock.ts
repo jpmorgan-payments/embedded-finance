@@ -24,7 +24,7 @@ export const efClientCorpEBMockNoIndustry: ClientResponse = {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
         organizationName: 'Neverland Books',
         dbaName: 'FT Books',
-      
+
         jurisdiction: 'US',
         countryOfFormation: 'US',
         yearOfFormation: '1989',

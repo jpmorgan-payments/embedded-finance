@@ -19,10 +19,10 @@ import { useIndustrySuggestions } from './useIndustrySuggestions';
 export const IndustryForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
   const form = useFormContext<z.input<typeof IndustryFormSchema>>();
-  
+
   // Get the business description from the form
   const description = form.watch('organizationDescription');
-  
+
   // Use our custom hook for AI industry suggestions
   const {
     isFeatureFlagEnabled,

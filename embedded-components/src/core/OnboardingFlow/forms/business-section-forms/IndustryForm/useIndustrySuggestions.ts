@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { useSmbdoGetRecommendations } from '@/api/generated/smbdo';
 import { SmbdoGetRecommendationsBodyResourceType } from '@/api/generated/smbdo.schemas';
 
@@ -18,14 +19,18 @@ export interface IndustryRecommendation {
 export const useIndustrySuggestions = (description: string) => {
   // Feature flag management
   const [isFeatureFlagEnabled, setIsFeatureFlagEnabled] = useState(false);
-  
+
   // Recommendations state
-  const [recommendations, setRecommendations] = useState<IndustryRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<
+    IndustryRecommendation[]
+  >([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const [showEmptyRecommendationWarning, setShowEmptyRecommendationWarning] = useState(false);
-  
+  const [showEmptyRecommendationWarning, setShowEmptyRecommendationWarning] =
+    useState(false);
+
   // Use the API mutation hook
-  const { mutate: getRecommendations, isPending } = useSmbdoGetRecommendations();
+  const { mutate: getRecommendations, isPending } =
+    useSmbdoGetRecommendations();
 
   // Check for feature flag in localStorage
   useEffect(() => {
