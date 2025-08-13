@@ -3,10 +3,11 @@ import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.m
 import { Meta } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-
-
-import defaultMeta, { Default, OnboardingFlowWithProviderProps, STheme } from './OnboardingFlow.story';
-
+import defaultMeta, {
+  Default,
+  OnboardingFlowWithProviderProps,
+  STheme,
+} from './OnboardingFlow.story';
 
 const CLIENT_ID = '0030000132';
 
