@@ -5,19 +5,6 @@
  * Embedded Finance & Solutions APIs from J.P. Morgan.
  * OpenAPI spec version: 1.0.12
  */
-export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
-
-export type SmbdoUploadDocumentBody = {
-  /** The document metadata. */
-  documentData: string;
-  file: Blob;
-};
-
-/**
- * Number of records per page.
- */
-export type PageSizeParameter = number;
-
 export type GetAllPartiesParams = {
   /**
    * Unique party identifier.
@@ -33,27 +20,13 @@ export type GetAllPartiesParams = {
   limit?: PageSizeParameter;
 };
 
-/**
- * Comma-separated list of Question IDs.
- */
-export type QuestionIdListInQueryParameter = string;
+export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
 
-export type SmbdoListQuestionsParams = {
-  /**
-   * Comma-separated list of Question IDs.
-   */
-  questionIds?: QuestionIdListInQueryParameter;
+export type SmbdoUploadDocumentBody = {
+  /** The document metadata. */
+  documentData: string;
+  file: Blob;
 };
-
-/**
- * Unique Party identifier.
- */
-export type PartyIdQueryParameter = string;
-
-/**
- * Unique Client identifier.
- */
-export type ClientIdQueryParameter = string;
 
 export type SmbdoListDocumentRequestsParams = {
   /**
@@ -65,6 +38,96 @@ export type SmbdoListDocumentRequestsParams = {
    */
   partyId?: PartyIdQueryParameter;
 };
+
+export type SmbdoListQuestionsParams = {
+  /**
+   * Comma-separated list of Question IDs.
+   */
+  questionIds?: QuestionIdListInQueryParameter;
+};
+
+export type SmbdoListClientsParams = {
+  /**
+   * Number of records per page.
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page number.
+   */
+  page?: PageNumberParameter;
+};
+
+/**
+ * The type of resource for which recommendations were requested.
+ */
+export type SmbdoGetRecommendations200ResourceType =
+  (typeof SmbdoGetRecommendations200ResourceType)[keyof typeof SmbdoGetRecommendations200ResourceType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SmbdoGetRecommendations200ResourceType = {
+  NAICS_CODE: 'NAICS_CODE',
+} as const;
+
+export type SmbdoGetRecommendations200ResourceItem = {
+  /** The NAICS code identifier. */
+  naicsCode: string;
+  /** The description of the NAICS code. */
+  naicsDescription: string;
+};
+
+export type SmbdoGetRecommendations200 = {
+  /** Optional message with additional information about the recommendations. */
+  message?: string;
+  /** List of recommended resources based on the input. */
+  resource: SmbdoGetRecommendations200ResourceItem[];
+  /** The type of resource for which recommendations were requested. */
+  resourceType: SmbdoGetRecommendations200ResourceType;
+};
+
+export type SmbdoGetRecommendationsBodyValuesItem = {
+  /** The key identifier for the information. */
+  key: string;
+  /** The value associated with the key. */
+  value: string;
+};
+
+/**
+ * The type of resource for which recommendations are requested.
+ */
+export type SmbdoGetRecommendationsBodyResourceType =
+  (typeof SmbdoGetRecommendationsBodyResourceType)[keyof typeof SmbdoGetRecommendationsBodyResourceType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SmbdoGetRecommendationsBodyResourceType = {
+  NAICS_CODE: 'NAICS_CODE',
+} as const;
+
+export type SmbdoGetRecommendationsBody = {
+  /** The type of resource for which recommendations are requested. */
+  resourceType: SmbdoGetRecommendationsBodyResourceType;
+  /** List of key-value pairs containing information about the organization. */
+  values: SmbdoGetRecommendationsBodyValuesItem[];
+};
+
+/**
+ * Number of records per page.
+ */
+export type PageSizeParameter = number;
+
+/**
+ * Comma-separated list of Question IDs.
+ */
+export type QuestionIdListInQueryParameter = string;
+
+/**
+ * Unique Party identifier.
+ */
+export type PartyIdQueryParameter = string;
+
+/**
+ * Unique Client identifier.
+ */
+export type ClientIdQueryParameter = string;
 
 /**
  * Page number.
@@ -88,17 +151,6 @@ export type SmbdoGetAllDocumentDetailsParams = {
    * Number of records per page.
    */
   limit?: PageSizeParameter;
-};
-
-export type SmbdoListClientsParams = {
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
 };
 
 /**
@@ -284,20 +336,6 @@ export interface PostUploadDocument {
   requestId?: RequestId;
 }
 
-export type DocumentMetadataKeyEnum =
-  (typeof DocumentMetadataKeyEnum)[keyof typeof DocumentMetadataKeyEnum];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DocumentMetadataKeyEnum = {
-  DOCUMENT_REQUEST_ID: 'DOCUMENT_REQUEST_ID',
-  PARTY_ID: 'PARTY_ID',
-  FILE_EXTENSION: 'FILE_EXTENSION',
-  COUNTRY: 'COUNTRY',
-  STATUS: 'STATUS',
-  UPLOAD_TIME: 'UPLOAD_TIME',
-  UPLOADED_FILE_NAME: 'UPLOADED_FILE_NAME',
-} as const;
-
 export interface DocumentMetadataSmbdo {
   key?: DocumentMetadataKeyEnum;
   value?: string;
@@ -321,6 +359,20 @@ export interface ListDocumentsResponse {
   documentDetails?: DocumentResponse[];
   metadata?: PageMetaData;
 }
+
+export type DocumentMetadataKeyEnum =
+  (typeof DocumentMetadataKeyEnum)[keyof typeof DocumentMetadataKeyEnum];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DocumentMetadataKeyEnum = {
+  DOCUMENT_REQUEST_ID: 'DOCUMENT_REQUEST_ID',
+  PARTY_ID: 'PARTY_ID',
+  FILE_EXTENSION: 'FILE_EXTENSION',
+  COUNTRY: 'COUNTRY',
+  STATUS: 'STATUS',
+  UPLOAD_TIME: 'UPLOAD_TIME',
+  UPLOADED_FILE_NAME: 'UPLOADED_FILE_NAME',
+} as const;
 
 export interface DocumentRequestListResponse {
   /**
@@ -356,20 +408,6 @@ export const DocumentRequestRequirementLevel = {
   PRIMARY: 'PRIMARY',
   SECONDARY: 'SECONDARY',
 } as const;
-
-export interface DocumentRequestRequirement {
-  /**
-   * @minItems 1
-   * @maxItems 100
-   */
-  documentTypes: DocumentTypeSmbdo[];
-  level?: DocumentRequestRequirementLevel;
-  /**
-   * @minimum 1
-   * @maximum 10
-   */
-  minRequired?: number;
-}
 
 /**
  * Unique Document Request identifier.
@@ -436,6 +474,20 @@ export const DocumentTypeSmbdo = {
   TRUST_DEED: 'TRUST_DEED',
   UTILITY_BILL: 'UTILITY_BILL',
 } as const;
+
+export interface DocumentRequestRequirement {
+  /**
+   * @minItems 1
+   * @maxItems 100
+   */
+  documentTypes: DocumentTypeSmbdo[];
+  level?: DocumentRequestRequirementLevel;
+  /**
+   * @minimum 1
+   * @maximum 10
+   */
+  minRequired?: number;
+}
 
 /**
  * Outstanding items on the document request.
@@ -506,16 +558,6 @@ export const ResponseSchemaType = {
 } as const;
 
 /**
- * A subset of JSON Schema used to validate the response values.
- */
-export interface ResponseSchema {
-  items?: ResponseSchemaItem;
-  maxItems?: number;
-  minItems?: number;
-  type?: ResponseSchemaType;
-}
-
-/**
  * The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
 
  */
@@ -572,6 +614,16 @@ export interface ResponseSchemaItem {
 }
 
 /**
+ * A subset of JSON Schema used to validate the response values.
+ */
+export interface ResponseSchema {
+  items?: ResponseSchemaItem;
+  maxItems?: number;
+  minItems?: number;
+  type?: ResponseSchemaType;
+}
+
+/**
  * A description of the question.
  */
 export type QuestionDescription = string;
@@ -616,42 +668,11 @@ export interface ClientVerificationRequest {
   consumerDevice?: ConsumerDevice;
 }
 
-export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
-  UpdatePartyRequestInline;
-
 /**
  * Describes which attestation to remove. An existing attestation with a matching `documentId` will be removed.
  */
 export interface AttestationRemoval {
   documentId: DocumentId;
-}
-
-export interface UpdateClientRequestSmbdo {
-  /**
-   * @minItems 1
-   * @maxItems 10
-   */
-  addAttestations?: Attestation[];
-  /**
-   * Create a party by setting `parentPartyId` to the client's root party. `partyType` and `roles` are required when creating a new party.
-
-   * @minLength 1
-   * @maxLength 10
-   * @minItems 0
-   */
-  addParties?: UpdateClientRequestSmbdoAddPartiesItem[];
-  addProducts?: ClientProductList;
-  consumerDevice?: ConsumerDevice;
-  /**
-   * @minItems 0
-   * @maxItems 200
-   */
-  questionResponses?: ClientQuestionResponse[];
-  /**
-   * @minItems 1
-   * @maxItems 10
-   */
-  removeAttestations?: AttestationRemoval[];
 }
 
 /**
@@ -675,9 +696,8 @@ export interface UpdatePartyRequestInline {
   roles?: PartyRoleList;
 }
 
-export type ClientUpdatedResponse = ClientResponse & {
-  consumerDevice?: ConsumerDevice;
-};
+export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
+  UpdatePartyRequestInline;
 
 export type ClientResponseOutstanding = {
   attestationDocumentIds?: DocumentIdList;
@@ -685,6 +705,33 @@ export type ClientResponseOutstanding = {
   partyIds?: PartyIdList;
   partyRoles?: PartyRoleList;
   questionIds?: QuestionIdList;
+};
+
+export interface ClientResponse {
+  /**
+   * @minItems 0
+   * @maxItems 10
+   */
+  attestations?: Attestation[];
+  /** Date and time when the client was created */
+  createdAt?: string;
+  id: ClientId;
+  outstanding: ClientResponseOutstanding;
+  /** @minItems 0 */
+  parties?: PartyResponse[];
+  partyId: PartyId;
+  products: ClientProductList;
+  /**
+   * @minItems 0
+   * @maxItems 200
+   */
+  questionResponses?: ClientQuestionResponse[];
+  results?: ClientResults;
+  status: ClientStatus;
+}
+
+export type ClientUpdatedResponse = ClientResponse & {
+  consumerDevice?: ConsumerDevice;
 };
 
 /**
@@ -724,6 +771,34 @@ export interface ClientQuestionResponse {
   values?: ResponseValueList;
 }
 
+export interface UpdateClientRequestSmbdo {
+  /**
+   * @minItems 1
+   * @maxItems 10
+   */
+  addAttestations?: Attestation[];
+  /**
+   * Create a party by setting `parentPartyId` to the client's root party. `partyType` and `roles` are required when creating a new party.
+
+   * @minLength 1
+   * @maxLength 10
+   * @minItems 0
+   */
+  addParties?: UpdateClientRequestSmbdoAddPartiesItem[];
+  addProducts?: ClientProductList;
+  consumerDevice?: ConsumerDevice;
+  /**
+   * @minItems 0
+   * @maxItems 200
+   */
+  questionResponses?: ClientQuestionResponse[];
+  /**
+   * @minItems 1
+   * @maxItems 10
+   */
+  removeAttestations?: AttestationRemoval[];
+}
+
 /**
  * The preferences of the party.
  */
@@ -750,29 +825,6 @@ export interface PartyResponse {
   roles?: PartyRoleList;
   status?: PartyStatus;
   validationResponse?: ValidationResponse;
-}
-
-export interface ClientResponse {
-  /**
-   * @minItems 0
-   * @maxItems 10
-   */
-  attestations?: Attestation[];
-  /** Date and time when the client was created */
-  createdAt?: string;
-  id: ClientId;
-  outstanding: ClientResponseOutstanding;
-  /** @minItems 0 */
-  parties?: PartyResponse[];
-  partyId: PartyId;
-  products: ClientProductList;
-  /**
-   * @minItems 0
-   * @maxItems 200
-   */
-  questionResponses?: ClientQuestionResponse[];
-  results?: ClientResults;
-  status: ClientStatus;
 }
 
 /**
@@ -1015,6 +1067,11 @@ export const ProfileStatus = {
   TERMINATED: 'TERMINATED',
 } as const;
 
+/**
+ * Create a party within the clients payload.
+ */
+export type CreatePartyRequestInlineRequired = CreatePartyRequestInline;
+
 export interface CreateClientRequestSmbdo {
   /**
    * @minItems 1
@@ -1053,6 +1110,8 @@ export type CreatePartyRequestInlinePreferences = {
   defaultLanguage?: DefaultLanguagePreferenceEnum;
 };
 
+export type OrganizationDetailsRequired = OrganizationDetails;
+
 /**
  * Create a party within the clients payload.
  */
@@ -1068,11 +1127,6 @@ export interface CreatePartyRequestInline {
   preferences?: CreatePartyRequestInlinePreferences;
   roles?: PartyRoleList;
 }
-
-/**
- * Create a party within the clients payload.
- */
-export type CreatePartyRequestInlineRequired = CreatePartyRequestInline;
 
 /**
  * Year of company formation.
@@ -1222,52 +1276,6 @@ export type EntitiesInOwnership = boolean;
  */
 export type DbaName = string;
 
-/**
- * Details of an organization.
- */
-export interface OrganizationDetails {
-  /**
-   * @minItems 1
-   * @maxItems 5
-   */
-  addresses?: AddressDto[];
-  /**
-   * @minItems 0
-   * @maxItems 100
-   */
-  associatedCountries?: CountryCodeIsoAlpha2[];
-  countryOfFormation?: CountryCodeIsoAlpha2;
-  dbaName?: DbaName;
-  entitiesInOwnership?: EntitiesInOwnership;
-  industry?: OrganizationIndustry;
-  industryCategory?: OrganizationIndustryCategory;
-  industryType?: OrganizationIndustryType;
-  jurisdiction?: CountryCodeIsoAlpha2;
-  mcc?: MerchantCategoryCode;
-  organizationDescription?: OrganizationDescription;
-  /**
-   * @minItems 0
-   * @maxItems 6
-   */
-  organizationIds?: OrganizationIdentityDto[];
-  organizationName?: OrganizationName;
-  organizationType?: OrganizationType;
-  phone?: PhoneSmbdo;
-  /**
-   * The list of additional merchant category codes describing  industries that the business is in.
-
-   * @minItems 0
-   * @maxItems 10
-   */
-  secondaryMccList?: MerchantCategoryCode[];
-  socialMedia?: SocialMediaList;
-  website?: Website;
-  websiteAvailable?: WebsiteAvailable;
-  yearOfFormation?: YearOfFormation;
-}
-
-export type OrganizationDetailsRequired = OrganizationDetails;
-
 export type IndividualDetailsRequired = IndividualDetails;
 
 export type SoleOwner = boolean;
@@ -1279,36 +1287,6 @@ export type SoleOwner = boolean;
  * @pattern ^[A-Za-z0-9-_:.,;!?~*'()/=+&%@#]+$
  */
 export type SocialMediaUrl = string;
-
-/**
- * Details of an individual.
- */
-export interface IndividualDetails {
-  /**
-   * @minItems 1
-   * @maxItems 5
-   */
-  addresses?: AddressDto[];
-  birthDate?: BirthDate;
-  countryOfResidence?: CountryCodeIsoAlpha2;
-  firstName?: FirstName;
-  /**
-   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
-   * @minItems 0
-   * @maxItems 16
-   */
-  individualIds?: IndividualIdentity[];
-  jobTitle?: IndividualJobTitle;
-  jobTitleDescription?: IndividualJobTitleDescription;
-  lastName?: LastName;
-  middleName?: MiddleName;
-  nameSuffix?: NameSuffix;
-  natureOfOwnership?: NatureOfOwnership;
-  phone?: PhoneSmbdo;
-  socialMedia?: SocialMediaList;
-  socialMediaUrl?: SocialMediaUrl;
-  soleOwner?: SoleOwner;
-}
 
 /**
  * The platform of the social media profile.
@@ -1352,6 +1330,50 @@ export interface SocialMedia {
  * @maxItems 3
  */
 export type SocialMediaList = SocialMedia[];
+
+/**
+ * Details of an organization.
+ */
+export interface OrganizationDetails {
+  /**
+   * @minItems 1
+   * @maxItems 5
+   */
+  addresses?: AddressDto[];
+  /**
+   * @minItems 0
+   * @maxItems 100
+   */
+  associatedCountries?: CountryCodeIsoAlpha2[];
+  countryOfFormation?: CountryCodeIsoAlpha2;
+  dbaName?: DbaName;
+  entitiesInOwnership?: EntitiesInOwnership;
+  industry?: OrganizationIndustry;
+  industryCategory?: OrganizationIndustryCategory;
+  industryType?: OrganizationIndustryType;
+  jurisdiction?: CountryCodeIsoAlpha2;
+  mcc?: MerchantCategoryCode;
+  organizationDescription?: OrganizationDescription;
+  /**
+   * @minItems 0
+   * @maxItems 6
+   */
+  organizationIds?: OrganizationIdentityDto[];
+  organizationName?: OrganizationName;
+  organizationType?: OrganizationType;
+  phone?: PhoneSmbdo;
+  /**
+   * The list of additional merchant category codes describing  industries that the business is in.
+
+   * @minItems 0
+   * @maxItems 10
+   */
+  secondaryMccList?: MerchantCategoryCode[];
+  socialMedia?: SocialMediaList;
+  website?: Website;
+  websiteAvailable?: WebsiteAvailable;
+  yearOfFormation?: YearOfFormation;
+}
 
 /**
  * Nature of ownership. Allowed values are: `Direct`, `Indirect`.
@@ -1404,6 +1426,36 @@ export type IndividualJobTitleDescription = string;
  * @maxLength 40
  */
 export type IndividualJobTitle = string;
+
+/**
+ * Details of an individual.
+ */
+export interface IndividualDetails {
+  /**
+   * @minItems 1
+   * @maxItems 5
+   */
+  addresses?: AddressDto[];
+  birthDate?: BirthDate;
+  countryOfResidence?: CountryCodeIsoAlpha2;
+  firstName?: FirstName;
+  /**
+   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
+   * @minItems 0
+   * @maxItems 16
+   */
+  individualIds?: IndividualIdentity[];
+  jobTitle?: IndividualJobTitle;
+  jobTitleDescription?: IndividualJobTitleDescription;
+  lastName?: LastName;
+  middleName?: MiddleName;
+  nameSuffix?: NameSuffix;
+  natureOfOwnership?: NatureOfOwnership;
+  phone?: PhoneSmbdo;
+  socialMedia?: SocialMediaList;
+  socialMediaUrl?: SocialMediaUrl;
+  soleOwner?: SoleOwner;
+}
 
 /**
  * `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
