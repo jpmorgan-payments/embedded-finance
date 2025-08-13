@@ -4,6 +4,20 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        sans: [
+          'Amplitude',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Oxygen',
+          'Ubuntu',
+          'Cantarell',
+          'Fira Sans',
+          'Droid Sans',
+          'Helvetica Neue',
+          'sans-serif',
+        ],
         // Optional additional semantic stacks exposed via `font-heading`, `font-body`, `font-card`
         body: ['Arial', 'Helvetica', 'sans-serif'],
         heading: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],
@@ -178,13 +192,5 @@ export default {
       },
     },
   },
-  plugins: [
-    require('tailwindcss-animate'),
-    function ({ matchUtilities, theme }) {
-      matchUtilities(
-        { font: (value) => ({ fontFamily: value }) },
-        { values: theme('fontFamily') },
-      );
-    },
-  ],
+  plugins: [require('tailwindcss-animate')],
 };
