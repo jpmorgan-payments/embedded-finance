@@ -59,7 +59,7 @@ export default {
         },
         // S&P Theme brand colors
         'sp-brand': {
-          DEFAULT: 'rgb(9, 97, 131)',
+          DEFAULT: '#1A7B99',
           700: '#166b85',
           800: '#145a71',
         },
@@ -68,7 +68,9 @@ export default {
         'sp-bullets-bg': '#FAFBFB', // Bulleted list background
         'sp-benefit': '#F2F5F8', // Benefits callout background
         // Salt Topaz brand swatch requested in specs
-      
+        'sp-topaz': {
+          600: 'rgb(9, 97, 131)',
+        },
         'sp-accent': '#e6f3f7',
         'sp-bg': '#f6f7f8',
         'sp-border': '#0000004D',
