@@ -29,6 +29,8 @@ export const IndustryForm: FormStepComponent = () => {
     recommendations,
     showRecommendations,
     showEmptyRecommendationWarning,
+    showRecommendationErrorWarning,
+    recommendationErrorMessage,
     isPending,
     handleSuggest,
     setShowRecommendations,
@@ -115,6 +117,29 @@ export const IndustryForm: FormStepComponent = () => {
                     <ExternalLinkIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
                   </a>
                 </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        {showRecommendationErrorWarning && (
+          <Alert
+            variant="warning"
+            density="sm"
+            className="eb-mt-2 eb-max-w-full"
+            title="Unable to generate recommendations"
+          >
+            <AlertTriangleIcon className="eb-size-4 eb-shrink-0" />
+            <AlertDescription className="eb-overflow-hidden eb-break-words">
+              <div className="eb-max-w-full eb-space-y-1">
+                {recommendationErrorMessage ? (
+                  <p className="eb-break-words">{recommendationErrorMessage}</p>
+                ) : (
+                  <p className="eb-break-words">
+                    We couldn’t generate industry recommendations right now.
+                    Please try again later or proceed by selecting your industry
+                    manually.
+                  </p>
+                )}
               </div>
             </AlertDescription>
           </Alert>
