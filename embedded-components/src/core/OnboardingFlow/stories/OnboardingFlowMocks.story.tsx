@@ -3,11 +3,10 @@ import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.m
 import { Meta } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-import defaultMeta, {
-  Default,
-  OnboardingFlowWithProviderProps,
-  STheme,
-} from './OnboardingFlow.story';
+
+
+import defaultMeta, { Default, OnboardingFlowWithProviderProps, STheme } from './OnboardingFlow.story';
+
 
 const CLIENT_ID = '0030000132';
 
@@ -29,6 +28,9 @@ SThemeWithMock.args = {
 };
 
 export const MockExistingClient = Default.bind({});
+MockExistingClient.play = async () => {
+  localStorage.removeItem('NAICS_SUGGESTION_FEATURE_FLAG');
+};
 MockExistingClient.storyName = 'New';
 MockExistingClient.args = {
   ...SThemeWithMock.args,
