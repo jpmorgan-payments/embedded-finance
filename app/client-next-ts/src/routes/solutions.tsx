@@ -182,7 +182,7 @@ function SolutionsPage() {
                           <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center">
                             {meta.summaryTitle}
                           </h2>
-                          <p className="text-sp-ink/80 text-center text-xs">
+                          <p className="text-sp-ink/80 text-center text-sm font-body">
                             {meta.summarySubtitle}
                           </p>
                         </div>
@@ -199,14 +199,14 @@ function SolutionsPage() {
                               </CardTitle>
                             </div>
                           </CardHeader>
-                            <CardContent className="p-6">
-                              <p className="text-xs text-sp-ink leading-relaxed mb-4">
-                                {approach.description}
+                          <CardContent className="p-6">
+                            <p className="text-sm text-sp-ink leading-relaxed mb-4 font-body">
+                              {approach.description}
+                            </p>
+                            <div className="bg-sp-benefit p-4 rounded-page-sm border border-sp-border">
+                              <p className="text-sm font-semibold text-sp-ink font-body">
+                                Key Benefit: {approach.benefit}
                               </p>
-                              <div className="bg-sp-benefit p-4 rounded-page-sm border border-sp-border">
-                                <p className="text-xs font-semibold text-sp-ink">
-                                  Key Benefit: {approach.benefit}
-                                </p>
                             </div>
                           </CardContent>
                         </Card>
