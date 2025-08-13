@@ -59,10 +59,16 @@ export default {
         },
         // S&P Theme brand colors
         'sp-brand': {
-          DEFAULT: '#1B7F9E',
+          DEFAULT: 'rgb(9, 97, 131)',
           700: '#166b85',
           800: '#145a71',
         },
+        // Additional design tokens for Solutions page
+        'sp-ink': '#31373D', // Primary heading/body ink color
+        'sp-bullets-bg': '#FAFBFB', // Bulleted list background
+        'sp-benefit': '#F2F5F8', // Benefits callout background
+        // Salt Topaz brand swatch requested in specs
+      
         'sp-accent': '#e6f3f7',
         'sp-bg': '#f6f7f8',
         'sp-border': '#0000004D',
@@ -137,6 +143,9 @@ export default {
         'page-lg': '0.5rem',
       },
       fontSize: {
+        // New typography tokens used by Solutions page
+        'page-h1': ['2.5rem', { lineHeight: '1.2' }], // 40px
+        'page-subtitle': ['1.5rem', { lineHeight: '2rem' }], // 24px
         'page-small': ['0.875rem', { lineHeight: '1.25rem' }],
         'page-body': ['1rem', { lineHeight: '1.5rem' }],
         'page-h4': ['1.125rem', { lineHeight: '1.75rem' }],
