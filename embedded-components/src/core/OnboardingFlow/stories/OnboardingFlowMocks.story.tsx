@@ -287,7 +287,7 @@ MockRecommendation400Error.parameters = {
             context: [
               {
                 message:
-                  'We could not process your request. Please try again.',
+                  'We could not process your request. Please try again or proceed with manual selection.',
               },
             ],
           },
