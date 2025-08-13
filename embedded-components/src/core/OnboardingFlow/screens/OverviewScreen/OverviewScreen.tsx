@@ -38,13 +38,20 @@ import { getFlowProgress } from '../../utils/flowUtils';
 export const OverviewScreen = () => {
   const { organizationType, clientData, hideLinkAccountSection } =
     useOnboardingContext();
-  const { currentScreenId, sections, goTo, sessionData, updateSessionData } =
-    useFlowContext();
+  const {
+    currentScreenId,
+    sections,
+    goTo,
+    sessionData,
+    updateSessionData,
+    savedFormValues,
+  } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 

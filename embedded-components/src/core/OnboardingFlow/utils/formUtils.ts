@@ -863,7 +863,7 @@ export const getValidationMessage = <
   const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
 
   const fieldName = i18n.t([
-    `onboarding-overview:fields.${field}.validationFieldName`,
+    `onboarding-overview:fields.${field}.fieldName`,
     `onboarding-overview:fields.${field}.label`,
   ]);
 
