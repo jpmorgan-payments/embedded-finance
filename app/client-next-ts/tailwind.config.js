@@ -4,8 +4,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],
+        // Used by `font-sans` utility applied globally in styles.css
+        sans: ['Amplitude', 'Segoe UI', 'Arial', 'Helvetica', 'sans-serif'],
+        // Optional additional semantic stacks exposed via `font-heading`, `font-body`, `font-card`
         body: ['Arial', 'Helvetica', 'sans-serif'],
+        heading: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],
+        card: ['Arial', 'Helvetica', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -176,5 +180,13 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    function ({ matchUtilities, theme }) {
+      matchUtilities(
+        { font: (value) => ({ fontFamily: value }) },
+        { values: theme('fontFamily') },
+      );
+    },
+  ],
 };
