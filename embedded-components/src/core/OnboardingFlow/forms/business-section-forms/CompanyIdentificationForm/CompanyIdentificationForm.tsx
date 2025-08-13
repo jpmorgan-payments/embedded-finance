@@ -111,7 +111,10 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
             ]}
           />
 
-          {form.watch('solePropHasEin') === 'yes' && (
+          {!(
+            Object.keys(form.getValues()).includes('solePropHasEin') &&
+            form.watch('solePropHasEin') !== 'yes'
+          ) && (
             <OnboardingFormField
               control={form.control}
               name="organizationIdEin"
@@ -132,3 +135,11 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
 CompanyIdentificationForm.schema = CompanyIdentificationFormSchema;
 CompanyIdentificationForm.refineSchemaFn =
   refineCompanyIdentificationFormSchema;
+CompanyIdentificationForm.modifyFormValuesBeforeSubmit = (values) => {
+  const { solePropHasEin, organizationIdEin, ...rest } = values;
+
+  return {
+    ...rest,
+    ...(solePropHasEin !== 'no' ? { organizationIdEin } : {}),
+  };
+};

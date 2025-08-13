@@ -72,12 +72,14 @@ export const OwnersSectionScreen = () => {
     sections,
     sessionData,
     updateSessionData,
+    savedFormValues,
   } = useFlowContext();
 
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 
@@ -208,6 +210,7 @@ export const OwnersSectionScreen = () => {
     ownerSteps,
     activeOwners,
     clientData,
+    savedFormValues,
     'owner-stepper'
   );
 

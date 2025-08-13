@@ -40,14 +40,14 @@ export const refineCustomerFacingDetailsFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
-    if (values.websiteNotAvailable === false && !values.website) {
+    if (!values.websiteNotAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: i18n.t('onboarding:fields.website.validation.required'),
         path: ['website'],
       });
     }
-    if (values.dbaNameNotAvailable === false && !values.dbaName) {
+    if (!values.dbaNameNotAvailable && !values.dbaName) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Required',

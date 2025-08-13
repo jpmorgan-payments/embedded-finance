@@ -1,4 +1,5 @@
 import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
   FlowProgress,
   FlowSessionData,
@@ -22,6 +23,7 @@ export function getFlowProgress(
   sections: SectionScreenConfig[],
   sessionData: FlowSessionData,
   clientData: ClientResponse | undefined,
+  savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
   screenId: ScreenId
 ): FlowProgress {
   const sectionStatuses: Partial<FlowProgress['sectionStatuses']> = {};
@@ -45,6 +47,7 @@ export function getFlowProgress(
         section.stepperConfig.steps,
         partyData,
         clientData,
+        savedFormValues,
         screenId
       );
 
@@ -56,9 +59,10 @@ export function getFlowProgress(
       status = section.sectionConfig.statusResolver(
         sessionData,
         clientData,
-        screenId,
         allStepsValid,
-        stepValidations[section.id] || {}
+        stepValidations[section.id] || {},
+        savedFormValues,
+        screenId
       );
     } else if (allStepsValid) {
       status = 'completed';
@@ -77,6 +81,7 @@ export const getStepperValidation = (
   steps: StepConfig[],
   partyData: Partial<PartyResponse> | undefined,
   clientData: ClientResponse | undefined,
+  savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
   screenId: ScreenId
 ): StepperValidation => {
   const stepValidationMap: Record<string, any> = {};
@@ -92,7 +97,10 @@ export const getStepperValidation = (
         step.Component.refineSchemaFn
       );
 
-      const result = modifiedSchema.safeParse(formValues);
+      const result = modifiedSchema.safeParse({
+        ...formValues,
+        ...(savedFormValues ?? {}),
+      });
       stepValidationMap[step.id] = {
         result,
         isValid: result.success,
@@ -109,6 +117,8 @@ export const getStepperValidation = (
     }
   }
 
+  console.log(stepValidationMap);
+
   return {
     stepValidationMap,
     allStepsValid,
@@ -119,6 +129,7 @@ export const getStepperValidations = (
   steps: StepConfig[],
   parties: PartyResponse[],
   clientData: ClientResponse | undefined,
+  savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
   screenId: ScreenId
 ) => {
   const partyValidations: Record<string, StepperValidation> = {};
@@ -128,6 +139,7 @@ export const getStepperValidations = (
       steps,
       party,
       clientData,
+      savedFormValues,
       screenId
     );
     if (party.id) {

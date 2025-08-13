@@ -85,9 +85,10 @@ export type SectionScreenConfig = BaseScreenConfig & {
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
-      screenId: ScreenId,
       allStepsValid: boolean,
-      stepValidationMap: StepValidationMap
+      stepValidationMap: StepValidationMap,
+      savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
+      screenId: ScreenId
     ) => SectionStatus;
   };
 };

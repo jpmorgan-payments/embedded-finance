@@ -31,12 +31,13 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   const { clientData } = useOnboardingContext();
-  const { currentScreenId } = useFlowContext();
+  const { currentScreenId, savedFormValues } = useFlowContext();
   const formValues = convertPartyResponseToFormValues(partyData ?? {});
   const { stepValidationMap } = getStepperValidation(
     steps,
     partyData,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 

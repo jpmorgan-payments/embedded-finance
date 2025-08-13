@@ -125,7 +125,6 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
-        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -219,7 +218,6 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
-        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -238,8 +236,8 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'completed';
         }
         const isAnyStepValid = Object.entries(stepValidationMap).some(
-          ([key, stepValidation]) => {
-            return stepValidation.isValid && key !== 'customer-facing-details';
+          ([, stepValidation]) => {
+            return stepValidation.isValid;
           }
         );
         if (isAnyStepValid) {
@@ -311,13 +309,21 @@ const sectionScreens: SectionScreenConfig[] = [
         'Government issued identifier (e.g. social security number)',
         'Address and contact details',
       ],
-      statusResolver: (sessionData, clientData, screenId) => {
+      statusResolver: (
+        sessionData,
+        clientData,
+        _allStepsValid,
+        _stepValidationMap,
+        savedFormValues,
+        screenId
+      ) => {
         const activeOwners = getActiveOwners(clientData);
         const allOwnersValid = activeOwners?.every((owner) => {
           const { allStepsValid } = getStepperValidation(
             ownerSteps,
             owner,
             clientData,
+            savedFormValues,
             screenId
           );
           return allStepsValid;

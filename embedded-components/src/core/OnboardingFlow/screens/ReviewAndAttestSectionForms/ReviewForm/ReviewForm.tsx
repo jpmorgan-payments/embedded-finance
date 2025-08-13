@@ -70,6 +70,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     sessionData,
     reviewScreenOpenedSectionId,
     currentScreenId,
+    savedFormValues,
   } = useFlowContext();
 
   const form = useForm({
@@ -90,6 +91,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     sections,
     sessionData,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 
@@ -156,6 +158,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     ownerSteps,
     activeOwners,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 

@@ -385,8 +385,8 @@ export const partyFieldMap: PartyFieldMap = {
   organizationIdEin: {
     path: 'organizationDetails.organizationIds',
     baseRule: {
-      display: 'hidden',
-      required: false,
+      display: 'visible',
+      required: true,
       defaultValue: '',
     },
     conditionalRules: [
@@ -395,7 +395,7 @@ export const partyFieldMap: PartyFieldMap = {
           entityType: ['SOLE_PROPRIETORSHIP'],
         },
         rule: {
-          display: 'visible',
+          required: false,
         },
       },
     ],
