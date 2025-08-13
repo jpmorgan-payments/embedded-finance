@@ -1,12 +1,9 @@
+import { useEffect } from 'react';
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import {
-  IndividualIdentityIdType,
-  OrganizationIdentityDtoIdType,
-} from '@/api/generated/smbdo.schemas';
 import { AlertDescription } from '@/components/ui/alert';
 import { Alert } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -14,46 +11,32 @@ import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 import {
-  CompanyIdentificationFormSchema,
-  refineCompanyIdentificationFormSchema,
-} from './CompanyIdentificationForm.schema';
+  BusinessIdentityFormSchema,
+  refineBusinessIdentityFormSchema,
+} from './BusinessIdentityForm.schema';
 
-export const CompanyIdentificationForm: FormStepComponent = () => {
+export const BusinessIdentityForm: FormStepComponent = () => {
   const { t } = useTranslation(['onboarding-overview']);
 
-  const form =
-    useFormContext<z.input<typeof CompanyIdentificationFormSchema>>();
+  const form = useFormContext<z.input<typeof BusinessIdentityFormSchema>>();
 
-  // Get mask format based on ID type
-  const getMaskFormat = (
-    idType: OrganizationIdentityDtoIdType | IndividualIdentityIdType
-  ) => {
-    switch (idType) {
-      case 'EIN':
-        return '## - #######';
-      case 'SSN':
-        return '### - ## - ####';
-      case 'ITIN':
-        return '### - ## - ####';
-      default:
-        return undefined;
-    }
-  };
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'dbaNameNotAvailable' && value.dbaNameNotAvailable) {
+        form.clearErrors('dbaName');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
-  // Get label for value field based on ID type
-  const getValueLabel = (
-    idType: OrganizationIdentityDtoIdType | IndividualIdentityIdType
-  ) => {
-    if (!idType) return t('idValueLabels.placeholder');
-    return t(`idValueLabels.${idType}`);
-  };
-
-  const getValueDescription = (
-    idType: OrganizationIdentityDtoIdType | IndividualIdentityIdType
-  ) => {
-    if (!idType) return '';
-    return t(`idValueDescriptions.${idType}`);
-  };
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'websiteNotAvailable' && value.websiteNotAvailable) {
+        form.clearErrors('website');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -62,6 +45,29 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
         name="organizationName"
         type="text"
       />
+      <div className="eb-space-y-3">
+        <OnboardingFormField
+          control={form.control}
+          name="dbaName"
+          type="text"
+          valueOverride={
+            form.watch('dbaNameNotAvailable')
+              ? form.watch('organizationName') === 'PLACEHOLDER_ORG_NAME'
+                ? 'N/A'
+                : form.watch('organizationName')
+              : undefined
+          }
+          disabled={form.watch('dbaNameNotAvailable')}
+          required
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="dbaNameNotAvailable"
+          type="checkbox-basic"
+          label={t('fields.dbaNameNotAvailable.label')}
+          noOptionalLabel
+        />
+      </div>
       <OnboardingFormField
         control={form.control}
         name="yearOfFormation"
@@ -109,6 +115,7 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
                 label: t('fields.solePropHasEin.options.no'),
               },
             ]}
+            required
           />
 
           {!(
@@ -119,23 +126,39 @@ export const CompanyIdentificationForm: FormStepComponent = () => {
               control={form.control}
               name="organizationIdEin"
               type="text"
-              label={getValueLabel('EIN')}
-              description={getValueDescription('EIN')}
-              maskFormat={getMaskFormat('EIN')}
+              maskFormat="## - #######"
               maskChar="_"
               required
             />
           )}
+          <div className="eb-space-y-3">
+            <OnboardingFormField
+              control={form.control}
+              name="website"
+              type="text"
+              valueOverride={
+                form.watch('websiteNotAvailable') ? 'N/A' : undefined
+              }
+              disabled={form.watch('websiteNotAvailable')}
+              required
+            />
+            <OnboardingFormField
+              control={form.control}
+              name="websiteNotAvailable"
+              type="checkbox-basic"
+              label={t('fields.websiteNotAvailable.label')}
+              noOptionalLabel
+            />
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-CompanyIdentificationForm.schema = CompanyIdentificationFormSchema;
-CompanyIdentificationForm.refineSchemaFn =
-  refineCompanyIdentificationFormSchema;
-CompanyIdentificationForm.modifyFormValuesBeforeSubmit = (values) => {
+BusinessIdentityForm.schema = BusinessIdentityFormSchema;
+BusinessIdentityForm.refineSchemaFn = refineBusinessIdentityFormSchema;
+BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   const { solePropHasEin, organizationIdEin, ...rest } = values;
 
   return {

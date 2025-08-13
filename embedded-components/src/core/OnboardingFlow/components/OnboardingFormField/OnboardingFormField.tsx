@@ -262,7 +262,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
               <p className="eb-font-bold">
                 {(options
                   ? options.find(({ value }) => value === field.value)?.label
-                  : (valueOverride ?? field.value)) ?? 'N/A'}
+                  : (valueOverride ?? field.value)) || 'N/A'}
               </p>
             ) : (
               (() => {

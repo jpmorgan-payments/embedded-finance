@@ -117,8 +117,6 @@ export const getStepperValidation = (
     }
   }
 
-  console.log(stepValidationMap);
-
   return {
     stepValidationMap,
     allStepsValid,

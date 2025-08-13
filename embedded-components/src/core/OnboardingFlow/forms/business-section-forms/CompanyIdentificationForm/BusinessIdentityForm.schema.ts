@@ -117,17 +117,7 @@ const SPECIAL_CHARS_PATTERN = /[()_\\/&+%@#;,.: '-]/;
 //     })
 //   );
 
-export const CompanyIdentificationFormSchema = z.object({
-  countryOfFormation: z
-    .string()
-    .length(
-      2,
-      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
-    )
-    .refine(
-      (val) => COUNTRIES_OF_FORMATION.includes(val),
-      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
-    ),
+export const BusinessIdentityFormSchema = z.object({
   organizationName: z
     .string()
     .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))
@@ -146,6 +136,22 @@ export const CompanyIdentificationFormSchema = z.object({
       (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
       i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
     ),
+  dbaName: z
+    .string()
+    .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
+    .refine(
+      (val) => NAME_PATTERN.test(val),
+      i18n.t('onboarding:fields.dbaName.validation.pattern')
+    )
+    .refine(
+      (val) => !val || !/\s\s/.test(val),
+      i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
+    )
+    .refine(
+      (val) => !val || val.length >= 2,
+      i18n.t('onboarding:fields.dbaName.validation.minLength')
+    ),
+  dbaNameNotAvailable: z.boolean(),
   yearOfFormation: z
     .string()
     .refine(
@@ -160,6 +166,16 @@ export const CompanyIdentificationFormSchema = z.object({
       const year = parseInt(val, 10);
       return year <= CURRENT_YEAR;
     }, i18n.t('onboarding:fields.yearOfFormation.validation.max')),
+  countryOfFormation: z
+    .string()
+    .length(
+      2,
+      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+    )
+    .refine(
+      (val) => COUNTRIES_OF_FORMATION.includes(val),
+      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
+    ),
   organizationIdEin: z
     .string()
     .min(
@@ -181,21 +197,49 @@ export const CompanyIdentificationFormSchema = z.object({
       (val) => val === 'yes' || val === 'no',
       i18n.t('onboarding:fields.solePropHasEin.validation.required')
     ),
+  website: z
+    .string()
+    .url(i18n.t('onboarding:fields.website.validation.invalid'))
+    .max(500, i18n.t('onboarding:fields.website.validation.maxLength'))
+    .refine(
+      (val) => /^https?:\/\//.test(val),
+      i18n.t('onboarding:fields.website.validation.httpsRequired')
+    )
+    .refine(
+      (val) =>
+        !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
+      i18n.t('onboarding:fields.website.validation.noIp')
+    ),
+  websiteNotAvailable: z.boolean(),
 });
 
-export const refineCompanyIdentificationFormSchema = (
+export const refineBusinessIdentityFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
   return schema.superRefine((values, context) => {
     if (
       values.countryOfFormation === 'US' &&
-      values.solePropHasEin === 'yes' &&
+      values.solePropHasEin !== 'no' &&
       !values.organizationIdEin
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: v('organizationIdEin', 'required'),
         path: ['organizationIdEin'],
+      });
+    }
+    if (!values.websiteNotAvailable && !values.website) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: i18n.t('onboarding:fields.website.validation.required'),
+        path: ['website'],
+      });
+    }
+    if (!values.dbaNameNotAvailable && !values.dbaName) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Required',
+        path: ['dbaName'],
       });
     }
   });

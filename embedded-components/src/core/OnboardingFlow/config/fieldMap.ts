@@ -34,6 +34,12 @@ export const partyFieldMap: PartyFieldMap = {
         rule: {
           interaction: 'readonly',
           required: false,
+          defaultValue: i18n.t('common:na'),
+          contentTokenOverrides: {
+            description: i18n.t(
+              'onboarding-overview:fields.organizationName.description.soleProp'
+            ),
+          },
         },
       },
     ],
@@ -174,6 +180,14 @@ export const partyFieldMap: PartyFieldMap = {
         rule: { display: 'hidden' },
       },
     ],
+    toStringFn: (val, formValues) => {
+      if (formValues.dbaNameNotAvailable) {
+        return formValues.organizationName === 'PLACEHOLDER_ORG_NAME'
+          ? i18n.t('common:na')
+          : formValues.organizationName;
+      }
+      return val;
+    },
   },
   organizationDescription: {
     path: 'organizationDetails.organizationDescription',
@@ -365,7 +379,7 @@ export const partyFieldMap: PartyFieldMap = {
     isHiddenInReviewFn: () => true,
     baseRule: {
       display: 'hidden',
-      required: true,
+      required: false,
       defaultValue: '',
     },
     conditionalRules: [
@@ -396,6 +410,11 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: {
           required: false,
+          contentTokenOverrides: {
+            description: i18n.t(
+              'onboarding-overview:fields.organizationIdEin.description.soleProp'
+            ),
+          },
         },
       },
     ],
