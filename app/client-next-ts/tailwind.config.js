@@ -5,6 +5,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],
+        body: ['Arial', 'Helvetica', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
