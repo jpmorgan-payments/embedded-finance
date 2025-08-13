@@ -29,6 +29,9 @@ SThemeWithMock.args = {
 };
 
 export const MockExistingClient = Default.bind({});
+MockExistingClient.play = async () => {
+  localStorage.removeItem('NAICS_SUGGESTION_FEATURE_FLAG');
+};
 MockExistingClient.storyName = 'New';
 MockExistingClient.args = {
   ...SThemeWithMock.args,
@@ -109,7 +112,7 @@ MockApproved.parameters = {
 
 // Recommendation API mock stories
 export const MockEmptyRecommendations = Default.bind({});
-MockEmptyRecommendations.storyName = 'Empty Recommendations';
+MockEmptyRecommendations.storyName = 'Empty or many recommendations';
 MockEmptyRecommendations.args = {
   ...MockExistingClient.args,
 };
@@ -170,7 +173,7 @@ MockSingleRecommendation.parameters = {
             organizationDetails: party.organizationDetails
               ? {
                   ...party.organizationDetails,
-                  businessDescription:
+                  organizationDescription:
                     'We operate a fast-casual restaurant serving burgers, fries, and beverages to customers for dine-in and takeout.',
                 }
               : party.organizationDetails,
@@ -245,6 +248,54 @@ MockMultipleRecommendations.parameters = {
             },
           ],
         });
+      }),
+    ],
+  },
+};
+
+export const MockRecommendation400Error = Default.bind({});
+MockRecommendation400Error.storyName = 'Recommendations - 400 Error';
+MockRecommendation400Error.args = {
+  ...MockExistingClient.args,
+};
+MockRecommendation400Error.play = async () => {
+  localStorage.setItem('NAICS_SUGGESTION_FEATURE_FLAG', 'true');
+};
+MockRecommendation400Error.parameters = {
+  msw: {
+    handlers: [
+      http.get(`/clients/${CLIENT_ID}`, () => {
+        return HttpResponse.json({
+          ...efClientCorpEBMockNoIndustry,
+          parties: efClientCorpEBMockNoIndustry.parties?.map((party) => ({
+            ...party,
+            organizationDetails: party.organizationDetails
+              ? {
+                  ...party.organizationDetails,
+                  organizationDescription:
+                    'We operate a small retail shop with in-store and online sales.',
+                }
+              : party.organizationDetails,
+          })),
+        });
+      }),
+      http.post('/recommendations', async () => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 800);
+        });
+        return HttpResponse.json(
+          {
+            title: 'Bad Request',
+            httpStatus: 400,
+            context: [
+              {
+                message:
+                  'We could not process your request. Please try again or proceed with manual selection.',
+              },
+            ],
+          },
+          { status: 400 }
+        );
       }),
     ],
   },

@@ -118,7 +118,7 @@ function SolutionsPage() {
                 IMPLEMENTATION OPTIONS
               </p>
               <h1 className="text-page-h1 font-bold text-sp-ink mb-8">
-                Solutions for Every Integration Need
+                Developer Solutions for Every Integration Need
               </h1>
               <div className="bg-sp-topaz-600 py-4 px-4 rounded-t-page-lg">
                 <div className="text-page-subtitle font-bold text-white">
@@ -179,7 +179,7 @@ function SolutionsPage() {
                           ></div>
                         </div>
                         <div className="p-4 flex flex-col flex-1 justify-center">
-                          <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center">
+                          <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center font-heading">
                             {meta.summaryTitle}
                           </h2>
                           <p className="text-sp-ink/80 text-center text-sm font-body">
@@ -194,17 +194,17 @@ function SolutionsPage() {
                         >
                           <CardHeader className="bg-sp-accent">
                             <div className="flex justify-between items-center">
-                              <CardTitle className="text-page-body text-sp-ink">
+                              <CardTitle className="text-page-body text-sp-ink font-heading">
                                 {approach.title}
                               </CardTitle>
                             </div>
                           </CardHeader>
-                          <CardContent className="p-6">
-                            <p className="text-sm text-sp-ink leading-relaxed mb-4 font-body">
+                          <CardContent className="p-6 font-body">
+                            <p className="text-sm text-sp-ink leading-relaxed mb-4">
                               {approach.description}
                             </p>
                             <div className="bg-sp-benefit p-4 rounded-page-sm border border-sp-border">
-                              <p className="text-sm font-semibold text-sp-ink font-body">
+                              <p className="text-sm font-semibold text-sp-ink">
                                 Key Benefit: {approach.benefit}
                               </p>
                             </div>

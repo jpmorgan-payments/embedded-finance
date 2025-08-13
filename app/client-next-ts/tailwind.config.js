@@ -4,8 +4,24 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],
+        sans: [
+          'Amplitude',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Oxygen',
+          'Ubuntu',
+          'Cantarell',
+          'Fira Sans',
+          'Droid Sans',
+          'Helvetica Neue',
+          'sans-serif',
+        ],
+        // Optional additional semantic stacks exposed via `font-heading`, `font-body`, `font-card`
         body: ['Arial', 'Helvetica', 'sans-serif'],
+        heading: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],
+        card: ['Arial', 'Helvetica', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
