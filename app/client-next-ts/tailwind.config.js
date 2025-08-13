@@ -4,8 +4,6 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Used by `font-sans` utility applied globally in styles.css
-        sans: ['Amplitude', 'Segoe UI', 'Arial', 'Helvetica', 'sans-serif'],
         // Optional additional semantic stacks exposed via `font-heading`, `font-body`, `font-card`
         body: ['Arial', 'Helvetica', 'sans-serif'],
         heading: ['Amplitude', 'Arial', 'Helvetica', 'sans-serif'],

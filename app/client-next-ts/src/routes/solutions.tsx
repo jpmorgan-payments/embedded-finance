@@ -118,7 +118,7 @@ function SolutionsPage() {
                 IMPLEMENTATION OPTIONS
               </p>
               <h1 className="text-page-h1 font-bold text-sp-ink mb-8">
-                Solutions for Every Integration Need
+                Developer Solutions for Every Integration Need
               </h1>
               <div className="bg-sp-topaz-600 py-4 px-4 rounded-t-page-lg">
                 <div className="text-page-subtitle font-bold text-white">
