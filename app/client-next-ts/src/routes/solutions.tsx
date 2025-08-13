@@ -121,7 +121,7 @@ function SolutionsPage() {
                 IMPLEMENTATION OPTIONS
               </p>
               <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-8">
-                Solutions for Every Integration Need
+                Developer Solutions for Every Integration Need
               </h1>
               <div className="bg-sp-brand py-4 px-4 rounded-t-page-lg">
                 <div className="text-page-h4 font-bold text-white">
