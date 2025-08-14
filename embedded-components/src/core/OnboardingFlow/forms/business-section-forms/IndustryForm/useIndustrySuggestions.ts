@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { useSmbdoGetRecommendations } from '@/api/generated/smbdo';
+import {
+  SmbdoGetRecommendationsMutationError,
+  useSmbdoGetRecommendations,
+} from '@/api/generated/smbdo';
 import { SmbdoGetRecommendationsBodyResourceType } from '@/api/generated/smbdo.schemas';
 
 /**
@@ -27,6 +30,11 @@ export const useIndustrySuggestions = (description: string) => {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showEmptyRecommendationWarning, setShowEmptyRecommendationWarning] =
     useState(false);
+  const [showRecommendationErrorWarning, setShowRecommendationErrorWarning] =
+    useState(false);
+  const [recommendationErrorMessage, setRecommendationErrorMessage] = useState<
+    string | null
+  >(null);
 
   // Use the API mutation hook
   const { mutate: getRecommendations, isPending } =
@@ -46,6 +54,8 @@ export const useIndustrySuggestions = (description: string) => {
 
     // Reset warnings when user tries again
     setShowEmptyRecommendationWarning(false);
+    setShowRecommendationErrorWarning(false);
+    setRecommendationErrorMessage(null);
 
     const values = [
       {
@@ -67,17 +77,36 @@ export const useIndustrySuggestions = (description: string) => {
             setRecommendations(data.resource);
             setShowRecommendations(true);
             setShowEmptyRecommendationWarning(false);
+            setShowRecommendationErrorWarning(false);
+            setRecommendationErrorMessage(null);
           } else {
             setRecommendations([]);
             setShowRecommendations(false);
             setShowEmptyRecommendationWarning(true);
+            setShowRecommendationErrorWarning(false);
+            setRecommendationErrorMessage(null);
           }
         },
-        onError: () => {
-          // Hide recommendations and don't show the empty warning on error
+        onError: (error: SmbdoGetRecommendationsMutationError) => {
+          // Hide recommendations and show an error-style warning
           setShowRecommendations(false);
           setShowEmptyRecommendationWarning(false);
+          setShowRecommendationErrorWarning(true);
           setRecommendations([]);
+          const apiError = error?.response?.data as
+            | {
+                title?: string;
+                context?: Array<{ message?: string }>;
+                httpStatus?: number;
+              }
+            | undefined;
+          const contextMessage = apiError?.context?.[0]?.message;
+          const titleMessage = apiError?.title;
+          setRecommendationErrorMessage(
+            contextMessage ||
+              titleMessage ||
+              'We could not process your request.'
+          );
         },
       }
     );
@@ -88,6 +117,8 @@ export const useIndustrySuggestions = (description: string) => {
     recommendations,
     showRecommendations,
     showEmptyRecommendationWarning,
+    showRecommendationErrorWarning,
+    recommendationErrorMessage,
     isPending,
     handleSuggest,
     setShowRecommendations,
