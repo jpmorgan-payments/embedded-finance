@@ -194,8 +194,10 @@ function SolutionsPage() {
                         >
                           <CardHeader className="bg-sp-accent">
                             <div className="flex justify-between items-center">
-                              <CardTitle className="text-page-body text-sp-ink font-heading">
-                                {approach.title}
+                              <CardTitle className="text-page-body text-sp-ink">
+                                <span className="font-heading">
+                                  {approach.title}
+                                </span>
                               </CardTitle>
                             </div>
                           </CardHeader>
