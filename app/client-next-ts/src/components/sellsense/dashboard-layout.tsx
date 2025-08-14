@@ -163,14 +163,14 @@ export function DashboardLayout() {
       ),
   );
   const [showMswAlert, setShowMswAlert] = useState<boolean>(false);
-  const { isRunning } = usePingService();
+  const pingQuery = usePingService();
 
   // Show MSW alert only in development environment
   useEffect(() => {
-    // We can check if MSW is active by looking at the ping service
-    // This ensures we only show the alert when MSW is actually being used
-    setShowMswAlert(isRunning());
-  }, [isRunning]);
+    // We can check if MSW is active by looking at the ping service status
+    // This ensures we only show the alert when MSW is actually responding
+    setShowMswAlert(pingQuery.isSuccess);
+  }, [pingQuery.isSuccess]);
 
   // Event handlers
   const handleScenarioChange = (scenario: ClientScenario) => {
@@ -593,8 +593,8 @@ export function DashboardLayout() {
                     >
                       Mock Service Worker
                     </a>
-                    .
-                    {isRunning()
+                    .{' '}
+                    {pingQuery.isSuccess
                       ? ' Mock service is currently active.'
                       : ' Service worker may have been terminated due to browser security settings.'}
                   </span>
