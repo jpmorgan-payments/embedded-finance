@@ -162,7 +162,7 @@ export function DashboardLayout() {
         (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
       ),
   );
-  const [showMswAlert, setShowMswAlert] = useState<boolean>(false);
+  const [showMswAlert, setShowMswAlert] = useState<boolean>(true);
   const pingQuery = usePingService();
 
   // Event handlers
@@ -275,6 +275,13 @@ export function DashboardLayout() {
       replace: true,
     });
   };
+
+  // Show MSW alert if ping fails
+  useEffect(() => {
+    if (!pingQuery.isSuccess) {
+      setShowMswAlert(true);
+    }
+  }, [pingQuery.isSuccess]);
 
   // Effects
   // Handle initial load with URL parameters
