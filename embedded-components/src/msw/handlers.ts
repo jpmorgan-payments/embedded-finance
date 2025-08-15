@@ -6,13 +6,7 @@ import { http, HttpResponse } from 'msw';
 
 import { CreateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 
-import {
-  db,
-  getDbStatus,
-  handleMagicValues,
-  logDbState,
-  resetDb,
-} from './msw.db';
+import { db, getDbStatus, handleMagicValues, logDbState, resetDb } from './db';
 
 export const handlers = [
   http.get(`/clients/:clientId`, (req) => {

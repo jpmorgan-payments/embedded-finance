@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
+
+import { server } from '@/msw/server';
 import { vi } from 'vitest';
-import { server } from './src/msw/server';
 
 const { getComputedStyle } = window;
 window.getComputedStyle = (elt) => getComputedStyle(elt);
@@ -19,6 +20,9 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock scrollIntoView - missing implementation causing "e.scrollIntoView is not a function" error
+Element.prototype.scrollIntoView = vi.fn();
+
 class ResizeObserver {
   observe() {}
   unobserve() {}
@@ -27,6 +31,6 @@ class ResizeObserver {
 
 window.ResizeObserver = ResizeObserver;
 
-beforeAll(() => server.listen());
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

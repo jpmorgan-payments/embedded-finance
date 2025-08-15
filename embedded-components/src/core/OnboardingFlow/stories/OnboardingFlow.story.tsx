@@ -8,7 +8,7 @@ import { OnboardingFlow, OnboardingFlowProps } from '@/core/OnboardingFlow';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
 import { SELLSENSE_THEME } from '@/core/themes';
 
-import { handlers } from './msw.handlers';
+import { handlers } from '../../../msw/handlers';
 
 export type OnboardingFlowWithProviderProps = OnboardingFlowProps & EBConfig;
 

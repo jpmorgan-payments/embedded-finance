@@ -1,11 +1,9 @@
+import { i18n } from '@/i18n/config';
 import { server } from '@/msw/server';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, test } from 'vitest';
+import { render, screen, userEvent, waitFor } from '@test-utils';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { OnboardingFlow } from '@/core/OnboardingFlow';
 import { OnboardingFlowProps } from '@/core/OnboardingFlow/types/onboarding.types';
 
@@ -71,15 +69,6 @@ const mockControllerParty = {
   validationResponse: [],
 };
 
-// Setup QueryClient for tests
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
-
 // Test component wrapper with all necessary providers
 const renderOnboardingFlow = (props: Partial<OnboardingFlowProps> = {}) => {
   const defaultProps: OnboardingFlowProps = {
@@ -96,185 +85,67 @@ const renderOnboardingFlow = (props: Partial<OnboardingFlowProps> = {}) => {
     ...props,
   };
 
-  return render(
-    <EBComponentsProvider
-      apiBaseUrl="/"
-      headers={{}}
-      contentTokens={{
-        name: 'enUS',
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <OnboardingFlow {...defaultProps} />
-      </QueryClientProvider>
-    </EBComponentsProvider>
-  );
+  return render(<OnboardingFlow {...defaultProps} />);
 };
 
 describe('OnboardingFlow - Comprehensive End-to-End Journey', () => {
   beforeEach(() => {
     // Reset MSW handlers before each test
     server.resetHandlers();
-    queryClient.clear();
   });
 
-  test('completes full onboarding journey through all sections defined in flowConfig', async () => {
+  test.only('completes full onboarding journey through all sections defined in flowConfig', async () => {
     const user = userEvent.setup();
-
-    // Mock API responses for the entire flow based on flowConfig.ts
-    server.use(
-      http.post('/clients', async () => {
-        return HttpResponse.json(
-          {
-            ...mockClientData,
-            id: 'new-client-123',
-            status: 'NEW',
-            organizationType: 'LIMITED_LIABILITY_COMPANY',
-          },
-          { status: 201 }
-        );
-      }),
-
-      http.get('/clients/:clientId', () => {
-        return HttpResponse.json({
-          ...mockClientData,
-          id: 'new-client-123',
-          status: 'NEW',
-          organizationType: 'LIMITED_LIABILITY_COMPANY',
-        });
-      }),
-
-      http.put('/clients/:clientId', async ({ request }) => {
-        const body = (await request.json()) as Record<string, any>;
-        return HttpResponse.json({
-          ...mockClientData,
-          id: 'new-client-123',
-          ...body,
-        });
-      }),
-
-      http.post('/clients/:clientId/parties', async ({ request }) => {
-        const body = (await request.json()) as Record<string, any>;
-        return HttpResponse.json(
-          {
-            id: 'party-123',
-            ...body,
-          },
-          { status: 201 }
-        );
-      }),
-
-      http.get('/questions', () => {
-        return HttpResponse.json([
-          {
-            id: '30005',
-            text: 'What is your business annual revenue?',
-            type: 'SINGLE_SELECT',
-            options: ['Under $100K', '$100K-$500K', 'Over $500K'],
-          },
-          {
-            id: '300006',
-            text: 'What industry is your business in?',
-            type: 'SINGLE_SELECT',
-            options: ['Technology', 'Retail', 'Services'],
-          },
-          {
-            id: '300007',
-            text: 'How many employees do you have?',
-            type: 'SINGLE_SELECT',
-            options: ['1-10', '11-50', '50+'],
-          },
-        ]);
-      }),
-
-      http.post('/clients/:clientId/question-responses', async () => {
-        return HttpResponse.json({ success: true });
-      }),
-
-      http.get('/clients/:clientId/parties', () => {
-        return HttpResponse.json([mockControllerParty]);
-      }),
-
-      http.put('/clients/:clientId/parties/:partyId', async ({ request }) => {
-        const body = (await request.json()) as Record<string, any>;
-        return HttpResponse.json({
-          ...mockControllerParty,
-          ...body,
-        });
-      }),
-
-      http.get('/clients/:clientId/documents', () => {
-        return HttpResponse.json([]);
-      }),
-
-      http.post('/clients/:clientId/documents', async () => {
-        return HttpResponse.json({ success: true });
-      })
-    );
 
     renderOnboardingFlow();
 
     // === STEP 1: GATEWAY SCREEN (id: 'gateway' from flowConfig) ===
     await waitFor(() => {
       expect(
-        screen.getByText(/Let's help you get started/i)
+        screen.getByText(
+          i18n.t('onboarding-overview:screens.gateway.infoAlert.title')
+        )
       ).toBeInTheDocument();
       expect(
         screen.getByText(/Select your general business type/i)
       ).toBeInTheDocument();
     });
 
-    // Select "Registered business" option first
-    const registeredBusinessOptions =
-      screen.getAllByText(/Registered business/i);
-    const registeredBusinessOption = registeredBusinessOptions[0];
+    // Select "Registered business" option from radio group
+    const registeredBusinessOption = screen.getByRole('radio', {
+      name: /Registered business/i,
+    });
     await user.click(registeredBusinessOption);
 
     // Wait for specific business types to appear
     await waitFor(() => {
-      const llcOptions = screen.getAllByText(
-        /Limited Liability Company \(LLC\)/i
-      );
-      expect(llcOptions.length).toBeGreaterThan(0);
+      expect(
+        screen.getByText(/Select the specific legal structure/i)
+      ).toBeInTheDocument();
     });
 
-    // Click on LLC option to select specific business type - use getAllByText to handle multiple matches
-    const llcOptions = screen.getAllByText(
-      /Limited Liability Company \(LLC\)/i
+    // Select LLC from the dropdown field
+    const legalStructureDropdown = screen.getByLabelText(
+      /Select the specific legal structure/i
     );
-    const llcOption =
-      llcOptions.find(
-        (element) =>
-          element.tagName === 'P' && element.textContent?.includes('E.g.')
-      ) || llcOptions[0];
+    await user.click(legalStructureDropdown);
+
+    // Select LLC option from the dropdown list
+    const llcOption = screen.getByRole('option', {
+      name: /Limited Liability Company \(LLC\)/i,
+    });
     await user.click(llcOption);
 
-    // Click "Show me what's needed" button to proceed
+    // Click "Get Started" button to proceed
     await waitFor(() => {
-      const showMeButton = screen.getByRole('button', {
-        name: /show me what's needed/i,
+      const getStartedButton = screen.getByRole('button', {
+        name: /get started/i,
       });
-      expect(showMeButton).toBeInTheDocument();
-      return user.click(showMeButton);
+      expect(getStartedButton).toBeInTheDocument();
+      return user.click(getStartedButton);
     });
 
-    // === STEP 2: CHECKLIST SCREEN ===
-    await waitFor(
-      () => {
-        expect(
-          screen.getByText(/Here is what you'll need/i)
-        ).toBeInTheDocument();
-      },
-      { timeout: 10000 }
-    );
-
-    // Click "Get Started" to proceed to main flow
-    const getStartedButton = screen.getByRole('button', {
-      name: /get started/i,
-    });
-    await user.click(getStartedButton);
-
-    // === STEP 3: OVERVIEW SCREEN (id: 'overview' from flowConfig) ===
+    // === STEP 2: OVERVIEW SCREEN (id: 'overview' from flowConfig) ===
     await waitFor(
       () => {
         expect(screen.getByText(/Overview/i)).toBeInTheDocument();
@@ -307,13 +178,17 @@ describe('OnboardingFlow - Comprehensive End-to-End Journey', () => {
     // === STEP 4: NAVIGATE THROUGH PERSONAL DETAILS SECTION (STEPPER - id: 'personal-section') ===
 
     // 4a. Click on Personal Details section
-    const personalDetailsButton = screen.getByText(/Your personal details/i);
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
     await user.click(personalDetailsButton);
 
     // Should enter personal details stepper - Step 1: Personal Details Form (title: 'Your personal details')
     await waitFor(
       () => {
-        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /We collect your personal information as the primary person controlling business operations for the company./i
+          )
+        ).toBeInTheDocument();
       },
       { timeout: 5000 }
     );

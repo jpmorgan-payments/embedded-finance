@@ -55,7 +55,8 @@ function ErrorFallback({ error }: { error: Error }) {
         An error occurred in the embedded components. Please try refreshing the
         page or contact support if the issue persists.
       </p>
-      {process.env.NODE_ENV === 'development' && (
+      {(process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test') && (
         <pre className="eb-mt-4 eb-max-w-full eb-overflow-x-auto eb-rounded eb-bg-destructive/20 eb-p-4 eb-text-left eb-text-xs eb-text-destructive/90">
           {error.message}
         </pre>
