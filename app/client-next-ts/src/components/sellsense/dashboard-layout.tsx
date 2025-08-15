@@ -10,7 +10,9 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
+import { RefreshCw } from 'lucide-react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import { usePingService } from '@/hooks/use-ping-service';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import { SettingsDrawer } from './settings-drawer';
@@ -160,6 +162,8 @@ export function DashboardLayout() {
         (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
       ),
   );
+  const [showMswAlert, setShowMswAlert] = useState<boolean>(true);
+  const pingQuery = usePingService();
 
   // Event handlers
   const handleScenarioChange = (scenario: ClientScenario) => {
@@ -271,6 +275,13 @@ export function DashboardLayout() {
       replace: true,
     });
   };
+
+  // Show MSW alert if ping fails
+  useEffect(() => {
+    if (!pingQuery.isSuccess) {
+      setShowMswAlert(true);
+    }
+  }, [pingQuery.isSuccess]);
 
   // Effects
   // Handle initial load with URL parameters
@@ -564,13 +575,63 @@ export function DashboardLayout() {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-
         {/* Main content area - responsive */}
         <main className="flex-1 overflow-auto w-full min-w-0">
+          {/* MSW Alert Banner */}
+          {showMswAlert && (
+            <div className="px-4 pt-4">
+              <div
+                className={`rounded-lg p-3 mb-3 flex items-center ${
+                  pingQuery.isSuccess
+                    ? 'bg-gray-50 border border-gray-200'
+                    : 'bg-amber-50 border border-amber-300'
+                }`}
+              >
+                {' '}
+                <div
+                  className={`flex-1 text-sm ${pingQuery.isSuccess ? 'text-gray-700' : 'text-amber-800'}`}
+                >
+                  <span>
+                    API calls are being mocked using{' '}
+                    <a
+                      href="https://mswjs.io"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-gray-900 underline font-medium"
+                    >
+                      Mock Service Worker
+                    </a>
+                    .{' '}
+                    {pingQuery.isSuccess
+                      ? ' Mock service is currently active.'
+                      : ' Service worker may have been terminated by the browser. '}
+                  </span>
+                </div>{' '}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                      pingQuery.isSuccess
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
+                        : 'bg-amber-600 text-white hover:bg-amber-700'
+                    }`}
+                  >
+                    <RefreshCw className="h-3 w-3" /> Reload Page
+                  </button>
+                  <button
+                    onClick={() => setShowMswAlert(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                    aria-label="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Add padding for mobile to account for fixed bottom navigation */}
           <div className="pb-16 md:pb-0">{renderMainContent()}</div>
         </main>
-
         {/* Mobile menu overlay */}
         {isMobileMenuOpen && (
           <div
