@@ -14,21 +14,21 @@ import {
 import {
   ContactDetailsFormSchema,
   IndividualIdentityFormSchema,
-  PersonalDetailsFormSchema,
+  usePersonalDetailsFormSchema,
 } from '@/core/OnboardingFlow/forms/personal-section-forms';
 import { GatewayScreenFormSchema } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen.schema';
 import { ScreenId } from '@/core/OnboardingFlow/types/flow.types';
 
 // MAINTAIN: When adding a new schema, just add it to this array
-const ONBOARDING_FORM_SCHEMAS = [
-  GatewayScreenFormSchema,
-  PersonalDetailsFormSchema,
-  IndividualIdentityFormSchema,
-  ContactDetailsFormSchema,
-  IndustryFormSchema,
-  BusinessIdentityFormSchema,
-  BusinessContactInfoFormSchema,
-] as const;
+type OnboardingFormSchemaType = [
+  typeof GatewayScreenFormSchema,
+  ReturnType<typeof usePersonalDetailsFormSchema>,
+  typeof IndividualIdentityFormSchema,
+  typeof ContactDetailsFormSchema,
+  typeof IndustryFormSchema,
+  typeof BusinessIdentityFormSchema,
+  typeof BusinessContactInfoFormSchema,
+];
 
 type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =
   TSchemas extends readonly [
@@ -47,12 +47,10 @@ type MergeSchemaOutputs<TSchemas extends readonly z.ZodTypeAny[]> =
     : {};
 
 // Generate the combined input and output types from the schema array
-export type OnboardingFormValuesInitial = MergeSchemaInputs<
-  typeof ONBOARDING_FORM_SCHEMAS
->;
-export type OnboardingFormValuesSubmit = MergeSchemaOutputs<
-  typeof ONBOARDING_FORM_SCHEMAS
->;
+export type OnboardingFormValuesInitial =
+  MergeSchemaInputs<OnboardingFormSchemaType>;
+export type OnboardingFormValuesSubmit =
+  MergeSchemaOutputs<OnboardingFormSchemaType>;
 
 export type OnboardingTopLevelArrayFieldNames = Extract<
   FieldArrayPath<OnboardingFormValuesSubmit>,

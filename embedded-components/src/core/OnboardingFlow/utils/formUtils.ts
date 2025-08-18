@@ -851,22 +851,43 @@ export type ValidationMessageKeysFor<
  * @param count - Optional count parameter for pluralized messages
  * @returns The localized validation message string
  */
-export const getValidationMessage = <
+export const useGetValidationMessage = <
   Field extends
     keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
 >(
+  fieldRule: FieldRule
+): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
   count?: number
-): string => {
-  // Build translation key path with validation prefix
-  const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
+) => string) => {
+  const getValidationMessage = (
+    field: Field,
+    messageKey: ValidationMessageKeysFor<Field>,
+    count?: number
+  ): string => {
+    // Build translation key path with validation prefix
+    const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
 
-  const fieldName = i18n.t([
-    `onboarding-overview:fields.${field}.fieldName`,
-    `onboarding-overview:fields.${field}.label`,
-  ]);
+    const label =
+      fieldRule.contentTokenOverrides?.label ??
+      i18n.t([
+        `onboarding:fields.${field}.label.default`,
+        `onboarding:fields.${field}.label`,
+      ] as unknown as TemplateStringsArray);
 
-  // Return translation with optional count parameter for pluralization
-  return i18n.t([translationKey], { fieldName, count });
+    const fieldName = i18n.t(
+      [
+        `onboarding:fields.${field}.fieldName.default`,
+        `onboarding:fields.${field}.fieldName`,
+      ],
+      {
+        defaultValue: label,
+      }
+    );
+
+    // Return translation with optional count parameter for pluralization
+    return i18n.t([translationKey], { fieldName, count });
+  };
+  return getValidationMessage;
 };
