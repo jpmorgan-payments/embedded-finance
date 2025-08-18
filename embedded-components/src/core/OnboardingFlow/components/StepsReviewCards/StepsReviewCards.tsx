@@ -28,7 +28,11 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   partyData,
   onEditClick,
 }) => {
-  const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
+  const { t } = useTranslation([
+    'onboarding-overview',
+    'onboarding-old',
+    'common',
+  ]);
 
   const { clientData } = useOnboardingContext();
   const { currentScreenId, savedFormValues } = useFlowContext();
