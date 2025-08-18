@@ -8,7 +8,10 @@ import { AlertDescription } from '@/components/ui/alert';
 import { Alert } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
+import { convertPartyResponseToFormValues } from '@/core/OnboardingFlow/utils/formUtils';
 
 import {
   BusinessIdentityFormSchema,
@@ -17,6 +20,13 @@ import {
 
 export const BusinessIdentityForm: FormStepComponent = () => {
   const { t } = useTranslation(['onboarding-overview']);
+
+  const { clientData } = useOnboardingContext();
+
+  const orgParty = getOrganizationParty(clientData);
+  const { organizationIdEin } = convertPartyResponseToFormValues(
+    orgParty ?? {}
+  );
 
   const form = useFormContext<z.input<typeof BusinessIdentityFormSchema>>();
 
@@ -113,6 +123,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
               {
                 value: 'no',
                 label: t('fields.solePropHasEin.options.no'),
+                disabled: !!organizationIdEin,
               },
             ]}
             required
