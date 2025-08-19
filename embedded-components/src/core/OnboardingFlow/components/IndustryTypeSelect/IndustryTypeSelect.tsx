@@ -42,6 +42,9 @@ export const IndustryTypeSelect = ({
   const [searchQuery, setSearchQuery] = useState('');
   const { onBlur, ...fieldWithoutBlur } = field;
 
+  // Track internal open state to prevent re-renders during closing animation
+  const [internalOpen, setInternalOpen] = useState(false);
+
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -57,8 +60,26 @@ export const IndustryTypeSelect = ({
         observer.disconnect();
       };
     }
-    return () => {};
+    return undefined;
   }, []);
+
+  // When dropdown opens or closes, synchronize internalOpen state
+  // with a delay for close to prevent flashing
+  useEffect(() => {
+    if (open) {
+      setInternalOpen(true);
+    } else {
+      // When closing, maintain internalOpen true during transition
+      // to preserve scroll position
+      const timeout = setTimeout(() => {
+        setInternalOpen(false);
+        // Reset search query after fully closed
+        setSearchQuery('');
+      }, 300); // Match Radix UI animation duration
+      return () => clearTimeout(timeout);
+    }
+    return undefined;
+  }, [open]);
 
   // Memoize the filtered NAICS codes
   const filteredCodes = useMemo(() => {
@@ -113,6 +134,59 @@ export const IndustryTypeSelect = ({
     return groupedItems;
   }, [filteredCodes]);
 
+  // Calculate item heights for variable sized list
+  const getItemHeight = (index: number) => {
+    const lineHeight = 32;
+    const additionalHeight = 18;
+    if (containerWidth === 0) return lineHeight;
+
+    const item = items[index];
+    if (!item) return lineHeight;
+
+    if (item.type === 'header') {
+      return 36; // Header height
+    }
+
+    const charsPerLine = Math.floor((containerWidth - 120) / 7);
+    const descriptionLength = item.description?.length ?? 0;
+    const numLines = Math.ceil(
+      (descriptionLength + item.category.length) / charsPerLine
+    );
+    return lineHeight + (numLines - 1) * additionalHeight;
+  };
+
+  // Find the index of the selected item in the filtered list
+  const selectedItemIndex = useMemo(() => {
+    if (!field.value) return -1;
+    return items.findIndex(
+      (item) => item.type === 'item' && item.code === field.value
+    );
+  }, [items, field.value]);
+
+  // Calculate the scroll position to center the selected item
+  // with adjustment factor to correct vertical alignment
+  const initialScrollOffset = useMemo(() => {
+    if (selectedItemIndex === -1) return 0;
+
+    let offsetToSelectedItem = 0;
+    for (let i = 0; i < selectedItemIndex; i += 1) {
+      offsetToSelectedItem += getItemHeight(i);
+    }
+
+    // Center the item in the viewport (300 is list height)
+    const listHeight = 300;
+    const itemHeight = getItemHeight(selectedItemIndex);
+
+    // Apply a slight vertical adjustment to ensure proper centering
+    // The 0.9 factor pushes the item slightly higher in the viewport
+    const centeredOffset = Math.max(
+      0,
+      offsetToSelectedItem - (listHeight - itemHeight) * 0.5
+    );
+
+    return centeredOffset;
+  }, [selectedItemIndex]);
+
   return (
     <div ref={containerRef} className="eb-w-full">
       <Popover open={open} onOpenChange={setOpen}>
@@ -162,81 +236,82 @@ export const IndustryTypeSelect = ({
               className="eb-h-9"
               value={searchQuery}
               onValueChange={setSearchQuery}
+              autoFocus
             />
             <CommandList className="eb-max-h-[300px]">
               <CommandEmpty>No results found</CommandEmpty>
               <div className="eb-relative" style={{ height: 300 }}>
-                <List
-                  key={searchQuery}
-                  height={300}
-                  itemCount={items.length}
-                  itemSize={(index: number) => {
-                    const lineHeight = 32;
-                    const additionalHeight = 18;
-                    if (containerWidth === 0) return lineHeight;
-                    const charsPerLine = Math.floor((containerWidth - 120) / 7);
-                    const numLines = Math.ceil(
-                      ((items[index].description?.length ?? 0) +
-                        items[index].category.length) /
-                        charsPerLine
-                    );
-                    return items[index].type === 'header'
-                      ? 36
-                      : lineHeight + (numLines - 1) * additionalHeight;
-                  }}
-                  width="100%"
-                  className="eb-scrollbar-none eb-overflow-y-auto"
-                >
-                  {({ index, style }) => {
-                    const item = items[index];
+                {/* Only render the list when needed - use internalOpen to maintain during animations */}
+                {internalOpen && (
+                  <List
+                    key={searchQuery} // Only re-render when search changes, not when open changes
+                    height={300}
+                    itemCount={items.length}
+                    itemSize={getItemHeight}
+                    width="100%"
+                    className="eb-scrollbar-none eb-overflow-y-auto"
+                    overscanCount={10}
+                    initialScrollOffset={
+                      searchQuery === '' ? initialScrollOffset : 0
+                    }
+                  >
+                    {({ index, style }) => {
+                      const item = items[index];
 
-                    if (item.type === 'header') {
+                      if (!item) return null;
+
+                      if (item.type === 'header') {
+                        return (
+                          <div
+                            key={item.id}
+                            style={{
+                              ...style,
+                              padding: '8px',
+                            }}
+                            className="eb-text-xs eb-font-semibold eb-text-muted-foreground"
+                          >
+                            {item.category}
+                          </div>
+                        );
+                      }
+
+                      // Item rendering
                       return (
-                        <div
+                        <CommandItem
                           key={item.id}
+                          value={item.code}
+                          onSelect={(value) => {
+                            onChange(value);
+                            setOpen(false);
+                          }}
+                          className={cn(
+                            'eb-cursor-pointer eb-text-xs sm:eb-text-sm',
+                            field.value === item.code && 'eb-bg-accent'
+                          )}
                           style={{
                             ...style,
                             padding: '8px',
                           }}
-                          className="eb-text-xs eb-font-semibold eb-text-muted-foreground"
                         >
-                          {item.category}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <CommandItem
-                        key={item.id}
-                        value={item.code}
-                        onSelect={(value) => {
-                          onChange(value);
-                          setOpen(false);
-                        }}
-                        className="eb-cursor-pointer eb-text-xs sm:eb-text-sm"
-                        style={{
-                          ...style,
-                          padding: '8px',
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            'eb-mr-2 eb-h-4 eb-w-4',
-                            field.value === item.code
-                              ? 'eb-opacity-100'
-                              : 'eb-opacity-0'
-                          )}
-                        />
-                        <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                          [{item.category}] {item.description}
-                          <span className="eb-pl-2 eb-text-muted-foreground">
-                            {item.code}
+                          <Check
+                            className={cn(
+                              'eb-mr-2 eb-h-4 eb-w-4',
+                              field.value === item.code
+                                ? 'eb-opacity-100'
+                                : 'eb-opacity-0'
+                            )}
+                          />
+                          <span className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                            [{item.category}] {item.description}
+                            <span className="eb-pl-2 eb-text-muted-foreground">
+                              {item.code}
+                            </span>
                           </span>
-                        </span>
-                      </CommandItem>
-                    );
-                  }}
-                </List>
+                        </CommandItem>
+                      );
+                    }}
+                  </List>
+                )}
               </div>
             </CommandList>
           </Command>
