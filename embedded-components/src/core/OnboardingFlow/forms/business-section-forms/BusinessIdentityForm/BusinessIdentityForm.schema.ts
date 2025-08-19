@@ -2,7 +2,7 @@ import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
-import { getValidationMessage as v } from '@/core/OnboardingFlow/utils/formUtils';
+import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
@@ -192,7 +192,7 @@ export const BusinessIdentityFormSchema = z.object({
     ),
   solePropHasEin: z
     .string()
-    .min(1, v('solePropHasEin', 'required'))
+    // .min(1, v('solePropHasEin', 'required'))
     .refine(
       (val) => val === 'yes' || val === 'no',
       i18n.t('onboarding:fields.solePropHasEin.validation.required')
@@ -216,6 +216,7 @@ export const BusinessIdentityFormSchema = z.object({
 export const refineBusinessIdentityFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
+  const v = useGetValidationMessage();
   return schema.superRefine((values, context) => {
     if (
       values.countryOfFormation === 'US' &&

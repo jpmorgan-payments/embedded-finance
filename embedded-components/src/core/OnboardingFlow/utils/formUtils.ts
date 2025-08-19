@@ -21,6 +21,10 @@ import {
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
 import { ScreenId } from '@/core/OnboardingFlow/types';
 import {
   AnyFieldConfiguration,
@@ -854,18 +858,25 @@ export type ValidationMessageKeysFor<
 export const useGetValidationMessage = <
   Field extends
     keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
->(
-  fieldRule: FieldRule
-): ((
+>(): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
   count?: number
 ) => string) => {
+  const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
+  const { getFieldRule } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
+
   const getValidationMessage = (
     field: Field,
     messageKey: ValidationMessageKeysFor<Field>,
     count?: number
   ): string => {
+    const { fieldRule } = getFieldRule(field);
+
     // Build translation key path with validation prefix
     const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
 

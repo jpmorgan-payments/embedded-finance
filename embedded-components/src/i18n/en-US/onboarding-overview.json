@@ -53,14 +53,6 @@
     }
   },
   "fields": {
-    "organizationType": {
-      "label": "Select business type",
-      "fieldName": "Business type",
-      "description": "",
-      "validation": {
-        "required": "$t(validation:required)"
-      }
-    },
     "controllerFirstName": {
       "label": "First name",
       "description": "",
@@ -171,15 +163,6 @@
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
       }
     },
-    "countryOfCitizenship": {
-      "label": "Country of Citizenship",
-      "placeholder": "Select country of citizenship",
-      "description": "The country where you hold citizenship",
-      "validation": {
-        "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
-      }
-    },
     "industry": {
       "label": "Industry classification",
       "description": "e.g. \"Boat dealers\" or \"441222\".",
@@ -224,18 +207,6 @@
         "min": "$t(validation:year.min, {'min': 1800})",
         "max": "$t(validation:year.max)",
         "invalid": "$t(validation:year.range, {'min': 1800, 'max': 'current year'})"
-      }
-    },
-    "organizationIds": {
-      "label": "Business identification",
-      "itemLabel": "Business Identification",
-      "itemLabelNumbered": "Business Identification {{number}}",
-      "appendLabel": "Add Business Identification",
-      "removeLabel": "Remove Business Identification",
-      "validation": {
-        "minItems": "At least {{count}} Business Identification is required",
-        "maxItems": "Maximum 6 Business Identifications allowed",
-        "uniqueTypes": "Each Business Identification type must be unique"
       }
     },
     "organizationIdEin": {
@@ -531,110 +502,10 @@
         "tooltip": ""
       }
     },
-    "ownerEmail": {
-      "label": "Email",
-      "placeholder": "Enter email",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "invalid": "$t(validation:contact.email.invalid)",
-        "format": "$t(validation:contact.email.format)",
-        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})",
-        "noPersonal": "$t(validation:contact.email.noPersonal)"
-      },
-      "group": "contact"
-    },
-    "individualIds": {
-      "label": "Individual Identification"
-    },
-    "ownerIds": {
-      "label": "Individual Identification",
-      "itemLabel": "Individual Identification",
-      "itemLabelNumbered": "Individual Identification {{number}}",
-      "validation": {
-        "required": "At least one government ID is required",
-        "minItems": "Minimum {{count}} IDs required",
-        "maxItems": "Maximum {{count}} IDs allowed",
-        "uniqueTypes": "Each ID type must be unique"
-      },
-      "idType": {
-        "label": "ID type",
-        "placeholder": "Select ID type",
-        "description": "Type of individual ID",
-        "tooltip": "should match your individual ID type",
-        "validation": {
-          "required": "$t(validation:required)"
-        }
-      },
-      "description": {
-        "label": "Description",
-        "placeholder": "Enter description",
-        "description": "Description of the ID",
-        "tooltip": "should match your business registration documents ID description",
-        "validation": {
-          "maxLength": "$t(validation:common.maxLength, {'count': 100})"
-        }
-      },
-      "value": {
-        "label": "ID value",
-        "placeholder": "Enter ID value",
-        "description": "ID value",
-        "tooltip": "should match your individual ID number",
-        "validation": {
-          "required": "$t(validation:required)",
-          "format": "$t(validation:common.format)",
-          "ssnFormat": "$t(validation:ids.ssn)",
-          "itinFormat": "$t(validation:ids.itin.format, {'digits': 9, 'startDigit': 9})",
-          "noSpaces": "$t(validation:common.noSpaces)"
-        }
-      },
-      "expiryDate": {
-        "label": "Expiry date",
-        "placeholder": "YYYY-MM-DD",
-        "description": "Date when the individual ID expires",
-        "tooltip": "Date when the individual ID expires",
-        "validation": {
-          "format": "Expiry date must be in 'YYYY-MM-DD' format",
-          "invalid": "$t(validation:common.invalid)",
-          "past": "$t(validation:date.past)",
-          "tooFar": "$t(validation:date.tooFar, {'years': 10})"
-        }
-      },
-      "issuer": {
-        "label": "Issuer",
-        "placeholder": "Enter issuer",
-        "description": "Organization ID issuer",
-        "tooltip": "should match your business registration documents ID issuer",
-        "validation": {
-          "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
-        }
-      },
-      "group": "identification"
-    },
-    "ownerJobTitleDescription": {
-      "label": "Job title description",
-      "placeholder": "Enter job title description",
-      "description": "Brief description of your role and responsibilities",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
-        "pattern": "$t(validation:common.pattern)",
-        "noHtml": "$t(validation:common.noHtml)",
-        "noUrls": "$t(validation:common.noUrls)",
-        "required": "Description is required when job title is Other."
-      }
-    },
     "natureOfOwnership": {
       "label": "Nature of ownership",
       "placeholder": "Select nature of ownership",
       "description": "How you own or control the organization",
-      "validation": {
-        "required": "$t(validation:required)"
-      }
-    },
-    "soleOwner": {
-      "label": "Sole owner",
-      "description": "Whether you are the sole owner of the organization",
       "validation": {
         "required": "$t(validation:required)"
       }
@@ -682,17 +553,6 @@
         "format": "$t(validation:contact.phone.format)",
         "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
       }
-    },
-    "jurisdiction": {
-      "label": "Jurisdiction",
-      "placeholder": "Select jurisdiction",
-      "description": "The legal jurisdiction under which the business operates",
-      "tooltip": "",
-      "validation": {
-        "required": "Jurisdiction is required",
-        "exactlyTwoChars": "Jurisdiction code must be exactly 2 characters"
-      },
-      "group": "organization"
     }
   },
   "idValueLabels": {

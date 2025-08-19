@@ -63,8 +63,9 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
           let schemaKeys: string[] = [];
           if (step.stepType === 'form') {
             const modifiedSchema = modifySchema(
-              step.Component.schema,
-              step.Component.refineSchemaFn
+              typeof step.Component.schema === 'function'
+                ? step.Component.schema()
+                : step.Component.schema
             );
             schemaKeys = Object.keys(
               'shape' in modifiedSchema

@@ -156,6 +156,25 @@ export const partyFieldMap: PartyFieldMap = {
   //     defaultValue: '',
   //   },
   // },
+  natureOfOwnership: {
+    path: 'individualDetails.natureOfOwnership',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owners-section'],
+        },
+        rule: {
+          display: 'visible',
+          required: true,
+        },
+      },
+    ],
+  },
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
     baseRule: {

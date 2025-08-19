@@ -386,7 +386,10 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   const form = useFormWithFilters({
     clientData,
     screenId: currentScreenId,
-    schema: Component.schema,
+    schema:
+      typeof Component?.schema === 'function'
+        ? Component.schema()
+        : Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
     overrideDefaultValues: { ...savedFormValues, ...formValuesFromResponse },
     disabled: isFormSubmitting,

@@ -6,13 +6,14 @@ import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 import {
-  PersonalDetailsFormSchema,
   refinePersonalDetailsFormSchema,
+  usePersonalDetailsFormSchema,
 } from './PersonalDetailsForm.schema';
 
 export const PersonalDetailsForm: FormStepComponent = () => {
   // const { t } = useTranslation('onboarding');
-  const form = useFormContext<z.input<typeof PersonalDetailsFormSchema>>();
+  const schema = usePersonalDetailsFormSchema();
+  const form = useFormContext<z.input<typeof schema>>();
 
   const jobTitle = form.watch('controllerJobTitle');
 
@@ -79,10 +80,10 @@ export const PersonalDetailsForm: FormStepComponent = () => {
   );
 };
 
-PersonalDetailsForm.schema = PersonalDetailsFormSchema;
+PersonalDetailsForm.schema = usePersonalDetailsFormSchema;
 PersonalDetailsForm.refineSchemaFn = refinePersonalDetailsFormSchema;
 PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
-  values: Partial<z.output<typeof PersonalDetailsFormSchema>>
+  values: Partial<z.output<ReturnType<typeof usePersonalDetailsFormSchema>>>
   // partyData
 ) => {
   const { controllerJobTitleDescription, ...rest } = values;

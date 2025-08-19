@@ -150,7 +150,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     currentScreenId
   );
 
-  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
+  const { t } = useTranslation([
+    'onboarding-old',
+    'onboarding-overview',
+    'common',
+  ]);
 
   let fieldRule: OptionalDefaults<FieldRule> = {};
   if (!disableFieldRuleMapping) {
@@ -187,7 +191,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   ) => {
     // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
-    const oldContentTokenKey = `onboarding:${key}`;
+    const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenKey = `onboarding-overview:${key}`;
     const contentTokenKeyWithDefault = `onboarding-overview:${key}.default`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];

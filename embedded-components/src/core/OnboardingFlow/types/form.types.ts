@@ -12,8 +12,8 @@ import {
   IndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
-  ContactDetailsFormSchema,
   IndividualIdentityFormSchema,
+  useContactDetailsFormSchema,
   usePersonalDetailsFormSchema,
 } from '@/core/OnboardingFlow/forms/personal-section-forms';
 import { GatewayScreenFormSchema } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen.schema';
@@ -24,7 +24,7 @@ type OnboardingFormSchemaType = [
   typeof GatewayScreenFormSchema,
   ReturnType<typeof usePersonalDetailsFormSchema>,
   typeof IndividualIdentityFormSchema,
-  typeof ContactDetailsFormSchema,
+  ReturnType<typeof useContactDetailsFormSchema>,
   typeof IndustryFormSchema,
   typeof BusinessIdentityFormSchema,
   typeof BusinessContactInfoFormSchema,
@@ -61,24 +61,27 @@ export type FieldDisplayConfig = 'visible' | 'hidden';
 
 export type FieldInteractionConfig = 'enabled' | 'disabled' | 'readonly';
 
+export type ContentTokenOverrides = {
+  [key in
+    | 'label'
+    | 'description'
+    | 'tooltip'
+    | 'placeholder'
+    | 'fieldName']?: string;
+};
+
 export type FieldRule<T = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
   required?: boolean;
-  contentTokenOverrides?: {
-    [key in
-      | 'label'
-      | 'description'
-      | 'tooltip'
-      | 'placeholder'
-      | 'fieldName']?: string;
-  };
+  contentTokenOverrides?: ContentTokenOverrides;
   defaultValue: T;
 };
 
 export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
+  contentTokenOverrides?: ContentTokenOverrides;
   minItems?: number;
   requiredItems?: number;
   maxItems?: number;

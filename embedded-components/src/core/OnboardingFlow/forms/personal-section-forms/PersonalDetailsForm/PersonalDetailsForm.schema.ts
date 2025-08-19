@@ -1,18 +1,17 @@
-import { defaultResources } from '@/i18n/config';
 import { z } from 'zod';
 
-import { JOB_TITLES } from '@/core/OnboardingFlow/consts';
-import { FieldRule } from '@/core/OnboardingFlow/types';
-import { getValidationMessage as v } from '@/core/OnboardingFlow/utils/formUtils';
+import {
+  JOB_TITLES,
+  NATURE_OF_OWNERSHIP_OPTIONS,
+} from '@/core/OnboardingFlow/consts';
+import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import {
   NAME_PATTERN,
   SUFFIX_PATTERN,
 } from '@/core/OnboardingFlow/utils/validationPatterns';
 
-export const usePersonalDetailsFormSchema = (
-  fieldRule: FieldRule,
-  contentTokens: (typeof defaultResources)['enUS']
-) => {
+export const usePersonalDetailsFormSchema = () => {
+  const v = useGetValidationMessage();
   return z.object({
     controllerFirstName: z
       .string()
@@ -82,12 +81,18 @@ export const usePersonalDetailsFormSchema = (
         (val) => !/https?:\/\/[^\s]+/.test(val),
         v('controllerJobTitleDescription', 'noUrls')
       ),
+    natureOfOwnership: z
+      .union([z.enum(NATURE_OF_OWNERSHIP_OPTIONS), z.literal('')])
+      .refine((val) => val !== '', {
+        message: v('natureOfOwnership', 'required'),
+      }),
   });
 };
 
 export const refinePersonalDetailsFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
+  const v = useGetValidationMessage();
   return schema.superRefine((values, context) => {
     if (
       values.controllerJobTitle === 'Other' &&

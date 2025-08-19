@@ -19,12 +19,15 @@ import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { IndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
 
 export const IndividualIdentityForm: FormStepComponent = () => {
-  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
+  const { t } = useTranslation(['onboarding-overview', 'onboarding-old']);
   const form = useFormContext<z.input<typeof IndividualIdentityFormSchema>>();
 
   const getValueLabel = (idType: IndividualIdentityIdType) => {
-    if (!idType) return t(['onboarding:idValueLabels.placeholder']);
-    return t([`idValueLabels.${idType}`, `onboarding:idValueLabels.${idType}`]);
+    if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
+    return t([
+      `idValueLabels.${idType}`,
+      `onboarding-old:idValueLabels.${idType}`,
+    ]);
   };
 
   const getValueDescription = (idType: IndividualIdentityIdType) => {
