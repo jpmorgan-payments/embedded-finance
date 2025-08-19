@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.8.18",
+    "@jpmorgan-payments/embedded-finance-components": "^0.8.20",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
