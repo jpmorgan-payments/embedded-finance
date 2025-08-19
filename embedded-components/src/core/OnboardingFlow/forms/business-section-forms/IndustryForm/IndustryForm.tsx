@@ -41,7 +41,7 @@ export const IndustryForm: FormStepComponent = () => {
     setShowRecommendations(false);
   };
   return (
-    <div className="eb-mt-1 eb-box-border eb-w-full eb-max-w-full eb-space-y-6 eb-overflow-hidden">
+    <div className="eb-mt-1 eb-space-y-6">
       <Alert
         variant="informative"
         density="sm"
