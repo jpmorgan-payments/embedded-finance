@@ -136,8 +136,12 @@ export function WalletOverview({
         'Review and confirm payment details',
       ],
       component: (
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-xl font-semibold mb-4">Make Payment</h2>
+        <div className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}>
+          <h2
+            className={`text-xl font-semibold mb-4 ${themeStyles.getHeaderTextStyles()}`}
+          >
+            Make Payment
+          </h2>
           <MakePayment onTransactionSettled={handleTransactionSettled} />
         </div>
       ),
@@ -260,9 +264,15 @@ export function WalletOverview({
         'Real-time status updates',
       ],
       component: (
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-xl font-semibold mb-4">Onboarding Flow</h2>
-          <div className="text-gray-500 text-center py-8">
+        <div className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}>
+          <h2
+            className={`text-xl font-semibold mb-4 ${themeStyles.getHeaderTextStyles()}`}
+          >
+            Onboarding Flow
+          </h2>
+          <div
+            className={`text-center py-8 ${themeStyles.getHeaderLabelStyles()}`}
+          >
             <p>OnboardingFlow component would be rendered here</p>
             <p className="text-sm mt-2">
               This component is available but not yet implemented in this demo
@@ -453,13 +463,13 @@ export function WalletOverview({
 
       {componentConfigsWithInfo.length === 0 && (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className={themeStyles.getHeaderLabelStyles()}>
             No components available for the current scenario. This may be due to
             a database reset.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className={`mt-4 px-4 py-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(true)}`}
           >
             Reload Page
           </button>

@@ -558,14 +558,14 @@ export function ThemeCustomizationDrawer({
             type="color"
             value={value || '#000000'}
             onChange={(e) => handleTokenChange(token, e.target.value)}
-            className="w-12 h-8 p-1 border rounded"
+            className="w-12 h-8 p-1 border border-gray-300 rounded bg-white"
           />
           <Input
             type="text"
             value={value || ''}
             onChange={(e) => handleTokenChange(token, e.target.value)}
             placeholder="Color value"
-            className="flex-1"
+            className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
           />
         </div>
       );
@@ -577,7 +577,7 @@ export function ThemeCustomizationDrawer({
           value={value || 'Inter'}
           onValueChange={(val) => handleTokenChange(token, val)}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -601,7 +601,7 @@ export function ThemeCustomizationDrawer({
           min={constraints.min}
           max={constraints.max}
           step={constraints.step}
-          className="w-32"
+          className="w-32 border-gray-300 bg-white text-gray-900"
         />
       );
     }
@@ -619,7 +619,7 @@ export function ThemeCustomizationDrawer({
             max={constraints.max}
             step={constraints.step}
             placeholder="e.g., 8"
-            className="w-32"
+            className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
           />
         );
       }
@@ -630,7 +630,7 @@ export function ThemeCustomizationDrawer({
           value={value || ''}
           onChange={(e) => handleTokenChange(token, e.target.value)}
           placeholder="e.g., 8px, 0.5rem"
-          className="flex-1"
+          className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
         />
       );
     }
@@ -641,7 +641,7 @@ export function ThemeCustomizationDrawer({
           value={value?.toString() || '400'}
           onValueChange={(val) => handleTokenChange(token, val)}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-32 border-gray-300 bg-white text-gray-900">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -670,7 +670,7 @@ export function ThemeCustomizationDrawer({
           max={constraints.max}
           step={constraints.step}
           placeholder="e.g., 0.875"
-          className="w-32"
+          className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
         />
       );
     }
@@ -682,7 +682,7 @@ export function ThemeCustomizationDrawer({
         value={value || ''}
         onChange={(e) => handleTokenChange(token, e.target.value)}
         placeholder="Value"
-        className="flex-1"
+        className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
       />
     );
   };
@@ -716,7 +716,7 @@ export function ThemeCustomizationDrawer({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-7 w-7"
+            className="h-7 w-7 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           >
             <X className="h-3 w-3" />
           </Button>
@@ -726,9 +726,9 @@ export function ThemeCustomizationDrawer({
         <div className="flex-1 flex flex-col min-h-0">
           {/* Info Alert */}
           <div className="px-4 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-start gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-              <Info className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-blue-800">
+            <div className="flex items-start gap-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+              <Info className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-gray-700">
                 <p className="text-xs">
                   Customize design tokens to create your own theme. Changes are
                   applied in real-time.
@@ -737,7 +737,7 @@ export function ThemeCustomizationDrawer({
                   href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline text-xs whitespace-nowrap"
+                  className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
                 >
                   View design tokens docs →
                 </a>
@@ -768,7 +768,7 @@ export function ThemeCustomizationDrawer({
                       handleBaseThemeChange(value as ThemeOption);
                     }}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -785,7 +785,7 @@ export function ThemeCustomizationDrawer({
                   size="icon"
                   onClick={resetToBaseTheme}
                   title="Reset to base theme"
-                  className="h-9 w-9 flex-shrink-0"
+                  className="h-9 w-9 flex-shrink-0 border-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -798,7 +798,11 @@ export function ThemeCustomizationDrawer({
                 variant={isCopied ? 'default' : 'outline'}
                 size="sm"
                 onClick={copyThemeToClipboard}
-                className="flex items-center gap-2 flex-1 transition-all duration-200"
+                className={`flex items-center gap-2 flex-1 transition-all duration-200 ${
+                  isCopied
+                    ? ''
+                    : 'border-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                }`}
                 disabled={isCopied}
               >
                 {isCopied ? (
@@ -812,7 +816,11 @@ export function ThemeCustomizationDrawer({
                 variant={isUrlCopied ? 'default' : 'outline'}
                 size="sm"
                 onClick={shareThemeAsUrl}
-                className="flex items-center gap-2 flex-1 transition-all duration-200"
+                className={`flex items-center gap-2 flex-1 transition-all duration-200 ${
+                  isUrlCopied
+                    ? ''
+                    : 'border-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                }`}
                 disabled={isUrlCopied}
               >
                 {isUrlCopied ? (
@@ -830,7 +838,7 @@ export function ThemeCustomizationDrawer({
                 variant="outline"
                 size="sm"
                 onClick={importThemeFromClipboard}
-                className="flex items-center gap-2 w-full transition-all duration-200"
+                className="flex items-center gap-2 w-full transition-all duration-200 border-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 disabled={isImporting}
               >
                 {isImporting ? (
@@ -851,8 +859,8 @@ export function ThemeCustomizationDrawer({
                   const Icon = group.icon;
                   return (
                     <AccordionItem key={groupKey} value={groupKey}>
-                      <AccordionTrigger className="flex items-center gap-2 text-sm font-medium">
-                        <Icon className="h-4 w-4" />
+                      <AccordionTrigger className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                        <Icon className="h-4 w-4 text-gray-700" />
                         {group.title}
                         <span className="text-xs text-gray-500 ml-auto">
                           ({group.tokens.length})
@@ -877,7 +885,7 @@ export function ThemeCustomizationDrawer({
                               <div key={token} className="space-y-2">
                                 <Label
                                   htmlFor={token}
-                                  className="text-xs text-gray-600"
+                                  className="text-xs text-gray-900 font-medium"
                                 >
                                   {token}
                                 </Label>
