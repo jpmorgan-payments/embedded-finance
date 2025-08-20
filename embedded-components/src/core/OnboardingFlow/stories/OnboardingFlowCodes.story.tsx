@@ -39,7 +39,7 @@ MockExistingClient.args = {
 
 // Recommendation API mock stories
 export const MockSingleRecommendation = Default.bind({});
-MockSingleRecommendation.storyName = 'Single Recommendation';
+MockSingleRecommendation.storyName = 'Single recommendation';
 MockSingleRecommendation.args = {
   ...MockExistingClient.args,
 };
@@ -85,7 +85,7 @@ MockSingleRecommendation.parameters = {
 };
 
 export const MockMultipleRecommendations = Default.bind({});
-MockMultipleRecommendations.storyName = 'Multiple Recommendations';
+MockMultipleRecommendations.storyName = 'Multiple recommendations';
 MockMultipleRecommendations.args = {
   ...MockExistingClient.args,
 };
