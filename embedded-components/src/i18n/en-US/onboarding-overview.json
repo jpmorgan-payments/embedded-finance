@@ -11,6 +11,10 @@
         "description": "To keep your account details safe, we expect that the person completing this application holds primary control over financial and business operations for the business. If this is not you, please don't proceed below."
       }
     },
+    "personalDetails": {
+      "legalNameHeader": "Legal name",
+      "legalNameDescription": "Your full name as recorded with government agencies"
+    },
     "overview": {
       "title": "Overview",
       "description": "",
@@ -137,6 +141,15 @@
         "noHtml": "$t(validation:common.noHtml)",
         "noUrls": "$t(validation:common.noUrls)",
         "required": "Description is required when job title is Other."
+      }
+    },
+    "natureOfOwnership": {
+      "label": "Nature of ownership",
+      "placeholder": "Select nature of ownership",
+      "description": "How you own or control the organization",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)"
       }
     },
     "birthDate": {
@@ -500,14 +513,6 @@
         },
         "placeholder": "Select or search",
         "tooltip": ""
-      }
-    },
-    "natureOfOwnership": {
-      "label": "Nature of ownership",
-      "placeholder": "Select nature of ownership",
-      "description": "How you own or control the organization",
-      "validation": {
-        "required": "$t(validation:required)"
       }
     },
     "organizationPhone.phoneType": {

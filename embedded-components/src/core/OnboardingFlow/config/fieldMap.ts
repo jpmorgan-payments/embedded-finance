@@ -166,7 +166,7 @@ export const partyFieldMap: PartyFieldMap = {
     conditionalRules: [
       {
         condition: {
-          screenId: ['owners-section'],
+          screenId: ['owner-stepper'],
         },
         rule: {
           display: 'visible',
