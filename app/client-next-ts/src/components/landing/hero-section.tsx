@@ -13,7 +13,7 @@ function ConceptVisualization() {
     <div className="flex flex-col items-center">
       {/* Outermost layer - Demo Applications */}
       <div
-        className="bg-sp-bg border-2 border-sp-border rounded-lg px-8 py-6 cursor-pointer hover:bg-sp-accent transition-colors w-full max-w-lg"
+        className="bg-sp-bg border-2 border-sp-border rounded-md px-8 py-6 cursor-pointer hover:bg-sp-accent transition-colors w-full max-w-lg"
         onClick={() => scrollToSection('demo-applications')}
       >
         <div className="flex justify-center mb-4">
@@ -24,7 +24,7 @@ function ConceptVisualization() {
 
         {/* Middle layer - Embedded Components */}
         <div
-          className="bg-sp-accent border-2 border-sp-border rounded-lg px-7 py-5 cursor-pointer hover:bg-white transition-colors"
+          className="bg-sp-accent border-2 border-sp-border rounded-md px-7 py-5 cursor-pointer hover:bg-white transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             scrollToSection('embedded-components');
@@ -38,7 +38,7 @@ function ConceptVisualization() {
 
           {/* Innermost layer - Utility Components */}
           <div
-            className="bg-white border-2 border-sp-border rounded-lg px-6 py-4 cursor-pointer hover:bg-sp-accent transition-colors"
+            className="bg-white border-2 border-sp-border rounded-md px-6 py-4 cursor-pointer hover:bg-sp-accent transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               scrollToSection('utility-components');
