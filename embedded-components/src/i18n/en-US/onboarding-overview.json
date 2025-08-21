@@ -176,6 +176,28 @@
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
       }
     },
+    "solePropSsn": {
+      "label": "$t(onboarding-overview:idValueLabels.SSN)",
+      "description": "$t(onboarding-overview:idValueDescriptions.SSN)",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:id.ssn.format)"
+      }
+    },
+    "controllerIds": {
+      "value": {
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:format)",
+          "ssnFormat": "$t(validation:id.ssn)",
+          "itinFormat": "$t(validation:id.itin.format)",
+          "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+          "noSpaces": "$t(validation:common.noSpaces)"
+        }
+      }
+    },
     "industry": {
       "label": "Industry classification",
       "description": "e.g. \"Boat dealers\" or \"441222\".",
@@ -244,19 +266,6 @@
       },
       "validation": {
         "required": "$t(validation:required)"
-      }
-    },
-    "controllerIds": {
-      "value": {
-        "tooltip": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "format": "$t(validation:format)",
-          "ssnFormat": "$t(validation:id.ssn)",
-          "itinFormat": "$t(validation:id.itin.format, {'digits': 9, 'startDigit': 9})",
-          "itinRestrictedRange": "$t(validation:id.itin.invalidRange, {'positions': '2-3'})",
-          "noSpaces": "$t(validation:common.noSpaces)"
-        }
       }
     },
     "controllerPhone": {

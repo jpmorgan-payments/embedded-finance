@@ -54,7 +54,11 @@ export const OwnersSectionScreen = () => {
     onPostPartySettled: onPostPartyResponse,
     organizationType,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
+  const { t } = useTranslation([
+    'onboarding-old',
+    'onboarding-overview',
+    'common',
+  ]);
   const queryClient = useQueryClient();
 
   const controllerParty = clientData?.parties?.find(

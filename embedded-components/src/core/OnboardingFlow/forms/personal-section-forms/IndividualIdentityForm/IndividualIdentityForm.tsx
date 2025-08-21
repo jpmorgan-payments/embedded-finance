@@ -15,6 +15,7 @@ import {
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useIndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
 
@@ -24,6 +25,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
     useFormContext<
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
     >();
+  const { getFieldRule } = useFormUtils();
 
   const getValueLabel = (idType: IndividualIdentityIdType) => {
     if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
@@ -74,47 +76,73 @@ export const IndividualIdentityForm: FormStepComponent = () => {
           ),
         }))}
       />
-      {form.watch('countryOfResidence') === 'US' && (
-        <div className="eb-space-y-3">
-          <OnboardingFormField
-            key={currentIdType}
-            control={form.control}
-            name="controllerIds.0.value"
-            type="text"
-            maskFormat="### - ## - ####"
-            maskChar="_"
-            label={getValueLabel(currentIdType)}
-            description={getValueDescription(currentIdType)}
-          />
+      <OnboardingFormField
+        control={form.control}
+        name="solePropSsn"
+        type="text"
+        maskFormat="### - ## - ####"
+        maskChar="_"
+      />
+      {form.watch('countryOfResidence') === 'US' &&
+        getFieldRule('controllerIds.0.value').fieldRule.display ===
+          'visible' && (
+          <div className="eb-space-y-3">
+            <OnboardingFormField
+              key={currentIdType}
+              control={form.control}
+              name="controllerIds.0.value"
+              type="text"
+              maskFormat="### - ## - ####"
+              maskChar="_"
+              label={getValueLabel(currentIdType)}
+              description={getValueDescription(currentIdType)}
+            />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" type="button" size="sm" className="">
-                Use a different ID type
-                <ChevronDownIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="eb-component">
-              {(['SSN', 'ITIN'] as IndividualIdentityIdType[]).map((idType) => (
-                <DropdownMenuItem
-                  key={idType}
-                  disabled={form.watch('controllerIds.0.idType') === idType}
-                  onClick={() => {
-                    form.setValue('controllerIds.0.idType', idType);
-                    form.setValue('controllerIds.0.value', '');
-                  }}
-                >
-                  <div className="eb-flex eb-items-center eb-gap-2">
-                    {getValueLabel(idType)}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" type="button" size="sm" className="">
+                  Use a different ID type
+                  <ChevronDownIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="eb-component">
+                {(['SSN', 'ITIN'] as IndividualIdentityIdType[]).map(
+                  (idType) => (
+                    <DropdownMenuItem
+                      key={idType}
+                      disabled={form.watch('controllerIds.0.idType') === idType}
+                      onClick={() => {
+                        form.setValue('controllerIds.0.idType', idType);
+                        form.setValue('controllerIds.0.value', '');
+                      }}
+                    >
+                      <div className="eb-flex eb-items-center eb-gap-2">
+                        {getValueLabel(idType)}
+                      </div>
+                    </DropdownMenuItem>
+                  )
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
     </div>
   );
 };
 
 IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
+// IndividualIdentityForm.updateAnotherPartyOnSubmit = {
+//   partyFilters: {
+//     partyType: 'ORGANIZATION',
+//     roles: ['CLIENT'],
+//   },
+//   getValues: (values) => ({
+//     organizationIds: [
+//       {
+//         idType: 'SSN',
+//         value: values.solePropSsn,
+//         issuer: 'US',
+//       },
+//     ],
+//   }),
+// };

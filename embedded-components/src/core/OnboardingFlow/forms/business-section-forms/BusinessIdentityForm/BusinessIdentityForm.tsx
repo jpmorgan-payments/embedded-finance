@@ -118,10 +118,8 @@ export const BusinessIdentityForm: FormStepComponent = () => {
             required
           />
 
-          {!(
-            Object.keys(form.getValues()).includes('solePropHasEin') &&
-            form.watch('solePropHasEin') !== 'yes'
-          ) && (
+          {(form.watch('solePropHasEin') === 'yes' ||
+            form.watch('solePropHasEin') === undefined) && (
             <OnboardingFormField
               control={form.control}
               name="organizationIdEin"

@@ -19,6 +19,31 @@ const hasRestrictedRanges = (value: string): boolean => {
   );
 };
 
+const isValidSsn = (value: string): boolean => {
+  const firstThree = parseInt(value.slice(0, 3), 10);
+  return !!(
+    value.length === 9 &&
+    value.match(/^[0-8]{1}[0-9]{2}[0-9]{2}[0-9]{4}/) &&
+    firstThree !== 666 &&
+    firstThree !== 0 &&
+    ![
+      '078051120',
+      '219099999',
+      '123456789',
+      '888888888',
+      '777777777',
+      '555555555',
+      '444444444',
+      '333333333',
+      '222222222',
+      '111111111',
+      '457555462',
+      '012345678',
+      '987654321',
+    ].includes(value)
+  );
+};
+
 const controllerIdSchema = z
   .object({
     description: z.string().optional(),
@@ -95,28 +120,7 @@ const controllerIdSchema = z
     (data) => {
       switch (data.idType) {
         case 'SSN': {
-          const firstThree = parseInt(data.value.slice(0, 3), 10);
-          return (
-            data.value.length === 9 &&
-            data.value.match(/^[0-8]{1}[0-9]{2}[0-9]{2}[0-9]{4}/) &&
-            firstThree !== 666 &&
-            firstThree !== 0 &&
-            ![
-              '078051120',
-              '219099999',
-              '123456789',
-              '888888888',
-              '777777777',
-              '555555555',
-              '444444444',
-              '333333333',
-              '222222222',
-              '111111111',
-              '457555462',
-              '012345678',
-              '987654321',
-            ].includes(data.value)
-          );
+          return isValidSsn(data.value);
         }
         case 'ITIN': {
           // Basic ITIN format check
@@ -158,6 +162,7 @@ export const useIndividualIdentityFormSchema = () => {
   return z.object({
     birthDate: z
       .string()
+      .min(1, v('birthDate', 'required'))
       .refine(
         (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
         v('birthDate', 'format')
@@ -166,10 +171,13 @@ export const useIndividualIdentityFormSchema = () => {
         (val) => !Number.isNaN(new Date(val).getTime()),
         v('birthDate', 'invalid')
       )
-      .refine((val) => {
-        const date = new Date(val);
-        return date <= new Date();
-      }, i18n.t('onboarding:fields.birthDate.validation.future'))
+      .refine(
+        (val) => {
+          const date = new Date(val);
+          return date <= new Date();
+        },
+        v('birthDate', 'future')
+      )
       .refine((val) => {
         const birthDate = new Date(val);
         const now = new Date();
@@ -193,6 +201,10 @@ export const useIndividualIdentityFormSchema = () => {
       .refine((val) => val === 'US', {
         message: 'Only US is supported at this time.',
       }),
+    solePropSsn: z
+      .string()
+      .min(1, v('solePropSsn', 'required'))
+      .refine((val) => isValidSsn(val), v('solePropSsn', 'format')),
     controllerIds: z.array(controllerIdSchema).refine((ids) => {
       const types = ids?.map((id) => id.idType);
       return new Set(types).size === types?.length;

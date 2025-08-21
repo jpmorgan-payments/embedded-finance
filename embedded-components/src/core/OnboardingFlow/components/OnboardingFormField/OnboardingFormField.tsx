@@ -42,14 +42,12 @@ import {
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
-import { useFlowContext } from '@/core/OnboardingFlow/contexts';
-import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldRule,
   OnboardingFormValuesSubmit,
   OptionalDefaults,
 } from '@/core/OnboardingFlow/types/form.types';
-import { useFormUtilsWithClientContext } from '@/core/OnboardingFlow/utils/formUtils';
+import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
 
 type FieldType =
   | 'text'
@@ -143,12 +141,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
-  const { clientData } = useOnboardingContext();
-  const { currentScreenId } = useFlowContext();
-  const { getFieldRule } = useFormUtilsWithClientContext(
-    clientData,
-    currentScreenId
-  );
+  const { getFieldRule } = useFormUtils();
 
   const { t } = useTranslation([
     'onboarding-old',
@@ -585,10 +578,13 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 message: errorMsg,
                               });
                               await form.trigger(field.name);
-                            } else {
+                            } else if (date) {
                               form?.clearErrors(field.name);
                               onChangeProp?.(date?.toISOString().split('T')[0]);
                               field.onChange(date?.toISOString().split('T')[0]);
+                            } else {
+                              onChangeProp?.('');
+                              field.onChange('');
                             }
                             onBlur();
                           }}

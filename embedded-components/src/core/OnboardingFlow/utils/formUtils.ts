@@ -428,6 +428,12 @@ function evaluateFieldRules(
   return rule;
 }
 
+export function useFormUtils() {
+  const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
+  return useFormUtilsWithClientContext(clientData, currentScreenId);
+}
+
 /**
  * React hook that provides context-aware filtering functions
  * @param clientData - Client response data
@@ -883,14 +889,14 @@ export const useGetValidationMessage = <
     const label =
       fieldRule.contentTokenOverrides?.label ??
       i18n.t([
-        `onboarding:fields.${field}.label.default`,
-        `onboarding:fields.${field}.label`,
+        `onboarding-overview:fields.${field}.label.default`,
+        `onboarding-overview:fields.${field}.label`,
       ] as unknown as TemplateStringsArray);
 
     const fieldName = i18n.t(
       [
-        `onboarding:fields.${field}.fieldName.default`,
-        `onboarding:fields.${field}.fieldName`,
+        `onboarding-overview:fields.${field}.fieldName.default`,
+        `onboarding-overview:fields.${field}.fieldName`,
       ],
       {
         defaultValue: label,
