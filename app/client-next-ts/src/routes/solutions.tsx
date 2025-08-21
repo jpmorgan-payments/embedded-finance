@@ -166,7 +166,7 @@ function SolutionsPage() {
                       className="flex flex-col space-y-6"
                     >
                       {/* Summary Block with Visualization */}
-                      <div className="bg-white rounded-page-lg shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col">
+                      <div className="bg-white rounded-page-lg shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col relative">
                         <div className="bg-sp-accent rounded-t-page-lg h-36 overflow-hidden border-b border-sp-border">
                           <div
                             className="h-full w-full"
@@ -177,6 +177,14 @@ function SolutionsPage() {
                               backgroundRepeat: 'no-repeat',
                             }}
                           ></div>
+                          {/* COMING SOON tag for JPM Hosted */}
+                          {groupKey === 'hosted' && (
+                            <div className="absolute top-3 right-3">
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-600 text-white uppercase tracking-wide">
+                                Coming Soon
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="p-4 flex flex-col flex-1 justify-center">
                           <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center font-heading">
