@@ -12,8 +12,8 @@ import {
   IndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
-  IndividualIdentityFormSchema,
   useContactDetailsFormSchema,
+  useIndividualIdentityFormSchema,
   usePersonalDetailsFormSchema,
 } from '@/core/OnboardingFlow/forms/personal-section-forms';
 import { GatewayScreenFormSchema } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen.schema';
@@ -23,7 +23,7 @@ import { ScreenId } from '@/core/OnboardingFlow/types/flow.types';
 type OnboardingFormSchemaType = [
   typeof GatewayScreenFormSchema,
   ReturnType<typeof usePersonalDetailsFormSchema>,
-  typeof IndividualIdentityFormSchema,
+  ReturnType<typeof useIndividualIdentityFormSchema>,
   ReturnType<typeof useContactDetailsFormSchema>,
   typeof IndustryFormSchema,
   typeof BusinessIdentityFormSchema,

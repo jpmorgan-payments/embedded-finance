@@ -189,7 +189,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const getContentToken = (
     id: 'placeholder' | 'tooltip' | 'label' | 'description'
   ) => {
-    // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
     const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenKey = `onboarding-overview:${key}`;

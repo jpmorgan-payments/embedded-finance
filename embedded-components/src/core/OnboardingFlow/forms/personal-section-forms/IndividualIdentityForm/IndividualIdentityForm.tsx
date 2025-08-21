@@ -16,11 +16,14 @@ import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
-import { IndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
+import { useIndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
 
 export const IndividualIdentityForm: FormStepComponent = () => {
   const { t } = useTranslation(['onboarding-overview', 'onboarding-old']);
-  const form = useFormContext<z.input<typeof IndividualIdentityFormSchema>>();
+  const form =
+    useFormContext<
+      z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
+    >();
 
   const getValueLabel = (idType: IndividualIdentityIdType) => {
     if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
@@ -114,4 +117,4 @@ export const IndividualIdentityForm: FormStepComponent = () => {
   );
 };
 
-IndividualIdentityForm.schema = IndividualIdentityFormSchema;
+IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
