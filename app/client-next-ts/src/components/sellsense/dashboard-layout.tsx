@@ -32,6 +32,7 @@ import {
   getResetDbScenario,
 } from './scenarios-config';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import { useThemeStyles } from './theme-utils';
 
 // Use display names from centralized scenario configuration
 export type ClientScenario = ReturnType<typeof getScenarioDisplayNames>[number];
@@ -153,6 +154,7 @@ export function DashboardLayout() {
   const [theme, setTheme] = useState<ThemeOption>(
     searchParams.theme || 'SellSense',
   );
+  const themeStyles = useThemeStyles(theme);
   const [contentTone, setContentTone] = useState<ContentTone>(
     searchParams.contentTone || 'Standard',
   );
@@ -338,7 +340,7 @@ export function DashboardLayout() {
   const renderMainContent = () => {
     // Show loading skeleton if database reset is in progress
     if (isLoading) {
-      return <LoadingSkeleton />;
+      return <LoadingSkeleton theme={theme} />;
     }
 
     if (
@@ -565,7 +567,9 @@ export function DashboardLayout() {
       />
 
       {/* Mobile-first responsive layout */}
-      <div className="flex h-[calc(100vh-4rem)] relative">
+      <div
+        className={`flex h-[calc(100vh-4rem)] relative ${themeStyles.getContentAreaStyles()}`}
+      >
         {/* Sidebar - responsive implementation */}
         <Sidebar
           clientScenario={clientScenario}
@@ -581,15 +585,10 @@ export function DashboardLayout() {
           {showMswAlert && (
             <div className="px-4 pt-4">
               <div
-                className={`rounded-lg p-3 mb-3 flex items-center ${
-                  pingQuery.isSuccess
-                    ? 'bg-gray-50 border border-gray-200'
-                    : 'bg-amber-50 border border-amber-300'
-                }`}
+                className={`rounded-lg p-3 mb-3 flex items-center ${themeStyles.getCardStyles()}`}
               >
-                {' '}
                 <div
-                  className={`flex-1 text-sm ${pingQuery.isSuccess ? 'text-gray-700' : 'text-amber-800'}`}
+                  className={`flex-1 text-sm ${themeStyles.getHeaderTextStyles()}`}
                 >
                   <span>
                     API calls are being mocked using{' '}
@@ -597,7 +596,7 @@ export function DashboardLayout() {
                       href="https://mswjs.io"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-gray-900 underline font-medium"
+                      className={`underline font-medium ${themeStyles.getHeaderTextStyles()}`}
                     >
                       Mock Service Worker
                     </a>
@@ -606,13 +605,13 @@ export function DashboardLayout() {
                       ? ' Mock service is currently active.'
                       : ' Service worker may have been terminated by the browser. '}
                   </span>
-                </div>{' '}
+                </div>
                 <div className="flex gap-4">
                   <button
                     onClick={() => window.location.reload()}
                     className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
                       pingQuery.isSuccess
-                        ? 'bg-gray-900 text-white hover:bg-gray-800'
+                        ? themeStyles.getLayoutButtonStyles(true)
                         : 'bg-amber-600 text-white hover:bg-amber-700'
                     }`}
                   >
@@ -620,7 +619,7 @@ export function DashboardLayout() {
                   </button>
                   <button
                     onClick={() => setShowMswAlert(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className={themeStyles.getHeaderLabelStyles()}
                     aria-label="Dismiss"
                   >
                     ✕

@@ -16,6 +16,7 @@ export interface ThemeStyleUtils {
   getHeaderButtonStyles: () => string;
   getHeaderTextStyles: () => string;
   getHeaderCompanyTextStyles: () => string;
+  getHeaderSettingsButtonStyles: () => string;
   getSidebarStyles: () => string;
   getSidebarButtonStyles: (selected: boolean) => string;
   getSidebarLabelStyles: () => string;
@@ -44,7 +45,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'S&P Theme':
           return 'bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'bg-[#3D5C6B] border-[#0000004D]'; // backgroundColor: '#3D5C6B', borderColor: '#0000004D'
+          return 'bg-[#3D5C6B] border-[#0000001A]'; // backgroundColor: '#3D5C6B', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
           return 'bg-[#F7F3F0] border-[#0000004d]'; // Updated background color to #F7F3F0
         case 'PayFicient':
@@ -103,6 +104,24 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
       }
     },
+    getHeaderSettingsButtonStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300'; // Neutral styling for showing component defaults
+        case 'Default Blue':
+          return 'border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300'; // borderColor: '#e2e8f0', backgroundColor: '#ffffff'
+        case 'S&P Theme':
+          return 'border-[#0000004D] bg-white hover:bg-slate-100 hover:border-[#0000004D]'; // borderColor: '#0000004D', backgroundColor: '#ffffff'
+        case 'Create Commerce':
+          return 'border-[#0000004D] bg-[#38474E] hover:bg-[#4A5A6B] hover:border-[#0000004D]'; // borderColor: '#0000004D', backgroundColor: '#38474E'
+        case 'SellSense':
+          return 'border-[#0000004d] bg-white hover:bg-slate-100 hover:border-[#0000004d]'; // borderColor: '#0000004d', backgroundColor: '#ffffff'
+        case 'PayFicient':
+          return 'border-[#0000004d] bg-white hover:bg-slate-100 hover:border-[#0000004d]'; // borderColor: '#0000004d', backgroundColor: '#ffffff'
+        default:
+          return 'border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300';
+      }
+    },
     getHeaderTextStyles: () => {
       switch (theme) {
         case 'Empty':
@@ -144,7 +163,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'S&P Theme':
           return 'bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'bg-[#3D5C6B] border-[#0000004D]'; // backgroundColor: '#3D5C6B', borderColor: '#0000004D'
+          return 'bg-[#3D5C6B] border-[#0000001A]'; // backgroundColor: '#3D5C6B', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
           return 'bg-[#FAF9F7] border-[#0000004d]'; // backgroundColor: '#FAF9F7', borderColor: '#0000004d'
         case 'PayFicient':
@@ -234,7 +253,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'S&P Theme':
           return 'h-fit bg-white border-[#0000004D]'; // cardColor: '#ffffff', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'h-fit bg-[#38474E] border-[#0000004D]'; // popoverColor: '#38474E', borderColor: '#0000004D'
+          return 'h-fit bg-[#38474E] border-[#0000001A]'; // popoverColor: '#38474E', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
           return 'h-fit bg-[#FFFFFF] border-[#0000004d]'; // Updated cardColor to match use-sellsense-themes.ts
         case 'PayFicient':
@@ -249,15 +268,15 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'Empty':
           return 'bg-white border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
-          return 'h-fit min-h-full bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
+          return ' bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
         case 'S&P Theme':
-          return 'h-fit min-h-full bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
+          return 'bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'h-fit min-h-full bg-[#3D5C6B] border-[#0000004D]'; // backgroundColor: '#3D5C6B', borderColor: '#0000004D'
+          return ' bg-[#3D5C6B] border-[#0000001A]'; // backgroundColor: '#3D5C6B', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
-          return 'h-fit min-h-full bg-[#FAF9F7] border-[#0000004d]'; // backgroundColor: '#FAF9F7', borderColor: '#0000004d'
+          return ' bg-[#FAF9F7]'; // backgroundColor: '#FAF9F7', borderColor: '#0000004d'
         case 'PayFicient':
-          return 'h-fit min-h-full bg-[#FFFCF6] border-[#0000004d]'; // backgroundColor: '#FFFCF6', borderColor: '#0000004d'
+          return ' bg-[#FFFCF6]'; // backgroundColor: '#FFFCF6', borderColor: '#0000004d'
         default:
           return 'bg-white border-gray-300';
       }
@@ -292,7 +311,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'S&P Theme':
           return 'bg-slate-50 text-[#1B7F9E] border-[#0000004D]'; // accentColor: '#f1f5f9', primaryColor: '#1B7F9E', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'bg-[#38474E] text-[#FD8172] border-[#0000004D]'; // accentColor: '#38474E', primaryColor: '#FD8172', borderColor: '#0000004D'
+          return 'bg-[#38474E] text-[#FD8172] border-[#0000001A]'; // accentColor: '#38474E', primaryColor: '#FD8172', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
           return 'bg-[#FDF7F0] text-[#f55727] border-[#0000004d]'; // secondaryColor: '#FDF7F0', primaryColor: '#f55727', borderColor: '#0000004d'
         case 'PayFicient':
@@ -312,7 +331,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'S&P Theme':
           return 'bg-[#f6f7f8] text-slate-800 border-[#0000004D]'; // backgroundColor: '#f6f7f8', foregroundColor: '#1e293b', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000004D]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000004D'
+          return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000001A]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
           return 'bg-[#FAF9F7] text-slate-800 border-[#0000004d]'; // backgroundColor: '#FAF9F7', foregroundColor: '#1e293b', borderColor: '#0000004d'
         case 'PayFicient':
@@ -332,7 +351,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
         case 'S&P Theme':
           return 'bg-[#f6f7f8] text-slate-800 border-[#0000004D]'; // backgroundColor: '#f6f7f8', foregroundColor: '#1e293b', borderColor: '#0000004D'
         case 'Create Commerce':
-          return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000004D]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000004D'
+          return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000001A]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000001A' (10% opacity)
         case 'SellSense':
           return 'bg-[#FAF9F7] text-slate-800 border-[#0000004d]'; // backgroundColor: '#FAF9F7', foregroundColor: '#1e293b', borderColor: '#0000004d'
         case 'PayFicient':

@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/select';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
-import { useThemeStyles } from './theme-utils';
 import { getScenarioDisplayNames } from './scenarios-config';
 import React from 'react'; // Added missing import for React
 
@@ -36,8 +35,6 @@ export function SettingsDrawer({
   contentTone,
   setContentTone,
 }: SettingsDrawerProps) {
-  const themeStyles = useThemeStyles(theme);
-
   // Get scenario display names from centralized config
   const scenarioDisplayNames = getScenarioDisplayNames();
 
@@ -83,7 +80,7 @@ export function SettingsDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-80 bg-white border-l border-gray-200 shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed inset-y-0 right-0 w-96 bg-gray-50 border-l border-gray-200 shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -118,9 +115,7 @@ export function SettingsDrawer({
                 setClientScenario(value as ClientScenario)
               }
             >
-              <SelectTrigger
-                className={`w-full ${themeStyles.getHeaderSelectStyles()}`}
-              >
+              <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900 hover:bg-gray-50">
                 <SelectValue placeholder="Select client scenario" />
               </SelectTrigger>
               <SelectContent>
@@ -145,9 +140,7 @@ export function SettingsDrawer({
               value={theme}
               onValueChange={(value) => setTheme(value as ThemeOption)}
             >
-              <SelectTrigger
-                className={`w-full ${themeStyles.getHeaderSelectStyles()}`}
-              >
+              <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900 hover:bg-gray-50">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
@@ -175,9 +168,7 @@ export function SettingsDrawer({
               value={contentTone}
               onValueChange={(value) => setContentTone(value as ContentTone)}
             >
-              <SelectTrigger
-                className={`w-full ${themeStyles.getHeaderSelectStyles()}`}
-              >
+              <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900 hover:bg-gray-50">
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>
               <SelectContent>
