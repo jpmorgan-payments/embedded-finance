@@ -336,7 +336,7 @@ export function ComponentsSection() {
             {components.map((comp) => (
               <Card
                 key={comp.id}
-                className="border-0 shadow-page-card bg-jpm-white rounded-page-lg h-auto flex flex-col"
+                className="border-0 shadow-page-card bg-jpm-white rounded-page-md h-auto flex flex-col"
               >
                 <div className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 rounded-t-page-lg border-b border-sp-border">
                   <div className="flex items-start justify-between">

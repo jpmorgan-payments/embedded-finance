@@ -33,7 +33,7 @@ function GitHubPage() {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg text-center">
+          <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md text-center">
             <CardHeader>
               <CardTitle className="flex items-center justify-center text-page-h3 text-jpm-gray-900">
                 <Code className="h-6 w-6 mr-3 text-sp-brand" />
@@ -77,7 +77,7 @@ function GitHubPage() {
           </Card>
         </div>
 
-        <div className="mt-16 bg-sp-accent border border-sp-border rounded-page-lg p-8 text-center">
+        <div className="mt-16 bg-sp-accent border border-sp-border rounded-page-md p-8 text-center">
           <h3 className="text-page-h3 font-bold text-jpm-gray-900 mb-4">
             Getting Started
           </h3>

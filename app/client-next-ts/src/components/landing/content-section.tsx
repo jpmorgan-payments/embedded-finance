@@ -23,7 +23,7 @@ export function ContentSection() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
+            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
                   <Package className="h-8 w-8 text-sp-brand" />
@@ -38,7 +38,7 @@ export function ContentSection() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
+            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
                   <FileText className="h-8 w-8 text-sp-brand" />
@@ -53,7 +53,7 @@ export function ContentSection() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg">
+            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md">
               <CardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
                   <Server className="h-8 w-8 text-sp-brand" />
