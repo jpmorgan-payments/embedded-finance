@@ -57,7 +57,7 @@ export function RecipesSection() {
             {recipes.map((recipe) => (
               <Card
                 key={recipe.id}
-                className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-70 flex flex-col"
+                className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-md h-70 flex flex-col"
               >
                 <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
                   <div className="flex items-start justify-between">

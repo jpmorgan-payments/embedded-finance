@@ -166,7 +166,7 @@ function SolutionsPage() {
                       className="flex flex-col space-y-6"
                     >
                       {/* Summary Block with Visualization */}
-                      <div className="bg-white rounded-t-page-md shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col">
+                      <div className="bg-white rounded-page-md shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col">
                         <div className="bg-sp-accent rounded-t-page-md h-36 overflow-hidden border-b border-sp-border">
                           <div
                             className="h-full w-full"
