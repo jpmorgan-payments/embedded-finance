@@ -90,5 +90,8 @@
   "resolutions": {
     "graphql": "16.6.0",
     "form-data": "4.0.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
