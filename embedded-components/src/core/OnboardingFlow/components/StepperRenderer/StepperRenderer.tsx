@@ -68,6 +68,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     initialStepperStepId,
     sections,
     shortLabelOverride,
+    savedFormValues,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -246,6 +247,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     steps,
     existingPartyData,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 

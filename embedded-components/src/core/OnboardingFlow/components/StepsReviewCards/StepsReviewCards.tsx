@@ -31,16 +31,20 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   const { t } = useTranslation(['onboarding-overview', 'onboarding', 'common']);
 
   const { clientData } = useOnboardingContext();
-  const { currentScreenId } = useFlowContext();
-  const formValues = convertPartyResponseToFormValues(partyData ?? {});
+  const { currentScreenId, savedFormValues } = useFlowContext();
+  const formValues = {
+    ...convertPartyResponseToFormValues(partyData ?? {}),
+    ...savedFormValues,
+  };
   const { stepValidationMap } = getStepperValidation(
     steps,
     partyData,
     clientData,
+    savedFormValues,
     currentScreenId
   );
 
-  const { modifySchema } = useFormUtilsWithClientContext(
+  const { modifySchema, getFieldRule } = useFormUtilsWithClientContext(
     clientData,
     currentScreenId
   );
@@ -81,7 +85,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                     variant="default"
                     type="button"
                     size="sm"
-                    className="eb-bg-[#C75300] eb-text-sm hover:eb-bg-[#C75300]/90"
+                    className="eb-bg-warning eb-text-sm hover:eb-bg-warning/90"
                     onClick={() => {
                       onEditClick(step.id);
                     }}
@@ -124,36 +128,58 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                     values: Partial<OnboardingFormValuesInitial>
                   ) => string | string[] | undefined;
                   generateLabelStringFn?: (val: any) => string | undefined;
-                  isHiddenInReview?: (val: any) => boolean;
+                  isHiddenInReviewFn?: (val: any) => boolean;
                 } & {
                   [key: string]: any;
                 };
 
-                if (fieldConfig?.isHiddenInReview?.(value)) {
+                const { fieldRule, ruleType } = getFieldRule(field);
+
+                if (fieldConfig?.isHiddenInReviewFn?.(value)) {
                   return null;
                 }
+
                 const labelString =
                   fieldConfig?.generateLabelStringFn?.(value) ??
+                  (ruleType === 'single'
+                    ? fieldRule?.contentTokenOverrides?.label
+                    : undefined) ??
                   t([
-                    `onboarding-overview:fields.${field}.reviewLabel`,
+                    `onboarding-overview:fields.${field}.label.default`,
                     `onboarding-overview:fields.${field}.label`,
                     `onboarding:fields.${field}.label`,
                   ] as unknown as TemplateStringsArray);
 
+                const reviewLabelString =
+                  (ruleType === 'single'
+                    ? fieldRule?.contentTokenOverrides?.fieldName
+                    : undefined) ??
+                  t(
+                    [
+                      `onboarding-overview:fields.${field}.fieldName.default`,
+                      `onboarding-overview:fields.${field}.fieldName`,
+                    ] as unknown as TemplateStringsArray,
+                    {
+                      defaultValue: labelString,
+                    }
+                  );
+
                 const valueString = fieldConfig?.toStringFn
                   ? fieldConfig.toStringFn(value, formValues)
-                  : String(value);
+                  : value === undefined
+                    ? undefined
+                    : String(value);
 
                 return (
                   <div className="eb-space-y-0.5" key={field}>
                     <p className="eb-text-label eb-font-label eb-text-label-foreground">
-                      {labelString}
+                      {reviewLabelString}
                     </p>
                     <div className="eb-flex eb-flex-col">
                       {result?.error?.issues
                         .map((issue) => issue.path?.[0])
                         ?.includes(field) ? (
-                        <div className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
+                        <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
                           <TriangleAlertIcon className="eb-size-4" />
                           <p className="eb-italic">This field is missing</p>
                         </div>

@@ -60,7 +60,7 @@
   "fields": {
     "organizationType": {
       "label": "Select business type",
-      "validationFieldName": "Business type",
+      "fieldName": "Business type",
       "description": "",
       "validation": {
         "required": "$t(validation:required)"
@@ -201,9 +201,11 @@
     },
     "organizationName": {
       "label": "Legal name of the company",
-      "validationFieldName": "Business name",
-      "description": "Please enter this exactly as it appears on your business registration documents",
-      "description.SOLE_PROPRIETORSHIP": "Your sole proprietorship's name is the same as your legal name. Update it in the personal details section.",
+      "fieldName": "Business name",
+      "description": {
+        "default": "Please enter this exactly as it appears on your business registration documents",
+        "soleProp": "Your sole proprietorship's name is the same as your legal name. Update it in the personal details section."
+      },
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -242,8 +244,11 @@
       }
     },
     "organizationIdEin": {
-      "label": "Business identification",
-      "description": "",
+      "label": "$t(onboarding-overview:idValueLabels.EIN)",
+      "description": {
+        "default": "$t(onboarding-overview:idValueLabels.EIN)",
+        "soleProp": "Update your ID in the personal details section"
+      },
       "tooltip": "Should match your business registration document's ID value",
       "validation": {
         "required": "$t(validation:required)"
@@ -251,20 +256,16 @@
     },
     "solePropHasEin": {
       "label": "Does your business have an $t(onboarding-overview:idValueLabels.EIN)?",
-      "validationFieldName": "This field",
+      "fieldName": "This field",
       "description": "",
       "tooltip": "",
       "options": {
         "yes": "Yes, my business has an EIN",
-        "no": "No"
+        "no": "No, my business does not have an EIN"
       },
       "validation": {
         "required": "$t(validation:required)"
       }
-    },
-    "ssnAsSolePropId": {
-      "description": "Update your ID in the personal details section",
-      "tooltip": ""
     },
     "controllerIds": {
       "value": {
@@ -296,9 +297,9 @@
       }
     },
     "organizationPhone": {
-      "label": "Phone number",
+      "fieldName": "Business phone number",
       "phoneNumber": {
-        "label": "Phone number",
+        "label": "Business phone number",
         "validation": {
           "required": "$t(validation:required)",
           "format": "$t(validation:contact.phone.format)",
@@ -472,7 +473,7 @@
       "tooltip": "",
       "description": "Please provide a URL for your business",
       "placeholder": "Enter URL",
-      "validationFieldName": "Website URL",
+      "fieldName": "Website URL",
       "validation": {
         "invalid": "$t(validation:url.invalid)",
         "maxLength": "$t(validation:text.maxLength, {'count': 500})",
@@ -484,7 +485,7 @@
     },
     "dbaName": {
       "label": "Doing business as",
-      "validationFieldName": "DBA name",
+      "fieldName": "DBA name",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -687,257 +688,6 @@
         "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
       }
     },
-    "ownerPhone": {
-      "label": "Phone number",
-      "phoneType": {
-        "label": "Owner phone type",
-        "placeholder": "Select phone type",
-        "description": "",
-        "tooltip": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "format": "$t(validation:contact.phone.format)",
-          "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
-        }
-      },
-      "phoneNumber": {
-        "label": "Owner phone number",
-        "placeholder": "Enter organization phone number",
-        "description": "",
-        "tooltip": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "format": "$t(validation:contact.phone.format)",
-          "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
-        }
-      }
-    },
-    "additionalQuestions": {
-      "validation": {
-        "dateFormat": "Invalid date format",
-        "required": "$t(validation:required)",
-        "invalidFormat": "Invalid format",
-        "numberFormat": "Must be a number",
-        "maxItems": "Cannot exceed {{maxItems}} items"
-      }
-    },
-    "solePropBusinessInfo": {
-      "label": "Business Information",
-      "usePersonalAddress": {
-        "label": "Use personal address as business address",
-        "description": "Check if your business address is the same as your personal address"
-      },
-      "usePersonalPhone": {
-        "label": "Use personal phone as business phone",
-        "description": "Check if your business phone is the same as your personal phone"
-      }
-    },
-    "solePropPersonalInfo": {
-      "label": "Personal Information",
-      "description": "Your personal information as the business owner"
-    },
-    "solePropOrganizationName": {
-      "label": "Legal name of the company",
-      "validationFieldName": "Business name",
-      "placeholder": "Enter your business name",
-      "description": "Your business's legal name as it appears on government forms",
-      "tooltip": "Must match exactly with your business registration documents",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:business.name.format, {'allowedChars': '()_/&+%@#;,.: -?'})",
-        "minLength": "$t(validation:common.minLength, {'count': 2})",
-        "maxLength": "$t(validation:common.maxLength, {'count': 100})"
-      }
-    },
-    "solePropDbaName": {
-      "label": "Doing Business As (DBA) Name",
-      "placeholder": "Enter DBA name if different from business name",
-      "description": "The name under which you conduct business, if different from your legal business name",
-      "validation": {
-        "maxLength": "$t(validation:common.maxLength, {'count': 100})"
-      }
-    },
-    "solePropBusinessDescription": {
-      "label": "Business Description",
-      "placeholder": "Describe your business activities",
-      "description": "Brief description of your business operations and services",
-      "validation": {
-        "required": "$t(validation:required)",
-        "maxLength": "$t(validation:common.maxLength, {'count': 500})",
-        "minLength": "$t(validation:common.minLength, {'count': 10})"
-      }
-    },
-    "solePropBusinessEmail": {
-      "label": "Business Email",
-      "placeholder": "Enter business email",
-      "description": "Email address used for business communications",
-      "validation": {
-        "format": "$t(validation:contact.email.format)",
-        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})"
-      }
-    },
-    "solePropYearStarted": {
-      "label": "Year Business Started",
-      "placeholder": "YYYY",
-      "description": "Year when you started your business operations",
-      "validation": {
-        "format": "$t(validation:year.format)",
-        "min": "$t(validation:year.min, {'min': 1800})",
-        "max": "$t(validation:year.max)"
-      }
-    },
-    "solePropEin": {
-      "label": "Employer Identification Number (EIN)",
-      "placeholder": "XX-XXXXXXX",
-      "description": "Your business tax ID number (if you have one)",
-      "tooltip": "EIN is optional for sole proprietors unless you have employees",
-      "validation": {
-        "format": "EIN must be in XX-XXXXXXX format",
-        "pattern": "$t(validation:ids.ein, {'digits': 9})"
-      }
-    },
-    "ownerFirstName": {
-      "label": "Legal First name",
-      "placeholder": "Enter first name",
-      "description": "Legal first name as it appears on government ID",
-      "tooltip": "Must match your government-issued identification",
-      "validation": {
-        "required": "$t(validation:required)",
-        "minLength": "$t(validation:text.minLength, {'count': 2})",
-        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
-        "pattern": "$t(validation:text.namePattern)"
-      },
-      "group": "controller"
-    },
-    "ownerMiddleName": {
-      "label": "Legal Middle name",
-      "placeholder": "Enter middle name",
-      "description": "Legal middle name as it appears on government ID",
-      "tooltip": "Must match your government-issued identification",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
-        "pattern": "$t(validation:text.namePattern)"
-      }
-    },
-    "ownerLastName": {
-      "label": "Legal Last name",
-      "placeholder": "Enter last name",
-      "description": "Legal last name as it appears on government ID",
-      "tooltip": "Must match your government-issued identification",
-      "validation": {
-        "required": "$t(validation:required)",
-        "minLength": "$t(validation:text.minLength, {'count': 2})",
-        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
-        "pattern": "$t(validation:text.namePattern)"
-      },
-      "group": "controller"
-    },
-    "ownerNameSuffix": {
-      "label": "Suffix",
-      "placeholder": "Enter name suffix",
-      "description": "Legal name suffix as it appears on government ID (e.g., Jr., Sr., III)",
-      "tooltip": "Common suffixes: Jr., Sr., II, III, IV",
-      "validation": {
-        "minLength": "$t(validation:text.minLength, {'count': 1})",
-        "maxLength": "$t(validation:text.maxLength, {'count': 5})",
-        "pattern": "Suffix can only contain letters, periods, and roman numerals"
-      }
-    },
-    "ownerJobTitle": {
-      "label": "Job title",
-      "placeholder": "Enter job title",
-      "description": "Your current position in the organization",
-      "tooltip": "Should match your business registration documents job title",
-      "validation": {
-        "required": "$t(validation:required)",
-        "minLength": "$t(validation:common.minLength, {'count': 2})",
-        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
-        "pattern": "$t(validation:common.pattern)",
-        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:common.noTrailingSpace)"
-      },
-      "group": "controller"
-    },
-    "ownerAddresses": {
-      "itemLabel": "Beneficial Owner Address",
-      "itemLabelNumbered": "Beneficial Owner Address {{number}}",
-      "appendLabel": "Add an address",
-      "removeLabel": "Remove address",
-      "validation": {
-        "minItems_one": "At least one address is required",
-        "minItems_other": "At least {{count}} addresses are required",
-        "maxItems_one": "Maximum {{count}} address allowed",
-        "maxItems_other": "Maximum {{count}} addresses allowed",
-        "uniqueTypes": "Each address type must be unique"
-      },
-      "primaryAddressLine": {
-        "label": "Address line 1",
-        "placeholder": "Enter address line 1",
-        "description": "Address line 1 of the owner's address",
-        "tooltip": "Must not be a PO Box and must begin with a number.",
-        "validation": {
-          "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-          "pattern": "Address can only contain letters, numbers, and basic punctuation"
-        }
-      },
-      "additionalAddressLines": {
-        "appendLabel": "Add line",
-        "removeLabel": "Remove line",
-        "value": {
-          "label": "Address line {{number, inc}}",
-          "placeholder": "Enter address line {{number, inc}}",
-          "description": "Address line {{number, inc}} of the owner's address",
-          "tooltip": ""
-        },
-        "validation": {
-          "minItems": "At least {{count}} address line is required",
-          "maxItems": "Maximum {{count}} address lines allowed"
-        }
-      },
-      "addressType": {
-        "label": "Address type",
-        "placeholder": "Select address type",
-        "description": "",
-        "tooltip": ""
-      },
-      "city": {
-        "label": "City",
-        "placeholder": "Enter city",
-        "description": "City of the owner's address",
-        "tooltip": "",
-        "validation": {
-          "maxLength": "$t(validation:common.maxLength, {'count': 34})"
-        }
-      },
-      "state": {
-        "label": "State",
-        "placeholder": "Select state",
-        "description": "State of the owner's address",
-        "tooltip": "",
-        "validation": {
-          "maxLength": "$t(validation:common.maxLength, {'count': 30})"
-        }
-      },
-      "postalCode": {
-        "label": "Postal Code",
-        "placeholder": "Enter postal code",
-        "description": "5-digit ZIP code",
-        "tooltip": "",
-        "validation": {
-          "maxLength": "$t(validation:common.maxLength, {'count': 10})"
-        }
-      },
-      "country": {
-        "label": "Country",
-        "placeholder": "Select country",
-        "description": "Country of the owner's address",
-        "tooltip": "",
-        "validation": {
-          "exactlyTwoChars": "$t(validation:.exactLength, {'count': 2})"
-        }
-      }
-    },
     "jurisdiction": {
       "label": "Jurisdiction",
       "placeholder": "Select jurisdiction",
@@ -948,36 +698,6 @@
         "exactlyTwoChars": "Jurisdiction code must be exactly 2 characters"
       },
       "group": "organization"
-    },
-    "beneficialOwnerStepForm": {
-      "controllerIsOwnerQuestion": "Do you, the controller, own 25% or more of the business?",
-      "maxOwnersWarning": "You can only add up to 4 beneficial owners.",
-      "controllerCannotBeOwnerWarning": "You cannot set yourself as an owner since you can only add up to 4 beneficial owners.",
-      "makingChanges": "Making changes...",
-      "beneficialOwnersLegend": "Beneficial Owners",
-      "ownerBadge": "Owner",
-      "controllerBadge": "Controller",
-      "jobTitleLabel": "Job title:",
-      "natureOfOwnershipLabel": "Nature of ownership:",
-      "editButton": "Edit",
-      "removeButton": "Remove",
-      "restoreButton": "Restore",
-      "addBeneficialOwnerButton": "Add Beneficial Owner",
-      "inactiveOwnersLabel": "Inactive Owners",
-      "editBeneficialOwnerTitle": "Edit Beneficial Owner",
-      "addBeneficialOwnerTitle": "Add Beneficial Owner",
-      "generalLegend": "General",
-      "phoneInformationLegend": "Phone Information",
-      "addressLegend": "Address",
-      "idLegend": "Individual Identification",
-      "saveChangesButton": "Save changes",
-      "successMessages": {
-        "beneficialOwnerUpdated": "Beneficial owner details updated successfully",
-        "clientUpdated": "Client's beneficial owners updated successfully",
-        "beneficialOwnerRemoved": "Beneficial owner removed successfully",
-        "beneficialOwnerRestored": "Beneficial owner restored successfully",
-        "clientBeneficialOwnersUpdated": "Client's beneficial owners updated successfully"
-      }
     }
   },
   "idValueLabels": {

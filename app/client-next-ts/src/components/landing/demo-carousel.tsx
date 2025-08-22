@@ -84,7 +84,7 @@ export function DemoCarousel() {
                     className="flex-shrink-0 px-2 sm:px-3 md:px-4 pb-4"
                     style={{ width: `${itemWidthPercent}%` }}
                   >
-                    <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-lg">
+                    <Card className="h-full border-0 shadow-page-card bg-jpm-white overflow-hidden rounded-page-md">
                       <div className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start text-base font-semibold leading-tight">

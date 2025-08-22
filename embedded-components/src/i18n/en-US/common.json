@@ -14,6 +14,7 @@
   "edit": "Edit",
   "continue": "Continue",
   "empty": "empty",
+  "na": "N/A",
   "validation": {
     "required": "This field is required",
     "minItems": "Minimum {{count}} items required",

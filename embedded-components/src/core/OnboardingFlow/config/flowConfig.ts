@@ -9,8 +9,7 @@ import {
 
 import {
   BusinessContactInfoForm,
-  CompanyIdentificationForm,
-  CustomerFacingDetailsForm,
+  BusinessIdentityForm,
   IndustryForm,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
@@ -125,7 +124,6 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
-        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -219,7 +217,6 @@ const sectionScreens: SectionScreenConfig[] = [
       statusResolver: (
         sessionData,
         clientData,
-        _screenId,
         allStepsValid,
         stepValidationMap
       ) => {
@@ -238,8 +235,8 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'completed';
         }
         const isAnyStepValid = Object.entries(stepValidationMap).some(
-          ([key, stepValidation]) => {
-            return stepValidation.isValid && key !== 'customer-facing-details';
+          ([, stepValidation]) => {
+            return stepValidation.isValid;
           }
         );
         if (isAnyStepValid) {
@@ -259,27 +256,19 @@ const sectionScreens: SectionScreenConfig[] = [
       }),
       steps: [
         {
-          id: 'industry',
-          stepType: 'form',
-          title: 'Industry classification',
-          description:
-            'Choose a classification that best describes your income-producing lines of business.',
-          Component: IndustryForm,
-        },
-        {
-          id: 'company-identification',
+          id: 'business-identity',
           stepType: 'form',
           title: 'Business identity',
           description: 'Please provide details about your business.',
-          Component: CompanyIdentificationForm,
+          Component: BusinessIdentityForm,
         },
         {
-          id: 'customer-facing-details',
+          id: 'industry',
           stepType: 'form',
-          title: 'Description & website',
+          title: 'Description & industry classification',
           description:
-            'Please help us understand the products and services you offer.',
-          Component: CustomerFacingDetailsForm,
+            'Provide a description for your business, then choose a classification that best describes your income-producing lines of business.',
+          Component: IndustryForm,
         },
         {
           id: 'contact-info',
@@ -311,13 +300,21 @@ const sectionScreens: SectionScreenConfig[] = [
         'Government issued identifier (e.g. social security number)',
         'Address and contact details',
       ],
-      statusResolver: (sessionData, clientData, screenId) => {
+      statusResolver: (
+        sessionData,
+        clientData,
+        _allStepsValid,
+        _stepValidationMap,
+        savedFormValues,
+        screenId
+      ) => {
         const activeOwners = getActiveOwners(clientData);
         const allOwnersValid = activeOwners?.every((owner) => {
           const { allStepsValid } = getStepperValidation(
             ownerSteps,
             owner,
             clientData,
+            savedFormValues,
             screenId
           );
           return allStepsValid;

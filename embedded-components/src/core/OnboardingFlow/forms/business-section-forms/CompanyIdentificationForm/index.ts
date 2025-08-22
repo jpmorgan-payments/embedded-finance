@@ -1,2 +1,2 @@
-export * from './CompanyIdentificationForm';
-export * from './CompanyIdentificationForm.schema';
+export * from './BusinessIdentityForm';
+export * from './BusinessIdentityForm.schema';

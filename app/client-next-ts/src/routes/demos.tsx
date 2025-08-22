@@ -74,7 +74,7 @@ function DemosPage() {
           {demos.map((demo) => (
             <Card
               key={demo.id}
-              className="border-0 shadow-page-card bg-jpm-white rounded-page-lg overflow-hidden"
+              className="border-0 shadow-page-card bg-jpm-white rounded-page-md overflow-hidden"
             >
               <div className="aspect-video w-full overflow-hidden">
                 <img

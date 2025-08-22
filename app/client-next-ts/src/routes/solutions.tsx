@@ -168,7 +168,7 @@ function SolutionsPage() {
               <h1 className="text-page-h1 font-bold text-sp-ink mb-8">
                 Developer Solutions for Every Integration Need
               </h1>
-              <div className="bg-sp-topaz-600 py-4 px-4 rounded-t-page-lg">
+              <div className="bg-sp-topaz-600 py-4 px-4 rounded-t-page-md">
                 <div className="text-page-subtitle font-bold text-white">
                   Choose Your Integration Approach
                 </div>
@@ -217,8 +217,8 @@ function SolutionsPage() {
                     >
                       {/* Summary Block with Visualization */}
                       <div className="relative">
-                        <div className="bg-white rounded-page-lg shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col relative">
-                          <div className="bg-sp-accent rounded-t-page-lg h-36 overflow-hidden border-b border-sp-border">
+                        <div className="bg-white rounded-page-md shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col relative">
+                          <div className="bg-sp-accent rounded-t-page-md h-36 overflow-hidden border-b border-sp-border">
                             <div
                               className="h-full w-full"
                               style={{
@@ -264,7 +264,7 @@ function SolutionsPage() {
 
                       {items.map((approach, index) => (
                         <div key={index} className="relative">
-                          <Card className="border border-sp-border shadow-page-card bg-jpm-white rounded-page-md overflow-hidden">
+                          <Card className="border border-sp-border shadow-page-card bg-jpm-white !rounded-[0.375rem] overflow-hidden">
                             <CardHeader className="bg-sp-accent">
                               <div className="flex justify-between items-center">
                                 <CardTitle className="text-page-body text-sp-ink">
