@@ -29,6 +29,23 @@ const preview: Preview = {
     docs: {
       codePanel: true,
     },
+
+    // Set the introduction page as the default
+    viewMode: 'docs',
+
+    // Configure the initial story to show
+    options: {
+      storySort: {
+        order: ['Introduction', '*'],
+      },
+    },
   },
+
+  // Set the initial entry to the introduction page
+  initialGlobals: {
+    sb_theme: 'light',
+  },
+
+  tags: ['autodocs'],
 };
 export default preview;

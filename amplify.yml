@@ -3,6 +3,11 @@ applications:
   - appRoot: app/client
     frontend:
       phases:
+        preBuild:
+          commands:
+            - nvm install 20
+            - nvm use 20
+            - node --version
         build:
           commands:
             - yarn install
@@ -18,6 +23,11 @@ applications:
   - appRoot: app/client-next-ts
     frontend:
       phases:
+        preBuild:
+          commands:
+            - nvm install 20
+            - nvm use 20
+            - node --version
         build:
           commands:
             - npm install

@@ -2,7 +2,11 @@ import type { StorybookConfig } from '@storybook/react-vite';
 import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.story.@(js|jsx|ts|tsx)'],
+  stories: [
+    '../src/Introduction.mdx',
+    '../src/**/*.mdx',
+    '../src/**/*.story.@(js|jsx|ts|tsx)',
+  ],
   addons: [
     '@storybook/addon-a11y',
     '@storybook/addon-designs',

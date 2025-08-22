@@ -1,0 +1,514 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+<style>
+  {`
+  .intro-hero {
+    background: linear-gradient(135deg, #1A7B99 0%, #2CB9AC 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .feature-card {
+    border: 1px solid #e6f3f7;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: box-shadow 0.2s ease;
+    background: white;
+  }
+
+  .feature-card:hover {
+    box-shadow: 0 4px 12px rgba(26, 123, 153, 0.1);
+    border-color: #1A7B99;
+  }
+
+  .component-showcase {
+    background: #f6f7f8;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    border: 1px solid #e6f3f7;
+  }
+
+  .code-block {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    font-size: 0.875rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-production {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-testing {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-development {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+`}
+</style>
+
+<div className="intro-hero">
+  <h1>🚀 Embedded Finance UI Components</h1>
+  <p style={{ fontSize: '1.25rem', margin: '1rem 0', opacity: 0.9 }}>
+    A comprehensive React component library for seamless integration of embedded
+    finance capabilities into your web applications
+  </p>
+  <div
+    style={{
+      display: 'flex',
+      gap: '0.5rem',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    }}
+  ></div>
+</div>
+
+## 🎯 What is Embedded Finance?
+
+Embedded finance refers to the integration of financial services and products directly into non-financial applications, platforms, and user experiences. This library provides pre-built, customizable UI components that enable seamless integration of complex financial workflows without requiring deep financial expertise.
+
+## 🏗️ Architecture Overview
+
+The library is built on several key architectural principles:
+
+### Key Principles
+
+1. **OpenAPI Specification (OAS) Driven**
+
+   - TypeScript types and React Query hooks generated from OAS specifications
+   - Ensures type safety and consistency between API and UI
+   - Future support for Arazzo workflow definitions
+
+2. **Opinionated UX Layer**
+
+   - Enhanced client-side validations
+   - Smart payload formation
+   - Error mapping and recovery
+   - Cognitive load reduction and intelligent navigation
+
+3. **Flexible Integration**
+   - Runtime customization through theme and content tokens
+   - Parent app monitoring integration
+   - Configurable API endpoints and authentication
+
+## 📦 Available Components
+
+<div className="feature-grid">
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>🏦 OnboardingWizardBasic</h3>
+  <p>
+    Complete client onboarding workflow with step-by-step forms, document
+    upload, and compliance verification.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-production">Production Ready</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Client profile creation</li>
+    <li>Document verification</li>
+    <li>Due diligence questions</li>
+    <li>Attestation handling</li>
+  </ul>
+</div>
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>💳 OnboardingFlow</h3>
+  <p>
+    Modern onboarding experience with screen-based navigation, enhanced document
+    upload, and improved mobile responsiveness.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-production">Production Ready</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Screen-based navigation</li>
+    <li>Enhanced document upload</li>
+    <li>Improved mobile UX</li>
+    <li>Better error handling</li>
+  </ul>
+</div>
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>💰 MakePayment</h3>
+  <p>
+    Comprehensive payment interface supporting multiple payment methods with fee
+    calculation and validation.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-testing">In Testing</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>ACH, RTP, WIRE support</li>
+    <li>Fee calculation</li>
+    <li>Form validation</li>
+    <li>Success confirmation</li>
+  </ul>
+</div>
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>👥 Recipients</h3>
+  <p>
+    Complete recipient management with CRUD operations, payment method support,
+    and integration with MakePayment.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-production">Production Ready</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Create, edit, delete recipients</li>
+    <li>Multiple payment methods</li>
+    <li>Search and filtering</li>
+    <li>MakePayment integration</li>
+  </ul>
+</div>
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>🏦 Accounts</h3>
+  <p>
+    Read-only account display with balances, categories, routing information,
+    and responsive layout.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-testing">In Testing</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Account categories and states</li>
+    <li>Balance information</li>
+    <li>Responsive design</li>
+    <li>Mobile support</li>
+  </ul>
+</div>
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>🔗 LinkedAccountWidget</h3>
+  <p>
+    External bank account linking with micro-deposits verification and seamless
+    payment integration.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-production">Production Ready</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>External account linking</li>
+    <li>Micro-deposits verification</li>
+    <li>MakePayment integration</li>
+    <li>Multiple account types</li>
+  </ul>
+</div>
+
+{' '}
+
+{' '}
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>📊 TransactionsDisplay</h3>
+  <p>
+    Comprehensive transaction history with detailed information, filtering, and
+    pagination capabilities.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-testing">In Testing</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Transaction listing and filtering</li>
+    <li>Detailed transaction views</li>
+    <li>Currency formatting</li>
+    <li>Pagination support</li>
+  </ul>
+</div>
+
+</div>
+
+## 🎨 Theming & Customization
+
+The library supports comprehensive theming through the `EBComponentsProvider`. Customize colors, typography, spacing, and component behavior to match your application's design system.
+
+### Key Theme Features
+
+- **Design Token System**: 100+ customizable design tokens
+- **Light/Dark Mode**: Built-in support for both themes
+- **Tailwind Integration**: Uses `eb-` prefixed classes
+- **Runtime Customization**: Inject design tokens at runtime
+- **CSS Variables**: All tokens converted to CSS variables
+
+### Quick Theme Example
+
+```tsx
+<EBComponentsProvider
+  apiBaseUrl="https://api.example.com"
+  theme={{
+    colorScheme: 'light',
+    variables: {
+      fontFamily: 'Inter, system-ui, sans-serif',
+      primaryColor: '#2563eb',
+      borderRadius: '0.5rem',
+      buttonFontWeight: '600',
+    },
+  }}
+>
+  {/* Your components */}
+</EBComponentsProvider>
+```
+
+## 🚀 Quick Start
+
+<div className="component-showcase">
+
+### Installation
+
+```bash
+npm install @jpmorgan-payments/embedded-finance-components
+# or
+yarn add @jpmorgan-payments/embedded-finance-components
+```
+
+### Basic Usage
+
+```tsx
+import {
+  EBComponentsProvider,
+  OnboardingWizardBasic,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+function App() {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <OnboardingWizardBasic
+        availableProducts={['EMBEDDED_PAYMENTS']}
+        availableJurisdictions={['US']}
+        onPostClientSettled={(response, error) => {
+          console.log('Client created:', response);
+        }}
+      />
+    </EBComponentsProvider>
+  );
+}
+```
+
+### With Custom Theme
+
+```tsx
+const customTheme = {
+  colorScheme: 'light',
+  variables: {
+    fontFamily: 'Inter, system-ui, sans-serif',
+    primaryColor: '#2563eb',
+    borderRadius: '0.5rem',
+  },
+};
+
+<EBComponentsProvider apiBaseUrl="https://api.example.com" theme={customTheme}>
+  {/* Your components */}
+</EBComponentsProvider>;
+```
+
+</div>
+
+## 🔧 Development & Testing
+
+### Technology Stack
+
+- **React 18** with TypeScript
+- **Radix UI** primitives for accessibility
+- **Tailwind CSS** for styling (with `eb-` prefixes)
+- **Vite** & TypeScript for build tooling
+- **Storybook 8.x** for component development
+- **MSW** for API mocking in development
+- **TanStack React Query v5** for data fetching
+- **Zod** for validation
+- **Vitest** for testing
+
+### Development Scripts
+
+```bash
+# Start development server
+yarn dev
+
+# Start Storybook
+yarn storybook
+
+# Run tests
+yarn test
+
+# Type checking
+yarn typecheck
+
+# Linting
+yarn lint
+```
+
+## 🌐 Integration Scenarios
+
+The components are designed for flexible integration into parent web applications with several customization points:
+
+1. **Runtime Customization**: Inject design tokens and content tokens from parent apps
+2. **Monitoring Integration**: Connect to parent app's monitoring systems
+3. **Theme Consistency**: Match parent app's design system
+4. **Content Management**: Override content through CMS integration
+5. **Authentication**: Configurable API endpoints and headers
+
+## 📚 Documentation
+
+### Key Resources
+
+- **API Documentation**: [Embedded Payments API](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/)
+- **Add Linked Account**: [API Documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account)
+- **OpenAPI Specifications**: Located in `/api-specs/` directory
+- **Component Requirements**: Each component has detailed requirements documentation
+
+### Component Status
+
+| Component             | Status        | API Integration | Testing        | Documentation |
+| --------------------- | ------------- | --------------- | -------------- | ------------- |
+| OnboardingWizardBasic | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
+| OnboardingFlow        | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
+| MakePayment           | 🧪 Testing    | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
+| Recipients            | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
+| Accounts              | 🧪 Testing    | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
+| LinkedAccountWidget   | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
+| TransactionsDisplay   | 🧪 Testing    | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](https://github.com/your-org/embedded-banking/blob/main/embedded-components/CONTRIBUTING.md) for details.
+
+### Development Guidelines
+
+1. Follow the component creation workflow in the contributing guide
+2. All components must be wrapped in `EBComponentsProvider`
+3. Use TypeScript with strict mode
+4. Implement proper error boundaries
+5. Follow React 18 best practices
+6. Use Tailwind CSS with `eb-` prefix for custom classes
+7. Include comprehensive Storybook stories
+8. Write tests using MSW for API mocking
+9. Ensure accessibility compliance (WCAG 2.1)
+
+
+---
+
+{' '}
+
+<div
+  style={{
+    textAlign: 'center',
+    marginTop: '3rem',
+    padding: '2rem',
+    background: '#f6f7f8',
+    borderRadius: '8px',
+    border: '1px solid #e6f3f7',
+  }}
+>
+  <h3 style={{ margin: '0 0 1rem 0', color: '#1A7B99' }}>
+    Ready to Get Started?
+  </h3>
+  <p style={{ margin: '0 0 1.5rem 0', color: '#64748b' }}>
+    Explore the component stories in the sidebar to see live examples and
+    interactive demos.
+  </p>
+  <div
+    style={{
+      display: 'flex',
+      gap: '1rem',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    }}
+  >
+    <button
+      style={{
+        padding: '0.5rem 1rem',
+        background: '#1A7B99',
+        color: 'white',
+        border: 'none',
+        borderRadius: '0.375rem',
+        cursor: 'pointer',
+        fontWeight: '500',
+      }}
+    >
+      View OnboardingWizardBasic
+    </button>
+    <button
+      style={{
+        padding: '0.5rem 1rem',
+        background: 'transparent',
+        color: '#1A7B99',
+        border: '1px solid #1A7B99',
+        borderRadius: '0.375rem',
+        cursor: 'pointer',
+        fontWeight: '500',
+      }}
+    >
+      View MakePayment
+    </button>
+    <button
+      style={{
+        padding: '0.5rem 1rem',
+        background: '#e6f3f7',
+        color: '#1A7B99',
+        border: '1px solid #e6f3f7',
+        borderRadius: '0.375rem',
+        cursor: 'pointer',
+        fontWeight: '500',
+      }}
+    >
+      View Recipients
+    </button>
+  </div>
+</div>
