@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import ElectricBorder from '@/components/custom/ElectricBorder';
 
 export const Route = createFileRoute('/solutions')({
   component: SolutionsPage,
@@ -8,6 +9,53 @@ export const Route = createFileRoute('/solutions')({
 
 function SolutionsPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isShiftFPressed, setIsShiftFPressed] = useState(false);
+
+  // Handle Shift+F key combination
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'F') {
+        setIsShiftFPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'F') {
+        setIsShiftFPressed(false);
+      }
+    };
+
+    // Also handle when Shift is released
+    const handleKeyUpShift = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftFPressed(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('keyup', handleKeyUpShift);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('keyup', handleKeyUpShift);
+    };
+  }, []);
+
+  // Column-specific border colors
+  const getBorderColor = (groupKey: string) => {
+    switch (groupKey) {
+      case 'build':
+        return '#ff6b6b'; // Vibrant red for Build column
+      case 'dropin':
+        return '#4ecdc4'; // Bright teal for Drop-in column
+      case 'hosted':
+        return '#45b7d1'; // Electric blue for Hosted column
+      default:
+        return '#7df9ff'; // Fallback cyan
+    }
+  };
 
   const implementationApproaches = [
     {
@@ -159,6 +207,8 @@ function SolutionsPage() {
                   const items = implementationApproaches.filter(
                     (a) => a.group === groupKey,
                   );
+                  const borderColor = getBorderColor(groupKey);
+
                   return (
                     <div
                       key={meta.id}
@@ -166,60 +216,90 @@ function SolutionsPage() {
                       className="flex flex-col space-y-6"
                     >
                       {/* Summary Block with Visualization */}
-                      <div className="bg-white rounded-page-lg shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col relative">
-                        <div className="bg-sp-accent rounded-t-page-lg h-36 overflow-hidden border-b border-sp-border">
-                          <div
-                            className="h-full w-full"
-                            style={{
-                              backgroundImage: `url("${meta.imageUrl}")`,
-                              backgroundSize: '250%',
-                              backgroundPosition: 'center 25%',
-                              backgroundRepeat: 'no-repeat',
-                            }}
-                          ></div>
-                          {/* COMING SOON tag for JPM Hosted */}
-                          {groupKey === 'hosted' && (
-                            <div className="absolute top-3 right-3">
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-600 text-white uppercase tracking-wide">
-                                Coming Soon
-                              </span>
+                      <div className="relative">
+                        <div className="bg-white rounded-page-lg shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col relative">
+                          <div className="bg-sp-accent rounded-t-page-lg h-36 overflow-hidden border-b border-sp-border">
+                            <div
+                              className="h-full w-full"
+                              style={{
+                                backgroundImage: `url("${meta.imageUrl}")`,
+                                backgroundSize: '250%',
+                                backgroundPosition: 'center 25%',
+                                backgroundRepeat: 'no-repeat',
+                              }}
+                            ></div>
+                            {/* COMING SOON tag for JPM Hosted */}
+                            {groupKey === 'hosted' && (
+                              <div className="absolute top-3 right-3">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-600 text-white uppercase tracking-wide">
+                                  Coming Soon
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-4 flex flex-col flex-1 justify-center">
+                            <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center font-heading">
+                              {meta.summaryTitle}
+                            </h2>
+                            <p className="text-sp-ink/80 text-center text-sm font-body">
+                              {meta.summarySubtitle}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* ElectricBorder overlay - only visible when Shift+F is pressed */}
+                        {isShiftFPressed && (
+                          <div className="absolute inset-0 pointer-events-none z-10">
+                            <ElectricBorder
+                              color={borderColor}
+                              speed={1.2}
+                              chaos={0.6}
+                              thickness={3}
+                              style={{ borderRadius: 16 }}
+                              className="w-full h-full"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {items.map((approach, index) => (
+                        <div key={index} className="relative">
+                          <Card className="border border-sp-border shadow-page-card bg-jpm-white rounded-page-md overflow-hidden">
+                            <CardHeader className="bg-sp-accent">
+                              <div className="flex justify-between items-center">
+                                <CardTitle className="text-page-body text-sp-ink">
+                                  <span className="font-heading">
+                                    {approach.title}
+                                  </span>
+                                </CardTitle>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-6 font-body">
+                              <p className="text-sm text-sp-ink leading-relaxed mb-4">
+                                {approach.description}
+                              </p>
+                              <div className="bg-sp-benefit p-4 rounded-page-sm border border-sp-border">
+                                <p className="text-sm font-semibold text-sp-ink">
+                                  Key Benefit: {approach.benefit}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          {/* ElectricBorder overlay - only visible when Shift+F is pressed */}
+                          {isShiftFPressed && (
+                            <div className="absolute inset-0 pointer-events-none z-10">
+                              <ElectricBorder
+                                color={borderColor}
+                                speed={1.2}
+                                chaos={0.6}
+                                thickness={3}
+                                style={{ borderRadius: 16 }}
+                                className="w-full h-full"
+                              />
                             </div>
                           )}
                         </div>
-                        <div className="p-4 flex flex-col flex-1 justify-center">
-                          <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center font-heading">
-                            {meta.summaryTitle}
-                          </h2>
-                          <p className="text-sp-ink/80 text-center text-sm font-body">
-                            {meta.summarySubtitle}
-                          </p>
-                        </div>
-                      </div>
-                      {items.map((approach, index) => (
-                        <Card
-                          key={index}
-                          className="border border-sp-border shadow-page-card bg-jpm-white rounded-page-md overflow-hidden"
-                        >
-                          <CardHeader className="bg-sp-accent">
-                            <div className="flex justify-between items-center">
-                              <CardTitle className="text-page-body text-sp-ink">
-                                <span className="font-heading">
-                                  {approach.title}
-                                </span>
-                              </CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="p-6 font-body">
-                            <p className="text-sm text-sp-ink leading-relaxed mb-4">
-                              {approach.description}
-                            </p>
-                            <div className="bg-sp-benefit p-4 rounded-page-sm border border-sp-border">
-                              <p className="text-sm font-semibold text-sp-ink">
-                                Key Benefit: {approach.benefit}
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
                       ))}
                     </div>
                   );
