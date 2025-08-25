@@ -361,10 +361,9 @@
       "description": "",
       "tooltip": "",
       "validation": {
+        "required": "$t(validation:required)",
         "invalid": "$t(validation:contact.email.invalid)",
-        "format": "$t(validation:contact.email.format)",
-        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})",
-        "noPersonal": "$t(validation:contact.email.noPersonal)"
+        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})"
       },
       "group": "contact"
     },

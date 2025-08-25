@@ -12,6 +12,7 @@ export const useContactDetailsFormSchema = () => {
   return z.object({
     controllerEmail: z
       .string()
+      .min(1, v('controllerEmail', 'required'))
       .email(v('controllerEmail', 'invalid'))
       .max(100, v('controllerEmail', 'maxLength')),
     controllerPhone: PhoneSchema,
