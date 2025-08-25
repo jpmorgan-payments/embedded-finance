@@ -161,10 +161,7 @@
         "invalid": "$t(validation:date.invalid)",
         "future": "$t(validation:date.future)",
         "tooOld": "$t(validation:date.age.tooOld, {'years': 120})",
-        "tooYoung": "$t(validation:date.age.tooYoung, {'years': 18})",
-        "dayRange": "$t(validation:date.range.day, {'min': 1, 'max': 31})",
-        "monthRange": "$t(validation:date.range.month, {'min': 1, 'max': 12})",
-        "yearRange": "$t(validation:date.range.year, {'min': 1000, 'max': 9999})"
+        "tooYoung": "$t(validation:date.age.tooYoung, {'years': 18})"
       }
     },
     "countryOfResidence": {
@@ -173,7 +170,8 @@
       "description": "Please select your current country of residence",
       "validation": {
         "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})"
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+        "onlyUS": "Only US is supported at this time"
       }
     },
     "solePropSsn": {
@@ -185,17 +183,57 @@
         "format": "$t(validation:id.ssn.format)"
       }
     },
-    "controllerIds": {
-      "value": {
-        "tooltip": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "format": "$t(validation:format)",
-          "ssnFormat": "$t(validation:id.ssn)",
-          "itinFormat": "$t(validation:id.itin.format)",
-          "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
-          "noSpaces": "$t(validation:common.noSpaces)"
-        }
+    "controllerIds.idType": {
+      "label": "ID type",
+      "placeholder": "Select ID type",
+      "description": "Type of individual ID",
+      "tooltip": "should match your individual ID type",
+      "validation": {
+        "required": "ID type is required"
+      }
+    },
+    "controllerIds.description": {
+      "label": "Description",
+      "placeholder": "Enter description",
+      "description": "Description of the ID",
+      "tooltip": "should match your business registration documents ID description",
+      "validation": {
+        "maxLength": "Description must be 100 characters or less"
+      }
+    },
+    "controllerIds.value": {
+      "label": "ID value",
+      "placeholder": "Enter ID value",
+      "description": "ID value",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:format)",
+        "ssnFormat": "$t(validation:id.ssn)",
+        "itinFormat": "$t(validation:id.itin.format)",
+        "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+        "noSpaces": "$t(validation:common.noSpaces)"
+      }
+    },
+    "controllerIds.expiryDate": {
+      "label": "Expiry date",
+      "placeholder": "YYYY-MM-DD",
+      "description": "Date when the individual ID expires",
+      "tooltip": "Date when the individual ID expires",
+      "validation": {
+        "format": "Expiry date must be in 'YYYY-MM-DD' format",
+        "invalid": "Invalid date",
+        "past": "Expiry date cannot be in the past",
+        "tooFar": "Expiry date cannot be more than 10 years in the future"
+      }
+    },
+    "controllerIds.issuer": {
+      "label": "Issuer",
+      "placeholder": "Enter issuer",
+      "description": "Organization ID issuer",
+      "tooltip": "should match your business registration documents ID issuer",
+      "validation": {
+        "exactlyTwoChars": "Issuer must be a 2-letter country code"
       }
     },
     "industry": {

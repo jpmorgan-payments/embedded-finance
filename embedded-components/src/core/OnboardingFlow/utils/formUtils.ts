@@ -484,7 +484,11 @@ export function useFormUtilsWithClientContext(
     );
   }
 
-  function getFieldRule(fieldName: FieldPath<OnboardingFormValuesSubmit>) {
+  function getFieldRule(
+    fieldName:
+      | FieldPath<OnboardingFormValuesSubmit>
+      | `${keyof OnboardingFormValuesSubmit}.${string}`
+  ) {
     return getFieldRuleByClientContext(
       fieldName,
       clientContext,
@@ -507,7 +511,9 @@ export function useFormUtilsWithClientContext(
  * @returns Field rule determining field behavior
  */
 export function getFieldRuleByClientContext(
-  fieldName: FieldPath<OnboardingFormValuesSubmit>,
+  fieldName:
+    | FieldPath<OnboardingFormValuesSubmit>
+    | `${keyof OnboardingFormValuesSubmit}.${string}`,
   clientContext: ClientContext,
   currentScreenId: ScreenId
 ):

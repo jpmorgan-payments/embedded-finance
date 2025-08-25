@@ -44,118 +44,96 @@ const isValidSsn = (value: string): boolean => {
   );
 };
 
-const controllerIdSchema = z
-  .object({
-    description: z.string().optional(),
-    expiryDate: z
-      .string()
-      .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
-        message: i18n.t(
-          'onboarding:fields.controllerIds.expiryDate.validation.format'
-        ),
-      })
-      .refine((val) => !Number.isNaN(new Date(val).getTime()), {
-        message: i18n.t(
-          'onboarding:fields.controllerIds.expiryDate.validation.invalid'
-        ),
-      })
-      .refine(
-        (val) => {
-          const date = new Date(val);
-          const now = new Date();
-          return date > now;
-        },
-        {
-          message: i18n.t(
-            'onboarding:fields.controllerIds.expiryDate.validation.past'
-          ),
-        }
-      )
-      .refine(
-        (val) => {
-          const date = new Date(val);
-          const now = new Date();
-          const tenYearsFromNow = new Date(
-            now.setFullYear(now.getFullYear() + 10)
-          );
-          return date <= tenYearsFromNow;
-        },
-        {
-          message: i18n.t(
-            'onboarding:fields.controllerIds.expiryDate.validation.tooFar'
-          ),
-        }
-      )
-      .or(z.literal(undefined)),
-    idType: z.enum([
-      'SSN',
-      'ITIN',
-      'NATIONAL_ID',
-      'DRIVERS_LICENSE',
-      'PASSPORT',
-      'SOCIAL_INSURANCE_NUMBER',
-      'OTHER_GOVERNMENT_ID',
-    ]),
-    issuer: z
-      .string()
-      .length(
-        2,
-        i18n.t(
-          'onboarding:fields.controllerIds.issuer.validation.exactlyTwoChars'
+const createControllerIdSchema = (
+  v: ReturnType<typeof useGetValidationMessage>
+) =>
+  z
+    .object({
+      description: z.string().optional(),
+      expiryDate: z
+        .string()
+        .refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
+          message: v('controllerIds.expiryDate', 'format'),
+        })
+        .refine((val) => !Number.isNaN(new Date(val).getTime()), {
+          message: v('controllerIds.expiryDate', 'invalid'),
+        })
+        .refine(
+          (val) => {
+            const date = new Date(val);
+            const now = new Date();
+            return date > now;
+          },
+          v('controllerIds.expiryDate', 'past')
         )
-      ),
-    value: z
-      .string()
-      .min(
-        1,
-        i18n.t('onboarding:fields.controllerIds.value.validation.required')
-      )
-      .refine((val: string) => !/\s/.test(val), {
-        message: i18n.t(
-          'onboarding:fields.controllerIds.value.validation.noSpaces'
+        .refine(
+          (val) => {
+            const date = new Date(val);
+            const now = new Date();
+            const tenYearsFromNow = new Date(
+              now.setFullYear(now.getFullYear() + 10)
+            );
+            return date <= tenYearsFromNow;
+          },
+          v('controllerIds.expiryDate', 'tooFarInFuture')
+        )
+        .or(z.literal(undefined)),
+      idType: z.enum([
+        'SSN',
+        'ITIN',
+        'NATIONAL_ID',
+        'DRIVERS_LICENSE',
+        'PASSPORT',
+        'SOCIAL_INSURANCE_NUMBER',
+        'OTHER_GOVERNMENT_ID',
+      ]),
+      issuer: z
+        .string()
+        .length(2, v('controllerIds.issuer', 'exactlyTwoChars')),
+      value: z
+        .string()
+        .min(1, v('controllerIds.value', 'required'))
+        .refine(
+          (val: string) => !/\s/.test(val),
+          v('controllerIds.value', 'noSpaces')
         ),
-      }),
-  })
-  .refine(
-    (data) => {
-      switch (data.idType) {
-        case 'SSN': {
-          return isValidSsn(data.value);
-        }
-        case 'ITIN': {
-          // Basic ITIN format check
-          return data.value.startsWith('9') && data.value.length === 9;
-        }
-        default:
-          return true;
-      }
-    },
-    (data) => ({
-      message: i18n.t(
-        `onboarding-overview:fields.controllerIds.value.validation.${data.idType.toLowerCase()}Format`
-      ),
-      path: ['value'],
     })
-  )
-  .refine(
-    (data) => {
-      if (
-        data.idType === 'ITIN' &&
-        data.value.startsWith('9') &&
-        data.value.length === 9
-      ) {
-        // Return true if it doesn't have restricted ranges
-        return !hasRestrictedRanges(data.value);
-      }
-      return true;
-    },
-    () => ({
-      message: i18n.t(
-        'onboarding-overview:fields.controllerIds.value.validation.itinRestrictedRange'
-      ),
-      path: ['value'],
-    })
-  );
+    .refine(
+      (data) => {
+        switch (data.idType) {
+          case 'SSN': {
+            return isValidSsn(data.value);
+          }
+          case 'ITIN': {
+            // Basic ITIN format check
+            return data.value.startsWith('9') && data.value.length === 9;
+          }
+          default:
+            return true;
+        }
+      },
+      (data) => ({
+        message: v('controllerIds.value', `${data.idType.toLowerCase()}Format`),
+        path: ['value'],
+      })
+    )
+    .refine(
+      (data) => {
+        if (
+          data.idType === 'ITIN' &&
+          data.value.startsWith('9') &&
+          data.value.length === 9
+        ) {
+          // Return true if it doesn't have restricted ranges
+          return !hasRestrictedRanges(data.value);
+        }
+        return true;
+      },
+      () => ({
+        message: v('controllerIds.value', 'itinRestrictedRange'),
+        path: ['value'],
+      })
+    );
 
 export const useIndividualIdentityFormSchema = () => {
   const v = useGetValidationMessage();
@@ -178,34 +156,34 @@ export const useIndividualIdentityFormSchema = () => {
         },
         v('birthDate', 'future')
       )
-      .refine((val) => {
-        const birthDate = new Date(val);
-        const now = new Date();
-        const age = now.getFullYear() - birthDate.getFullYear();
-        return age >= MIN_AGE;
-      }, i18n.t('onboarding:fields.birthDate.validation.tooYoung'))
-      .refine((val) => {
-        const birthDate = new Date(val);
-        const now = new Date();
-        const age = now.getFullYear() - birthDate.getFullYear();
-        return age <= MAX_AGE;
-      }, i18n.t('onboarding:fields.birthDate.validation.tooOld')),
+      .refine(
+        (val) => {
+          const birthDate = new Date(val);
+          const now = new Date();
+          const age = now.getFullYear() - birthDate.getFullYear();
+          return age >= MIN_AGE;
+        },
+        v('birthDate', 'tooYoung')
+      )
+      .refine(
+        (val) => {
+          const birthDate = new Date(val);
+          const now = new Date();
+          const age = now.getFullYear() - birthDate.getFullYear();
+          return age <= MAX_AGE;
+        },
+        v('birthDate', 'tooOld')
+      ),
     countryOfResidence: z
       .string()
-      .length(
-        2,
-        i18n.t(
-          'onboarding:fields.countryOfResidence.validation.exactlyTwoChars'
-        )
-      )
-      .refine((val) => val === 'US', {
-        message: 'Only US is supported at this time.',
-      }),
+      .min(1, v('countryOfResidence', 'required'))
+      .length(2, v('countryOfResidence', 'exactlyTwoChars'))
+      .refine((val) => val === 'US', v('countryOfResidence', 'onlyUS')),
     solePropSsn: z
       .string()
       .min(1, v('solePropSsn', 'required'))
       .refine((val) => isValidSsn(val), v('solePropSsn', 'format')),
-    controllerIds: z.array(controllerIdSchema).refine((ids) => {
+    controllerIds: z.array(createControllerIdSchema(v)).refine((ids) => {
       const types = ids?.map((id) => id.idType);
       return new Set(types).size === types?.length;
     }, i18n.t('onboarding:fields.controllerIds.validation.uniqueTypes')),

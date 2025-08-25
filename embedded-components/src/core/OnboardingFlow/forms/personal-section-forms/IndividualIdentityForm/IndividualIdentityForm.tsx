@@ -131,6 +131,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
 };
 
 IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
+// TODO: add when SSN is valid as an organization ID
 // IndividualIdentityForm.updateAnotherPartyOnSubmit = {
 //   partyFilters: {
 //     partyType: 'ORGANIZATION',
