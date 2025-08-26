@@ -1,4 +1,6 @@
-export const API_URL = import.meta.env.VITE_API_URL ?? '';
+// Always use current origin for MSW to work properly in production
+export const API_URL =
+  typeof window !== 'undefined' ? window.location.origin : '';
 
 // Unique Client Identifier (C2)
 export const CLIENT_ID = import.meta.env.CLIENT_ID ?? '1234567890';
