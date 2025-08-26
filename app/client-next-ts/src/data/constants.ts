@@ -1,16 +1,6 @@
-export const API_URL = (() => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  const fallbackUrl =
-    typeof window !== 'undefined' ? window.location.origin : '';
-  const finalUrl = envUrl ?? fallbackUrl;
-
-  // Minimal debug logging
-  if (import.meta.env.DEV) {
-    console.log('🔧 API_URL resolved:', { envUrl, fallbackUrl, finalUrl });
-  }
-
-  return finalUrl;
-})();
+// Always use current origin for MSW to work properly in production
+export const API_URL =
+  typeof window !== 'undefined' ? window.location.origin : '';
 
 // Unique Client Identifier (C2)
 export const CLIENT_ID = import.meta.env.CLIENT_ID ?? '1234567890';
