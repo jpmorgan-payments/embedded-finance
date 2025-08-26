@@ -1,4 +1,16 @@
-export const API_URL = import.meta.env.VITE_API_URL ?? '';
+export const API_URL = (() => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  const fallbackUrl =
+    typeof window !== 'undefined' ? window.location.origin : '';
+  const finalUrl = envUrl ?? fallbackUrl;
+
+  // Minimal debug logging
+  if (import.meta.env.DEV) {
+    console.log('🔧 API_URL resolved:', { envUrl, fallbackUrl, finalUrl });
+  }
+
+  return finalUrl;
+})();
 
 // Unique Client Identifier (C2)
 export const CLIENT_ID = import.meta.env.CLIENT_ID ?? '1234567890';
