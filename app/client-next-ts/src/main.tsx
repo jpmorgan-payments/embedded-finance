@@ -27,31 +27,14 @@ declare module '@tanstack/react-router' {
 
 // Initialize MSW
 async function enableMocking() {
-  console.log('🚀 MSW Initialization Started');
-  console.log(
-    '🔧 API_URL at MSW init:',
-    import.meta.env.VITE_API_URL ?? 'Not set',
-  );
-  console.log(
-    '🌐 Current origin at MSW init:',
-    typeof window !== 'undefined' ? window.location.origin : 'server',
-  );
-
   try {
     const { worker } = await import('./msw/browser');
 
     // `worker.start()` returns a Promise that resolves
     // once the Service Worker is up and ready to intercept requests.
     await worker.start({
-      onUnhandledRequest: 'warn',
+      onUnhandledRequest: 'bypass',
     });
-    console.log('✅ MSW started successfully');
-
-    // Add simple request tracking
-    console.log(
-      '📊 MSW is now intercepting requests - check network tab for API calls',
-    );
-    console.log('💡 Tip: Look for requests that return HTML instead of JSON');
   } catch (error) {
     console.warn('MSW failed to start:', error);
     // Continue anyway - app should work without MSW in development
