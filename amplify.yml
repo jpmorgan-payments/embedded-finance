@@ -40,3 +40,23 @@ applications:
       cache:
         paths:
           - node_modules/**/*
+  - appRoot: embedded-components
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - nvm install 20
+            - nvm use 20
+            - node --version
+        build:
+          commands:
+            - yarn install
+            - yarn storybook:build
+      artifacts:
+        # IMPORTANT - Please verify your build output directory
+        baseDirectory: storybook-static
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - node_modules/**/*
