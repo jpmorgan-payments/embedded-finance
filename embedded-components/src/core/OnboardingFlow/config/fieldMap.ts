@@ -111,7 +111,7 @@ export const partyFieldMap: PartyFieldMap = {
       {
         condition: {
           product: ['EMBEDDED_PAYMENTS'],
-          entityType: ['SOLE_PROPRIETORSHIP'],
+          jurisdiction: ['US'],
         },
         rule: {
           interaction: 'disabled',

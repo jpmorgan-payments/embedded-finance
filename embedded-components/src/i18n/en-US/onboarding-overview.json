@@ -260,15 +260,10 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ \\ / @ & + % # ; , . : ' -})",
-        "pattern": "$t(validation:pattern)",
+        "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ \\ / @ & + % # ; , . : ' -})",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 100})",
-        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
-        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
-        "noSpecialAtStart": "$t(validation:text.noSpecialCharsAtStart)",
-        "noSpecialAtEnd": "$t(validation:text.noSpecialCharsAtEnd)"
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)"
       }
     },
     "yearOfFormation": {

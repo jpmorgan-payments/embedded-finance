@@ -8,8 +8,8 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import {
   BusinessContactInfoFormSchema,
-  BusinessIdentityFormSchema,
   IndustryFormSchema,
+  useBusinessIdentityFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
   useContactDetailsFormSchema,
@@ -25,8 +25,8 @@ type OnboardingFormSchemaType = [
   ReturnType<typeof usePersonalDetailsFormSchema>,
   ReturnType<typeof useIndividualIdentityFormSchema>,
   ReturnType<typeof useContactDetailsFormSchema>,
+  ReturnType<typeof useBusinessIdentityFormSchema>,
   typeof IndustryFormSchema,
-  typeof BusinessIdentityFormSchema,
   typeof BusinessContactInfoFormSchema,
 ];
 

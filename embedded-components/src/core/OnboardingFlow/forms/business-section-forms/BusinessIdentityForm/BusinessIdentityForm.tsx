@@ -11,14 +11,15 @@ import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 import {
-  BusinessIdentityFormSchema,
   refineBusinessIdentityFormSchema,
+  useBusinessIdentityFormSchema,
 } from './BusinessIdentityForm.schema';
 
 export const BusinessIdentityForm: FormStepComponent = () => {
   const { t } = useTranslation(['onboarding-overview']);
 
-  const form = useFormContext<z.input<typeof BusinessIdentityFormSchema>>();
+  const form =
+    useFormContext<z.input<ReturnType<typeof useBusinessIdentityFormSchema>>>();
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -154,7 +155,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
   );
 };
 
-BusinessIdentityForm.schema = BusinessIdentityFormSchema;
+BusinessIdentityForm.schema = useBusinessIdentityFormSchema;
 BusinessIdentityForm.refineSchemaFn = refineBusinessIdentityFormSchema;
 BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   const { solePropHasEin, organizationIdEin, ...rest } = values;
