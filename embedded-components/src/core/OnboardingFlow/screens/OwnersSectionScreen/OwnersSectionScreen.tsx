@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
-  useUpdateParty,
+  useUpdatePartyLegacy,
 } from '@/api/generated/smbdo';
 import { ClientResponse, Role } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -105,7 +105,7 @@ export const OwnersSectionScreen = () => {
     mutate: updateController,
     error: controllerUpdateError,
     status: controllerUpdateStatus,
-  } = useUpdateParty();
+  } = useUpdatePartyLegacy();
 
   // Update controller roles on change
   useEffect(() => {
@@ -193,7 +193,7 @@ export const OwnersSectionScreen = () => {
     mutate: updatePartyActive,
     error: partyActiveUpdateError,
     status: partyActiveUpdateStatus,
-  } = useUpdateParty();
+  } = useUpdatePartyLegacy();
 
   const ownersData =
     clientData?.parties?.filter(

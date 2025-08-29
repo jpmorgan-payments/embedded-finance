@@ -65,8 +65,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import { Role } from '@/api/generated/smbdo.schemas';
 import {
@@ -229,7 +229,7 @@ export const BeneficialOwnerStepForm = () => {
     error: clientUpdateError,
     status: clientUpdateStatus,
     reset: resetUpdateClient,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   // Used for updating party details
   const {

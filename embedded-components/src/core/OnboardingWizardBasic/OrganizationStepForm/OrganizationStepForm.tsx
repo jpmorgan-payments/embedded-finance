@@ -57,8 +57,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   Form,
@@ -165,7 +165,7 @@ export const OrganizationStepForm = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   const {
     mutate: updateParty,

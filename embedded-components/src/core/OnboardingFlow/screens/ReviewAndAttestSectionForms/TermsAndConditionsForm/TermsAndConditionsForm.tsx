@@ -20,7 +20,7 @@ import {
   smbdoDownloadDocument,
   smbdoGetDocumentDetail,
   useSmbdoPostClientVerifications,
-  useSmbdoUpdateClient,
+  useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -91,7 +91,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
     mutateAsync: updateClientAsync,
     error: updateClientError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   // Initiate KYC
   const {

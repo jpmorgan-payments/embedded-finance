@@ -7,8 +7,8 @@ import { useFormState } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
-  useSmbdoUpdateClient,
-  useUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy,
 } from '@/api/generated/smbdo';
 import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
 import { Button, Form } from '@/components/ui';
@@ -371,14 +371,14 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   // For updating an existing party
   const {
     mutate: updateParty,
     error: partyUpdateError,
     status: partyUpdateStatus,
-  } = useUpdateParty();
+  } = useUpdatePartyLegacy();
 
   const isFormSubmitting =
     clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';

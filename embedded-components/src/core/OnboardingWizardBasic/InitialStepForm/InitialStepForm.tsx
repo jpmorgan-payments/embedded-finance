@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 import {
   useSmbdoGetClient,
   useSmbdoPostClients,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   Card,
@@ -129,7 +129,7 @@ export const InitialStepForm = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   const {
     mutate: updateParty,
