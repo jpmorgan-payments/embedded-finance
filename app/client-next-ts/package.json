@@ -9,7 +9,10 @@
     "serve": "vite preview",
     "test": "vitest run",
     "health-check": "node health-check.js",
-    "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false"
+    "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false",
+    "health-check:linked-bank": "node health-check.js --scenario=linked-bank-account",
+    "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
+    "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "^0.8.20",

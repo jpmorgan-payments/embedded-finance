@@ -67,18 +67,21 @@ jobs:
         id: health-check
         run: |
           cd app/client-next-ts
-          TARGET_URL="${{ steps.url.outputs.url }}/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet"
-          echo "🔍 Running health check against: ${TARGET_URL}"
-          npm run health-check
+          echo "🔍 Running comprehensive health checks against base URL: ${{ steps.url.outputs.url }}"
+          echo "📝 Script will automatically add /sellsense-demo path for each scenario"
+          echo "🧪 Testing all scenarios: sellsense-demo, linked-bank-account, onboarding-docs-needed"
+
+          # Test all scenarios
+          npm run health-check:all
         env:
-          TARGET_URL: "${{ steps.url.outputs.url }}/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet"
+          TARGET_URL: "${{ steps.url.outputs.url }}"
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: health-check-screenshots-${{ github.run_number }}
-          path: app/client-next-ts/health-check-*.png
+          path: app/client-next-ts/screenshots/health-check-*.png
           retention-days: 7
 
       - name: Health check summary
@@ -95,7 +98,7 @@ jobs:
             echo "**Environment:** Main Deployment" >> $GITHUB_STEP_SUMMARY
           fi
 
-          echo "**Target URL:** ${{ steps.url.outputs.url }}/sellsense-demo" >> $GITHUB_STEP_SUMMARY
+          echo "**Target URL:** ${{ steps.url.outputs.url }} (script adds /sellsense-demo path)" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
@@ -104,7 +107,10 @@ jobs:
             echo "- Demo page loaded correctly" >> $GITHUB_STEP_SUMMARY
             echo "- MSW is functioning properly" >> $GITHUB_STEP_SUMMARY
             echo "- No critical errors detected" >> $GITHUB_STEP_SUMMARY
-            echo "- Transactions list is accessible" >> $GITHUB_STEP_SUMMARY
+            echo "- All 3 scenarios verified successfully:" >> $GITHUB_STEP_SUMMARY
+            echo "  • Transaction list (Acme Supplies)" >> $GITHUB_STEP_SUMMARY
+            echo "  • Bank account setup (Get Started with Your Bank Account)" >> $GITHUB_STEP_SUMMARY
+            echo "  • Onboarding flow (Additional Documents Required)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
               echo "**PR Status:** Ready to merge ✅" >> $GITHUB_STEP_SUMMARY

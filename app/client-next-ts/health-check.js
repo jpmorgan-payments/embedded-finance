@@ -1,8 +1,82 @@
 import { chromium } from '@playwright/test';
 
-async function simpleHealthCheck() {
+/**
+ * Health Check Configuration
+ * Define what to check for each page/use case
+ */
+const HEALTH_CHECKS = {
+  'sellsense-demo': {
+    scenario: 'Seller+with+Limited+DDA',
+    view: 'wallet',
+    checks: [
+      {
+        name: 'Transaction List (MSW Verification)',
+        text: 'Acme Supplies',
+        description: 'Verify MSW is providing transaction data',
+      },
+      {
+        name: 'Demo Content (Page Load)',
+        text: 'Seller Dashboard',
+        description: 'Verify page loaded with demo content',
+      },
+      {
+        name: 'MSW Status (Mock Service Worker)',
+        text: 'API calls are being mocked using',
+        description: 'Verify MSW is active and working',
+      },
+    ],
+  },
+  'linked-bank-account': {
+    scenario: 'Linked+Bank+Account',
+    view: 'wallet',
+    checks: [
+      {
+        name: 'Bank Account Content (MSW Verification)',
+        text: 'Get Started with Your Bank Account',
+        description: 'Verify MSW is providing bank account data',
+      },
+      {
+        name: 'Demo Content (Page Load)',
+        text: 'Seller Dashboard',
+        description: 'Verify page loaded with demo content',
+      },
+      {
+        name: 'MSW Status (Mock Service Worker)',
+        text: 'API calls are being mocked using',
+        description: 'Verify MSW is active and working',
+      },
+    ],
+  },
+  'onboarding-docs-needed': {
+    scenario: 'Onboarding+-+Docs+Needed',
+    view: 'onboarding',
+    checks: [
+      {
+        name: 'Onboarding Content (MSW Verification)',
+        text: 'Additional Documents Required',
+        description: 'Verify MSW is providing onboarding data',
+      },
+      {
+        name: 'Demo Content (Page Load)',
+        text: 'Onboarding Flow',
+        description: 'Verify page loaded with demo content',
+      },
+      {
+        name: 'MSW Status (Mock Service Worker)',
+        text: 'API calls are being mocked using',
+        description: 'Verify MSW is active and working',
+      },
+    ],
+  },
+  // Future: Add more page configurations here
+  // 'other-page': { ... }
+  // 'kyc-onboarding': { ... }
+  // 'linked-accounts': { ... }
+};
+
+async function runHealthCheck(pageConfig) {
   const browser = await chromium.launch({
-    headless: process.env.HEADLESS !== 'false', // Allow local testing with visible browser
+    headless: process.env.HEADLESS !== 'false',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
@@ -13,52 +87,44 @@ async function simpleHealthCheck() {
   const page = await context.newPage();
 
   try {
-    // Get target URL from environment variable or use default
-    const targetUrl =
-      process.env.TARGET_URL ||
-      'https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet';
+    // Construct the full URL
+    const baseUrl =
+      process.env.TARGET_URL || 'https://embedded-finance-dev.com';
+    const targetUrl = `${baseUrl}/${pageConfig.path}?scenario=${pageConfig.scenario}&view=${pageConfig.view}`;
 
     console.log(`🚀 Starting health check for: ${targetUrl}`);
     console.log(`⏰ Start time: ${new Date().toISOString()}`);
+    console.log(`📋 Testing: ${pageConfig.description}`);
 
     // Navigate to the target URL
-    console.log('📱 Navigating to demo page...');
+    console.log('📱 Navigating to page...');
     await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 30000 });
 
-    // Wait for the page to load and check for key elements
-    console.log('🔍 Checking page elements...');
+    // Wait for page to load
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000);
 
-    // Wait for the main content to load
-    await page.waitForSelector(
-      '[data-testid="transactions-list"], .transactions-list, [class*="transaction"], [class*="Transaction"]',
-      { timeout: 10000 },
-    );
+    // Run all configured checks
+    console.log('🔍 Running health checks...');
+    const results = [];
 
-    // Look for transaction-related elements (MSW verification)
-    const transactionElements = await page.$$(
-      '[data-testid="transactions-list"], .transactions-list, [class*="transaction"], [class*="Transaction"], [class*="sellsense"]',
-    );
+    for (const check of pageConfig.checks) {
+      try {
+        // Look for the specific text content
+        const textFound = await page.textContent('body');
+        const hasText = textFound && textFound.includes(check.text);
 
-    if (transactionElements.length === 0) {
-      throw new Error(
-        'No transaction elements found - MSW might not be working',
-      );
-    }
-
-    console.log(
-      `✅ Found ${transactionElements.length} transaction-related elements`,
-    );
-
-    // Check for SellSense branding
-    const sellSenseElements = await page.$$(
-      'text=/sell.?sense/i, [class*="sellsense"], [class*="SellSense"]',
-    );
-    if (sellSenseElements.length === 0) {
-      console.log('⚠️  Warning: SellSense branding not clearly visible');
-    } else {
-      console.log(
-        `✅ Found ${sellSenseElements.length} SellSense branding elements`,
-      );
+        if (hasText) {
+          console.log(`✅ ${check.name}: Found "${check.text}"`);
+          results.push({ ...check, status: 'PASS' });
+        } else {
+          console.log(`❌ ${check.name}: Missing "${check.text}"`);
+          results.push({ ...check, status: 'FAIL', expected: check.text });
+        }
+      } catch (error) {
+        console.log(`⚠️  ${check.name}: Error during check - ${error.message}`);
+        results.push({ ...check, status: 'ERROR', error: error.message });
+      }
     }
 
     // Check for console errors
@@ -69,10 +135,8 @@ async function simpleHealthCheck() {
       }
     });
 
-    // Wait a bit more for any dynamic content
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1000);
 
-    // Check for critical errors
     const criticalErrors = consoleErrors.filter(
       (error) =>
         error.includes('Failed to load resource') ||
@@ -83,45 +147,58 @@ async function simpleHealthCheck() {
 
     if (criticalErrors.length > 0) {
       console.log(
-        `⚠️  Warning: Found ${criticalErrors.length} critical console errors:`,
+        `⚠️  Warning: Found ${criticalErrors.length} critical console errors`,
       );
       criticalErrors.forEach((error) => console.log(`   - ${error}`));
     }
 
-    // Take a success screenshot
+    // Determine overall success
+    const failedChecks = results.filter((r) => r.status === 'FAIL');
+    const hasFailures = failedChecks.length > 0;
+
+    if (hasFailures) {
+      console.log('\n❌ Health check failed!');
+      failedChecks.forEach((check) => {
+        console.log(
+          `   - ${check.name}: Expected "${check.expected}" but not found`,
+        );
+      });
+      throw new Error(`${failedChecks.length} health check(s) failed`);
+    }
+
+    // Take success screenshot
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const screenshotName = `health-check-success-${timestamp}.png`;
+    const screenshotName = `screenshots/health-check-success-${timestamp}.png`;
     await page.screenshot({ path: screenshotName, fullPage: true });
     console.log(`📸 Success screenshot saved: ${screenshotName}`);
 
-    console.log('✅ Health check completed successfully!');
-    console.log(`🎯 Demo is working correctly at: ${targetUrl}`);
-    console.log(`📊 Found ${transactionElements.length} transaction elements`);
+    console.log('\n✅ Health check completed successfully!');
+    console.log(`🎯 All ${results.length} checks passed`);
+    console.log(`📊 Results: ${results.map((r) => r.status).join(', ')}`);
     console.log(`⏰ End time: ${new Date().toISOString()}`);
 
     return true;
   } catch (error) {
-    console.error('❌ Health check failed:', error.message);
+    console.error('\n❌ Health check failed:', error.message);
 
-    // Take an error screenshot
+    // Take error screenshot
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const screenshotName = `health-check-error-${timestamp}.png`;
+    const screenshotName = `screenshots/health-check-error-${timestamp}.png`;
     await page.screenshot({ path: screenshotName, fullPage: true });
     console.log(`📸 Error screenshot saved: ${screenshotName}`);
 
-    // Log additional debugging info
-    console.log('🔍 Debugging information:');
+    // Log debugging info
+    console.log('\n🔍 Debugging information:');
     console.log(`   - Current URL: ${page.url()}`);
     console.log(`   - Page title: ${await page.title()}`);
 
-    // Check if page loaded at all
     try {
       const bodyText = await page.textContent('body');
       if (bodyText) {
         console.log(`   - Body content length: ${bodyText.length} characters`);
-        if (bodyText.includes('error') || bodyText.includes('Error')) {
-          console.log('   - Page contains error text');
-        }
+        console.log(
+          `   - Page content preview: ${bodyText.substring(0, 300)}...`,
+        );
       }
     } catch (e) {
       console.log('   - Could not read page content');
@@ -131,6 +208,42 @@ async function simpleHealthCheck() {
   } finally {
     await browser.close();
   }
+}
+
+async function simpleHealthCheck() {
+  // Determine which page to test based on URL or default
+  const targetUrl =
+    process.env.TARGET_URL || 'https://embedded-finance-dev.com';
+
+  // Check if a specific scenario was requested
+  const scenarioArg = args.find((arg) => arg.startsWith('--scenario='));
+  let scenarioKey = 'sellsense-demo'; // default
+
+  if (scenarioArg) {
+    const scenarioValue = scenarioArg.split('=')[1];
+    // Map scenario values to configuration keys
+    if (scenarioValue === 'linked-bank-account') {
+      scenarioKey = 'linked-bank-account';
+    } else if (scenarioValue === 'onboarding-docs-needed') {
+      scenarioKey = 'onboarding-docs-needed';
+    } else if (scenarioValue === 'sellsense-demo') {
+      scenarioKey = 'sellsense-demo';
+    }
+  }
+
+  const pageConfig = {
+    path: 'sellsense-demo', // All scenarios use the same base path
+    scenario: HEALTH_CHECKS[scenarioKey].scenario,
+    view: HEALTH_CHECKS[scenarioKey].view,
+    checks: HEALTH_CHECKS[scenarioKey].checks,
+    description:
+      HEALTH_CHECKS[scenarioKey].checks[0].description.replace(
+        'Verify MSW is providing ',
+        '',
+      ) + ' - MSW API Data Verification',
+  };
+
+  return runHealthCheck(pageConfig);
 }
 
 // Handle command line arguments
@@ -145,26 +258,39 @@ Usage:
   node health-check.js [options]
 
 Options:
-  --url <url>           Custom URL to test (overrides TARGET_URL env var)
+  --url <url>           Base URL to test (overrides TARGET_URL env var)
+                        Script adds /sellsense-demo path automatically
+  --scenario <name>     Scenario to test (default: sellsense-demo)
+                        Available: sellsense-demo, linked-bank-account, onboarding-docs-needed
   --headless <boolean>  Show browser window (default: true)
   --help, -h           Show this help message
 
 Environment Variables:
-  TARGET_URL            URL to test (defaults to embedded-finance-dev.com)
+  TARGET_URL            Base URL to test (defaults to embedded-finance-dev.com)
   HEADLESS              Whether to run in headless mode (default: true)
 
 Examples:
-  npm run health-check                    # Test production
-  npm run health-check:local             # Test local development
-  node health-check.js --url "https://example.com"  # Test custom URL
-  node health-check.js --headless false # Test with visible browser
+  npm run health-check                                    # Test default scenario (sellsense-demo)
+  npm run health-check:local                             # Test local development
+  node health-check.js --scenario=linked-bank-account     # Test bank account scenario
+  node health-check.js --scenario=onboarding-docs-needed  # Test onboarding scenario
+  node health-check.js --url "https://pr-123.hash.amplifyapp.com" --scenario=linked-bank-account
+  node health-check.js --headless false                  # Test with visible browser
+
+Available Scenarios:
+  ✅ sellsense-demo          - Transaction list with Acme Supplies
+  ✅ linked-bank-account     - Bank account setup with "Get Started with Your Bank Account"
+  ✅ onboarding-docs-needed  - Onboarding flow with "Additional Documents Required"
 
 What it checks:
-  ✅ Demo page loads without errors
+  ✅ Page loads without errors
   ✅ MSW (Mock Service Worker) is working
-  ✅ Transaction data is accessible
+  ✅ Scenario-specific content is rendered
+  ✅ MSW status message is visible
   ✅ No critical JavaScript errors
   ✅ Generates screenshots for debugging
+  ✅ Simple, focused verification
+  ✅ Composable for future enhancements
 `);
   process.exit(0);
 }
