@@ -54,14 +54,14 @@ jobs:
         run: |
           echo "⏳ Waiting for Amplify PR deployment to complete..."
           echo "PR deployments are usually faster than main deployments"
-          sleep 60  # 1 minute for PR deployments
+          sleep 120  # 2 minutes for PR deployments
 
       - name: Wait for main deployment (if applicable)
         if: steps.url.outputs.is_pr == 'false'
         run: |
           echo "⏳ Waiting for Amplify main deployment to complete..."
           echo "Main deployments take longer to build and deploy"
-          sleep 120  # 2 minutes for main deployments
+          sleep 180  # 3 minutes for main deployments
 
       - name: Run health check
         id: health-check
