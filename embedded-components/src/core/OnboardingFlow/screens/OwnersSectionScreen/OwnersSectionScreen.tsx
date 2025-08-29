@@ -11,7 +11,7 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -54,11 +54,7 @@ export const OwnersSectionScreen = () => {
     onPostPartySettled: onPostPartyResponse,
     organizationType,
   } = useOnboardingContext();
-  const { t } = useTranslation([
-    'onboarding-old',
-    'onboarding-overview',
-    'common',
-  ]);
+  const { t } = useTranslation(['onboarding-overview', 'common']);
   const queryClient = useQueryClient();
 
   const controllerParty = clientData?.parties?.find(
@@ -291,9 +287,9 @@ export const OwnersSectionScreen = () => {
     <StepLayout
       title={
         <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-gap-4">
-          <span>Owners and key roles</span>
+          <span>{t('screens.owners.title')}</span>
           <Button variant="outline" size="sm" onClick={() => goTo('overview')}>
-            Overview
+            {t('screens.owners.overviewButtonLabel')}
             <MenuIcon />
           </Button>
         </div>
@@ -305,23 +301,20 @@ export const OwnersSectionScreen = () => {
           <InfoIcon className="eb-h-4 eb-w-4" />
           <AlertDescription className="eb-flex eb-flex-col">
             <p className="eb-mb-2 eb-text-sm eb-font-semibold">
-              For a{' '}
-              {organizationType &&
-                t(`onboarding-overview:organizationTypes.${organizationType}`)}
+              {t('screens.owners.infoAlert.header', { organizationType })}
             </p>
             <div className="eb-flex eb-items-center eb-space-x-2">
-              <span className="eb-text-lg eb-font-bold">Owners</span>
+              <span className="eb-text-lg eb-font-bold">
+                {t('screens.owners.infoAlert.title')}
+              </span>
               <LearnMorePopoverTrigger
                 content={
                   <div className="eb-space-y-3">
                     <h2 className="eb-font-header eb-text-xl eb-font-medium">
-                      What is an owner?
+                      {t('screens.owners.tooltip.title')}
                     </h2>
                     <p className="eb-pb-1 eb-text-sm">
-                      An owner is an individual or entity that ultimately owns
-                      at least part of a business, established through a chain
-                      of ownership or by means of control other than direct
-                      control.
+                      {t('screens.owners.tooltip.description')}
                     </p>
                   </div>
                 }
@@ -332,8 +325,10 @@ export const OwnersSectionScreen = () => {
               </LearnMorePopoverTrigger>
             </div>
             <p>
-              Please add <span className="eb-font-semibold">all owners</span>{' '}
-              holding 25% or more of the business
+              <Trans
+                t={t}
+                i18nKey="screens.owners.infoAlert.pleaseAddAllOwners"
+              />
             </p>
           </AlertDescription>
         </Alert>
@@ -351,7 +346,7 @@ export const OwnersSectionScreen = () => {
               }
               type="radio-group"
               name="controllerIsAnOwner"
-              label={t('beneficialOwnerStepForm.controllerIsOwnerQuestion')}
+              label={t('screens.owners.controllerIsOwnerQuestion')}
               description=""
               tooltip=""
               options={[
@@ -376,7 +371,7 @@ export const OwnersSectionScreen = () => {
                     });
                   }}
                 >
-                  Go now
+                  {t('screens.owners.goNowButton')}
                   <ArrowRightIcon />
                 </Button>
               </div>
@@ -385,15 +380,14 @@ export const OwnersSectionScreen = () => {
               form.watch('controllerIsAnOwner') === 'no' &&
               controllerUpdateStatus !== 'pending' && (
                 <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
-                  {'\u24d8'}{' '}
-                  {t('beneficialOwnerStepForm.controllerCannotBeOwnerWarning')}
+                  {`\u24d8 ${t('screens.owners.controllerCannotBeOwnerWarning')}`}
                 </p>
               )}
             <div className="eb-mt-2 eb-inline-flex eb-h-4 eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
               {controllerUpdateStatus === 'pending' && (
                 <>
                   <Loader2Icon className="eb-pointer-events-none eb-size-4 eb-shrink-0 eb-animate-spin" />
-                  <span>{t('beneficialOwnerStepForm.makingChanges')}</span>
+                  <span>{t('screens.owners.makingChanges')}</span>
                 </>
               )}
             </div>
@@ -409,12 +403,12 @@ export const OwnersSectionScreen = () => {
             onClick={() => handleEditBeneficialOwner('')}
             disabled={isFormDisabled || activeOwners.length >= 4}
           >
-            <PlusIcon /> Add Owner
+            <PlusIcon /> {t('screens.owners.addOwnerButton')}
           </Button>
 
           {ownersData.length >= 4 && (
             <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-              {'\u24d8'} {t('beneficialOwnerStepForm.maxOwnersWarning')}
+              {`\u24d8 ${t('screens.owners.maxOwnersWarning')}`}
             </p>
           )}
 
@@ -424,7 +418,9 @@ export const OwnersSectionScreen = () => {
                 <div className="eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary eb-stroke-white">
                   <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
                 </div>
-                <p className="eb-text-sm">No stakeholders added yet.</p>
+                <p className="eb-text-sm">
+                  {t('screens.owners.noStakeholdersAdded')}
+                </p>
               </div>
             </Card>
           )}
@@ -450,14 +446,14 @@ export const OwnersSectionScreen = () => {
                     variant="outline"
                     className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
                   >
-                    Owner
+                    {t('screens.owners.badges.owner')}
                   </Badge>
                   {owner.roles?.includes('CONTROLLER') && (
                     <Badge
                       variant="outline"
                       className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
                     >
-                      Controller
+                      {t('screens.owners.badges.controller')}
                     </Badge>
                   )}
                 </div>
@@ -471,19 +467,28 @@ export const OwnersSectionScreen = () => {
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="sm">
                         <TrashIcon />
-                        Remove
+                        {t('screens.owners.removeOwnerButton')}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="eb-component">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Remove Owner?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          {t('screens.owners.removeOwnerDialog.title')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to remove{' '}
-                          <b>{getPartyName(owner)}</b> as an owner?
+                          <Trans
+                            t={t}
+                            i18nKey="screens.owners.removeOwnerDialog.description"
+                            tOptions={{
+                              owner: getPartyName(owner),
+                            }}
+                          />
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>
+                          {t('screens.owners.removeOwnerDialog.cancelButton')}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() =>
                             owner.id && deactivateBeneficialOwner(owner.id)
@@ -492,7 +497,7 @@ export const OwnersSectionScreen = () => {
                           {partyActiveUpdateStatus === 'pending' && (
                             <Loader2Icon className="eb-size-4 eb-animate-spin" />
                           )}
-                          Remove
+                          {t('screens.owners.removeOwnerDialog.confirmButton')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -507,12 +512,12 @@ export const OwnersSectionScreen = () => {
                   }
                 >
                   <PencilIcon />
-                  Edit
+                  {t('screens.owners.editOwnerButton')}
                 </Button>
               </div>
               {owner.id && !ownersValidation[owner.id]?.allStepsValid && (
                 <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                  {'\u24d8'} This individual is missing some details.
+                  {`\u24d8 ${t('screens.owners.ownerIncompleteWarning')}`}
                 </p>
               )}
             </Card>
@@ -552,8 +557,8 @@ export const OwnersSectionScreen = () => {
             disabled={isFormDisabled}
           >
             {reviewMode
-              ? 'Save and return to review'
-              : 'Save and continue to operational details'}
+              ? t('screens.owners.saveAndReturnToReviewButton')
+              : t('screens.owners.saveAndContinueButton')}
           </Button>
         </div>
       </div>

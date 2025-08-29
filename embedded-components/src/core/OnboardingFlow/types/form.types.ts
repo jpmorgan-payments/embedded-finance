@@ -7,9 +7,9 @@ import {
   OrganizationType,
 } from '@/api/generated/smbdo.schemas';
 import {
-  BusinessContactInfoFormSchema,
-  IndustryFormSchema,
+  useBusinessContactInfoFormSchema,
   useBusinessIdentityFormSchema,
+  useIndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
   useContactDetailsFormSchema,
@@ -26,8 +26,8 @@ type OnboardingFormSchemaType = [
   ReturnType<typeof useIndividualIdentityFormSchema>,
   ReturnType<typeof useContactDetailsFormSchema>,
   ReturnType<typeof useBusinessIdentityFormSchema>,
-  typeof IndustryFormSchema,
-  typeof BusinessContactInfoFormSchema,
+  ReturnType<typeof useIndustryFormSchema>,
+  ReturnType<typeof useBusinessContactInfoFormSchema>,
 ];
 
 type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =

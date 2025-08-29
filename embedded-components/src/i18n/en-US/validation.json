@@ -57,7 +57,7 @@
   "year": {
     "format": "Please enter a valid 4-digit year",
     "min": "Year cannot be earlier than {{min}}",
-    "max": "Year cannot be in the future",
+    "future": "Year cannot be in the future",
     "range": "Year must be between {{min}} and {{max}}"
   },
   "url": {
