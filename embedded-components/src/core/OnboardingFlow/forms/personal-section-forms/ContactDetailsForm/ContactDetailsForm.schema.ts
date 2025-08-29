@@ -19,6 +19,6 @@ export const useContactDetailsFormSchema = () => {
     controllerAddresses: z.array(AddressSchema).refine((addresses) => {
       const types = addresses.map((addr) => addr.addressType);
       return new Set(types).size === types.length;
-    }, i18n.t('onboarding:fields.controllerAddresses.validation.uniqueTypes')),
+    }, i18n.t('onboarding-old:fields.controllerAddresses.validation.uniqueTypes')),
   });
 };
