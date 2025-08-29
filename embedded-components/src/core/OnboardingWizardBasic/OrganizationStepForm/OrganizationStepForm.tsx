@@ -577,7 +577,7 @@ export const OrganizationStepForm = () => {
                   </div>
                   <div className="eb-ml-3">
                     <p className="eb-text-sm eb-text-blue-700">
-                      {t('onboarding:messages.solePropEinOptional')}
+                      {t('onboarding-old:messages.solePropEinOptional')}
                     </p>
                   </div>
                 </div>
@@ -683,7 +683,7 @@ export const OrganizationStepForm = () => {
             name="associatedCountries"
             renderHeader={() => (
               <div className="eb-text-md eb-font-medium">
-                {t('onboarding:fields.associatedCountries.headerLabel')}
+                {t('onboarding-old:fields.associatedCountries.headerLabel')}
               </div>
             )}
             renderWrapper={(children) => (
@@ -714,7 +714,7 @@ export const OrganizationStepForm = () => {
             name="secondaryMccList"
             renderHeader={() => (
               <div className="eb-text-md eb-font-medium">
-                {t('onboarding:fields.secondaryMccList.headerLabel')}
+                {t('onboarding-old:fields.secondaryMccList.headerLabel')}
               </div>
             )}
             renderWrapper={(children) => (

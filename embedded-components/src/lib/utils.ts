@@ -109,7 +109,7 @@ export const loadContentTokens = (
     i18n.addResourceBundle(
       lng,
       namespace,
-      defaultContentTokens.onboarding,
+      defaultContentTokens['onboarding-old'],
       false, // deep
       true // overwrite
     );
