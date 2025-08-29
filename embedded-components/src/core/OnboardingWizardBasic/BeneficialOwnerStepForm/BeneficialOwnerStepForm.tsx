@@ -118,7 +118,7 @@ export const BeneficialOwnerStepForm = () => {
     processStep,
     mode,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   // TODO: move this state to context to prevent re-render when resizing
   const [isDialogOpen, setIsDialogOpen] = useState(false);

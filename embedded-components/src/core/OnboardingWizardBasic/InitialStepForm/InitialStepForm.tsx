@@ -48,7 +48,7 @@ export const InitialStepForm = () => {
     usePartyResource,
     onPostPartyResponse,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');

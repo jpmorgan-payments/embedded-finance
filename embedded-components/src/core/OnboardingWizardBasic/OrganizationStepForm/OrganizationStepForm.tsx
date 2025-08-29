@@ -103,7 +103,7 @@ export const OrganizationStepForm = () => {
     processStep,
     mode,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   // Fetch client data
   const { data: clientData, status: clientDataGetStatus } = useSmbdoGetClient(

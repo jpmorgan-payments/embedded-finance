@@ -56,7 +56,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   const { clientData, onPostClientSettled } = useOnboardingContext();
   const { updateSessionData } = useFlowContext();
 
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-old');
 
   const form = useForm({
     defaultValues: {

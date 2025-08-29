@@ -95,7 +95,7 @@ export const ControllerStepForm = () => {
     processStep,
     mode,
   } = useOnboardingContext();
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-old');
 
   // Fetch client data
   const { data: clientData, status: getClientStatus } = useSmbdoGetClient(

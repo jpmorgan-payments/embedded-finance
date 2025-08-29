@@ -142,7 +142,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 const OnboardingWizardBasicComponent: FC<
   Pick<OnboardingWizardBasicProps, 'initialStep' | 'variant'>
 > = ({ initialStep, variant = 'circle-alt' }) => {
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-old');
 
   const {
     clientId,

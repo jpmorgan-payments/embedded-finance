@@ -17,7 +17,7 @@ import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import { stateOptions } from '../utils/stateOptions';
 
 export const SolePropStepForm: FC = () => {
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-old');
 
   // Placeholder for form setup - will be implemented later
   const form = {} as any;

@@ -160,7 +160,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   }
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
-  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
+  const { t } = useTranslation([
+    'onboarding-old',
+    'onboarding-overview',
+    'common',
+  ]);
 
   let fieldRule: OptionalDefaults<FieldRule> = {};
   if (!disableFieldRuleMapping) {
