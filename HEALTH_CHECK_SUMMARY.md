@@ -1,79 +1,100 @@
-# Health Check Setup Summary
+# Health Check CI/CD Pipeline Summary
 
-A simple, focused health check system for the embedded finance demo.
+A CI/CD pipeline that waits for Amplify to auto-deploy changes and then verifies the deployment with health checks, with PR status gating.
 
 ## 🎯 What We Built
 
 1. **Health Check Script** (`health-check.js`)
-
    - Simple Playwright-based verification
    - Checks MSW functionality and transaction data
    - Generates screenshots for debugging
    - CLI-friendly with various options
 
-2. **GitHub Action** (`.github/workflows/simple-health-check.yml`)
-
-   - Runs automatically on main branch pushes
-   - Manual trigger option for testing
-   - Uploads screenshots as artifacts
-   - Provides clear pass/fail results
+2. **Wait and Verify Workflow** (`.github/workflows/wait-and-verify-deployment.yml`)
+   - **Waits for Amplify deployment** (from your `amplify.yml`)
+   - **Health check automation** after deployment
+   - **PR status updates** based on health check results
+   - **PR blocking** if health check fails
 
 3. **NPM Scripts** (in `package.json`)
    - `npm run health-check` - Test production
    - `npm run health-check:local` - Test local development
 
-## 🚀 How to Use
+## 🚀 How It Works
 
-### For Developers
+### **Complete Pipeline Flow**
+```
+Code Push/PR → Amplify auto-deploys (from amplify.yml) → Wait for completion → Health Check → PR Status Updated
+                                    ↓
+                              If Health Check Fails → PR Fails ❌
+                              If Health Check Passes → PR Passes ✅
+```
 
+### **Key Points**
+- **Amplify handles deployment** automatically from your `amplify.yml`
+- **This workflow only waits and verifies** - it doesn't control deployment
+- **Health checks run after deployment** to ensure everything works
+- **PR status is updated** based on verification results
+
+## 🎯 Benefits
+
+### **For Developers**
+- ✅ **Automatic verification** - Every deployment is automatically tested
+- ✅ **PR safety** - Can't merge broken deployments
+- ✅ **Clear feedback** - Know immediately if deployment is healthy
+- ✅ **Screenshots** - Visual debugging when things go wrong
+
+### **For Quality Assurance**
+- ✅ **Deployment verification** - Every change is automatically tested
+- ✅ **Regression prevention** - Broken deployments block PRs
+- ✅ **Audit trail** - Complete history of deployments and health checks
+- ✅ **Fast feedback** - Issues caught before they reach production
+
+## 🔧 Setup Required
+
+### **1. Branch Protection Rules**
+Set up branch protection in GitHub to require the health check:
+1. Go to Settings → Branches → Add rule
+2. Select `main` branch
+3. Check "Require status checks to pass before merging"
+4. Add "Wait and Verify Deployment" as required status check
+
+### **2. Workflow Configuration**
+- **Deployment Wait**: 4 minutes (adjust if needed)
+- **Target URL**: Your embedded finance demo URL
+- **Timeout**: 15 minutes total
+
+## 🧪 Testing During PR Development
+
+### **Local Testing**
 ```bash
-# Test locally before pushing
-cd app/client-next-ts
+# Test against production
 npm run health-check
 
-# Test against local dev server
+# Test against local development
 npm run dev  # Terminal 1
 npm run health-check:local  # Terminal 2
 ```
 
-### For GitHub Actions
+### **PR Testing**
+1. **Push changes** - Workflow automatically starts
+2. **Watch pipeline** - Check Actions tab for progress
+3. **Monitor deployment** - See when Amplify starts building
+4. **Wait for health check** - Pipeline waits for deployment completion
+5. **Check PR status** - PR will show success/failure
 
-- **Automatic**: Runs on every push to main
-- **Manual**: Go to Actions tab → Run workflow
-- **Results**: Check Actions tab for screenshots and logs
+## 📁 Files
 
-## 📁 Files Structure
+- **`.github/workflows/wait-and-verify-deployment.yml`** - Main workflow
+- **`app/client-next-ts/health-check.js`** - Health check script
+- **`app/client-next-ts/package.json`** - NPM scripts
+- **`amplify.yml`** - Amplify deployment configuration
 
-```
-.github/workflows/
-├── simple-health-check.yml    # The workflow
-└── README.md                  # Usage instructions
+## 🎉 Result
 
-app/client-next-ts/
-├── health-check.js            # The health check script
-└── package.json               # NPM scripts
-```
+**This setup gives you a production-ready CI/CD pipeline with automatic health checks and PR gating!**
 
-## ✅ What It Verifies
-
-- Demo page loads without errors
-- MSW (Mock Service Worker) is working
-- Transaction data is accessible
-- No critical JavaScript errors
-- Generates screenshots for debugging
-
-## 🧹 Cleanup Done
-
-- Removed complex, multi-environment workflows
-- Removed unnecessary configuration files
-- Removed verbose documentation
-- Kept only essential, focused files
-
-## 🎯 Next Steps
-
-1. Test locally to ensure it works
-2. Push changes to trigger the workflow
-3. Monitor results in GitHub Actions
-4. Use for post-deployment verification
-
-**Simple, focused, and effective!** 🎉
+- **No manual deployment control needed** - Amplify handles everything
+- **Automatic verification** - Every deployment is tested
+- **PR safety** - Broken deployments can't be merged
+- **Clear feedback** - Immediate visibility into deployment health

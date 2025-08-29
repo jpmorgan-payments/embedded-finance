@@ -1,111 +1,90 @@
-# Simple Health Check Workflow
+# Wait and Verify Deployment Workflow
 
-A focused GitHub Action that runs post-deployment health checks for the embedded finance demo.
+A CI/CD pipeline that waits for Amplify to auto-deploy changes and then verifies the deployment with health checks, with PR status gating.
 
 ## 🎯 What It Does
 
-This workflow verifies that your deployed demo is working correctly by:
+This workflow provides a complete deployment verification pipeline:
 
-- ✅ Loading the demo page without errors
-- ✅ Checking that MSW (Mock Service Worker) is functioning
-- ✅ Verifying transaction data is accessible
-- ✅ Capturing screenshots for debugging
-- ✅ Providing clear pass/fail results
+1. **⏳ Wait for Deployment**: Waits for Amplify to auto-deploy from your `amplify.yml`
+2. **🔍 Health Check**: Verifies the deployed demo is working correctly
+3. **✅ PR Status Update**: Updates PR status based on health check results
+4. **🚫 PR Blocking**: Prevents merging if health check fails
+
+## 🚀 How It Works
+
+### **Complete Pipeline Flow**
+```
+Code Push/PR → Amplify auto-deploys (from amplify.yml) → Wait for completion → Health Check → PR Status Updated
+                                    ↓
+                              If Health Check Fails → PR Fails ❌
+                              If Health Check Passes → PR Passes ✅
+```
+
+### **Key Points**
+- **Amplify handles deployment** automatically from your `amplify.yml`
+- **This workflow only waits and verifies** - it doesn't control deployment
+- **Health checks run after deployment** to ensure everything works
+- **PR status is updated** based on verification results
 
 ## 🚀 How to Use
 
-### Manual Trigger
-
-1. Go to **Actions** tab in your GitHub repository
-2. Select **Simple Post-Deployment Health Check**
-3. Click **Run workflow**
-4. Optionally provide a custom URL to test
-5. Click **Run workflow**
-
-### Automatic Trigger
-
+### **Automatic Trigger**
 The workflow automatically runs when:
-
 - You push changes to the `main` branch
-- You modify the workflow file or health check script
+- You create or update a pull request
 
-## 🧪 Testing During PR Development
+### **Manual Trigger**
+1. Go to **Actions** tab in your GitHub repository
+2. Select **Wait and Verify Deployment**
+3. Click **Run workflow**
+4. Click **Run workflow**
 
-### 1. Test Locally First
+## 📋 What Gets Verified
 
-Before pushing your changes, test the health check script locally:
+✅ **Page Load** - Demo loads without errors  
+✅ **MSW Functionality** - Mock Service Worker is working  
+✅ **Transaction Data** - Transactions list is accessible  
+✅ **No Critical Errors** - Console and network errors are minimal  
+✅ **Screenshot Capture** - Visual verification for debugging  
 
-```bash
-# Navigate to the client directory
-cd app/client-next-ts
+## 🔧 Configuration
 
-# Test against production
-npm run health-check
+### **Environment Variables**
+- `TARGET_URL`: The URL to test (defaults to your dev environment)
 
-# Test against local development server
-npm run dev  # In one terminal
-npm run health-check:local  # In another terminal
-```
+### **Timing**
+- **Deployment Wait**: 4 minutes (adjust in workflow if needed)
+- **Total Timeout**: 15 minutes for the entire job
 
-### 2. Verify the Script Works
+## 📊 Results
 
-The local test should:
+### **Success Case**
+- ✅ Health check passes
+- ✅ PR status shows "ready to merge"
+- ✅ Screenshots uploaded as artifacts
+- ✅ Summary shows all checks passed
 
-- ✅ Load the page successfully
-- ✅ Find transaction elements
-- ✅ Generate screenshots
-- ✅ Exit with code 0 (success)
+### **Failure Case**
+- ❌ Health check fails
+- ❌ PR status shows "needs attention"
+- ❌ PR is blocked from merging
+- ❌ Screenshots and error logs available for debugging
 
-### 3. Push and Test
+## 🛠️ Troubleshooting
 
-After your local tests pass:
+### **Common Issues**
+1. **Health check times out**: Increase the deployment wait time
+2. **MSW not working**: Check if mock data is properly configured
+3. **Page not loading**: Verify the target URL is accessible
 
-1. Commit and push your changes
-2. The workflow will automatically run
-3. Check the **Actions** tab for results
-4. Review screenshots and logs if there are failures
+### **Debugging**
+- Check the workflow logs for detailed error information
+- Review uploaded screenshots for visual verification
+- Test the health check locally with `npm run health-check`
 
-## 🔧 Troubleshooting
+## 🔗 Related Files
 
-### Common Issues
-
-1. **Playwright not installed locally:**
-
-   ```bash
-   npm install --save-dev @playwright/test
-   npx playwright install --with-deps chromium
-   ```
-
-2. **Local development server not running:**
-
-   ```bash
-   npm run dev  # Start the dev server first
-   ```
-
-3. **Health check fails in GitHub Actions:**
-   - Check the workflow logs for specific errors
-   - Verify the target URL is accessible
-   - Ensure MSW is properly configured
-
-### Debug Mode
-
-Run with visible browser to see what's happening:
-
-```bash
-node health-check.js --headless false
-```
-
-## 📁 Files
-
-- **`.github/workflows/simple-health-check.yml`** - The workflow definition
-- **`app/client-next-ts/health-check.js`** - The health check script
-- **`app/client-next-ts/package.json`** - NPM scripts for easy execution
-
-## 🎯 Next Steps
-
-1. **Test locally** before pushing changes
-2. **Monitor workflow results** in the Actions tab
-3. **Use screenshots** to debug any failures
-4. **Re-run manually** if needed after fixes
-
-This simple setup gives you reliable post-deployment verification without complexity!
+- **Workflow**: `.github/workflows/wait-and-verify-deployment.yml`
+- **Health Check Script**: `app/client-next-ts/health-check.js`
+- **Amplify Config**: `amplify.yml` (handles actual deployment)
