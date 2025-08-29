@@ -14,6 +14,7 @@ This workflow provides a complete deployment verification pipeline:
 ## 🚀 How It Works
 
 ### **Complete Pipeline Flow**
+
 ```
 Code Push/PR → Amplify auto-deploys (from amplify.yml) → Wait for completion → Health Check → PR Status Updated
                                     ↓
@@ -22,6 +23,7 @@ Code Push/PR → Amplify auto-deploys (from amplify.yml) → Wait for completion
 ```
 
 ### **Key Points**
+
 - **Amplify handles deployment** automatically from your `amplify.yml`
 - **This workflow only waits and verifies** - it doesn't control deployment
 - **Health checks run after deployment** to ensure everything works
@@ -30,11 +32,14 @@ Code Push/PR → Amplify auto-deploys (from amplify.yml) → Wait for completion
 ## 🚀 How to Use
 
 ### **Automatic Trigger**
+
 The workflow automatically runs when:
+
 - You push changes to the `main` branch
 - You create or update a pull request
 
 ### **Manual Trigger**
+
 1. Go to **Actions** tab in your GitHub repository
 2. Select **Wait and Verify Deployment**
 3. Click **Run workflow**
@@ -46,26 +51,30 @@ The workflow automatically runs when:
 ✅ **MSW Functionality** - Mock Service Worker is working  
 ✅ **Transaction Data** - Transactions list is accessible  
 ✅ **No Critical Errors** - Console and network errors are minimal  
-✅ **Screenshot Capture** - Visual verification for debugging  
+✅ **Screenshot Capture** - Visual verification for debugging
 
 ## 🔧 Configuration
 
 ### **Environment Variables**
+
 - `TARGET_URL`: The URL to test (defaults to your dev environment)
 
 ### **Timing**
+
 - **Deployment Wait**: 4 minutes (adjust in workflow if needed)
 - **Total Timeout**: 15 minutes for the entire job
 
 ## 📊 Results
 
 ### **Success Case**
+
 - ✅ Health check passes
 - ✅ PR status shows "ready to merge"
 - ✅ Screenshots uploaded as artifacts
 - ✅ Summary shows all checks passed
 
 ### **Failure Case**
+
 - ❌ Health check fails
 - ❌ PR status shows "needs attention"
 - ❌ PR is blocked from merging
@@ -74,11 +83,13 @@ The workflow automatically runs when:
 ## 🛠️ Troubleshooting
 
 ### **Common Issues**
+
 1. **Health check times out**: Increase the deployment wait time
 2. **MSW not working**: Check if mock data is properly configured
 3. **Page not loading**: Verify the target URL is accessible
 
 ### **Debugging**
+
 - Check the workflow logs for detailed error information
 - Review uploaded screenshots for visual verification
 - Test the health check locally with `npm run health-check`

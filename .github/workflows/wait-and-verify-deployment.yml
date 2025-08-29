@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  # Job: Wait for Amplify deployment + Run health check
+  # Job: Run health check against appropriate URL
   health-check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -32,26 +32,52 @@ jobs:
           cd app/client-next-ts
           npx playwright install --with-deps chromium
 
-      - name: Wait for Amplify deployment
+      - name: Determine target URL
+        id: url
         run: |
-          echo "⏳ Waiting for Amplify to auto-deploy from amplify.yml..."
-          echo "This gives Amplify time to build and deploy the changes"
-          sleep 240  # 4 minutes - adjust based on your deployment time
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # For PRs, construct the PR-specific URL using your app's hash
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BASE_URL="https://pr-${PR_NUMBER}.d2hwh33w4gkjqk.amplifyapp.com"
+            echo "url=${BASE_URL}" >> $GITHUB_OUTPUT
+            echo "is_pr=true" >> $GITHUB_OUTPUT
+            echo "🔍 PR detected: Will test against ${BASE_URL}"
+          else
+            # For main branch pushes, use the main deployment URL
+            echo "url=https://embedded-finance-dev.com" >> $GITHUB_OUTPUT
+            echo "is_pr=false" >> $GITHUB_OUTPUT
+            echo "🔍 Main branch: Will test against https://embedded-finance-dev.com"
+          fi
+
+      - name: Wait for PR deployment (if applicable)
+        if: steps.url.outputs.is_pr == 'true'
+        run: |
+          echo "⏳ Waiting for Amplify PR deployment to complete..."
+          echo "PR deployments are usually faster than main deployments"
+          sleep 60  # 1 minute for PR deployments
+
+      - name: Wait for main deployment (if applicable)
+        if: steps.url.outputs.is_pr == 'false'
+        run: |
+          echo "⏳ Waiting for Amplify main deployment to complete..."
+          echo "Main deployments take longer to build and deploy"
+          sleep 120  # 2 minutes for main deployments
 
       - name: Run health check
         id: health-check
         run: |
           cd app/client-next-ts
-          echo "🔍 Running health check against deployed demo..."
+          TARGET_URL="${{ steps.url.outputs.url }}/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet"
+          echo "🔍 Running health check against: ${TARGET_URL}"
           npm run health-check
         env:
-          TARGET_URL: "https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet"
+          TARGET_URL: "${{ steps.url.outputs.url }}/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet"
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: health-check-screenshots
+          name: health-check-screenshots-${{ github.run_number }}
           path: app/client-next-ts/health-check-*.png
           retention-days: 7
 
@@ -60,7 +86,16 @@ jobs:
         run: |
           echo "## 🏥 Health Check Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Target URL:** https://embedded-finance-dev.com/sellsense-demo" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+            echo "**Environment:** PR Preview Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**PR Number:** #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "**PR URL Pattern:** Using hardcoded pattern for your app" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Environment:** Main Deployment" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "**Target URL:** ${{ steps.url.outputs.url }}/sellsense-demo" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
@@ -71,14 +106,22 @@ jobs:
             echo "- No critical errors detected" >> $GITHUB_STEP_SUMMARY
             echo "- Transactions list is accessible" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**PR Status:** Ready to merge ✅" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+              echo "**PR Status:** Ready to merge ✅" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**Main Deployment:** Verified and healthy ✅" >> $GITHUB_STEP_SUMMARY
+            fi
           else
             echo "❌ **Health check failed!**" >> $GITHUB_STEP_SUMMARY
             echo "- Check the logs above for details" >> $GITHUB_STEP_SUMMARY
             echo "- Screenshots have been uploaded as artifacts" >> $GITHUB_STEP_SUMMARY
             echo "- Review the error details and fix the issues" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**PR Status:** Blocked until health check passes ❌" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+              echo "**PR Status:** Blocked until health check passes ❌" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**Main Deployment:** Has issues that need attention ❌" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
       - name: Update PR status
@@ -88,10 +131,10 @@ jobs:
 
           if [ "${{ steps.health-check.outcome }}" == "success" ]; then
             echo "✅ Health check passed - PR is ready to merge"
-            # You could add more status updates here
-            # gh pr checks "${{ github.event.pull_request.number }}" --add-status "Health Check" success "Deployment verified"
+            echo "PR deployment at ${{ steps.url.outputs.url }} is healthy"
           else
             echo "❌ Health check failed - PR needs attention"
+            echo "PR deployment at ${{ steps.url.outputs.url }} has issues"
             echo "This will block the PR from being merged"
             exit 1  # This will fail the workflow and block PR
           fi
