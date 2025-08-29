@@ -8,9 +8,11 @@ import {
   useState,
   type ErrorInfo,
 } from 'react';
+import { defaultResources, i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { I18nextProvider } from 'react-i18next';
 
 import { AXIOS_INSTANCE } from '@/api/axios-instance';
 import { Toaster } from '@/components/ui/sonner';
@@ -55,7 +57,8 @@ function ErrorFallback({ error }: { error: Error }) {
         An error occurred in the embedded components. Please try refreshing the
         page or contact support if the issue persists.
       </p>
-      {process.env.NODE_ENV === 'development' && (
+      {(process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test') && (
         <pre className="eb-mt-4 eb-max-w-full eb-overflow-x-auto eb-rounded eb-bg-destructive/20 eb-p-4 eb-text-left eb-text-xs eb-text-destructive/90">
           {error.message}
         </pre>
@@ -67,6 +70,29 @@ function ErrorFallback({ error }: { error: Error }) {
 const logError = (error: Error, info: ErrorInfo) => {
   // In production, you might want to send this to an error reporting service
   console.error('Caught by error boundary:', error, info);
+};
+
+const mergeContentTokens = (
+  resources: typeof defaultResources,
+  contentTokens?: EBConfig['contentTokens']
+) => {
+  if (!contentTokens?.tokens) return;
+
+  Object.keys(resources).forEach((langKey) => {
+    const lang = langKey as keyof typeof resources;
+    Object.keys(resources[lang]).forEach((namespace) => {
+      const ns = namespace as keyof (typeof resources)[typeof lang];
+      if (contentTokens.tokens && contentTokens.tokens[ns]) {
+        i18n.addResourceBundle(
+          lang,
+          ns,
+          contentTokens.tokens[ns],
+          true, // deep merge
+          true // overwrite
+        );
+      }
+    });
+  });
 };
 
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
@@ -172,6 +198,18 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     [JSON.stringify(theme)]
   );
 
+  useEffect(() => {
+    i18n.reloadResources();
+    if (contentTokens.tokens) {
+      // Apply new tokens across all languages and namespaces
+      mergeContentTokens(defaultResources, contentTokens);
+    }
+    // Set the language if specified
+    if (contentTokens.name && contentTokens.name !== i18n.language) {
+      i18n.changeLanguage(contentTokens.name);
+    }
+  }, [contentTokens]);
+
   return (
     <>
       <style
@@ -182,16 +220,18 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       />
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
-        <QueryClientProvider client={queryClient}>
-          <ContentTokensContext.Provider value={contentTokens}>
-            <InterceptorContext.Provider value={{ interceptorReady }}>
-              {children}
-            </InterceptorContext.Provider>
-          </ContentTokensContext.Provider>
-          <Toaster closeButton expand position="bottom-left" />
-          {process.env.NODE_ENV === 'development' &&
-            ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
-        </QueryClientProvider>
+        <I18nextProvider i18n={i18n}>
+          <QueryClientProvider client={queryClient}>
+            <ContentTokensContext.Provider value={contentTokens}>
+              <InterceptorContext.Provider value={{ interceptorReady }}>
+                {children}
+              </InterceptorContext.Provider>
+            </ContentTokensContext.Provider>
+            <Toaster closeButton expand position="bottom-left" />
+            {process.env.NODE_ENV === 'development' &&
+              ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
+          </QueryClientProvider>
+        </I18nextProvider>
       </ErrorBoundary>
     </>
   );

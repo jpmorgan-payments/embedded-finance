@@ -57,8 +57,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   useSmbdoGetClient,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   Form,
@@ -103,7 +103,7 @@ export const OrganizationStepForm = () => {
     processStep,
     mode,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   // Fetch client data
   const { data: clientData, status: clientDataGetStatus } = useSmbdoGetClient(
@@ -165,7 +165,7 @@ export const OrganizationStepForm = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   const {
     mutate: updateParty,
@@ -577,7 +577,7 @@ export const OrganizationStepForm = () => {
                   </div>
                   <div className="eb-ml-3">
                     <p className="eb-text-sm eb-text-blue-700">
-                      {t('onboarding:messages.solePropEinOptional')}
+                      {t('onboarding-old:messages.solePropEinOptional')}
                     </p>
                   </div>
                 </div>
@@ -683,7 +683,7 @@ export const OrganizationStepForm = () => {
             name="associatedCountries"
             renderHeader={() => (
               <div className="eb-text-md eb-font-medium">
-                {t('onboarding:fields.associatedCountries.headerLabel')}
+                {t('onboarding-old:fields.associatedCountries.headerLabel')}
               </div>
             )}
             renderWrapper={(children) => (
@@ -714,7 +714,7 @@ export const OrganizationStepForm = () => {
             name="secondaryMccList"
             renderHeader={() => (
               <div className="eb-text-md eb-font-medium">
-                {t('onboarding:fields.secondaryMccList.headerLabel')}
+                {t('onboarding-old:fields.secondaryMccList.headerLabel')}
               </div>
             )}
             renderWrapper={(children) => (

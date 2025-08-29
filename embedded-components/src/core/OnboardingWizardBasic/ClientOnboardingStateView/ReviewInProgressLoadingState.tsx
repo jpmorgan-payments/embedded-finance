@@ -3,7 +3,7 @@ import { ClockIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export const ReviewInProgressLoadingState: React.FC = () => {
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   return (
     <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-4 eb-p-8">

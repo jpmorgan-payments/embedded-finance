@@ -23,7 +23,9 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
         .string()
         .regex(
           /^\d{4}-\d{2}-\d{2}$/,
-          i18n.t('onboarding:fields.additionalQuestions.validation.dateFormat')
+          i18n.t(
+            'onboarding-old:fields.additionalQuestions.validation.dateFormat'
+          )
         );
     } else if (itemType) {
       switch (itemType) {
@@ -89,7 +91,9 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
         valueSchema = (valueSchema as z.ZodArray<z.ZodTypeAny>)
           .min(
             question?.responseSchema?.minItems ?? 1,
-            i18n.t('onboarding:fields.additionalQuestions.validation.required')
+            i18n.t(
+              'onboarding-old:fields.additionalQuestions.validation.required'
+            )
           )
           .max(
             question?.responseSchema?.maxItems ?? 1,

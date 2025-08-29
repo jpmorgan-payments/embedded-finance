@@ -348,6 +348,14 @@ export const OverviewScreen = () => {
                             'eb-hidden': sectionStatus === 'completed_disabled',
                           })}
                           disabled={sectionDisabled}
+                          data-testid={`${section.id}-button`}
+                          aria-label={
+                            ['on_hold', 'not_started'].includes(sectionStatus)
+                              ? `${t('common:start')} ${section.sectionConfig.label}`
+                              : sectionStatus === 'completed'
+                                ? `${t('common:edit')} ${section.sectionConfig.label}`
+                                : `${t('common:continue')} ${section.sectionConfig.label}`
+                          }
                           onClick={() => {
                             goTo(section.id, {
                               editingPartyId: existingPartyData.id,

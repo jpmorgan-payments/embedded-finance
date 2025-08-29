@@ -8,7 +8,7 @@ import { z } from 'zod';
 import {
   useSmbdoGetClient,
   useSmbdoListQuestions,
-  useSmbdoUpdateClient,
+  useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -88,7 +88,7 @@ export const AdditionalQuestionsStepForm = () => {
     mutate: updateClient,
     error: updateClientError,
     status: updateClientStatus,
-  } = useSmbdoUpdateClient({
+  } = useSmbdoUpdateClientLegacy({
     mutation: {
       onMutate: async (newData) => {
         // Cancel any outgoing refetches

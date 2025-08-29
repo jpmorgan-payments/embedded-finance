@@ -15,7 +15,7 @@ export const InfoStepAlert: FC<InfoStepAlertProps> = ({
   className,
   ...props
 }) => {
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-old');
   const capitalizedStepId = stepId.charAt(0).toUpperCase() + stepId.slice(1);
   const content = t(['stepInfo', capitalizedStepId].join('.'), '');
 

@@ -10,11 +10,12 @@ import {
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
-import { ContactDetailsFormSchema } from './ContactDetailsForm.schema';
+import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
 
 export const ContactDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
-  const form = useFormContext<z.input<typeof ContactDetailsFormSchema>>();
+  const form =
+    useFormContext<z.input<ReturnType<typeof useContactDetailsFormSchema>>>();
 
   useEffect(() => {
     if (form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE') {
@@ -93,4 +94,4 @@ export const ContactDetailsForm: FormStepComponent = () => {
   );
 };
 
-ContactDetailsForm.schema = ContactDetailsFormSchema;
+ContactDetailsForm.schema = useContactDetailsFormSchema;

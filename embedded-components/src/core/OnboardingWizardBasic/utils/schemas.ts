@@ -23,7 +23,9 @@ const AddressLineSchema = z
   .string()
   .min(
     1,
-    i18n.t('onboarding:fields.addresses.primaryAddressLine.validation.required')
+    i18n.t(
+      'onboarding-old:fields.addresses.primaryAddressLine.validation.required'
+    )
   )
   .max(
     60,

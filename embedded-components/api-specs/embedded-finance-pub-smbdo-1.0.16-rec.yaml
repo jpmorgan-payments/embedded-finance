@@ -32,6 +32,111 @@ tags:
   - name: Session
     description: Create session for clients or parties.
 paths:
+  /recommendations:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+      tags:
+        - Recommendations
+      summary: Get resource recommendations
+      description: Retrieves recommendations based on the provided resource type and values.
+      operationId: smbdo-getRecommendations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resourceType
+                - values
+              properties:
+                resourceType:
+                  type: string
+                  description: The type of resource for which recommendations are requested.
+                  enum:
+                    - NAICS_CODE
+                values:
+                  type: array
+                  description: List of key-value pairs containing information about the organization.
+                  items:
+                    type: object
+                    required:
+                      - key
+                      - value
+                    properties:
+                      key:
+                        type: string
+                        description: The key identifier for the information.
+                      value:
+                        type: string
+                        description: The value associated with the key.
+            examples:
+              NAICSCodeRecommendation:
+                value:
+                  resourceType: 'NAICS_CODE'
+                  values:
+                    - key: 'organizationName'
+                      value: 'Clean Energy LLC'
+                    - key: 'organizationDescription'
+                      value: 'We specialize in solar panel installation for homes'
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - resourceType
+                  - resource
+                properties:
+                  resourceType:
+                    type: string
+                    description: The type of resource for which recommendations were requested.
+                    enum:
+                      - NAICS_CODE
+                  message:
+                    type: string
+                    description: Optional message with additional information about the recommendations.
+                  resource:
+                    type: array
+                    description: List of recommended resources based on the input.
+                    items:
+                      type: object
+                      required:
+                        - naicsCode
+                        - naicsDescription
+                      properties:
+                        naicsCode:
+                          type: string
+                          description: The NAICS code identifier.
+                        naicsDescription:
+                          type: string
+                          description: The description of the NAICS code.
+              examples:
+                NAICSCodeRecommendationResponse:
+                  value:
+                    resourceType: 'NAICS_CODE'
+                    message: 'Recommendations based on organization details'
+                    resource:
+                      - naicsCode: '111110'
+                        naicsDescription: 'Soybean Farming'
+                      - naicsCode: '111132'
+                        naicsDescription: 'Electric Vehicle Servicing'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
   /clients:
     get:
       parameters:

@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 import {
   useSmbdoGetClient,
   useSmbdoPostClients,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   Card,
@@ -48,7 +48,7 @@ export const InitialStepForm = () => {
     usePartyResource,
     onPostPartyResponse,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   // Fetch client data
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
@@ -129,7 +129,7 @@ export const InitialStepForm = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   const {
     mutate: updateParty,

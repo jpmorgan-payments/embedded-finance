@@ -42,7 +42,7 @@ const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => {
 export const IndividualPartyCards: React.FC<IndividualPartyCardsProps> = ({
   clientData,
 }) => {
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
   const [uploadModalState, setUploadModalState] = useState<{
     isOpen: boolean;
     partyId?: string;

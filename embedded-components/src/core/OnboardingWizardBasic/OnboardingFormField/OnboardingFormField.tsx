@@ -160,7 +160,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   }
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
-  const { t } = useTranslation(['onboarding', 'onboarding-overview', 'common']);
+  const { t } = useTranslation([
+    'onboarding-old',
+    'onboarding-overview',
+    'common',
+  ]);
 
   let fieldRule: OptionalDefaults<FieldRule> = {};
   if (!disableFieldRuleMapping) {
@@ -195,7 +199,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const getContentToken = (id: string) => {
     // TODO: need to add shared tokens
     const key = `fields.${tName}.${id}`;
-    const stepperFlowKey = `onboarding:${key}`;
+    const stepperFlowKey = `onboarding-old:${key}`;
     const overviewFlowKey = `onboarding-overview:${key}`;
     return t(
       [

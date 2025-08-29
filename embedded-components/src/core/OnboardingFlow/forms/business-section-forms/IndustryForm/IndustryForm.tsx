@@ -13,12 +13,13 @@ import { Alert, Button } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
-import { IndustryFormSchema } from './IndustryForm.schema';
+import { useIndustryFormSchema } from './IndustryForm.schema';
 import { useIndustrySuggestions } from './useIndustrySuggestions';
 
 export const IndustryForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
-  const form = useFormContext<z.input<typeof IndustryFormSchema>>();
+  const form =
+    useFormContext<z.input<ReturnType<typeof useIndustryFormSchema>>>();
 
   // Get the business description from the form
   const description = form.watch('organizationDescription');
@@ -50,8 +51,7 @@ export const IndustryForm: FormStepComponent = () => {
       >
         <InfoIcon className="eb-size-4 eb-shrink-0" />
         <AlertDescription className="eb-break-words">
-          This is used for regulatory and compliance purposes, so please ensure
-          your selection is accurate.
+          {t('screens.industryForm.infoAlert')}
         </AlertDescription>
       </Alert>
       <div>
@@ -99,9 +99,7 @@ export const IndustryForm: FormStepComponent = () => {
             <AlertDescription className="eb-overflow-hidden eb-break-words">
               <div className="eb-max-w-full eb-space-y-1">
                 <p className="eb-break-words">
-                  Your business description is too vague to suggest relevant
-                  industry classifications. Please provide more specific details
-                  about your business activities and primary operations.
+                  {t('screens.industryForm.descriptionTooVague')}
                 </p>
                 <div className="eb-flex eb-max-w-full eb-flex-wrap eb-items-center eb-gap-1 eb-overflow-hidden">
                   <a
@@ -112,7 +110,7 @@ export const IndustryForm: FormStepComponent = () => {
                     className="eb-inline-flex eb-max-w-full eb-items-center eb-gap-1 eb-truncate eb-text-sm eb-font-medium eb-text-primary eb-underline-offset-4 hover:eb-underline"
                   >
                     <span className="eb-truncate">
-                      View examples of good business descriptions
+                      {t('screens.industryForm.viewExamplesOfDescriptions')}
                     </span>
                     <ExternalLinkIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
                   </a>
@@ -135,9 +133,7 @@ export const IndustryForm: FormStepComponent = () => {
                   <p className="eb-break-words">{recommendationErrorMessage}</p>
                 ) : (
                   <p className="eb-break-words">
-                    We couldn’t generate industry recommendations right now.
-                    Please try again later or proceed by selecting your industry
-                    manually.
+                    {t('screens.industryForm.recommendationsError')}
                   </p>
                 )}
               </div>
@@ -156,20 +152,16 @@ export const IndustryForm: FormStepComponent = () => {
               tooltip={
                 <div className="eb-mb-6">
                   <h2 className="eb-mb-0 eb-font-header eb-text-2xl eb-font-medium">
-                    How do I make the right choice?
+                    {t('screens.industryForm.tooltip.title')}
                   </h2>
                   <p className="eb-mb-0 eb-mt-1 eb-text-sm">
-                    Please select the same classification chosen when your
-                    business or organization was registered in North America.
+                    {t('screens.industryForm.tooltip.pleaseSelect')}
                   </p>
                   <h3 className="eb-mb-0 eb-mt-3 eb-text-sm eb-font-medium">
-                    If you are a sole proprietor or your business is registered
-                    outside of North America,
+                    {t('screens.industryForm.tooltip.ifSoleProp')}
                   </h3>
                   <p className="eb-mb-0 eb-mt-1 eb-text-sm">
-                    You may not have previously selected a classification. In
-                    this case, please make the best choice based on your primary
-                    line of business.
+                    {t('screens.industryForm.tooltip.makeBestChoice')}
                   </p>
                 </div>
               }
@@ -185,14 +177,16 @@ export const IndustryForm: FormStepComponent = () => {
               className="eb-shrink-0 eb-whitespace-nowrap"
             >
               <SparklesIcon className="eb-mr-2 eb-size-4 eb-shrink-0" />
-              <span className="eb-truncate">Suggest</span>
+              <span className="eb-truncate">
+                {t('screens.industryForm.suggestButtonLabel')}
+              </span>
             </Button>
           )}
         </div>
         {isPending && (
           <div className="eb-mt-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
             <div className="eb-size-3 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-            <span>Analyzing your business description...</span>
+            <span>{t('screens.industryForm.analyzing')}</span>
           </div>
         )}
         {showRecommendations && recommendations.length > 0 && (
@@ -200,17 +194,13 @@ export const IndustryForm: FormStepComponent = () => {
             <div className="eb-mb-3 eb-flex eb-items-center eb-gap-2">
               <SparklesIcon className="eb-size-4 eb-shrink-0 eb-text-primary" />
               <p className="eb-break-words eb-text-sm eb-font-medium">
-                Recommended industries based on your description:
+                {t('screens.industryForm.recommendationsHeader')}
               </p>
             </div>
             <div className="eb-mb-3 eb-rounded-sm eb-bg-muted/50 eb-px-3 eb-py-2 eb-text-xs">
               <p className="eb-flex eb-items-center eb-gap-1.5">
                 <InfoIcon className="eb-size-3 eb-shrink-0" />
-                <span>
-                  These recommendations are generated by AI based on your
-                  business description and may not be perfectly accurate. Please
-                  review carefully before selecting.
-                </span>
+                <span>{t('screens.industryForm.recommendationsInfo')}</span>
               </p>
             </div>
             <div className="eb-flex eb-max-w-full eb-flex-col eb-gap-2 eb-overflow-hidden md:eb-flex-row md:eb-flex-wrap">
@@ -242,4 +232,4 @@ export const IndustryForm: FormStepComponent = () => {
   );
 };
 
-IndustryForm.schema = IndustryFormSchema;
+IndustryForm.schema = useIndustryFormSchema;

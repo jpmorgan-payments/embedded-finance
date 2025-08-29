@@ -23,12 +23,14 @@ const AddressLineSchema = z
   .string()
   .min(
     1,
-    i18n.t('onboarding:fields.addresses.primaryAddressLine.validation.required')
+    i18n.t(
+      'onboarding-overview:fields.addresses.primaryAddressLine.validation.required'
+    )
   )
   .max(
     60,
     i18n.t(
-      'onboarding:fields.addresses.primaryAddressLine.validation.maxLength'
+      'onboarding-overview:fields.addresses.primaryAddressLine.validation.maxLength'
     )
   );
 

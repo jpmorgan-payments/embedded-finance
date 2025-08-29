@@ -14,7 +14,7 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
   React.ComponentType<{
     currentPartyData?: PartyResponse;
   }> & {
-    schema: TSchema;
+    schema: TSchema | (() => TSchema);
     refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
     modifyFormValuesBeforeSubmit?: (
       values: z.output<TSchema>,

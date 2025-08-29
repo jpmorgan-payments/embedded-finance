@@ -2,7 +2,7 @@ import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
-import { getValidationMessage as v } from '@/core/OnboardingFlow/utils/formUtils';
+import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
@@ -117,105 +117,90 @@ const SPECIAL_CHARS_PATTERN = /[()_\\/&+%@#;,.: '-]/;
 //     })
 //   );
 
-export const BusinessIdentityFormSchema = z.object({
-  organizationName: z
-    .string()
-    .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))
-    .max(100, i18n.t('onboarding:fields.organizationName.validation.maxLength'))
-    .refine(
-      (val) => NAME_PATTERN.test(val),
-      i18n.t('onboarding:fields.organizationName.validation.pattern')
-    )
-    .refine(
-      (val) => !/\s\s/.test(val),
-      i18n.t(
-        'onboarding:fields.organizationName.validation.noConsecutiveSpaces'
+export const useBusinessIdentityFormSchema = () => {
+  const v = useGetValidationMessage();
+  return z.object({
+    organizationName: z
+      .string()
+      .min(1, v('organizationName', 'required'))
+      .min(2, v('organizationName', 'minLength'))
+      .max(100, v('organizationName', 'maxLength'))
+      .refine((val) => NAME_PATTERN.test(val), v('organizationName', 'pattern'))
+      .refine(
+        (val) => !/\s\s/.test(val),
+        v('organizationName', 'noConsecutiveSpaces')
       )
-    )
-    .refine(
-      (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
-      i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
-    ),
-  dbaName: z
-    .string()
-    .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
-    .refine(
-      (val) => NAME_PATTERN.test(val),
-      i18n.t('onboarding:fields.dbaName.validation.pattern')
-    )
-    .refine(
-      (val) => !val || !/\s\s/.test(val),
-      i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
-    )
-    .refine(
-      (val) => !val || val.length >= 2,
-      i18n.t('onboarding:fields.dbaName.validation.minLength')
-    ),
-  dbaNameNotAvailable: z.boolean(),
-  yearOfFormation: z
-    .string()
-    .refine(
-      (val) => /^(19|20)\d{2}$/.test(val),
-      i18n.t('onboarding:fields.yearOfFormation.validation.format')
-    )
-    .refine((val) => {
-      const year = parseInt(val, 10);
-      return year >= 1800;
-    }, i18n.t('onboarding:fields.yearOfFormation.validation.min'))
-    .refine((val) => {
-      const year = parseInt(val, 10);
-      return year <= CURRENT_YEAR;
-    }, i18n.t('onboarding:fields.yearOfFormation.validation.max')),
-  countryOfFormation: z
-    .string()
-    .length(
-      2,
-      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
-    )
-    .refine(
-      (val) => COUNTRIES_OF_FORMATION.includes(val),
-      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
-    ),
-  organizationIdEin: z
-    .string()
-    .min(
-      1,
-      i18n.t('onboarding:fields.organizationIds.value.validation.required')
-    )
-    .max(
-      100,
-      i18n.t('onboarding:fields.organizationIds.value.validation.maxLength')
-    )
-    .refine(
-      (val) => /^[A-Za-z0-9-]+$/.test(val),
-      i18n.t('onboarding:fields.organizationIds.value.validation.format')
-    ),
-  solePropHasEin: z
-    .string()
-    .min(1, v('solePropHasEin', 'required'))
-    .refine(
-      (val) => val === 'yes' || val === 'no',
-      i18n.t('onboarding:fields.solePropHasEin.validation.required')
-    ),
-  website: z
-    .string()
-    .url(i18n.t('onboarding:fields.website.validation.invalid'))
-    .max(500, i18n.t('onboarding:fields.website.validation.maxLength'))
-    .refine(
-      (val) => /^https?:\/\//.test(val),
-      i18n.t('onboarding:fields.website.validation.httpsRequired')
-    )
-    .refine(
-      (val) =>
-        !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
-      i18n.t('onboarding:fields.website.validation.noIp')
-    ),
-  websiteNotAvailable: z.boolean(),
-});
+      .refine(
+        (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
+        v('organizationName', 'noSpecialCharStart')
+      ),
+    dbaName: z
+      .string()
+      .max(100, v('dbaName', 'maxLength', 100))
+      .refine((val) => NAME_PATTERN.test(val), v('dbaName', 'pattern'))
+      .refine(
+        (val) => !val || !/\s\s/.test(val),
+        v('dbaName', 'noConsecutiveSpaces')
+      )
+      .refine((val) => !val || val.length >= 2, v('dbaName', 'minLength', 2)),
+    dbaNameNotAvailable: z.boolean(),
+    yearOfFormation: z
+      .string()
+      .refine(
+        (val) => /^(19|20)\d{2}$/.test(val),
+        v('yearOfFormation', 'format')
+      )
+      .refine(
+        (val) => {
+          const year = parseInt(val, 10);
+          return year >= 1800;
+        },
+        v('yearOfFormation', 'min')
+      )
+      .refine(
+        (val) => {
+          const year = parseInt(val, 10);
+          return year <= CURRENT_YEAR;
+        },
+        v('yearOfFormation', 'future')
+      ),
+    countryOfFormation: z
+      .string()
+      .length(2, v('countryOfFormation', 'length'))
+      .refine(
+        (val) => COUNTRIES_OF_FORMATION.includes(val),
+        v('countryOfFormation', 'invalid')
+      )
+      .refine((val) => val === 'US', v('countryOfFormation', 'usOnly')),
+    organizationIdEin: z
+      .string()
+      .min(1, v('organizationIdEin', 'required'))
+      .max(100, v('organizationIdEin', 'maxLength', 100))
+      .refine((val) => /^\d+$/.test(val), v('organizationIdEin', 'format')),
+    solePropHasEin: z
+      .string()
+      .refine(
+        (val) => val === 'yes' || val === 'no',
+        v('solePropHasEin', 'required')
+      ),
+    website: z
+      .string()
+      .url(v('website', 'format'))
+      .max(500, v('website', 'maxLength', 500))
+      .refine((val) => /^https?:\/\//.test(val), v('website', 'httpsRequired'))
+      .refine(
+        (val) =>
+          !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
+        v('website', 'noIp')
+      ),
+    websiteNotAvailable: z.boolean(),
+  });
+};
 
 export const refineBusinessIdentityFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
+  const v = useGetValidationMessage();
   return schema.superRefine((values, context) => {
     if (
       values.countryOfFormation === 'US' &&

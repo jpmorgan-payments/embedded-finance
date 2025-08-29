@@ -47,7 +47,7 @@ export interface OnboardingWizardBasicProps extends OnboardingProps {
   initialStep?: number;
   variant?: 'circle' | 'circle-alt' | 'line';
   onboardingContentTokens?: DeepPartial<
-    (typeof defaultResources)['enUS']['onboarding']
+    (typeof defaultResources)['enUS']['onboarding-old']
   >;
   alertOnExit?: boolean;
   userEventsToTrack?: string[];
@@ -70,12 +70,12 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [
-      globalContentTokens.onboarding,
+      globalContentTokens['onboarding-old'],
       onboardingContentTokens,
     ]);
   }, [
     loadContentTokens,
-    JSON.stringify(globalContentTokens.onboarding),
+    JSON.stringify(globalContentTokens['onboarding-old']),
     JSON.stringify(onboardingContentTokens),
     i18n.language,
   ]);
@@ -142,7 +142,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
 const OnboardingWizardBasicComponent: FC<
   Pick<OnboardingWizardBasicProps, 'initialStep' | 'variant'>
 > = ({ initialStep, variant = 'circle-alt' }) => {
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('onboarding-old');
 
   const {
     clientId,

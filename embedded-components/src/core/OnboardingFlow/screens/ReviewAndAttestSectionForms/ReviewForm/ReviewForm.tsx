@@ -62,7 +62,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const { clientData } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   const {
     sections,

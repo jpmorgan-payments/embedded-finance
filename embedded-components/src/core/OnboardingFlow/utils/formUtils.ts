@@ -21,6 +21,10 @@ import {
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
 import { ScreenId } from '@/core/OnboardingFlow/types';
 import {
   AnyFieldConfiguration,
@@ -424,6 +428,12 @@ function evaluateFieldRules(
   return rule;
 }
 
+export function useFormUtils() {
+  const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
+  return useFormUtilsWithClientContext(clientData, currentScreenId);
+}
+
 /**
  * React hook that provides context-aware filtering functions
  * @param clientData - Client response data
@@ -474,7 +484,11 @@ export function useFormUtilsWithClientContext(
     );
   }
 
-  function getFieldRule(fieldName: FieldPath<OnboardingFormValuesSubmit>) {
+  function getFieldRule(
+    fieldName:
+      | FieldPath<OnboardingFormValuesSubmit>
+      | `${keyof OnboardingFormValuesSubmit}.${string}`
+  ) {
     return getFieldRuleByClientContext(
       fieldName,
       clientContext,
@@ -497,7 +511,9 @@ export function useFormUtilsWithClientContext(
  * @returns Field rule determining field behavior
  */
 export function getFieldRuleByClientContext(
-  fieldName: FieldPath<OnboardingFormValuesSubmit>,
+  fieldName:
+    | FieldPath<OnboardingFormValuesSubmit>
+    | `${keyof OnboardingFormValuesSubmit}.${string}`,
   clientContext: ClientContext,
   currentScreenId: ScreenId
 ):
@@ -851,22 +867,50 @@ export type ValidationMessageKeysFor<
  * @param count - Optional count parameter for pluralized messages
  * @returns The localized validation message string
  */
-export const getValidationMessage = <
+export const useGetValidationMessage = <
   Field extends
     keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
->(
+>(): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
   count?: number
-): string => {
-  // Build translation key path with validation prefix
-  const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
+) => string) => {
+  const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
+  const { getFieldRule } = useFormUtilsWithClientContext(
+    clientData,
+    currentScreenId
+  );
 
-  const fieldName = i18n.t([
-    `onboarding-overview:fields.${field}.fieldName`,
-    `onboarding-overview:fields.${field}.label`,
-  ]);
+  const getValidationMessage = (
+    field: Field,
+    messageKey: ValidationMessageKeysFor<Field>,
+    count?: number
+  ): string => {
+    const { fieldRule } = getFieldRule(field);
 
-  // Return translation with optional count parameter for pluralization
-  return i18n.t([translationKey], { fieldName, count });
+    // Build translation key path with validation prefix
+    const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
+
+    const label =
+      fieldRule.contentTokenOverrides?.label ??
+      i18n.t([
+        `onboarding-overview:fields.${field}.label.default`,
+        `onboarding-overview:fields.${field}.label`,
+      ] as unknown as TemplateStringsArray);
+
+    const fieldName = i18n.t(
+      [
+        `onboarding-overview:fields.${field}.fieldName.default`,
+        `onboarding-overview:fields.${field}.fieldName`,
+      ],
+      {
+        defaultValue: label,
+      }
+    );
+
+    // Return translation with optional count parameter for pluralization
+    return i18n.t([translationKey], { fieldName, count });
+  };
+  return getValidationMessage;
 };

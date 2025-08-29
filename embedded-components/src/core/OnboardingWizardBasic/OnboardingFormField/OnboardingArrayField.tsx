@@ -103,7 +103,7 @@ export function OnboardingArrayField<
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
   const { getFieldRule } = useFormUtilsWithClientContext(clientData);
 
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   let fieldRule: OptionalDefaults<ArrayFieldRule<FieldValue<TFieldValues>>> =
     {};

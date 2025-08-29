@@ -1,3 +1,3 @@
 export * from './BusinessContactInfoForm';
-export * from './CompanyIdentificationForm';
+export * from './BusinessIdentityForm';
 export * from './IndustryForm';

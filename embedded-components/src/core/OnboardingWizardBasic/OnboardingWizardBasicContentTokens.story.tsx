@@ -32,7 +32,7 @@ EnglishWithCustomContent.args = {
   contentTokens: {
     name: 'enUS',
     tokens: {
-      onboarding: {
+      'onboarding-old': {
         title: 'Custom title',
       },
     },
