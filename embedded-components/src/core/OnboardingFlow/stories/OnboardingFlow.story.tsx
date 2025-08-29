@@ -13,7 +13,7 @@ import { handlers } from '../../../msw/handlers';
 export type OnboardingFlowWithProviderProps = OnboardingFlowProps & EBConfig;
 
 const meta: Meta<OnboardingFlowWithProviderProps> = {
-  title: 'Core/OnboardingFlow',
+  title: 'Core/OnboardingFlow/Themes',
   component: OnboardingFlow,
   tags: ['@core', '@onboarding'],
   parameters: {

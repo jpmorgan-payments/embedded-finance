@@ -32,7 +32,7 @@ function DocumentationPage() {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-lg text-center">
+          <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md text-center">
             <CardHeader>
               <CardTitle className="text-page-h3 text-jpm-gray-900">
                 Embedded Payments API Documentation

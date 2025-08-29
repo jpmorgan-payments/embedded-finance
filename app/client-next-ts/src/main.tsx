@@ -7,7 +7,6 @@ import { routeTree } from './routeTree.gen';
 
 import './styles.css';
 import reportWebVitals from './reportWebVitals.ts';
-import { pingService } from './lib/ping-service';
 
 // Create a new router instance
 const router = createRouter({
@@ -36,10 +35,6 @@ async function enableMocking() {
     await worker.start({
       onUnhandledRequest: 'bypass',
     });
-    console.log('MSW started successfully');
-
-    // Start ping service to keep service worker alive
-    pingService.start(30000); // 30 second interval
   } catch (error) {
     console.warn('MSW failed to start:', error);
     // Continue anyway - app should work without MSW in development
@@ -58,14 +53,6 @@ if (rootElement && !rootElement.innerHTML) {
       </StrictMode>,
     );
   };
-
-  // Cleanup function to stop ping service when app unmounts
-  const cleanup = () => {
-    pingService.stop();
-  };
-
-  // Add cleanup on page unload
-  window.addEventListener('beforeunload', cleanup);
 
   // Initialize everything in proper order
   const initializeApp = async () => {

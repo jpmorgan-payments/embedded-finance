@@ -10,7 +10,9 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
+import { RefreshCw } from 'lucide-react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import { usePingService } from '@/hooks/use-ping-service';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import { SettingsDrawer } from './settings-drawer';
@@ -30,6 +32,7 @@ import {
   getResetDbScenario,
 } from './scenarios-config';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import { useThemeStyles } from './theme-utils';
 
 // Use display names from centralized scenario configuration
 export type ClientScenario = ReturnType<typeof getScenarioDisplayNames>[number];
@@ -151,6 +154,7 @@ export function DashboardLayout() {
   const [theme, setTheme] = useState<ThemeOption>(
     searchParams.theme || 'SellSense',
   );
+  const themeStyles = useThemeStyles(theme);
   const [contentTone, setContentTone] = useState<ContentTone>(
     searchParams.contentTone || 'Standard',
   );
@@ -160,6 +164,8 @@ export function DashboardLayout() {
         (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
       ),
   );
+  const [showMswAlert, setShowMswAlert] = useState<boolean>(true);
+  const pingQuery = usePingService();
 
   // Event handlers
   const handleScenarioChange = (scenario: ClientScenario) => {
@@ -272,6 +278,13 @@ export function DashboardLayout() {
     });
   };
 
+  // Show MSW alert if ping fails
+  useEffect(() => {
+    if (!pingQuery.isSuccess) {
+      setShowMswAlert(true);
+    }
+  }, [pingQuery.isSuccess]);
+
   // Effects
   // Handle initial load with URL parameters
   useEffect(() => {
@@ -327,7 +340,7 @@ export function DashboardLayout() {
   const renderMainContent = () => {
     // Show loading skeleton if database reset is in progress
     if (isLoading) {
-      return <LoadingSkeleton />;
+      return <LoadingSkeleton theme={theme} />;
     }
 
     if (
@@ -554,7 +567,9 @@ export function DashboardLayout() {
       />
 
       {/* Mobile-first responsive layout */}
-      <div className="flex h-[calc(100vh-4rem)] relative">
+      <div
+        className={`flex h-[calc(100vh-4rem)] relative ${themeStyles.getContentAreaStyles()}`}
+      >
         {/* Sidebar - responsive implementation */}
         <Sidebar
           clientScenario={clientScenario}
@@ -564,13 +579,58 @@ export function DashboardLayout() {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-
         {/* Main content area - responsive */}
         <main className="flex-1 overflow-auto w-full min-w-0">
+          {/* MSW Alert Banner */}
+          {showMswAlert && (
+            <div className="px-4 pt-4">
+              <div
+                className={`rounded-lg p-3 mb-3 flex items-center ${themeStyles.getCardStyles()}`}
+              >
+                <div
+                  className={`flex-1 text-sm ${themeStyles.getHeaderTextStyles()}`}
+                >
+                  <span>
+                    API calls are being mocked using{' '}
+                    <a
+                      href="https://mswjs.io"
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`underline font-medium ${themeStyles.getHeaderTextStyles()}`}
+                    >
+                      Mock Service Worker
+                    </a>
+                    .{' '}
+                    {pingQuery.isSuccess
+                      ? ' Mock service is currently active.'
+                      : ' Service worker may have been terminated by the browser. '}
+                  </span>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                      pingQuery.isSuccess
+                        ? themeStyles.getLayoutButtonStyles(true)
+                        : 'bg-amber-600 text-white hover:bg-amber-700'
+                    }`}
+                  >
+                    <RefreshCw className="h-3 w-3" /> Reload Page
+                  </button>
+                  <button
+                    onClick={() => setShowMswAlert(false)}
+                    className={themeStyles.getHeaderLabelStyles()}
+                    aria-label="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Add padding for mobile to account for fixed bottom navigation */}
           <div className="pb-16 md:pb-0">{renderMainContent()}</div>
         </main>
-
         {/* Mobile menu overlay */}
         {isMobileMenuOpen && (
           <div

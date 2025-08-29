@@ -101,6 +101,7 @@ interface SelectOrRadioGroupProps<
     label: React.ReactNode | string;
     value: string;
     description?: string;
+    disabled?: boolean;
   }>;
 }
 interface OtherFieldProps<
@@ -404,7 +405,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               key={`radio-group-option-${option.value}`}
                             >
                               <FormControl>
-                                <RadioGroupItem value={option.value} />
+                                <RadioGroupItem
+                                  value={option.value}
+                                  disabled={option.disabled}
+                                />
                               </FormControl>
                               <FormLabel className="eb-font-normal eb-text-foreground">
                                 {option.label}
@@ -436,6 +440,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 <FormControl>
                                   <RadioGroupItem
                                     value={option.value}
+                                    disabled={option.disabled}
                                     className="eb-shadow-none data-[state=checked]:eb-border-primary data-[state=checked]:eb-bg-primary [&_svg]:eb-fill-white [&_svg]:eb-stroke-white"
                                   />
                                 </FormControl>

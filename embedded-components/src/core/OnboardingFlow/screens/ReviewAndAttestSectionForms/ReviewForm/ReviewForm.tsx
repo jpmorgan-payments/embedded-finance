@@ -169,9 +169,11 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     'additional-questions-section',
   ];
 
-  const isMissingDetails = sectionIdsToReview.some((sectionId) => {
-    return sectionStatuses[sectionId] !== 'completed';
-  });
+  const isMissingDetails = sectionIdsToReview
+    .filter((id) => sections.some((section) => section.id === id))
+    .some((sectionId) => {
+      return sectionStatuses[sectionId] !== 'completed';
+    });
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
 

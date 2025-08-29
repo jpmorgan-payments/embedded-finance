@@ -109,35 +109,12 @@ export function ExperiencesSection() {
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/external-payments',
     },
     {
-      id: 'transactions',
-      title: 'Transaction History & Management',
-      description:
-        'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
-      icon: <Receipt className="h-5 w-5" />,
-      status: 'in progress',
-      demoUrl:
-        '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
-      githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/TransactionsDisplay',
-      steps: [
-        'Fetch transaction data with filtering options',
-        'Display transaction details and status',
-        'Provide search and sorting capabilities',
-      ],
-      npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
-      recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md',
-      docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2',
-    },
-    {
       id: 'payments',
       title: 'Make Payouts',
       description:
         'Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to external recipients and linked accounts.',
       icon: <Zap className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'in progress',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty',
       githubUrl:
@@ -154,6 +131,30 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
     },
+    {
+      id: 'transactions',
+      title: 'Transaction History & Management',
+      description:
+        'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
+      icon: <Receipt className="h-5 w-5" />,
+      status: 'coming soon',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/TransactionsDisplay',
+      steps: [
+        'Fetch transaction data with filtering options',
+        'Display transaction details and status',
+        'Provide search and sorting capabilities',
+      ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2',
+    },
+
     {
       id: 'accounts',
       title: 'Accounts Management',
@@ -204,7 +205,7 @@ export function ExperiencesSection() {
               {experiences.map((exp) => (
                 <Card
                   key={exp.id}
-                  className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-lg h-64 flex flex-col"
+                  className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-md h-64 flex flex-col"
                 >
                   <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
                     <div className="flex items-start justify-between">

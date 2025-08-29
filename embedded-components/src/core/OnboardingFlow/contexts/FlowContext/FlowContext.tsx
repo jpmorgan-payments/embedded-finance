@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
@@ -94,6 +94,13 @@ export const FlowProvider: React.FC<{
   >({});
 
   const { organizationType } = useOnboardingContext();
+
+  // Reset saved form values when organization type changes
+  useEffect(() => {
+    if (organizationType) {
+      setSavedFormValues({});
+    }
+  }, [organizationType]);
 
   const currentScreenId = history[history.length - 1];
 

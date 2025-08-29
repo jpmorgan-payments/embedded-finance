@@ -1782,6 +1782,7 @@ __metadata:
     "@storybook/addon-designs": "npm:^10.0.1"
     "@storybook/addon-docs": "npm:^9.0.12"
     "@storybook/addon-links": "npm:^9.0.12"
+    "@storybook/blocks": "npm:^8.6.14"
     "@storybook/react-vite": "npm:^9.0.12"
     "@storybook/testing-library": "npm:^0.2.2"
     "@tanstack/react-query": "npm:^5.51.16"
@@ -4521,6 +4522,25 @@ __metadata:
     react:
       optional: true
   checksum: 10c0/486592aa090ef55ca9267415b8804dd3df62146f2a629e1c969b5f9bbd5c63b0143f60625a40e1861027fc35df03df21336fa4c56d126a931e0c13f28f86a6af
+  languageName: node
+  linkType: hard
+
+"@storybook/blocks@npm:^8.6.14":
+  version: 8.6.14
+  resolution: "@storybook/blocks@npm:8.6.14"
+  dependencies:
+    "@storybook/icons": "npm:^1.2.12"
+    ts-dedent: "npm:^2.0.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    storybook: ^8.6.14
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10c0/3f87c1f224031dee8b5fa6e296022997d21956832fea1e4ffa3525931c05a8ef6450b67c728635297a08548d65ef5abde05d7740d4ea3a9a811f2ff08a5f0148
   languageName: node
   linkType: hard
 

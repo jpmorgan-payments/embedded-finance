@@ -1,44 +1,54 @@
-import { useEffect, useCallback } from 'react';
-import { pingService } from '../lib/ping-service';
+import { useQuery } from '@tanstack/react-query';
+import { API_URL } from '../data/constants';
 
 /**
- * React hook for controlling the MSW ping service
+ * Interface for the ping API response
+ */
+interface PingResponse {
+  status: string;
+  timestamp: string;
+  message: string;
+}
+
+/**
+ * Function to fetch ping status from the API
+ * This is used by the React Query hook in use-ping-service.ts
+ *
+ * @returns Promise with ping response data
+ */
+async function fetchPing(): Promise<PingResponse> {
+  const response = await fetch(`${API_URL}/ping`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    // Prevent caching to ensure fresh requests
+    cache: 'no-cache',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Ping failed with status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Default interval for pinging the server (30 seconds)
+ */
+const DEFAULT_PING_INTERVAL = 30000;
+
+/**
+ * React hook for controlling the MSW ping service using React Query
  * Provides methods to start/stop the service and check its status
  */
 export function usePingService() {
-  // Auto-start ping service when hook is used
-  useEffect(() => {
-    if (!pingService.isRunning) {
-      pingService.start(30000); // 30 second interval
-    }
-
-    // Cleanup on unmount
-    return () => {
-      // Note: We don't stop the service here as it might be used by other components
-      // The service will be stopped when the page unloads
-    };
-  }, []);
-
-  const start = useCallback((intervalMs?: number) => {
-    pingService.start(intervalMs);
-  }, []);
-
-  const stop = useCallback(() => {
-    pingService.stop();
-  }, []);
-
-  const isRunning = useCallback(() => {
-    return pingService.isRunning;
-  }, []);
-
-  const getInterval = useCallback(() => {
-    return pingService.interval;
-  }, []);
-
-  return {
-    start,
-    stop,
-    isRunning,
-    getInterval,
-  };
-} 
+  // Setup the query with auto-refetching
+  return useQuery<PingResponse, Error>({
+    queryKey: ['msw-ping'],
+    queryFn: fetchPing,
+    refetchInterval: DEFAULT_PING_INTERVAL,
+    refetchIntervalInBackground: true,
+    retry: 3,
+  });
+}

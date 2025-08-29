@@ -48,7 +48,7 @@ function StoriesIndex() {
           {stories.map((story) => (
             <Card
               key={story.id}
-              className="border-0 shadow-page-card bg-jpm-white rounded-page-lg"
+              className="border-0 shadow-page-card bg-jpm-white rounded-page-md"
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center text-page-small text-jpm-gray mb-2">
