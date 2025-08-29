@@ -32,7 +32,7 @@
     "vitest:watch": "vitest",
     "test": "npm run typecheck && npm run prettier && npm run lint && npm run vitest && npm run build",
     "storybook": "storybook dev -p 6006",
-    "storybook:build": "storybook build",
+    "storybook:build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 npx storybook build",
     "generate-api": "orval --config ./orval.config.cjs && yarn fix-generated-files && yarn prettify-generated-files",
     "fix-generated-files": "yarn replace '((?:\\s|\\<))(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
     "prettify-generated-files": "npx prettier --write './src/api/generated/*'"
@@ -118,6 +118,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^10.0.0",
     "eslint": "^8.53.0",
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-airbnb-typescript": "^17.1.0",
