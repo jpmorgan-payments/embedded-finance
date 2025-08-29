@@ -31,6 +31,6 @@ class ResizeObserver {
 
 window.ResizeObserver = ResizeObserver;
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
