@@ -1,0 +1,93 @@
+name: Simple Post-Deployment Health Check
+
+on:
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Custom URL to test (optional)"
+        required: false
+        type: string
+        default: "https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet"
+
+  # Run on push to main branch (for testing)
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/simple-health-check.yml"
+      - "app/client-next-ts/health-check.js"
+
+jobs:
+  health-check:
+    name: Simple Health Check - Embedded Finance Demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          cd app/client-next-ts
+          npm ci
+
+      - name: Install Playwright
+        run: |
+          cd app/client-next-ts
+          npx playwright install --with-deps chromium
+
+      - name: Run health check
+        run: |
+          cd app/client-next-ts
+          npm run health-check
+        env:
+          TARGET_URL: ${{ github.event.inputs.url || 'https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet' }}
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: health-check-screenshots
+          path: app/client-next-ts/health-check-*.png
+          retention-days: 7
+
+      - name: Health check summary
+        if: always()
+        run: |
+          echo "## 🏥 Simple Health Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target URL:** ${{ github.event.inputs.url || 'https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Limited+DDA&view=wallet' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Health check passed successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "- Demo page loaded correctly" >> $GITHUB_STEP_SUMMARY
+            echo "- MSW is functioning properly" >> $GITHUB_STEP_SUMMARY
+            echo "- No critical errors detected" >> $GITHUB_STEP_SUMMARY
+            echo "- Transactions list is accessible" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Health check failed!**" >> $GITHUB_STEP_SUMMARY
+            echo "- Check the logs above for details" >> $GITHUB_STEP_SUMMARY
+            echo "- Screenshots have been uploaded as artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "- Review the error details and fix the issues" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "1. ✅ Deployment is healthy and ready for use" >> $GITHUB_STEP_SUMMARY
+            echo "2. 📊 Monitor application performance and error rates" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "1. 🔍 Investigate the health check failures" >> $GITHUB_STEP_SUMMARY
+            echo "2. 🐛 Check MSW configuration and mock data" >> $GITHUB_STEP_SUMMARY
+            echo "3. 🚀 Verify the deployment completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "4. 🔄 Re-run the health check after fixes" >> $GITHUB_STEP_SUMMARY
+          fi

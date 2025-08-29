@@ -7,7 +7,9 @@
     "start": "vite --port 3000",
     "build": "rimraf dist && tsc && vite build",
     "serve": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "health-check": "node health-check.js",
+    "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "^0.8.20",
@@ -37,6 +39,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/lodash": "^4.17.13",
