@@ -117,6 +117,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/ui": "2.1.9",
     "autoprefixer": "^10.4.19",
     "cross-env": "^10.0.0",
     "eslint": "^8.53.0",

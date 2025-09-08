@@ -38,7 +38,7 @@ const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => {
 export const BusinessSummaryCard: React.FC<BusinessSummaryCardProps> = ({
   clientData,
 }) => {
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Find business details from clientData

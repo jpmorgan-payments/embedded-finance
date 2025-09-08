@@ -6,6 +6,7 @@ import {
 
 import {
   AddressDto,
+  IndividualIdentity,
   OrganizationIdentityDto,
   OrganizationType,
   PhoneSmbdo,
@@ -110,7 +111,7 @@ export const partyFieldMap: PartyFieldMap = {
       {
         condition: {
           product: ['EMBEDDED_PAYMENTS'],
-          entityType: ['SOLE_PROPRIETORSHIP'],
+          jurisdiction: ['US'],
         },
         rule: {
           interaction: 'disabled',
@@ -156,6 +157,63 @@ export const partyFieldMap: PartyFieldMap = {
   //     defaultValue: '',
   //   },
   // },
+  natureOfOwnership: {
+    path: 'individualDetails.natureOfOwnership',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          display: 'visible',
+          required: true,
+        },
+      },
+    ],
+  },
+  solePropSsn: {
+    path: 'individualDetails.individualIds',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+          screenId: ['personal-section'],
+        },
+        rule: {
+          display: 'visible',
+          required: true,
+        },
+      },
+    ],
+    toStringFn: (val) => {
+      if (val === undefined) {
+        return undefined;
+      }
+      return val.replace(/(\d{3})(\d{2})(\d{4})/, '$1 - $2 - $3');
+    },
+    fromResponseFn: (val: IndividualIdentity[]) => {
+      return val.find((id) => id.idType === 'SSN')?.value ?? '';
+    },
+    toRequestFn: (val): IndividualIdentity[] => {
+      return [
+        {
+          issuer: 'US',
+          idType: 'SSN',
+          value: val,
+        },
+      ];
+    },
+  },
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
     baseRule: {
@@ -738,6 +796,17 @@ export const partyFieldMap: PartyFieldMap = {
       },
       value: {
         baseRule: { display: 'visible', required: true },
+        conditionalRules: [
+          {
+            condition: {
+              entityType: ['SOLE_PROPRIETORSHIP'],
+            },
+            rule: {
+              display: 'hidden',
+              required: false,
+            },
+          },
+        ],
       },
       description: {
         baseRule: { display: 'visible', required: false },

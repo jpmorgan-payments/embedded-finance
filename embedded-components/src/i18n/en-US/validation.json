@@ -57,7 +57,7 @@
   "year": {
     "format": "Please enter a valid 4-digit year",
     "min": "Year cannot be earlier than {{min}}",
-    "max": "Year cannot be in the future",
+    "future": "Year cannot be in the future",
     "range": "Year must be between {{min}} and {{max}}"
   },
   "url": {
@@ -69,8 +69,8 @@
   "id": {
     "ssn": "Please enter a valid Social Security Number (SSN)",
     "itin": {
-      "format": "Please enter a valid {{digits}}-digit ITIN starting with {{startDigit}}",
-      "invalidRange": "Invalid ITIN format in position {{positions}}"
+      "format": "Please enter a valid 9-digit ITIN starting with 9",
+      "invalidRange": "Invalid ITIN format in position 2-3"
     }
   },
   "address": {

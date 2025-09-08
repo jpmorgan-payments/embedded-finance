@@ -87,7 +87,7 @@ export const ClientOnboardingStateView: React.FC<
     isLoading,
     error,
   } = useSmbdoGetClient(clientId ?? '');
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
 
   const handleStatusChange = (
     oldStatus: ClientStatus,

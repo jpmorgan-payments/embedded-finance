@@ -91,7 +91,9 @@ export const getStepperValidation = (
     if (step.stepType === 'form') {
       const formValues = convertPartyResponseToFormValues(partyData ?? {});
       const modifiedSchema = modifySchemaByClientContext(
-        step.Component.schema,
+        typeof step.Component.schema === 'function'
+          ? step.Component.schema()
+          : step.Component.schema,
         getClientContext(clientData),
         screenId,
         step.Component.refineSchemaFn

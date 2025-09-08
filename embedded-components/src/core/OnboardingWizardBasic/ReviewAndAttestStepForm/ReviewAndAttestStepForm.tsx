@@ -12,7 +12,7 @@ import {
   useSmbdoGetClient,
   useSmbdoListQuestions,
   useSmbdoPostClientVerifications,
-  useSmbdoUpdateClient,
+  useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import {
   PartyResponse,
@@ -90,7 +90,7 @@ export const ReviewAndAttestStepForm = () => {
 
   // Update client attestation
   const { mutateAsync: updateClientAsync, error: updateClientError } =
-    useSmbdoUpdateClient();
+    useSmbdoUpdateClientLegacy();
 
   // Initiate KYC
   const { mutateAsync: initiateKYCAsync, error: clientVerificationsError } =

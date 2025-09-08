@@ -18,7 +18,7 @@ export const OrganizationIdSchema = z
       .max(
         100,
         i18n.t(
-          'onboarding:fields.organizationIds.description.validation.maxLength'
+          'onboarding-old:fields.organizationIds.description.validation.maxLength'
         )
       )
       .optional(),
@@ -32,25 +32,33 @@ export const OrganizationIdSchema = z
       .string()
       .min(
         1,
-        i18n.t('onboarding:fields.organizationIds.value.validation.required')
+        i18n.t(
+          'onboarding-old:fields.organizationIds.value.validation.required'
+        )
       )
       .max(
         100,
-        i18n.t('onboarding:fields.organizationIds.value.validation.maxLength')
+        i18n.t(
+          'onboarding-old:fields.organizationIds.value.validation.maxLength'
+        )
       )
       .regex(
         /^[A-Za-z0-9-]+$/,
-        i18n.t('onboarding:fields.organizationIds.value.validation.format')
+        i18n.t('onboarding-old:fields.organizationIds.value.validation.format')
       ),
     issuer: z
       .string()
       .min(
         1,
-        i18n.t('onboarding:fields.organizationIds.issuer.validation.required')
+        i18n.t(
+          'onboarding-old:fields.organizationIds.issuer.validation.required'
+        )
       )
       .max(
         500,
-        i18n.t('onboarding:fields.organizationIds.issuer.validation.maxLength')
+        i18n.t(
+          'onboarding-old:fields.organizationIds.issuer.validation.maxLength'
+        )
       ),
     expiryDate: z
       .string()
@@ -125,7 +133,9 @@ const associatedCountrySchema = z.object({
     .string()
     .length(
       2,
-      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+      i18n.t(
+        'onboarding-old:fields.countryOfFormation.validation.exactlyTwoChars'
+      )
     ),
 });
 
@@ -134,7 +144,7 @@ const secondaryMccSchema = z.object({
     .string()
     .regex(
       /^\d{4}$/,
-      i18n.t('onboarding:fields.secondaryMccList.mcc.validation.format')
+      i18n.t('onboarding-old:fields.secondaryMccList.mcc.validation.format')
     ),
 });
 
@@ -164,11 +174,17 @@ export const OrganizationStepFormSchema = z.object({
   externalId: z.string().optional(),
   organizationName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.organizationName.validation.minLength'))
-    .max(100, i18n.t('onboarding:fields.organizationName.validation.maxLength'))
+    .min(
+      2,
+      i18n.t('onboarding-old:fields.organizationName.validation.minLength')
+    )
+    .max(
+      100,
+      i18n.t('onboarding-old:fields.organizationName.validation.maxLength')
+    )
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.organizationName.validation.pattern')
+      i18n.t('onboarding-old:fields.organizationName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
@@ -178,64 +194,75 @@ export const OrganizationStepFormSchema = z.object({
     )
     .refine(
       (val) => !SPECIAL_CHARS_PATTERN.test(val.charAt(0)),
-      i18n.t('onboarding:fields.organizationName.validation.noSpecialAtStart')
+      i18n.t(
+        'onboarding-old:fields.organizationName.validation.noSpecialAtStart'
+      )
     ),
   dbaName: z
     .string()
-    .max(100, i18n.t('onboarding:fields.dbaName.validation.maxLength'))
-    .regex(NAME_PATTERN, i18n.t('onboarding:fields.dbaName.validation.pattern'))
+    .max(100, i18n.t('onboarding-old:fields.dbaName.validation.maxLength'))
+    .regex(
+      NAME_PATTERN,
+      i18n.t('onboarding-old:fields.dbaName.validation.pattern')
+    )
     .refine(
       (val) => !val || !/\s\s/.test(val),
-      i18n.t('onboarding:fields.dbaName.validation.noConsecutiveSpaces')
+      i18n.t('onboarding-old:fields.dbaName.validation.noConsecutiveSpaces')
     )
     .refine(
       (val) => !val || val.length >= 2,
-      i18n.t('onboarding:fields.dbaName.validation.minLength')
+      i18n.t('onboarding-old:fields.dbaName.validation.minLength')
     ),
   countryOfFormation: z
     .string()
     .length(
       2,
-      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+      i18n.t(
+        'onboarding-old:fields.countryOfFormation.validation.exactlyTwoChars'
+      )
     )
     .refine(
       (val) => COUNTRIES_OF_FORMATION.includes(val),
-      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
+      i18n.t(
+        'onboarding-old:fields.countryOfFormation.validation.invalidCountry'
+      )
     ),
   organizationEmail: z
     .string()
-    .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
+    .email(i18n.t('onboarding-old:fields.organizationEmail.validation.invalid'))
     .max(
       100,
-      i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
+      i18n.t('onboarding-old:fields.organizationEmail.validation.maxLength')
     ),
   yearOfFormation: z
     .string()
     .regex(
       /^(19|20)\d{2}$/,
-      i18n.t('onboarding:fields.yearOfFormation.validation.format')
+      i18n.t('onboarding-old:fields.yearOfFormation.validation.format')
     )
     .refine((val) => {
       const year = parseInt(val, 10);
       return year >= 1800;
-    }, i18n.t('onboarding:fields.yearOfFormation.validation.min'))
+    }, i18n.t('onboarding-old:fields.yearOfFormation.validation.min'))
     .refine((val) => {
       const year = parseInt(val, 10);
       return year <= CURRENT_YEAR;
-    }, i18n.t('onboarding:fields.yearOfFormation.validation.max')),
+    }, i18n.t('onboarding-old:fields.yearOfFormation.validation.max')),
   addresses: z
     .array(AddressSchema)
-    .min(1, i18n.t('onboarding:fields.addresses.validation.minAddresses'))
-    .max(5, i18n.t('onboarding:fields.addresses.validation.maxAddresses')),
+    .min(1, i18n.t('onboarding-old:fields.addresses.validation.minAddresses'))
+    .max(5, i18n.t('onboarding-old:fields.addresses.validation.maxAddresses')),
   associatedCountries: z
     .array(associatedCountrySchema)
     .max(
       100,
-      i18n.t('onboarding:fields.associatedCountries.validation.maxCountries')
+      i18n.t(
+        'onboarding-old:fields.associatedCountries.validation.maxCountries'
+      )
     ),
   industry: z
     .string()
-    .min(1, i18n.t('onboarding:fields.industry.validation.required')),
+    .min(1, i18n.t('onboarding-old:fields.industry.validation.required')),
   organizationDescription: z
     .string()
     .min(10)
@@ -243,39 +270,39 @@ export const OrganizationStepFormSchema = z.object({
     .transform(sanitizeDescription),
   organizationIds: z
     .array(OrganizationIdSchema)
-    .max(6, i18n.t('onboarding:fields.organizationIds.validation.maxIds'))
+    .max(6, i18n.t('onboarding-old:fields.organizationIds.validation.maxIds'))
     .refine((ids) => {
       const types = ids.map((id) => id.idType);
       return new Set(types).size === types.length;
-    }, i18n.t('onboarding:fields.organizationIds.validation.uniqueTypes')),
+    }, i18n.t('onboarding-old:fields.organizationIds.validation.uniqueTypes')),
   organizationPhone: PhoneSchema,
   websiteAvailable: z.boolean(),
   website: z
     .string()
-    .url(i18n.t('onboarding:fields.website.validation.invalid'))
-    .max(500, i18n.t('onboarding:fields.website.validation.maxLength'))
+    .url(i18n.t('onboarding-old:fields.website.validation.invalid'))
+    .max(500, i18n.t('onboarding-old:fields.website.validation.maxLength'))
     .refine(
       (val) => !val || val.startsWith('https://'),
-      i18n.t('onboarding:fields.website.validation.httpsRequired')
+      i18n.t('onboarding-old:fields.website.validation.httpsRequired')
     )
     .refine(
       (val) =>
         !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
-      i18n.t('onboarding:fields.website.validation.noIp')
+      i18n.t('onboarding-old:fields.website.validation.noIp')
     ),
   mcc: z
     .string()
     .refine(
       (value) => value === '' || /^\d{4}$/.test(value),
-      i18n.t('onboarding:fields.mcc.validation.format')
+      i18n.t('onboarding-old:fields.mcc.validation.format')
     )
     .refine((value) => {
       if (!value) return true;
       const code = parseInt(value, 10);
       return code >= 1 && code <= 9999;
-    }, i18n.t('onboarding:fields.mcc.validation.range')),
+    }, i18n.t('onboarding-old:fields.mcc.validation.range')),
   secondaryMccList: z.array(secondaryMccSchema),
-  // .max(50, i18n.t('onboarding:fields.secondaryMccList.validation.maxMcc')),
+  // .max(50, i18n.t('onboarding-old:fields.secondaryMccList.validation.maxMcc')),
 });
 
 export const refineOrganizationStepFormSchema = (
@@ -285,7 +312,7 @@ export const refineOrganizationStepFormSchema = (
     if (!values.websiteAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: i18n.t('onboarding:fields.website.validation.required'),
+        message: i18n.t('onboarding-old:fields.website.validation.required'),
         path: ['website'],
       });
     }

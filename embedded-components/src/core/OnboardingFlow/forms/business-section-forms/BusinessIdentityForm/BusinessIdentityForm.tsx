@@ -14,8 +14,8 @@ import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 import { convertPartyResponseToFormValues } from '@/core/OnboardingFlow/utils/formUtils';
 
 import {
-  BusinessIdentityFormSchema,
   refineBusinessIdentityFormSchema,
+  useBusinessIdentityFormSchema,
 } from './BusinessIdentityForm.schema';
 
 export const BusinessIdentityForm: FormStepComponent = () => {
@@ -28,7 +28,8 @@ export const BusinessIdentityForm: FormStepComponent = () => {
     orgParty ?? {}
   );
 
-  const form = useFormContext<z.input<typeof BusinessIdentityFormSchema>>();
+  const form =
+    useFormContext<z.input<ReturnType<typeof useBusinessIdentityFormSchema>>>();
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -129,10 +130,8 @@ export const BusinessIdentityForm: FormStepComponent = () => {
             required
           />
 
-          {!(
-            Object.keys(form.getValues()).includes('solePropHasEin') &&
-            form.watch('solePropHasEin') !== 'yes'
-          ) && (
+          {(form.watch('solePropHasEin') === 'yes' ||
+            form.watch('solePropHasEin') === undefined) && (
             <OnboardingFormField
               control={form.control}
               name="organizationIdEin"
@@ -167,7 +166,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
   );
 };
 
-BusinessIdentityForm.schema = BusinessIdentityFormSchema;
+BusinessIdentityForm.schema = useBusinessIdentityFormSchema;
 BusinessIdentityForm.refineSchemaFn = refineBusinessIdentityFormSchema;
 BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   const { solePropHasEin, organizationIdEin, ...rest } = values;

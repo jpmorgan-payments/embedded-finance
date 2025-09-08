@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import {
   getSmbdoGetClientQueryKey,
   useSmbdoPostClients,
-  useSmbdoUpdateClient,
-  useUpdateParty as useSmbdoUpdateParty,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   ClientResponse,
@@ -119,7 +119,7 @@ export const GatewayScreen = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClient();
+  } = useSmbdoUpdateClientLegacy();
 
   const {
     mutate: updateParty,
