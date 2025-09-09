@@ -25,52 +25,31 @@ export const efClientQuestionsMock = {
       content: [
         {
           description:
-            'Do you have locations, sell goods, or services, or have vendors or suppliers in countries or regions subject to comprehensive sanctions programs (Iran, North Korea, Cuba, Syria and the Crimea, Donetsk, Luhansk Regions of Ukraine), or work with Sanctioned Parties in Russia or Venezuela?',
+            'Are you planning to, or do you currently (i) operate or conduct business in; (ii) sell goods in or to; (iii) offer services in or to; (iv) have vendors or suppliers in; or (v) conduct business with entities domiciled or incorporated in, or with individuals domiciled in any of the following countries or regions which are subject to comprehensive or targeted sanctions: Cuba, Iran, North Korea, Syria, Russia, Venezuela, Belarus, or the Crimea, Donetsk People’s Republic, or Luhansk People’s Republic regions of Ukraine?',
           label:
-            'Do you have locations, sell goods, or services, or have vendors or suppliers in countries or regions subject to comprehensive sanctions programs (Iran, North Korea, Cuba, Syria and the Crimea, Donetsk, Luhansk Regions of Ukraine), or work with Sanctioned Parties in Russia or Venezuela?',
+            'Are you planning to, or do you currently (i) operate or conduct business in; (ii) sell goods in or to; (iii) offer services in or to; (iv) have vendors or suppliers in; or (v) conduct business with entities domiciled or incorporated in, or with individuals domiciled in any of the following countries or regions which are subject to comprehensive or targeted sanctions: Cuba, Iran, North Korea, Syria, Russia, Venezuela, Belarus, or the Crimea, Donetsk People’s Republic, or Luhansk People’s Republic regions of Ukraine?',
           locale: 'en-US',
         },
       ],
       defaultLocale: 'en-US',
       description:
-        'Do you have locations, sell goods, or services, or have vendors or suppliers in countries or regions subject to comprehensive sanctions programs (Iran, North Korea, Cuba, Syria and the Crimea, Donetsk, Luhansk Regions of Ukraine), or work with Sanctioned Parties in Russia or Venezuela?',
-      id: '300006',
+        'Are you planning to, or do you currently (i) operate or conduct business in; (ii) sell goods in or to; (iii) offer services in or to; (iv) have vendors or suppliers in; or (v) conduct business with entities domiciled or incorporated in, or with individuals domiciled in any of the following countries or regions which are subject to comprehensive or targeted sanctions: Cuba, Iran, North Korea, Syria, Russia, Venezuela, Belarus, or the Crimea, Donetsk People’s Republic, or Luhansk People’s Republic regions of Ukraine?',
+      id: '30158',
       responseSchema: {
         type: 'array',
         minItems: 1,
         maxItems: 1,
         items: {
           type: 'boolean',
+          _enum: [],
         },
       },
       subQuestions: [
         {
           anyValuesMatch: 'true',
-          questionIds: ['300007'],
+          questionIds: ['30162'],
         },
       ],
-    },
-    {
-      content: [
-        {
-          description: 'If so, select which ones (multiple possible)',
-          label: 'If so, select which ones (multiple possible)',
-          locale: 'en-US',
-        },
-      ],
-      defaultLocale: 'en-US',
-      description: 'If so, select which ones (multiple possible)',
-      id: '300007',
-      parentQuestionId: '300006',
-      responseSchema: {
-        type: 'array',
-        minItems: 1,
-        maxItems: 1,
-        items: {
-          type: 'string',
-        },
-      },
-      subQuestions: [],
     },
   ],
 };

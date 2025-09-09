@@ -177,12 +177,8 @@ export const LLCExistingClient = {
       values: ['100000'],
     },
     {
-      questionId: '300006',
+      questionId: '30158',
       values: ['false'],
-    },
-    {
-      questionId: '300007',
-      values: [],
     },
   ],
   attestations: [],
