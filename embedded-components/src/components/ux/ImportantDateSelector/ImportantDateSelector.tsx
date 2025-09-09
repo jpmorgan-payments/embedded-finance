@@ -193,6 +193,7 @@ export function ImportantDateSelector({
             </label>
             <Input
               id="birth-day"
+              name="birth-day"
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -216,6 +217,7 @@ export function ImportantDateSelector({
               Month
             </label>
             <Select
+              name="birth-month"
               value={month}
               onValueChange={handleMonthChange}
               disabled={disabled}
@@ -245,6 +247,7 @@ export function ImportantDateSelector({
             </label>
             <Input
               id="birth-year"
+              name="birth-year"
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
