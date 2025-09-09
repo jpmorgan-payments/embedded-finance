@@ -1,0 +1,146 @@
+name: Wait and Verify Deployment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  # Job: Run health check against appropriate URL
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          cd app/client-next-ts
+          npm ci
+
+      - name: Install Playwright
+        run: |
+          cd app/client-next-ts
+          npx playwright install --with-deps chromium
+
+      - name: Determine target URL
+        id: url
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # For PRs, construct the PR-specific URL using your app's hash
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BASE_URL="https://pr-${PR_NUMBER}.d2hwh33w4gkjqk.amplifyapp.com"
+            echo "url=${BASE_URL}" >> $GITHUB_OUTPUT
+            echo "is_pr=true" >> $GITHUB_OUTPUT
+            echo "🔍 PR detected: Will test against ${BASE_URL}"
+          else
+            # For main branch pushes, use the main deployment URL
+            echo "url=https://embedded-finance-dev.com" >> $GITHUB_OUTPUT
+            echo "is_pr=false" >> $GITHUB_OUTPUT
+            echo "🔍 Main branch: Will test against https://embedded-finance-dev.com"
+          fi
+
+      - name: Wait for PR deployment (if applicable)
+        if: steps.url.outputs.is_pr == 'true'
+        run: |
+          echo "⏳ Waiting for Amplify PR deployment to complete..."
+          echo "PR deployments are usually faster than main deployments"
+          sleep 120  # 2 minutes for PR deployments
+
+      - name: Wait for main deployment (if applicable)
+        if: steps.url.outputs.is_pr == 'false'
+        run: |
+          echo "⏳ Waiting for Amplify main deployment to complete..."
+          echo "Main deployments take longer to build and deploy"
+          sleep 180  # 3 minutes for main deployments
+
+      - name: Run health check
+        id: health-check
+        run: |
+          cd app/client-next-ts
+          echo "🔍 Running comprehensive health checks against base URL: ${{ steps.url.outputs.url }}"
+          echo "📝 Script will automatically add /sellsense-demo path for each scenario"
+          echo "🧪 Testing all scenarios: sellsense-demo, linked-bank-account, onboarding-docs-needed"
+
+          # Test all scenarios
+          npm run health-check:all
+        env:
+          TARGET_URL: "${{ steps.url.outputs.url }}"
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: health-check-screenshots-${{ github.run_number }}
+          path: app/client-next-ts/screenshots/health-check-*.png
+          retention-days: 7
+
+      - name: Health check summary
+        if: always()
+        run: |
+          echo "## 🏥 Health Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+            echo "**Environment:** PR Preview Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**PR Number:** #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "**PR URL Pattern:** Using hardcoded pattern for your app" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Environment:** Main Deployment" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "**Target URL:** ${{ steps.url.outputs.url }} (script adds /sellsense-demo path)" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Health check passed successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "- Demo page loaded correctly" >> $GITHUB_STEP_SUMMARY
+            echo "- MSW is functioning properly" >> $GITHUB_STEP_SUMMARY
+            echo "- No critical errors detected" >> $GITHUB_STEP_SUMMARY
+            echo "- All 3 scenarios verified successfully:" >> $GITHUB_STEP_SUMMARY
+            echo "  • Transaction list (Acme Supplies)" >> $GITHUB_STEP_SUMMARY
+            echo "  • Bank account setup (Get Started with Your Bank Account)" >> $GITHUB_STEP_SUMMARY
+            echo "  • Onboarding flow (Additional Documents Required)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+              echo "**PR Status:** Ready to merge ✅" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**Main Deployment:** Verified and healthy ✅" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Health check failed!**" >> $GITHUB_STEP_SUMMARY
+            echo "- Check the logs above for details" >> $GITHUB_STEP_SUMMARY
+            echo "- Screenshots have been uploaded as artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "- Review the error details and fix the issues" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+              echo "**PR Status:** Blocked until health check passes ❌" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**Main Deployment:** Has issues that need attention ❌" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Update PR status
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔄 Updating PR status..."
+
+          if [ "${{ steps.health-check.outcome }}" == "success" ]; then
+            echo "✅ Health check passed - PR is ready to merge"
+            echo "PR deployment at ${{ steps.url.outputs.url }} is healthy"
+          else
+            echo "❌ Health check failed - PR needs attention"
+            echo "PR deployment at ${{ steps.url.outputs.url }} has issues"
+            echo "This will block the PR from being merged"
+            exit 1  # This will fail the workflow and block PR
+          fi
