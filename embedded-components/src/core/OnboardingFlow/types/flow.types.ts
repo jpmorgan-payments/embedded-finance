@@ -22,6 +22,7 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     ) => Partial<OnboardingFormValuesSubmit>;
     updateAnotherPartyOnSubmit?: {
       partyFilters: AssociatedPartyFilters;
+      getCondition?: (clientData: ClientResponse | undefined) => boolean;
       getValues: (
         values: Partial<OnboardingFormValuesSubmit>
       ) => Partial<OnboardingFormValuesSubmit>;

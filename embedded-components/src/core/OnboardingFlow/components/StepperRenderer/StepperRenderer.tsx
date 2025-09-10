@@ -412,7 +412,14 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
       : values;
 
     // Update another party if needed
-    if (Component.updateAnotherPartyOnSubmit && clientData) {
+    if (
+      Component.updateAnotherPartyOnSubmit &&
+      clientData &&
+      !(
+        Component.updateAnotherPartyOnSubmit.getCondition &&
+        !Component.updateAnotherPartyOnSubmit.getCondition(clientData)
+      )
+    ) {
       const targetParty = getPartyByAssociatedPartyFilters(
         clientData,
         Component.updateAnotherPartyOnSubmit.partyFilters
