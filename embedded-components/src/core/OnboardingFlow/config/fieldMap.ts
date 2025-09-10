@@ -333,7 +333,7 @@ export const partyFieldMap: PartyFieldMap = {
           city: '',
           state: '',
           postalCode: '',
-          country: '',
+          country: 'US',
         },
       ],
       defaultAppendValue: {
@@ -343,7 +343,7 @@ export const partyFieldMap: PartyFieldMap = {
         city: '',
         state: '',
         postalCode: '',
-        country: '',
+        country: 'US',
       },
     },
     conditionalRules: [
@@ -384,7 +384,11 @@ export const partyFieldMap: PartyFieldMap = {
         baseRule: { display: 'visible', required: true },
       },
       country: {
-        baseRule: { display: 'visible', required: true },
+        baseRule: {
+          display: 'visible',
+          required: true,
+          interaction: 'disabled',
+        },
       },
     },
     fromResponseFn: (addressesFromApi: AddressDto[]) => {

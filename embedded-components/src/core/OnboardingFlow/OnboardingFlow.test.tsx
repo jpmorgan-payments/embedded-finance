@@ -337,20 +337,19 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText(/Review and attest/i)).toBeInTheDocument();
     expect(screen.getByText(/Supporting documents/i)).toBeInTheDocument();
 
-    // === STEP 4: NAVIGATE THROUGH PERSONAL DETAILS SECTION (STEPPER - id: 'personal-section') ===
+    // === STEP 3: PERSONAL DETAILS SECTION
 
-    // 4a. Click on Personal Details section
+    // Click on Personal Details section
     const personalDetailsButton = screen.getByTestId('personal-section-button');
     await user.click(personalDetailsButton);
 
-    // Personal Details Form (title: 'Your personal details')
+    // 3a. Personal Details Form (title: 'Your personal details')
     await waitFor(
       () => {
         expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
       },
       { timeout: 5000 }
     );
-
     // Fill out personal details form
     const firstNameInput = screen.getByLabelText(/First name/i);
     await user.type(firstNameInput, 'John');
@@ -360,15 +359,15 @@ describe('OnboardingFlow', () => {
     await user.click(jobTitleDropdown);
     const jobTitleOption = screen.getByRole('option', { name: /CEO/i });
     await user.click(jobTitleOption);
-
     // Proceed to next step
     const continueButton = screen.getByRole('button', { name: /continue/i });
     await user.click(continueButton);
 
-    // Identity Document step
+    // 3b. Identity Document step
     await waitFor(() => {
       expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
     });
+    // Fill out identity document form
     const monthDropdown = screen.getByLabelText(/Month/i);
     await user.click(monthDropdown);
     await user.keyboard('{ArrowDown}');
@@ -378,12 +377,163 @@ describe('OnboardingFlow', () => {
     await user.type(dayInput, '15');
     const yearInput = screen.getByLabelText(/Year/i);
     await user.type(yearInput, '1985');
-
     const ssnInput = screen.getByLabelText(/Social Security Number/i);
     await user.type(ssnInput, '132132132');
-
     // Proceed to next step
     const continueButton2 = screen.getByRole('button', { name: /continue/i });
     await user.click(continueButton2);
+
+    // 3c. Contact Details step
+    await waitFor(() => {
+      expect(screen.getByText(/Your contact details/i)).toBeInTheDocument();
+    });
+    // Fill out contact details form
+    const emailInput = screen.getByLabelText(/Email/i);
+    await user.type(emailInput, 'john.doe@example.com');
+    const phoneInput = screen.getByLabelText(/Phone number/i);
+    await user.type(phoneInput, '2012345678');
+    const addressInput = screen.getByLabelText(/Address line 1/i);
+    await user.type(addressInput, '123 Main St');
+    const cityInput = screen.getByLabelText(/Town\/City/i);
+    await user.type(cityInput, 'Anytown');
+    const stateDropdown = screen.getByLabelText(/State/i);
+    await user.click(stateDropdown);
+    const stateOption = screen.getByRole('option', { name: /New Jersey/i });
+    await user.click(stateOption);
+    const zipInput = screen.getByLabelText(/Postal code/i);
+    await user.type(zipInput, '12345');
+    // Proceed to next step
+    const continueButton3 = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton3);
+
+    // 3d. Check Answers step
+    await waitFor(() => {
+      expect(screen.getByText(/Check your answers/i)).toBeInTheDocument();
+    });
+    // Ensure entered data is displayed
+    expect(screen.getByText('John')).toBeInTheDocument();
+    expect(screen.getByText('Doe')).toBeInTheDocument();
+    expect(screen.getByText('CEO')).toBeInTheDocument();
+    expect(screen.getByText('January 15, 1985')).toBeInTheDocument();
+    expect(screen.getByText('XXX-XX-2132')).toBeInTheDocument();
+    expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
+    expect(screen.getByText('+1 201 234 5678')).toBeInTheDocument();
+    expect(screen.getByText('123 Main St')).toBeInTheDocument();
+    expect(screen.getByText('Anytown, NJ 12345')).toBeInTheDocument();
+    // Continue to next section
+    const continueButton4 = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton4);
+
+    // STEP 4 BUSINESS DETAILS SECTION
+    await waitFor(() => {
+      expect(screen.getByText(/Business details/i)).toBeInTheDocument();
+    });
+    // 4a. Business Identity Form
+    await waitFor(() => {
+      expect(screen.getByText(/Business identity/i)).toBeInTheDocument();
+    });
+    // Fill out business identity form
+    const businessNameInput = screen.getByLabelText(
+      'Legal name of the company'
+    );
+    await user.type(businessNameInput, 'Fake Corp');
+    const sameAsLegalNameCheckbox = screen.getByLabelText(
+      /Same as legal name of the company/i
+    );
+    await user.click(sameAsLegalNameCheckbox);
+    const yearOfFormationInput = screen.getByLabelText(/Year of formation/i);
+    await user.type(yearOfFormationInput, '2020');
+    const einInput = screen.getByLabelText(/Employer Identification Number/i);
+    await user.type(einInput, '123456789');
+    const websiteInput = screen.getByLabelText(/Business website/i);
+    await user.type(websiteInput, 'https://www.fakecorp.com');
+    // Proceed to next step
+    const continueButton5 = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton5);
+
+    // 4b. Industry step
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Description & industry classification/i)
+      ).toBeInTheDocument();
+    });
+    // Fill out industry form
+    const businessDescriptionInput =
+      screen.getByLabelText(/Business description/i);
+    await user.type(businessDescriptionInput, 'We sell products.');
+    const industryDropdown = screen.getByLabelText(/Industry classification/i);
+    await user.click(industryDropdown);
+    const industrySearchInput = screen.getByRole('combobox', {
+      name: /Industry classification/i,
+    });
+    await user.type(industrySearchInput, 'Pet and Pet Supplies Retailers');
+    const industryOption = screen.getByRole('option', {
+      name: /Pet and Pet Supplies Retailers/i,
+    });
+    await user.click(industryOption);
+    // Proceed to next step
+    const continueButton6 = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton6);
+
+    // 4c. Contact Information step
+    await waitFor(() => {
+      expect(screen.getByText(/Contact information/i)).toBeInTheDocument();
+    });
+    // Fill out business contact info form
+    const businessEmailInput = screen.getByLabelText(/Company email address/i);
+    await user.type(businessEmailInput, 'business@example.com');
+    const businessPhoneInput = screen.getByLabelText(/Business phone number/i);
+    await user.type(businessPhoneInput, '2012345678');
+    const businessAddressInput = screen.getByLabelText(/Address line 1/i);
+    await user.type(businessAddressInput, '456 Business Rd');
+    const businessCityInput = screen.getByLabelText(/Town\/City/i);
+    await user.type(businessCityInput, 'Business City');
+    const businessStateDropdown = screen.getByLabelText(/State\/Province/i);
+    await user.click(businessStateDropdown);
+    const businessStateOption = screen.getByRole('option', {
+      name: /California/i,
+    });
+    await user.click(businessStateOption);
+    const businessZipInput = screen.getByLabelText(/Postal code/i);
+    await user.type(businessZipInput, '67890');
+    // Proceed to next step
+    const continueButton7 = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton7);
+
+    // 4d. Business Check Answers step
+    await waitFor(() => {
+      expect(screen.getByText(/Check your answers/i)).toBeInTheDocument();
+    });
+    // Ensure entered business data is displayed
+    expect(await screen.findAllByText('Fake Corp')).toHaveLength(2);
+    expect(screen.getByText('2020')).toBeInTheDocument();
+    expect(screen.getByText('12 - 3456789')).toBeInTheDocument();
+    expect(screen.getByText('https://www.fakecorp.com')).toBeInTheDocument();
+    expect(screen.getByText('We sell products.')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pet and Pet Supplies Retailers/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText('business@example.com')).toBeInTheDocument();
+    expect(screen.getByText('+1 201 234 5678')).toBeInTheDocument();
+    expect(screen.getByText('456 Business Rd')).toBeInTheDocument();
+    expect(screen.getByText('Business City, CA 67890')).toBeInTheDocument();
+    // Continue to next section
+    const continueButton8 = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton8);
+
+    // STEP 5 OWNERS SECTION
+    await waitFor(() => {
+      expect(screen.getByText(/Owners and key roles/i)).toBeInTheDocument();
+    });
+    // 5a. Owners Component
+    const controllerIsOwnerRadio = screen.getByRole('radio', {
+      name: /Yes/i,
+    });
+    await user.click(controllerIsOwnerRadio);
+    await waitFor(() => {
+      expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    });
+    const addOwnerButton = screen.getByRole('button', { name: /Add owner/i });
+    await user.click(addOwnerButton);
   }, 90000);
 });

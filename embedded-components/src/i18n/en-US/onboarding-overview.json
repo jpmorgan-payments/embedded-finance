@@ -159,6 +159,7 @@
       }
     },
     "controllerNameSuffix": {
+      "label": "Suffix",
       "description": "(e.g. Jr., Sr. II, etc)",
       "tooltip": "",
       "validation": {
@@ -473,6 +474,7 @@
       }
     },
     "addresses": {
+      "label": "Registered address",
       "sectionTitle": "Registered address",
       "sectionDescription": "Please provide the address registered to your company with your local authority",
       "country": {
@@ -564,6 +566,7 @@
       "description": "",
       "tooltip": "",
       "validation": {
+        "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength)",
         "pattern": "$t(validation:text.noSpecialChars, {'allowedChars': '()_/&+%@#;,.: -?'})",
         "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
