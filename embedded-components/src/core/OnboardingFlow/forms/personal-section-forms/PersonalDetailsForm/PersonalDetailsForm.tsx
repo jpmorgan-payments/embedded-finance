@@ -8,6 +8,7 @@ import {
   NATURE_OF_OWNERSHIP_OPTIONS,
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import {
   refinePersonalDetailsFormSchema,
@@ -110,6 +111,9 @@ PersonalDetailsForm.updateAnotherPartyOnSubmit = {
     partyType: 'ORGANIZATION',
     roles: ['CLIENT'],
   },
+  getCondition: (clientData) =>
+    getOrganizationParty(clientData)?.organizationDetails?.organizationType ===
+    'SOLE_PROPRIETORSHIP',
   getValues: (values) => ({
     organizationName: [
       values.controllerFirstName,

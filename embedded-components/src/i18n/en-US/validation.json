@@ -25,7 +25,9 @@
     "namePattern": "{{fieldName}} can only contain letters, spaces, hyphens, and apostrophes",
     "noConsecutiveHyphens": "{{fieldName}} cannot contain consecutive hyphens",
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
-    "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen"
+    "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
+    "noHtml": "{{fieldName}} cannot contain HTML tags",
+    "noUrls": "{{fieldName}} cannot contain URLs"
   },
   "suffix": {
     "pattern": "{{fieldName}} can only contain letters, periods, and roman numerals"

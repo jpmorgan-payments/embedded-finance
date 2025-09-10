@@ -159,6 +159,7 @@
       }
     },
     "controllerNameSuffix": {
+      "label": "Suffix",
       "description": "(e.g. Jr., Sr. II, etc)",
       "tooltip": "",
       "validation": {
@@ -174,11 +175,11 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "minLength": "$t(validation:common.minLength, {'count': 2})",
-        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
-        "pattern": "$t(validation:common.pattern)",
-        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:common.noTrailingSpace)"
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 50})",
+        "pattern": "$t(validation:text.pattern)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)"
       }
     },
     "controllerJobTitleDescription": {
@@ -187,10 +188,10 @@
       "description": "Brief description of your role and responsibilities",
       "tooltip": "",
       "validation": {
-        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
-        "pattern": "$t(validation:common.pattern)",
-        "noHtml": "$t(validation:common.noHtml)",
-        "noUrls": "$t(validation:common.noUrls)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 50})",
+        "pattern": "$t(validation:text.pattern)",
+        "noHtml": "$t(validation:text.noHtml)",
+        "noUrls": "$t(validation:text.noUrls)",
         "required": "Description is required when job title is Other."
       }
     },
@@ -263,7 +264,7 @@
         "ssnFormat": "$t(validation:id.ssn)",
         "itinFormat": "$t(validation:id.itin.format)",
         "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
-        "noSpaces": "$t(validation:common.noSpaces)"
+        "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
     "controllerIds.expiryDate": {
@@ -428,7 +429,7 @@
         "tooltip": "",
         "validation": {
           "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
           "pattern": "Address can only contain letters, numbers, and basic punctuation"
         }
       },
@@ -445,7 +446,7 @@
         "description": "Locality, Settlement, etc.",
         "validation": {
           "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 34})"
+          "maxLength": "$t(validation:text.maxLength, {'count': 34})"
         }
       },
       "state": {
@@ -454,7 +455,7 @@
         "placeholder": "Select",
         "validation": {
           "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 30})"
+          "maxLength": "$t(validation:text.maxLength, {'count': 30})"
         }
       },
       "additionalAddressLines": {
@@ -462,7 +463,7 @@
         "line2Description": "",
         "value": {
           "validation": {
-            "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+            "maxLength": "$t(validation:text.maxLength, {'count': 60})",
             "pattern": "Address can only contain letters, numbers, and basic punctuation"
           }
         },
@@ -473,6 +474,7 @@
       }
     },
     "addresses": {
+      "label": "Registered address",
       "sectionTitle": "Registered address",
       "sectionDescription": "Please provide the address registered to your company with your local authority",
       "country": {
@@ -485,7 +487,7 @@
         "tooltip": "",
         "validation": {
           "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
           "pattern": "Address can only contain letters, numbers, and basic punctuation"
         }
       },
@@ -517,7 +519,7 @@
         "line2Description": "",
         "value": {
           "validation": {
-            "maxLength": "$t(validation:common.maxLength, {'count': 60})",
+            "maxLength": "$t(validation:text.maxLength, {'count': 60})",
             "pattern": "Address can only contain letters, numbers, and basic punctuation"
           }
         },
@@ -564,13 +566,13 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "maxLength": "$t(validation:common.maxLength)",
-        "format": "$t(validation:business.name.format, {'allowedChars': '()_/&+%@#;,.: -?'})",
-        "pattern": "$t(validation:business.name.pattern)",
-        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:common.noTrailingSpace)",
-        "noConsecutiveSpaces": "$t(validation:common.noConsecutiveSpaces)",
-        "minLength": "$t(validation:common.minLength)"
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength)",
+        "pattern": "$t(validation:text.noSpecialChars, {'allowedChars': '()_/&+%@#;,.: -?'})",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "minLength": "$t(validation:text.minLength)"
       }
     },
     "organizationDescription": {
@@ -579,10 +581,10 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "maxLength": "$t(validation:common.maxLength)",
-        "minLength": "$t(validation:common.minLength)",
-        "noHtml": "$t(validation:common.noHtml)",
-        "noUrls": "$t(validation:common.noUrls)"
+        "maxLength": "$t(validation:text.maxLength)",
+        "minLength": "$t(validation:text.minLength)",
+        "noHtml": "$t(validation:text.noHtml)",
+        "noUrls": "$t(validation:text.noUrls)"
       },
       "tooltipContent": {
         "exampleTitle": "Description example",
@@ -618,8 +620,8 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:contact.phone.format)",
-        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        "format": "$t(validation:phone.format)",
+        "pattern": "$t(validation:phone.pattern, {'example': '+1234567890'})"
       }
     },
     "organizationPhone.phoneNumber": {
@@ -629,8 +631,8 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:contact.phone.format)",
-        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        "format": "$t(validation:phone.format)",
+        "pattern": "$t(validation:phone.pattern, {'example': '+1234567890'})"
       }
     },
     "controllerPhone.phoneType": {
