@@ -5,10 +5,10 @@ import { Meta } from '@storybook/blocks';
 <style>
   {`
   .intro-hero {
-    background: linear-gradient(135deg, #1A7B99 0%, #2CB9AC 100%);
-    color: white;
-    padding: 3rem 2rem;
-    border-radius: 12px;
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    padding: 2rem;
+    border-radius: 0.5rem;
     margin-bottom: 2rem;
     text-align: center;
   }
@@ -16,126 +16,114 @@ import { Meta } from '@storybook/blocks';
   .feature-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
+    gap: 1rem;
+    margin: 1.5rem 0;
   }
 
   .feature-card {
-    border: 1px solid #e6f3f7;
-    border-radius: 8px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
     padding: 1.5rem;
-    transition: box-shadow 0.2s ease;
-    background: white;
+    background: hsl(var(--card));
+    transition: all 0.2s ease;
   }
 
   .feature-card:hover {
-    box-shadow: 0 4px 12px rgba(26, 123, 153, 0.1);
-    border-color: #1A7B99;
+    border-color: hsl(var(--border));
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
   .component-showcase {
-    background: #f6f7f8;
-    padding: 2rem;
-    border-radius: 8px;
-    margin: 2rem 0;
-    border: 1px solid #e6f3f7;
-  }
-
-  .code-block {
-    background: #1e293b;
-    color: #e2e8f0;
+    background: hsl(var(--muted));
     padding: 1.5rem;
-    border-radius: 8px;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-    font-size: 0.875rem;
-    overflow-x: auto;
-    margin: 1rem 0;
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+    border: 1px solid hsl(var(--border));
   }
 
   .status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
     font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .status-production {
-    background: #dcfce7;
-    color: #166534;
+    font-weight: 500;
+    border: 1px solid transparent;
   }
 
   .status-testing {
-    background: #fef3c7;
-    color: #92400e;
+    background: hsl(var(--warning) / 0.1);
+    color: hsl(var(--warning-foreground));
+    border-color: hsl(var(--warning) / 0.2);
   }
 
   .status-development {
-    background: #dbeafe;
-    color: #1e40af;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary) / 0.2);
   }
 
   .status-coming-soon {
-    background: #fed7aa;
-    color: #c2410c;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border-color: hsl(var(--border));
+  }
+
+  .status-production {
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success-foreground));
+    border-color: hsl(var(--success) / 0.2);
   }
 `}
 </style>
 
 <div className="intro-hero">
   <h1>🚀 Embedded Finance UI Components</h1>
-  <p style={{ fontSize: '1.25rem', margin: '1rem 0', opacity: 0.9 }}>
+  <p
+    style={{
+      fontSize: '1.125rem',
+      margin: '1rem 0',
+      color: 'hsl(var(--muted-foreground))',
+    }}
+  >
     A comprehensive React component library for seamless integration of embedded
     finance capabilities into your web applications
   </p>
-  <div
-    style={{
-      display: 'flex',
-      gap: '0.5rem',
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-    }}
-  ></div>
 </div>
 
-## 🎯 What is Embedded Finance?
+## What is Embedded Finance?
 
 Embedded finance refers to the integration of financial services and products directly into non-financial applications, platforms, and user experiences. This library provides pre-built, customizable UI components that enable seamless integration of complex financial workflows without requiring deep financial expertise.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 The library is built on several key architectural principles:
 
-### Key Principles
+### OpenAPI Specification (OAS) Driven
 
-1. **OpenAPI Specification (OAS) Driven**
+- TypeScript types and React Query hooks generated from OAS specifications
+- Ensures type safety and consistency between API and UI
+- Future support for Arazzo workflow definitions
 
-   - TypeScript types and React Query hooks generated from OAS specifications
-   - Ensures type safety and consistency between API and UI
-   - Future support for Arazzo workflow definitions
+### Opinionated UX Layer
 
-2. **Opinionated UX Layer**
+- Enhanced client-side validations
+- Smart payload formation
+- Error mapping and recovery
+- Cognitive load reduction and intelligent navigation
 
-   - Enhanced client-side validations
-   - Smart payload formation
-   - Error mapping and recovery
-   - Cognitive load reduction and intelligent navigation
+### Flexible Integration
 
-3. **Flexible Integration**
-   - Runtime customization through theme and content tokens
-   - Parent app monitoring integration
-   - Configurable API endpoints and authentication
+- Runtime customization through theme and content tokens
+- Parent app monitoring integration
+- Configurable API endpoints and authentication
 
-## 📦 Available Components
+## Available Components
 
 <div className="feature-grid">
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>
-    🏦 Client Onboarding (KYC/KYB)
-  </h3>
+  <h3 style={{ marginTop: 0 }}>🏦 Client Onboarding (KYC/KYB)</h3>
   <p>
     Complete client verification with incremental information collection, due
     diligence questions, and document requests for seamless onboarding.
@@ -152,9 +140,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>
-    🔗 Link External Bank Account
-  </h3>
+  <h3 style={{ marginTop: 0 }}>🔗 Link External Bank Account</h3>
   <p>
     Connect external bank accounts using Account Validation Service with
     microdeposits verification for secure account linking.
@@ -171,7 +157,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>👥 Recipients Management</h3>
+  <h3 style={{ marginTop: 0 }}>👥 Recipients Management</h3>
   <p>
     Add, view, edit, and manage third-party payment recipients with dynamic
     validation, multi-method support (ACH, WIRE, RTP), and secure, accessible
@@ -191,7 +177,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>💰 Make Payouts</h3>
+  <h3 style={{ marginTop: 0 }}>💰 Make Payouts</h3>
   <p>
     Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to
     external recipients and linked accounts.
@@ -207,9 +193,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>
-    📊 Transaction History & Management
-  </h3>
+  <h3 style={{ marginTop: 0 }}>📊 Transaction History & Management</h3>
   <p>
     View, filter, and manage transaction records with detailed insights and
     comprehensive reporting capabilities for better financial oversight.
@@ -225,7 +209,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>🏦 Accounts Management</h3>
+  <h3 style={{ marginTop: 0 }}>🏦 Accounts Management</h3>
   <p>
     View Embedded Finance accounts with detailed insights and balances for
     better financial oversight.
@@ -242,12 +226,12 @@ The library is built on several key architectural principles:
 
 </div>
 
-## 🛠️ Utility Components
+## Utility Components
 
 <div className="feature-grid">
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>📅 Important Date Selector</h3>
+  <h3 style={{ marginTop: 0 }}>📅 Important Date Selector</h3>
   <p>
     Interactive date picker with validation and formatting options for birth
     dates and other important dates.
@@ -264,7 +248,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>🏭 Industry Classification</h3>
+  <h3 style={{ marginTop: 0 }}>🏭 Industry Classification</h3>
   <p>
     Hierarchical selector for industry categories and subcategories with search
     functionality.
@@ -281,7 +265,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>📄 Tax ID Selector</h3>
+  <h3 style={{ marginTop: 0 }}>📄 Tax ID Selector</h3>
   <p>
     Configurable input for different tax ID formats with validation (EIN, SSN,
     ITIN).
@@ -298,7 +282,7 @@ The library is built on several key architectural principles:
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>📍 Address Validation</h3>
+  <h3 style={{ marginTop: 0 }}>📍 Address Validation</h3>
   <p>
     Smart address input with autocomplete and validation capabilities for
     accurate address collection.
@@ -316,7 +300,7 @@ The library is built on several key architectural principles:
 
 </div>
 
-## 🎨 Theming & Customization
+## Theming & Customization
 
 The library supports comprehensive theming through the `EBComponentsProvider`. Customize colors, typography, spacing, and component behavior to match your application's design system.
 
@@ -347,7 +331,7 @@ The library supports comprehensive theming through the `EBComponentsProvider`. C
 </EBComponentsProvider>
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 <div className="component-showcase">
 
@@ -401,7 +385,7 @@ const customTheme = {
 
 </div>
 
-## 🔧 Development & Testing
+## Development & Testing
 
 ### Technology Stack
 
@@ -434,7 +418,7 @@ yarn typecheck
 yarn lint
 ```
 
-## 🌐 Integration Scenarios
+## Integration Scenarios
 
 The components are designed for flexible integration into parent web applications with several customization points:
 
@@ -444,7 +428,7 @@ The components are designed for flexible integration into parent web application
 4. **Content Management**: Override content through CMS integration
 5. **Authentication**: Configurable API endpoints and headers
 
-## 📚 Documentation
+## Documentation
 
 ### Key Resources
 
@@ -453,22 +437,7 @@ The components are designed for flexible integration into parent web application
 - **OpenAPI Specifications**: Located in `/api-specs/` directory
 - **Component Requirements**: Each component has detailed requirements documentation
 
-### Component Status
-
-| Component               | Status         | API Integration | Testing        | Documentation |
-| ----------------------- | -------------- | --------------- | -------------- | ------------- |
-| Client Onboarding       | 🧪 Testing     | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
-| Link External Account   | 🧪 Testing     | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
-| Recipients Management   | 🔄 In Progress | ✅ Complete     | 🔄 In Progress | ✅ Complete   |
-| Make Payouts            | 🔄 In Progress | ✅ Complete     | 🔄 In Progress | ✅ Complete   |
-| Transaction History     | 📋 Coming Soon | ✅ Complete     | 📋 Planned     | ✅ Complete   |
-| Accounts Management     | 📋 Coming Soon | ✅ Complete     | 📋 Planned     | ✅ Complete   |
-| Important Date Selector | ✅ Available   | ✅ Complete     | ✅ Complete    | ✅ Complete   |
-| Industry Classification | ✅ Available   | ✅ Complete     | ✅ Complete    | ✅ Complete   |
-| Tax ID Selector         | 📋 Coming Soon | 📋 Planned      | 📋 Planned     | 📋 Planned    |
-| Address Validation      | 📋 Coming Soon | 📋 Planned      | 📋 Planned     | 📋 Planned    |
-
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](https://github.com/your-org/embedded-banking/blob/main/embedded-components/CONTRIBUTING.md) for details.
 
