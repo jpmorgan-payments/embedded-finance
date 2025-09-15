@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
   useSmbdoListQuestions,
-  useSmbdoUpdateClient,
+  useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -100,7 +100,7 @@ export const OperationalDetailsForm = () => {
     mutate: updateClient,
     error: updateClientError,
     status: updateClientStatus,
-  } = useSmbdoUpdateClient({
+  } = useSmbdoUpdateClientLegacy({
     mutation: {
       onMutate: async (newData) => {
         // Cancel any outgoing refetches

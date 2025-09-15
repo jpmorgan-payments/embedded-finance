@@ -142,7 +142,7 @@ export const LLCExistingClient = {
     documentRequestIds: [],
     partyIds: [],
     partyRoles: [],
-    questionIds: ['300006', '300007'],
+    questionIds: ['30158'],
   },
   questionResponses: [
     {
@@ -424,7 +424,7 @@ export const LLCExistingClientOutstandingDocuments = {
     {
       questionId: '30005',
       values: ['10,000'],
-    }
+    },
   ],
   results: {
     customerIdentityStatus: 'APPROVED',

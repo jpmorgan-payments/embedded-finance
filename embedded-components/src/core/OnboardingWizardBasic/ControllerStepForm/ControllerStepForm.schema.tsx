@@ -66,14 +66,14 @@ export const controllerIdSchema = z
       .length(
         2,
         i18n.t(
-          'onboarding:fields.controllerIds.issuer.validation.exactlyTwoChars'
+          'onboarding-old:fields.controllerIds.issuer.validation.exactlyTwoChars'
         )
       ),
     value: z
       .string()
       .min(
         1,
-        i18n.t('onboarding:fields.controllerIds.value.validation.required')
+        i18n.t('onboarding-old:fields.controllerIds.value.validation.required')
       )
       .refine((val: string) => !/\s/.test(val), {
         message: i18n.t(
@@ -122,108 +122,121 @@ export const ControllerStepFormSchema = z.object({
   controllerAddresses: z.array(AddressSchema).refine((addresses) => {
     const types = addresses.map((addr) => addr.addressType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.controllerAddresses.validation.uniqueTypes')),
+  }, i18n.t('onboarding-old:fields.controllerAddresses.validation.uniqueTypes')),
   birthDate: z
     .string()
     .regex(
       /^\d{4}-\d{2}-\d{2}$/,
-      i18n.t('onboarding:fields.birthDate.validation.format')
+      i18n.t('onboarding-old:fields.birthDate.validation.format')
     )
     .refine(
       (val) => !Number.isNaN(new Date(val).getTime()),
-      i18n.t('onboarding:fields.birthDate.validation.invalid')
+      i18n.t('onboarding-old:fields.birthDate.validation.invalid')
     )
     .refine((val) => {
       const date = new Date(val);
       return date <= new Date();
-    }, i18n.t('onboarding:fields.birthDate.validation.future'))
+    }, i18n.t('onboarding-old:fields.birthDate.validation.future'))
     .refine((val) => {
       const birthDate = new Date(val);
       const now = new Date();
       const age = now.getFullYear() - birthDate.getFullYear();
       return age >= MIN_AGE;
-    }, i18n.t('onboarding:fields.birthDate.validation.tooYoung'))
+    }, i18n.t('onboarding-old:fields.birthDate.validation.tooYoung'))
     .refine((val) => {
       const birthDate = new Date(val);
       const now = new Date();
       const age = now.getFullYear() - birthDate.getFullYear();
       return age <= MAX_AGE;
-    }, i18n.t('onboarding:fields.birthDate.validation.tooOld')),
+    }, i18n.t('onboarding-old:fields.birthDate.validation.tooOld')),
   countryOfResidence: z
     .string()
     .length(
       2,
-      i18n.t('onboarding:fields.countryOfResidence.validation.exactlyTwoChars')
+      i18n.t(
+        'onboarding-old:fields.countryOfResidence.validation.exactlyTwoChars'
+      )
     ),
   controllerFirstName: z
     .string()
     .min(
       2,
-      i18n.t('onboarding:fields.controllerFirstName.validation.minLength')
+      i18n.t('onboarding-old:fields.controllerFirstName.validation.minLength')
     )
     .max(
       30,
-      i18n.t('onboarding:fields.controllerFirstName.validation.maxLength')
+      i18n.t('onboarding-old:fields.controllerFirstName.validation.maxLength')
     )
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.firstName.validation.pattern')
+      i18n.t('onboarding-old:fields.firstName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveSpaces')
+      i18n.t(
+        'onboarding-old:fields.controllerName.validation.noConsecutiveSpaces'
+      )
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveHyphens')
+      i18n.t(
+        'onboarding-old:fields.controllerName.validation.noConsecutiveHyphens'
+      )
     ),
   controllerMiddleName: z
     .string()
     .max(
       30,
-      i18n.t('onboarding:fields.controllerMiddleName.validation.maxLength')
+      i18n.t('onboarding-old:fields.controllerMiddleName.validation.maxLength')
     )
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.controllerMiddleName.validation.pattern')
+      i18n.t('onboarding-old:fields.controllerMiddleName.validation.pattern')
     ),
   controllerLastName: z
     .string()
-    .min(2, i18n.t('onboarding:fields.controllerLastName.validation.minLength'))
+    .min(
+      2,
+      i18n.t('onboarding-old:fields.controllerLastName.validation.minLength')
+    )
     .max(
       30,
-      i18n.t('onboarding:fields.controllerLastName.validation.maxLength')
+      i18n.t('onboarding-old:fields.controllerLastName.validation.maxLength')
     )
     .regex(
       NAME_PATTERN,
-      i18n.t('onboarding:fields.controllerLastName.validation.pattern')
+      i18n.t('onboarding-old:fields.controllerLastName.validation.pattern')
     )
     .refine(
       (val) => !/\s\s/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveSpaces')
+      i18n.t(
+        'onboarding-old:fields.controllerName.validation.noConsecutiveSpaces'
+      )
     )
     .refine(
       (val) => !/-{2,}/.test(val),
-      i18n.t('onboarding:fields.controllerName.validation.noConsecutiveHyphens')
+      i18n.t(
+        'onboarding-old:fields.controllerName.validation.noConsecutiveHyphens'
+      )
     ),
   controllerNameSuffix: z
     .string()
     .min(
       1,
-      i18n.t('onboarding:fields.controllerNameSuffix.validation.minLength')
+      i18n.t('onboarding-old:fields.controllerNameSuffix.validation.minLength')
     )
     .max(
       5,
-      i18n.t('onboarding:fields.controllerNameSuffix.validation.maxLength')
+      i18n.t('onboarding-old:fields.controllerNameSuffix.validation.maxLength')
     )
     .regex(
       SUFFIX_PATTERN,
-      i18n.t('onboarding:fields.controllerNameSuffix.validation.pattern')
+      i18n.t('onboarding-old:fields.controllerNameSuffix.validation.pattern')
     ),
   controllerIds: z.array(controllerIdSchema).refine((ids) => {
     const types = ids.map((id) => id.idType);
     return new Set(types).size === types.length;
-  }, i18n.t('onboarding:fields.controllerIds.validation.uniqueTypes')),
+  }, i18n.t('onboarding-old:fields.controllerIds.validation.uniqueTypes')),
   controllerJobTitle: z
     .union([
       z.enum([
@@ -268,10 +281,10 @@ export const ControllerStepFormSchema = z.object({
     ),
   controllerEmail: z
     .string()
-    .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
+    .email(i18n.t('onboarding-old:fields.organizationEmail.validation.invalid'))
     .max(
       100,
-      i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
+      i18n.t('onboarding-old:fields.organizationEmail.validation.maxLength')
     ),
   controllerPhone: PhoneSchema,
   natureOfOwnership: z

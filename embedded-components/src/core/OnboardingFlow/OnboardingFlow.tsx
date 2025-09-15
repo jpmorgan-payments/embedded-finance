@@ -58,7 +58,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  const { t } = useTranslation(['onboarding-overview', 'onboarding']);
+  const { t } = useTranslation(['onboarding-overview']);
 
   // Prevent the user from leaving the page
   useEffect(() => {
@@ -136,7 +136,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         ) : clientGetStatus === 'pending' &&
           initialClientId &&
           !props.docUploadOnlyMode ? (
-          <FormLoadingState message={t('onboarding:fetchingClientData')} />
+          <FormLoadingState
+            message={t('onboarding-overview:fetchingClientData')}
+          />
         ) : (
           <FlowProvider
             initialScreenId={

@@ -10,11 +10,14 @@ import {
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
-import { BusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
+import { useBusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
 
 export const BusinessContactInfoForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
-  const form = useFormContext<z.input<typeof BusinessContactInfoFormSchema>>();
+  const form =
+    useFormContext<
+      z.input<ReturnType<typeof useBusinessContactInfoFormSchema>>
+    >();
 
   useEffect(() => {
     if (form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE') {
@@ -102,4 +105,4 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
   );
 };
 
-BusinessContactInfoForm.schema = BusinessContactInfoFormSchema;
+BusinessContactInfoForm.schema = useBusinessContactInfoFormSchema;

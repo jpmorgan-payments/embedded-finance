@@ -6,13 +6,7 @@ import { http, HttpResponse } from 'msw';
 
 import { CreateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 
-import {
-  db,
-  getDbStatus,
-  handleMagicValues,
-  logDbState,
-  resetDb,
-} from './msw.db';
+import { db, getDbStatus, handleMagicValues, logDbState, resetDb } from './db';
 
 export const handlers = [
   http.get(`/clients/:clientId`, (req) => {
@@ -94,7 +88,7 @@ export const handlers = [
       products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [],
-        questionIds: ['30005', '300006', '300007'],
+        questionIds: ['30005', '30158'],
         attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
         partyIds: [],
         partyRoles: [],

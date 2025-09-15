@@ -118,7 +118,7 @@ export const createHandlers = (apiUrl) => [
       products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [''],
-        questionIds: ['30005', '300006', '300007'],
+        questionIds: ['30005', '30158'],
         attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
         partyIds: [],
         partyRoles: [],
@@ -429,14 +429,14 @@ export const createHandlers = (apiUrl) => [
 
     return HttpResponse.json(documentRequest);
   }),
-  
+
   http.post(`${apiUrl}/ef/do/v1/documents`, async ({ request }) => {
     // Handle form data with file upload
     const formData = await request.formData();
     const file = formData.get('file');
     const documentDataStr = formData.get('documentData');
     let documentData = {};
-    
+
     try {
       if (documentDataStr) {
         documentData = JSON.parse(documentDataStr);
@@ -445,16 +445,18 @@ export const createHandlers = (apiUrl) => [
       console.error('Error parsing documentData:', error);
       return new HttpResponse(
         JSON.stringify({ error: 'Invalid document data format' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
-    
+
     const documentId = Math.random().toString(36).substring(7);
-    
+
     // Extract file information if available
     const fileName = file ? file.name : documentData.fileName || 'document.pdf';
-    const mimeType = file ? file.type : documentData.mimeType || 'application/pdf';
-    
+    const mimeType = file
+      ? file.type
+      : documentData.mimeType || 'application/pdf';
+
     // Create a mock document response
     const documentResponse = {
       id: documentId,
@@ -465,7 +467,7 @@ export const createHandlers = (apiUrl) => [
       createdAt: new Date().toISOString(),
       metadata: documentData.metadata || {},
       // Include document request ID if provided
-      documentRequestId: documentData.documentRequestId || null
+      documentRequestId: documentData.documentRequestId || null,
     };
 
     return HttpResponse.json(documentResponse, { status: 201 });
@@ -606,13 +608,11 @@ export const createHandlers = (apiUrl) => [
       // Simulate reading a payload (e.g., { userId: '123' })
       const { userId } = await request.json();
       // Return a mock JWT token
-      return HttpResponse.json(
-        {
-          token: 'mock-jwt-token-12345',
-          userId,
-          expiresIn: 3600,
-        }
-      );
+      return HttpResponse.json({
+        token: 'mock-jwt-token-12345',
+        userId,
+        expiresIn: 3600,
+      });
     },
   ),
 ];

@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.8.20",
+  "version": "0.9.0",
   "license": "Apache-2.0",
   "type": "module",
   "description": "Embedded Finance Components",
@@ -32,7 +32,7 @@
     "vitest:watch": "vitest",
     "test": "npm run typecheck && npm run prettier && npm run lint && npm run vitest && npm run build",
     "storybook": "storybook dev -p 6006",
-    "storybook:build": "storybook build",
+    "storybook:build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 npx storybook build --disable-telemetry",
     "generate-api": "orval --config ./orval.config.cjs && yarn fix-generated-files && yarn prettify-generated-files",
     "fix-generated-files": "yarn replace '((?:\\s|\\<))(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
     "prettify-generated-files": "npx prettier --write './src/api/generated/*'"
@@ -117,7 +117,9 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/ui": "2.1.9",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^10.0.0",
     "eslint": "^8.53.0",
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-airbnb-typescript": "^17.1.0",

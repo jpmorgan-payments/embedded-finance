@@ -1,18 +1,23 @@
 import { useFormContext } from 'react-hook-form';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
+import {
+  JOB_TITLES,
+  NATURE_OF_OWNERSHIP_OPTIONS,
+} from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 import {
-  PersonalDetailsFormSchema,
   refinePersonalDetailsFormSchema,
+  usePersonalDetailsFormSchema,
 } from './PersonalDetailsForm.schema';
 
 export const PersonalDetailsForm: FormStepComponent = () => {
-  // const { t } = useTranslation('onboarding');
-  const form = useFormContext<z.input<typeof PersonalDetailsFormSchema>>();
+  const { t } = useTranslation('onboarding-overview');
+  const schema = usePersonalDetailsFormSchema();
+  const form = useFormContext<z.input<typeof schema>>();
 
   const jobTitle = form.watch('controllerJobTitle');
 
@@ -20,10 +25,10 @@ export const PersonalDetailsForm: FormStepComponent = () => {
     <div className="eb-mt-6 eb-space-y-6">
       <fieldset className="eb-grid eb-gap-y-3">
         <legend className="eb-mb-1.5 eb-text-lg eb-font-medium">
-          Legal name
+          {t('screens.personalDetails.legalNameHeader')}
         </legend>
         <p className="eb-text-sm">
-          Your full name as recorded with government agencies
+          {t('screens.personalDetails.legalNameDescription')}
         </p>
         <OnboardingFormField
           control={form.control}
@@ -53,18 +58,10 @@ export const PersonalDetailsForm: FormStepComponent = () => {
           control={form.control}
           name="controllerJobTitle"
           type="combobox"
-          options={[
-            { value: 'CEO', label: 'CEO' },
-            { value: 'CFO', label: 'CFO' },
-            { value: 'COO', label: 'COO' },
-            { value: 'President', label: 'President' },
-            { value: 'Chairman', label: 'Chairman' },
-            {
-              value: 'Senior Branch Manager',
-              label: 'Senior Branch Manager',
-            },
-            { value: 'Other', label: 'Other' },
-          ]}
+          options={JOB_TITLES.map((title) => ({
+            value: title,
+            label: t(`jobTitles.${title}`),
+          }))}
         />
         {jobTitle === 'Other' && (
           <OnboardingFormField
@@ -75,14 +72,23 @@ export const PersonalDetailsForm: FormStepComponent = () => {
           />
         )}
       </div>
+      <OnboardingFormField
+        control={form.control}
+        name="natureOfOwnership"
+        type="select"
+        options={NATURE_OF_OWNERSHIP_OPTIONS.map((option) => ({
+          value: option,
+          label: t(`natureOfOwnership.${option}`),
+        }))}
+      />
     </div>
   );
 };
 
-PersonalDetailsForm.schema = PersonalDetailsFormSchema;
+PersonalDetailsForm.schema = usePersonalDetailsFormSchema;
 PersonalDetailsForm.refineSchemaFn = refinePersonalDetailsFormSchema;
 PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
-  values: Partial<z.output<typeof PersonalDetailsFormSchema>>
+  values: Partial<z.output<ReturnType<typeof usePersonalDetailsFormSchema>>>
   // partyData
 ) => {
   const { controllerJobTitleDescription, ...rest } = values;

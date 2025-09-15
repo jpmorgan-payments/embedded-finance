@@ -21,7 +21,7 @@ interface Stage {
 }
 
 export const AdvancedReviewInProgressLoadingState: React.FC = () => {
-  const { t } = useTranslation(['onboarding', 'common']);
+  const { t } = useTranslation(['onboarding-old', 'common']);
   const [currentStage, setCurrentStage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 

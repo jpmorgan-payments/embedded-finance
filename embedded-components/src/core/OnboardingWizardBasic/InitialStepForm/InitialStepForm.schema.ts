@@ -31,11 +31,15 @@ export const InitialStepFormSchema = z.object({
     .min(1, i18n.t('common:validation.required'))
     .length(
       2,
-      i18n.t('onboarding:fields.countryOfFormation.validation.exactlyTwoChars')
+      i18n.t(
+        'onboarding-old:fields.countryOfFormation.validation.exactlyTwoChars'
+      )
     )
     .refine(
       (val) => COUNTRIES_OF_FORMATION.includes(val),
-      i18n.t('onboarding:fields.countryOfFormation.validation.invalidCountry')
+      i18n.t(
+        'onboarding-old:fields.countryOfFormation.validation.invalidCountry'
+      )
     ),
   jurisdiction: z
     .union([z.enum(['US', 'CA']), z.literal('')])
@@ -49,9 +53,9 @@ export const InitialStepFormSchema = z.object({
     }),
   organizationEmail: z
     .string()
-    .email(i18n.t('onboarding:fields.organizationEmail.validation.invalid'))
+    .email(i18n.t('onboarding-old:fields.organizationEmail.validation.invalid'))
     .max(
       100,
-      i18n.t('onboarding:fields.organizationEmail.validation.maxLength')
+      i18n.t('onboarding-old:fields.organizationEmail.validation.maxLength')
     ),
 });

@@ -7,28 +7,28 @@ import {
   OrganizationType,
 } from '@/api/generated/smbdo.schemas';
 import {
-  BusinessContactInfoFormSchema,
-  BusinessIdentityFormSchema,
-  IndustryFormSchema,
+  useBusinessContactInfoFormSchema,
+  useBusinessIdentityFormSchema,
+  useIndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
-  ContactDetailsFormSchema,
-  IndividualIdentityFormSchema,
-  PersonalDetailsFormSchema,
+  useContactDetailsFormSchema,
+  useIndividualIdentityFormSchema,
+  usePersonalDetailsFormSchema,
 } from '@/core/OnboardingFlow/forms/personal-section-forms';
 import { GatewayScreenFormSchema } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen.schema';
 import { ScreenId } from '@/core/OnboardingFlow/types/flow.types';
 
 // MAINTAIN: When adding a new schema, just add it to this array
-const ONBOARDING_FORM_SCHEMAS = [
-  GatewayScreenFormSchema,
-  PersonalDetailsFormSchema,
-  IndividualIdentityFormSchema,
-  ContactDetailsFormSchema,
-  IndustryFormSchema,
-  BusinessIdentityFormSchema,
-  BusinessContactInfoFormSchema,
-] as const;
+type OnboardingFormSchemaType = [
+  typeof GatewayScreenFormSchema,
+  ReturnType<typeof usePersonalDetailsFormSchema>,
+  ReturnType<typeof useIndividualIdentityFormSchema>,
+  ReturnType<typeof useContactDetailsFormSchema>,
+  ReturnType<typeof useBusinessIdentityFormSchema>,
+  ReturnType<typeof useIndustryFormSchema>,
+  ReturnType<typeof useBusinessContactInfoFormSchema>,
+];
 
 type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =
   TSchemas extends readonly [
@@ -47,12 +47,10 @@ type MergeSchemaOutputs<TSchemas extends readonly z.ZodTypeAny[]> =
     : {};
 
 // Generate the combined input and output types from the schema array
-export type OnboardingFormValuesInitial = MergeSchemaInputs<
-  typeof ONBOARDING_FORM_SCHEMAS
->;
-export type OnboardingFormValuesSubmit = MergeSchemaOutputs<
-  typeof ONBOARDING_FORM_SCHEMAS
->;
+export type OnboardingFormValuesInitial =
+  MergeSchemaInputs<OnboardingFormSchemaType>;
+export type OnboardingFormValuesSubmit =
+  MergeSchemaOutputs<OnboardingFormSchemaType>;
 
 export type OnboardingTopLevelArrayFieldNames = Extract<
   FieldArrayPath<OnboardingFormValuesSubmit>,
@@ -63,24 +61,27 @@ export type FieldDisplayConfig = 'visible' | 'hidden';
 
 export type FieldInteractionConfig = 'enabled' | 'disabled' | 'readonly';
 
+export type ContentTokenOverrides = {
+  [key in
+    | 'label'
+    | 'description'
+    | 'tooltip'
+    | 'placeholder'
+    | 'fieldName']?: string;
+};
+
 export type FieldRule<T = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
   required?: boolean;
-  contentTokenOverrides?: {
-    [key in
-      | 'label'
-      | 'description'
-      | 'tooltip'
-      | 'placeholder'
-      | 'fieldName']?: string;
-  };
+  contentTokenOverrides?: ContentTokenOverrides;
   defaultValue: T;
 };
 
 export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
+  contentTokenOverrides?: ContentTokenOverrides;
   minItems?: number;
   requiredItems?: number;
   maxItems?: number;
