@@ -76,6 +76,11 @@ import { Meta } from '@storybook/blocks';
     background: #dbeafe;
     color: #1e40af;
   }
+
+  .status-coming-soon {
+    background: #fed7aa;
+    color: #c2410c;
+  }
 `}
 </style>
 
@@ -127,150 +132,185 @@ The library is built on several key architectural principles:
 
 <div className="feature-grid">
 
-{' '}
-
-{' '}
-
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>🏦 OnboardingWizardBasic</h3>
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>
+    🏦 Client Onboarding (KYC/KYB)
+  </h3>
   <p>
-    Complete client onboarding workflow with step-by-step forms, document
-    upload, and compliance verification.
+    Complete client verification with incremental information collection, due
+    diligence questions, and document requests for seamless onboarding.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-production">Production Ready</span>
+    <span className="status-badge status-testing">Testing</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Client profile creation</li>
-    <li>Document verification</li>
-    <li>Due diligence questions</li>
-    <li>Attestation handling</li>
+    <li>Create client with basic business information</li>
+    <li>Collect party details and due diligence responses</li>
+    <li>Handle document requests and attestations</li>
+    <li>Submit for verification and monitor status</li>
   </ul>
 </div>
 
-{' '}
-
-{' '}
-
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>💳 OnboardingFlow</h3>
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>
+    🔗 Link External Bank Account
+  </h3>
   <p>
-    Modern onboarding experience with screen-based navigation, enhanced document
-    upload, and improved mobile responsiveness.
+    Connect external bank accounts using Account Validation Service with
+    microdeposits verification for secure account linking.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-production">Production Ready</span>
+    <span className="status-badge status-testing">Testing</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Screen-based navigation</li>
-    <li>Enhanced document upload</li>
-    <li>Improved mobile UX</li>
-    <li>Better error handling</li>
+    <li>Add recipient with account details and party information</li>
+    <li>Trigger Account Validation Service (AVS) checks</li>
+    <li>Complete microdeposits verification if required</li>
+    <li>Activate linked account for payments</li>
   </ul>
 </div>
 
-{' '}
-
-{' '}
-
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>💰 MakePayment</h3>
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>👥 Recipients Management</h3>
   <p>
-    Comprehensive payment interface supporting multiple payment methods with fee
-    calculation and validation.
+    Add, view, edit, and manage third-party payment recipients with dynamic
+    validation, multi-method support (ACH, WIRE, RTP), and secure, accessible
+    workflows.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-testing">In Testing</span>
+    <span className="status-badge status-development">In Progress</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>ACH, RTP, WIRE support</li>
-    <li>Fee calculation</li>
-    <li>Form validation</li>
-    <li>Success confirmation</li>
+    <li>View, search, filter, and sort all saved recipients</li>
+    <li>
+      Add new recipients with dynamic forms based on selected payment methods
+    </li>
+    <li>Edit recipient details and update payment methods</li>
+    <li>Deactivate recipients with confirmation and audit tracking</li>
   </ul>
 </div>
 
-{' '}
-
-{' '}
-
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>👥 Recipients</h3>
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>💰 Make Payouts</h3>
   <p>
-    Complete recipient management with CRUD operations, payment method support,
-    and integration with MakePayment.
+    Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to
+    external recipients and linked accounts.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-production">Production Ready</span>
+    <span className="status-badge status-development">In Progress</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Create, edit, delete recipients</li>
-    <li>Multiple payment methods</li>
-    <li>Search and filtering</li>
-    <li>MakePayment integration</li>
+    <li>Get debtor account ID from your Embedded account</li>
+    <li>Create payment request with recipient and amount</li>
+    <li>Submit transaction with reference ID and memo</li>
   </ul>
 </div>
 
-{' '}
-
-{' '}
-
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>🏦 Accounts</h3>
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>
+    📊 Transaction History & Management
+  </h3>
   <p>
-    Read-only account display with balances, categories, routing information,
-    and responsive layout.
+    View, filter, and manage transaction records with detailed insights and
+    comprehensive reporting capabilities for better financial oversight.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-testing">In Testing</span>
+    <span className="status-badge status-coming-soon">Coming Soon</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Account categories and states</li>
-    <li>Balance information</li>
-    <li>Responsive design</li>
-    <li>Mobile support</li>
+    <li>Fetch transaction data with filtering options</li>
+    <li>Display transaction details and status</li>
+    <li>Provide search and sorting capabilities</li>
   </ul>
 </div>
 
-{' '}
-
-{' '}
-
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>🔗 LinkedAccountWidget</h3>
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>🏦 Accounts Management</h3>
   <p>
-    External bank account linking with micro-deposits verification and seamless
-    payment integration.
+    View Embedded Finance accounts with detailed insights and balances for
+    better financial oversight.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-production">Production Ready</span>
+    <span className="status-badge status-coming-soon">Coming Soon</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>External account linking</li>
-    <li>Micro-deposits verification</li>
-    <li>MakePayment integration</li>
-    <li>Multiple account types</li>
+    <li>View accounts details and balances</li>
+    <li>Mask sensitive account information for security</li>
+    <li>Accessible, mobile-responsive design with tooltips and help text</li>
   </ul>
 </div>
 
-{' '}
+</div>
 
-{' '}
+## 🛠️ Utility Components
+
+<div className="feature-grid">
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>📊 TransactionsDisplay</h3>
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>📅 Important Date Selector</h3>
   <p>
-    Comprehensive transaction history with detailed information, filtering, and
-    pagination capabilities.
+    Interactive date picker with validation and formatting options for birth
+    dates and other important dates.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-testing">In Testing</span>
+    <span className="status-badge status-production">Available</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Transaction listing and filtering</li>
-    <li>Detailed transaction views</li>
-    <li>Currency formatting</li>
-    <li>Pagination support</li>
+    <li>Month, day, year input fields</li>
+    <li>Validation and formatting</li>
+    <li>Accessible design</li>
+    <li>Mobile-friendly interface</li>
+  </ul>
+</div>
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>🏭 Industry Classification</h3>
+  <p>
+    Hierarchical selector for industry categories and subcategories with search
+    functionality.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-production">Available</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>NAICS code integration</li>
+    <li>Search and filter capabilities</li>
+    <li>Hierarchical category display</li>
+    <li>Industry sector organization</li>
+  </ul>
+</div>
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#1A7B99' }}>📄 Tax ID Selector</h3>
+  <p>
+    Configurable input for different tax ID formats with validation (EIN, SSN,
+    ITIN).
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-coming-soon">Coming Soon</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Multiple tax ID format support</li>
+    <li>Format validation and masking</li>
+    <li>Dynamic input based on selection</li>
+    <li>Error handling and user feedback</li>
+  </ul>
+</div>
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0, color: '#2CB9AC' }}>📍 Address Validation</h3>
+  <p>
+    Smart address input with autocomplete and validation capabilities for
+    accurate address collection.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-coming-soon">Coming Soon</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Address autocomplete</li>
+    <li>Validation and formatting</li>
+    <li>Multi-field address input</li>
+    <li>Integration with address services</li>
   </ul>
 </div>
 
@@ -415,15 +455,18 @@ The components are designed for flexible integration into parent web application
 
 ### Component Status
 
-| Component             | Status        | API Integration | Testing        | Documentation |
-| --------------------- | ------------- | --------------- | -------------- | ------------- |
-| OnboardingWizardBasic | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
-| OnboardingFlow        | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
-| MakePayment           | 🧪 Testing    | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
-| Recipients            | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
-| Accounts              | 🧪 Testing    | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
-| LinkedAccountWidget   | ✅ Production | ✅ Complete     | ✅ Complete    | ✅ Complete   |
-| TransactionsDisplay   | 🧪 Testing    | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
+| Component               | Status         | API Integration | Testing        | Documentation |
+| ----------------------- | -------------- | --------------- | -------------- | ------------- |
+| Client Onboarding       | 🧪 Testing     | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
+| Link External Account   | 🧪 Testing     | ✅ Complete     | 🧪 In Progress | ✅ Complete   |
+| Recipients Management   | 🔄 In Progress | ✅ Complete     | 🔄 In Progress | ✅ Complete   |
+| Make Payouts            | 🔄 In Progress | ✅ Complete     | 🔄 In Progress | ✅ Complete   |
+| Transaction History     | 📋 Coming Soon | ✅ Complete     | 📋 Planned     | ✅ Complete   |
+| Accounts Management     | 📋 Coming Soon | ✅ Complete     | 📋 Planned     | ✅ Complete   |
+| Important Date Selector | ✅ Available   | ✅ Complete     | ✅ Complete    | ✅ Complete   |
+| Industry Classification | ✅ Available   | ✅ Complete     | ✅ Complete    | ✅ Complete   |
+| Tax ID Selector         | 📋 Coming Soon | 📋 Planned      | 📋 Planned     | 📋 Planned    |
+| Address Validation      | 📋 Coming Soon | 📋 Planned      | 📋 Planned     | 📋 Planned    |
 
 ## 🤝 Contributing
 
@@ -440,75 +483,3 @@ We welcome contributions! Please see our [Contributing Guide](https://github.com
 7. Include comprehensive Storybook stories
 8. Write tests using MSW for API mocking
 9. Ensure accessibility compliance (WCAG 2.1)
-
-
----
-
-{' '}
-
-<div
-  style={{
-    textAlign: 'center',
-    marginTop: '3rem',
-    padding: '2rem',
-    background: '#f6f7f8',
-    borderRadius: '8px',
-    border: '1px solid #e6f3f7',
-  }}
->
-  <h3 style={{ margin: '0 0 1rem 0', color: '#1A7B99' }}>
-    Ready to Get Started?
-  </h3>
-  <p style={{ margin: '0 0 1.5rem 0', color: '#64748b' }}>
-    Explore the component stories in the sidebar to see live examples and
-    interactive demos.
-  </p>
-  <div
-    style={{
-      display: 'flex',
-      gap: '1rem',
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-    }}
-  >
-    <button
-      style={{
-        padding: '0.5rem 1rem',
-        background: '#1A7B99',
-        color: 'white',
-        border: 'none',
-        borderRadius: '0.375rem',
-        cursor: 'pointer',
-        fontWeight: '500',
-      }}
-    >
-      View OnboardingWizardBasic
-    </button>
-    <button
-      style={{
-        padding: '0.5rem 1rem',
-        background: 'transparent',
-        color: '#1A7B99',
-        border: '1px solid #1A7B99',
-        borderRadius: '0.375rem',
-        cursor: 'pointer',
-        fontWeight: '500',
-      }}
-    >
-      View MakePayment
-    </button>
-    <button
-      style={{
-        padding: '0.5rem 1rem',
-        background: '#e6f3f7',
-        color: '#1A7B99',
-        border: '1px solid #e6f3f7',
-        borderRadius: '0.375rem',
-        cursor: 'pointer',
-        fontWeight: '500',
-      }}
-    >
-      View Recipients
-    </button>
-  </div>
-</div>
