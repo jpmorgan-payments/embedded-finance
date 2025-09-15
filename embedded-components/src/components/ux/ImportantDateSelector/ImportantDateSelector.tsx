@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -80,223 +80,233 @@ const validateDate = (
   return { isValid: true, errorMessage: '' };
 };
 
-export function ImportantDateSelector({
-  value,
-  onChange,
-  disabled = false,
-  format = 'MDY',
-  separator = '',
-  showClearIcon = false,
-  ...props
-}: ImportantDateSelectorProps) {
-  const [day, setDay] = useState(() => value?.getDate().toString() ?? '');
-  const [month, setMonth] = useState(() =>
-    value ? (value.getMonth() + 1).toString().padStart(2, '0') : ''
-  );
-  const [year, setYear] = useState(() => value?.getFullYear().toString() ?? '');
-
-  const [isValid, setIsValid] = useState(true);
-  const [isTouched, setIsTouched] = useState(false);
-  const [isPrepopulated, setIsPrepopulated] = useState(!!value);
-
-  const { t } = useTranslation('common');
-
-  const updateDate = useCallback(
-    (newDay: string, newMonth: string, newYear: string) => {
-      const { isValid: newIsValid, errorMessage } = validateDate(
-        newDay,
-        newMonth,
-        newYear,
-        t as (key: string) => string
-      );
-
-      setIsValid(newIsValid);
-      if (newIsValid) {
-        const newDate = new Date(
-          Number.parseInt(newYear, 10),
-          Number.parseInt(newMonth, 10) - 1,
-          Number.parseInt(newDay, 10)
-        );
-        onChange?.(newDate);
-      } else {
-        onChange?.(null, errorMessage);
-      }
+export const ImportantDateSelector = forwardRef<
+  HTMLDivElement,
+  ImportantDateSelectorProps
+>(
+  (
+    {
+      value,
+      onChange,
+      disabled = false,
+      format = 'MDY',
+      separator = '',
+      showClearIcon = false,
+      ...props
     },
-    [onChange]
-  );
+    ref
+  ) => {
+    const [day, setDay] = useState(() => value?.getDate().toString() ?? '');
+    const [month, setMonth] = useState(() =>
+      value ? (value.getMonth() + 1).toString().padStart(2, '0') : ''
+    );
+    const [year, setYear] = useState(
+      () => value?.getFullYear().toString() ?? ''
+    );
 
-  useEffect(() => {
-    if (day && month && year && (isTouched || isPrepopulated)) {
-      updateDate(day, month, year);
-      setIsPrepopulated(false);
-    } else {
+    const [isValid, setIsValid] = useState(true);
+    const [isTouched, setIsTouched] = useState(false);
+    const [isPrepopulated, setIsPrepopulated] = useState(!!value);
+
+    const { t } = useTranslation('common');
+
+    const updateDate = useCallback(
+      (newDay: string, newMonth: string, newYear: string) => {
+        const { isValid: newIsValid, errorMessage } = validateDate(
+          newDay,
+          newMonth,
+          newYear,
+          t as (key: string) => string
+        );
+
+        setIsValid(newIsValid);
+        if (newIsValid) {
+          const newDate = new Date(
+            Number.parseInt(newYear, 10),
+            Number.parseInt(newMonth, 10) - 1,
+            Number.parseInt(newDay, 10)
+          );
+          onChange?.(newDate);
+        } else {
+          onChange?.(null, errorMessage);
+        }
+      },
+      [onChange]
+    );
+
+    useEffect(() => {
+      if (day && month && year && (isTouched || isPrepopulated)) {
+        updateDate(day, month, year);
+        setIsPrepopulated(false);
+      } else {
+        setIsValid(true);
+        isTouched && onChange?.(null);
+      }
+    }, [day, month, year, isTouched, isPrepopulated]);
+
+    useEffect(() => {
+      if (!value) {
+        return;
+      }
+
+      const newYear = value.getFullYear().toString();
+      const newMonth = (value.getMonth() + 1).toString().padStart(2, '0');
+      const newDay = value.getDate().toString();
+
+      if (day === '' && month === '' && year === '') {
+        setDay(newDay);
+        setMonth(newMonth);
+        setYear(newYear);
+      }
+    }, [value]);
+
+    const handleDayChange = (inputValue: string) => {
+      const dayNum = Number.parseInt(inputValue, 10);
+      if (
+        inputValue.length <= 2 &&
+        (Number.isNaN(dayNum) || (dayNum >= 1 && dayNum <= 31))
+      ) {
+        setIsTouched(true);
+        setDay(inputValue);
+      }
+    };
+
+    const handleYearChange = (inputValue: string) => {
+      if (inputValue.length <= 4) {
+        setIsTouched(true);
+        setYear(inputValue);
+      }
+    };
+
+    const handleMonthChange = (inputValue: string) => {
+      setIsTouched(true);
+      setMonth(inputValue);
+    };
+
+    const handleClear = () => {
+      setIsTouched(false);
+      setDay('');
+      setMonth('');
+      setYear('');
       setIsValid(true);
-      isTouched && onChange?.(null);
-    }
-  }, [day, month, year, isTouched, isPrepopulated]);
+      onChange?.(null);
+    };
 
-  useEffect(() => {
-    if (!value) {
-      return;
-    }
+    const renderField = (type: 'D' | 'Y' | 'M' | string) => {
+      switch (type) {
+        case 'D':
+          return (
+            <div className="eb-flex eb-w-12 eb-shrink-0 eb-flex-col eb-gap-1">
+              <label htmlFor="birth-day" className="eb-text-xs">
+                Day
+              </label>
+              <Input
+                id="birth-day"
+                name="birth-day"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                placeholder="DD"
+                value={day}
+                onChange={(e) =>
+                  handleDayChange(e.target.value.replace(/\D/g, ''))
+                }
+                disabled={disabled}
+                className={`eb-w-full ${!isValid || (!day && isTouched) ? 'eb-border-red-500' : ''}`}
+                aria-label="Day"
+              />
+            </div>
+          );
 
-    const newYear = value.getFullYear().toString();
-    const newMonth = (value.getMonth() + 1).toString().padStart(2, '0');
-    const newDay = value.getDate().toString();
-
-    if (day === '' && month === '' && year === '') {
-      setDay(newDay);
-      setMonth(newMonth);
-      setYear(newYear);
-    }
-  }, [value]);
-
-  const handleDayChange = (inputValue: string) => {
-    const dayNum = Number.parseInt(inputValue, 10);
-    if (
-      inputValue.length <= 2 &&
-      (Number.isNaN(dayNum) || (dayNum >= 1 && dayNum <= 31))
-    ) {
-      setIsTouched(true);
-      setDay(inputValue);
-    }
-  };
-
-  const handleYearChange = (inputValue: string) => {
-    if (inputValue.length <= 4) {
-      setIsTouched(true);
-      setYear(inputValue);
-    }
-  };
-
-  const handleMonthChange = (inputValue: string) => {
-    setIsTouched(true);
-    setMonth(inputValue);
-  };
-
-  const handleClear = () => {
-    setIsTouched(false);
-    setDay('');
-    setMonth('');
-    setYear('');
-    setIsValid(true);
-    onChange?.(null);
-  };
-
-  const renderField = (type: 'D' | 'Y' | 'M' | string) => {
-    switch (type) {
-      case 'D':
-        return (
-          <div className="eb-flex eb-w-12 eb-shrink-0 eb-flex-col eb-gap-1">
-            <label htmlFor="birth-day" className="eb-text-xs">
-              Day
-            </label>
-            <Input
-              id="birth-day"
-              name="birth-day"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={2}
-              placeholder="DD"
-              value={day}
-              onChange={(e) =>
-                handleDayChange(e.target.value.replace(/\D/g, ''))
-              }
-              disabled={disabled}
-              className={`eb-w-full ${!isValid || (!day && isTouched) ? 'eb-border-red-500' : ''}`}
-              aria-label="Day"
-            />
-          </div>
-        );
-
-      case 'M':
-        return (
-          <div className="eb-flex eb-w-28 eb-shrink-0 eb-flex-col eb-gap-1">
-            <label htmlFor="birth-month" className="eb-text-xs">
-              Month
-            </label>
-            <Select
-              name="birth-month"
-              value={month}
-              onValueChange={handleMonthChange}
-              disabled={disabled}
-            >
-              <SelectTrigger
-                id="birth-month"
-                className={`eb-w-full ${!isValid || (!month && isTouched) ? 'eb-border-red-500' : ''}`}
+        case 'M':
+          return (
+            <div className="eb-flex eb-w-28 eb-shrink-0 eb-flex-col eb-gap-1">
+              <label htmlFor="birth-month" className="eb-text-xs">
+                Month
+              </label>
+              <Select
+                name="birth-month"
+                value={month}
+                onValueChange={handleMonthChange}
+                disabled={disabled}
               >
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent className="eb-max-h-120">
-                {monthOptions.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        );
+                <SelectTrigger
+                  id="birth-month"
+                  className={`eb-w-full ${!isValid || (!month && isTouched) ? 'eb-border-red-500' : ''}`}
+                >
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent className="eb-max-h-120">
+                  {monthOptions.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
 
-      case 'Y':
-        return (
-          <div className="eb-flex eb-w-16 eb-shrink-0 eb-flex-col eb-gap-1">
-            <label htmlFor="birth-year" className="eb-text-xs">
-              Year
-            </label>
-            <Input
-              id="birth-year"
-              name="birth-year"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={4}
-              placeholder="YYYY"
-              value={year}
-              onChange={(e) =>
-                handleYearChange(e.target.value.replace(/\D/g, ''))
-              }
-              disabled={disabled}
-              className={`eb-w-full ${!isValid || (!year && isTouched) ? 'eb-border-red-500' : ''}`}
-              aria-label="Year"
-            />
-          </div>
-        );
+        case 'Y':
+          return (
+            <div className="eb-flex eb-w-16 eb-shrink-0 eb-flex-col eb-gap-1">
+              <label htmlFor="birth-year" className="eb-text-xs">
+                Year
+              </label>
+              <Input
+                id="birth-year"
+                name="birth-year"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={4}
+                placeholder="YYYY"
+                value={year}
+                onChange={(e) =>
+                  handleYearChange(e.target.value.replace(/\D/g, ''))
+                }
+                disabled={disabled}
+                className={`eb-w-full ${!isValid || (!year && isTouched) ? 'eb-border-red-500' : ''}`}
+                aria-label="Year"
+              />
+            </div>
+          );
 
-      default:
-        return null;
-    }
-  };
+        default:
+          return null;
+      }
+    };
 
-  return (
-    <div className="eb-space-y-1">
-      <div
-        className="eb-flex eb-flex-nowrap eb-items-end eb-gap-1"
-        role="group"
-        aria-label={props['aria-label'] || 'Date input'}
-      >
-        {format.split('').map((type, index) => (
-          <React.Fragment key={type}>
-            {renderField(type)}
-            {index < format.length - 1 && (
-              <span className="eb-mb-2 eb-text-gray-500">{separator}</span>
-            )}
-          </React.Fragment>
-        ))}
-        {showClearIcon && !disabled && (
-          <Button
-            type="button"
-            onClick={handleClear}
-            variant="ghost"
-            size="icon"
-            className="eb-h-10 eb-w-10 eb-shrink-0"
-            aria-label="Clear date"
-          >
-            <X className="eb-h-4 eb-w-4" />
-          </Button>
-        )}
+    return (
+      <div className="eb-space-y-1" ref={ref}>
+        <div
+          className="eb-flex eb-flex-nowrap eb-items-end eb-gap-1"
+          role="group"
+          aria-label={props['aria-label'] || 'Date input'}
+        >
+          {format.split('').map((type, index) => (
+            <React.Fragment key={type}>
+              {renderField(type)}
+              {index < format.length - 1 && (
+                <span className="eb-mb-2 eb-text-gray-500">{separator}</span>
+              )}
+            </React.Fragment>
+          ))}
+          {showClearIcon && !disabled && (
+            <Button
+              type="button"
+              onClick={handleClear}
+              variant="ghost"
+              size="icon"
+              className="eb-h-10 eb-w-10 eb-shrink-0"
+              aria-label="Clear date"
+            >
+              <X className="eb-h-4 eb-w-4" />
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
