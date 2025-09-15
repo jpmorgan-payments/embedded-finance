@@ -535,5 +535,131 @@ describe('OnboardingFlow', () => {
     });
     const addOwnerButton = screen.getByRole('button', { name: /Add owner/i });
     await user.click(addOwnerButton);
+
+    // 5b. Owner personal details form
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+    const ownerFirstNameInput = screen.getByLabelText(/First name/i);
+    await user.type(ownerFirstNameInput, 'Jane');
+    const ownerLastNameInput = screen.getByLabelText(/Last name/i);
+    await user.type(ownerLastNameInput, 'Smith');
+    const ownerJobTitleDropdown = screen.getByLabelText(/Job title/i);
+    await user.click(ownerJobTitleDropdown);
+    const ownerJobTitleOption = screen.getByRole('option', { name: /CFO/i });
+    await user.click(ownerJobTitleOption);
+    const ownerNatureOfOwnershipDropdown =
+      screen.getByLabelText(/Nature of ownership/i);
+    await user.click(ownerNatureOfOwnershipDropdown);
+    const ownerNatureOfOwnershipOption = screen.getByRole('option', {
+      name: /Indirect/i,
+    });
+    await user.click(ownerNatureOfOwnershipOption);
+    const ownerContinueButton = screen.getByRole('button', {
+      name: /continue/i,
+    });
+    await user.click(ownerContinueButton);
+
+    // 5c. Owner identity form
+    await waitFor(() => {
+      expect(screen.getByText(/Identity document/i)).toBeInTheDocument();
+    });
+    const ownerDobMonthDropdown = screen.getByLabelText(/Month/i);
+    await user.click(ownerDobMonthDropdown);
+    await user.keyboard('{ArrowDown}');
+    const ownerDobMonthOption = screen.getByRole('option', {
+      name: /February/i,
+    });
+    await user.click(ownerDobMonthOption);
+    const ownerDobDayInput = screen.getByLabelText(/Day/i);
+    await user.type(ownerDobDayInput, '20');
+    const ownerDobYearInput = screen.getByLabelText(/Year/i);
+    await user.type(ownerDobYearInput, '1990');
+    const ownerSsnInput = screen.getByLabelText(/Social Security Number/i);
+    await user.type(ownerSsnInput, '231231231');
+    const ownerIdentityContinueButton = screen.getByRole('button', {
+      name: /continue/i,
+    });
+    await user.click(ownerIdentityContinueButton);
+
+    // 5d. Owner contact details form
+    await waitFor(() => {
+      expect(screen.getByText(/Contact details/i)).toBeInTheDocument();
+    });
+    const ownerEmailInput = screen.getByLabelText(/Email/i);
+    await user.type(ownerEmailInput, 'jane.smith@example.com');
+    const ownerPhoneInput = screen.getByLabelText(/Phone number/i);
+    await user.type(ownerPhoneInput, '3012345678');
+    const ownerAddressInput = screen.getByLabelText(/Address line 1/i);
+    await user.type(ownerAddressInput, '789 Owner St');
+    const ownerCityInput = screen.getByLabelText(/Town\/City/i);
+    await user.type(ownerCityInput, 'Ownerville');
+    const ownerStateDropdown = screen.getByLabelText(/State/i);
+    await user.click(ownerStateDropdown);
+    const ownerStateOption = screen.getByRole('option', { name: /Florida/i });
+    await user.click(ownerStateOption);
+    const ownerZipInput = screen.getByLabelText(/Postal code/i);
+    await user.type(ownerZipInput, '54321');
+    const ownerAddressContinueButton = screen.getByRole('button', {
+      name: /continue/i,
+    });
+    await user.click(ownerAddressContinueButton);
+
+    // 5e. Check answers for owner
+    await waitFor(() => {
+      expect(screen.getByText(/Check your answers/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText('Jane')).toBeInTheDocument();
+    expect(screen.getByText('Smith')).toBeInTheDocument();
+    expect(screen.getByText('CFO')).toBeInTheDocument();
+    expect(screen.getByText('Indirect')).toBeInTheDocument();
+    expect(screen.getByText('February 20, 1990')).toBeInTheDocument();
+    expect(screen.getByText('XXX-XX-1231')).toBeInTheDocument();
+    expect(screen.getByText('jane.smith@example.com')).toBeInTheDocument();
+    expect(screen.getByText('+1 301 234 5678')).toBeInTheDocument();
+    expect(screen.getByText('789 Owner St')).toBeInTheDocument();
+    expect(screen.getByText('Ownerville, FL 54321')).toBeInTheDocument();
+    const ownerCheckAnswersContinueButton = screen.getByRole('button', {
+      name: /return/i,
+    });
+    await user.click(ownerCheckAnswersContinueButton);
+
+    // 6e Back to Owners component - verify both owners are listed
+    await waitFor(() => {
+      expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+      expect(screen.getByText(/Jane Smith/i)).toBeInTheDocument();
+    });
+    const ownersContinueButton = screen.getByRole('button', {
+      name: /continue/i,
+    });
+    await user.click(ownersContinueButton);
+
+    // STEP 6 ADDITIONAL QUESTIONS / OPERATIONAL DETAILS SECTION
+    await waitFor(() => {
+      expect(screen.getByText(/Operational details/i)).toBeInTheDocument();
+    });
+    // Fill out operational details form
+    const revenueInput = screen.getByLabelText(/Total annual revenue/i);
+    await user.type(revenueInput, '50000');
+    const sanctionedCountriesQuestionRadio = screen.getByRole('radio', {
+      name: /No/i,
+    });
+    await user.click(sanctionedCountriesQuestionRadio);
+    const operationalDetailsContinueButton = screen.getByRole('button', {
+      name: /continue/i,
+    });
+    await user.click(operationalDetailsContinueButton);
+
+    // STEP 7 REVIEW & ATTEST SECTION
+    await waitFor(() => {
+      expect(screen.getByText(/Review your details/i)).toBeInTheDocument();
+    });
+    const attestCheckbox = screen.getByLabelText(
+      /The data I am providing is true, accurate and complete to the best of my knowledge./i
+    );
+    await user.click(attestCheckbox);
   }, 90000);
 });

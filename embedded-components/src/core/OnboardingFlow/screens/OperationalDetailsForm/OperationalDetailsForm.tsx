@@ -208,11 +208,11 @@ export const OperationalDetailsForm = () => {
           render={({ field }) => (
             <FormItem>
               {questionLabel}
-              <FormControl>
-                <div className="eb-relative">
-                  <span className="eb-absolute eb-left-3 eb-translate-y-2 eb-text-gray-500">
-                    $
-                  </span>
+              <div className="eb-relative">
+                <span className="eb-absolute eb-left-3 eb-translate-y-2 eb-text-gray-500">
+                  $
+                </span>
+                <FormControl>
                   <Input
                     type="number"
                     min={0}
@@ -234,8 +234,8 @@ export const OperationalDetailsForm = () => {
                       if (value > 10000000000) field.onChange(['10000000000']);
                     }}
                   />
-                </div>
-              </FormControl>
+                </FormControl>
+              </div>
               <FormMessage />
             </FormItem>
           )}
