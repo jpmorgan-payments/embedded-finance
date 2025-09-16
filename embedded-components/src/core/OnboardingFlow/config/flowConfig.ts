@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n/config';
 import {
   BuildingIcon,
   FileIcon,
@@ -41,35 +42,45 @@ const ownerSteps: StepConfig[] = [
   {
     id: 'personal-details',
     stepType: 'form',
-    title: 'Personal details',
-    description:
-      'We collect personal information to verify individuals for security and compliance.',
+    title: i18n.t(
+      'onboarding-overview:screens.ownerSteps.personalDetails.title'
+    ),
+    description: i18n.t(
+      'onboarding-overview:screens.ownerSteps.personalDetails.description'
+    ),
     Component: PersonalDetailsForm,
   },
   {
     id: 'identity-document',
     stepType: 'form',
-    title: 'Identity document',
-    description:
-      'We need some additional details to verify individuals for security and compliance.',
+    title: i18n.t(
+      'onboarding-overview:screens.ownerSteps.identityDocument.title'
+    ),
+    description: i18n.t(
+      'onboarding-overview:screens.ownerSteps.identityDocument.description'
+    ),
     Component: IndividualIdentityForm,
   },
   {
     id: 'contact-details',
     stepType: 'form',
-    title: 'Contact details',
-    description: 'We need some additional details to confirm your identity.',
+    title: i18n.t(
+      'onboarding-overview:screens.ownerSteps.contactDetails.title'
+    ),
+    description: i18n.t(
+      'onboarding-overview:screens.ownerSteps.contactDetails.description'
+    ),
     Component: ContactDetailsForm,
   },
   {
     id: 'check-answers',
     stepType: 'check-answers',
-    title: 'Check your answers',
-    description:
-      'Please ensure your answers are accurate and complete anything you may have missed.',
+    title: i18n.t('onboarding-overview:screens.ownerSteps.checkAnswers.title'),
+    description: i18n.t(
+      'onboarding-overview:screens.ownerSteps.checkAnswers.description'
+    ),
   },
 ];
-
 const staticScreens: StaticScreenConfig[] = [
   {
     id: 'gateway',
@@ -113,13 +124,21 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: 'Your personal details',
-      shortLabel: 'Personal details',
+      label: i18n.t('onboarding-overview:screens.personalSection.label'),
+      shortLabel: i18n.t(
+        'onboarding-overview:screens.personalSection.shortLabel'
+      ),
       icon: UserIcon,
       requirementsList: [
-        'Your name and job title',
-        'Government issued identifier (e.g. social security number)',
-        'Address and contact details',
+        i18n.t(
+          'onboarding-overview:screens.personalSection.requirementsList.0'
+        ),
+        i18n.t(
+          'onboarding-overview:screens.personalSection.requirementsList.1'
+        ),
+        i18n.t(
+          'onboarding-overview:screens.personalSection.requirementsList.2'
+        ),
       ],
       statusResolver: (
         sessionData,
@@ -170,34 +189,46 @@ const sectionScreens: SectionScreenConfig[] = [
       steps: [
         {
           id: 'personal-details',
-          title: 'Your personal details',
+          title: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.personalDetails.title'
+          ),
           stepType: 'form',
-          description:
-            'We collect your personal information as the primary person controlling business operations for the company.',
+          description: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.personalDetails.description'
+          ),
           Component: PersonalDetailsForm,
         },
         {
           id: 'identity-document',
-          title: 'Your ID details',
+          title: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.identityDocument.title'
+          ),
           stepType: 'form',
-          description:
-            'We need some additional details to confirm your identity.',
+          description: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.identityDocument.description'
+          ),
           Component: IndividualIdentityForm,
         },
         {
           id: 'contact-details',
-          title: 'Your contact details',
+          title: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.contactDetails.title'
+          ),
           stepType: 'form',
-          description:
-            'We need some additional details to confirm your identity.',
+          description: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.contactDetails.description'
+          ),
           Component: ContactDetailsForm,
         },
         {
           id: 'check-answers',
-          title: 'Check your answers',
+          title: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.checkAnswers.title'
+          ),
           stepType: 'check-answers',
-          description:
-            'Please ensure your answers are accurate and complete anything you may have missed.',
+          description: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.checkAnswers.description'
+          ),
         },
       ],
     },
@@ -207,12 +238,18 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: 'Business details',
+      label: i18n.t('onboarding-overview:screens.businessSection.label'),
       icon: BuildingIcon,
       requirementsList: [
-        'Industry classification code',
-        'Registration ID details (e.g. employer identification number)',
-        'Location and contact details',
+        i18n.t(
+          'onboarding-overview:screens.businessSection.requirementsList.0'
+        ),
+        i18n.t(
+          'onboarding-overview:screens.businessSection.requirementsList.1'
+        ),
+        i18n.t(
+          'onboarding-overview:screens.businessSection.requirementsList.2'
+        ),
       ],
       statusResolver: (
         sessionData,
@@ -258,31 +295,45 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'business-identity',
           stepType: 'form',
-          title: 'Business identity',
-          description: 'Please provide details about your business.',
+          title: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.businessIdentity.title'
+          ),
+          description: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.businessIdentity.description'
+          ),
           Component: BusinessIdentityForm,
         },
         {
           id: 'industry',
           stepType: 'form',
-          title: 'Description & industry classification',
-          description:
-            'Provide a description for your business, then choose a classification that best describes your income-producing lines of business.',
+          title: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.industry.title'
+          ),
+          description: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.industry.description'
+          ),
           Component: IndustryForm,
         },
         {
           id: 'contact-info',
           stepType: 'form',
-          title: 'Contact information',
-          description: 'Please let us know how to get in touch.',
+          title: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.contactInfo.title'
+          ),
+          description: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.contactInfo.description'
+          ),
           Component: BusinessContactInfoForm,
         },
         {
           id: 'check-answers',
           stepType: 'check-answers',
-          title: 'Check your answers',
-          description:
-            'Please ensure your answers are accurate and complete anything you may have missed.',
+          title: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.checkAnswers.title'
+          ),
+          description: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.checkAnswers.description'
+          ),
         },
       ],
     },
@@ -293,12 +344,12 @@ const sectionScreens: SectionScreenConfig[] = [
     type: 'component',
     sectionConfig: {
       excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
-      label: 'Owners and key roles',
+      label: i18n.t('onboarding-overview:screens.ownersSection.label'),
       icon: Users2Icon,
       requirementsList: [
-        'Name and job titles for all individuals',
-        'Government issued identifier (e.g. social security number)',
-        'Address and contact details',
+        i18n.t('onboarding-overview:screens.ownersSection.requirementsList.0'),
+        i18n.t('onboarding-overview:screens.ownersSection.requirementsList.1'),
+        i18n.t('onboarding-overview:screens.ownersSection.requirementsList.2'),
       ],
       statusResolver: (
         sessionData,
@@ -349,11 +400,17 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      label: 'Operational details',
+      label: i18n.t(
+        'onboarding-overview:screens.additionalQuestionsSection.label'
+      ),
       icon: TagIcon,
       requirementsList: [
-        'Total annual revenue',
-        'Additional questions based on your business profile',
+        i18n.t(
+          'onboarding-overview:screens.additionalQuestionsSection.requirementsList.0'
+        ),
+        i18n.t(
+          'onboarding-overview:screens.additionalQuestionsSection.requirementsList.1'
+        ),
       ],
       statusResolver: (sessionData, clientData) => {
         const sectionCompleted =
@@ -382,7 +439,7 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: 'Review and attest',
+      label: i18n.t('onboarding-overview:screens.reviewAttestSection.label'),
       icon: FileIcon,
       statusResolver: (sessionData, clientData) => {
         if (sessionData.mockedKycCompleted) {
@@ -403,18 +460,24 @@ const sectionScreens: SectionScreenConfig[] = [
       steps: [
         {
           id: 'review',
-          title: 'Review your details',
+          title: i18n.t(
+            'onboarding-overview:screens.reviewAttestSection.steps.review.title'
+          ),
           stepType: 'static',
-          description:
-            'Please ensure your answers are accurate and complete anything you may have missed.',
+          description: i18n.t(
+            'onboarding-overview:screens.reviewAttestSection.steps.review.description'
+          ),
           Component: ReviewForm,
         },
         {
           id: 'documents',
-          title: 'Terms and conditions',
+          title: i18n.t(
+            'onboarding-overview:screens.reviewAttestSection.steps.documents.title'
+          ),
           stepType: 'static',
-          description:
-            'Please open and review the following documents from J.P. Morgan to complete the process.',
+          description: i18n.t(
+            'onboarding-overview:screens.reviewAttestSection.steps.documents.description'
+          ),
           Component: TermsAndConditionsForm,
         },
       ],
@@ -425,9 +488,11 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      label: 'Supporting documents',
+      label: i18n.t('onboarding-overview:screens.uploadDocumentsSection.label'),
       icon: UploadIcon,
-      onHoldText: "We'll let you know if any documents are needed",
+      onHoldText: i18n.t(
+        'onboarding-overview:screens.uploadDocumentsSection.onHoldText'
+      ),
       statusResolver: (_sessionData, clientData) => {
         const hasOutstandingDocRequests =
           clientHasOutstandingDocRequests(clientData);

@@ -61,19 +61,24 @@ export type FieldDisplayConfig = 'visible' | 'hidden';
 
 export type FieldInteractionConfig = 'enabled' | 'disabled' | 'readonly';
 
+export type FieldContentTokenKey =
+  | 'label'
+  | 'description'
+  | 'tooltip'
+  | 'placeholder'
+  | 'fieldName'
+  | 'sectionTitle'
+  | 'sectionDescription';
+
 export type ContentTokenOverrides = {
-  [key in
-    | 'label'
-    | 'description'
-    | 'tooltip'
-    | 'placeholder'
-    | 'fieldName']?: string;
+  [key in FieldContentTokenKey]?: string;
 };
 
 export type FieldRule<T = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
   required?: boolean;
+  contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
   defaultValue: T;
 };
@@ -81,6 +86,7 @@ export type FieldRule<T = any> = {
 export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   display?: FieldDisplayConfig;
   interaction?: FieldInteractionConfig;
+  contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
   minItems?: number;
   requiredItems?: number;

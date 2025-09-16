@@ -43,6 +43,7 @@ import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/Imp
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
 import {
+  FieldContentTokenKey,
   FieldRule,
   OnboardingFormValuesSubmit,
   OptionalDefaults,
@@ -180,21 +181,18 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     .find((part) => !Number.isNaN(Number(part)));
   const number = lastIndex ? Number(lastIndex) + 1 : undefined;
 
-  const getContentToken = (
-    id: 'placeholder' | 'tooltip' | 'label' | 'description'
-  ) => {
+  const getContentToken = (id: FieldContentTokenKey) => {
     const key = `fields.${tName}.${id}`;
     const oldContentTokenKey = `onboarding-old:${key}`;
-    const contentTokenKey = `onboarding-overview:${key}`;
-    const contentTokenKeyWithDefault = `onboarding-overview:${key}.default`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
     return (
       contentTokenOverride ??
       t(
         [
-          contentTokenKeyWithDefault,
-          contentTokenKey,
-          oldContentTokenKey,
+          `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
+          `onboarding-overview:${key}.default`,
+          `onboarding-overview:${key}`,
+          oldContentTokenKey, // TO REMOVE
           'common:noTokenFallback',
         ] as unknown as TemplateStringsArray,
         {

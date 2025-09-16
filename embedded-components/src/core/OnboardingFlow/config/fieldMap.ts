@@ -36,11 +36,7 @@ export const partyFieldMap: PartyFieldMap = {
           interaction: 'readonly',
           required: false,
           defaultValue: i18n.t('common:na'),
-          contentTokenOverrides: {
-            description: i18n.t(
-              'onboarding-overview:fields.organizationName.description.soleProp'
-            ),
-          },
+          contentTokenOverrideKey: 'soleProp',
         },
       },
     ],
@@ -132,11 +128,7 @@ export const partyFieldMap: PartyFieldMap = {
           entityType: ['SOLE_PROPRIETORSHIP'],
         },
         rule: {
-          contentTokenOverrides: {
-            label: i18n.t(
-              'onboarding-overview:fields.organizationEmail.label.soleProp'
-            ),
-          },
+          contentTokenOverrideKey: 'soleProp',
         },
       },
     ],
@@ -285,138 +277,6 @@ export const partyFieldMap: PartyFieldMap = {
   //     defaultValue: '',
   //   },
   // },
-  addresses: {
-    path: 'organizationDetails.addresses',
-    toStringFn: (addresses) => {
-      if (!addresses || addresses.length === 0) {
-        return undefined;
-      }
-      const primaryAddress = addresses[0];
-      return [
-        primaryAddress.primaryAddressLine,
-        ...primaryAddress.additionalAddressLines.map((line) => line.value),
-        `${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`,
-        i18n.t(`common:countries.${primaryAddress.country}`),
-      ];
-    },
-    modifyErrorField: (field) => {
-      const parts = field.split('.');
-      const lastPart = parts[parts.length - 1];
-      const secondToLastPart = parts[parts.length - 2];
-      if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
-        if (lastPart === '0') {
-          return [
-            ...parts.slice(0, parts.length - 2),
-            'primaryAddressLine',
-          ].join('.');
-        }
-
-        return [
-          ...parts.slice(0, parts.length - 2),
-          'additionalAddressLines',
-          Number(lastPart) - 1,
-          'value',
-        ].join('.');
-      }
-
-      return field;
-    },
-    baseRule: {
-      display: 'visible',
-      minItems: 1,
-      maxItems: 1,
-      defaultValue: [
-        {
-          addressType: 'BUSINESS_ADDRESS',
-          primaryAddressLine: '',
-          additionalAddressLines: [{ value: '' }],
-          city: '',
-          state: '',
-          postalCode: '',
-          country: 'US',
-        },
-      ],
-      defaultAppendValue: {
-        addressType: 'BUSINESS_ADDRESS',
-        primaryAddressLine: '',
-        additionalAddressLines: [{ value: '' }],
-        city: '',
-        state: '',
-        postalCode: '',
-        country: 'US',
-      },
-    },
-    conditionalRules: [
-      {
-        condition: {
-          product: ['MERCHANT_SERVICES'],
-        },
-        rule: { maxItems: 3 },
-      },
-    ],
-    subFields: {
-      addressType: {
-        baseRule: { display: 'visible', required: true },
-      },
-      primaryAddressLine: {
-        baseRule: { display: 'visible', required: true },
-      },
-      additionalAddressLines: {
-        baseRule: {
-          display: 'visible',
-          minItems: 1,
-          requiredItems: 0,
-          maxItems: 2,
-        },
-        subFields: {
-          value: {
-            baseRule: { display: 'visible', required: false },
-          },
-        },
-      },
-      city: {
-        baseRule: { display: 'visible', required: true },
-      },
-      state: {
-        baseRule: { display: 'visible', required: true },
-      },
-      postalCode: {
-        baseRule: { display: 'visible', required: true },
-      },
-      country: {
-        baseRule: {
-          display: 'visible',
-          required: true,
-          interaction: 'disabled',
-        },
-      },
-    },
-    fromResponseFn: (addressesFromApi: AddressDto[]) => {
-      return addressesFromApi.map((address) => ({
-        ...address,
-        primaryAddressLine: address?.addressLines?.[0] ?? '',
-        additionalAddressLines:
-          address?.addressLines?.length > 1
-            ? address.addressLines?.slice(1).map((line: any) => ({
-                value: line.value,
-              }))
-            : [{ value: '' }],
-        state: address.state ?? '',
-        addressType: address.addressType ?? 'LEGAL_ADDRESS',
-      }));
-    },
-    toRequestFn: (addresses): AddressDto[] => {
-      return addresses.map((address) => ({
-        ...address,
-        addressLines: [
-          address.primaryAddressLine,
-          ...address.additionalAddressLines
-            .filter((line) => line.value)
-            .map((line) => line.value),
-        ],
-      }));
-    },
-  },
   // associatedCountries: {
   //   path: 'organizationDetails.associatedCountries',
   //   baseRule: {
@@ -472,11 +332,7 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: {
           required: false,
-          contentTokenOverrides: {
-            description: i18n.t(
-              'onboarding-overview:fields.organizationIdEin.description.soleProp'
-            ),
-          },
+          contentTokenOverrideKey: 'soleProp',
         },
       },
     ],
@@ -918,19 +774,6 @@ export const partyFieldMap: PartyFieldMap = {
       },
     ],
   },
-  // ownerJobTitle: {
-  //   path: 'individualDetails.jobTitle',
-  //   baseRule: { display: 'visible', required: false, defaultValue: '' },
-  //   conditionalRules: [
-  //     {
-  //       condition: {
-  //         product: ['MERCHANT_SERVICES'],
-  //         jurisdiction: ['CA'],
-  //       },
-  //       rule: { display: 'hidden' },
-  //     },
-  //   ],
-  // },
   controllerJobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
@@ -944,43 +787,19 @@ export const partyFieldMap: PartyFieldMap = {
       },
     ],
   },
-  // ownerJobTitleDescription: {
-  //   path: 'individualDetails.jobTitleDescription',
-  //   baseRule: { display: 'visible', required: false, defaultValue: '' },
-  //   conditionalRules: [
-  //     {
-  //       condition: {
-  //         product: ['MERCHANT_SERVICES'],
-  //         jurisdiction: ['CA'],
-  //       },
-  //       rule: { display: 'hidden' },
-  //     },
-  //     {
-  //       condition: {
-  //         product: ['EMBEDDED_PAYMENTS'],
-  //         entityType: ['SOLE_PROPRIETORSHIP'],
-  //       },
-  //       rule: { interaction: 'disabled' },
-  //     },
-  //   ],
-  // },
-  // natureOfOwnership: {
-  //   path: 'individualDetails.natureOfOwnership',
-  //   baseRule: { display: 'visible', required: false, defaultValue: '' },
-  // },
-  controllerAddresses: {
+  individualAddress: {
     path: 'individualDetails.addresses',
-    toStringFn: (addresses) => {
-      if (!addresses || addresses.length === 0) {
+    toStringFn: (address) => {
+      if (!address) {
         return undefined;
       }
-      const primaryAddress = addresses[0];
       return [
-        primaryAddress.primaryAddressLine,
-        ...primaryAddress.additionalAddressLines.map((line) => line.value),
-        `${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`,
-        i18n.t(`common:countries.${primaryAddress.country}`),
-      ];
+        address.primaryAddressLine,
+        address.secondaryAddressLine,
+        address.tertiaryAddressLine,
+        `${address.city}, ${address.state} ${address.postalCode}`,
+        i18n.t(`common:countries.${address.country}`),
+      ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
       const parts = field.split('.');
@@ -993,100 +812,274 @@ export const partyFieldMap: PartyFieldMap = {
             'primaryAddressLine',
           ].join('.');
         }
-
-        return [
-          ...parts.slice(0, parts.length - 2),
-          'additionalAddressLines',
-          Number(lastPart) - 1,
-          'value',
-        ].join('.');
+        if (lastPart === '1') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'secondaryAddressLine',
+          ].join('.');
+        }
+        if (lastPart === '2') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'tertiaryAddressLine',
+          ].join('.');
+        }
       }
 
       return field;
     },
     baseRule: {
       display: 'visible',
-      minItems: 1,
-      maxItems: 1,
-      defaultValue: [
-        {
-          addressType: 'RESIDENTIAL_ADDRESS',
-          primaryAddressLine: '',
-          additionalAddressLines: [{ value: '' }],
-          city: '',
-          state: '',
-          postalCode: '',
-          country: 'US',
-        },
-      ],
-      defaultAppendValue: {
+      defaultValue: {
         addressType: 'RESIDENTIAL_ADDRESS',
         primaryAddressLine: '',
-        additionalAddressLines: [{ value: '' }],
+        secondaryAddressLine: '',
+        tertiaryAddressLine: '',
         city: '',
         state: '',
         postalCode: '',
-        country: '',
+        country: 'US',
       },
     },
-    subFields: {
-      addressType: {
-        baseRule: { display: 'visible', required: true },
-      },
-      primaryAddressLine: {
-        baseRule: { display: 'visible', required: true },
-      },
-      additionalAddressLines: {
-        baseRule: {
-          display: 'visible',
-          minItems: 1,
-          maxItems: 2,
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
         },
-        subFields: {
-          value: {
-            baseRule: { display: 'visible', required: false },
-          },
+        rule: {
+          contentTokenOverrideKey: 'owner',
         },
       },
-      city: {
-        baseRule: { display: 'visible', required: true },
-      },
-      state: {
-        baseRule: { display: 'visible', required: true },
-      },
-      postalCode: {
-        baseRule: { display: 'visible', required: true },
-      },
-      country: {
-        baseRule: { display: 'visible', required: true },
-      },
+    ],
+    fromResponseFn: (val: AddressDto[]) => {
+      const residentialAddress = val.find(
+        (address) => address.addressType === 'RESIDENTIAL_ADDRESS'
+      );
+      return {
+        addressType: 'RESIDENTIAL_ADDRESS',
+        city: residentialAddress?.city ?? '',
+        state: residentialAddress?.state ?? '',
+        postalCode: residentialAddress?.postalCode ?? '',
+        country: residentialAddress?.country ?? '',
+        primaryAddressLine: residentialAddress?.addressLines?.[0] ?? '',
+        secondaryAddressLine: residentialAddress?.addressLines?.[1] ?? '',
+        tertiaryAddressLine: residentialAddress?.addressLines?.[2] ?? '',
+      };
     },
-    fromResponseFn: (addressesFromApi: AddressDto[]) => {
-      return addressesFromApi.map((address) => ({
-        ...address,
-        primaryAddressLine: address?.addressLines?.[0] ?? '',
-        additionalAddressLines:
-          address?.addressLines?.length > 1
-            ? address.addressLines?.slice(1).map((line: any) => ({
-                value: line.value,
-              }))
-            : [{ value: '' }],
-        state: address.state ?? '',
-        addressType: address.addressType ?? 'LEGAL_ADDRESS',
-      }));
-    },
-    toRequestFn: (addresses): AddressDto[] => {
-      return addresses.map((address) => ({
-        ...address,
-        addressLines: [
-          address.primaryAddressLine,
-          ...address.additionalAddressLines
-            .filter((line) => line.value)
-            .map((line) => line.value),
-        ],
-      }));
+    toRequestFn: (address): AddressDto[] => {
+      return [
+        {
+          ...address,
+          addressLines: [
+            address.primaryAddressLine,
+            address.secondaryAddressLine,
+            address.tertiaryAddressLine,
+          ].filter((line) => line !== undefined && line !== ''),
+        },
+      ];
     },
   },
+  organizationAddress: {
+    path: 'organizationDetails.addresses',
+    toStringFn: (address) => {
+      if (!address) {
+        return undefined;
+      }
+      return [
+        address.primaryAddressLine,
+        address.secondaryAddressLine,
+        address.tertiaryAddressLine,
+        `${address.city}, ${address.state} ${address.postalCode}`,
+        i18n.t(`common:countries.${address.country}`),
+      ].filter((line) => line && line.trim() !== '');
+    },
+    modifyErrorField: (field) => {
+      const parts = field.split('.');
+      const lastPart = parts[parts.length - 1];
+      const secondToLastPart = parts[parts.length - 2];
+      if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
+        if (lastPart === '0') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'primaryAddressLine',
+          ].join('.');
+        }
+        if (lastPart === '1') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'secondaryAddressLine',
+          ].join('.');
+        }
+        if (lastPart === '2') {
+          return [
+            ...parts.slice(0, parts.length - 2),
+            'tertiaryAddressLine',
+          ].join('.');
+        }
+      }
+
+      return field;
+    },
+    baseRule: {
+      display: 'visible',
+      defaultValue: {
+        addressType: 'BUSINESS_ADDRESS',
+        primaryAddressLine: '',
+        secondaryAddressLine: '',
+        tertiaryAddressLine: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: 'US',
+      },
+    },
+    fromResponseFn: (val: AddressDto[]) => {
+      const businessAddress = val.find(
+        (address) => address.addressType === 'BUSINESS_ADDRESS'
+      );
+      return {
+        addressType: 'BUSINESS_ADDRESS',
+        city: businessAddress?.city ?? '',
+        state: businessAddress?.state ?? '',
+        postalCode: businessAddress?.postalCode ?? '',
+        country: businessAddress?.country ?? '',
+        primaryAddressLine: businessAddress?.addressLines?.[0] ?? '',
+        secondaryAddressLine: businessAddress?.addressLines?.[1] ?? '',
+        tertiaryAddressLine: businessAddress?.addressLines?.[2] ?? '',
+      };
+    },
+    toRequestFn: (address): AddressDto[] => {
+      return [
+        {
+          ...address,
+          addressLines: [
+            address.primaryAddressLine,
+            address.secondaryAddressLine,
+            address.tertiaryAddressLine,
+          ].filter((line) => line !== undefined && line !== ''),
+        },
+      ];
+    },
+  },
+  // controllerAddresses: {
+  //   path: 'individualDetails.addresses',
+  //   toStringFn: (addresses) => {
+  //     if (!addresses || addresses.length === 0) {
+  //       return undefined;
+  //     }
+  //     const primaryAddress = addresses[0];
+  //     return [
+  //       primaryAddress.primaryAddressLine,
+  //       ...primaryAddress.additionalAddressLines.map((line) => line.value),
+  //       `${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`,
+  //       i18n.t(`common:countries.${primaryAddress.country}`),
+  //     ];
+  //   },
+  //   modifyErrorField: (field) => {
+  //     const parts = field.split('.');
+  //     const lastPart = parts[parts.length - 1];
+  //     const secondToLastPart = parts[parts.length - 2];
+  //     if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
+  //       if (lastPart === '0') {
+  //         return [
+  //           ...parts.slice(0, parts.length - 2),
+  //           'primaryAddressLine',
+  //         ].join('.');
+  //       }
+
+  //       return [
+  //         ...parts.slice(0, parts.length - 2),
+  //         'additionalAddressLines',
+  //         Number(lastPart) - 1,
+  //         'value',
+  //       ].join('.');
+  //     }
+
+  //     return field;
+  //   },
+  //   baseRule: {
+  //     display: 'visible',
+  //     minItems: 1,
+  //     maxItems: 1,
+  //     defaultValue: [
+  //       {
+  //         addressType: 'RESIDENTIAL_ADDRESS',
+  //         primaryAddressLine: '',
+  //         additionalAddressLines: [{ value: '' }],
+  //         city: '',
+  //         state: '',
+  //         postalCode: '',
+  //         country: 'US',
+  //       },
+  //     ],
+  //     defaultAppendValue: {
+  //       addressType: 'RESIDENTIAL_ADDRESS',
+  //       primaryAddressLine: '',
+  //       additionalAddressLines: [{ value: '' }],
+  //       city: '',
+  //       state: '',
+  //       postalCode: '',
+  //       country: '',
+  //     },
+  //   },
+  //   subFields: {
+  //     addressType: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     primaryAddressLine: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     additionalAddressLines: {
+  //       baseRule: {
+  //         display: 'visible',
+  //         minItems: 1,
+  //         maxItems: 2,
+  //       },
+  //       subFields: {
+  //         value: {
+  //           baseRule: { display: 'visible', required: false },
+  //         },
+  //       },
+  //     },
+  //     city: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     state: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     postalCode: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //     country: {
+  //       baseRule: { display: 'visible', required: true },
+  //     },
+  //   },
+  //   fromResponseFn: (addressesFromApi: AddressDto[]) => {
+  //     return addressesFromApi.map((address) => ({
+  //       ...address,
+  //       primaryAddressLine: address?.addressLines?.[0] ?? '',
+  //       additionalAddressLines:
+  //         address?.addressLines?.length > 1
+  //           ? address.addressLines?.slice(1).map((line: any) => ({
+  //               value: line.value,
+  //             }))
+  //           : [{ value: '' }],
+  //       state: address.state ?? '',
+  //       addressType: address.addressType ?? 'LEGAL_ADDRESS',
+  //     }));
+  //   },
+  //   toRequestFn: (addresses): AddressDto[] => {
+  //     return addresses.map((address) => ({
+  //       ...address,
+  //       addressLines: [
+  //         address.primaryAddressLine,
+  //         ...address.additionalAddressLines
+  //           .filter((line) => line.value)
+  //           .map((line) => line.value),
+  //       ],
+  //     }));
+  //   },
+  // },
   // ownerAddresses: {
   //   path: 'individualDetails.addresses',
   //   modifyErrorField: (field) => {

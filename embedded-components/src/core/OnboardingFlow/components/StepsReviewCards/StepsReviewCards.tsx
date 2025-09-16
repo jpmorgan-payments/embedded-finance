@@ -150,6 +150,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                     ? fieldRule?.contentTokenOverrides?.label
                     : undefined) ??
                   t([
+                    `onboarding-overview:fields.${field}.label.${fieldRule.contentTokenOverrideKey}`,
                     `onboarding-overview:fields.${field}.label.default`,
                     `onboarding-overview:fields.${field}.label`,
                     `onboarding:fields.${field}.label`,
@@ -161,6 +162,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                     : undefined) ??
                   t(
                     [
+                      `onboarding-overview:fields.${field}.fieldName.${fieldRule.contentTokenOverrideKey}`,
                       `onboarding-overview:fields.${field}.fieldName.default`,
                       `onboarding-overview:fields.${field}.fieldName`,
                     ] as unknown as TemplateStringsArray,
