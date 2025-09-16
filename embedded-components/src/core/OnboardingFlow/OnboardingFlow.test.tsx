@@ -488,7 +488,7 @@ describe('OnboardingFlow', () => {
     await user.type(businessAddressInput, '456 Business Rd');
     const businessCityInput = screen.getByLabelText(/Town\/City/i);
     await user.type(businessCityInput, 'Business City');
-    const businessStateDropdown = screen.getByLabelText(/State\/Province/i);
+    const businessStateDropdown = screen.getByLabelText(/State/i);
     await user.click(businessStateDropdown);
     const businessStateOption = screen.getByRole('option', {
       name: /California/i,
