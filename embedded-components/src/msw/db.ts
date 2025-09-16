@@ -10,6 +10,16 @@ import {
 } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/.storybook/mocks/clientDetails.mock';
 import { efDocumentRequestDetailsList } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/.storybook/mocks/documentRequestDetailsList.mock';
 
+// Configure logging behavior
+export const ENABLE_LOGS = process.env.NODE_ENV !== 'test';
+
+// Custom logger function that respects testing environment
+export function dbLogger(...args: any[]) {
+  if (ENABLE_LOGS) {
+    console.log(...args);
+  }
+}
+
 // Magic values configuration
 export const MAGIC_VALUES = {
   INFORMATION_REQUESTED: '111111111',
@@ -90,9 +100,13 @@ export function upsertDocumentRequest(id, data) {
 
   let result;
   if (existingRequest) {
-    result = db.documentRequest.update({
+    // Delete and recreate to avoid any issues with updates
+    db.documentRequest.delete({
       where: { id: { equals: id } },
-      data: { ...existingRequest, ...documentData },
+    });
+    result = db.documentRequest.create({
+      ...documentData,
+      id,
     });
   } else {
     result = db.documentRequest.create({
@@ -119,20 +133,20 @@ export function logDbState(operation = 'Current State') {
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
 
-  console.log('=== Database State After:', operation, '===');
-  console.log(
+  dbLogger('=== Database State After:', operation, '===');
+  dbLogger(
     'Clients:',
     clients.map((c) => c.id)
   );
-  console.log(
+  dbLogger(
     'Parties:',
     parties.map((p) => p.id)
   );
-  console.log(
+  dbLogger(
     'Document Requests:',
     documentRequests.map((dr) => dr.id)
   );
-  console.log('=====================================');
+  dbLogger('=====================================');
 }
 
 // Initialize with predefined mocks
@@ -141,23 +155,32 @@ export function initializeDb(force = false) {
     // Only clear if forced or no clients exist
     const existingClients = db.client.getAll();
     if (force || existingClients.length === 0) {
-      console.log('=== Starting Database Initialization ===');
-      console.log(
+      dbLogger('=== Starting Database Initialization ===');
+      dbLogger(
         'Predefined Clients Data:',
         JSON.stringify(predefinedClients, null, 2)
       );
 
-      // Clear existing data
-      db.client.deleteMany({
-        where: {},
-      });
-      db.party.deleteMany({ where: {} });
-      db.documentRequest.deleteMany({ where: {} });
+      try {
+        // Clear existing data
+        db.client.deleteMany({
+          where: {},
+        });
+        db.party.deleteMany({
+          where: {},
+        });
+        db.documentRequest.deleteMany({
+          where: {},
+        });
+      } catch (err) {
+        dbLogger('Error clearing database:', err);
+        // Continue with initialization even if clearing fails
+      }
 
       // Add predefined clients and their parties
       Object.entries(predefinedClients).forEach(([clientId, clientData]) => {
         try {
-          console.log(
+          dbLogger(
             `\nInitializing Client ${clientId}:`,
             JSON.stringify(clientData, null, 2)
           );
@@ -166,9 +189,22 @@ export function initializeDb(force = false) {
           const parties = clientData.parties || [];
           const timestamp = new Date().toISOString();
 
-          console.log('\nCreating Parties:');
+          dbLogger('\nCreating Parties:');
           parties.forEach((party) => {
             if (party.id) {
+              // Check if the party already exists
+              const existingParty = db.party.findFirst({
+                where: { id: { equals: party.id } },
+              });
+
+              // If it exists, delete it first to avoid duplicate key error
+              if (existingParty) {
+                dbLogger(`Party ${party.id} already exists, deleting it first`);
+                db.party.delete({
+                  where: { id: { equals: party.id } },
+                });
+              }
+
               const newParty = {
                 ...party,
                 status: party?.status || 'ACTIVE',
@@ -179,17 +215,30 @@ export function initializeDb(force = false) {
                 access: party.access || [],
                 validationResponse: party.validationResponse || [],
               };
-              console.log(
+              dbLogger(
                 `\nParty ${party.id}:`,
                 JSON.stringify(newParty, null, 2)
               );
               try {
                 db.party.create(newParty);
               } catch (error) {
-                console.error('Error creating party:', error);
+                dbLogger('Error creating party:', error);
               }
             }
           });
+
+          // Check if the client already exists
+          const existingClient = db.client.findFirst({
+            where: { id: { equals: clientId } },
+          });
+
+          // If it exists, delete it first to avoid any issues
+          if (existingClient) {
+            dbLogger(`Client ${clientId} already exists, deleting it first`);
+            db.client.delete({
+              where: { id: { equals: clientId } },
+            });
+          }
 
           // Then create the client with proper schema
           const newClient = {
@@ -214,7 +263,7 @@ export function initializeDb(force = false) {
               customerIdentityStatus: 'NOT_STARTED',
             },
           };
-          console.log(`\nCreating Client:`, JSON.stringify(newClient, null, 2));
+          dbLogger(`\nCreating Client:`, JSON.stringify(newClient, null, 2));
           db.client.create(newClient);
 
           // If client status is INFORMATION_REQUESTED, create document requests
@@ -260,7 +309,7 @@ export function initializeDb(force = false) {
                 });
                 db.party.create(updatedParty);
               } catch (error) {
-                console.error('Error creating document request:', error);
+                dbLogger('Error creating document request:', error);
               }
             }
 
@@ -289,22 +338,22 @@ export function initializeDb(force = false) {
                   generatedDocRequestId
                 );
               } catch (error) {
-                console.error('Error creating document request:', error);
+                dbLogger('Error creating document request:', error);
               }
             }
           }
         } catch (e) {
-          console.error('Error creating client:', e);
+          dbLogger('Error creating client:', e);
         }
       });
 
-      console.log('\n=== Final Database State ===');
+      dbLogger('\n=== Final Database State ===');
       logDbState('Database Initialization');
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Database initialization error:', error);
+    dbLogger('Database initialization error:', error);
     return false;
   }
 }

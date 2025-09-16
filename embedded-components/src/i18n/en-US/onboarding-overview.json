@@ -105,6 +105,109 @@
     "companyIdentification": {
       "useDifferentIdType": "Use a different ID type",
       "contactPlatformOperator": "If your business is outside of the United States, please contact Platform operator."
+    },
+    "ownerSteps": {
+      "personalDetails": {
+        "title": "Personal details",
+        "description": "We collect personal information to verify individuals for security and compliance."
+      },
+      "identityDocument": {
+        "title": "Identity document",
+        "description": "We need some additional details to verify individuals for security and compliance."
+      },
+      "contactDetails": {
+        "title": "Contact details",
+        "description": "We need some additional details to confirm the owner's identity."
+      },
+      "checkAnswers": {
+        "title": "Check your answers",
+        "description": "Please ensure your answers are accurate and complete anything you may have missed."
+      }
+    },
+    "personalSection": {
+      "label": "Your personal details",
+      "shortLabel": "Personal details",
+      "requirementsList": [
+        "Your name and job title",
+        "Government issued identifier (e.g. social security number)",
+        "Address and contact details"
+      ],
+      "steps": {
+        "personalDetails": {
+          "title": "Your personal details",
+          "description": "We collect your personal information as the primary person controlling business operations for the company."
+        },
+        "identityDocument": {
+          "title": "Your ID details",
+          "description": "We need some additional details to confirm your identity."
+        },
+        "contactDetails": {
+          "title": "Your contact details",
+          "description": "We need some additional details to confirm your identity."
+        },
+        "checkAnswers": {
+          "title": "Check your answers",
+          "description": "Please ensure your answers are accurate and complete anything you may have missed."
+        }
+      }
+    },
+    "businessSection": {
+      "label": "Business details",
+      "requirementsList": [
+        "Industry classification code",
+        "Registration ID details (e.g. employer identification number)",
+        "Location and contact details"
+      ],
+      "steps": {
+        "businessIdentity": {
+          "title": "Business identity",
+          "description": "Please provide details about your business."
+        },
+        "industry": {
+          "title": "Description & industry classification",
+          "description": "Provide a description for your business, then choose a classification that best describes your income-producing lines of business."
+        },
+        "contactInfo": {
+          "title": "Contact information",
+          "description": "Please let us know how to get in touch."
+        },
+        "checkAnswers": {
+          "title": "Check your answers",
+          "description": "Please ensure your answers are accurate and complete anything you may have missed."
+        }
+      }
+    },
+    "ownersSection": {
+      "label": "Owners and key roles",
+      "requirementsList": [
+        "Name and job titles for all individuals",
+        "Government issued identifier (e.g. social security number)",
+        "Address and contact details"
+      ]
+    },
+    "additionalQuestionsSection": {
+      "label": "Operational details",
+      "requirementsList": [
+        "Total annual revenue",
+        "Additional questions based on your business profile"
+      ]
+    },
+    "reviewAttestSection": {
+      "label": "Review and attest",
+      "steps": {
+        "review": {
+          "title": "Review your details",
+          "description": "Please ensure your answers are accurate and complete anything you may have missed."
+        },
+        "documents": {
+          "title": "Terms and conditions",
+          "description": "Please open and review the following documents from J.P. Morgan to complete the process."
+        }
+      }
+    },
+    "uploadDocumentsSection": {
+      "label": "Supporting documents",
+      "onHoldText": "We'll let you know if any documents are needed"
     }
   },
   "fields": {
@@ -159,6 +262,7 @@
       }
     },
     "controllerNameSuffix": {
+      "label": "Suffix",
       "description": "(e.g. Jr., Sr. II, etc)",
       "tooltip": "",
       "validation": {
@@ -174,11 +278,11 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "minLength": "$t(validation:common.minLength, {'count': 2})",
-        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
-        "pattern": "$t(validation:common.pattern)",
-        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:common.noTrailingSpace)"
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 50})",
+        "pattern": "$t(validation:text.pattern)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)"
       }
     },
     "controllerJobTitleDescription": {
@@ -187,10 +291,10 @@
       "description": "Brief description of your role and responsibilities",
       "tooltip": "",
       "validation": {
-        "maxLength": "$t(validation:common.maxLength, {'count': 50})",
-        "pattern": "$t(validation:common.pattern)",
-        "noHtml": "$t(validation:common.noHtml)",
-        "noUrls": "$t(validation:common.noUrls)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 50})",
+        "pattern": "$t(validation:text.pattern)",
+        "noHtml": "$t(validation:text.noHtml)",
+        "noUrls": "$t(validation:text.noUrls)",
         "required": "Description is required when job title is Other."
       }
     },
@@ -263,7 +367,7 @@
         "ssnFormat": "$t(validation:id.ssn)",
         "itinFormat": "$t(validation:id.itin.format)",
         "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
-        "noSpaces": "$t(validation:common.noSpaces)"
+        "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
     "controllerIds.expiryDate": {
@@ -418,120 +522,154 @@
       },
       "group": "contact"
     },
-    "controllerAddresses": {
-      "label": "Residential address",
-      "country": {
-        "description": ""
-      },
-      "primaryAddressLine": {
-        "description": "P.O. box is not accepted",
-        "tooltip": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-          "pattern": "Address can only contain letters, numbers, and basic punctuation"
-        }
-      },
-      "postalCode": {
-        "label": "Postal code",
-        "description": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "pattern": "Postal code must be exactly 5 digits"
-        }
-      },
-      "city": {
-        "label": "Town/City",
-        "description": "Locality, Settlement, etc.",
-        "validation": {
-          "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 34})"
-        }
-      },
-      "state": {
-        "label": "State/Province",
-        "description": "",
-        "placeholder": "Select",
-        "validation": {
-          "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 30})"
-        }
-      },
-      "additionalAddressLines": {
-        "line1Description": "Apt, Suite, Unit, Building etc.",
-        "line2Description": "",
-        "value": {
-          "validation": {
-            "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-            "pattern": "Address can only contain letters, numbers, and basic punctuation"
-          }
-        },
-        "validation": {
-          "minItems": "At least {{count}} address line is required",
-          "maxItems": "Maximum {{count}} address lines allowed"
-        }
+    "individualAddress.sectionTitle": {
+      "default": "Personal address",
+      "owner": "Owner's personal address"
+    },
+    "individualAddress.country": {
+      "label": "Country",
+      "placeholder": "Select country",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+        "onlyUS": "Only US is supported at this time"
       }
     },
-    "addresses": {
-      "sectionTitle": "Registered address",
-      "sectionDescription": "Please provide the address registered to your company with your local authority",
-      "country": {
-        "description": ""
-      },
-      "primaryAddressLine": {
-        "label": "Address line 1",
-        "placeholder": "Enter address line 1",
-        "description": "P.O. box is not accepted",
-        "tooltip": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-          "pattern": "Address can only contain letters, numbers, and basic punctuation"
-        }
-      },
-      "postalCode": {
-        "label": "Postal code",
-        "description": "",
-        "validation": {
-          "required": "$t(validation:required)",
-          "pattern": "Postal code must be exactly 5 digits"
-        }
-      },
-      "city": {
-        "label": "Town/City",
-        "description": "Locality, Settlement, etc.",
-        "validation": {
-          "required": "$t(validation:required)"
-        }
-      },
-      "state": {
-        "label": "State/Province",
-        "description": "",
-        "placeholder": "Select",
-        "validation": {
-          "required": "$t(validation:required)"
-        }
-      },
-      "additionalAddressLines": {
-        "line1Description": "Apt, Suite, Unit, Building etc.",
-        "line2Description": "",
-        "value": {
-          "validation": {
-            "maxLength": "$t(validation:common.maxLength, {'count': 60})",
-            "pattern": "Address can only contain letters, numbers, and basic punctuation"
-          }
-        },
-        "validation": {
-          "minItems": "At least {{count}} address line is required",
-          "maxItems": "Maximum {{count}} address lines allowed"
-        }
-      },
+    "individualAddress.primaryAddressLine": {
+      "label": "Address line 1",
+      "placeholder": "Enter address line 1",
+      "description": "P.O. box is not accepted",
+      "tooltip": "",
       "validation": {
-        "minItems_one": "At least one address is required",
-        "minItems_other": "At least {{count}} addresses are required",
-        "maxItems_one": "Maximum {{count}} address allowed",
-        "maxItems_other": "Maximum {{count}} addresses allowed",
-        "uniqueTypes": "Each address type must be unique"
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+      }
+    },
+    "individualAddress.secondaryAddressLine": {
+      "label": "Address line 2",
+      "placeholder": "Enter address line 2",
+      "description": "Apt, Suite, Unit, Building etc.",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+      }
+    },
+    "individualAddress.tertiaryAddressLine": {
+      "label": "Address line 3",
+      "placeholder": "Enter address line 3",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+      }
+    },
+    "individualAddress.city": {
+      "label": "Town/City",
+      "placeholder": "Enter town/city",
+      "description": "Locality, Settlement, etc.",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+      }
+    },
+    "individualAddress.state": {
+      "label": "State",
+      "placeholder": "Select state",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "invalid": "Please select a valid state"
+      }
+    },
+    "individualAddress.postalCode": {
+      "label": "Postal code",
+      "placeholder": "Enter postal code",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "Postal code must be exactly 5 digits"
+      }
+    },
+    "organizationAddress.sectionTitle": "Registered address",
+    "organizationAddress.sectionDescription": "Please provide the address registered to your company with your local authority",
+    "organizationAddress.country": {
+      "label": "Country",
+      "placeholder": "Select country",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+        "onlyUS": "Only US is supported at this time"
+      }
+    },
+    "organizationAddress.primaryAddressLine": {
+      "label": "Address line 1",
+      "placeholder": "Enter address line 1",
+      "description": "P.O. box is not accepted",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+      }
+    },
+    "organizationAddress.secondaryAddressLine": {
+      "label": "Address line 2",
+      "placeholder": "Enter address line 2",
+      "description": "Apt, Suite, Unit, Building etc.",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+      }
+    },
+    "organizationAddress.tertiaryAddressLine": {
+      "label": "Address line 3",
+      "placeholder": "Enter address line 3",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+      }
+    },
+    "organizationAddress.city": {
+      "label": "Town/City",
+      "placeholder": "Enter town/city",
+      "description": "Locality, Settlement, etc.",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+      }
+    },
+    "organizationAddress.state": {
+      "label": "State",
+      "placeholder": "Select state",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "invalid": "Please select a valid state"
+      }
+    },
+    "organizationAddress.postalCode": {
+      "label": "Postal code",
+      "placeholder": "Enter postal code",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "Postal code must be exactly 5 digits"
       }
     },
     "dbaNameNotAvailable": {
@@ -564,13 +702,13 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "maxLength": "$t(validation:common.maxLength)",
-        "format": "$t(validation:business.name.format, {'allowedChars': '()_/&+%@#;,.: -?'})",
-        "pattern": "$t(validation:business.name.pattern)",
-        "noLeadingSpace": "$t(validation:common.noLeadingSpace)",
-        "noTrailingSpace": "$t(validation:common.noTrailingSpace)",
-        "noConsecutiveSpaces": "$t(validation:common.noConsecutiveSpaces)",
-        "minLength": "$t(validation:common.minLength)"
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength)",
+        "pattern": "$t(validation:text.noSpecialChars, {'allowedChars': '()_/&+%@#;,.: -?'})",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "minLength": "$t(validation:text.minLength)"
       }
     },
     "organizationDescription": {
@@ -579,10 +717,10 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "maxLength": "$t(validation:common.maxLength)",
-        "minLength": "$t(validation:common.minLength)",
-        "noHtml": "$t(validation:common.noHtml)",
-        "noUrls": "$t(validation:common.noUrls)"
+        "maxLength": "$t(validation:text.maxLength)",
+        "minLength": "$t(validation:text.minLength)",
+        "noHtml": "$t(validation:text.noHtml)",
+        "noUrls": "$t(validation:text.noUrls)"
       },
       "tooltipContent": {
         "exampleTitle": "Description example",
@@ -618,8 +756,8 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:contact.phone.format)",
-        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        "format": "$t(validation:phone.format)",
+        "pattern": "$t(validation:phone.pattern, {'example': '+1234567890'})"
       }
     },
     "organizationPhone.phoneNumber": {
@@ -629,8 +767,8 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:contact.phone.format)",
-        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        "format": "$t(validation:phone.format)",
+        "pattern": "$t(validation:phone.pattern, {'example': '+1234567890'})"
       }
     },
     "controllerPhone.phoneType": {

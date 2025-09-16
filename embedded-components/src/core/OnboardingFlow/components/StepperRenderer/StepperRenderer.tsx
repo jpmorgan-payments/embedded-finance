@@ -212,6 +212,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     } else if (canNavigateToPrevSection) {
       goTo(prevSection.id, {
         editingPartyId: prevSectionPartyData.id,
+        initialStepperStepId: prevSection.stepperConfig?.steps.at(-1)?.id,
       });
     } else if (currentScreenId === 'review-attest-section') {
       goTo('overview');
@@ -412,7 +413,14 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
       : values;
 
     // Update another party if needed
-    if (Component.updateAnotherPartyOnSubmit && clientData) {
+    if (
+      Component.updateAnotherPartyOnSubmit &&
+      clientData &&
+      !(
+        Component.updateAnotherPartyOnSubmit.getCondition &&
+        !Component.updateAnotherPartyOnSubmit.getCondition(clientData)
+      )
+    ) {
       const targetParty = getPartyByAssociatedPartyFilters(
         clientData,
         Component.updateAnotherPartyOnSubmit.partyFilters

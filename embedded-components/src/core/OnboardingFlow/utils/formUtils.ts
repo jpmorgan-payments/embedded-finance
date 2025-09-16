@@ -9,6 +9,7 @@ import {
   UseFormProps,
   UseFormReturn,
 } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -32,6 +33,7 @@ import {
   ArrayFieldRule,
   ClientContext,
   CombinedFieldConfiguration,
+  FieldContentTokenKey,
   FieldRule,
   OnboardingFormValuesInitial,
   OnboardingFormValuesSubmit,
@@ -546,7 +548,8 @@ export function getFieldRuleByClientContext(
       // Otherwise, it's a subfield name
       const subFieldName =
         segment as keyof OnboardingFormValuesSubmit[OnboardingTopLevelArrayFieldNames][number];
-      const subFieldConfig = currentConfig.subFields[subFieldName];
+      // @ts-ignore -- TS can't infer this properly
+      const subFieldConfig = currentConfig.subFields?.[subFieldName];
       if (!subFieldConfig) {
         throw new Error(
           `Subfield "${subFieldName}" is not defined under "${fieldNameParts
@@ -669,7 +672,7 @@ export function modifySchemaByClientContext(
 
       const minMessage = i18n.t(
         [
-          `onboarding:fields.${tName}.validation.minItems`,
+          `onboarding-overview:fields.${tName}.validation.minItems`,
           'common:validation.minItems',
         ],
         {
@@ -679,7 +682,7 @@ export function modifySchemaByClientContext(
 
       const maxMessage = i18n.t(
         [
-          `onboarding:fields.${tName}.validation.maxItems`,
+          `onboarding-overview:fields.${tName}.validation.maxItems`,
           'common:validation.maxItems',
         ],
         {
@@ -733,7 +736,6 @@ export function modifySchemaByClientContext(
             `${fullKey}.0`
           );
         }
-        // TODO: add validation messages
         modifiedSchema = z
           .array(newElementSchema)
           .min(min, minMessage)
@@ -861,6 +863,52 @@ export type ValidationMessageKeysFor<
     : string;
 
 /**
+ * React hook that provides a function to retrieve localized field content tokens
+ * @returns Function to get content tokens for form fields (placeholder, tooltip, label, description)
+ * Uses useTranslation internally for internationalization support
+ */
+export const useGetFieldContentToken = (
+  fieldName: FieldPath<OnboardingFormValuesSubmit>
+) => {
+  const { t } = useTranslation([
+    'onboarding-old',
+    'onboarding-overview',
+    'common',
+  ]);
+
+  const { getFieldRule } = useFormUtils();
+  const { fieldRule } = getFieldRule(fieldName);
+
+  /**
+   * Retrieves a localized content token for a specific field
+   * @param fieldRule - Field rule configuration containing content token overrides
+   * @param key - Key for the desired content (e.g., 'placeholder', 'tooltip', 'label', 'description')
+   * @returns The localized content token string
+   */
+  const getFieldContentToken = (key: FieldContentTokenKey): string => {
+    const oldContentTokenKey = `onboarding-old:${key}`;
+    const contentTokenOverride = fieldRule.contentTokenOverrides?.[key];
+    return (
+      contentTokenOverride ??
+      t(
+        [
+          `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
+          `onboarding-overview:fields.${fieldName}.${key}.default`,
+          `onboarding-overview:fields.${fieldName}.${key}`,
+          oldContentTokenKey, // TO REMOVE
+          'common:noTokenFallback',
+        ] as unknown as TemplateStringsArray,
+        {
+          key,
+        }
+      )
+    );
+  };
+
+  return getFieldContentToken;
+};
+
+/**
  * Retrieves a localized validation message for a specific field and message key
  * @param field - Field name from the onboarding-overview resources
  * @param messageKey - Specific validation message key for the selected field
@@ -890,27 +938,35 @@ export const useGetValidationMessage = <
     const { fieldRule } = getFieldRule(field);
 
     // Build translation key path with validation prefix
-    const translationKey = `onboarding-overview:fields.${field}.validation.${messageKey}`;
+    const translationKey = [
+      `onboarding-overview:fields.${field}.validation.${messageKey}.${fieldRule.contentTokenOverrideKey}`,
+      `onboarding-overview:fields.${field}.validation.${messageKey}.default`,
+      `onboarding-overview:fields.${field}.validation.${messageKey}`,
+    ];
 
     const label =
       fieldRule.contentTokenOverrides?.label ??
       i18n.t([
+        `onboarding-overview:fields.${field}.label.${fieldRule.contentTokenOverrideKey}`,
         `onboarding-overview:fields.${field}.label.default`,
         `onboarding-overview:fields.${field}.label`,
       ] as unknown as TemplateStringsArray);
 
-    const fieldName = i18n.t(
-      [
-        `onboarding-overview:fields.${field}.fieldName.default`,
-        `onboarding-overview:fields.${field}.fieldName`,
-      ],
-      {
-        defaultValue: label,
-      }
-    );
+    const fieldName =
+      fieldRule.contentTokenOverrides?.fieldName ??
+      i18n.t(
+        [
+          `onboarding-overview:fields.${field}.fieldName.${fieldRule.contentTokenOverrideKey}`,
+          `onboarding-overview:fields.${field}.fieldName.default`,
+          `onboarding-overview:fields.${field}.fieldName`,
+        ],
+        {
+          defaultValue: label,
+        }
+      );
 
     // Return translation with optional count parameter for pluralization
-    return i18n.t([translationKey], { fieldName, count });
+    return i18n.t(translationKey, { fieldName, count });
   };
   return getValidationMessage;
 };

@@ -22,6 +22,8 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock scrollIntoView - missing implementation causing "e.scrollIntoView is not a function" error
 Element.prototype.scrollIntoView = vi.fn();
+Element.prototype.hasPointerCapture = vi.fn();
+Element.prototype.releasePointerCapture = vi.fn();
 
 class ResizeObserver {
   observe() {}
@@ -30,6 +32,11 @@ class ResizeObserver {
 }
 
 window.ResizeObserver = ResizeObserver;
+
+window.dtrum = {
+  enterAction: vi.fn(),
+  leaveAction: vi.fn(),
+};
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());

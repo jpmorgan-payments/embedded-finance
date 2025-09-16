@@ -1,4 +1,3 @@
-import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
@@ -216,14 +215,14 @@ export const refineBusinessIdentityFormSchema = (
     if (!values.websiteNotAvailable && !values.website) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: i18n.t('onboarding:fields.website.validation.required'),
+        message: v('website', 'required'),
         path: ['website'],
       });
     }
     if (!values.dbaNameNotAvailable && !values.dbaName) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Required',
+        message: v('dbaName', 'required'),
         path: ['dbaName'],
       });
     }

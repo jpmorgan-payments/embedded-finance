@@ -9,11 +9,15 @@ import {
   US_STATE_OPTIONS,
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
 
 export const ContactDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
+  const getIndividualAddressContentToken =
+    useGetFieldContentToken('individualAddress');
+
   const form =
     useFormContext<z.input<ReturnType<typeof useContactDetailsFormSchema>>>();
 
@@ -37,11 +41,11 @@ export const ContactDetailsForm: FormStepComponent = () => {
       />
       <fieldset className="eb-grid eb-gap-3">
         <legend className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
-          Personal address
+          {getIndividualAddressContentToken('sectionTitle')}
         </legend>
         <OnboardingFormField
           control={form.control}
-          name="controllerAddresses.0.country"
+          name="individualAddress.country"
           type="combobox"
           options={COUNTRIES_OF_FORMATION.map((code) => ({
             value: code,
@@ -54,40 +58,43 @@ export const ContactDetailsForm: FormStepComponent = () => {
               </span>
             ),
           }))}
+          required
         />
         <OnboardingFormField
           control={form.control}
-          name="controllerAddresses.0.primaryAddressLine"
+          name="individualAddress.primaryAddressLine"
+          type="text"
+          required
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="individualAddress.secondaryAddressLine"
           type="text"
         />
         <OnboardingFormField
           control={form.control}
-          name="controllerAddresses.0.additionalAddressLines.0.value"
-          type="text"
-          description="Apt, Suite, Unit, Building etc."
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="controllerAddresses.0.additionalAddressLines.1.value"
-          type="text"
-          description=""
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="controllerAddresses.0.city"
+          name="individualAddress.tertiaryAddressLine"
           type="text"
         />
         <OnboardingFormField
           control={form.control}
-          name="controllerAddresses.0.state"
+          name="individualAddress.city"
+          type="text"
+          required
+        />
+        <OnboardingFormField
+          control={form.control}
+          name="individualAddress.state"
           type="combobox"
           options={US_STATE_OPTIONS}
+          required
         />
         <OnboardingFormField
           control={form.control}
-          name="controllerAddresses.0.postalCode"
+          name="individualAddress.postalCode"
           type="text"
           className="eb-max-w-48"
+          required
         />
       </fieldset>
     </div>

@@ -1,14 +1,16 @@
-import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
 import {
-  AddressSchema,
-  PhoneSchema,
+  useAddressSchemas,
+  usePhoneSchemas,
 } from '@/core/OnboardingFlow/utils/commonSchemas';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 
 export const useContactDetailsFormSchema = () => {
   const v = useGetValidationMessage();
+  const { PhoneSchema } = usePhoneSchemas('controllerPhone');
+  const { AddressSchema } = useAddressSchemas('individualAddress');
+
   return z.object({
     controllerEmail: z
       .string()
@@ -16,9 +18,6 @@ export const useContactDetailsFormSchema = () => {
       .email(v('controllerEmail', 'invalid'))
       .max(100, v('controllerEmail', 'maxLength')),
     controllerPhone: PhoneSchema,
-    controllerAddresses: z.array(AddressSchema).refine((addresses) => {
-      const types = addresses.map((addr) => addr.addressType);
-      return new Set(types).size === types.length;
-    }, i18n.t('onboarding-old:fields.controllerAddresses.validation.uniqueTypes')),
+    individualAddress: AddressSchema,
   });
 };

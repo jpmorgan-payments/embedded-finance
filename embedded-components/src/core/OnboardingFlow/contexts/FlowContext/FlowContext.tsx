@@ -120,14 +120,22 @@ export const FlowProvider: React.FC<{
     setPreviouslyCompleted(config?.previouslyCompleted ?? false);
     setReviewScreenOpenedSectionId(config?.reviewScreenOpenedSectionId ?? null);
     setInitialStepperStepId(config?.initialStepperStepId ?? null);
-    setHistory((prev) => [...(config?.resetHistory ? [] : prev), id]);
     setShortLabelOverride(config?.shortLabelOverride ?? null);
+    setHistory((prev) => [...(config?.resetHistory ? [] : prev), id]);
   };
 
   const originScreenId =
     history.length > 1 ? history[history.length - 2] : null;
 
-  const goBack = () => {
+  const goBack = (config?: GoToConfig) => {
+    setEditingPartyIds((prev) => ({
+      ...prev,
+      [currentScreenId]: config?.editingPartyId,
+    }));
+    setPreviouslyCompleted(config?.previouslyCompleted ?? false);
+    setReviewScreenOpenedSectionId(config?.reviewScreenOpenedSectionId ?? null);
+    setInitialStepperStepId(config?.initialStepperStepId ?? null);
+    setShortLabelOverride(config?.shortLabelOverride ?? null);
     setHistory((h) => (h.length > 1 ? h.slice(0, -1) : h));
   };
 

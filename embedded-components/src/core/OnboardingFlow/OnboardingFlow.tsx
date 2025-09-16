@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
@@ -158,7 +158,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   );
 };
 
-const FlowRenderer: React.FC = () => {
+// Memoize the FlowRenderer component to ensure consistent hook order
+const FlowRenderer: React.FC = React.memo(() => {
   const { clientData, organizationType, docUploadOnlyMode } =
     useOnboardingContext();
   const { currentScreenId, goTo, sessionData, updateSessionData } =
@@ -208,14 +209,17 @@ const FlowRenderer: React.FC = () => {
   }, [sessionData.mockedVerifyingSectionId]);
 
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
-  const renderScreen = () => {
+  // Memoize the rendered screen to help prevent hook ordering issues
+  const renderScreen = useCallback(() => {
     if (!screen) {
       return <div>Unknown screen id: {currentScreenId}</div>;
     }
 
     if (screen.type === 'component') {
       const Comp = screen.Component;
-      return <Comp />;
+      // Use React.memo to maintain consistent component identity
+      const MemoizedComp = React.memo(Comp);
+      return <MemoizedComp key={currentScreenId} />;
     }
 
     if (screen.type === 'stepper') {
@@ -223,7 +227,7 @@ const FlowRenderer: React.FC = () => {
     }
 
     return <div>Unhandled screen error</div>;
-  };
+  }, [screen, currentScreenId]);
 
   return (
     <div
@@ -234,4 +238,4 @@ const FlowRenderer: React.FC = () => {
       <div className="eb-w-full">{renderScreen()}</div>
     </div>
   );
-};
+});

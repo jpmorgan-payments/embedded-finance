@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
 import {
-  AddressSchema,
   PhoneSchema,
+  useAddressSchemas,
 } from '@/core/OnboardingFlow/utils/commonSchemas';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 
 export const useBusinessContactInfoFormSchema = () => {
   const v = useGetValidationMessage();
+  const { AddressSchema } = useAddressSchemas('organizationAddress');
+
   return z.object({
     organizationEmail: z
       .string()
@@ -15,6 +17,6 @@ export const useBusinessContactInfoFormSchema = () => {
       .email(v('organizationEmail', 'invalid'))
       .max(100, v('organizationEmail', 'maxLength', 100)),
     organizationPhone: PhoneSchema,
-    addresses: z.array(AddressSchema),
+    organizationAddress: AddressSchema,
   });
 };

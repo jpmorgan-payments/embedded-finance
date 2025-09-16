@@ -9,11 +9,16 @@ import {
   US_STATE_OPTIONS,
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useBusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
 
 export const BusinessContactInfoForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
+  const getOrgAddressContentToken = useGetFieldContentToken(
+    'organizationAddress'
+  );
+
   const form =
     useFormContext<
       z.input<ReturnType<typeof useBusinessContactInfoFormSchema>>
@@ -39,15 +44,15 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       />
       <fieldset>
         <legend className="eb-font-header eb-text-lg eb-font-medium">
-          {t('fields.addresses.sectionTitle')}
+          {getOrgAddressContentToken('sectionTitle')}
         </legend>
         <p className="eb-mt-1.5 eb-text-sm">
-          {t('fields.addresses.sectionDescription')}
+          {getOrgAddressContentToken('sectionDescription')}
         </p>
         <div className="eb-mt-3 eb-space-y-3">
           <OnboardingFormField
             control={form.control}
-            name="addresses.0.country"
+            name="organizationAddress.country"
             type="combobox"
             options={COUNTRIES_OF_FORMATION.map((code) => ({
               value: code,
@@ -63,39 +68,33 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
           />
           <OnboardingFormField
             control={form.control}
-            name="addresses.0.primaryAddressLine"
+            name="organizationAddress.primaryAddressLine"
             type="text"
           />
           <OnboardingFormField
             control={form.control}
-            name="addresses.0.additionalAddressLines.0.value"
-            type="text"
-            description={t(
-              'fields.addresses.additionalAddressLines.line1Description'
-            )}
-          />
-          <OnboardingFormField
-            control={form.control}
-            name="addresses.0.additionalAddressLines.1.value"
-            type="text"
-            description={t(
-              'fields.addresses.additionalAddressLines.line2Description'
-            )}
-          />
-          <OnboardingFormField
-            control={form.control}
-            name="addresses.0.city"
+            name="organizationAddress.secondaryAddressLine"
             type="text"
           />
           <OnboardingFormField
             control={form.control}
-            name="addresses.0.state"
+            name="organizationAddress.tertiaryAddressLine"
+            type="text"
+          />
+          <OnboardingFormField
+            control={form.control}
+            name="organizationAddress.city"
+            type="text"
+          />
+          <OnboardingFormField
+            control={form.control}
+            name="organizationAddress.state"
             type="combobox"
             options={US_STATE_OPTIONS}
           />
           <OnboardingFormField
             control={form.control}
-            name="addresses.0.postalCode"
+            name="organizationAddress.postalCode"
             type="text"
             className="eb-max-w-48"
           />
