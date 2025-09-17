@@ -292,7 +292,7 @@ export function DashboardLayout() {
       setTimeout(() => {
         DatabaseResetUtils.emulateTabSwitch();
         setIsMswReady(true);
-      }, 300);
+      }, 1000);
     }
   }, [searchParams.fullscreen, isMswReady]);
 
@@ -513,7 +513,25 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <MakePayment />
+                  <MakePayment
+                    paymentMethods={[
+                      {
+                        fee: 2.5,
+                        id: 'ACH',
+                        name: 'ACH',
+                      },
+                      {
+                        fee: 1,
+                        id: 'RTP',
+                        name: 'RTP',
+                      },
+                      {
+                        fee: 25,
+                        id: 'WIRE',
+                        name: 'WIRE',
+                      },
+                    ]}
+                  />
                 </EBComponentsProvider>
               </div>
             </div>
