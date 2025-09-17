@@ -288,23 +288,11 @@ export function DashboardLayout() {
 
   // MSW readiness check for fullscreen mode - simple delay approach
   useEffect(() => {
-    // Only check readiness in fullscreen mode
     if (searchParams.fullscreen && !isMswReady) {
-      console.log(
-        'Waiting for MSW database initialization in fullscreen mode...',
-      );
-
-      // Simple delay to allow MSW database to initialize
-      // Based on logs, database initialization completes quickly
-      const timer = setTimeout(() => {
-        console.log('MSW database initialization delay completed');
+      setTimeout(() => {
+        DatabaseResetUtils.emulateTabSwitch();
         setIsMswReady(true);
-      }, 1000); // 1 second delay should be sufficient
-
-      return () => clearTimeout(timer);
-    } else if (!searchParams.fullscreen) {
-      // In normal mode, assume MSW is ready (handled by existing loading states)
-      setIsMswReady(true);
+      }, 300);
     }
   }, [searchParams.fullscreen, isMswReady]);
 
