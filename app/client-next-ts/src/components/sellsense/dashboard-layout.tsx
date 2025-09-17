@@ -293,9 +293,9 @@ export function DashboardLayout() {
         // Simple ping to check if MSW is responding
         const response = await fetch('/ef/do/v1/_status', {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
-        
+
         if (response.ok) {
           setIsMswReady(true);
         } else {
@@ -584,7 +584,7 @@ export function DashboardLayout() {
         </div>
       );
     }
-    
+
     return <div className="h-screen">{renderFullscreenComponent()}</div>;
   }
 
