@@ -103,7 +103,6 @@ export function DashboardLayout() {
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMswReady, setIsMswReady] = useState(false);
-  const [mswRetryCount, setMswRetryCount] = useState(0);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
@@ -287,96 +286,27 @@ export function DashboardLayout() {
     }
   }, [pingQuery.isSuccess]);
 
-  // MSW readiness check for fullscreen mode
+  // MSW readiness check for fullscreen mode - simple delay approach
   useEffect(() => {
-    const checkMswReadiness = async () => {
-      try {
-        // Test multiple API endpoints to ensure database is properly initialized
-        const testEndpoints = [
-          '/ef/do/v1/recipients',
-          '/ef/do/v1/accounts',
-          '/ef/do/v1/_status',
-        ];
-
-        // Test all endpoints in parallel
-        const responses = await Promise.all(
-          testEndpoints.map((endpoint) =>
-            fetch(endpoint, {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' },
-            }),
-          ),
-        );
-
-        // Check if all responses are OK and return JSON (not HTML)
-        const allReady = await Promise.all(
-          responses.map(async (response) => {
-            if (!response.ok) return false;
-
-            const contentType = response.headers.get('content-type');
-            // Ensure we're getting JSON, not HTML
-            if (!contentType?.includes('application/json')) {
-              return false;
-            }
-
-            try {
-              // Try to parse as JSON to ensure it's valid
-              await response.clone().json();
-              return true;
-            } catch {
-              return false;
-            }
-          }),
-        );
-
-        if (allReady.every((ready) => ready)) {
-          console.log('MSW database fully initialized and ready');
-          setIsMswReady(true);
-          setMswRetryCount(0); // Reset retry count on success
-        } else {
-          // Retry with exponential backoff, but limit total retries
-          if (mswRetryCount < 50) {
-            // Max 50 retries (about 10 seconds)
-            setMswRetryCount((prev) => prev + 1);
-            const delay = Math.min(200 + mswRetryCount * 50, 1000); // Max 1 second delay
-            setTimeout(checkMswReadiness, delay);
-          } else {
-            console.warn(
-              'MSW readiness check timed out after 50 retries. Proceeding anyway.',
-            );
-            setIsMswReady(true); // Proceed anyway to avoid infinite loading
-          }
-        }
-      } catch (error) {
-        console.log(
-          'MSW not ready yet, retrying...',
-          error instanceof Error ? error.message : String(error),
-        );
-        // Retry with exponential backoff, but limit total retries
-        if (mswRetryCount < 50) {
-          // Max 50 retries (about 10 seconds)
-          setMswRetryCount((prev) => prev + 1);
-          const delay = Math.min(200 + mswRetryCount * 50, 1000); // Max 1 second delay
-          setTimeout(checkMswReadiness, delay);
-        } else {
-          console.warn(
-            'MSW readiness check timed out after 50 retries. Proceeding anyway.',
-          );
-          setIsMswReady(true); // Proceed anyway to avoid infinite loading
-        }
-      }
-    };
-
     // Only check readiness in fullscreen mode
     if (searchParams.fullscreen && !isMswReady) {
-      console.log('Checking MSW readiness for fullscreen mode...');
-      checkMswReadiness();
+      console.log(
+        'Waiting for MSW database initialization in fullscreen mode...',
+      );
+
+      // Simple delay to allow MSW database to initialize
+      // Based on logs, database initialization completes quickly
+      const timer = setTimeout(() => {
+        console.log('MSW database initialization delay completed');
+        setIsMswReady(true);
+      }, 1000); // 1 second delay should be sufficient
+
+      return () => clearTimeout(timer);
     } else if (!searchParams.fullscreen) {
       // In normal mode, assume MSW is ready (handled by existing loading states)
       setIsMswReady(true);
-      setMswRetryCount(0); // Reset retry count when leaving fullscreen
     }
-  }, [searchParams.fullscreen, isMswReady, mswRetryCount]);
+  }, [searchParams.fullscreen, isMswReady]);
 
   // Effects
   // Handle initial load with URL parameters
