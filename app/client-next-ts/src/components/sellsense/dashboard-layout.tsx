@@ -102,6 +102,7 @@ export function DashboardLayout() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMswReady, setIsMswReady] = useState(false);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
@@ -284,6 +285,37 @@ export function DashboardLayout() {
       setShowMswAlert(true);
     }
   }, [pingQuery.isSuccess]);
+
+  // MSW readiness check for fullscreen mode
+  useEffect(() => {
+    const checkMswReadiness = async () => {
+      try {
+        // Simple ping to check if MSW is responding
+        const response = await fetch('/ef/do/v1/_status', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          setIsMswReady(true);
+        } else {
+          // Retry after a short delay
+          setTimeout(checkMswReadiness, 100);
+        }
+      } catch (error) {
+        // Retry after a short delay
+        setTimeout(checkMswReadiness, 100);
+      }
+    };
+
+    // Only check readiness in fullscreen mode
+    if (searchParams.fullscreen && !isMswReady) {
+      checkMswReadiness();
+    } else if (!searchParams.fullscreen) {
+      // In normal mode, assume MSW is ready (handled by existing loading states)
+      setIsMswReady(true);
+    }
+  }, [searchParams.fullscreen, isMswReady]);
 
   // Effects
   // Handle initial load with URL parameters
@@ -544,6 +576,15 @@ export function DashboardLayout() {
 
   // Fullscreen mode - render only the component
   if (searchParams.fullscreen) {
+    // Show loading skeleton while MSW is initializing
+    if (!isMswReady) {
+      return (
+        <div className="h-screen">
+          <LoadingSkeleton theme={theme} />
+        </div>
+      );
+    }
+    
     return <div className="h-screen">{renderFullscreenComponent()}</div>;
   }
 
