@@ -190,7 +190,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   // Auto-selection logic for form fields
   useEffect(() => {
     // Auto-select single account if only one is available
-    if (accounts?.items.length === 1) {
+    if (accounts?.items?.length === 1) {
       const currentAccount = form.getValues('from');
       if (currentAccount !== accounts.items[0].id) {
         form.setValue('from', accounts.items[0].id);
