@@ -102,7 +102,6 @@ export function DashboardLayout() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMswReady, setIsMswReady] = useState(false);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
@@ -288,13 +287,12 @@ export function DashboardLayout() {
 
   // MSW readiness check for fullscreen mode - simple delay approach
   useEffect(() => {
-    if (searchParams.fullscreen && !isMswReady) {
+    if (searchParams.fullscreen) {
       setTimeout(() => {
         DatabaseResetUtils.emulateTabSwitch();
-        setIsMswReady(true);
-      }, 1000);
+      }, 300);
     }
-  }, [searchParams.fullscreen, isMswReady]);
+  }, [searchParams.fullscreen]);
 
   // Effects
   // Handle initial load with URL parameters
@@ -573,15 +571,6 @@ export function DashboardLayout() {
 
   // Fullscreen mode - render only the component
   if (searchParams.fullscreen) {
-    // Show loading skeleton while MSW is initializing
-    if (!isMswReady) {
-      return (
-        <div className="h-screen">
-          <LoadingSkeleton theme={theme} />
-        </div>
-      );
-    }
-
     return <div className="h-screen">{renderFullscreenComponent()}</div>;
   }
 
