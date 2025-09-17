@@ -362,7 +362,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   const isFormFilled = amount > 0 && from && to && method;
 
   const getFee = (paymentMethodId: string) => {
-    const selectedMethod = paymentMethods?.find((m) => m.id === paymentMethodId);
+    const selectedMethod = paymentMethods?.find(
+      (m) => m.id === paymentMethodId
+    );
     return selectedMethod?.fee || 0;
   };
 
