@@ -206,7 +206,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
 
     // Auto-select single payment method if only one is available
-    if (paymentMethods.length === 1) {
+    if (paymentMethods?.length === 1) {
       const currentMethod = form.getValues('method');
       if (currentMethod !== paymentMethods[0].id) {
         form.setValue('method', paymentMethods[0].id);
@@ -214,7 +214,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
 
     // Auto-select payment method if only one is available for the selected recipient
-    if (dynamicPaymentMethods.length === 1) {
+    if (dynamicPaymentMethods?.length === 1) {
       const currentMethod = form.getValues('method');
       if (currentMethod !== dynamicPaymentMethods[0].id) {
         form.setValue('method', dynamicPaymentMethods[0].id);
@@ -224,7 +224,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     // Reset payment method if not available for the new recipient
     if (
       form.getValues('method') &&
-      !dynamicPaymentMethods.some((pm) => pm.id === form.getValues('method'))
+      !dynamicPaymentMethods?.some((pm) => pm.id === form.getValues('method'))
     ) {
       form.setValue('method', '');
     }
@@ -232,7 +232,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     // Reset recipient when account changes
     if (selectedAccount) {
       const currentRecipient = form.getValues('to');
-      const isRecipientStillValid = filteredRecipients.some(
+      const isRecipientStillValid = filteredRecipients?.some(
         (r: any) => r.id === currentRecipient
       );
 
@@ -251,11 +251,11 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // Derived state for recipient selection and warning
   const recipientSelectionState = useMemo(() => {
-    if (!recipientId || filteredRecipients.length === 0) {
+    if (!recipientId || filteredRecipients?.length === 0) {
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    const recipientExists = filteredRecipients.some(
+    const recipientExists = filteredRecipients?.some(
       (r: any) => r.id === recipientId
     );
 
@@ -288,7 +288,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // On submit, build payload and call mutation
   const handlePaymentSubmit = (values: any) => {
-    const recipient = filteredRecipients.find((r: any) => r.id === values.to);
+    const recipient = filteredRecipients?.find((r: any) => r.id === values.to);
     const fromAccount = accounts?.items.find(
       (a: { id: any }) => a.id === values.from
     );
@@ -342,7 +342,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // Restore recipient selection when recipients are loaded and dialog is open
   useEffect(() => {
-    if (dialogOpen && recipientId && filteredRecipients.length > 0) {
+    if (dialogOpen && recipientId && filteredRecipients?.length > 0) {
       const recipientExists = filteredRecipients.some(
         (r: any) => r.id === recipientId
       );
@@ -362,7 +362,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   const isFormFilled = amount > 0 && from && to && method;
 
   const getFee = (paymentMethodId: string) => {
-    const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId);
+    const selectedMethod = paymentMethods?.find((m) => m.id === paymentMethodId);
     return selectedMethod?.fee || 0;
   };
 
@@ -473,7 +473,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {accounts?.items.map(
+                              {accounts?.items?.map(
                                 (account: AccountResponse) => (
                                   <SelectItem
                                     key={account.id}
@@ -501,7 +501,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           <div className="eb-space-y-1">
                             {(() => {
                               const availableBalanceData =
-                                accountBalance.balanceTypes.find(
+                                accountBalance?.balanceTypes?.find(
                                   (balance) => balance.typeCode === 'ITAV'
                                 );
                               return availableBalanceData ? (
@@ -511,7 +511,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                   </span>
                                   <span className="eb-font-mono eb-font-medium">
                                     ${availableBalanceData.amount.toFixed(2)}{' '}
-                                    {accountBalance.currency}
+                                    {accountBalance?.currency}
                                   </span>
                                 </div>
                               ) : (
