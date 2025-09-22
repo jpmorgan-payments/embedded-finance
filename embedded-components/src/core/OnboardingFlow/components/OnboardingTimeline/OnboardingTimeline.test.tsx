@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
 
@@ -76,7 +76,9 @@ describe('OnboardingTimeline', () => {
 
     // Check header content
     expect(screen.getByText('Onboarding Progress')).toBeInTheDocument();
-    expect(screen.getByText('Complete each step to continue')).toBeInTheDocument();
+    expect(
+      screen.getByText('Complete each step to continue')
+    ).toBeInTheDocument();
 
     // Check sections are rendered
     expect(screen.getByText('Personal Information')).toBeInTheDocument();
@@ -101,7 +103,9 @@ describe('OnboardingTimeline', () => {
     const user = userEvent.setup();
     render(<OnboardingTimeline {...mockProps} />);
 
-    const personalInfoSection = screen.getByText('Personal Information').closest('button');
+    const personalInfoSection = screen
+      .getByText('Personal Information')
+      .closest('button');
     expect(personalInfoSection).toBeInTheDocument();
 
     await user.click(personalInfoSection!);
@@ -113,7 +117,9 @@ describe('OnboardingTimeline', () => {
     const user = userEvent.setup();
     render(<OnboardingTimeline {...mockProps} />);
 
-    const companyDetailsStep = screen.getByText('Company Details').closest('button');
+    const companyDetailsStep = screen
+      .getByText('Company Details')
+      .closest('button');
     expect(companyDetailsStep).toBeInTheDocument();
 
     await user.click(companyDetailsStep!);
@@ -124,18 +130,23 @@ describe('OnboardingTimeline', () => {
   test('applies correct styling for current section', () => {
     render(<OnboardingTimeline {...mockProps} />);
 
-    const currentSectionButton = screen.getByText('Business Information').closest('button');
+    const currentSectionButton = screen
+      .getByText('Business Information')
+      .closest('button');
     expect(currentSectionButton).toHaveClass('eb-font-medium');
 
     // Check for blue indicator line
-    const blueIndicator = currentSectionButton?.querySelector('.eb-bg-blue-500');
+    const blueIndicator =
+      currentSectionButton?.querySelector('.eb-bg-blue-500');
     expect(blueIndicator).toBeInTheDocument();
   });
 
   test('applies correct styling for current step', () => {
     render(<OnboardingTimeline {...mockProps} />);
 
-    const currentStepButton = screen.getByText('Company Details').closest('button');
+    const currentStepButton = screen
+      .getByText('Company Details')
+      .closest('button');
     expect(currentStepButton).toHaveClass('eb-font-medium');
     expect(currentStepButton).toHaveClass('eb-bg-sidebar-accent');
   });
@@ -201,7 +212,9 @@ describe('OnboardingTimeline', () => {
     const user = userEvent.setup();
     render(<OnboardingTimeline {...mockProps} />);
 
-    const firstSectionButton = screen.getByText('Personal Information').closest('button');
+    const firstSectionButton = screen
+      .getByText('Personal Information')
+      .closest('button');
     expect(firstSectionButton).toBeInTheDocument();
 
     firstSectionButton!.focus();
@@ -232,7 +245,9 @@ describe('OnboardingTimeline', () => {
     const user = userEvent.setup();
     render(<OnboardingTimeline {...mockProps} />);
 
-    const sectionButton = screen.getByText('Personal Information').closest('button');
+    const sectionButton = screen
+      .getByText('Personal Information')
+      .closest('button');
     const stepButton = screen.getByText('Company Details').closest('button');
 
     // Mock preventDefault to ensure it's called
@@ -273,7 +288,9 @@ describe('OnboardingTimeline', () => {
     render(<OnboardingTimeline {...mockProps} />);
 
     // Check for connecting line elements (using transform classes as indicators)
-    const connectingLines = document.querySelectorAll('[class*="eb--translate-y"]');
+    const connectingLines = document.querySelectorAll(
+      '[class*="eb--translate-y"]'
+    );
     expect(connectingLines.length).toBeGreaterThan(0);
   });
 
@@ -288,200 +305,9 @@ describe('OnboardingTimeline', () => {
     });
 
     // Current section should have font-semibold
-    const currentSectionButton = screen.getByText('Business Information').closest('button');
-    expect(currentSectionButton).toHaveClass('eb-font-medium');
-  });
-});
-    description: 'Final review and submission',
-    status: 'pending',
-    steps: [
-      {
-        id: 'review',
-        title: 'Review Information',
-        description: 'Check all details',
-        status: 'pending',
-      },
-      {
-        id: 'submit',
-        title: 'Submit Application',
-        description: 'Final submission',
-        status: 'pending',
-      },
-    ],
-  },
-];
-
-const renderComponent = (props = {}) => {
-  return render(
-    <OnboardingTimeline
-      sections={mockSections}
-      currentSectionId="personal-section"
-      currentStepId="personal-details"
-      {...props}
-    >
-      <div data-testid="timeline-content">Test content</div>
-    </OnboardingTimeline>
-  );
-};
-
-describe('OnboardingTimeline', () => {
-  const mockOnSectionClick = vi.fn();
-  const mockOnStepClick = vi.fn();
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  test('renders all sections correctly', async () => {
-    renderComponent({
-      onSectionClick: mockOnSectionClick,
-      onStepClick: mockOnStepClick,
-    });
-
-    // Check that all section titles are rendered
-    expect(screen.getByText('Business Information')).toBeInTheDocument();
-    expect(screen.getByText('Personal Information')).toBeInTheDocument();
-    expect(screen.getByText('Review & Submit')).toBeInTheDocument();
-
-    // Check that content area is rendered
-    expect(screen.getByTestId('timeline-content')).toBeInTheDocument();
-    expect(screen.getByText('Test content')).toBeInTheDocument();
-  });
-
-  test('displays steps only for current section', async () => {
-    renderComponent({
-      onSectionClick: mockOnSectionClick,
-      onStepClick: mockOnStepClick,
-    });
-
-    // Steps should be visible for current section (personal-section)
-    expect(screen.getByText('Personal Details')).toBeInTheDocument();
-    expect(screen.getByText('Identity Document')).toBeInTheDocument();
-
-    // Steps should not be visible for other sections
-    expect(screen.queryByText('Business Identity')).not.toBeInTheDocument();
-    expect(screen.queryByText('Review Information')).not.toBeInTheDocument();
-  });
-
-  test('shows correct status icons for different states', async () => {
-    renderComponent();
-
-    // Check that completed, current, and pending items have appropriate styling
-    const businessSection = screen
+    const currentSectionButton = screen
       .getByText('Business Information')
       .closest('button');
-    const personalSection = screen
-      .getByText('Personal Information')
-      .closest('button');
-    const reviewSection = screen.getByText('Review & Submit').closest('button');
-
-    expect(businessSection).toBeInTheDocument();
-    expect(personalSection).toBeInTheDocument();
-    expect(reviewSection).toBeInTheDocument();
-  });
-
-  test('highlights current section with blue line and bold text', async () => {
-    renderComponent();
-
-    const personalSection = screen
-      .getByText('Personal Information')
-      .closest('button');
-    expect(personalSection).toHaveClass('eb-font-bold');
-  });
-
-  test('handles section click', async () => {
-    const user = userEvent.setup();
-    renderComponent({
-      onSectionClick: mockOnSectionClick,
-      onStepClick: mockOnStepClick,
-    });
-
-    await user.click(screen.getByText('Business Information'));
-
-    expect(mockOnSectionClick).toHaveBeenCalledWith('business-section');
-  });
-
-  test('handles step click', async () => {
-    const user = userEvent.setup();
-    renderComponent({
-      onSectionClick: mockOnSectionClick,
-      onStepClick: mockOnStepClick,
-    });
-
-    await user.click(screen.getByText('Personal Details'));
-
-    expect(mockOnStepClick).toHaveBeenCalledWith(
-      'personal-section',
-      'personal-details'
-    );
-  });
-
-  test('renders section and step descriptions when provided', async () => {
-    renderComponent();
-
-    expect(
-      screen.getByText('Provide your business details')
-    ).toBeInTheDocument();
-    expect(screen.getByText('Name, date of birth, etc.')).toBeInTheDocument();
-  });
-
-  test('applies custom className', async () => {
-    const { container } = renderComponent({
-      className: 'custom-timeline-class',
-    });
-
-    const sidebar = container.querySelector('.custom-timeline-class');
-    expect(sidebar).toBeInTheDocument();
-  });
-
-  test('renders with no current section or step', async () => {
-    renderComponent({
-      currentSectionId: undefined,
-      currentStepId: undefined,
-    });
-
-    // Should still render all sections
-    expect(screen.getByText('Business Information')).toBeInTheDocument();
-    expect(screen.getByText('Personal Information')).toBeInTheDocument();
-    expect(screen.getByText('Review & Submit')).toBeInTheDocument();
-
-    // No steps should be visible since no current section
-    expect(screen.queryByText('Personal Details')).not.toBeInTheDocument();
-  });
-
-  test('handles empty sections array', async () => {
-    renderComponent({ sections: [] });
-
-    // Should render empty timeline without errors
-    expect(screen.queryByText('Business Information')).not.toBeInTheDocument();
-  });
-
-  test('renders correctly with different current section', async () => {
-    renderComponent({
-      currentSectionId: 'business-section',
-      currentStepId: 'business-identity',
-    });
-
-    // Business section steps should be visible
-    expect(screen.getByText('Business Identity')).toBeInTheDocument();
-    expect(screen.getByText('Contact Information')).toBeInTheDocument();
-
-    // Other section steps should not be visible
-    expect(screen.queryByText('Personal Details')).not.toBeInTheDocument();
-  });
-
-  test('correctly identifies current step status', async () => {
-    renderComponent({
-      currentSectionId: 'personal-section',
-      currentStepId: 'identity-document',
-    });
-
-    // Both steps should be visible
-    expect(screen.getByText('Personal Details')).toBeInTheDocument();
-    expect(screen.getByText('Identity Document')).toBeInTheDocument();
-
-    // Current step should be bolded
-    const currentStep = screen.getByText('Identity Document').closest('a');
-    expect(currentStep).toHaveClass('eb-font-bold');
+    expect(currentSectionButton).toHaveClass('eb-font-medium');
   });
 });
