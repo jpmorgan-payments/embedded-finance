@@ -147,7 +147,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
   return (
     <div
       className={cn(
-        'eb-flex eb-flex-col eb-bg-sidebar eb-text-sidebar-foreground',
+        'eb-component eb-flex eb-flex-col eb-bg-sidebar eb-text-sidebar-foreground',
         className
       )}
       {...props}
