@@ -32,7 +32,7 @@ const stories = [
     title: 'Partially Hosted Onboarding Integration',
     excerpt:
       'Implement a hybrid onboarding approach where parts of client verification are handled in your app while leveraging embedded components for regulated steps.',
-    date: '2024-12-01',
+    date: '2025-06-12',
     readTime: '6 min read',
     tags: ['Onboarding', 'Integration', 'Hybrid'],
   },
