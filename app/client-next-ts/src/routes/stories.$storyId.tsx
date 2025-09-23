@@ -24,14 +24,13 @@ const PartiallyHostedOnboarding = lazy(
   () => import('../content/stories/partially-hosted-onboarding'),
 );
 
-// Story metadata
+// Story metadata (serializable data only)
 const storyMeta = {
   'date-selector-challenges': {
     title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
     date: '2025-06-03',
     readTime: '5 min read',
     tags: ['UX', 'Date Input', 'User Experience'],
-    component: DateSelectorChallenges,
   },
   'important-date-selector-component': {
     title:
@@ -39,15 +38,20 @@ const storyMeta = {
     date: '2025-06-05',
     readTime: '7 min read',
     tags: ['Component Design', 'Accessibility', 'React'],
-    component: ImportantDateSelectorComponent,
   },
   'partially-hosted-onboarding': {
     title: 'Partially Hosted Onboarding Integration',
     date: '2024-12-01',
     readTime: '6 min read',
     tags: ['Onboarding', 'Integration', 'Hybrid'],
-    component: PartiallyHostedOnboarding,
   },
+} as const;
+
+// Component mapping (separate from serializable data)
+const storyComponents = {
+  'date-selector-challenges': DateSelectorChallenges,
+  'important-date-selector-component': ImportantDateSelectorComponent,
+  'partially-hosted-onboarding': PartiallyHostedOnboarding,
 } as const;
 
 export const Route = createFileRoute('/stories/$storyId')({
@@ -110,8 +114,9 @@ export const Route = createFileRoute('/stories/$storyId')({
 });
 
 function Story() {
-  const { story } = Route.useLoaderData();
-  const StoryComponent = story.component;
+  const { story, storyId } = Route.useLoaderData();
+  const StoryComponent =
+    storyComponents[storyId as keyof typeof storyComponents];
 
   return (
     <div className="py-8 bg-jpm-white">
