@@ -84,12 +84,6 @@ export function LandingHeader() {
                     DOCUMENTATION
                   </Link>
                   <Link
-                    to="/stories"
-                    className="block text-jpm-gray hover:text-sp-brand font-medium text-base transition-colors duration-200 py-2"
-                  >
-                    RECIPES
-                  </Link>
-                  <Link
                     to="/github"
                     className="block text-jpm-gray hover:text-sp-brand font-medium text-base transition-colors duration-200 py-2"
                   >
