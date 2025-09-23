@@ -1,6 +1,24 @@
 {
   "fetchingClientData": "Fetching client data...",
   "welcomeText": "Welcome!",
+  "stepperRenderer": {
+    "noStepsFound": "No steps found",
+    "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",
+    "buttons": {
+      "overviewHeader": "Overview",
+      "save": "Save",
+      "continue": "Continue",
+      "previous": "Previous",
+      "cancel": "Cancel",
+      "agreeAndFinish": "Agree and finish",
+      "returnToAllOwnersOverview": "Return to all owners overview",
+      "backToAllOwnersOverview": "Back to all owners overview",
+      "returnToOverview": "Return to overview",
+      "continueToNextSection": "Continue to next section",
+      "continueToSection": "Continue to {{sectionLabel}}",
+      "backToSection": "Back to {{sectionLabel}}"
+    }
+  },
   "screens": {
     "gateway": {
       "title": "Let's help you get started",

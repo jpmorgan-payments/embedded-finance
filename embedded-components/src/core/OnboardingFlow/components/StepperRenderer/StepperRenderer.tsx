@@ -3,6 +3,7 @@ import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon, MenuIcon } from 'lucide-react';
 import { useFormState } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import {
@@ -55,6 +56,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   getDefaultPartyRequestBody,
 }) => {
   const { clientData, organizationType } = useOnboardingContext();
+  const { t } = useTranslation('onboarding-overview');
 
   const {
     currentScreenId,
@@ -100,7 +102,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   });
 
   if (!currentStep) {
-    return <div>No steps found</div>;
+    return <div>{t('stepperRenderer.noStepsFound')}</div>;
   }
 
   const currentStepNumber = stepperUtils.getIndex(currentStep.id) + 1;
@@ -165,7 +167,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const getNextButtonLabel = () => {
     if (checkAnswersMode || reviewMode) {
-      return 'Save';
+      return t('stepperRenderer.buttons.save');
     }
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       return null;
@@ -174,20 +176,22 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       currentStep.stepType === 'check-answers' &&
       originScreenId === 'owners-section'
     ) {
-      return 'Return to all owners overview';
+      return t('stepperRenderer.buttons.returnToAllOwnersOverview');
     }
     if (currentStep.stepType === 'check-answers') {
       return nextSection
-        ? `Continue to ${nextSection.sectionConfig.label}`
-        : 'Continue to next section';
+        ? t('stepperRenderer.buttons.continueToSection', {
+            sectionLabel: nextSection.sectionConfig.label,
+          })
+        : t('stepperRenderer.buttons.continueToNextSection');
     }
     if (
       currentScreenId === 'review-attest-section' &&
       currentStep.id === 'documents'
     ) {
-      return 'Agree and finish';
+      return t('stepperRenderer.buttons.agreeAndFinish');
     }
-    return 'Continue';
+    return t('stepperRenderer.buttons.continue');
   };
 
   const handlePrev = () => {
@@ -223,18 +227,20 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const getPrevButtonLabel = () => {
     if (currentStep.stepType === 'form' && (checkAnswersMode || reviewMode)) {
-      return 'Cancel';
+      return t('stepperRenderer.buttons.cancel');
     }
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       if (originScreenId === 'owners-section') {
-        return 'Back to all owners overview';
+        return t('stepperRenderer.buttons.backToAllOwnersOverview');
       }
-      return 'Return to overview';
+      return t('stepperRenderer.buttons.returnToOverview');
     }
     if (canNavigateToPrevSection) {
-      return `Back to ${prevSection?.sectionConfig.label}`;
+      return t('stepperRenderer.buttons.backToSection', {
+        sectionLabel: prevSection?.sectionConfig.label,
+      });
     }
-    return 'Previous';
+    return t('stepperRenderer.buttons.previous');
   };
 
   const prevButtonDisabled =
@@ -289,7 +295,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                     currentSection?.sectionConfig.label}
                 </span>
                 <span className="eb-font-medium">
-                  Step {currentStepNumber} of {steps.length}
+                  {t('stepperRenderer.stepCounter', {
+                    currentStepNumber,
+                    totalSteps: steps.length,
+                  })}
                 </span>
               </div>
               <Button
@@ -297,7 +306,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                 size="sm"
                 onClick={() => goTo('overview')}
               >
-                Overview
+                {t('stepperRenderer.buttons.overviewHeader')}
                 <MenuIcon />
               </Button>
             </div>
