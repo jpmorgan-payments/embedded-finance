@@ -178,6 +178,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     updateSessionData,
     sections,
     savedFormValues,
+    currentStepper,
   } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
@@ -263,6 +264,7 @@ const FlowRenderer: React.FC = React.memo(() => {
           className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm"
           title="Onboarding Progress"
           currentSectionId={screen?.id}
+          currentStepId={currentStepper?.current?.id}
           onSectionClick={(sectionId) => {
             const section = sections.find((s) => s.id === sectionId);
             if (!section) {
@@ -287,9 +289,11 @@ const FlowRenderer: React.FC = React.memo(() => {
             });
           }}
           onStepClick={(sectionId, stepId) => {
-            goTo(sectionId, {
-              initialStepperStepId: stepId,
-            });
+            if (sectionId === currentScreenId) {
+              currentStepper?.goTo(stepId);
+            } else {
+              goTo(sectionId);
+            }
           }}
           sections={[
             {

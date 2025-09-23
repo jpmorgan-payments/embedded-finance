@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { Stepper } from '@stepperize/react';
 
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
@@ -9,6 +10,7 @@ import {
   SectionScreenConfig,
   SectionScreenId,
   StaticScreenConfig,
+  StepConfig,
 } from '@/core/OnboardingFlow/types/flow.types';
 
 type EditingPartyIds = {
@@ -40,6 +42,8 @@ const FlowContext = createContext<{
   previouslyCompleted: boolean;
   reviewScreenOpenedSectionId: SectionScreenId | null;
   initialStepperStepId: string | null;
+  currentStepper: Stepper<StepConfig[]> | null;
+  setCurrentStepper: (stepper: Stepper<StepConfig[]> | null) => void;
   shortLabelOverride: string | null;
   savedFormValues?: Partial<OnboardingFormValuesSubmit>;
   saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
@@ -65,6 +69,10 @@ const FlowContext = createContext<{
   previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
+  currentStepper: null,
+  setCurrentStepper: () => {
+    throw new Error('setCurrentStepper() must be used within FlowProvider');
+  },
   shortLabelOverride: null,
   savedFormValues: {},
   saveFormValue: () => {
@@ -85,6 +93,9 @@ export const FlowProvider: React.FC<{
   const [initialStepperStepId, setInitialStepperStepId] = useState<
     string | null
   >(null);
+  const [currentStepper, setCurrentStepper] = useState<Stepper<
+    StepConfig[]
+  > | null>(null);
   const [shortLabelOverride, setShortLabelOverride] = useState<string | null>(
     null
   );
@@ -179,6 +190,8 @@ export const FlowProvider: React.FC<{
         previouslyCompleted,
         reviewScreenOpenedSectionId,
         initialStepperStepId,
+        currentStepper,
+        setCurrentStepper,
         shortLabelOverride,
         savedFormValues,
         saveFormValue,

@@ -68,6 +68,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     previouslyCompleted,
     updateSessionData,
     initialStepperStepId,
+    setCurrentStepper,
     sections,
     shortLabelOverride,
     savedFormValues,
@@ -90,16 +91,21 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const reviewMode = originScreenId === 'review-attest-section';
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
+  const currentStepper = useStepper({
+    initialStep: previouslyCompleted
+      ? steps[steps.length - 1].id
+      : (initialStepperStepId ?? steps[0].id),
+  });
   const {
     current: currentStep,
     goTo: stepperGoTo,
     next: stepperNext,
     prev: stepperPrev,
-  } = useStepper({
-    initialStep: previouslyCompleted
-      ? steps[steps.length - 1].id
-      : (initialStepperStepId ?? steps[0].id),
-  });
+  } = currentStepper;
+
+  useEffect(() => {
+    setCurrentStepper(currentStepper);
+  }, [currentStepper]);
 
   if (!currentStep) {
     return <div>{t('stepperRenderer.noStepsFound')}</div>;
