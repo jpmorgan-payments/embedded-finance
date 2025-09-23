@@ -27,6 +27,15 @@ const stories = [
     readTime: '7 min read',
     tags: ['Component Design', 'Accessibility', 'React'],
   },
+  {
+    id: 'partially-hosted-onboarding' as const,
+    title: 'Partially Hosted Onboarding Integration',
+    excerpt:
+      'Implement a hybrid onboarding approach where parts of client verification are handled in your app while leveraging embedded components for regulated steps.',
+    date: '2025-06-12',
+    readTime: '6 min read',
+    tags: ['Onboarding', 'Integration', 'Hybrid'],
+  },
 ] as const;
 
 function StoriesIndex() {

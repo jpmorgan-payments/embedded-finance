@@ -285,6 +285,15 @@ export function DashboardLayout() {
     }
   }, [pingQuery.isSuccess]);
 
+  // MSW readiness check for fullscreen mode - simple delay approach
+  useEffect(() => {
+    if (searchParams.fullscreen) {
+      setTimeout(() => {
+        DatabaseResetUtils.emulateTabSwitch();
+      }, 300);
+    }
+  }, [searchParams.fullscreen]);
+
   // Effects
   // Handle initial load with URL parameters
   useEffect(() => {
@@ -502,7 +511,25 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <MakePayment />
+                  <MakePayment
+                    paymentMethods={[
+                      {
+                        fee: 2.5,
+                        id: 'ACH',
+                        name: 'ACH',
+                      },
+                      {
+                        fee: 1,
+                        id: 'RTP',
+                        name: 'RTP',
+                      },
+                      {
+                        fee: 25,
+                        id: 'WIRE',
+                        name: 'WIRE',
+                      },
+                    ]}
+                  />
                 </EBComponentsProvider>
               </div>
             </div>
