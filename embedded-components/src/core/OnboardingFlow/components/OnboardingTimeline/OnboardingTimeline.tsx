@@ -1,9 +1,10 @@
 import React from 'react';
-import { Check, CircleDashed } from 'lucide-react';
+import { AlertTriangle, Check, CircleDashed, Lock } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { ScreenId, SectionStatus } from '@/core/OnboardingFlow/types';
 
-export type TimelineItemStatus = 'pending' | 'current' | 'completed';
+export type TimelineItemStatus = SectionStatus | 'current';
 
 export interface TimelineStep {
   id: string;
@@ -13,7 +14,7 @@ export interface TimelineStep {
 }
 
 export interface TimelineSection {
-  id: string;
+  id: ScreenId;
   title: string;
   description?: string;
   status: TimelineItemStatus;
@@ -21,11 +22,13 @@ export interface TimelineSection {
 }
 
 export interface OnboardingTimelineProps extends React.ComponentProps<'div'> {
+  title?: string;
+  description?: string;
   sections: TimelineSection[];
   currentSectionId?: string;
   currentStepId?: string;
-  onSectionClick?: (sectionId: string) => void;
-  onStepClick?: (sectionId: string, stepId: string) => void;
+  onSectionClick?: (sectionId: ScreenId) => void;
+  onStepClick?: (sectionId: ScreenId, stepId: string) => void;
 }
 
 /**
@@ -33,6 +36,7 @@ export interface OnboardingTimelineProps extends React.ComponentProps<'div'> {
  * for the onboarding flow with expandable sections and clickable navigation.
  */
 export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
+  title,
   sections,
   currentSectionId,
   currentStepId,
@@ -46,10 +50,11 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
 
     switch (status) {
       case 'completed':
+      case 'completed_disabled':
         return (
           <div
             className={cn(
-              'eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-green-500 eb-text-white',
+              'eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-success eb-text-success-accent',
               iconSize
             )}
           >
@@ -65,28 +70,52 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
         return (
           <div
             className={cn(
-              'eb-flex eb-items-center eb-justify-center eb-rounded-full eb-border-2 eb-border-green-500 eb-bg-green-500',
+              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-border-2 eb-border-success eb-bg-sidebar',
               iconSize
             )}
           >
             <div
               className={cn(
-                'eb-rounded-full eb-bg-white',
-                isSubItem ? 'eb-size-1' : 'eb-size-1.5'
+                'eb-rounded-full eb-bg-success',
+                isSubItem ? 'eb-size-2' : 'eb-size-3.5'
               )}
             />
           </div>
         );
-      case 'pending':
+      case 'on_hold':
+        return (
+          <div
+            className={cn(
+              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-transparent',
+              iconSize
+            )}
+          >
+            <Lock className={cn('eb-text-muted-foreground', iconSize)} />
+          </div>
+        );
+      case 'missing_details':
+        return (
+          <div
+            className={cn(
+              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-transparent',
+              iconSize
+            )}
+          >
+            <AlertTriangle className={cn('eb-text-warning', iconSize)} />
+          </div>
+        );
+      case 'not_started':
       default:
         return (
           <div
             className={cn(
-              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-white',
+              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-sidebar',
               iconSize
             )}
           >
-            <CircleDashed className={cn('eb-text-gray-400', iconSize)} />
+            <CircleDashed
+              className={cn('eb-text-muted-foreground', iconSize)}
+            />
           </div>
         );
     }
@@ -97,11 +126,11 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
     stepId?: string
   ): TimelineItemStatus => {
     const section = sections.find((s) => s.id === sectionId);
-    if (!section) return 'pending';
+    if (!section) return 'not_started';
 
     if (stepId) {
       const step = section.steps.find((s) => s.id === stepId);
-      if (!step) return 'pending';
+      if (!step) return 'not_started';
 
       if (currentSectionId === sectionId && currentStepId === stepId) {
         return 'current';
@@ -123,6 +152,9 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
       )}
       {...props}
     >
+      <h2 className="eb-ml-4 eb-pb-2 eb-pt-1 eb-font-header eb-text-xl eb-font-medium">
+        {title}
+      </h2>
       {sections.map((section) => {
         const sectionStatus = getItemStatus(section.id);
         const isCurrentSection = currentSectionId === section.id;
@@ -130,12 +162,20 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
           (step) => currentSectionId === section.id && currentStepId === step.id
         );
 
+        if (sectionStatus === 'hidden') {
+          return null;
+        }
+
         return (
           <div key={section.id} className="eb-group/menu-item eb-relative">
             <button
               type="button"
+              disabled={
+                sectionStatus === 'on_hold' ||
+                sectionStatus === 'completed_disabled'
+              }
               className={cn(
-                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-rounded-md eb-border-0 eb-bg-transparent eb-p-2 eb-text-left eb-text-sm eb-outline-none eb-ring-sidebar-ring eb-transition-[width,height,padding] eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding] eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                 (isCurrentSection || hasCurrentStep) &&
                   'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
               )}
@@ -144,9 +184,9 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 onSectionClick?.(section.id);
               }}
             >
-              {/* Current section blue vertical line */}
+              {/* Current section vertical line */}
               {(isCurrentSection || hasCurrentStep) && (
-                <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-blue-500" />
+                <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary" />
               )}
 
               <div className="eb-flex eb-items-center eb-gap-3">
@@ -175,8 +215,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                               currentStatus === 'current');
 
                           return isGreen
-                            ? 'eb-bg-green-500'
-                            : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_8px] eb-bg-repeat-y';
+                            ? 'eb-bg-success'
+                            : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                         })()
                       )}
                     />
@@ -187,17 +227,17 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                   {/* Bottom connecting line */}
                   {sections.findIndex((s) => s.id === section.id) <
                     sections.length - 1 ||
-                  (section.steps?.length && isCurrentSection) ? (
+                  (section.steps.length && isCurrentSection) ? (
                     <div
                       className={cn(
                         'eb-absolute eb-w-0.5 eb-transform',
                         // Adjust positioning and height based on whether we have steps showing
-                        section.steps?.length && isCurrentSection
+                        section.steps.length && isCurrentSection
                           ? 'eb-top-4 eb-h-12'
                           : 'eb-bottom-0 eb-h-6 eb-translate-y-6',
                         // Green solid line or gray dashed line using background pattern
                         (() => {
-                          if (section.steps?.length && isCurrentSection) {
+                          if (section.steps.length && isCurrentSection) {
                             // Connecting to first step
                             const firstStep = section.steps[0];
                             const firstStepStatus = firstStep
@@ -212,8 +252,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                 firstStepStatus === 'current');
 
                             return isGreen
-                              ? 'eb-bg-green-500'
-                              : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                              ? 'eb-bg-success'
+                              : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                           }
 
                           // Connecting to next section
@@ -233,8 +273,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                               nextStatus === 'current');
 
                           return isGreen
-                            ? 'eb-bg-green-500'
-                            : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_8px] eb-bg-repeat-y';
+                            ? 'eb-bg-success'
+                            : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                         })()
                       )}
                     />
@@ -255,7 +295,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
               </div>
             </button>
 
-            {section.steps?.length && isCurrentSection ? (
+            {section.steps.length && isCurrentSection ? (
               <div className="eb-ml-0 eb-space-y-0 eb-border-l-0 eb-pl-0">
                 {section.steps.map((step) => {
                   const stepStatus = getItemStatus(section.id, step.id);
@@ -268,7 +308,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          'eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-rounded-md eb-border-0 eb-bg-transparent eb-px-2 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-sidebar-ring eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                          'eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-rounded-md eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                           isCurrentStep &&
                             'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
                         )}
@@ -306,8 +346,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                         currentStepStatus === 'current');
 
                                     return isGreen
-                                      ? 'eb-bg-green-500'
-                                      : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                      ? 'eb-bg-success'
+                                      : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                                   })()
                                 )}
                               />
@@ -326,8 +366,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                         currentStepStatus === 'current');
 
                                     return isGreen
-                                      ? 'eb-bg-green-500'
-                                      : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                      ? 'eb-bg-success'
+                                      : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                                   })()
                                 )}
                               />
@@ -361,8 +401,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                         nextStepStatus === 'current');
 
                                     return isGreen
-                                      ? 'eb-bg-green-500'
-                                      : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                      ? 'eb-bg-success'
+                                      : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                                   })()
                                 )}
                               />
@@ -396,8 +436,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                               nextSectionStatus === 'current');
 
                                           return isGreen
-                                            ? 'eb-bg-green-500'
-                                            : 'eb-bg-gradient-to-b eb-from-gray-300 eb-via-transparent eb-to-gray-300 eb-bg-[length:2px_8px] eb-bg-repeat-y';
+                                            ? 'eb-bg-success'
+                                            : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
                                         })()
                                       )}
                                     />

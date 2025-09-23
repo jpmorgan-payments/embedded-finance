@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import { ScreenId } from '@/core/OnboardingFlow/types';
 
 import { OnboardingTimeline, TimelineSection } from './OnboardingTimeline';
 
@@ -13,9 +14,14 @@ const meta: Meta<typeof OnboardingTimeline> = {
   },
   decorators: [
     (Story) => (
-      <EBComponentsProvider apiBaseUrl="">
-        <div className="eb-max-w-md">
-          <Story />
+      <EBComponentsProvider
+        apiBaseUrl=""
+        theme={{ colorScheme: 'light', variables: {} }}
+      >
+        <div className="eb-flex eb-flex-1">
+          <div className="eb-max-w-md eb-shrink-0 eb-border">
+            <Story />
+          </div>
         </div>
       </EBComponentsProvider>
     ),
@@ -86,59 +92,59 @@ const mockSections: TimelineSection[] = [
         id: 'proof-of-address',
         title: 'Proof of Address',
         description: 'Recent utility bill or bank statement',
-        status: 'pending',
+        status: 'not_started',
       },
     ],
   },
   {
-    id: 'financial-section',
+    id: 'financial-section' as ScreenId,
     title: 'Financial Information',
     description: 'Business finances and banking details',
-    status: 'pending',
+    status: 'not_started',
     steps: [
       {
         id: 'bank-details',
         title: 'Bank Account Details',
         description: 'Primary business banking information',
-        status: 'pending',
+        status: 'not_started',
       },
       {
         id: 'financial-statements',
         title: 'Financial Statements',
         description: 'Recent financial records and tax returns',
-        status: 'pending',
+        status: 'not_started',
       },
       {
         id: 'revenue-info',
         title: 'Revenue Information',
         description: 'Expected transaction volumes and revenue',
-        status: 'pending',
+        status: 'not_started',
       },
     ],
   },
   {
-    id: 'compliance-section',
+    id: 'compliance-section' as ScreenId,
     title: 'Compliance & Verification',
     description: 'Final checks and approvals',
-    status: 'pending',
+    status: 'not_started',
     steps: [
       {
         id: 'kyc-verification',
         title: 'KYC Verification',
         description: 'Know Your Customer compliance check',
-        status: 'pending',
+        status: 'not_started',
       },
       {
         id: 'risk-assessment',
         title: 'Risk Assessment',
         description: 'Business risk evaluation',
-        status: 'pending',
+        status: 'not_started',
       },
       {
         id: 'final-approval',
         title: 'Final Approval',
         description: 'Account activation and setup completion',
-        status: 'pending',
+        status: 'not_started',
       },
     ],
   },

@@ -2,12 +2,14 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
 
+import { ScreenId } from '@/core/OnboardingFlow/types';
+
 import { OnboardingTimeline, type TimelineSection } from './OnboardingTimeline';
 
 describe('OnboardingTimeline', () => {
   const mockSections: TimelineSection[] = [
     {
-      id: 'section1',
+      id: 'section1' as ScreenId,
       title: 'Personal Information',
       status: 'completed',
       steps: [
@@ -24,7 +26,7 @@ describe('OnboardingTimeline', () => {
       ],
     },
     {
-      id: 'section2',
+      id: 'section2' as ScreenId,
       title: 'Business Information',
       status: 'current',
       steps: [
@@ -36,24 +38,24 @@ describe('OnboardingTimeline', () => {
         {
           id: 'step2-2',
           title: 'Business Address',
-          status: 'pending',
+          status: 'not_started',
         },
       ],
     },
     {
-      id: 'section3',
+      id: 'section3' as ScreenId,
       title: 'Documents Upload',
-      status: 'pending',
+      status: 'not_started',
       steps: [
         {
           id: 'step3-1',
           title: 'ID Documents',
-          status: 'pending',
+          status: 'not_started',
         },
         {
           id: 'step3-2',
           title: 'Business Documents',
-          status: 'pending',
+          status: 'not_started',
         },
       ],
     },
@@ -158,8 +160,8 @@ describe('OnboardingTimeline', () => {
     const completedIcons = document.querySelectorAll('.eb-bg-green-500');
     expect(completedIcons.length).toBeGreaterThan(0);
 
-    const pendingIcons = document.querySelectorAll('.eb-text-gray-400');
-    expect(pendingIcons.length).toBeGreaterThan(0);
+    const not_startedIcons = document.querySelectorAll('.eb-text-gray-400');
+    expect(not_startedIcons.length).toBeGreaterThan(0);
   });
 
   test('shows steps only for current section', () => {
@@ -183,13 +185,13 @@ describe('OnboardingTimeline', () => {
   test('handles sections without steps', () => {
     const sectionsWithoutSteps: TimelineSection[] = [
       {
-        id: 'section1',
+        id: 'section1' as ScreenId,
         title: 'Simple Section',
         status: 'completed',
         steps: [],
       },
       {
-        id: 'section2',
+        id: 'section2' as ScreenId,
         title: 'Another Section',
         status: 'current',
         steps: [],

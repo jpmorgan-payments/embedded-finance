@@ -4,9 +4,17 @@ import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
-import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  getOrganizationParty,
+  getPartyByAssociatedPartyFilters,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 
-import { FormLoadingState, ServerErrorAlert } from './components';
+import {
+  FormLoadingState,
+  OnboardingTimeline,
+  ServerErrorAlert,
+  TimelineStep,
+} from './components';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
 import { flowConfig } from './config/flowConfig';
 import { FlowProvider, useFlowContext } from './contexts/FlowContext';
@@ -15,6 +23,7 @@ import {
   useOnboardingContext,
 } from './contexts/OnboardingContext';
 import { OnboardingFlowProps } from './types/onboarding.types';
+import { getFlowProgress } from './utils/flowUtils';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   initialClientId,
@@ -126,7 +135,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     >
       <div
         id="embedded-component-layout"
-        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-sm sm:eb-p-10 sm:eb-pb-12"
+        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-md sm:eb-p-10 sm:eb-pb-12"
         style={{ minHeight: height }}
         key={initialClientId}
       >
@@ -162,8 +171,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 const FlowRenderer: React.FC = React.memo(() => {
   const { clientData, organizationType, docUploadOnlyMode } =
     useOnboardingContext();
-  const { currentScreenId, goTo, sessionData, updateSessionData } =
-    useFlowContext();
+  const {
+    currentScreenId,
+    goTo,
+    sessionData,
+    updateSessionData,
+    sections,
+    savedFormValues,
+  } = useFlowContext();
+
+  const { sectionStatuses, stepValidations } = getFlowProgress(
+    sections,
+    sessionData,
+    clientData,
+    savedFormValues,
+    currentScreenId
+  );
 
   // Scroll to top on step change
   const mainRef = useRef<HTMLDivElement>(null);
@@ -231,11 +254,68 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-44 sm:eb-scroll-mt-48"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-4 sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >
-      <div className="eb-w-full">{renderScreen()}</div>
+      <div className="eb-shrink-0">
+        <OnboardingTimeline
+          className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm"
+          title="Onboarding Progress"
+          currentSectionId={screen?.id}
+          onSectionClick={(sectionId) => {
+            const section = sections.find((s) => s.id === sectionId);
+            if (!section) {
+              return;
+            }
+            const existingPartyData = getPartyByAssociatedPartyFilters(
+              clientData,
+              section.stepperConfig?.associatedPartyFilters
+            );
+            const firstInvalidStep = stepValidations[section.id]
+              ? section.stepperConfig?.steps.find((step) => {
+                  return (
+                    stepValidations[section.id][step.id] &&
+                    !stepValidations[section.id][step.id].isValid
+                  );
+                })?.id
+              : undefined;
+            goTo(sectionId, {
+              initialStepperStepId: firstInvalidStep,
+              editingPartyId: existingPartyData?.id,
+              previouslyCompleted: sectionStatuses[section.id] === 'completed',
+            });
+          }}
+          onStepClick={(sectionId, stepId) => {
+            goTo(sectionId, {
+              initialStepperStepId: stepId,
+            });
+          }}
+          sections={[
+            {
+              id: 'gateway',
+              title: 'Select busines type',
+              status: organizationType ? 'completed' : 'not_started',
+              steps: [],
+            },
+            ...sections.map((section) => ({
+              ...section,
+              status: sectionStatuses[section.id] || 'not_started',
+              title: section.sectionConfig.label,
+              steps: (section.stepperConfig?.steps ?? []).map(
+                (step) =>
+                  ({
+                    ...step,
+                    status: stepValidations[section.id][step.id].isValid
+                      ? 'completed'
+                      : 'not_started',
+                  }) as TimelineStep
+              ),
+            })),
+          ]}
+        />
+      </div>
+      <div className="eb-min-w-0 eb-flex-1">{renderScreen()}</div>
     </div>
   );
 });

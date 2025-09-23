@@ -51,6 +51,10 @@ export const defaultTheme: EBTheme = {
     inputColor: 'hsl(0 0% 100%)',
     inputBorderColor: 'hsl(240 5.9% 90%)',
     ringColor: 'hsl(240 10% 3.9%)',
+    sidebarBackgroundColor: 'hsl(0 0% 98%)',
+    sidebarForegroundColor: 'hsl(240 5.3% 26.1%)',
+    sidebarAccentColor: 'hsl(240 4.8% 95.9%)',
+    sidebarAccentForegroundColor: 'hsl(240 5.9% 10%)',
   },
   dark: {
     backgroundColor: 'hsl(240 10% 3.9%)',
@@ -83,5 +87,9 @@ export const defaultTheme: EBTheme = {
     inputColor: 'hsl(240 3.7% 15.9%)',
     inputBorderColor: 'hsl(240 3.7% 15.9%)',
     ringColor: 'hsl(240 4.9% 83.9%)',
+    sidebarBackgroundColor: 'hsl(240 5.9% 10%)',
+    sidebarForegroundColor: 'hsl(240 4.8% 95.9%)',
+    sidebarAccentColor: 'hsl(240 3.7% 15.9%)',
+    sidebarAccentForegroundColor: 'hsl(240 4.8% 95.9%)',
   },
 };
