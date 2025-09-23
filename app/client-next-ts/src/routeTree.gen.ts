@@ -11,7 +11,6 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as StoriesImport } from './routes/stories'
 import { Route as SolutionsImport } from './routes/solutions'
 import { Route as SellsenseDemoImport } from './routes/sellsense-demo'
 import { Route as MswTestImport } from './routes/msw-test'
@@ -19,16 +18,8 @@ import { Route as GithubImport } from './routes/github'
 import { Route as DocumentationImport } from './routes/documentation'
 import { Route as DemosImport } from './routes/demos'
 import { Route as IndexImport } from './routes/index'
-import { Route as StoriesIndexImport } from './routes/stories.index'
-import { Route as StoriesStoryIdImport } from './routes/stories.$storyId'
 
 // Create/Update Routes
-
-const StoriesRoute = StoriesImport.update({
-  id: '/stories',
-  path: '/stories',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const SolutionsRoute = SolutionsImport.update({
   id: '/solutions',
@@ -70,18 +61,6 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any)
-
-const StoriesIndexRoute = StoriesIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => StoriesRoute,
-} as any)
-
-const StoriesStoryIdRoute = StoriesStoryIdImport.update({
-  id: '/$storyId',
-  path: '/$storyId',
-  getParentRoute: () => StoriesRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -137,44 +116,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsImport
       parentRoute: typeof rootRoute
     }
-    '/stories': {
-      id: '/stories'
-      path: '/stories'
-      fullPath: '/stories'
-      preLoaderRoute: typeof StoriesImport
-      parentRoute: typeof rootRoute
-    }
-    '/stories/$storyId': {
-      id: '/stories/$storyId'
-      path: '/$storyId'
-      fullPath: '/stories/$storyId'
-      preLoaderRoute: typeof StoriesStoryIdImport
-      parentRoute: typeof StoriesImport
-    }
-    '/stories/': {
-      id: '/stories/'
-      path: '/'
-      fullPath: '/stories/'
-      preLoaderRoute: typeof StoriesIndexImport
-      parentRoute: typeof StoriesImport
-    }
   }
 }
 
 // Create and export the route tree
-
-interface StoriesRouteChildren {
-  StoriesStoryIdRoute: typeof StoriesStoryIdRoute
-  StoriesIndexRoute: typeof StoriesIndexRoute
-}
-
-const StoriesRouteChildren: StoriesRouteChildren = {
-  StoriesStoryIdRoute: StoriesStoryIdRoute,
-  StoriesIndexRoute: StoriesIndexRoute,
-}
-
-const StoriesRouteWithChildren =
-  StoriesRoute._addFileChildren(StoriesRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -184,9 +129,6 @@ export interface FileRoutesByFullPath {
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/stories': typeof StoriesRouteWithChildren
-  '/stories/$storyId': typeof StoriesStoryIdRoute
-  '/stories/': typeof StoriesIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -197,8 +139,6 @@ export interface FileRoutesByTo {
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/stories/$storyId': typeof StoriesStoryIdRoute
-  '/stories': typeof StoriesIndexRoute
 }
 
 export interface FileRoutesById {
@@ -210,9 +150,6 @@ export interface FileRoutesById {
   '/msw-test': typeof MswTestRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/stories': typeof StoriesRouteWithChildren
-  '/stories/$storyId': typeof StoriesStoryIdRoute
-  '/stories/': typeof StoriesIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -225,9 +162,6 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
-    | '/stories'
-    | '/stories/$storyId'
-    | '/stories/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -237,8 +171,6 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
-    | '/stories/$storyId'
-    | '/stories'
   id:
     | '__root__'
     | '/'
@@ -248,9 +180,6 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/sellsense-demo'
     | '/solutions'
-    | '/stories'
-    | '/stories/$storyId'
-    | '/stories/'
   fileRoutesById: FileRoutesById
 }
 
@@ -262,7 +191,6 @@ export interface RootRouteChildren {
   MswTestRoute: typeof MswTestRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
-  StoriesRoute: typeof StoriesRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -273,7 +201,6 @@ const rootRouteChildren: RootRouteChildren = {
   MswTestRoute: MswTestRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
-  StoriesRoute: StoriesRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -292,8 +219,7 @@ export const routeTree = rootRoute
         "/github",
         "/msw-test",
         "/sellsense-demo",
-        "/solutions",
-        "/stories"
+        "/solutions"
       ]
     },
     "/": {
@@ -316,21 +242,6 @@ export const routeTree = rootRoute
     },
     "/solutions": {
       "filePath": "solutions.tsx"
-    },
-    "/stories": {
-      "filePath": "stories.tsx",
-      "children": [
-        "/stories/$storyId",
-        "/stories/"
-      ]
-    },
-    "/stories/$storyId": {
-      "filePath": "stories.$storyId.tsx",
-      "parent": "/stories"
-    },
-    "/stories/": {
-      "filePath": "stories.index.tsx",
-      "parent": "/stories"
     }
   }
 }
