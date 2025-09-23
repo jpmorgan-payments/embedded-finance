@@ -34,8 +34,8 @@ export function RecipesSection() {
       date: '2024-12-01',
       readTime: '6 min read',
       tags: ['Onboarding', 'Integration', 'Hybrid'],
-      link: 'https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md',
-      external: true,
+      link: '/stories/partially-hosted-onboarding',
+      external: false,
       icon: <UserCog className="h-5 w-5" />,
     },
   ];
