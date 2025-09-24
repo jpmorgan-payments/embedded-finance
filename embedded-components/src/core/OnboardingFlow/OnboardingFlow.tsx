@@ -182,6 +182,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentStepperStepId,
     currentStepperGoTo,
     setCurrentStepperStepIdFallback,
+    isFormSubmitting,
   } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
@@ -246,9 +247,7 @@ const FlowRenderer: React.FC = React.memo(() => {
 
     if (screen.type === 'component') {
       const Comp = screen.Component;
-      // Use React.memo to maintain consistent component identity
-      const MemoizedComp = React.memo(Comp);
-      return <MemoizedComp key={currentScreenId} />;
+      return <Comp key={currentScreenId} />;
     }
 
     if (screen.type === 'stepper') {
@@ -269,6 +268,7 @@ const FlowRenderer: React.FC = React.memo(() => {
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
             title="Onboarding Progress"
+            disableInteraction={isFormSubmitting}
             currentSectionId={currentScreenId}
             currentStepId={currentStepperStepId}
             onSectionClick={(screenId) => {
@@ -333,9 +333,14 @@ const FlowRenderer: React.FC = React.memo(() => {
                   (step) =>
                     ({
                       ...step,
-                      status: stepValidations[section.id][step.id].isValid
-                        ? 'completed'
-                        : 'not_started',
+                      status:
+                        step.id === 'documents'
+                          ? 'on_hold'
+                          : stepValidations[section.id][step.id].isValid
+                            ? 'completed'
+                            : step.stepType === 'check-answers'
+                              ? 'on_hold'
+                              : 'not_started',
                     }) as TimelineStep
                 ),
               })),

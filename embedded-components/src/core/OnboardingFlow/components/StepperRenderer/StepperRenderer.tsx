@@ -73,6 +73,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     shortLabelOverride,
     savedFormValues,
     setCurrentStepperStepIdFallback,
+    setIsFormSubmitting,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -140,6 +141,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     originScreenId === prevSection?.id;
 
   const handleNext = () => {
+    setIsFormSubmitting(false);
     if (checkAnswersMode) {
       stepperGoTo(checkAnswersStepId);
       setCurrentStepperStepIdFallback(checkAnswersStepId);
@@ -382,7 +384,12 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   const queryClient = useQueryClient();
   const { clientData, onPostClientSettled, onPostPartySettled } =
     useOnboardingContext();
-  const { savedFormValues, saveFormValue, currentScreenId } = useFlowContext();
+  const {
+    savedFormValues,
+    saveFormValue,
+    currentScreenId,
+    setIsFormSubmitting,
+  } = useFlowContext();
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -404,6 +411,10 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
   const isFormSubmitting =
     clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
+
+  useEffect(() => {
+    setIsFormSubmitting(isFormSubmitting);
+  }, [isFormSubmitting]);
 
   const form = useFormWithFilters({
     clientData,

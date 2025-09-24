@@ -49,6 +49,8 @@ const FlowContext = createContext<{
   shortLabelOverride: string | null;
   savedFormValues?: Partial<OnboardingFormValuesSubmit>;
   saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
+  isFormSubmitting: boolean;
+  setIsFormSubmitting: (isSubmitting: boolean) => void;
 }>({
   currentScreenId: 'overview',
   originScreenId: null,
@@ -88,6 +90,10 @@ const FlowContext = createContext<{
   saveFormValue: () => {
     throw new Error('saveFormValue() must be used within FlowProvider');
   },
+  isFormSubmitting: false,
+  setIsFormSubmitting: () => {
+    throw new Error('setIsFormSubmitting() must be used within FlowProvider');
+  },
 });
 
 export const FlowProvider: React.FC<{
@@ -113,6 +119,7 @@ export const FlowProvider: React.FC<{
   const [savedFormValues, setSavedFormValues] = useState<
     Partial<OnboardingFormValuesSubmit>
   >({});
+  const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
 
   const { organizationType } = useOnboardingContext();
 
@@ -230,6 +237,8 @@ export const FlowProvider: React.FC<{
         shortLabelOverride,
         savedFormValues,
         saveFormValue,
+        isFormSubmitting,
+        setIsFormSubmitting,
       }}
     >
       {children}

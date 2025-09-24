@@ -29,6 +29,7 @@ export interface OnboardingTimelineProps extends React.ComponentProps<'div'> {
   currentStepId?: string;
   onSectionClick?: (sectionId: ScreenId) => void;
   onStepClick?: (sectionId: ScreenId, stepId: string) => void;
+  disableInteraction?: boolean;
 }
 
 /**
@@ -43,6 +44,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
   onSectionClick,
   onStepClick,
   className,
+  disableInteraction = false,
   ...props
 }) => {
   const getStatusIcon = (status: TimelineItemStatus, isSubItem = false) => {
@@ -114,7 +116,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
             )}
           >
             <CircleDashed
-              className={cn('eb-text-muted-foreground', iconSize)}
+              className={cn('eb-text-muted-foreground/80', iconSize)}
             />
           </div>
         );
@@ -178,13 +180,19 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 sectionStatus === 'completed_disabled'
               }
               className={cn(
-                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding] eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding,color,background-color] eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                !disableInteraction &&
+                  'eb-cursor-pointer hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground',
+                disableInteraction &&
+                  'eb-pointer-events-none eb-cursor-default',
                 shouldHighlightSection &&
                   'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
               )}
               onClick={(e) => {
                 e.preventDefault();
-                onSectionClick?.(section.id);
+                if (!disableInteraction) {
+                  onSectionClick?.(section.id);
+                }
               }}
             >
               {/* Current section vertical line - only show if no steps or no current step */}
@@ -310,14 +318,24 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                     <div key={step.id}>
                       <button
                         type="button"
+                        disabled={
+                          stepStatus === 'on_hold' ||
+                          stepStatus === 'completed_disabled'
+                        }
                         className={cn(
-                          'eb-relative eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                          'eb-relative eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                          !disableInteraction &&
+                            'eb-cursor-pointer hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground',
+                          disableInteraction &&
+                            'eb-pointer-events-none eb-cursor-default',
                           isCurrentStep &&
                             'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
                         )}
                         onClick={(e) => {
                           e.preventDefault();
-                          onStepClick?.(section.id, step.id);
+                          if (!disableInteraction) {
+                            onStepClick?.(section.id, step.id);
+                          }
                         }}
                       >
                         {/* Current step vertical line */}
