@@ -180,7 +180,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 sectionStatus === 'completed_disabled'
               }
               className={cn(
-                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding,color,background-color] eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                'eb-peer/menu-button eb-relative eb-flex eb-min-h-[2.5rem] eb-w-full eb-items-start eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding,color,background-color] eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                 !disableInteraction &&
                   'eb-cursor-pointer hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground',
                 disableInteraction &&
@@ -244,8 +244,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                         'eb-absolute eb-transform eb-border-l-2',
                         // Adjust positioning and height based on whether we have steps showing
                         section.steps.length && isCurrentSection
-                          ? 'eb-top-4 eb-h-12'
-                          : 'eb-bottom-0 eb-h-6 eb-translate-y-6',
+                          ? 'eb-top-4 eb-h-16'
+                          : 'eb-bottom-0 eb-h-8 eb-translate-y-8',
                         // Green solid line or gray dashed line
                         (() => {
                           if (section.steps.length && isCurrentSection) {
@@ -293,10 +293,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 </div>
 
                 {/* Section content */}
-                <div className="eb-flex eb-flex-1 eb-flex-col eb-items-start">
+                <div className="eb-flex eb-flex-1 eb-flex-col eb-items-start eb-py-1">
                   <span
                     className={cn(
-                      'eb-font-medium',
+                      'eb-hyphens-auto eb-break-words eb-font-medium eb-leading-5',
                       shouldHighlightSection && 'eb-font-semibold'
                     )}
                   >
@@ -323,7 +323,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                           stepStatus === 'completed_disabled'
                         }
                         className={cn(
-                          'eb-relative eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                          'eb-relative eb-flex eb-min-h-[1.75rem] eb-w-full eb-min-w-0 eb-items-start eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                           !disableInteraction &&
                             'eb-cursor-pointer hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground',
                           disableInteraction &&
@@ -351,7 +351,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             0 ? (
                               <span
                                 className={cn(
-                                  'eb-absolute eb-top-0 eb-h-3 eb--translate-y-3 eb-transform eb-border-l-2',
+                                  'eb-absolute eb-top-0 eb-h-4 eb--translate-y-4 eb-transform eb-border-l-2',
                                   // Green solid line or gray dashed line
                                   (() => {
                                     const currentStepIndex =
@@ -381,7 +381,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                               // Connect to section icon
                               <span
                                 className={cn(
-                                  'eb-absolute eb-top-0 eb-h-6 eb--translate-y-6 eb-transform eb-border-l-2',
+                                  'eb-absolute eb-top-0 eb-h-8 eb--translate-y-8 eb-transform eb-border-l-2',
                                   // Green solid line or gray dashed line
                                   (() => {
                                     const currentStepStatus = stepStatus;
@@ -406,7 +406,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             section.steps.length - 1 ? (
                               <span
                                 className={cn(
-                                  'eb-absolute eb-bottom-0 eb-h-3 eb-translate-y-3 eb-transform eb-border-l-2',
+                                  'eb-absolute eb-bottom-0 eb-h-4 eb-translate-y-4 eb-transform eb-border-l-2',
                                   // Green solid line or gray dashed line
                                   (() => {
                                     const currentStepIndex =
@@ -445,7 +445,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                   return (
                                     <span
                                       className={cn(
-                                        'eb-absolute eb-bottom-0 eb-h-4 eb-translate-y-4 eb-transform eb-border-l-2',
+                                        'eb-absolute eb-bottom-0 eb-h-6 eb-translate-y-6 eb-transform eb-border-l-2',
                                         // Green solid line or gray dashed line
                                         (() => {
                                           const currentStepStatus = stepStatus;
@@ -475,9 +475,12 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                           </div>
 
                           {/* Step content */}
-                          <div className="eb-ml-4 eb-flex eb-flex-1 eb-flex-col eb-items-start">
+                          <div className="eb-ml-4 eb-flex eb-flex-1 eb-flex-col eb-items-start eb-py-0.5">
                             <span
-                              className={cn(isCurrentStep && 'eb-font-medium')}
+                              className={cn(
+                                'eb-hyphens-auto eb-break-words eb-leading-5',
+                                isCurrentStep && 'eb-font-medium'
+                              )}
                             >
                               {step.title}
                             </span>
