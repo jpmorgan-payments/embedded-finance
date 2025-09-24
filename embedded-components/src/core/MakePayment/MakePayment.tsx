@@ -17,22 +17,24 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 
-import { AccountSelector } from './AccountSelector';
-import { AdditionalInformation } from './AdditionalInformation';
-import { AmountInput } from './AmountInput';
-import { ArrivalDate } from './ArrivalDate';
+import {
+  AccountSelector,
+  AdditionalInformation,
+  AmountInput,
+  ArrivalDate,
+  PaymentMethodSelector,
+  PaymentSuccess,
+  RecipientDetails,
+  RecipientSelector,
+  ReviewPanel,
+} from './components';
 import {
   usePaymentAutoSelection,
   usePaymentData,
+  usePaymentForm,
   usePaymentValidation,
 } from './hooks';
-import { PaymentMethodSelector } from './PaymentMethodSelector';
-import { PaymentSuccess } from './PaymentSuccess';
-import { RecipientDetails } from './RecipientDetails';
-import { RecipientSelector } from './RecipientSelector';
-import { ReviewPanel } from './ReviewPanel';
 import type { PaymentComponentProps } from './types';
-import { usePaymentForm } from './usePaymentForm';
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
@@ -132,8 +134,8 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         onSuccess: () => {
           setLocalSuccess(true);
         },
-        onSettled: (data, error) => {
-          onTransactionSettled?.(data, error?.response?.data);
+        onSettled: () => {
+          onTransactionSettled?.();
         },
       }
     );
