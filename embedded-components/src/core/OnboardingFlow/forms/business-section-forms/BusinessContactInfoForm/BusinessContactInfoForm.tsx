@@ -65,11 +65,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
                 </span>
               ),
             }))}
+            required
           />
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.primaryAddressLine"
             type="text"
+            required
           />
           <OnboardingFormField
             control={form.control}
@@ -85,18 +87,21 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="organizationAddress.city"
             type="text"
+            required
           />
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.state"
             type="combobox"
             options={US_STATE_OPTIONS}
+            required
           />
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.postalCode"
             type="text"
             className="eb-max-w-48"
+            required
           />
         </div>
       </fieldset>
