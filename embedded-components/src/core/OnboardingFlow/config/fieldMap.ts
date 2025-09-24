@@ -617,6 +617,18 @@ export const partyFieldMap: PartyFieldMap = {
         value: '',
       },
     },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          minItems: 0,
+          defaultValue: [],
+          display: 'hidden',
+        },
+      },
+    ],
     generateLabelStringFn: (val) => {
       const primaryId = val?.[0];
       if (!primaryId) {
