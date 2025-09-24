@@ -24,13 +24,22 @@ const mockAccounts = {
       id: 'account-1',
       label: 'Checking Account',
       category: 'DDA',
+      createdAt: '2024-01-01T00:00:00Z',
+      state: 'ACTIVE',
     },
     {
       id: 'account-2',
       label: 'Savings Account',
       category: 'SAV',
+      createdAt: '2024-01-01T00:00:00Z',
+      state: 'ACTIVE',
     },
   ],
+  metadata: {
+    page: 0,
+    limit: 25,
+    total_items: 2,
+  },
 };
 
 const mockRecipients = {
@@ -46,18 +55,28 @@ const mockRecipients = {
       },
       account: {
         number: '1234567890',
-        routingNumber: '123456789',
-        type: 'Checking',
+        type: 'CHECKING',
+        countryCode: 'US',
         routingInformation: [
-          { transactionType: 'ACH' },
-          { transactionType: 'RTP' },
+          {
+            transactionType: 'ACH',
+            routingCodeType: 'USABA',
+            routingNumber: '123456789',
+          },
+          {
+            transactionType: 'RTP',
+            routingCodeType: 'USABA',
+            routingNumber: '123456789',
+          },
         ],
-      },
-      bank: {
-        name: 'Test Bank',
       },
     },
   ],
+  metadata: {
+    page: 0,
+    limit: 25,
+    total_items: 1,
+  },
 };
 
 const mockAccountBalance = {
@@ -77,16 +96,16 @@ const renderComponent = () => {
 
   // Setup explicit API mock handlers
   server.use(
-    http.get('/api/accounts', () => {
+    http.get('/accounts', () => {
       return HttpResponse.json(mockAccounts);
     }),
-    http.get('/api/recipients', () => {
+    http.get('/recipients', () => {
       return HttpResponse.json(mockRecipients);
     }),
-    http.get('/api/accounts/:id/balance', () => {
+    http.get('/accounts/:id/balances', () => {
       return HttpResponse.json(mockAccountBalance);
     }),
-    http.post('/api/transactions', () => {
+    http.post('/transactions', () => {
       return HttpResponse.json({ success: true });
     })
   );
@@ -112,18 +131,24 @@ describe('MakePayment (Refactored)', () => {
 
     // Wait for the component to load
     await waitFor(() => {
-      expect(screen.getByText(/make payment/i)).toBeInTheDocument();
+      expect(screen.getByText('Make a payment')).toBeInTheDocument();
     });
 
     // Click the make payment button to open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     // Wait for the dialog to open and check for form elements
     await waitFor(() => {
-      expect(screen.getByText(/from account/i)).toBeInTheDocument();
-      expect(screen.getByText(/recipient/i)).toBeInTheDocument();
-      expect(screen.getByText(/amount/i)).toBeInTheDocument();
-      expect(screen.getByText(/payment method/i)).toBeInTheDocument();
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(
+        screen.getByText('2. Which account are you paying from?')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('3. How much are you paying?')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('4. How do you want to pay?')
+      ).toBeInTheDocument();
     });
   });
 
@@ -131,10 +156,12 @@ describe('MakePayment (Refactored)', () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/from account/i)).toBeInTheDocument();
+      expect(
+        screen.getByText('2. Which account are you paying from?')
+      ).toBeInTheDocument();
     });
 
     // Try to submit without filling required fields
@@ -148,22 +175,24 @@ describe('MakePayment (Refactored)', () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/from account/i)).toBeInTheDocument();
+      expect(
+        screen.getByText('2. Which account are you paying from?')
+      ).toBeInTheDocument();
     });
 
     // Click on account selector
     const accountSelector = screen.getByRole('combobox', {
-      name: /from account/i,
+      name: /which account are you paying from/i,
     });
     await userEvent.click(accountSelector);
 
     // Check if accounts are loaded
     await waitFor(() => {
-      expect(screen.getByText('Checking Account (DDA)')).toBeInTheDocument();
-      expect(screen.getByText('Savings Account (SAV)')).toBeInTheDocument();
+      expect(screen.getAllByText('Checking Account (DDA)')).toHaveLength(2); // Option and span
+      expect(screen.getAllByText('Savings Account (SAV)')).toHaveLength(2); // Option and span
     });
   });
 
@@ -171,28 +200,34 @@ describe('MakePayment (Refactored)', () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/from account/i)).toBeInTheDocument();
+      expect(
+        screen.getByText('2. Which account are you paying from?')
+      ).toBeInTheDocument();
     });
 
     // Select an account first
     const accountSelector = screen.getByRole('combobox', {
-      name: /from account/i,
+      name: /which account are you paying from/i,
     });
     await userEvent.click(accountSelector);
 
     await waitFor(() => {
-      expect(screen.getByText('Checking Account (DDA)')).toBeInTheDocument();
+      expect(screen.getAllByText('Checking Account (DDA)')).toHaveLength(2); // Option and span
     });
 
-    await userEvent.click(screen.getByText('Checking Account (DDA)'));
+    // Select the account by clicking on the option element directly
+    const accountOption = screen.getByRole('option', {
+      name: 'Checking Account (DDA)',
+    });
+    await userEvent.click(accountOption);
 
     // Now check if recipient selector is enabled
     await waitFor(() => {
       const recipientSelector = screen.getByRole('combobox', {
-        name: /recipient/i,
+        name: /who are you paying/i,
       });
       expect(recipientSelector).not.toBeDisabled();
     });
@@ -202,14 +237,16 @@ describe('MakePayment (Refactored)', () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/amount/i)).toBeInTheDocument();
+      expect(
+        screen.getByText('3. How much are you paying?')
+      ).toBeInTheDocument();
     });
 
     // Find and interact with amount input
-    const amountInput = screen.getByPlaceholderText(/enter amount/i);
+    const amountInput = screen.getByPlaceholderText('0.00');
     await userEvent.type(amountInput, '100.50');
 
     expect(amountInput).toHaveValue('100.50');
@@ -219,17 +256,20 @@ describe('MakePayment (Refactored)', () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/payment method/i)).toBeInTheDocument();
+      expect(
+        screen.getByText('4. How do you want to pay?')
+      ).toBeInTheDocument();
     });
 
     // Check if payment method options are rendered
+    // Note: Only ACH and RTP are available based on the recipient's routing information
     await waitFor(() => {
       expect(screen.getByText(/ACH/i)).toBeInTheDocument();
       expect(screen.getByText(/RTP/i)).toBeInTheDocument();
-      expect(screen.getByText(/WIRE/i)).toBeInTheDocument();
+      // WIRE is not available because the recipient doesn't support it
     });
   });
 
@@ -237,13 +277,13 @@ describe('MakePayment (Refactored)', () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText(/make payment/i));
+    await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText(/review payment/i)).toBeInTheDocument();
+      expect(screen.getByText('Review payment')).toBeInTheDocument();
     });
 
     // Check if review panel is rendered
-    expect(screen.getByText(/review payment/i)).toBeInTheDocument();
+    expect(screen.getByText('Review payment')).toBeInTheDocument();
   });
 });

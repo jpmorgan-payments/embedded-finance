@@ -49,12 +49,15 @@ const mockPaymentMethods: PaymentMethod[] = [
 
 describe('usePaymentData', () => {
   test('returns initial data state', () => {
-    const { result } = renderHook(() => {
-      const form = useForm<PaymentFormData>();
-      return usePaymentData([], form);
-    }, {
-      wrapper: TestWrapper,
-    });
+    const { result } = renderHook(
+      () => {
+        const form = useForm<PaymentFormData>();
+        return usePaymentData([], form);
+      },
+      {
+        wrapper: TestWrapper,
+      }
+    );
 
     expect(result.current.accounts).toBeUndefined();
     expect(result.current.recipients).toEqual([]);
@@ -68,24 +71,30 @@ describe('usePaymentData', () => {
 
 describe('usePaymentValidation', () => {
   test('returns initial validation state', () => {
-    const { result } = renderHook(() => {
-      const form = useForm<PaymentFormData>();
-      return usePaymentValidation(mockPaymentMethods, 1000, form);
-    }, { wrapper: TestWrapper });
+    const { result } = renderHook(
+      () => {
+        const form = useForm<PaymentFormData>();
+        return usePaymentValidation(mockPaymentMethods, 1000, form);
+      },
+      { wrapper: TestWrapper }
+    );
 
-    expect(result.current.isAmountValid).toBe(true);
+    expect(result.current.isAmountValid).toBe(false);
     expect(result.current.totalAmount).toBe(0);
     expect(result.current.fee).toBe(0);
     expect(result.current.availableBalance).toBe(1000);
   });
 
   test('calculates fee correctly', () => {
-    const { result } = renderHook(() => {
-      const form = useForm<PaymentFormData>({
-        defaultValues: { method: 'ACH' },
-      });
-      return usePaymentValidation(mockPaymentMethods, 1000, form);
-    }, { wrapper: TestWrapper });
+    const { result } = renderHook(
+      () => {
+        const form = useForm<PaymentFormData>({
+          defaultValues: { method: 'ACH' },
+        });
+        return usePaymentValidation(mockPaymentMethods, 1000, form);
+      },
+      { wrapper: TestWrapper }
+    );
 
     expect(result.current.fee).toBe(2.5);
   });
@@ -93,12 +102,19 @@ describe('usePaymentValidation', () => {
 
 describe('usePaymentAutoSelection', () => {
   test('does not crash with empty data', () => {
-    const form = useForm<PaymentFormData>();
-
     expect(() => {
       renderHook(
-        () =>
-          usePaymentAutoSelection({ items: [] }, undefined, [], [], [], form),
+        () => {
+          const form = useForm<PaymentFormData>();
+          return usePaymentAutoSelection(
+            { items: [] },
+            undefined,
+            [],
+            [],
+            [],
+            form
+          );
+        },
         { wrapper: TestWrapper }
       );
     }).not.toThrow();
