@@ -46,43 +46,36 @@ const mockRecipients = {
       },
       account: {
         number: '1234567890',
+        routingNumber: '123456789',
+        type: 'Checking',
+        routingInformation: [
+          { transactionType: 'ACH' },
+          { transactionType: 'RTP' },
+        ],
       },
-    },
-    {
-      id: 'recipient-2',
-      type: 'LINKED_ACCOUNT',
-      status: 'ACTIVE',
-      partyDetails: {
-        type: 'INDIVIDUAL',
-        firstName: 'Jane',
-        lastName: 'Smith',
-      },
-      account: {
-        number: '0987654321',
+      bank: {
+        name: 'Test Bank',
       },
     },
   ],
 };
 
 const mockAccountBalance = {
-  currency: 'USD',
   balanceTypes: [
     {
       typeCode: 'ITAV',
       amount: 1000.0,
     },
-    {
-      typeCode: 'ITBD',
-      amount: 1000.0,
-    },
   ],
+  currency: 'USD',
 };
 
-const renderComponent = (props = {}) => {
+// Component rendering helper
+const renderComponent = () => {
   // Reset MSW handlers before each render
   server.resetHandlers();
 
-  // Setup API mock handlers
+  // Setup explicit API mock handlers
   server.use(
     http.get('/api/accounts', () => {
       return HttpResponse.json(mockAccounts);
@@ -107,140 +100,150 @@ const renderComponent = (props = {}) => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <MakePayment {...props} />
+        <MakePayment />
       </QueryClientProvider>
     </EBComponentsProvider>
   );
 };
 
-describe.skip('MakePayment', () => {
-  test('renders correctly with default props', async () => {
+describe('MakePayment (Refactored)', () => {
+  test('renders correctly with refactored components', async () => {
     renderComponent();
 
+    // Wait for the component to load
     await waitFor(() => {
-      expect(screen.getByText('Send Money')).toBeInTheDocument();
+      expect(screen.getByText(/make payment/i)).toBeInTheDocument();
+    });
+
+    // Click the make payment button to open the dialog
+    await userEvent.click(screen.getByText(/make payment/i));
+
+    // Wait for the dialog to open and check for form elements
+    await waitFor(() => {
+      expect(screen.getByText(/from account/i)).toBeInTheDocument();
+      expect(screen.getByText(/recipient/i)).toBeInTheDocument();
+      expect(screen.getByText(/amount/i)).toBeInTheDocument();
+      expect(screen.getByText(/payment method/i)).toBeInTheDocument();
     });
   });
 
-  test('auto-selects recipient when recipientId is provided and found in list', async () => {
-    renderComponent({ recipientId: 'recipient-1' });
-
-    // Open the dialog
-    await userEvent.click(screen.getByText('Send Money'));
-
-    // Wait for the form to load
-    await waitFor(() => {
-      expect(screen.getByText('From Account')).toBeInTheDocument();
-    });
-
-    // Select an account first
-    await userEvent.click(screen.getByText('From Account'));
-    await userEvent.click(screen.getByText('Checking Account (DDA)'));
-
-    // Wait for recipients to load and check if the specified recipient is selected
-    await waitFor(() => {
-      const recipientSelect = screen.getByDisplayValue('John Doe - ****7890');
-      expect(recipientSelect).toBeInTheDocument();
-    });
-  });
-
-  test('shows warning when recipientId is provided but not found in list', async () => {
-    renderComponent({ recipientId: 'non-existent-recipient' });
-
-    // Open the dialog
-    await userEvent.click(screen.getByText('Send Money'));
-
-    // Wait for the form to load
-    await waitFor(() => {
-      expect(screen.getByText('From Account')).toBeInTheDocument();
-    });
-
-    // Select an account first
-    await userEvent.click(screen.getByText('From Account'));
-    await userEvent.click(screen.getByText('Checking Account (DDA)'));
-
-    // Wait for recipients to load and check for warning message
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          'Warning: The specified recipient (ID: non-existent-recipient) was not found in the available recipients list.'
-        )
-      ).toBeInTheDocument();
-    });
-  });
-
-  test('does not show warning when recipientId is not provided', async () => {
+  test('form validation works with refactored components', async () => {
     renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText('Send Money'));
+    await userEvent.click(screen.getByText(/make payment/i));
 
-    // Wait for the form to load
     await waitFor(() => {
-      expect(screen.getByText('From Account')).toBeInTheDocument();
+      expect(screen.getByText(/from account/i)).toBeInTheDocument();
+    });
+
+    // Try to submit without filling required fields
+    const submitButton = screen.getByRole('button', {
+      name: /confirm payment/i,
+    });
+    expect(submitButton).toBeDisabled();
+  });
+
+  test('account selection works with refactored AccountSelector', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText(/make payment/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/from account/i)).toBeInTheDocument();
+    });
+
+    // Click on account selector
+    const accountSelector = screen.getByRole('combobox', {
+      name: /from account/i,
+    });
+    await userEvent.click(accountSelector);
+
+    // Check if accounts are loaded
+    await waitFor(() => {
+      expect(screen.getByText('Checking Account (DDA)')).toBeInTheDocument();
+      expect(screen.getByText('Savings Account (SAV)')).toBeInTheDocument();
+    });
+  });
+
+  test('recipient selection works with refactored RecipientSelector', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText(/make payment/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/from account/i)).toBeInTheDocument();
     });
 
     // Select an account first
-    await userEvent.click(screen.getByText('From Account'));
+    const accountSelector = screen.getByRole('combobox', {
+      name: /from account/i,
+    });
+    await userEvent.click(accountSelector);
+
+    await waitFor(() => {
+      expect(screen.getByText('Checking Account (DDA)')).toBeInTheDocument();
+    });
+
     await userEvent.click(screen.getByText('Checking Account (DDA)'));
 
-    // Wait for recipients to load and verify no warning is shown
+    // Now check if recipient selector is enabled
     await waitFor(() => {
-      expect(screen.getByText('To Recipient')).toBeInTheDocument();
+      const recipientSelector = screen.getByRole('combobox', {
+        name: /recipient/i,
+      });
+      expect(recipientSelector).not.toBeDisabled();
     });
-
-    // Verify warning message is not present
-    expect(
-      screen.queryByText(/Warning: The specified recipient/)
-    ).not.toBeInTheDocument();
   });
 
-  test('auto-selects both account and recipient when recipientId is provided and only one account is available', async () => {
-    // Mock data with only one account
-    const singleAccountMock = {
-      items: [
-        {
-          id: 'account-1',
-          label: 'Checking Account',
-          category: 'DDA',
-        },
-      ],
-    };
-
-    // Reset MSW handlers and setup with single account
-    server.resetHandlers();
-    server.use(
-      http.get('/api/accounts', () => {
-        return HttpResponse.json(singleAccountMock);
-      }),
-      http.get('/api/recipients', () => {
-        return HttpResponse.json(mockRecipients);
-      }),
-      http.get('/api/accounts/:id/balance', () => {
-        return HttpResponse.json(mockAccountBalance);
-      }),
-      http.post('/api/transactions', () => {
-        return HttpResponse.json({ success: true });
-      })
-    );
-
-    renderComponent({ recipientId: 'recipient-1' });
+  test('amount input works with refactored AmountInput', async () => {
+    renderComponent();
 
     // Open the dialog
-    await userEvent.click(screen.getByText('Send Money'));
+    await userEvent.click(screen.getByText(/make payment/i));
 
-    // Wait for the form to load and check if account is auto-selected
     await waitFor(() => {
-      expect(
-        screen.getByDisplayValue('Checking Account (DDA)')
-      ).toBeInTheDocument();
+      expect(screen.getByText(/amount/i)).toBeInTheDocument();
     });
 
-    // Wait for recipients to load and check if the specified recipient is selected
+    // Find and interact with amount input
+    const amountInput = screen.getByPlaceholderText(/enter amount/i);
+    await userEvent.type(amountInput, '100.50');
+
+    expect(amountInput).toHaveValue('100.50');
+  });
+
+  test('payment method selection works with refactored PaymentMethodSelector', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText(/make payment/i));
+
     await waitFor(() => {
-      expect(
-        screen.getByDisplayValue('John Doe - ****7890')
-      ).toBeInTheDocument();
+      expect(screen.getByText(/payment method/i)).toBeInTheDocument();
     });
+
+    // Check if payment method options are rendered
+    await waitFor(() => {
+      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+      expect(screen.getByText(/RTP/i)).toBeInTheDocument();
+      expect(screen.getByText(/WIRE/i)).toBeInTheDocument();
+    });
+  });
+
+  test('review panel shows correct information', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText(/make payment/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/review payment/i)).toBeInTheDocument();
+    });
+
+    // Check if review panel is rendered
+    expect(screen.getByText(/review payment/i)).toBeInTheDocument();
   });
 });
