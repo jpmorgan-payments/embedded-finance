@@ -1,21 +1,21 @@
 {
-  "title": "Send Money",
-  "description": "Enter the payment details below.",
+  "title": "Make a payment",
+  "description": "All fields are required unless specified optional.",
   "fields": {
     "from": {
-      "label": "From Account",
-      "placeholder": "Select account",
+      "label": "2. Which account are you paying from?",
+      "placeholder": "Pay from",
       "description": "",
       "tooltip": ""
     },
     "to": {
-      "label": "To Recipient",
-      "placeholder": "Select recipient",
+      "label": "1. Who are you paying?",
+      "placeholder": "Select or type recipient",
       "description": "",
       "tooltip": ""
     },
     "amount": {
-      "label": "Amount (USD)",
+      "label": "Amount",
       "placeholder": "0.00",
       "description": "",
       "tooltip": "",
@@ -26,11 +26,31 @@
       }
     },
     "method": {
-      "label": "Payment Method",
+      "label": "4. How do you want to pay?",
+      "placeholder": "",
+      "description": "",
+      "tooltip": ""
+    },
+    "currency": {
+      "label": "Currency",
       "placeholder": "",
       "description": "",
       "tooltip": ""
     }
+  },
+  "sections": {
+    "amount": "3. How much are you paying?",
+    "arrivalDate": "5. When do you want the payment to arrive?",
+    "additionalInfo": "6. Additional Information (optional)"
+  },
+  "helpers": {
+    "to": "Select or type recipient",
+    "from": {
+      "balance": "Select or type name or last 4 numbers"
+    },
+    "amount": "Enter the payment amount in {{currency}}",
+    "method": "Available methods depend on the recipient's bank.",
+    "memo": "Internal note for your records (optional)"
   },
   "paymentMethods": {
     "ACH": "ACH",
@@ -43,7 +63,7 @@
     "RTP": "Real-time payment (RTP) fee: $1.00"
   },
   "buttons": {
-    "makePayment": "Send Money",
+    "makePayment": "Make a payment",
     "confirmPayment": "Confirm Payment",
     "makeAnotherPayment": "Make Another Payment",
     "processing": "Processing..."
