@@ -146,7 +146,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
     }
 
     // Prioritize completed status over current status for sections
-    if (section.status === 'completed' || section.status === 'completed_disabled') {
+    if (
+      section.status === 'completed' ||
+      section.status === 'completed_disabled'
+    ) {
       return section.status;
     }
 
@@ -229,9 +232,20 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             : 'pending';
                           const currentStatus = sectionStatus;
 
+                          // Check if previous section is truly completed
+                          // If it has steps, all steps must be completed
+                          const isPrevSectionFullyCompleted = prevSection
+                            ? prevSection.steps.length === 0
+                              ? prevStatus === 'completed'
+                              : prevSection.steps.every(
+                                  (step) =>
+                                    step.status === 'completed' ||
+                                    step.status === 'completed_disabled'
+                                )
+                            : false;
+
                           const isGreen =
-                            (prevStatus === 'completed' ||
-                              prevStatus === 'current') &&
+                            isPrevSectionFullyCompleted &&
                             (currentStatus === 'completed' ||
                               currentStatus === 'current');
 
@@ -267,8 +281,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             const currentStatus = sectionStatus;
 
                             const isGreen =
-                              (currentStatus === 'completed' ||
-                                currentStatus === 'current') &&
+                              currentStatus === 'completed' &&
                               (firstStepStatus === 'completed' ||
                                 firstStepStatus === 'current');
 
@@ -287,9 +300,19 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             : 'pending';
                           const currentStatus = sectionStatus;
 
+                          // Check if current section is truly completed
+                          // If it has steps, all steps must be completed
+                          const isCurrentSectionFullyCompleted =
+                            section.steps.length === 0
+                              ? currentStatus === 'completed'
+                              : section.steps.every(
+                                  (step) =>
+                                    step.status === 'completed' ||
+                                    step.status === 'completed_disabled'
+                                );
+
                           const isGreen =
-                            (currentStatus === 'completed' ||
-                              currentStatus === 'current') &&
+                            isCurrentSectionFullyCompleted &&
                             (nextStatus === 'completed' ||
                               nextStatus === 'current');
 
@@ -396,8 +419,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                   (() => {
                                     const currentStepStatus = stepStatus;
                                     const isGreen =
-                                      (sectionStatus === 'completed' ||
-                                        sectionStatus === 'current') &&
+                                      sectionStatus === 'completed' &&
                                       (currentStepStatus === 'completed' ||
                                         currentStepStatus === 'current');
 
@@ -463,10 +485,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                             getItemStatus(nextSection.id);
 
                                           const isGreen =
-                                            (currentStepStatus ===
-                                              'completed' ||
-                                              currentStepStatus ===
-                                                'current') &&
+                                            currentStepStatus === 'completed' &&
                                             (nextSectionStatus ===
                                               'completed' ||
                                               nextSectionStatus === 'current');
