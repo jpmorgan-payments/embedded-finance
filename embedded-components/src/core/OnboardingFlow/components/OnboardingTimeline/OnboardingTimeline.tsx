@@ -134,10 +134,20 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
       const step = section.steps.find((s) => s.id === stepId);
       if (!step) return 'not_started';
 
+      // Prioritize completed status over current status
+      if (step.status === 'completed' || step.status === 'completed_disabled') {
+        return step.status;
+      }
+
       if (currentSectionId === sectionId && currentStepId === stepId) {
         return 'current';
       }
       return step.status;
+    }
+
+    // Prioritize completed status over current status for sections
+    if (section.status === 'completed' || section.status === 'completed_disabled') {
+      return section.status;
     }
 
     if (currentSectionId === sectionId) {
