@@ -41,7 +41,7 @@ export const maskAccount = (accountNumber?: string): string => {
   return accountNumber ? `****${accountNumber.slice(-4)}` : '';
 };
 
-export const formatCurrency = (amount: number, currency = 'USD'): string => {
+export const formatCurrency = (amount: number): string => {
   return amount.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

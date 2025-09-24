@@ -6,7 +6,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -72,11 +71,14 @@ export const AmountInput: React.FC<AmountInputProps> = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {CURRENCY_OPTIONS.map((currency) => (
-                    <SelectItem key={currency.code} value={currency.code}>
+                  {CURRENCY_OPTIONS.map((currencyOption) => (
+                    <SelectItem
+                      key={currencyOption.code}
+                      value={currencyOption.code}
+                    >
                       <div className="eb-flex eb-items-center eb-gap-2">
-                        <span>{currency.flag}</span>
-                        <span>{currency.code}</span>
+                        <span>{currencyOption.flag}</span>
+                        <span>{currencyOption.code}</span>
                       </div>
                     </SelectItem>
                   ))}

@@ -18,7 +18,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { ListAccountsResponse, PaymentFormData } from './types';
+import type {
+  AccountResponseType,
+  ListAccountsResponse,
+  PaymentFormData,
+} from './types';
 
 interface AccountSelectorProps {
   accounts: ListAccountsResponse | undefined;
@@ -84,7 +88,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {accounts?.items?.map((account: AccountResponse) => (
+              {accounts?.items?.map((account: AccountResponseType) => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.label} ({account.category})
                 </SelectItem>

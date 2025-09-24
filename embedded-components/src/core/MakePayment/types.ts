@@ -3,6 +3,7 @@ import type React from 'react';
 import {
   AccountResponse,
   ListAccountsResponse,
+  PageMetaData,
 } from '@/api/generated/ep-accounts.schemas';
 import { Recipient as ApiRecipient } from '@/api/generated/ep-recipients.schemas';
 import {
@@ -42,6 +43,8 @@ export interface PaymentComponentProps {
 }
 
 export type Recipient = ApiRecipient;
+export type { ListAccountsResponse, AccountResponse, PageMetaData };
+export type { AccountResponse as AccountResponseType };
 
 export interface PaymentFormData {
   from: string;

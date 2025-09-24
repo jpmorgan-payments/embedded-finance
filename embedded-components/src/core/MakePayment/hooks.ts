@@ -7,7 +7,7 @@ import {
 } from '@/api/generated/ep-accounts';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 
-import type { PaymentData, PaymentFormData, PaymentMethod } from './types';
+import type { PaymentFormData, PaymentMethod } from './types';
 import {
   filterPaymentMethods,
   filterRecipients,
