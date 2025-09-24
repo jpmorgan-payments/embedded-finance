@@ -353,7 +353,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:id.ssn.format)"
+        "format": "$t(validation:id.ssn)"
       }
     },
     "controllerIds.idType": {

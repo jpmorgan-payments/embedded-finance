@@ -178,7 +178,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 sectionStatus === 'completed_disabled'
               }
               className={cn(
-                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding] eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding] eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                 shouldHighlightSection &&
                   'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
               )}
@@ -197,10 +197,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 <div className="eb-relative eb-z-20 eb-flex eb-flex-col eb-items-center">
                   {/* Top connecting line */}
                   {sections.findIndex((s) => s.id === section.id) > 0 && (
-                    <div
+                    <span
                       className={cn(
-                        'eb-absolute eb-top-0 eb-h-6 eb-w-0.5 eb--translate-y-6 eb-transform',
-                        // Green solid line or gray dashed line using background pattern
+                        'eb-absolute eb-top-0 eb-h-6 eb--translate-y-6 eb-transform eb-border-l-2',
+                        // Green solid line or gray dashed line
                         (() => {
                           const currentIndex = sections.findIndex(
                             (s) => s.id === section.id
@@ -218,8 +218,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                               currentStatus === 'current');
 
                           return isGreen
-                            ? 'eb-bg-success'
-                            : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                            ? 'eb-border-solid eb-border-success'
+                            : 'eb-border-dotted eb-border-muted-foreground/40';
                         })()
                       )}
                     />
@@ -231,14 +231,14 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                   {sections.findIndex((s) => s.id === section.id) <
                     sections.length - 1 ||
                   (section.steps.length && isCurrentSection) ? (
-                    <div
+                    <span
                       className={cn(
-                        'eb-absolute eb-w-0.5 eb-transform',
+                        'eb-absolute eb-transform eb-border-l-2',
                         // Adjust positioning and height based on whether we have steps showing
                         section.steps.length && isCurrentSection
                           ? 'eb-top-4 eb-h-12'
                           : 'eb-bottom-0 eb-h-6 eb-translate-y-6',
-                        // Green solid line or gray dashed line using background pattern
+                        // Green solid line or gray dashed line
                         (() => {
                           if (section.steps.length && isCurrentSection) {
                             // Connecting to first step
@@ -255,8 +255,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                 firstStepStatus === 'current');
 
                             return isGreen
-                              ? 'eb-bg-success'
-                              : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                              ? 'eb-border-solid eb-border-success'
+                              : 'eb-border-dotted eb-border-muted-foreground/40';
                           }
 
                           // Connecting to next section
@@ -276,8 +276,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                               nextStatus === 'current');
 
                           return isGreen
-                            ? 'eb-bg-success'
-                            : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                            ? 'eb-border-solid eb-border-success'
+                            : 'eb-border-dotted eb-border-muted-foreground/40';
                         })()
                       )}
                     />
@@ -331,10 +331,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             {/* Top connecting line to previous step or section */}
                             {section.steps.findIndex((s) => s.id === step.id) >
                             0 ? (
-                              <div
+                              <span
                                 className={cn(
-                                  'eb-absolute eb-top-0 eb-h-3 eb-w-0.5 eb--translate-y-3 eb-transform',
-                                  // Green solid line or gray dashed line using background pattern
+                                  'eb-absolute eb-top-0 eb-h-3 eb--translate-y-3 eb-transform eb-border-l-2',
+                                  // Green solid line or gray dashed line
                                   (() => {
                                     const currentStepIndex =
                                       section.steps.findIndex(
@@ -354,17 +354,17 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                         currentStepStatus === 'current');
 
                                     return isGreen
-                                      ? 'eb-bg-success'
-                                      : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                      ? 'eb-border-solid eb-border-success'
+                                      : 'eb-border-dotted eb-border-muted-foreground/40';
                                   })()
                                 )}
                               />
                             ) : (
                               // Connect to section icon
-                              <div
+                              <span
                                 className={cn(
-                                  'eb-absolute eb-top-0 eb-h-6 eb-w-0.5 eb--translate-y-6 eb-transform',
-                                  // Green solid line or gray dashed line using background pattern
+                                  'eb-absolute eb-top-0 eb-h-6 eb--translate-y-6 eb-transform eb-border-l-2',
+                                  // Green solid line or gray dashed line
                                   (() => {
                                     const currentStepStatus = stepStatus;
                                     const isGreen =
@@ -374,8 +374,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                         currentStepStatus === 'current');
 
                                     return isGreen
-                                      ? 'eb-bg-success'
-                                      : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                      ? 'eb-border-solid eb-border-success'
+                                      : 'eb-border-dotted eb-border-muted-foreground/40';
                                   })()
                                 )}
                               />
@@ -386,10 +386,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             {/* Bottom connecting line to next step */}
                             {section.steps.findIndex((s) => s.id === step.id) <
                             section.steps.length - 1 ? (
-                              <div
+                              <span
                                 className={cn(
-                                  'eb-absolute eb-bottom-0 eb-h-3 eb-w-0.5 eb-translate-y-3 eb-transform',
-                                  // Green solid line or gray dashed line using background pattern
+                                  'eb-absolute eb-bottom-0 eb-h-3 eb-translate-y-3 eb-transform eb-border-l-2',
+                                  // Green solid line or gray dashed line
                                   (() => {
                                     const currentStepIndex =
                                       section.steps.findIndex(
@@ -409,8 +409,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                         nextStepStatus === 'current');
 
                                     return isGreen
-                                      ? 'eb-bg-success'
-                                      : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                      ? 'eb-border-solid eb-border-success'
+                                      : 'eb-border-dotted eb-border-muted-foreground/40';
                                   })()
                                 )}
                               />
@@ -425,10 +425,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
 
                                 if (nextSection) {
                                   return (
-                                    <div
+                                    <span
                                       className={cn(
-                                        'eb-absolute eb-bottom-0 eb-h-4 eb-w-0.5 eb-translate-y-4 eb-transform',
-                                        // Green solid line or gray dashed line using background pattern
+                                        'eb-absolute eb-bottom-0 eb-h-4 eb-translate-y-4 eb-transform eb-border-l-2',
+                                        // Green solid line or gray dashed line
                                         (() => {
                                           const currentStepStatus = stepStatus;
                                           const nextSectionStatus =
@@ -444,8 +444,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                               nextSectionStatus === 'current');
 
                                           return isGreen
-                                            ? 'eb-bg-success'
-                                            : 'eb-bg-gradient-to-b eb-from-muted-foreground/60 eb-via-transparent eb-to-muted-foreground/60 eb-bg-[length:2px_4px] eb-bg-repeat-y';
+                                            ? 'eb-border-solid eb-border-success'
+                                            : 'eb-border-dotted eb-border-muted-foreground/40';
                                         })()
                                       )}
                                     />

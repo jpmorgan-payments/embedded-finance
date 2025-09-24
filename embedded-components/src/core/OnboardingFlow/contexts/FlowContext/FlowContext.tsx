@@ -42,8 +42,10 @@ const FlowContext = createContext<{
   previouslyCompleted: boolean;
   reviewScreenOpenedSectionId: SectionScreenId | null;
   initialStepperStepId: string | null;
-  currentStepper: Stepper<StepConfig[]> | null;
+  currentStepperStepId: string | undefined;
+  setCurrentStepperStepIdFallback: (id: string | undefined) => void;
   setCurrentStepper: (stepper: Stepper<StepConfig[]> | null) => void;
+  currentStepperGoTo: (stepId: string) => void;
   shortLabelOverride: string | null;
   savedFormValues?: Partial<OnboardingFormValuesSubmit>;
   saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
@@ -69,7 +71,15 @@ const FlowContext = createContext<{
   previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
-  currentStepper: null,
+  currentStepperStepId: undefined,
+  setCurrentStepperStepIdFallback: () => {
+    throw new Error(
+      'setCurrentStepperStepIdFallback() must be used within FlowProvider'
+    );
+  },
+  currentStepperGoTo: () => {
+    throw new Error('currentStepperGoTo() must be used within FlowProvider');
+  },
   setCurrentStepper: () => {
     throw new Error('setCurrentStepper() must be used within FlowProvider');
   },
@@ -123,7 +133,25 @@ export const FlowProvider: React.FC<{
         !s.sectionConfig.excludedForOrgTypes?.includes(organizationType ?? '')
     );
 
+  const [currentStepperStepIdFallback, setCurrentStepperStepIdFallback] =
+    useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    setCurrentStepperStepIdFallback(undefined);
+  }, [currentStepper?.current?.id]);
+
+  const currentStepperStepId =
+    currentStepperStepIdFallback ?? currentStepper?.current?.id ?? undefined;
+
   const goTo = (id: ScreenId, config?: GoToConfig) => {
+    const screen = flowConfig.screens.find((s) => s.id === id);
+    if (screen?.isSection) {
+      setCurrentStepperStepIdFallback(
+        config?.initialStepperStepId ??
+          screen.stepperConfig?.steps[0]?.id ??
+          undefined
+      );
+    }
     setEditingPartyIds((prev) => ({
       ...prev,
       [id]: config?.editingPartyId,
@@ -133,6 +161,11 @@ export const FlowProvider: React.FC<{
     setInitialStepperStepId(config?.initialStepperStepId ?? null);
     setShortLabelOverride(config?.shortLabelOverride ?? null);
     setHistory((prev) => [...(config?.resetHistory ? [] : prev), id]);
+  };
+
+  const currentStepperGoTo = (stepId: string) => {
+    setCurrentStepperStepIdFallback(stepId);
+    currentStepper?.goTo(stepId);
   };
 
   const originScreenId =
@@ -190,7 +223,9 @@ export const FlowProvider: React.FC<{
         previouslyCompleted,
         reviewScreenOpenedSectionId,
         initialStepperStepId,
-        currentStepper,
+        currentStepperStepId,
+        setCurrentStepperStepIdFallback,
+        currentStepperGoTo,
         setCurrentStepper,
         shortLabelOverride,
         savedFormValues,

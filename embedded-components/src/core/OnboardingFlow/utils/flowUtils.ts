@@ -111,6 +111,11 @@ export const getStepperValidation = (
       if (!result.success) {
         allStepsValid = false;
       }
+    } else if (step.stepType === 'check-answers') {
+      stepValidationMap[step.id] = {
+        result: undefined,
+        isValid: allStepsValid,
+      };
     } else {
       stepValidationMap[step.id] = {
         result: undefined,

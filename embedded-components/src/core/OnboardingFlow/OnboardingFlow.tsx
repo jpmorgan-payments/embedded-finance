@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
@@ -135,7 +136,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     >
       <div
         id="embedded-component-layout"
-        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-md sm:eb-p-10 sm:eb-pb-12"
+        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-lg sm:eb-p-10 sm:eb-pb-12"
         style={{ minHeight: height }}
         key={initialClientId}
       >
@@ -178,7 +179,9 @@ const FlowRenderer: React.FC = React.memo(() => {
     updateSessionData,
     sections,
     savedFormValues,
-    currentStepper,
+    currentStepperStepId,
+    currentStepperGoTo,
+    setCurrentStepperStepIdFallback,
   } = useFlowContext();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
@@ -188,6 +191,8 @@ const FlowRenderer: React.FC = React.memo(() => {
     savedFormValues,
     currentScreenId
   );
+
+  const isMobile = useIsMobile();
 
   // Scroll to top on step change
   const mainRef = useRef<HTMLDivElement>(null);
@@ -253,93 +258,91 @@ const FlowRenderer: React.FC = React.memo(() => {
     return <div>Unhandled screen error</div>;
   }, [screen, currentScreenId]);
 
-  const [currentStepIdFallback, setCurrentStepIdFallback] = useState<
-    string | null
-  >(null);
-
-  useEffect(() => {
-    setCurrentStepIdFallback(null);
-  }, [currentStepper?.current?.id]);
-
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-4 sm:eb-scroll-mt-48"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >
-      <div className="eb-shrink-0">
-        <OnboardingTimeline
-          className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm"
-          title="Onboarding Progress"
-          currentSectionId={currentScreenId}
-          currentStepId={currentStepIdFallback ?? currentStepper?.current?.id}
-          onSectionClick={(screenId) => {
-            const section = sections.find((s) => s.id === screenId);
-            if (!section) {
-              goTo(screenId);
-              return;
-            }
-            const existingPartyData = getPartyByAssociatedPartyFilters(
-              clientData,
-              section.stepperConfig?.associatedPartyFilters
-            );
+      {!isMobile && (
+        <div className="eb-shrink-0">
+          <OnboardingTimeline
+            className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
+            title="Onboarding Progress"
+            currentSectionId={currentScreenId}
+            currentStepId={currentStepperStepId}
+            onSectionClick={(screenId) => {
+              const section = sections.find((s) => s.id === screenId);
+              if (!section) {
+                goTo(screenId);
+                return;
+              }
+              const existingPartyData = getPartyByAssociatedPartyFilters(
+                clientData,
+                section.stepperConfig?.associatedPartyFilters
+              );
 
-            const firstInvalidStep = stepValidations[section.id]
-              ? section.stepperConfig?.steps.find((step) => {
-                  return (
-                    stepValidations[section.id][step.id] &&
-                    !stepValidations[section.id][step.id].isValid
-                  );
-                })?.id
-              : undefined;
+              const firstInvalidStep = stepValidations[section.id]
+                ? section.stepperConfig?.steps.find((step) => {
+                    return (
+                      stepValidations[section.id][step.id] &&
+                      !stepValidations[section.id][step.id].isValid
+                    );
+                  })?.id
+                : undefined;
 
-            const targetStepId =
-              firstInvalidStep ?? section.stepperConfig?.steps[0].id ?? null;
-            setCurrentStepIdFallback(targetStepId);
+              const targetStepId =
+                firstInvalidStep ??
+                section.stepperConfig?.steps[0].id ??
+                undefined;
 
-            if (screenId === currentScreenId && targetStepId) {
-              currentStepper?.goTo(targetStepId);
-              return;
-            }
+              if (screenId === currentScreenId && targetStepId) {
+                currentStepperGoTo(targetStepId);
+                return;
+              }
 
-            goTo(screenId, {
-              initialStepperStepId: firstInvalidStep,
-              editingPartyId: existingPartyData?.id,
-              previouslyCompleted: sectionStatuses[section.id] === 'completed',
-            });
-          }}
-          onStepClick={(sectionId, stepId) => {
-            if (sectionId === currentScreenId) {
-              setCurrentStepIdFallback(stepId);
-              currentStepper?.goTo(stepId);
-            } else {
-              goTo(sectionId);
-            }
-          }}
-          sections={[
-            {
-              id: 'gateway',
-              title: 'Select busines type',
-              status: organizationType ? 'completed' : 'not_started',
-              steps: [],
-            },
-            ...sections.map((section) => ({
-              ...section,
-              status: sectionStatuses[section.id] || 'not_started',
-              title: section.sectionConfig.label,
-              steps: (section.stepperConfig?.steps ?? []).map(
-                (step) =>
-                  ({
-                    ...step,
-                    status: stepValidations[section.id][step.id].isValid
-                      ? 'completed'
-                      : 'not_started',
-                  }) as TimelineStep
-              ),
-            })),
-          ]}
-        />
-      </div>
+              goTo(screenId, {
+                initialStepperStepId: firstInvalidStep,
+                editingPartyId: existingPartyData?.id,
+                previouslyCompleted:
+                  sectionStatuses[section.id] === 'completed',
+              });
+              setCurrentStepperStepIdFallback(targetStepId);
+            }}
+            onStepClick={(sectionId, stepId) => {
+              if (sectionId === currentScreenId) {
+                currentStepperGoTo(stepId);
+              } else {
+                goTo(sectionId);
+              }
+            }}
+            sections={[
+              {
+                id: 'gateway',
+                title: 'Business type',
+                status: organizationType ? 'completed' : 'not_started',
+                steps: [],
+              },
+              ...sections.map((section) => ({
+                ...section,
+                status: sectionStatuses[section.id] || 'not_started',
+                title:
+                  section.sectionConfig.shortLabel ??
+                  section.sectionConfig.label,
+                steps: (section.stepperConfig?.steps ?? []).map(
+                  (step) =>
+                    ({
+                      ...step,
+                      status: stepValidations[section.id][step.id].isValid
+                        ? 'completed'
+                        : 'not_started',
+                    }) as TimelineStep
+                ),
+              })),
+            ]}
+          />
+        </div>
+      )}
       <div className="eb-min-w-0 eb-flex-1">{renderScreen()}</div>
     </div>
   );

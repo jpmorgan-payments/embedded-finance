@@ -72,6 +72,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     sections,
     shortLabelOverride,
     savedFormValues,
+    setCurrentStepperStepIdFallback,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -141,6 +142,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const handleNext = () => {
     if (checkAnswersMode) {
       stepperGoTo(checkAnswersStepId);
+      setCurrentStepperStepIdFallback(checkAnswersStepId);
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
       goTo('review-attest-section', {
@@ -148,6 +150,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       });
     } else if (currentStepNumber < steps.length) {
       stepperNext();
+      setCurrentStepperStepIdFallback(steps[currentStepNumber].id);
     } else if (
       currentStep.stepType === 'check-answers' &&
       previouslyCompleted
@@ -168,6 +171,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         editingPartyId: nextSectionPartyData.id,
       });
       stepperGoTo(steps[0].id);
+      setCurrentStepperStepIdFallback(steps[0].id);
     }
   };
 
@@ -203,6 +207,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const handlePrev = () => {
     if (checkAnswersMode) {
       stepperGoTo(checkAnswersStepId);
+      setCurrentStepperStepIdFallback(checkAnswersStepId);
       setCheckAnswersStepId(null);
     } else if (reviewMode) {
       goTo('review-attest-section', {
@@ -228,6 +233,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       goTo('overview');
     } else {
       stepperPrev();
+      setCurrentStepperStepIdFallback(steps[currentStepNumber - 2].id);
     }
   };
 
