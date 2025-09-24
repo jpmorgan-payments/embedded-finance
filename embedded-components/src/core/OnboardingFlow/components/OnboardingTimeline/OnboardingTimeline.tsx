@@ -161,6 +161,9 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
         const hasCurrentStep = section.steps.some(
           (step) => currentSectionId === section.id && currentStepId === step.id
         );
+        // Only highlight section if it's current AND has no steps OR has no current step
+        const shouldHighlightSection =
+          isCurrentSection && (section.steps.length === 0 || !hasCurrentStep);
 
         if (sectionStatus === 'hidden') {
           return null;
@@ -176,7 +179,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
               }
               className={cn(
                 'eb-peer/menu-button eb-relative eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding] eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
-                (isCurrentSection || hasCurrentStep) &&
+                shouldHighlightSection &&
                   'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
               )}
               onClick={(e) => {
@@ -184,8 +187,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 onSectionClick?.(section.id);
               }}
             >
-              {/* Current section vertical line */}
-              {(isCurrentSection || hasCurrentStep) && (
+              {/* Current section vertical line - only show if no steps or no current step */}
+              {shouldHighlightSection && (
                 <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary" />
               )}
 
@@ -286,7 +289,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                   <span
                     className={cn(
                       'eb-font-medium',
-                      (isCurrentSection || hasCurrentStep) && 'eb-font-semibold'
+                      shouldHighlightSection && 'eb-font-semibold'
                     )}
                   >
                     {section.title}
@@ -308,7 +311,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                       <button
                         type="button"
                         className={cn(
-                          'eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-rounded-md eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                          'eb-relative eb-flex eb-h-7 eb-w-full eb-min-w-0 eb-cursor-pointer eb-items-center eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>span:last-child]:eb-truncate [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                           isCurrentStep &&
                             'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
                         )}
@@ -317,6 +320,11 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                           onStepClick?.(section.id, step.id);
                         }}
                       >
+                        {/* Current step vertical line */}
+                        {isCurrentStep && (
+                          <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary" />
+                        )}
+
                         <div className="eb-ml-1 eb-flex eb-items-center eb-gap-3">
                           {/* Step icon aligned with section icons */}
                           <div className="eb-relative eb-z-20 eb-flex eb-flex-col eb-items-center">

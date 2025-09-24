@@ -253,6 +253,14 @@ const FlowRenderer: React.FC = React.memo(() => {
     return <div>Unhandled screen error</div>;
   }, [screen, currentScreenId]);
 
+  const [currentStepIdFallback, setCurrentStepIdFallback] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    setCurrentStepIdFallback(null);
+  }, [currentStepper?.current?.id]);
+
   return (
     <div
       className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-4 sm:eb-scroll-mt-48"
@@ -263,17 +271,19 @@ const FlowRenderer: React.FC = React.memo(() => {
         <OnboardingTimeline
           className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm"
           title="Onboarding Progress"
-          currentSectionId={screen?.id}
-          currentStepId={currentStepper?.current?.id}
-          onSectionClick={(sectionId) => {
-            const section = sections.find((s) => s.id === sectionId);
+          currentSectionId={currentScreenId}
+          currentStepId={currentStepIdFallback ?? currentStepper?.current?.id}
+          onSectionClick={(screenId) => {
+            const section = sections.find((s) => s.id === screenId);
             if (!section) {
+              goTo(screenId);
               return;
             }
             const existingPartyData = getPartyByAssociatedPartyFilters(
               clientData,
               section.stepperConfig?.associatedPartyFilters
             );
+
             const firstInvalidStep = stepValidations[section.id]
               ? section.stepperConfig?.steps.find((step) => {
                   return (
@@ -282,7 +292,17 @@ const FlowRenderer: React.FC = React.memo(() => {
                   );
                 })?.id
               : undefined;
-            goTo(sectionId, {
+
+            const targetStepId =
+              firstInvalidStep ?? section.stepperConfig?.steps[0].id ?? null;
+            setCurrentStepIdFallback(targetStepId);
+
+            if (screenId === currentScreenId && targetStepId) {
+              currentStepper?.goTo(targetStepId);
+              return;
+            }
+
+            goTo(screenId, {
               initialStepperStepId: firstInvalidStep,
               editingPartyId: existingPartyData?.id,
               previouslyCompleted: sectionStatuses[section.id] === 'completed',
@@ -290,6 +310,7 @@ const FlowRenderer: React.FC = React.memo(() => {
           }}
           onStepClick={(sectionId, stepId) => {
             if (sectionId === currentScreenId) {
+              setCurrentStepIdFallback(stepId);
               currentStepper?.goTo(stepId);
             } else {
               goTo(sectionId);
