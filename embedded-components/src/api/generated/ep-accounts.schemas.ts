@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Accounts API
  * Create, organize and manage accounts.
- * OpenAPI spec version: 1.0.23
+ * OpenAPI spec version: 1.0.27
  */
 /**
  * Page Number
@@ -237,7 +237,7 @@ export interface AccountResponseWithStatus {
   category: AccountCategory;
   /** Client identifier */
   clientId?: string;
-  /** Closure Reason */
+  /** Reason for account closure */
   closureReason?: string;
   /** The date and time the account was created. For the client first account created during onboarding, this is close to the date and time that the client passes onboarding checks. For all other accounts, the timestamp is generated within a few seconds of the new account being requested. */
   createdAt: string;
@@ -255,6 +255,8 @@ export interface AccountResponse {
   category: AccountCategory;
   /** Client identifier */
   clientId?: string;
+  /** Reason for account closure */
+  closureReason?: string;
   /** The date and time the account was created. For the client first account created during onboarding, this is close to the date and time that the client passes onboarding checks. For all other accounts, the timestamp is generated within a few seconds of the new account being requested. */
   createdAt: string;
   /** Account identifier */

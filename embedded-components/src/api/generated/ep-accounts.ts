@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Accounts API
  * Create, organize and manage accounts.
- * OpenAPI spec version: 1.0.23
+ * OpenAPI spec version: 1.0.27
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
