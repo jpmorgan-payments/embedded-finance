@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+}
+
+@layer components {
   *,
   :before,
   :after {
@@ -11,9 +14,15 @@
   body {
     @apply eb-bg-background eb-font-sans eb-text-foreground eb-antialiased;
   }
-}
-
-@layer components {
+  menu,
+  ol,
+  ul {
+    @apply eb-list-none;
+  }
+  a {
+    @apply eb-text-inherit;
+    text-decoration: none;
+  }
   /* Scrollable dialog styles */
   .eb-scrollable-dialog {
     @apply eb-flex eb-h-[90vh] eb-max-h-[90vh] eb-flex-col;

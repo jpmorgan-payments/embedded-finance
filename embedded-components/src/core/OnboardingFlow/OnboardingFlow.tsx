@@ -2,11 +2,21 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
-import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  getOrganizationParty,
+  getPartyByAssociatedPartyFilters,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 
-import { FormLoadingState, ServerErrorAlert } from './components';
+import {
+  FormLoadingState,
+  OnboardingTimeline,
+  ServerErrorAlert,
+  TimelineStep,
+} from './components';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
 import { flowConfig } from './config/flowConfig';
 import { FlowProvider, useFlowContext } from './contexts/FlowContext';
@@ -15,6 +25,7 @@ import {
   useOnboardingContext,
 } from './contexts/OnboardingContext';
 import { OnboardingFlowProps } from './types/onboarding.types';
+import { getFlowProgress } from './utils/flowUtils';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   initialClientId,
@@ -23,6 +34,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   userEventsHandler,
   height,
   onGetClientSettled,
+  enableSidebar = false,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
@@ -122,11 +134,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientData,
         setClientId,
         organizationType,
+        enableSidebar,
       }}
     >
       <div
         id="embedded-component-layout"
-        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-sm sm:eb-p-10 sm:eb-pb-12"
+        className={cn(
+          'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
+          {
+            'eb-max-w-screen-lg': enableSidebar,
+          }
+        )}
         style={{ minHeight: height }}
         key={initialClientId}
       >
@@ -160,10 +178,30 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
-  const { clientData, organizationType, docUploadOnlyMode } =
+  const { clientData, organizationType, docUploadOnlyMode, enableSidebar } =
     useOnboardingContext();
-  const { currentScreenId, goTo, sessionData, updateSessionData } =
-    useFlowContext();
+  const {
+    currentScreenId,
+    goTo,
+    sessionData,
+    updateSessionData,
+    sections,
+    savedFormValues,
+    currentStepperStepId,
+    currentStepperGoTo,
+    setCurrentStepperStepIdFallback,
+    isFormSubmitting,
+  } = useFlowContext();
+
+  const { sectionStatuses, stepValidations } = getFlowProgress(
+    sections,
+    sessionData,
+    clientData,
+    savedFormValues,
+    currentScreenId
+  );
+
+  const isMobile = useIsMobile();
 
   // Scroll to top on step change
   const mainRef = useRef<HTMLDivElement>(null);
@@ -217,9 +255,7 @@ const FlowRenderer: React.FC = React.memo(() => {
 
     if (screen.type === 'component') {
       const Comp = screen.Component;
-      // Use React.memo to maintain consistent component identity
-      const MemoizedComp = React.memo(Comp);
-      return <MemoizedComp key={currentScreenId} />;
+      return <Comp key={currentScreenId} />;
     }
 
     if (screen.type === 'stepper') {
@@ -231,11 +267,96 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-44 sm:eb-scroll-mt-48"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >
-      <div className="eb-w-full">{renderScreen()}</div>
+      {!isMobile && enableSidebar && (
+        <div className="eb-shrink-0">
+          <OnboardingTimeline
+            className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
+            title="Onboarding Progress"
+            disableInteraction={isFormSubmitting}
+            currentSectionId={currentScreenId}
+            currentStepId={currentStepperStepId}
+            onSectionClick={(screenId) => {
+              const section = sections.find((s) => s.id === screenId);
+              if (!section) {
+                goTo(screenId);
+                return;
+              }
+              const existingPartyData = getPartyByAssociatedPartyFilters(
+                clientData,
+                section.stepperConfig?.associatedPartyFilters
+              );
+
+              const firstInvalidStep = stepValidations[section.id]
+                ? section.stepperConfig?.steps.find((step) => {
+                    return (
+                      stepValidations[section.id][step.id] &&
+                      !stepValidations[section.id][step.id].isValid
+                    );
+                  })?.id
+                : undefined;
+
+              const targetStepId =
+                firstInvalidStep ??
+                section.stepperConfig?.steps[0].id ??
+                undefined;
+
+              if (screenId === currentScreenId && targetStepId) {
+                currentStepperGoTo(targetStepId);
+                return;
+              }
+
+              goTo(screenId, {
+                initialStepperStepId: firstInvalidStep,
+                editingPartyId: existingPartyData?.id,
+                previouslyCompleted:
+                  sectionStatuses[section.id] === 'completed',
+              });
+              setCurrentStepperStepIdFallback(targetStepId);
+            }}
+            onStepClick={(sectionId, stepId) => {
+              if (sectionId === currentScreenId) {
+                currentStepperGoTo(stepId);
+              } else {
+                goTo(sectionId);
+              }
+            }}
+            sections={[
+              {
+                id: 'gateway',
+                title: 'Business type',
+                status: organizationType ? 'completed' : 'not_started',
+                steps: [],
+              },
+              ...sections.map((section) => ({
+                ...section,
+                status: sectionStatuses[section.id] || 'not_started',
+                title:
+                  section.sectionConfig.shortLabel ??
+                  section.sectionConfig.label,
+                steps: (section.stepperConfig?.steps ?? []).map(
+                  (step) =>
+                    ({
+                      ...step,
+                      status:
+                        step.id === 'documents'
+                          ? 'on_hold'
+                          : stepValidations[section.id][step.id].isValid
+                            ? 'completed'
+                            : step.stepType === 'check-answers'
+                              ? 'on_hold'
+                              : 'not_started',
+                    }) as TimelineStep
+                ),
+              })),
+            ]}
+          />
+        </div>
+      )}
+      <div className="eb-min-w-0 eb-flex-1">{renderScreen()}</div>
     </div>
   );
 });

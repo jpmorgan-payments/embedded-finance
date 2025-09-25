@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, useEffect, useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -51,7 +51,8 @@ export const OperationalDetailsForm = () => {
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingContext();
 
-  const { originScreenId, goTo, updateSessionData } = useFlowContext();
+  const { originScreenId, goTo, updateSessionData, setIsFormSubmitting } =
+    useFlowContext();
 
   const reviewMode = originScreenId === 'review-attest-section';
 
@@ -102,44 +103,12 @@ export const OperationalDetailsForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClientLegacy({
     mutation: {
-      onMutate: async (newData) => {
-        // Cancel any outgoing refetches
-        await queryClient.cancelQueries({
-          queryKey,
-        });
-
-        // Snapshot the previous value
-        const previousClientData = queryClient.getQueryData([
-          'client',
-          clientData?.id,
-        ]);
-
-        // Optimistically update to the new value
-        queryClient.setQueryData(queryKey, (old: any) => ({
-          ...old,
-          outstanding: {
-            ...old?.outstanding,
-            questionIds:
-              old?.outstanding?.questionIds?.filter(
-                (id: string) =>
-                  !(newData.data.questionResponses ?? []).some(
-                    (response: any) => response.questionId === id
-                  )
-              ) ?? [],
-          },
-          questionResponses: [...(newData.data.questionResponses ?? [])],
-        }));
-
-        // Return a context object with the snapshotted value
-        return { previousClientData };
-      },
-      onError: (err, newData, context) => {
-        // If the mutation fails, use the context returned from onMutate to roll back
-        queryClient.setQueryData(queryKey, context?.previousClientData);
+      onError: (err) => {
+        console.log('mutation error', err);
       },
       onSuccess: (response) => {
         queryClient.setQueryData(queryKey, response);
-
+        setIsFormSubmitting(false);
         if (reviewMode) {
           goTo('review-attest-section', {
             reviewScreenOpenedSectionId: 'additional-questions-section',
@@ -511,6 +480,10 @@ export const OperationalDetailsForm = () => {
         </Fragment>
       ));
   };
+
+  useEffect(() => {
+    setIsFormSubmitting(updateClientStatus === 'pending');
+  }, [updateClientStatus]);
 
   const isFormDisabled =
     questionsFetchStatus === 'pending' || updateClientStatus === 'pending';

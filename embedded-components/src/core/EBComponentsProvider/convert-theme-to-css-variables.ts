@@ -119,6 +119,12 @@ const convertThemeVariablesToCssVariables = (
     '--eb-form-label-foreground': colorToHsl(
       variables.formLabelForegroundColor
     ),
+    '--eb-sidebar-background': colorToHsl(variables.sidebarBackgroundColor),
+    '--eb-sidebar-foreground': colorToHsl(variables.sidebarForegroundColor),
+    '--eb-sidebar-accent': colorToHsl(variables.sidebarAccentColor),
+    '--eb-sidebar-accent-foreground': colorToHsl(
+      variables.sidebarAccentForegroundColor
+    ),
   };
 
   Object.keys(cssVariablesObject).forEach(

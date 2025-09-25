@@ -71,6 +71,10 @@ export type EBThemeVariables = {
   formLabelFontWeight?: string;
   formLabelLineHeight?: string;
   formLabelForegroundColor?: string;
+  sidebarBackgroundColor?: string;
+  sidebarForegroundColor?: string;
+  sidebarAccentColor?: string;
+  sidebarAccentForegroundColor?: string;
 };
 
 export type EBTheme = {

@@ -67,6 +67,12 @@ const meta: Meta<OnboardingFlowWithProviderProps> = {
       },
       options: ORGANIZATION_TYPE_LIST,
     },
+    enableSidebar: {
+      control: {
+        type: 'boolean',
+      },
+      description: 'Enable sidebar navigation with onboarding timeline',
+    },
   },
   decorators: [
     (Story, context) => {

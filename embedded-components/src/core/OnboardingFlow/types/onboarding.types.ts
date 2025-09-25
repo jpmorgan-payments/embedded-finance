@@ -37,6 +37,7 @@ export type OnboardingConfigUsedInContext = {
   docUploadOnlyMode?: boolean;
   docUploadMaxFileSizeBytes?: number;
   hideLinkAccountSection?: boolean;
+  enableSidebar?: boolean;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &
