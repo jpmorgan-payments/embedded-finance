@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Recipients API
  * Set up and manage who can be paid through transactions.
- * OpenAPI spec version: 1.0.23
+ * OpenAPI spec version: 1.0.27
  */
 /**
  * Page Number
@@ -45,11 +45,6 @@ export type GetAllRecipientsParams = {
 export type N503Response = ApiError;
 
 /**
- * Forbidden
- */
-export type N403Response = ApiError;
-
-/**
  * Unauthorized
  */
 export type N401Response = ApiError;
@@ -84,8 +79,20 @@ export interface MicrodepositAmounts {
   amounts: number[];
 }
 
+export interface RecipientCardUpdate {
+  expiryDate?: ExpiryDate;
+}
+
+export interface UpdateRecipientRequest {
+  account?: RecipientAccount;
+  card?: RecipientCardUpdate;
+  partyDetails?: RecipientPartyDetails;
+  status?: RecipientStatus;
+}
+
 export interface RecipientRequest {
   account?: RecipientAccount;
+  card?: RecipientRequestCard;
   /** Client identifier */
   clientId?: string;
   partyDetails?: RecipientPartyDetails;
@@ -146,7 +153,39 @@ export type N500Response = ApiError;
  */
 export type N404Response = ApiError;
 
+/**
+ * Forbidden
+ */
+export type N403Response = ApiError;
+
 export type ListRecipientsResponse = PageMetaData & ListRecipientsResponseAllOf;
+
+/**
+ * Expiry date of card in the format MM-YY
+ * @pattern ^(?:[0-9]{2})(0[1-9]|1[0-2])$
+ */
+export type ExpiryDate = string;
+
+export type RecipientRequestCard = {
+  expiryDate?: ExpiryDate;
+  /**
+   * A Card's tokenized Primary Account Number (PAN)
+   * @minLength 13
+   * @maxLength 19
+   * @pattern ^\d{13,19}$
+   */
+  pan?: string;
+};
+
+export interface RecipientCard {
+  expiryDate?: ExpiryDate;
+  /**
+   * A Card's masked Primary Account Number (PAN)
+   * @minLength 13
+   * @maxLength 19
+   */
+  pan?: string;
+}
 
 export interface AccountValidationResponse {
   /** Profile name to identify account validation configuration */
@@ -168,6 +207,7 @@ export interface Recipient {
    * @maxItems 10
    */
   accountValidationResponse?: AccountValidationResponse[];
+  card?: RecipientCard;
   /** Client identifier */
   clientId?: string;
   /** The date and time the recipient was created */
@@ -191,10 +231,11 @@ export type ListRecipientsResponseAllOf = {
   recipients?: Recipient[];
 };
 
+/**
+ * Contains additional, unstructured information from the provider.
+ */
 export interface ProviderResponse {
-  /** Microdeposit notification */
-  mdNotification?: string;
-  retryCount?: number;
+  [key: string]: unknown;
 }
 
 export interface ClearingSystemId {
@@ -242,6 +283,7 @@ export interface Responses {
 }
 
 /**
+ * Callback event type needs to send to notsub for correct status.
  */
 export type RecipientStatus =
   (typeof RecipientStatus)[keyof typeof RecipientStatus];
@@ -253,13 +295,8 @@ export const RecipientStatus = {
   MICRODEPOSITS_INITIATED: 'MICRODEPOSITS_INITIATED',
   READY_FOR_VALIDATION: 'READY_FOR_VALIDATION',
   REJECTED: 'REJECTED',
+  PENDING: 'PENDING',
 } as const;
-
-export interface UpdateRecipientRequest {
-  account?: RecipientAccount;
-  partyDetails?: RecipientPartyDetails;
-  status?: RecipientStatus;
-}
 
 /**
  * Type of routing code.
@@ -289,7 +326,7 @@ export const RoutingInformationTransactionType = {
  * Routing number corresponding to the routing code type
  * @minLength 1
  * @maxLength 13
- * @pattern ^[0-9a-zA-Z]{3,13}$
+ * @pattern ^[A-Za-z0-9]([A-Za-z0-9\-]{0,11})[A-Za-z0-9]$
  */
 export type RoutingNumber = string;
 
@@ -300,19 +337,20 @@ export interface RoutingInformation {
 }
 
 /**
- * Type of bank account, either CHECKING or SAVINGS. Only required for ACH payments. Exclude field from payload completely if not needed.
+ * Type of bank account.
  */
 export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountType = {
   CHECKING: 'CHECKING',
+  IBAN: 'IBAN',
   SAVINGS: 'SAVINGS',
 } as const;
 
 /**
- * Payment Routing Number or Demand Deposit Account number.
- * @pattern ^\d{1,35}$
+ * Demand Deposit Account number or International Account Number (IBAN).
+ * @pattern ^[A-Z0-9]{1,35}$
  */
 export type AccountNumber = string;
 

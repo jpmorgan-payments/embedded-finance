@@ -1,7 +1,8 @@
 import React from 'react';
 import { CreditCard } from 'lucide-react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
+import { AccountType } from '@/api/generated/ep-recipients.schemas';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -19,6 +20,9 @@ export const AccountDetailsSection: React.FC<AccountDetailsSectionProps> = ({
   register,
   errors,
 }) => {
+  const accountType = useWatch({ control, name: 'accountType' }) as AccountType;
+  const isIbanAccount = accountType === 'IBAN';
+
   return (
     <div className="eb-space-y-4">
       <div className="eb-flex eb-items-center eb-gap-2">
@@ -68,12 +72,20 @@ export const AccountDetailsSection: React.FC<AccountDetailsSectionProps> = ({
           <Input
             id="accountNumber"
             {...register('accountNumber')}
-            placeholder="Enter account number"
-            maxLength={35}
-            pattern="[0-9]*"
-            onInput={(e) => {
-              // Only allow numeric input
-              const target = e.target as HTMLInputElement;
+            placeholder={
+              isIbanAccount ? 'Enter IBAN (no spaces)' : 'Enter account number'
+            }
+            maxLength={isIbanAccount ? 35 : 17}
+            inputMode={isIbanAccount ? 'text' : 'numeric'}
+            pattern={isIbanAccount ? '[A-Za-z0-9]*' : '[0-9]*'}
+            onInput={(event) => {
+              const target = event.target as HTMLInputElement;
+              if (isIbanAccount) {
+                target.value = target.value
+                  .replace(/[^A-Za-z0-9]/g, '')
+                  .toUpperCase();
+                return;
+              }
               target.value = target.value.replace(/[^0-9]/g, '');
             }}
           />

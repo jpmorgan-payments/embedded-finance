@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Transactions API
  * Initiate and track the movement of funds, including payments.
- * OpenAPI spec version: 2.0.23
+ * OpenAPI spec version: 2.0.27
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {

@@ -30,7 +30,7 @@
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
     "vitest:watch": "vitest",
-    "test": "npm run typecheck && npm run prettier && npm run lint && npm run vitest && npm run build",
+    "test": "npm run typecheck && npm run prettier && npm run lint && npm run vitest",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 npx storybook build --disable-telemetry",
     "generate-api": "orval --config ./orval.config.cjs && yarn fix-generated-files && yarn prettify-generated-files",

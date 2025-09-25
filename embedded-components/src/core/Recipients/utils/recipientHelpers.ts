@@ -5,6 +5,7 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import type {
   Recipient,
@@ -30,7 +31,10 @@ export const formatRecipientName = (recipient: Recipient): string => {
  * Gets the appropriate color and icon for a recipient status
  */
 export const getStatusColor = (status: RecipientStatus) => {
-  const statusConfig = {
+  const statusConfig: Record<
+    RecipientStatus,
+    { color: string; icon: LucideIcon }
+  > = {
     ACTIVE: {
       color: 'eb-text-green-700 eb-bg-green-50 eb-border-green-200',
       icon: CheckCircle,
@@ -43,6 +47,10 @@ export const getStatusColor = (status: RecipientStatus) => {
       color: 'eb-text-blue-700 eb-bg-blue-50 eb-border-blue-200',
       icon: Clock,
     },
+    PENDING: {
+      color: 'eb-text-orange-700 eb-bg-orange-50 eb-border-orange-200',
+      icon: Clock,
+    },
     READY_FOR_VALIDATION: {
       color: 'eb-text-yellow-700 eb-bg-yellow-50 eb-border-yellow-200',
       icon: AlertCircle,
@@ -53,7 +61,7 @@ export const getStatusColor = (status: RecipientStatus) => {
     },
   };
 
-  return statusConfig[status] || statusConfig.INACTIVE;
+  return statusConfig[status] ?? statusConfig.INACTIVE;
 };
 
 /**
@@ -148,15 +156,16 @@ export const canEditRecipient = (recipient: Recipient): boolean => {
  * Gets a human-readable status description
  */
 export const getStatusDescription = (status: RecipientStatus): string => {
-  const descriptions = {
+  const descriptions: Record<RecipientStatus, string> = {
     ACTIVE: 'The recipient is active and ready for payments',
     INACTIVE: 'The recipient is inactive and cannot receive payments',
     MICRODEPOSITS_INITIATED: 'Microdeposits have been sent for verification',
+    PENDING: 'The recipient is pending and still being processed',
     READY_FOR_VALIDATION: 'The recipient is ready for account validation',
     REJECTED: 'The recipient has been rejected and cannot be used',
   };
 
-  return descriptions[status] || 'Unknown status';
+  return descriptions[status] ?? 'Unknown status';
 };
 
 /**

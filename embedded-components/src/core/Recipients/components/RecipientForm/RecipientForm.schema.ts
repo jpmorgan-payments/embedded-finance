@@ -81,8 +81,38 @@ const baseRecipientFormSchema = z.object({
     .min(1, 'At least one payment method is required'),
 
   // Account information (optional by default)
-  accountType: z.enum(['CHECKING', 'SAVINGS']).optional(),
-  accountNumber: z.string().optional(),
+  accountType: z.enum(['CHECKING', 'SAVINGS', 'IBAN']).optional(),
+  accountNumber: z
+    .string()
+    .optional()
+    .superRefine((value, ctx) => {
+      if (!value) return;
+
+      const trimmedValue = value.trim();
+      if (!trimmedValue) return;
+
+      const { parent: { accountType } = {} } = ctx as unknown as {
+        parent?: { accountType?: string };
+      };
+
+      if (accountType === 'IBAN') {
+        if (!/^[A-Z0-9]{1,35}$/.test(trimmedValue)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              'IBAN must contain only letters and numbers and be 1-35 characters long',
+          });
+        }
+        return;
+      }
+
+      if (!/^[0-9]{4,17}$/.test(trimmedValue)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Account number must be 4-17 digits',
+        });
+      }
+    }),
   countryCode: z.enum(['US', 'CA', 'GB', 'EU']).default('US'),
   currencyCode: z
     .string()

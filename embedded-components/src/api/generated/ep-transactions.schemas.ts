@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Transactions API
  * Initiate and track the movement of funds, including payments.
- * OpenAPI spec version: 2.0.23
+ * OpenAPI spec version: 2.0.27
  */
 /**
  * Unique Client identifier
@@ -296,7 +296,7 @@ export const RoutingInformationTransactionType = {
  * Routing number corresponding to the routing code type
  * @minLength 1
  * @maxLength 13
- * @pattern ^[0-9a-zA-Z]{3,13}$
+ * @pattern ^[A-Za-z0-9]([A-Za-z0-9\-]{0,11})[A-Za-z0-9]$
  */
 export type RoutingNumber = string;
 
@@ -307,19 +307,20 @@ export interface RoutingInformation {
 }
 
 /**
- * Type of bank account, either CHECKING or SAVINGS. Only required for ACH payments. Exclude field from payload completely if not needed.
+ * Type of bank account.
  */
 export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountType = {
   CHECKING: 'CHECKING',
+  IBAN: 'IBAN',
   SAVINGS: 'SAVINGS',
 } as const;
 
 /**
- * Payment Routing Number or Demand Deposit Account number.
- * @pattern ^\d{1,35}$
+ * Demand Deposit Account number or International Account Number (IBAN).
+ * @pattern ^[A-Z0-9]{1,35}$
  */
 export type AccountNumber = string;
 

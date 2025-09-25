@@ -5,7 +5,7 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import { SELLSENSE_THEME } from '@/core/themes';
 
-import { MakePayment } from './MakePayment';
+import { MakePayment } from '../MakePayment';
 
 interface MakePaymentWithProviderProps extends EBConfig {
   triggerButton?: React.ReactNode;
@@ -24,7 +24,7 @@ interface MakePaymentWithProviderProps extends EBConfig {
     description?: string;
   }>;
   recipientId?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   onTransactionSettled?: (response?: any, error?: any) => void;
 }
 

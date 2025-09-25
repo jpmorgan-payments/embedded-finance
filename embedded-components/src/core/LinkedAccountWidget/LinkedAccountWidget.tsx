@@ -19,21 +19,24 @@ const StatusBadge = ({ status }: { status: RecipientStatus }) => {
     ACTIVE: {
       variant: 'success',
     },
+    INACTIVE: {
+      variant: 'secondary',
+    },
     MICRODEPOSITS_INITIATED: {
       variant: 'secondary',
     },
-    REJECTED: {
-      variant: 'destructive',
+    PENDING: {
+      variant: 'secondary',
     },
     READY_FOR_VALIDATION: {},
-    INACTIVE: {
-      variant: 'secondary',
+    REJECTED: {
+      variant: 'destructive',
     },
   };
 
   return (
     <Badge {...propsMap[status]} className="eb-text-xs">
-      {status.replace('_', ' ')}
+      {status.replace(/_/g, ' ')}
     </Badge>
   );
 };

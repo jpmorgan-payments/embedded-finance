@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Recipients API
  * Set up and manage who can be paid through transactions.
- * OpenAPI spec version: 1.0.23
+ * OpenAPI spec version: 1.0.27
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
