@@ -21,7 +21,6 @@ import {
   AccountSelector,
   AdditionalInformation,
   AmountInput,
-  ArrivalDate,
   PaymentMethodSelector,
   PaymentSuccess,
   RecipientDetails,
@@ -153,13 +152,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   // Restore pre-selected values when dialog opens
   useEffect(() => {
     if (dialogOpen) {
-      if (recipientId && paymentData.accounts?.items) {
-        if (paymentData.accounts.items.length === 1) {
-          form.setValue('from', paymentData.accounts.items[0].id);
-        }
+      // Auto-select single account
+      if (paymentData.accounts?.items?.length === 1) {
+        form.setValue('from', paymentData.accounts.items[0].id);
+      }
+
+      // Auto-select single recipient
+      if (paymentData.filteredRecipients?.length === 1) {
+        form.setValue('to', paymentData.filteredRecipients[0].id);
       }
     }
-  }, [dialogOpen, recipientId, paymentData.accounts?.items, form]);
+  }, [
+    dialogOpen,
+    paymentData.accounts?.items,
+    paymentData.filteredRecipients,
+    form,
+  ]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
   useEffect(() => {
@@ -181,8 +189,8 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   }, [dialogOpen, recipientId, paymentData.filteredRecipients, form]);
 
   const handleMakeAnotherPayment = () => {
+    setLocalSuccess(false);
     resetForm();
-    setDialogOpen(true);
   };
 
   // Get the icon component if it exists in Lucide
@@ -236,6 +244,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
               {localSuccess ? (
                 <PaymentSuccess
                   onMakeAnotherPayment={handleMakeAnotherPayment}
+                  filteredRecipients={paymentData.filteredRecipients}
+                  accounts={paymentData.accounts}
+                  formData={form.getValues()}
                 />
               ) : (
                 <FormProvider {...form}>
@@ -260,11 +271,14 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 }
                               />
 
-                              <RecipientDetails
-                                selectedRecipient={
-                                  paymentData.selectedRecipient
-                                }
-                              />
+                              {/* Hide recipient details when there's only one recipient */}
+                              {paymentData.filteredRecipients?.length !== 1 && (
+                                <RecipientDetails
+                                  selectedRecipient={
+                                    paymentData.selectedRecipient
+                                  }
+                                />
+                              )}
                             </CardContent>
                           </Card>
 
@@ -308,14 +322,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             </CardContent>
                           </Card>
 
-                          {/* Section 5: When do you want the payment to arrive? */}
-                          <Card className="eb-p-4">
-                            <CardContent className="eb-p-0">
-                              <ArrivalDate />
-                            </CardContent>
-                          </Card>
-
-                          {/* Section 6: Additional Information (optional) */}
+                          {/* Section 5: Additional Information (optional) */}
                           <Card className="eb-p-4">
                             <CardContent className="eb-p-0">
                               <AdditionalInformation />

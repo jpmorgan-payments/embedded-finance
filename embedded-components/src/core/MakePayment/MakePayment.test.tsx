@@ -286,4 +286,121 @@ describe('MakePayment (Refactored)', () => {
     // Check if review panel is rendered
     expect(screen.getByText('Review payment')).toBeInTheDocument();
   });
+
+  test('payment success screen displays correctly after successful payment', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Fill out the form
+    // Select recipient
+    const recipientSelect = screen.getByRole('combobox', {
+      name: /select or type recipient/i,
+    });
+    await userEvent.click(recipientSelect);
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText('John Doe'));
+
+    // Select account
+    const accountSelect = screen.getByRole('combobox', { name: /pay from/i });
+    await userEvent.click(accountSelect);
+    await waitFor(() => {
+      expect(screen.getByText('Checking Account')).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText('Checking Account'));
+
+    // Enter amount
+    const amountInput = screen.getByPlaceholderText('0.00');
+    await userEvent.type(amountInput, '100.00');
+
+    // Select payment method
+    await waitFor(() => {
+      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText(/ACH/i));
+
+    // Submit the form
+    const submitButton = screen.getByRole('button', {
+      name: /confirm payment/i,
+    });
+    await userEvent.click(submitButton);
+
+    // Wait for success screen
+    await waitFor(() => {
+      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
+    });
+
+    // Check that payment details are displayed
+    expect(screen.getByText('$100.00 USD')).toBeInTheDocument();
+    expect(screen.getByText(/ACH to John Doe/)).toBeInTheDocument();
+    expect(screen.getByText('Payment Details')).toBeInTheDocument();
+    expect(screen.getByText('Make Another Payment')).toBeInTheDocument();
+  });
+
+  test('make another payment button works correctly', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Fill out and submit form (simplified version)
+    const recipientSelect = screen.getByRole('combobox', {
+      name: /select or type recipient/i,
+    });
+    await userEvent.click(recipientSelect);
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText('John Doe'));
+
+    const accountSelect = screen.getByRole('combobox', { name: /pay from/i });
+    await userEvent.click(accountSelect);
+    await waitFor(() => {
+      expect(screen.getByText('Checking Account')).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText('Checking Account'));
+
+    const amountInput = screen.getByPlaceholderText('0.00');
+    await userEvent.type(amountInput, '100.00');
+
+    await waitFor(() => {
+      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText(/ACH/i));
+
+    const submitButton = screen.getByRole('button', {
+      name: /confirm payment/i,
+    });
+    await userEvent.click(submitButton);
+
+    // Wait for success screen
+    await waitFor(() => {
+      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
+    });
+
+    // Click make another payment button
+    const makeAnotherButton = screen.getByText('Make Another Payment');
+    await userEvent.click(makeAnotherButton);
+
+    // Should return to the form
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Form should be reset
+    expect(
+      screen.getByRole('combobox', { name: /select or type recipient/i })
+    ).toHaveValue('');
+  });
 });
