@@ -23,6 +23,7 @@ import type {
   ListAccountsResponse,
   PaymentFormData,
 } from '../../types';
+import { formatCurrency } from '../../utils';
 
 interface AccountSelectorProps {
   accounts: ListAccountsResponse | undefined;
@@ -138,7 +139,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                           Available Balance
                         </span>
                         <span className="eb-font-mono eb-font-medium">
-                          ${availableBalanceData.amount.toFixed(2)}{' '}
+                          ${formatCurrency(availableBalanceData.amount)}{' '}
                           {accountBalance?.currency}
                         </span>
                       </div>

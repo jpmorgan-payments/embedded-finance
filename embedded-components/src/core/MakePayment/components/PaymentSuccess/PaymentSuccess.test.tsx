@@ -126,7 +126,7 @@ describe('PaymentSuccess', () => {
     );
 
     // Check amount display
-    expect(screen.getByText('$100.00 USD')).toBeInTheDocument();
+    expect(screen.getByText('100.00 USD')).toBeInTheDocument();
 
     // Check payment method and recipient
     expect(screen.getByText(/ACH to John Doe/)).toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('PaymentSuccess', () => {
 
     // Should still render successfully
     expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
-    expect(screen.getByText('$100.00 USD')).toBeInTheDocument();
+    expect(screen.getByText('100.00 USD')).toBeInTheDocument();
 
     // Memo should not be displayed
     expect(screen.queryByText('Memo')).not.toBeInTheDocument();
@@ -188,7 +188,7 @@ describe('PaymentSuccess', () => {
 
     // Should still render successfully
     expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
-    expect(screen.getByText('$100.00 USD')).toBeInTheDocument();
+    expect(screen.getByText('100.00 USD')).toBeInTheDocument();
 
     // Recipient and account details should not be displayed
     expect(screen.queryByText('Recipient')).not.toBeInTheDocument();

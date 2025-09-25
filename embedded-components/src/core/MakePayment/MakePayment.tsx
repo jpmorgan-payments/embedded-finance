@@ -45,6 +45,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   ],
   icon,
   recipientId,
+  showPreviewPanel = true, // Default to true for backward compatibility
   onTransactionSettled,
 }) => {
   const { t } = useTranslation(['make-payment']);
@@ -255,7 +256,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       onSubmit={form.handleSubmit(handlePaymentSubmit)}
                       className="eb-px-2 eb-py-2"
                     >
-                      <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">
+                      <div
+                        className={`eb-grid eb-grid-cols-1 eb-gap-4 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
+                      >
                         <div className="eb-space-y-6">
                           {/* Section 1: Who are you paying? */}
                           <Card className="eb-p-4">
@@ -337,16 +340,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           )}
                         </div>
 
-                        <div className="eb-order-last md:eb-order-none">
-                          <ReviewPanel
-                            filteredRecipients={paymentData.filteredRecipients}
-                            accounts={paymentData.accounts}
-                            accountsStatus={paymentData.accountsStatus}
-                          />
-                        </div>
+                        {showPreviewPanel && (
+                          <div className="eb-order-last md:eb-order-none">
+                            <ReviewPanel
+                              filteredRecipients={
+                                paymentData.filteredRecipients
+                              }
+                              accounts={paymentData.accounts}
+                              accountsStatus={paymentData.accountsStatus}
+                            />
+                          </div>
+                        )}
 
                         {/* Submit button placed as a grid child to control ordering and column placement */}
-                        <div className="eb-order-last md:eb-order-none md:eb-col-start-1 md:eb-col-end-2">
+                        <div
+                          className={`eb-order-last md:eb-order-none ${showPreviewPanel ? 'md:eb-col-start-1 md:eb-col-end-2' : ''}`}
+                        >
                           <Button
                             type="submit"
                             className="eb-w-full"
