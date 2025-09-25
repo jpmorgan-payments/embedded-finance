@@ -2,6 +2,7 @@ import React from 'react';
 import { CreditCard } from 'lucide-react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
+import { AccountType } from '@/api/generated/ep-recipients.schemas';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/select';
 
 import type { AccountDetailsSectionProps } from './RecipientForm.types';
-import { AccountType } from '@/api/generated/ep-recipients.schemas';
 
 export const AccountDetailsSection: React.FC<AccountDetailsSectionProps> = ({
   control,
