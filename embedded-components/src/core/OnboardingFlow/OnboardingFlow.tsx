@@ -179,6 +179,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
+  const { t } = useTranslation(['onboarding-overview']);
   const { clientData, organizationType, docUploadOnlyMode, enableSidebar } =
     useOnboardingContext();
   const {
@@ -251,7 +252,13 @@ const FlowRenderer: React.FC = React.memo(() => {
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {
     if (!screen) {
-      return <div>Unknown screen id: {currentScreenId}</div>;
+      return (
+        <div>
+          {t('onboarding-overview:errors.unknownScreenId', {
+            screenId: currentScreenId,
+          })}
+        </div>
+      );
     }
 
     if (screen.type === 'component') {
@@ -263,8 +270,8 @@ const FlowRenderer: React.FC = React.memo(() => {
       return <StepperRenderer key={screen.id} {...screen.stepperConfig} />;
     }
 
-    return <div>Unhandled screen error</div>;
-  }, [screen, currentScreenId]);
+    return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
+  }, [screen, currentScreenId, t]);
 
   return (
     <div
@@ -276,7 +283,7 @@ const FlowRenderer: React.FC = React.memo(() => {
         <div className="eb-shrink-0">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
-            title="Onboarding Progress"
+            title={t('onboarding-overview:documentUpload.onboardingProgress')}
             disableInteraction={isFormSubmitting}
             currentSectionId={currentScreenId}
             currentStepId={currentStepperStepId}
@@ -328,7 +335,7 @@ const FlowRenderer: React.FC = React.memo(() => {
             sections={[
               {
                 id: 'gateway',
-                title: 'Business type',
+                title: t('onboarding-overview:flowRenderer.businessType'),
                 status: organizationType ? 'completed' : 'not_started',
                 steps: [],
               },

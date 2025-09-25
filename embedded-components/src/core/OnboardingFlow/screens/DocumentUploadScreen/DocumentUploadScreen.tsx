@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -18,6 +19,7 @@ import { StatusMessages } from './StatusMessages';
  * Component for document upload screen in the onboarding process
  */
 export const DocumentUploadScreen: FC = () => {
+  const { t } = useTranslation(['onboarding-overview']);
   const { clientData, clientGetStatus, docUploadOnlyMode } =
     useOnboardingContext();
   const { goTo } = useFlowContext();
@@ -97,7 +99,13 @@ export const DocumentUploadScreen: FC = () => {
     // Show loading state when requests are pending
     // @ts-expect-error - Status can be 'pending'
     if (documentRequestGetListStatus === 'pending') {
-      return <FormLoadingState message="Loading document requests" />;
+      return (
+        <FormLoadingState
+          message={t(
+            'onboarding-overview:documentUpload.loadingDocumentRequests'
+          )}
+        />
+      );
     }
 
     // Group document requests by party type
@@ -109,7 +117,7 @@ export const DocumentUploadScreen: FC = () => {
       <div className="eb-space-y-6">
         {/* Business document requests section */}
         <DocumentRequestsSection
-          title="For the business"
+          title={t('onboarding-overview:documentUpload.businessSectionTitle')}
           documentRequests={businessDocumentRequests}
           clientData={clientData}
           onDocRequestSelect={handleDocRequestSelect}
@@ -117,7 +125,7 @@ export const DocumentUploadScreen: FC = () => {
 
         {/* Individual document requests section */}
         <DocumentRequestsSection
-          title="For owners and key roles"
+          title={t('onboarding-overview:documentUpload.ownersSectionTitle')}
           documentRequests={individualDocumentRequests}
           clientData={clientData}
           onDocRequestSelect={handleDocRequestSelect}
@@ -128,12 +136,14 @@ export const DocumentUploadScreen: FC = () => {
 
   return (
     <StepLayout
-      title="Supporting documents"
+      title={t('onboarding-overview:documentUpload.title')}
       description={
         documentRequestGetListStatus === 'success' &&
         clientData?.status === 'INFORMATION_REQUESTED' &&
         hasDocumentRequests
-          ? 'To satisfy regulatory requirements, we need to obtain the following'
+          ? t(
+              'onboarding-overview:documentUpload.regulatoryRequirementsDescription'
+            )
           : undefined
       }
     >
@@ -149,7 +159,7 @@ export const DocumentUploadScreen: FC = () => {
               className="eb-w-full eb-text-lg"
               onClick={() => goTo('overview')}
             >
-              Return to overview
+              {t('onboarding-overview:documentUpload.returnToOverview')}
             </Button>
           </div>
         </div>

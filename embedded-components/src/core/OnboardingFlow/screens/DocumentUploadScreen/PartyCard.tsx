@@ -8,6 +8,7 @@ import {
   FileIcon,
   UploadIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetAllDocumentDetails } from '@/api/generated/smbdo';
 import {
@@ -57,6 +58,7 @@ export const PartyCard: FC<PartyCardProps> = ({
   docRequest,
   onUploadClick,
 }) => {
+  const { t } = useTranslation(['onboarding-overview']);
   // Helper function to format timestamp to readable date
   const formatUploadTime = (timestamp: string): string => {
     if (!timestamp) return '';
@@ -133,36 +135,54 @@ export const PartyCard: FC<PartyCardProps> = ({
           {docRequest.status === 'ACTIVE' && (
             <span>
               <CircleDashedIcon className="eb-size-5 eb-text-muted-foreground" />
-              <span className="eb-sr-only">Pending</span>
+              <span className="eb-sr-only">
+                {t(
+                  'onboarding-overview:documentUpload.partyCard.statusLabels.pending'
+                )}
+              </span>
             </span>
           )}
           {docRequest.status === 'CLOSED' && (
             <span>
               <CheckCircle2Icon className="eb-size-5 eb-stroke-green-700" />
-              <span className="eb-sr-only">Completed</span>
+              <span className="eb-sr-only">
+                {t(
+                  'onboarding-overview:documentUpload.partyCard.statusLabels.completed'
+                )}
+              </span>
             </span>
           )}
           {docRequest.status === 'EXPIRED' && (
             <span>
               <AlertTriangle className="eb-size-5 eb-stroke-[#C75300]" />
-              <span className="eb-sr-only">Expired</span>
+              <span className="eb-sr-only">
+                {t(
+                  'onboarding-overview:documentUpload.partyCard.statusLabels.expired'
+                )}
+              </span>
             </span>
           )}
         </div>
         <div className="eb-flex eb-gap-2">
           {party.roles?.includes('CLIENT') && (
             <Badge variant="subtle" size="lg">
-              Business
+              {t(
+                'onboarding-overview:documentUpload.partyCard.roleLabels.business'
+              )}
             </Badge>
           )}
           {party.roles?.includes('BENEFICIAL_OWNER') && (
             <Badge variant="subtle" size="lg">
-              Owner
+              {t(
+                'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
+              )}
             </Badge>
           )}
           {party.roles?.includes('CONTROLLER') && (
             <Badge variant="subtle" size="lg">
-              Controller
+              {t(
+                'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
+              )}
             </Badge>
           )}
         </div>
@@ -174,12 +194,13 @@ export const PartyCard: FC<PartyCardProps> = ({
             className="eb-w-full eb-border-primary eb-text-primary"
             onClick={onUploadClick}
           >
-            <UploadIcon /> Upload documents
+            <UploadIcon />{' '}
+            {t('onboarding-overview:documentUpload.partyCard.uploadDocuments')}
           </Button>
         ) : (
           <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
             <CheckIcon className="eb-size-4" />
-            Required documents successfully uploaded
+            {t('onboarding-overview:documentUpload.partyCard.successMessage')}
           </div>
         )}
         <div>
@@ -224,7 +245,10 @@ export const PartyCard: FC<PartyCardProps> = ({
                         <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2">
                           <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
                           <span className="eb-text-xs eb-text-muted-foreground">
-                            Uploaded on {formatUploadTime(uploadTime)}
+                            {t(
+                              'onboarding-overview:documentUpload.partyCard.uploadedOn'
+                            )}{' '}
+                            {formatUploadTime(uploadTime)}
                           </span>
                         </div>
                       )}
