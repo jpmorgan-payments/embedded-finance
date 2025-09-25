@@ -78,7 +78,8 @@ export const GatewayScreen = () => {
     onPostPartySettled,
     availableOrganizationTypes,
   } = useOnboardingContext();
-  const { goTo, sessionData, updateSessionData } = useFlowContext();
+  const { goTo, sessionData, updateSessionData, setIsFormSubmitting } =
+    useFlowContext();
 
   const { t } = useTranslation(['onboarding-overview', 'common']);
 
@@ -94,6 +95,7 @@ export const GatewayScreen = () => {
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
   const handleNext = () => {
+    setIsFormSubmitting(false);
     goTo('overview');
   };
 
@@ -350,6 +352,11 @@ export const GatewayScreen = () => {
     clientUpdateStatus === 'pending' ||
     clientPostStatus === 'pending' ||
     partyUpdateStatus === 'pending';
+
+  useEffect(() => {
+    setIsFormSubmitting(isFormSubmitting);
+  }, [isFormSubmitting]);
+
   const isFormPopulating = existingOrgParty && !isFormPopulated;
 
   const isFormDisabled = isFormSubmitting || isFormPopulating;

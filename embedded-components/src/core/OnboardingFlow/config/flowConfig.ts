@@ -35,6 +35,7 @@ import {
 import {
   clientHasOutstandingDocRequests,
   getActiveOwners,
+  getOrganizationParty,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 
@@ -157,6 +158,14 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'hidden';
         }
+
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'on_hold';
+        }
+
         if (allStepsValid) {
           return 'completed';
         }
@@ -268,6 +277,14 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'hidden';
         }
+
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'on_hold';
+        }
+
         if (allStepsValid) {
           return 'completed';
         }
@@ -383,6 +400,13 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'hidden';
         }
 
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'hidden';
+        }
+
         if (!allOwnersValid) {
           return 'missing_details';
         }
@@ -426,6 +450,13 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'hidden';
         }
+
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'on_hold';
+        }
         if (sectionCompleted) {
           return 'completed';
         }
@@ -452,6 +483,13 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
+        }
+
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'on_hold';
         }
         return 'not_started';
       },
@@ -518,6 +556,13 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'DECLINED'
         ) {
           return 'hidden';
+        }
+
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'on_hold';
         }
         return 'completed_disabled';
       },

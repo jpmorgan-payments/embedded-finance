@@ -115,6 +115,12 @@ module.exports = {
           DEFAULT: 'hsl(var(--eb-alert))',
           foreground: 'hsl(var(--eb-alert-foreground))',
         },
+        sidebar: {
+          DEFAULT: 'hsl(var(--eb-sidebar-background))',
+          foreground: 'hsl(var(--eb-sidebar-foreground))',
+          accent: 'hsl(var(--eb-sidebar-accent))',
+          'accent-foreground': 'hsl(var(--eb-sidebar-accent-foreground))',
+        },
       },
       borderRadius: {
         lg: 'calc(var(--eb-radius) + 2px)',
@@ -125,12 +131,20 @@ module.exports = {
       },
       keyframes: {
         'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
+          from: {
+            height: '0',
+          },
+          to: {
+            height: 'var(--radix-accordion-content-height)',
+          },
         },
         'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
+          from: {
+            height: 'var(--radix-accordion-content-height)',
+          },
+          to: {
+            height: '0',
+          },
         },
       },
       animation: {
