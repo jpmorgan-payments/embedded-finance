@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
@@ -33,6 +34,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   userEventsHandler,
   height,
   onGetClientSettled,
+  enableSidebar = false,
   ...props
 }) => {
   const [clientId, setClientId] = useState(initialClientId ?? '');
@@ -132,11 +134,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientData,
         setClientId,
         organizationType,
+        enableSidebar,
       }}
     >
       <div
         id="embedded-component-layout"
-        className="eb-component eb-mx-auto eb-flex eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-max-w-screen-lg sm:eb-p-10 sm:eb-pb-12"
+        className={cn(
+          'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
+          {
+            'eb-max-w-screen-lg': enableSidebar,
+          }
+        )}
         style={{ minHeight: height }}
         key={initialClientId}
       >
@@ -170,7 +178,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
-  const { clientData, organizationType, docUploadOnlyMode } =
+  const { clientData, organizationType, docUploadOnlyMode, enableSidebar } =
     useOnboardingContext();
   const {
     currentScreenId,
@@ -263,7 +271,7 @@ const FlowRenderer: React.FC = React.memo(() => {
       ref={mainRef}
       key={clientData?.id}
     >
-      {!isMobile && (
+      {!isMobile && enableSidebar && (
         <div className="eb-shrink-0">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"

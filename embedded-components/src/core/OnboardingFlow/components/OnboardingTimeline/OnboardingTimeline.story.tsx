@@ -7,7 +7,7 @@ import { OnboardingTimeline, TimelineSection } from './OnboardingTimeline';
 
 const meta: Meta<typeof OnboardingTimeline> = {
   component: OnboardingTimeline,
-  title: 'Core/OnboardingFlow/OnboardingTimeline',
+  title: 'Core/OnboardingFlow/Components/OnboardingTimeline',
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',

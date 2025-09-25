@@ -74,13 +74,10 @@ describe('OnboardingTimeline', () => {
   });
 
   test('renders correctly with initial data', () => {
-    render(<OnboardingTimeline {...mockProps} />);
+    render(<OnboardingTimeline {...mockProps} title="Onboarding Progress" />);
 
     // Check header content
     expect(screen.getByText('Onboarding Progress')).toBeInTheDocument();
-    expect(
-      screen.getByText('Complete each step to continue')
-    ).toBeInTheDocument();
 
     // Check sections are rendered
     expect(screen.getByText('Personal Information')).toBeInTheDocument();
@@ -135,12 +132,52 @@ describe('OnboardingTimeline', () => {
     const currentSectionButton = screen
       .getByText('Business Information')
       .closest('button');
-    expect(currentSectionButton).toHaveClass('eb-font-medium');
 
-    // Check for blue indicator line
-    const blueIndicator =
-      currentSectionButton?.querySelector('.eb-bg-blue-500');
-    expect(blueIndicator).toBeInTheDocument();
+    // Current section with steps and a current step should NOT have highlight
+    // because the highlight is only for sections without steps or without current step
+    expect(currentSectionButton).toHaveClass('eb-bg-transparent');
+    expect(currentSectionButton).not.toHaveClass('eb-bg-sidebar-accent');
+
+    // Check that there's no primary indicator line for section with current step
+    const primaryIndicator =
+      currentSectionButton?.querySelector('.eb-bg-primary');
+    expect(primaryIndicator).not.toBeInTheDocument();
+  });
+
+  test('applies correct styling for current section without steps', () => {
+    const sectionsWithoutSteps: TimelineSection[] = [
+      {
+        id: 'section1' as ScreenId,
+        title: 'Simple Section',
+        status: 'current',
+        steps: [],
+      },
+    ];
+
+    render(
+      <OnboardingTimeline
+        sections={sectionsWithoutSteps}
+        currentSectionId="section1"
+        onSectionClick={vi.fn()}
+        onStepClick={vi.fn()}
+      />
+    );
+
+    const currentSectionButton = screen
+      .getByText('Simple Section')
+      .closest('button');
+
+    // Section without steps should have highlight styling
+    expect(currentSectionButton).toHaveClass('eb-bg-sidebar-accent');
+    expect(currentSectionButton).toHaveClass('eb-font-medium');
+    expect(currentSectionButton).toHaveClass(
+      'eb-text-sidebar-accent-foreground'
+    );
+
+    // Check for primary indicator line
+    const primaryIndicator =
+      currentSectionButton?.querySelector('.eb-bg-primary');
+    expect(primaryIndicator).toBeInTheDocument();
   });
 
   test('applies correct styling for current step', () => {
@@ -157,11 +194,23 @@ describe('OnboardingTimeline', () => {
     render(<OnboardingTimeline {...mockProps} />);
 
     // Check that status icons are rendered (using class selectors since icons are SVG)
-    const completedIcons = document.querySelectorAll('.eb-bg-green-500');
+    const completedIcons = document.querySelectorAll('.eb-bg-success');
     expect(completedIcons.length).toBeGreaterThan(0);
 
-    const not_startedIcons = document.querySelectorAll('.eb-text-gray-400');
-    expect(not_startedIcons.length).toBeGreaterThan(0);
+    const notStartedIcons = document.querySelectorAll(
+      '.eb-text-muted-foreground\\/80'
+    );
+    expect(notStartedIcons.length).toBeGreaterThan(0);
+
+    // Check for current status icons (they have border-success class)
+    const currentIcons = document.querySelectorAll('.eb-border-success');
+    expect(currentIcons.length).toBeGreaterThan(0);
+
+    // Check that we have CircleDashed icons for not_started items
+    const circleDashedIcons = document.querySelectorAll(
+      '.lucide-circle-dashed'
+    );
+    expect(circleDashedIcons.length).toBeGreaterThan(0);
   });
 
   test('shows steps only for current section', () => {
@@ -275,7 +324,9 @@ describe('OnboardingTimeline', () => {
 
     const timelineElement = container.firstChild as HTMLElement;
     expect(timelineElement).toHaveClass(customClass);
-    expect(timelineElement).toHaveClass('eb-w-80'); // Default classes should still be present
+    expect(timelineElement).toHaveClass('eb-component'); // Default classes should still be present
+    expect(timelineElement).toHaveClass('eb-flex');
+    expect(timelineElement).toHaveClass('eb-flex-col');
   });
 
   test('passes through additional props', () => {
@@ -299,17 +350,28 @@ describe('OnboardingTimeline', () => {
   test('displays proper visual hierarchy', () => {
     render(<OnboardingTimeline {...mockProps} />);
 
-    // Section titles should have appropriate styling
+    // All section buttons should have consistent base styling
     const sectionTitles = screen.getAllByText(/Information|Documents/);
     sectionTitles.forEach((title) => {
       const button = title.closest('button');
-      expect(button).toHaveClass('eb-font-medium');
+      expect(button).toHaveClass('eb-peer/menu-button');
+      expect(button).toHaveClass('eb-relative');
+      expect(button).toHaveClass('eb-flex');
     });
 
-    // Current section should have font-semibold
+    // Current section with steps should not have highlight (only shows on steps)
     const currentSectionButton = screen
       .getByText('Business Information')
       .closest('button');
-    expect(currentSectionButton).toHaveClass('eb-font-medium');
+    expect(currentSectionButton).toHaveClass('eb-bg-transparent');
+    expect(currentSectionButton).not.toHaveClass('eb-bg-sidebar-accent');
+
+    // Current step should have highlighted styling
+    const currentStepButton = screen
+      .getByText('Company Details')
+      .closest('button');
+    expect(currentStepButton).toHaveClass('eb-bg-sidebar-accent');
+    expect(currentStepButton).toHaveClass('eb-font-medium');
+    expect(currentStepButton).toHaveClass('eb-text-sidebar-accent-foreground');
   });
 });
