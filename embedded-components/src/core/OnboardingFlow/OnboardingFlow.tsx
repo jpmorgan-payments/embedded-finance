@@ -132,6 +132,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       value={{
         ...props,
         clientData,
+        clientGetStatus,
         setClientId,
         organizationType,
         enableSidebar,

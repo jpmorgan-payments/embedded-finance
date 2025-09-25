@@ -9,6 +9,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface StatusMessagesProps {
   /**
+   * Status of client data fetching
+   */
+  clientGetStatus: 'error' | 'success' | 'pending';
+  /**
    * Status of the client
    */
   clientStatus?: ClientStatus;
@@ -27,11 +31,17 @@ interface StatusMessagesProps {
  * Component that displays appropriate status messages based on client and document request status
  */
 export const StatusMessages: FC<StatusMessagesProps> = ({
+  clientGetStatus,
   clientStatus,
   documentRequestStatus,
   hasDocumentRequests,
   clientOutstanding,
 }): ReactElement | undefined => {
+  // If client data is still loading
+  if (clientGetStatus === 'pending') {
+    return undefined; // FormLoadingState will be shown by the parent component
+  }
+
   // Client is under review
   if (clientStatus === 'REVIEW_IN_PROGRESS') {
     return (

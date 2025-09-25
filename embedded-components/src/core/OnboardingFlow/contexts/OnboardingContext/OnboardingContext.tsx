@@ -8,6 +8,7 @@ import { OnboardingConfigUsedInContext } from '@/core/OnboardingFlow/types/onboa
 
 export type OnboardingContextType = OnboardingConfigUsedInContext & {
   clientData: ClientResponse | undefined;
+  clientGetStatus: 'error' | 'success' | 'pending';
   setClientId: (clientId: string) => void;
   organizationType: OrganizationType | undefined;
 };

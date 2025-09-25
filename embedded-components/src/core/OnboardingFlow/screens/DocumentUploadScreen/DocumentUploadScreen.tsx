@@ -18,7 +18,8 @@ import { StatusMessages } from './StatusMessages';
  * Component for document upload screen in the onboarding process
  */
 export const DocumentUploadScreen: FC = () => {
-  const { clientData, docUploadOnlyMode } = useOnboardingContext();
+  const { clientData, clientGetStatus, docUploadOnlyMode } =
+    useOnboardingContext();
   const { goTo } = useFlowContext();
   const queryClient = useQueryClient();
   const prevDocRequestsRef = useRef<string | null>(null);
@@ -78,6 +79,7 @@ export const DocumentUploadScreen: FC = () => {
   const renderContent = () => {
     // Check for status messages that should be displayed
     const statusMessages = StatusMessages({
+      clientGetStatus,
       clientStatus: clientData?.status,
       documentRequestStatus: documentRequestGetListStatus,
       hasDocumentRequests,
