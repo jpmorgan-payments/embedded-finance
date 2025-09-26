@@ -21,7 +21,6 @@ import {
   AccountSelector,
   AdditionalInformation,
   AmountInput,
-  ArrivalDate,
   PaymentMethodSelector,
   PaymentSuccess,
   RecipientDetails,
@@ -46,6 +45,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   ],
   icon,
   recipientId,
+  showPreviewPanel = true, // Default to true for backward compatibility
   onTransactionSettled,
 }) => {
   const { t } = useTranslation(['make-payment']);
@@ -153,13 +153,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   // Restore pre-selected values when dialog opens
   useEffect(() => {
     if (dialogOpen) {
-      if (recipientId && paymentData.accounts?.items) {
-        if (paymentData.accounts.items.length === 1) {
-          form.setValue('from', paymentData.accounts.items[0].id);
-        }
+      // Auto-select single account
+      if (paymentData.accounts?.items?.length === 1) {
+        form.setValue('from', paymentData.accounts.items[0].id);
+      }
+
+      // Auto-select single recipient
+      if (paymentData.filteredRecipients?.length === 1) {
+        form.setValue('to', paymentData.filteredRecipients[0].id);
       }
     }
-  }, [dialogOpen, recipientId, paymentData.accounts?.items, form]);
+  }, [
+    dialogOpen,
+    paymentData.accounts?.items,
+    paymentData.filteredRecipients,
+    form,
+  ]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
   useEffect(() => {
@@ -181,8 +190,8 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   }, [dialogOpen, recipientId, paymentData.filteredRecipients, form]);
 
   const handleMakeAnotherPayment = () => {
+    setLocalSuccess(false);
     resetForm();
-    setDialogOpen(true);
   };
 
   // Get the icon component if it exists in Lucide
@@ -236,6 +245,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
               {localSuccess ? (
                 <PaymentSuccess
                   onMakeAnotherPayment={handleMakeAnotherPayment}
+                  filteredRecipients={paymentData.filteredRecipients}
+                  accounts={paymentData.accounts}
+                  formData={form.getValues()}
                 />
               ) : (
                 <FormProvider {...form}>
@@ -244,7 +256,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                       onSubmit={form.handleSubmit(handlePaymentSubmit)}
                       className="eb-px-2 eb-py-2"
                     >
-                      <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">
+                      <div
+                        className={`eb-grid eb-grid-cols-1 eb-gap-4 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
+                      >
                         <div className="eb-space-y-6">
                           {/* Section 1: Who are you paying? */}
                           <Card className="eb-p-4">
@@ -260,11 +274,14 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 }
                               />
 
-                              <RecipientDetails
-                                selectedRecipient={
-                                  paymentData.selectedRecipient
-                                }
-                              />
+                              {/* Hide recipient details when there's only one recipient */}
+                              {paymentData.filteredRecipients?.length !== 1 && (
+                                <RecipientDetails
+                                  selectedRecipient={
+                                    paymentData.selectedRecipient
+                                  }
+                                />
+                              )}
                             </CardContent>
                           </Card>
 
@@ -308,14 +325,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             </CardContent>
                           </Card>
 
-                          {/* Section 5: When do you want the payment to arrive? */}
-                          <Card className="eb-p-4">
-                            <CardContent className="eb-p-0">
-                              <ArrivalDate />
-                            </CardContent>
-                          </Card>
-
-                          {/* Section 6: Additional Information (optional) */}
+                          {/* Section 5: Additional Information (optional) */}
                           <Card className="eb-p-4">
                             <CardContent className="eb-p-0">
                               <AdditionalInformation />
@@ -330,16 +340,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           )}
                         </div>
 
-                        <div className="eb-order-last md:eb-order-none">
-                          <ReviewPanel
-                            filteredRecipients={paymentData.filteredRecipients}
-                            accounts={paymentData.accounts}
-                            accountsStatus={paymentData.accountsStatus}
-                          />
-                        </div>
+                        {showPreviewPanel && (
+                          <div className="eb-order-last md:eb-order-none">
+                            <ReviewPanel
+                              filteredRecipients={
+                                paymentData.filteredRecipients
+                              }
+                              accounts={paymentData.accounts}
+                              accountsStatus={paymentData.accountsStatus}
+                            />
+                          </div>
+                        )}
 
                         {/* Submit button placed as a grid child to control ordering and column placement */}
-                        <div className="eb-order-last md:eb-order-none md:eb-col-start-1 md:eb-col-end-2">
+                        <div
+                          className={`eb-order-last md:eb-order-none ${showPreviewPanel ? 'md:eb-col-start-1 md:eb-col-end-2' : ''}`}
+                        >
                           <Button
                             type="submit"
                             className="eb-w-full"

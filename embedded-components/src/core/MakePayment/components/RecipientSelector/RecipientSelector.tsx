@@ -47,6 +47,12 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
   const { linkedAccounts, regularRecipients } =
     groupRecipientsByType(filteredRecipients);
 
+  // Check if there's only one recipient available
+  const hasSingleRecipient = filteredRecipients.length === 1;
+  const singleRecipient = hasSingleRecipient
+    ? filteredRecipients[0]
+    : undefined;
+
   return (
     <FormField
       control={form.control}
@@ -56,11 +62,6 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
           <FormLabel>
             {t('fields.to.label', { defaultValue: '1. Who are you paying?' })}
           </FormLabel>
-          <div className="eb-mb-1 eb-text-xs eb-text-muted-foreground">
-            {t('helpers.to', {
-              defaultValue: 'Select or type recipient',
-            })}
-          </div>
           {recipientsStatus === 'pending' && (
             <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
               Loading recipients...
@@ -84,93 +85,116 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                 No recipients available
               </div>
             )}
-          <Select
-            onValueChange={field.onChange}
-            defaultValue={field.value}
-            value={field.value}
-            disabled={
-              recipientsStatus !== 'success' || filteredRecipients.length === 0
-            }
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={
-                    recipientsStatus === 'pending'
-                      ? 'Loading recipients...'
-                      : recipientsStatus === 'error'
-                        ? 'Failed to load recipients'
-                        : filteredRecipients.length === 0
-                          ? 'No recipients available'
-                          : t('fields.to.placeholder', {
-                              defaultValue: 'Select or type recipient',
-                            })
-                  }
-                />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent className="eb-max-h-60">
-              {/* Group recipients by type */}
-              <>
-                {/* Linked Accounts Group */}
-                {linkedAccounts.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
-                      Linked Accounts
-                    </SelectLabel>
-                    {linkedAccounts.map((recipient: Recipient) => (
-                      <SelectItem key={recipient.id} value={recipient.id}>
-                        {renderRecipientName(recipient)}
-                        {' - '}
-                        {recipient.account?.number
-                          ? maskAccount(recipient.account.number)
-                          : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
 
-                {/* Separator if both groups have items */}
-                {linkedAccounts.length > 0 && regularRecipients.length > 0 && (
-                  <SelectSeparator />
-                )}
+          {/* Show simple text label if only one recipient */}
+          {hasSingleRecipient &&
+          recipientsStatus === 'success' &&
+          singleRecipient ? (
+            <div className="eb-rounded-md eb-border eb-bg-muted/50 eb-p-3">
+              <div className="eb-text-sm eb-font-medium">
+                {renderRecipientName(singleRecipient)}
+                {' - '}
+                {singleRecipient.account?.number
+                  ? maskAccount(singleRecipient.account.number)
+                  : ''}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="eb-mb-1 eb-text-xs eb-text-muted-foreground">
+                {t('helpers.to', {
+                  defaultValue: 'Select or type recipient',
+                })}
+              </div>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+                disabled={
+                  recipientsStatus !== 'success' ||
+                  filteredRecipients.length === 0
+                }
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        recipientsStatus === 'pending'
+                          ? 'Loading recipients...'
+                          : recipientsStatus === 'error'
+                            ? 'Failed to load recipients'
+                            : filteredRecipients.length === 0
+                              ? 'No recipients available'
+                              : t('fields.to.placeholder', {
+                                  defaultValue: 'Select or type recipient',
+                                })
+                      }
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="eb-max-h-60">
+                  {/* Group recipients by type */}
+                  <>
+                    {/* Linked Accounts Group */}
+                    {linkedAccounts.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                          Linked Accounts
+                        </SelectLabel>
+                        {linkedAccounts.map((recipient: Recipient) => (
+                          <SelectItem key={recipient.id} value={recipient.id}>
+                            {renderRecipientName(recipient)}
+                            {' - '}
+                            {recipient.account?.number
+                              ? maskAccount(recipient.account.number)
+                              : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
 
-                {/* Regular Recipients Group */}
-                {regularRecipients.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
-                      Recipients
-                    </SelectLabel>
-                    {regularRecipients.map((recipient: Recipient) => (
-                      <SelectItem key={recipient.id} value={recipient.id}>
-                        {renderRecipientName(recipient)}
-                        {' - '}
-                        {recipient.account?.number
-                          ? maskAccount(recipient.account.number)
-                          : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
+                    {/* Separator if both groups have items */}
+                    {linkedAccounts.length > 0 &&
+                      regularRecipients.length > 0 && <SelectSeparator />}
 
-                {/* Fallback if no grouping is possible */}
-                {linkedAccounts.length === 0 &&
-                  regularRecipients.length === 0 && (
-                    <>
-                      {filteredRecipients.map((recipient: Recipient) => (
-                        <SelectItem key={recipient.id} value={recipient.id}>
-                          {renderRecipientName(recipient)}
-                          {' - '}
-                          {recipient.account?.number
-                            ? maskAccount(recipient.account.number)
-                            : ''}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-              </>
-            </SelectContent>
-          </Select>
+                    {/* Regular Recipients Group */}
+                    {regularRecipients.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
+                          Recipients
+                        </SelectLabel>
+                        {regularRecipients.map((recipient: Recipient) => (
+                          <SelectItem key={recipient.id} value={recipient.id}>
+                            {renderRecipientName(recipient)}
+                            {' - '}
+                            {recipient.account?.number
+                              ? maskAccount(recipient.account.number)
+                              : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+
+                    {/* Fallback if no grouping is possible */}
+                    {linkedAccounts.length === 0 &&
+                      regularRecipients.length === 0 && (
+                        <>
+                          {filteredRecipients.map((recipient: Recipient) => (
+                            <SelectItem key={recipient.id} value={recipient.id}>
+                              {renderRecipientName(recipient)}
+                              {' - '}
+                              {recipient.account?.number
+                                ? maskAccount(recipient.account.number)
+                                : ''}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                  </>
+                </SelectContent>
+              </Select>
+            </>
+          )}
           <FormMessage />
         </FormItem>
       )}

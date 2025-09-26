@@ -23,6 +23,7 @@ import type {
   ListAccountsResponse,
   PaymentFormData,
 } from '../../types';
+import { formatCurrency } from '../../utils';
 
 interface AccountSelectorProps {
   accounts: ListAccountsResponse | undefined;
@@ -43,6 +44,10 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
+
+  // Check if there's only one account available
+  const hasSingleAccount = accounts?.items?.length === 1;
+  const singleAccount = hasSingleAccount ? accounts.items[0] : null;
 
   return (
     <FormField
@@ -72,35 +77,47 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
               </Button>
             </div>
           )}
-          <Select
-            onValueChange={field.onChange}
-            defaultValue={field.value}
-            value={field.value}
-            disabled={accountsStatus !== 'success'}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={t('fields.from.placeholder', {
-                    defaultValue: 'Pay from',
-                  })}
-                />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {accounts?.items?.map((account: AccountResponseType) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.label} ({account.category})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-          <div className="eb-mt-1 eb-text-[11px] eb-text-muted-foreground">
-            {t('helpers.from.balance', {
-              defaultValue: 'Select or type name or last 4 numbers',
-            })}
-          </div>
+
+          {/* Show simple text label if only one account */}
+          {hasSingleAccount && accountsStatus === 'success' && singleAccount ? (
+            <div className="eb-rounded-md eb-border eb-bg-muted/50 eb-p-3">
+              <div className="eb-text-sm eb-font-medium">
+                {singleAccount.label} ({singleAccount.category})
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="eb-mb-1 eb-text-[11px] eb-text-muted-foreground">
+                {t('helpers.from.balance', {
+                  defaultValue: 'Select or type name or last 4 numbers',
+                })}
+              </div>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+                disabled={accountsStatus !== 'success'}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t('fields.from.placeholder', {
+                        defaultValue: 'Pay from',
+                      })}
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {accounts?.items?.map((account: AccountResponseType) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.label} ({account.category})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </>
+          )}
 
           {/* Account Balance Display */}
           {selectedAccountId && (
@@ -122,7 +139,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                           Available Balance
                         </span>
                         <span className="eb-font-mono eb-font-medium">
-                          ${availableBalanceData.amount.toFixed(2)}{' '}
+                          ${formatCurrency(availableBalanceData.amount)}{' '}
                           {accountBalance?.currency}
                         </span>
                       </div>
