@@ -23,6 +23,7 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn run test
+          yarn run build
       - name: Publish
         run: npm publish
         env:
