@@ -25,6 +25,7 @@ interface MakePaymentWithProviderProps extends EBConfig {
   }>;
   recipientId?: string;
   icon?: React.ReactNode;
+  showPreviewPanel?: boolean;
   onTransactionSettled?: (response?: any, error?: any) => void;
 }
 
@@ -453,6 +454,7 @@ const meta: Meta<MakePaymentWithProviderProps> = {
         recipientId,
         triggerButtonVariant,
         icon,
+        showPreviewPanel,
         onTransactionSettled,
       } = context.args;
       return (
@@ -481,6 +483,7 @@ const meta: Meta<MakePaymentWithProviderProps> = {
                   recipientId,
                   triggerButtonVariant,
                   icon,
+                  showPreviewPanel,
                   onTransactionSettled,
                 }}
               />
@@ -883,6 +886,27 @@ export const WithInvalidRecipientId: Story = {
       description: {
         story:
           'This story demonstrates the warning message that appears when a recipientId is provided but not found in the available recipients list.',
+      },
+    },
+  },
+};
+
+/**
+ * Without Preview Panel: Tests the showPreviewPanel=false functionality.
+ */
+export const WithoutPreviewPanel: Story = {
+  ...Default,
+  name: 'Without Preview Panel',
+  args: {
+    ...Default.args,
+    showPreviewPanel: false,
+    icon: 'CirclePlus',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the MakePayment component with the preview panel hidden. The layout adjusts to use the full width without the right-side review panel.',
       },
     },
   },

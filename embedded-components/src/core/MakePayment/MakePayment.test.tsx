@@ -224,12 +224,9 @@ describe('MakePayment (Refactored)', () => {
     });
     await userEvent.click(accountOption);
 
-    // Now check if recipient selector is enabled
+    // Since there's only one recipient, it should be displayed as text, not a select
     await waitFor(() => {
-      const recipientSelector = screen.getByRole('combobox', {
-        name: /who are you paying/i,
-      });
-      expect(recipientSelector).not.toBeDisabled();
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
   });
 
@@ -285,5 +282,230 @@ describe('MakePayment (Refactored)', () => {
 
     // Check if review panel is rendered
     expect(screen.getByText('Review payment')).toBeInTheDocument();
+  });
+
+  test('payment success screen displays correctly after successful payment', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Fill out the form
+    // Since there's only one recipient, it should be displayed as text, not a select
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+
+    // Select account
+    const accountSelect = screen.getByRole('combobox', {
+      name: /2\. Which account are you paying from\?/i,
+    });
+    await userEvent.click(accountSelect);
+    await waitFor(() => {
+      expect(
+        screen.getByRole('option', { name: 'Checking Account (DDA)' })
+      ).toBeInTheDocument();
+    });
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Checking Account (DDA)' })
+    );
+
+    // Enter amount
+    const amountInput = screen.getByPlaceholderText('0.00');
+    await userEvent.type(amountInput, '100.00');
+
+    // Select payment method
+    await waitFor(() => {
+      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText(/ACH/i));
+
+    // Submit the form
+    const submitButton = screen.getByRole('button', {
+      name: /confirm payment/i,
+    });
+    await userEvent.click(submitButton);
+
+    // Wait for success screen
+    await waitFor(() => {
+      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
+    });
+
+    // Check that payment details are displayed
+    expect(screen.getByText('100.00 USD')).toBeInTheDocument();
+    expect(screen.getByText(/ACH to John Doe/)).toBeInTheDocument();
+    expect(screen.getByText('Payment Details')).toBeInTheDocument();
+    expect(screen.getByText('Make Another Payment')).toBeInTheDocument();
+  });
+
+  test('make another payment button works correctly', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Fill out and submit form (simplified version)
+    // Since there's only one recipient, it should be displayed as text, not a select
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+
+    const accountSelect = screen.getByRole('combobox', {
+      name: /2\. Which account are you paying from\?/i,
+    });
+    await userEvent.click(accountSelect);
+    await waitFor(() => {
+      expect(
+        screen.getByRole('option', { name: 'Checking Account (DDA)' })
+      ).toBeInTheDocument();
+    });
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Checking Account (DDA)' })
+    );
+
+    const amountInput = screen.getByPlaceholderText('0.00');
+    await userEvent.type(amountInput, '100.00');
+
+    await waitFor(() => {
+      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByText(/ACH/i));
+
+    const submitButton = screen.getByRole('button', {
+      name: /confirm payment/i,
+    });
+    await userEvent.click(submitButton);
+
+    // Wait for success screen
+    await waitFor(() => {
+      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
+    });
+
+    // Click make another payment button
+    const makeAnotherButton = screen.getByText('Make Another Payment');
+    await userEvent.click(makeAnotherButton);
+
+    // Should return to the form
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Since there's only one recipient, it should be displayed as text, not a select
+    // So we just check that the recipient text is visible again
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+  });
+
+  test('preview panel is shown by default', async () => {
+    renderComponent();
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Review payment')).toBeInTheDocument();
+    });
+
+    // Preview panel should be visible
+    expect(screen.getByText('Review payment')).toBeInTheDocument();
+  });
+
+  test('preview panel can be hidden with showPreviewPanel=false', async () => {
+    // Render component with showPreviewPanel=false
+    server.resetHandlers();
+    server.use(
+      http.get('/accounts', () => {
+        return HttpResponse.json(mockAccounts);
+      }),
+      http.get('/recipients', () => {
+        return HttpResponse.json(mockRecipients);
+      }),
+      http.get('/accounts/:id/balances', () => {
+        return HttpResponse.json(mockAccountBalance);
+      }),
+      http.post('/transactions', () => {
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    render(
+      <EBComponentsProvider
+        apiBaseUrl="/"
+        headers={{}}
+        contentTokens={{
+          name: 'enUS',
+        }}
+      >
+        <QueryClientProvider client={queryClient}>
+          <MakePayment showPreviewPanel={false} />
+        </QueryClientProvider>
+      </EBComponentsProvider>
+    );
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Preview panel should not be visible
+    expect(screen.queryByText('Review payment')).not.toBeInTheDocument();
+  });
+
+  test('layout adjusts correctly when preview panel is hidden', async () => {
+    // Render component with showPreviewPanel=false
+    server.resetHandlers();
+    server.use(
+      http.get('/accounts', () => {
+        return HttpResponse.json(mockAccounts);
+      }),
+      http.get('/recipients', () => {
+        return HttpResponse.json(mockRecipients);
+      }),
+      http.get('/accounts/:id/balances', () => {
+        return HttpResponse.json(mockAccountBalance);
+      }),
+      http.post('/transactions', () => {
+        return HttpResponse.json({ success: true });
+      })
+    );
+
+    render(
+      <EBComponentsProvider
+        apiBaseUrl="/"
+        headers={{}}
+        contentTokens={{
+          name: 'enUS',
+        }}
+      >
+        <QueryClientProvider client={queryClient}>
+          <MakePayment showPreviewPanel={false} />
+        </QueryClientProvider>
+      </EBComponentsProvider>
+    );
+
+    // Open the dialog
+    await userEvent.click(screen.getByText('Make a payment'));
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    });
+
+    // Form should still be functional without preview panel
+    expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    expect(
+      screen.getByText('2. Which account are you paying from?')
+    ).toBeInTheDocument();
+    expect(screen.getByText('3. How much are you paying?')).toBeInTheDocument();
+    expect(screen.getByText('4. How do you want to pay?')).toBeInTheDocument();
+    expect(screen.getByText(/Additional Information/)).toBeInTheDocument();
   });
 });

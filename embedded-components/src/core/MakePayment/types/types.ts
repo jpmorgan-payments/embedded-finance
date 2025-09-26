@@ -36,6 +36,7 @@ export interface PaymentComponentProps {
   paymentMethods?: PaymentMethod[];
   icon?: React.ReactNode;
   recipientId?: string; // Optional recipient ID to pre-select
+  showPreviewPanel?: boolean; // Show/hide the preview panel on the right side
   onTransactionSettled?: (
     response?: TransactionResponseV2,
     error?: ApiErrorV2
