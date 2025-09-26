@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import {
@@ -32,6 +33,7 @@ import { UploadedDocument } from './documentUploadUtils';
  * Component for uploading documents for a specific party
  */
 export const DocumentUploadForm = () => {
+  const { t } = useTranslation(['onboarding-overview']);
   const { clientData, docUploadMaxFileSizeBytes = 2 * 1024 * 1024 } =
     useOnboardingContext();
   const queryClient = useQueryClient();
@@ -517,7 +519,13 @@ export const DocumentUploadForm = () => {
 
   // @ts-ignore - This is a workaround for the type error in the query
   if (documentRequestGetStatus === 'pending') {
-    return <FormLoadingState message="Fetching document request..." />;
+    return (
+      <FormLoadingState
+        message={t(
+          'onboarding-overview:documentUpload.documentUploadForm.fetchingDocumentRequest'
+        )}
+      />
+    );
   }
 
   return (
@@ -528,17 +536,23 @@ export const DocumentUploadForm = () => {
             <div className="eb-mb-6 eb-mt-1">
               {currentPartyData?.roles?.includes('CLIENT') && (
                 <Badge variant="subtle" size="lg">
-                  Business
+                  {t(
+                    'onboarding-overview:documentUpload.partyCard.roleLabels.business'
+                  )}
                 </Badge>
               )}
               {currentPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
                 <Badge variant="subtle" size="lg">
-                  Owner
+                  {t(
+                    'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
+                  )}
                 </Badge>
               )}
               {currentPartyData?.roles?.includes('CONTROLLER') && (
                 <Badge variant="subtle" size="lg">
-                  Controller
+                  {t(
+                    'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
+                  )}
                 </Badge>
               )}
             </div>
@@ -571,9 +585,13 @@ export const DocumentUploadForm = () => {
               }
               customErrorMessage={
                 uploadDocumentMutation.error
-                  ? 'There was an unexpected error uploading documents. Please try again.'
+                  ? t(
+                      'onboarding-overview:documentUpload.documentUploadForm.errorMessages.uploadError'
+                    )
                   : submitDocumentMutation.error
-                    ? 'There was an unexpected error submitting document requests. Please try again.'
+                    ? t(
+                        'onboarding-overview:documentUpload.documentUploadForm.errorMessages.submitError'
+                      )
                     : undefined
               }
             />
@@ -585,17 +603,25 @@ export const DocumentUploadForm = () => {
               }
             >
               {form.formState.isSubmitting
-                ? 'Uploading...'
+                ? t(
+                    'onboarding-overview:documentUpload.documentUploadForm.uploadingDocuments'
+                  )
                 : !allRequirementsSatisfied
-                  ? 'Complete All Required Documents'
-                  : 'Upload Documents'}
+                  ? t(
+                      'onboarding-overview:documentUpload.documentUploadForm.completeAllRequired'
+                    )
+                  : t(
+                      'onboarding-overview:documentUpload.documentUploadForm.uploadDocuments'
+                    )}
             </Button>
             <Button
               variant="ghost"
               onClick={() => goTo('upload-documents-section')}
               className="eb-text-primary hover:eb-bg-primary/5 hover:eb-text-primary"
             >
-              Cancel
+              {t(
+                'onboarding-overview:documentUpload.documentUploadForm.cancel'
+              )}
             </Button>
           </div>
         </StepLayout>
