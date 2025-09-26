@@ -163,7 +163,8 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
               <div className="eb-flex eb-justify-between eb-font-medium">
                 <span>{t('labels.total', { defaultValue: 'Total' })}</span>
                 <span>
-                  ${formatCurrency(
+                  $
+                  {formatCurrency(
                     amount + (recipient && method ? getFee(method) : 0)
                   )}
                 </span>

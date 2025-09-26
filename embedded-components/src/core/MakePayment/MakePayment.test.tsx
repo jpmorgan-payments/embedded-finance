@@ -301,12 +301,18 @@ describe('MakePayment (Refactored)', () => {
     });
 
     // Select account
-    const accountSelect = screen.getByRole('combobox', { name: /2\. Which account are you paying from\?/i });
+    const accountSelect = screen.getByRole('combobox', {
+      name: /2\. Which account are you paying from\?/i,
+    });
     await userEvent.click(accountSelect);
     await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'Checking Account (DDA)' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: 'Checking Account (DDA)' })
+      ).toBeInTheDocument();
     });
-    await userEvent.click(screen.getByRole('option', { name: 'Checking Account (DDA)' }));
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Checking Account (DDA)' })
+    );
 
     // Enter amount
     const amountInput = screen.getByPlaceholderText('0.00');
@@ -352,12 +358,18 @@ describe('MakePayment (Refactored)', () => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
 
-    const accountSelect = screen.getByRole('combobox', { name: /2\. Which account are you paying from\?/i });
+    const accountSelect = screen.getByRole('combobox', {
+      name: /2\. Which account are you paying from\?/i,
+    });
     await userEvent.click(accountSelect);
     await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'Checking Account (DDA)' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: 'Checking Account (DDA)' })
+      ).toBeInTheDocument();
     });
-    await userEvent.click(screen.getByRole('option', { name: 'Checking Account (DDA)' }));
+    await userEvent.click(
+      screen.getByRole('option', { name: 'Checking Account (DDA)' })
+    );
 
     const amountInput = screen.getByPlaceholderText('0.00');
     await userEvent.type(amountInput, '100.00');
