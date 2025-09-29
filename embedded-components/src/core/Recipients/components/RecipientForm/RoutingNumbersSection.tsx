@@ -130,7 +130,11 @@ export const RoutingNumbersSection: React.FC<RoutingNumbersSectionProps> = ({
                         <Input
                           {...field}
                           placeholder="Enter routing number"
-                          className="eb-w-full"
+                          className={
+                            errors.routingNumbers?.[method]
+                              ? 'eb-w-full eb-border-red-500 focus-visible:eb-ring-red-500'
+                              : 'eb-w-full'
+                          }
                           maxLength={11}
                           pattern="[0-9]*"
                           onInput={(e) => {
