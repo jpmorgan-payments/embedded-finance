@@ -125,6 +125,7 @@ export const RoutingNumbersSection: React.FC<RoutingNumbersSectionProps> = ({
                   <Controller
                     name={`routingNumbers.${method}`}
                     control={control}
+                    defaultValue=""
                     render={({ field }) => (
                       <>
                         <Input

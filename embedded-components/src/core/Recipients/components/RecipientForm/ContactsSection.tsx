@@ -154,8 +154,12 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
         })}
       </div>
 
-      {errors.contacts && (
-        <p className="eb-text-sm eb-text-red-500">{errors.contacts.message}</p>
+      {errors.contacts && typeof errors.contacts.message === 'string' && (
+        <div className="eb-rounded-md eb-border eb-border-red-300 eb-bg-red-50 eb-p-3">
+          <p className="eb-text-sm eb-font-medium eb-text-red-700">
+            {errors.contacts.message}
+          </p>
+        </div>
       )}
     </div>
   );
