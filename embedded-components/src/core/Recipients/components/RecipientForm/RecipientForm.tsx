@@ -74,7 +74,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     recipient?.partyDetails?.type || 'INDIVIDUAL'
   );
   const dataLoadedRef = useRef(false);
-  const previousPaymentMethodsRef = useRef<string[]>([]);
 
   // Use provided config or fallback to default
   const formConfig = config || defaultRecipientsConfig;
@@ -90,10 +89,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     control,
     handleSubmit,
     register,
-    formState: { errors, isSubmitted },
+    formState: { errors },
     watch,
     setValue,
-    trigger,
   } = useForm<FormData>({
     resolver: zodResolver(dynamicSchema),
     mode: 'onSubmit', // Validate on submit
