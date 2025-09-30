@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Digital Onboarding API
  * Digital Onboarding APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.16
+ * OpenAPI spec version: 1.0.17
  */
 export type SmbdoListSessionsParams = {
   /**
@@ -495,7 +495,7 @@ export const DocumentRequestRequirementLevel = {
 
 /**
  * Unique Document Request identifier.
- * @maxLength 10
+ * @maxLength 30
  */
 export type DocumentRequestId = string;
 
@@ -597,6 +597,7 @@ export interface DocumentRequestResponse {
   createdAt?: string;
   /** Provides an accurate detailing of which documents and how many are being requested. A plain English description that will fulfill the document-request. */
   description?: string;
+  /** @deprecated */
   documentType?: DocumentTypeSmbdo;
   id?: DocumentRequestId;
   outstanding?: DocumentRequestOutstanding;
@@ -869,6 +870,7 @@ export interface ClientResponse {
    * @maxItems 10
    */
   attestations?: Attestation[];
+  consumerDevice?: ConsumerDevice;
   /** Date and time when the client was created */
   createdAt?: string;
   id: ClientId;
@@ -1160,7 +1162,6 @@ export const ProfileStatus = {
 
 export interface CreateClientRequestSmbdo {
   /**
-   * @deprecated
    * @minItems 1
    * @maxItems 10
    */
@@ -1277,7 +1278,7 @@ export interface OrganizationIdentityDto {
    */
   issuer: string;
   /**
-   * ID value
+   * Please enter a valid Government ID value. EIN must be of 9 numeric digits for US. The length for other Government ID values >= 1 characters<= 100 characters
    * @minLength 1
    * @maxLength 100
    * @pattern ^[A-Za-z0-9\-\/\.\s\+&]*$
@@ -1597,7 +1598,7 @@ export interface IndividualIdentity {
    */
   issuer: string;
   /**
-   * Please enter a valid Government ID value. SSN/EIN/ITIN must be of 9 digits for US. >= 1 characters<= 20 characters
+   * Please enter a valid Government ID value. SSN/EIN/ITIN must be of 9 digits for US. The length for other Government ID values >= 1 characters<= 20 characters
    * @minLength 1
    * @maxLength 20
    * @pattern ^[A-Za-z0-9\-\/\.\s\+&]*$
@@ -1616,7 +1617,7 @@ export type NameSuffix = string;
  * Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\']*$`.
 
  * @minLength 1
- * @maxLength 30
+ * @maxLength 40
  */
 export type LastName = string;
 
@@ -1632,7 +1633,7 @@ export type MiddleName = string;
  * First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `'^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\']*$'`.
 
  * @minLength 1
- * @maxLength 30
+ * @maxLength 40
  */
 export type FirstName = string;
 
@@ -1764,7 +1765,10 @@ export interface ConsumerDevice {
 export interface Attestation {
   attestationTime: string;
   attester?: Attester;
-  /** The full name of an individual. */
+  /**
+   * The full name of an individual.
+   * @deprecated
+   */
   attesterFullName?: string;
   documentId: DocumentId;
   /** IPv4 Address. */

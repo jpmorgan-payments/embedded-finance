@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Digital Onboarding API
  * Digital Onboarding APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.16
+ * OpenAPI spec version: 1.0.17
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
@@ -1778,7 +1778,7 @@ export function useSmbdoGetDocumentRequest<
  * @summary Submit a document request
  */
 export const smbdoSubmitDocumentRequest = (
-  id: string,
+  id: DocumentRequestId,
   options?: SecondParameter<typeof ebInstance>
 ) => {
   return ebInstance<N202Response>(
@@ -1803,21 +1803,21 @@ export const getSmbdoSubmitDocumentRequestMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
     TError,
-    { id: string },
+    { id: DocumentRequestId },
     TContext
   >;
   request?: SecondParameter<typeof ebInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
   TError,
-  { id: string },
+  { id: DocumentRequestId },
   TContext
 > => {
   const { mutation: mutationOptions, request: requestOptions } = options ?? {};
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
-    { id: string }
+    { id: DocumentRequestId }
   > = (props) => {
     const { id } = props ?? {};
 
@@ -1861,14 +1861,14 @@ export const useSmbdoSubmitDocumentRequest = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
     TError,
-    { id: string },
+    { id: DocumentRequestId },
     TContext
   >;
   request?: SecondParameter<typeof ebInstance>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
   TError,
-  { id: string },
+  { id: DocumentRequestId },
   TContext
 > => {
   const mutationOptions = getSmbdoSubmitDocumentRequestMutationOptions(options);
