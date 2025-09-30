@@ -246,41 +246,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     }
   };
 
-  const onInvalidSubmit = (formErrors: any) => {
-    // Temporary debug logging
-    // eslint-disable-next-line no-console
-    console.log('=== Validation Errors on Submit ===');
-    // eslint-disable-next-line no-console
-    console.log('Total error fields:', Object.keys(formErrors).length);
-    // eslint-disable-next-line no-console
-    console.log('Error field names:', Object.keys(formErrors));
-    // eslint-disable-next-line no-console
-    console.log('Payment methods:', watchedPaymentMethods);
-    // eslint-disable-next-line no-console
-    console.log('Routing numbers:', watch('routingNumbers'));
-
-    // Log error messages without circular refs
-    Object.entries(formErrors).forEach(([key, value]: [string, any]) => {
-      if (value && typeof value === 'object' && 'message' in value) {
-        // eslint-disable-next-line no-console
-        console.log(`  ${key}: ${value.message}`);
-      } else if (value && typeof value === 'object') {
-        Object.entries(value).forEach(
-          ([nestedKey, nestedValue]: [string, any]) => {
-            if (
-              nestedValue &&
-              typeof nestedValue === 'object' &&
-              'message' in nestedValue
-            ) {
-              // eslint-disable-next-line no-console
-              console.log(`  ${key}.${nestedKey}: ${nestedValue.message}`);
-            }
-          }
-        );
-      }
-    });
-  };
-
   // Get required contact types for UI information
   const requiredContactTypes = getRequiredContactTypes(
     formConfig,
@@ -290,7 +255,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   // Form content that will be rendered with or without Card wrapper
   const formContent = (
     <form
-      onSubmit={handleSubmit(onFormSubmit, onInvalidSubmit)}
+      onSubmit={handleSubmit(onFormSubmit)}
       className="eb-space-y-6 eb-px-4 eb-py-2"
     >
       {/* Error Summary for Debugging */}
