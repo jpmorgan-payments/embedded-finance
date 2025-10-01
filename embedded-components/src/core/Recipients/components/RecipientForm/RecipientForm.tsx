@@ -94,7 +94,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
     setValue,
   } = useForm<FormData>({
     resolver: zodResolver(dynamicSchema),
-    mode: 'onChange', // Validate on change
+    mode: 'onSubmit', // Validate on submit
+    reValidateMode: 'onChange', // Re-validate on change after first submit
+    criteriaMode: 'all', // Show all errors, not just the first one
     defaultValues: {
       type: 'INDIVIDUAL',
       firstName: '',
@@ -102,7 +104,9 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       businessName: '',
       countryCode: 'US',
       paymentMethods: [availablePaymentMethods[0]],
-      routingNumbers: {},
+      routingNumbers: {
+        [availablePaymentMethods[0]]: '',
+      },
       contacts: [],
       accountNumber: '',
       accountType: 'CHECKING',
@@ -139,6 +143,32 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
       setPartyType(watchedType);
     }
   }, [watchedType, partyType]);
+
+  // Initialize routing numbers when payment methods change
+  useEffect(() => {
+    if (watchedPaymentMethods && watchedPaymentMethods.length > 0) {
+      const currentRoutingNumbers = watch('routingNumbers') || {};
+      const newRoutingNumbers: Record<string, string> = {};
+
+      // Initialize routing number fields for all selected payment methods
+      watchedPaymentMethods.forEach((method) => {
+        newRoutingNumbers[method] = currentRoutingNumbers[method] || '';
+      });
+
+      // Check if the routing numbers structure has changed
+      const currentKeys = Object.keys(currentRoutingNumbers).sort();
+      const newKeys = Object.keys(newRoutingNumbers).sort();
+      const hasStructureChanged =
+        currentKeys.length !== newKeys.length ||
+        currentKeys.some((key, index) => key !== newKeys[index]);
+
+      if (hasStructureChanged) {
+        // Simply update routing numbers without any special options
+        // This preserves form validation behavior
+        setValue('routingNumbers', newRoutingNumbers);
+      }
+    }
+  }, [watchedPaymentMethods, setValue, watch]);
 
   // Reset data loaded flag when recipient changes
   useEffect(() => {
@@ -207,7 +237,6 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
   }, [recipient?.id, mode, setValue, availablePaymentMethods]);
 
   const onFormSubmit = (data: FormData) => {
-    console.log('RecipientForm submit', data);
     const baseRequest = buildRecipientRequest(data, recipientType);
 
     if (mode === 'create') {
@@ -255,7 +284,7 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
                   )
                   .filter(Boolean);
               }
-              // Only render if value is a FieldError with a string message
+              // Handle direct field errors with message property
               if (
                 value &&
                 typeof value === 'object' &&
@@ -268,6 +297,30 @@ export const RecipientForm: React.FC<RecipientFormProps> = ({
                     <strong>{key}:</strong> {value.message}
                   </li>
                 );
+              }
+              // Handle nested errors (like routingNumbers.ACH)
+              if (value && typeof value === 'object' && !('message' in value)) {
+                return Object.entries(value)
+                  .flatMap(([nestedKey, nestedValue]) => {
+                    if (
+                      nestedValue &&
+                      typeof nestedValue === 'object' &&
+                      'message' in nestedValue &&
+                      typeof nestedValue.message === 'string' &&
+                      nestedValue.message
+                    ) {
+                      return (
+                        <li key={`${key}.${nestedKey}`}>
+                          <strong>
+                            {key}.{nestedKey}:
+                          </strong>{' '}
+                          {nestedValue.message}
+                        </li>
+                      );
+                    }
+                    return null;
+                  })
+                  .filter(Boolean);
               }
               // For all other types (including primitives), return null
               return null;

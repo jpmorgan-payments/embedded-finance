@@ -88,6 +88,11 @@ export const AccountDetailsSection: React.FC<AccountDetailsSectionProps> = ({
               }
               target.value = target.value.replace(/[^0-9]/g, '');
             }}
+            className={
+              errors.accountNumber
+                ? 'eb-border-red-500 focus-visible:eb-ring-red-500'
+                : ''
+            }
           />
           {errors.accountNumber && (
             <p className="eb-text-sm eb-text-red-500">

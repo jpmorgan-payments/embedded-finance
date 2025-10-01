@@ -334,37 +334,30 @@ export function createDynamicRecipientFormSchema(config?: RecipientsConfig) {
       );
       const contacts = data.contacts || [];
 
-      // Only validate required contacts if there are already some contacts with content
-      // This allows users to add empty contacts without immediate validation errors
-      const hasAnyContactWithContent = contacts.some((contact) =>
-        contact.value?.trim()
-      );
+      // Check if required contact types are present
+      requiredContactTypes.forEach((contactType) => {
+        const hasContact = contacts.some(
+          (contact) =>
+            contact.contactType === contactType && contact.value?.trim()
+        );
 
-      // Check if required contact types are present (only if we have contacts with content)
-      if (hasAnyContactWithContent) {
-        requiredContactTypes.forEach((contactType) => {
-          const hasContact = contacts.some(
-            (contact) =>
-              contact.contactType === contactType && contact.value?.trim()
+        if (!hasContact) {
+          const paymentMethodsRequiringContact = selectedPaymentMethods.filter(
+            (method) => {
+              const methodConfig = config.paymentMethodConfigs?.[method];
+              return methodConfig?.requiredFields.includes(
+                `partyDetails.contacts.${contactType}.value`
+              );
+            }
           );
 
-          if (!hasContact) {
-            const paymentMethodsRequiringContact =
-              selectedPaymentMethods.filter((method) => {
-                const methodConfig = config.paymentMethodConfigs?.[method];
-                return methodConfig?.requiredFields.includes(
-                  `partyDetails.contacts.${contactType}.value`
-                );
-              });
-
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: `${contactType.toLowerCase()} contact is required for ${paymentMethodsRequiringContact.join(', ')}`,
-              path: ['contacts'],
-            });
-          }
-        });
-      }
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${contactType.toLowerCase()} contact is required for ${paymentMethodsRequiringContact.join(', ')}`,
+            path: ['contacts'],
+          });
+        }
+      });
 
       // 4. Routing numbers validation
       selectedPaymentMethods.forEach((method) => {

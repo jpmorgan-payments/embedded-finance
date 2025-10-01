@@ -79,6 +79,11 @@ export const PersonalDetailsSection: React.FC<PersonalDetailsSectionProps> = ({
               id="firstName"
               {...register('firstName')}
               placeholder="Enter first name"
+              className={
+                errors.firstName
+                  ? 'eb-border-red-500 focus-visible:eb-ring-red-500'
+                  : ''
+              }
             />
             {errors.firstName && (
               <p className="eb-text-sm eb-text-red-500">
@@ -92,6 +97,11 @@ export const PersonalDetailsSection: React.FC<PersonalDetailsSectionProps> = ({
               id="lastName"
               {...register('lastName')}
               placeholder="Enter last name"
+              className={
+                errors.lastName
+                  ? 'eb-border-red-500 focus-visible:eb-ring-red-500'
+                  : ''
+              }
             />
             {errors.lastName && (
               <p className="eb-text-sm eb-text-red-500">
