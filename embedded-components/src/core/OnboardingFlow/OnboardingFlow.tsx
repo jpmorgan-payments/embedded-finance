@@ -247,7 +247,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
-
+  console.log('state', currentStepperStepId);
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {
@@ -289,8 +289,10 @@ const FlowRenderer: React.FC = React.memo(() => {
             currentStepId={currentStepperStepId}
             onSectionClick={(screenId) => {
               const section = sections.find((s) => s.id === screenId);
-              if (!section) {
-                goTo(screenId);
+              if (!section || section.type !== 'stepper') {
+                goTo(screenId, {
+                  resetHistory: true,
+                });
                 return;
               }
               const existingPartyData = getPartyByAssociatedPartyFilters(
@@ -308,16 +310,17 @@ const FlowRenderer: React.FC = React.memo(() => {
                 : undefined;
 
               const targetStepId =
-                firstInvalidStep ??
-                section.stepperConfig?.steps[0].id ??
-                undefined;
+                firstInvalidStep ?? section.stepperConfig?.steps.at(-1)?.id;
 
               if (screenId === currentScreenId && targetStepId) {
                 currentStepperGoTo(targetStepId);
                 return;
               }
 
+              console.log(targetStepId);
+
               goTo(screenId, {
+                resetHistory: true,
                 initialStepperStepId: firstInvalidStep,
                 editingPartyId: existingPartyData?.id,
                 previouslyCompleted:
@@ -329,7 +332,9 @@ const FlowRenderer: React.FC = React.memo(() => {
               if (sectionId === currentScreenId) {
                 currentStepperGoTo(stepId);
               } else {
-                goTo(sectionId);
+                goTo(sectionId, {
+                  resetHistory: true,
+                });
               }
             }}
             sections={[
