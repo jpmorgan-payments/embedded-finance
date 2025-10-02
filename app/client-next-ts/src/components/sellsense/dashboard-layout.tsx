@@ -258,7 +258,10 @@ export function DashboardLayout() {
   };
 
   // Helper function to update search params
-  const updateSearchParams = (updates: Record<string, any>) => {
+  const updateSearchParams = (
+    updates: Record<string, any>,
+    replace = false,
+  ) => {
     navigate({
       search: (prev) => {
         const newSearch = { ...prev } as Record<string, any>;
@@ -274,7 +277,7 @@ export function DashboardLayout() {
 
         return newSearch;
       },
-      replace: true,
+      replace,
     });
   };
 
