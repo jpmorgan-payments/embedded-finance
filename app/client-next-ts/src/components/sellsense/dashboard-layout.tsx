@@ -582,63 +582,66 @@ export function DashboardLayout() {
     <div className="h-screen bg-sellsense-background-light overflow-hidden">
       {/* Global Demo Notice Alert Banner - Above Header */}
       {showMswAlert && (
-        <div className="px-4 pt-4 pb-2">
-          <div
-            className={`rounded-lg p-4 mb-3 flex items-start gap-3 ${themeStyles.getAlertStyles()}`}
-          >
-            <div className="flex-1">
-              <div
-                className={`text-base font-semibold mb-2 ${themeStyles.getAlertTextStyles()}`}
-              >
-                🚨 DEMO NOTICE
-              </div>
-              <div className={`text-sm ${themeStyles.getAlertTextStyles()}`}>
-                This web application is a <strong>demo showcase</strong> for the{' '}
-                <a
-                  href="https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/overview"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline font-medium hover:text-amber-800"
+        <div className="relative z-20 bg-sellsense-background-light">
+          <div className="px-4 pt-4 pb-2">
+            <div
+              className={`rounded-lg p-4 mb-3 flex items-start gap-3 ${themeStyles.getAlertStyles()}`}
+            >
+              <div className="flex-1">
+                <div
+                  className={`text-base font-semibold mb-2 ${themeStyles.getAlertTextStyles()}`}
                 >
-                  J.P.Morgan Payments - Embedded Payments APIs
-                </a>
-                . <strong>This is not a real product</strong>
-              </div>
-              <div
-                className={`text-sm mt-2 ${themeStyles.getAlertTextStyles()}`}
-              >
-                Any data you enter stays within your browser and is handled by
-                our{' '}
-                <a
-                  href="https://mswjs.io"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline font-medium hover:text-amber-800"
+                  🚨 DEMO NOTICE
+                </div>
+                <div className={`text-sm ${themeStyles.getAlertTextStyles()}`}>
+                  This web application is a <strong>demo showcase</strong> for
+                  the{' '}
+                  <a
+                    href="https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/overview"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline font-medium hover:text-amber-800"
+                  >
+                    J.P.Morgan Payments - Embedded Payments APIs
+                  </a>
+                  . <strong>This is not a real product</strong>
+                </div>
+                <div
+                  className={`text-sm mt-2 ${themeStyles.getAlertTextStyles()}`}
                 >
-                  Mock Service Worker
-                </a>
-                . No data is sent to any external services.{' '}
-                {pingQuery.isSuccess
-                  ? 'Mock service is currently active. '
-                  : 'Service worker may have been terminated by the browser. '}
+                  Any data you enter stays within your browser and is handled by
+                  our{' '}
+                  <a
+                    href="https://mswjs.io"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline font-medium hover:text-amber-800"
+                  >
+                    Mock Service Worker
+                  </a>
+                  . No data is sent to any external services.{' '}
+                  {pingQuery.isSuccess
+                    ? 'Mock service is currently active. '
+                    : 'Service worker may have been terminated by the browser. '}
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="underline font-medium hover:text-amber-800 focus:outline-none focus:underline"
+                  >
+                    Reload mock data
+                  </button>{' '}
+                  to reset the demo state.
+                </div>
+              </div>
+              <div className="flex items-start">
                 <button
-                  onClick={() => window.location.reload()}
-                  className="underline font-medium hover:text-amber-800 focus:outline-none focus:underline"
+                  onClick={() => setShowMswAlert(false)}
+                  className={`text-amber-800 hover:text-amber-900 text-xl font-bold leading-none p-1 rounded-full hover:bg-amber-100 transition-colors`}
+                  aria-label="Dismiss demo notice"
+                  title="Dismiss demo notice"
                 >
-                  Reload mock data
-                </button>{' '}
-                to reset the demo state.
+                  ✕
+                </button>
               </div>
-            </div>
-            <div className="flex items-start">
-              <button
-                onClick={() => setShowMswAlert(false)}
-                className={`text-amber-700 hover:text-amber-900 text-lg font-bold leading-none`}
-                aria-label="Dismiss demo notice"
-                title="Dismiss demo notice"
-              >
-                ✕
-              </button>
             </div>
           </div>
         </div>
@@ -662,7 +665,7 @@ export function DashboardLayout() {
 
       {/* Mobile-first responsive layout */}
       <div
-        className={`flex h-[calc(100vh-4rem)] relative ${themeStyles.getContentAreaStyles()}`}
+        className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-8rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()}`}
       >
         {/* Sidebar - responsive implementation */}
         <Sidebar
