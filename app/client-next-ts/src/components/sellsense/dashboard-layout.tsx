@@ -242,6 +242,7 @@ export function DashboardLayout() {
       // Remove customTheme from URL if switching to predefined theme or no custom variables
       updates.customTheme = undefined;
     }
+    // test
 
     updateSearchParams(updates);
   };
