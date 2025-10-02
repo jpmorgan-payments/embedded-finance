@@ -14,8 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install modules
-        run: yarn install
+        run: npm install --frozen-lockfile
         working-directory: ./app/client-next-ts
       - name: Build
-        run: yarn build
+        run: npm run build
+        working-directory: ./app/client-next-ts
+      - name: Run tests
+        run: npm run test
         working-directory: ./app/client-next-ts
