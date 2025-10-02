@@ -841,9 +841,7 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:phone.format)",
-        "pattern": "$t(validation:phone.pattern, {'example': '+1234567890'})"
+        "required": "$t(validation:required)"
       }
     },
     "organizationPhone.phoneNumber": {
@@ -853,8 +851,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:phone.format)",
-        "pattern": "$t(validation:phone.pattern, {'example': '+1234567890'})"
+        "format": "$t(validation:phone.format)"
       }
     },
     "controllerPhone.phoneType": {
@@ -863,9 +860,7 @@
       "description": "",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:contact.phone.format)",
-        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        "required": "$t(validation:required)"
       }
     },
     "controllerPhone.phoneNumber": {
@@ -875,8 +870,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "format": "$t(validation:contact.phone.format)",
-        "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        "format": "$t(validation:phone.format)"
       }
     }
   },

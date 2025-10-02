@@ -23,7 +23,7 @@ export const usePhoneSchemas = (
     .string()
     .min(1, v(`${type}.phoneNumber`, 'required'))
     .refine(isValidPhoneNumber, {
-      message: v(`${type}.phoneNumber`, 'invalid'),
+      message: v(`${type}.phoneNumber`, 'format'),
     });
 
   const PhoneSchema = z.object({
