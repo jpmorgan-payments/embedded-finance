@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install modules
-        run: npm install --frozen-lockfile
+        run: npm ci
         working-directory: ./app/client-next-ts
       - name: Build
         run: npm run build
