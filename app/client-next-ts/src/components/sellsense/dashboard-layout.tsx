@@ -665,7 +665,7 @@ export function DashboardLayout() {
 
       {/* Mobile-first responsive layout */}
       <div
-        className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-8rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()}`}
+        className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-9rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()}`}
       >
         {/* Sidebar - responsive implementation */}
         <Sidebar
