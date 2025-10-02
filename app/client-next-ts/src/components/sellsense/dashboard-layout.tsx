@@ -587,7 +587,9 @@ export function DashboardLayout() {
             className={`rounded-lg p-4 mb-3 flex items-start gap-3 ${themeStyles.getAlertStyles()}`}
           >
             <div className="flex-1">
-              <div className={`text-base font-semibold mb-2 ${themeStyles.getAlertTextStyles()}`}>
+              <div
+                className={`text-base font-semibold mb-2 ${themeStyles.getAlertTextStyles()}`}
+              >
                 🚨 DEMO NOTICE
               </div>
               <div className={`text-sm ${themeStyles.getAlertTextStyles()}`}>
@@ -602,8 +604,11 @@ export function DashboardLayout() {
                 </a>
                 . <strong>This is not a real product</strong>
               </div>
-              <div className={`text-sm mt-2 ${themeStyles.getAlertTextStyles()}`}>
-                Any data you enter stays within your browser and is handled by our{' '}
+              <div
+                className={`text-sm mt-2 ${themeStyles.getAlertTextStyles()}`}
+              >
+                Any data you enter stays within your browser and is handled by
+                our{' '}
                 <a
                   href="https://mswjs.io"
                   target="_blank"
