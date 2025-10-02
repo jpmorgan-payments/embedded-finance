@@ -18,6 +18,7 @@ import {
   isOnboardingDocsNeededScenario,
   getHeaderTitleForScenario,
   getHeaderDescriptionForScenario,
+  getScenarioNumber,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
@@ -151,6 +152,9 @@ export function KycOnboarding({
           className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
         >
           {getHeaderTitleForScenario(clientScenario)}
+          <span className="text-sm font-normal opacity-60 ml-2">
+            (Scenario #{getScenarioNumber(clientScenario)})
+          </span>
         </h1>
         <p className={themeStyles.getHeaderLabelStyles()}>
           {getHeaderDescriptionForScenario(clientScenario)}

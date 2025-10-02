@@ -31,6 +31,9 @@ export interface ThemeStyleUtils {
   getLogoAlt: () => string;
   getLogoStyles: () => string;
   getLayoutButtonStyles: (active: boolean) => string;
+  getAlertStyles: () => string;
+  getAlertTextStyles: () => string;
+  getAlertButtonStyles: () => string;
 }
 
 export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
@@ -449,6 +452,58 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
           default:
             return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
         }
+      }
+    },
+
+    // Alert banner styles (prominent demo notice)
+    getAlertStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'bg-amber-50 border-2 border-amber-200 shadow-lg'; // Neutral but prominent styling
+        case 'Default Blue':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Prominent amber warning
+        case 'S&P Theme':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Consistent warning styling
+        case 'Create Commerce':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // High contrast for dark theme
+        case 'SellSense':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Brand-consistent warning
+        case 'PayFicient':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Professional warning styling
+        default:
+          return 'bg-amber-50 border-2 border-amber-200 shadow-lg';
+      }
+    },
+
+    getAlertTextStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'text-amber-900 font-medium'; // High contrast text
+        case 'Default Blue':
+        case 'S&P Theme':
+        case 'SellSense':
+        case 'PayFicient':
+          return 'text-amber-900 font-medium'; // Consistent high contrast
+        case 'Create Commerce':
+          return 'text-amber-900 font-medium'; // High contrast for dark theme
+        default:
+          return 'text-amber-900 font-medium';
+      }
+    },
+
+    getAlertButtonStyles: () => {
+      switch (theme) {
+        case 'Empty':
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // Prominent button
+        case 'Default Blue':
+        case 'S&P Theme':
+        case 'SellSense':
+        case 'PayFicient':
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // Consistent warning button
+        case 'Create Commerce':
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // High contrast button
+        default:
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium';
       }
     },
   };

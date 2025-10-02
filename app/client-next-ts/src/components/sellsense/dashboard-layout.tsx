@@ -10,7 +10,6 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { RefreshCw } from 'lucide-react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import { usePingService } from '@/hooks/use-ping-service';
 import { Header } from './header';
@@ -242,6 +241,7 @@ export function DashboardLayout() {
       // Remove customTheme from URL if switching to predefined theme or no custom variables
       updates.customTheme = undefined;
     }
+    // test
 
     updateSearchParams(updates);
   };
@@ -258,7 +258,10 @@ export function DashboardLayout() {
   };
 
   // Helper function to update search params
-  const updateSearchParams = (updates: Record<string, any>) => {
+  const updateSearchParams = (
+    updates: Record<string, any>,
+    replace = false,
+  ) => {
     navigate({
       search: (prev) => {
         const newSearch = { ...prev } as Record<string, any>;
@@ -274,7 +277,7 @@ export function DashboardLayout() {
 
         return newSearch;
       },
-      replace: true,
+      replace,
     });
   };
 
@@ -577,6 +580,65 @@ export function DashboardLayout() {
   // Normal dashboard layout - responsive design
   return (
     <div className="h-screen bg-sellsense-background-light overflow-hidden">
+      {/* Global Demo Notice Alert Banner - Above Header */}
+      {showMswAlert && (
+        <div className="px-4 pt-4 pb-2">
+          <div
+            className={`rounded-lg p-4 mb-3 flex items-start gap-3 ${themeStyles.getAlertStyles()}`}
+          >
+            <div className="flex-1">
+              <div className={`text-base font-semibold mb-2 ${themeStyles.getAlertTextStyles()}`}>
+                🚨 DEMO NOTICE
+              </div>
+              <div className={`text-sm ${themeStyles.getAlertTextStyles()}`}>
+                This web application is a <strong>demo showcase</strong> for the{' '}
+                <a
+                  href="https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/overview"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline font-medium hover:text-amber-800"
+                >
+                  J.P.Morgan Payments - Embedded Payments APIs
+                </a>
+                . <strong>This is not a real product</strong>
+              </div>
+              <div className={`text-sm mt-2 ${themeStyles.getAlertTextStyles()}`}>
+                Any data you enter stays within your browser and is handled by our{' '}
+                <a
+                  href="https://mswjs.io"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline font-medium hover:text-amber-800"
+                >
+                  Mock Service Worker
+                </a>
+                . No data is sent to any external services.{' '}
+                {pingQuery.isSuccess
+                  ? 'Mock service is currently active. '
+                  : 'Service worker may have been terminated by the browser. '}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="underline font-medium hover:text-amber-800 focus:outline-none focus:underline"
+                >
+                  Reload mock data
+                </button>{' '}
+                to reset the demo state.
+              </div>
+            </div>
+            <div className="flex items-start">
+              <button
+                onClick={() => setShowMswAlert(false)}
+                className={`text-amber-700 hover:text-amber-900 text-lg font-bold leading-none`}
+                aria-label="Dismiss demo notice"
+                title="Dismiss demo notice"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Header
         clientScenario={clientScenario}
         setClientScenario={handleScenarioChange}
@@ -608,53 +670,6 @@ export function DashboardLayout() {
         />
         {/* Main content area - responsive */}
         <main className="flex-1 overflow-auto w-full min-w-0">
-          {/* MSW Alert Banner */}
-          {showMswAlert && (
-            <div className="px-4 pt-4">
-              <div
-                className={`rounded-lg p-3 mb-3 flex items-center ${themeStyles.getCardStyles()}`}
-              >
-                <div
-                  className={`flex-1 text-sm ${themeStyles.getHeaderTextStyles()}`}
-                >
-                  <span>
-                    API calls are being mocked using{' '}
-                    <a
-                      href="https://mswjs.io"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`underline font-medium ${themeStyles.getHeaderTextStyles()}`}
-                    >
-                      Mock Service Worker
-                    </a>
-                    .{' '}
-                    {pingQuery.isSuccess
-                      ? ' Mock service is currently active.'
-                      : ' Service worker may have been terminated by the browser. '}
-                  </span>
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => window.location.reload()}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
-                      pingQuery.isSuccess
-                        ? themeStyles.getLayoutButtonStyles(true)
-                        : 'bg-amber-600 text-white hover:bg-amber-700'
-                    }`}
-                  >
-                    <RefreshCw className="h-3 w-3" /> Reload Page
-                  </button>
-                  <button
-                    onClick={() => setShowMswAlert(false)}
-                    className={themeStyles.getHeaderLabelStyles()}
-                    aria-label="Dismiss"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
           {/* Add padding for mobile to account for fixed bottom navigation */}
           <div className="pb-16 md:pb-0">{renderMainContent()}</div>
         </main>
