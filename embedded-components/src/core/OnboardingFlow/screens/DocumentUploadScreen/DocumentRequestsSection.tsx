@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   DocumentRequestResponse,
@@ -36,6 +37,8 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
   clientData,
   onDocRequestSelect,
 }) => {
+  const { t } = useTranslation(['onboarding-overview']);
+
   if (!clientData?.parties) return null;
 
   return (
@@ -62,7 +65,7 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
       ) : (
         <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
           <p className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
-            No documents required
+            {t('onboarding-overview:documentUpload.noDocumentsRequired')}
           </p>
         </Card>
       )}

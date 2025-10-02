@@ -132,6 +132,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       value={{
         ...props,
         clientData,
+        clientGetStatus,
         setClientId,
         organizationType,
         enableSidebar,
@@ -178,6 +179,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
+  const { t } = useTranslation(['onboarding-overview']);
   const { clientData, organizationType, docUploadOnlyMode, enableSidebar } =
     useOnboardingContext();
   const {
@@ -245,12 +247,18 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
-
+  console.log('state', currentStepperStepId);
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {
     if (!screen) {
-      return <div>Unknown screen id: {currentScreenId}</div>;
+      return (
+        <div>
+          {t('onboarding-overview:errors.unknownScreenId', {
+            screenId: currentScreenId,
+          })}
+        </div>
+      );
     }
 
     if (screen.type === 'component') {
@@ -262,8 +270,8 @@ const FlowRenderer: React.FC = React.memo(() => {
       return <StepperRenderer key={screen.id} {...screen.stepperConfig} />;
     }
 
-    return <div>Unhandled screen error</div>;
-  }, [screen, currentScreenId]);
+    return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
+  }, [screen, currentScreenId, t]);
 
   return (
     <div
@@ -275,14 +283,16 @@ const FlowRenderer: React.FC = React.memo(() => {
         <div className="eb-shrink-0">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
-            title="Onboarding Progress"
+            title={t('onboarding-overview:documentUpload.onboardingProgress')}
             disableInteraction={isFormSubmitting}
             currentSectionId={currentScreenId}
             currentStepId={currentStepperStepId}
             onSectionClick={(screenId) => {
               const section = sections.find((s) => s.id === screenId);
-              if (!section) {
-                goTo(screenId);
+              if (!section || section.type !== 'stepper') {
+                goTo(screenId, {
+                  resetHistory: true,
+                });
                 return;
               }
               const existingPartyData = getPartyByAssociatedPartyFilters(
@@ -300,16 +310,17 @@ const FlowRenderer: React.FC = React.memo(() => {
                 : undefined;
 
               const targetStepId =
-                firstInvalidStep ??
-                section.stepperConfig?.steps[0].id ??
-                undefined;
+                firstInvalidStep ?? section.stepperConfig?.steps.at(-1)?.id;
 
               if (screenId === currentScreenId && targetStepId) {
                 currentStepperGoTo(targetStepId);
                 return;
               }
 
+              console.log(targetStepId);
+
               goTo(screenId, {
+                resetHistory: true,
                 initialStepperStepId: firstInvalidStep,
                 editingPartyId: existingPartyData?.id,
                 previouslyCompleted:
@@ -321,13 +332,15 @@ const FlowRenderer: React.FC = React.memo(() => {
               if (sectionId === currentScreenId) {
                 currentStepperGoTo(stepId);
               } else {
-                goTo(sectionId);
+                goTo(sectionId, {
+                  resetHistory: true,
+                });
               }
             }}
             sections={[
               {
                 id: 'gateway',
-                title: 'Business type',
+                title: t('onboarding-overview:flowRenderer.businessType'),
                 status: organizationType ? 'completed' : 'not_started',
                 steps: [],
               },

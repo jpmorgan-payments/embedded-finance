@@ -217,6 +217,7 @@ const renderComponent = (
   const client = { ...mockClient, ...clientOverride };
   const onboardingContext: OnboardingContextType = {
     ...mockOnboardingContext,
+    clientGetStatus: 'success',
     clientData: client,
     ...onboardingContextOverride,
     availableJurisdictions: ['US'],

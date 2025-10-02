@@ -156,29 +156,11 @@ DocsRequestedMultipleDocsInRequirement.parameters = {
               status: 'ACTIVE',
               validForDays: 120,
             },
-            {
-              clientId: CLIENT_ID,
-              createdAt: '2025-06-24T14:45:02.046Z',
-              id: '88877',
-              description:
-                'Requirement validator created by using requirement list provided in the request.',
-              outstanding: {
-                documentTypes: [],
-              },
-              requirements: [
-                {
-                  documentTypes: ['PARTNERSHIP_AGREEMENT'],
-                  minRequired: 1,
-                },
-              ],
-              status: 'ACTIVE',
-              validForDays: 120,
-            },
           ],
           metadata: {
             page: 0,
             limit: 25,
-            total: 2,
+            total: 1,
           },
         });
       }),

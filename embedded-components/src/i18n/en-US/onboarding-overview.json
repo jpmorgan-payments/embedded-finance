@@ -1,6 +1,74 @@
 {
   "fetchingClientData": "Fetching client data...",
   "welcomeText": "Welcome!",
+  "errors": {
+    "unknownScreenId": "Unknown screen id: {{screenId}}",
+    "unhandledScreenError": "Unhandled screen error"
+  },
+  "flowRenderer": {
+    "businessType": "Business type"
+  },
+  "documentUpload": {
+    "title": "Supporting documents",
+    "onboardingProgress": "Onboarding Progress",
+    "loadingDocumentRequests": "Loading document requests",
+    "businessSectionTitle": "For the business",
+    "ownersSectionTitle": "For owners and key roles",
+    "returnToOverview": "Return to overview",
+    "noDocumentsRequired": "No documents required",
+    "regulatoryRequirementsDescription": "To satisfy regulatory requirements, we need to obtain the following",
+    "partyCard": {
+      "statusLabels": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "expired": "Expired"
+      },
+      "roleLabels": {
+        "business": "Business",
+        "owner": "Owner",
+        "controller": "Controller"
+      },
+      "uploadDocuments": "Upload documents",
+      "successMessage": "Required documents successfully uploaded",
+      "uploadedOn": "Uploaded on"
+    },
+    "documentUploadForm": {
+      "fetchingDocumentRequest": "Fetching document request...",
+      "uploadingDocuments": "Uploading...",
+      "completeAllRequired": "Complete All Required Documents",
+      "uploadDocuments": "Upload Documents",
+      "cancel": "Cancel",
+      "errorMessages": {
+        "uploadError": "There was an unexpected error uploading documents. Please try again.",
+        "submitError": "There was an unexpected error submitting document requests. Please try again."
+      }
+    },
+    "statusMessages": {
+      "reviewInProgress": {
+        "title": "Review in progress",
+        "description": "Your onboarding is currently under review. Please check back later."
+      },
+      "approved": {
+        "description": "Your onboarding has been approved. No documents are required."
+      },
+      "problemLoadingClient": {
+        "title": "There was a problem",
+        "description": "Unable to load client data. Please try again later."
+      },
+      "problemLoadingDocuments": {
+        "title": "There was a problem",
+        "description": "Unable to load document requests. Please try again later."
+      },
+      "noDocumentRequests": {
+        "title": "There is a problem",
+        "description": "No document requests found."
+      },
+      "outstandingItems": {
+        "title": "Outstanding items",
+        "description": "Your onboarding has outstanding items that need to be addressed. Please return to the onboarding flow to resolve them."
+      }
+    }
+  },
   "stepperRenderer": {
     "noStepsFound": "No steps found",
     "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",

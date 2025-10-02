@@ -1,5 +1,6 @@
 import { FC, ReactElement } from 'react';
 import { AlertTriangle, CheckIcon, InfoIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   ClientResponseOutstanding,
@@ -8,6 +9,10 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface StatusMessagesProps {
+  /**
+   * Status of client data fetching
+   */
+  clientGetStatus: 'error' | 'success' | 'pending';
   /**
    * Status of the client
    */
@@ -27,19 +32,32 @@ interface StatusMessagesProps {
  * Component that displays appropriate status messages based on client and document request status
  */
 export const StatusMessages: FC<StatusMessagesProps> = ({
+  clientGetStatus,
   clientStatus,
   documentRequestStatus,
   hasDocumentRequests,
   clientOutstanding,
 }): ReactElement | undefined => {
+  const { t } = useTranslation(['onboarding-overview']);
+  // If client data is still loading
+  if (clientGetStatus === 'pending') {
+    return undefined; // FormLoadingState will be shown by the parent component
+  }
+
   // Client is under review
   if (clientStatus === 'REVIEW_IN_PROGRESS') {
     return (
       <Alert variant="informative">
         <InfoIcon className="eb-h-4 eb-w-4" />
-        <AlertTitle>Review in progress</AlertTitle>
+        <AlertTitle>
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.reviewInProgress.title'
+          )}
+        </AlertTitle>
         <AlertDescription>
-          Your onboarding is currently under review. Please check back later.
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.reviewInProgress.description'
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -51,7 +69,9 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
       <Alert variant="success" noTitle>
         <CheckIcon className="eb-h-4 eb-w-4" />
         <AlertDescription>
-          Your onboarding has been approved. No documents are required.
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.approved.description'
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -62,9 +82,15 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
     return (
       <Alert variant="destructive">
         <AlertTriangle className="eb-h-4 eb-w-4" />
-        <AlertTitle>There was a problem</AlertTitle>
+        <AlertTitle>
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.problemLoadingClient.title'
+          )}
+        </AlertTitle>
         <AlertDescription>
-          Unable to load client data. Please try again later.
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.problemLoadingClient.description'
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -80,9 +106,15 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
     return (
       <Alert variant="destructive">
         <AlertTriangle className="eb-h-4 eb-w-4" />
-        <AlertTitle>There was a problem</AlertTitle>
+        <AlertTitle>
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.problemLoadingDocuments.title'
+          )}
+        </AlertTitle>
         <AlertDescription>
-          Unable to load document requests. Please try again later.
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.problemLoadingDocuments.description'
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -93,8 +125,16 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
     return (
       <Alert variant="warning">
         <AlertTriangle className="eb-h-4 eb-w-4" />
-        <AlertTitle>There is a problem</AlertTitle>
-        <AlertDescription>No document requests found.</AlertDescription>
+        <AlertTitle>
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.noDocumentRequests.title'
+          )}
+        </AlertTitle>
+        <AlertDescription>
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.noDocumentRequests.description'
+          )}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -110,10 +150,15 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
     return (
       <Alert variant="warning">
         <AlertTriangle className="eb-h-4 eb-w-4" />
-        <AlertTitle>Outstanding items</AlertTitle>
+        <AlertTitle>
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.outstandingItems.title'
+          )}
+        </AlertTitle>
         <AlertDescription>
-          Your onboarding has outstanding items that need to be addressed.
-          Please return to the onboarding flow to resolve them.
+          {t(
+            'onboarding-overview:documentUpload.statusMessages.outstandingItems.description'
+          )}
         </AlertDescription>
       </Alert>
     );
