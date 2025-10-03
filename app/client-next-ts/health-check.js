@@ -21,7 +21,7 @@ const HEALTH_CHECKS = {
       },
       {
         name: 'MSW Status (Mock Service Worker)',
-        text: 'API calls are being mocked using',
+        text: 'This web application is a demo showcase',
         description: 'Verify MSW is active and working',
       },
     ],
@@ -42,7 +42,7 @@ const HEALTH_CHECKS = {
       },
       {
         name: 'MSW Status (Mock Service Worker)',
-        text: 'API calls are being mocked using',
+        text: 'This web application is a demo showcase',
         description: 'Verify MSW is active and working',
       },
     ],
@@ -63,7 +63,7 @@ const HEALTH_CHECKS = {
       },
       {
         name: 'MSW Status (Mock Service Worker)',
-        text: 'API calls are being mocked using',
+        text: 'This web application is a demo showcase',
         description: 'Verify MSW is active and working',
       },
     ],

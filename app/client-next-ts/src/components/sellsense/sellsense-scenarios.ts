@@ -35,7 +35,7 @@ export const getScenarioData = (scenario: ClientScenario) => {
 export const getClientIdFromScenario = (
   scenario: ClientScenario,
 ): string | undefined => {
-  return sellSenseScenarioMapping[scenario].clientId;
+  return sellSenseScenarioMapping[scenario]?.clientId;
 };
 
 // New functions using ScenarioKey

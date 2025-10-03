@@ -10,7 +10,7 @@ export function truncateWords(input?: string, maxWords: number = 12): string {
   const words = input.trim().split(/\s+/);
   if (words.length <= maxWords) return input;
   return words.slice(0, maxWords).join(' ') + '…';
-}
+} 
 
 /**
  * Parse Arazzo specification from YAML string

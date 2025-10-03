@@ -19,6 +19,7 @@ import {
   getHeaderTitleForScenario,
   getHeaderDescriptionForScenario,
   getGridDimensions,
+  getScenarioNumber,
   AVAILABLE_COMPONENTS,
   type ComponentName,
   type ComponentConfig,
@@ -411,6 +412,9 @@ export function WalletOverview({
           className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
         >
           {headerTitle}
+          <span className="text-sm font-normal opacity-60 ml-2">
+            (Scenario #{getScenarioNumber(currentScenario)})
+          </span>
         </h1>
         <p className={themeStyles.getHeaderLabelStyles()}>
           {headerDescription}

@@ -44,6 +44,7 @@
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.2.0",
     "@types/lodash": "^4.17.13",
     "@types/react": "^19.0.8",

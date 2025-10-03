@@ -369,3 +369,13 @@ export const isOnboardingDocsNeededScenario = (
   }
   return scenarioKey === SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED;
 };
+
+// Utility function to get scenario number (1-based index from SCENARIO_ORDER)
+export const getScenarioNumber = (scenarioDisplayName: string): number => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return 1; // Fallback to 1 for unknown scenarios
+  }
+  const index = SCENARIO_ORDER.indexOf(scenarioKey);
+  return index >= 0 ? index + 1 : 1; // 1-based numbering
+};
