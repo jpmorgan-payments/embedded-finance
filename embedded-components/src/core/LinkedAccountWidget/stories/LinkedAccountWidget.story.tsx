@@ -14,7 +14,7 @@ import { EBTheme } from '@/core/EBComponentsProvider/config.types';
 import { MakePayment } from '@/core/MakePayment';
 import { SELLSENSE_THEME } from '@/core/themes';
 
-import { LinkedAccountWidget } from './LinkedAccountWidget';
+import { LinkedAccountWidget } from '../LinkedAccountWidget';
 
 const LinkedAccountsWithProvider = ({
   apiBaseUrl,
@@ -74,6 +74,50 @@ type Story = StoryObj<typeof LinkedAccountsWithProvider>;
 const createRecipientHandlers = (mockData: typeof linkedAccountListMock) => [
   http.get('/recipients', () => {
     return HttpResponse.json(mockData);
+  }),
+  http.post('/recipients', async ({ request }) => {
+    const body = (await request.json()) as any;
+
+    // Shape a created recipient response using as much of the request payload as possible
+    const created = {
+      id: `recp-${Math.random().toString(36).slice(2, 10)}`,
+      type: body?.type ?? 'LINKED_ACCOUNT',
+      status: 'MICRODEPOSITS_INITIATED',
+      clientId: body?.clientId,
+      partyId: body?.partyId,
+      partyDetails: {
+        type: body?.partyDetails?.type ?? 'INDIVIDUAL',
+        firstName: body?.partyDetails?.firstName,
+        lastName: body?.partyDetails?.lastName,
+        businessName: body?.partyDetails?.businessName,
+        address: body?.partyDetails?.address,
+        contacts: body?.partyDetails?.contacts,
+      },
+      account: {
+        type: body?.account?.type ?? 'CHECKING',
+        number: body?.account?.number ?? '1234567890',
+        routingInformation:
+          body?.account?.routingInformation &&
+          Array.isArray(body.account.routingInformation) &&
+          body.account.routingInformation.length > 0
+            ? body.account.routingInformation
+            : [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber:
+                    body?.account?.routingInformation?.[0]?.routingNumber ??
+                    '123456789',
+                  transactionType:
+                    body?.account?.routingInformation?.[0]?.transactionType ??
+                    'ACH',
+                },
+              ],
+        countryCode: body?.account?.countryCode ?? 'US',
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    return HttpResponse.json(created, { status: 201 });
   }),
   http.get('/recipients/:id', ({ params }) => {
     const { id } = params;
