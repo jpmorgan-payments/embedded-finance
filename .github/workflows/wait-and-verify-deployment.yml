@@ -10,6 +10,8 @@ jobs:
   # Job: Run health check against appropriate URL
   health-check:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.55.0
     timeout-minutes: 15
 
     steps:
@@ -27,15 +29,10 @@ jobs:
           cd app/client-next-ts
           npm ci
 
-      - name: Install Playwright
-        run: |
-          cd app/client-next-ts
-          npx playwright install --with-deps chromium
-
       - name: Determine target URL
         id: url
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
             # For PRs, construct the PR-specific URL using your app's hash
             PR_NUMBER="${{ github.event.pull_request.number }}"
             BASE_URL="https://pr-${PR_NUMBER}.d2hwh33w4gkjqk.amplifyapp.com"
@@ -90,7 +87,7 @@ jobs:
           echo "## 🏥 Health Check Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+          if [ "${{ steps.url.outputs.is_pr }}" = "true" ]; then
             echo "**Environment:** PR Preview Deployment" >> $GITHUB_STEP_SUMMARY
             echo "**PR Number:** #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
             echo "**PR URL Pattern:** Using hardcoded pattern for your app" >> $GITHUB_STEP_SUMMARY
@@ -102,7 +99,7 @@ jobs:
           echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ job.status }}" == "success" ]; then
+          if [ "${{ job.status }}" = "success" ]; then
             echo "✅ **Health check passed successfully!**" >> $GITHUB_STEP_SUMMARY
             echo "- Demo page loaded correctly" >> $GITHUB_STEP_SUMMARY
             echo "- MSW is functioning properly" >> $GITHUB_STEP_SUMMARY
@@ -112,7 +109,7 @@ jobs:
             echo "  • Bank account setup (Get Started with Your Bank Account)" >> $GITHUB_STEP_SUMMARY
             echo "  • Onboarding flow (Additional Documents Required)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+            if [ "${{ steps.url.outputs.is_pr }}" = "true" ]; then
               echo "**PR Status:** Ready to merge ✅" >> $GITHUB_STEP_SUMMARY
             else
               echo "**Main Deployment:** Verified and healthy ✅" >> $GITHUB_STEP_SUMMARY
@@ -123,7 +120,7 @@ jobs:
             echo "- Screenshots have been uploaded as artifacts" >> $GITHUB_STEP_SUMMARY
             echo "- Review the error details and fix the issues" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.url.outputs.is_pr }}" == "true" ]; then
+            if [ "${{ steps.url.outputs.is_pr }}" = "true" ]; then
               echo "**PR Status:** Blocked until health check passes ❌" >> $GITHUB_STEP_SUMMARY
             else
               echo "**Main Deployment:** Has issues that need attention ❌" >> $GITHUB_STEP_SUMMARY
@@ -135,7 +132,7 @@ jobs:
         run: |
           echo "🔄 Updating PR status..."
 
-          if [ "${{ steps.health-check.outcome }}" == "success" ]; then
+          if [ "${{ steps.health-check.outcome }}" = "success" ]; then
             echo "✅ Health check passed - PR is ready to merge"
             echo "PR deployment at ${{ steps.url.outputs.url }} is healthy"
           else
