@@ -25,7 +25,7 @@ export const TransactionDetailsDialogTrigger: FC<
   TransactionDetailsDialogTriggerProps
 > = ({ children, transactionId }) => {
   const [open, setOpen] = useState(false);
-  const [hideEmpty, setHideEmpty] = useState(false);
+  const [hideEmpty, setHideEmpty] = useState(true);
   const {
     data: transaction,
     status,
@@ -96,19 +96,18 @@ export const TransactionDetailsDialogTrigger: FC<
             </Button>
           </DialogTitle>
         </DialogHeader>
-        <div className="eb--mt-2 eb-mb-2 eb-flex eb-items-center eb-justify-end eb-gap-2">
-          <Label
-            htmlFor="hide-empty"
-            className="eb-cursor-pointer eb-text-xs eb-text-muted-foreground"
-          >
-            {hideEmpty ? 'Showing populated only' : 'Showing all fields'}
-          </Label>
+        <div className="eb--mt-2 eb-mb-3 eb-flex eb-items-center eb-justify-end eb-gap-2">
           <Switch
-            id="hide-empty"
-            checked={hideEmpty}
-            onCheckedChange={setHideEmpty}
-            className="eb-scale-90"
+            id="show-all"
+            checked={!hideEmpty}
+            onCheckedChange={(checked) => setHideEmpty(!checked)}
           />
+          <Label
+            htmlFor="show-all"
+            className="eb-text-xs eb-text-muted-foreground"
+          >
+            Show all fields
+          </Label>
         </div>
         <div className="eb-scrollable-content eb-space-y-6 eb-text-sm">
           {status === 'pending' && (

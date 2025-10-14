@@ -142,19 +142,20 @@ describe('TransactionDetailsSheet', () => {
       });
 
       const toggle = screen.getByRole('switch');
+      // By default, hideEmpty is true, so "show all" is false (unchecked)
       expect(toggle).not.toBeChecked();
 
-      // Initially shows "Showing all fields"
-      expect(screen.getByText('Showing all fields')).toBeInTheDocument();
+      // Label is always "Show all fields"
+      expect(screen.getByText('Show all fields')).toBeInTheDocument();
 
       await userEvent.click(toggle);
       expect(toggle).toBeChecked();
 
-      // After toggle, shows "Showing populated only"
-      expect(screen.getByText('Showing populated only')).toBeInTheDocument();
+      // Label remains the same
+      expect(screen.getByText('Show all fields')).toBeInTheDocument();
     });
 
-    test('hides N/A fields when toggle enabled', async () => {
+    test('hides N/A fields by default, shows them when toggle enabled', async () => {
       renderComponent('txn-minimal-001', mockTransactionMinimal);
       await userEvent.click(screen.getByText('View Details'));
 
@@ -164,22 +165,21 @@ describe('TransactionDetailsSheet', () => {
         ).toBeInTheDocument();
       });
 
-      // Initially, N/A values should be visible
-      const naElements = screen.getAllByText('N/A');
-      expect(naElements.length).toBeGreaterThan(0);
+      // By default (hideEmpty=true), N/A values should be hidden
+      const initialNaElements = screen.queryAllByText('N/A');
 
-      // Enable hide empty mode
+      // Enable show all mode (toggle to checked)
       const toggle = screen.getByRole('switch');
       await userEvent.click(toggle);
 
-      // After toggle, fewer or no N/A values should be visible
+      // After toggle, N/A values should be visible
       await waitFor(() => {
-        const remainingNa = screen.queryAllByText('N/A');
-        expect(remainingNa.length).toBeLessThan(naElements.length);
+        const naElements = screen.getAllByText('N/A');
+        expect(naElements.length).toBeGreaterThan(initialNaElements.length);
       });
     });
 
-    test('shows all fields when toggle disabled', async () => {
+    test('shows all fields when toggle enabled', async () => {
       renderComponent('txn-complete-001');
       await userEvent.click(screen.getByText('View Details'));
 
@@ -190,7 +190,9 @@ describe('TransactionDetailsSheet', () => {
       });
 
       const toggle = screen.getByRole('switch');
-      expect(toggle).not.toBeChecked();
+      // Enable show all mode
+      await userEvent.click(toggle);
+      expect(toggle).toBeChecked();
 
       // All sections should be visible
       expect(screen.getByText('General')).toBeInTheDocument();
@@ -201,7 +203,7 @@ describe('TransactionDetailsSheet', () => {
       expect(screen.getByText('Financial')).toBeInTheDocument();
     });
 
-    test('hides entire sections when all fields empty in hide mode', async () => {
+    test('hides entire sections when all fields empty in hide mode (default)', async () => {
       const minimalWithoutDebtor = {
         ...mockTransactionMinimal,
         debtorName: undefined,
@@ -219,16 +221,16 @@ describe('TransactionDetailsSheet', () => {
         ).toBeInTheDocument();
       });
 
-      // Initially debtor section should be visible
-      expect(screen.getByText('Debtor')).toBeInTheDocument();
+      // By default (hideEmpty=true), debtor section should be hidden
+      expect(screen.queryByText('Debtor')).not.toBeInTheDocument();
 
-      // Enable hide empty mode
+      // Enable show all mode
       const toggle = screen.getByRole('switch');
       await userEvent.click(toggle);
 
-      // Debtor section should be hidden
+      // Debtor section should now be visible
       await waitFor(() => {
-        expect(screen.queryByText('Debtor')).not.toBeInTheDocument();
+        expect(screen.getByText('Debtor')).toBeInTheDocument();
       });
     });
   });
@@ -272,7 +274,7 @@ describe('TransactionDetailsSheet', () => {
       });
     });
 
-    test('shows N/A for undefined values in show mode', async () => {
+    test('shows N/A for undefined values in show all mode', async () => {
       renderComponent('txn-minimal-001', mockTransactionMinimal);
       await userEvent.click(screen.getByText('View Details'));
 
@@ -282,8 +284,15 @@ describe('TransactionDetailsSheet', () => {
         ).toBeInTheDocument();
       });
 
-      const naElements = screen.getAllByText('N/A');
-      expect(naElements.length).toBeGreaterThan(0);
+      // Enable show all mode to see N/A values
+      const toggle = screen.getByRole('switch');
+      await userEvent.click(toggle);
+
+      // Now N/A values should be visible
+      await waitFor(() => {
+        const naElements = screen.getAllByText('N/A');
+        expect(naElements.length).toBeGreaterThan(0);
+      });
     });
 
     test('displays error object when present', async () => {
