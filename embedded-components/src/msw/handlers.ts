@@ -1,6 +1,13 @@
 // @ts-nocheck
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
+import {
+  mockTransactionComplete,
+  mockTransactionFee,
+  mockTransactionFeeReversal,
+  mockTransactionMinimal,
+  mockTransactionWithError,
+} from '@/mocks/transactions.mock';
 import merge from 'lodash/merge';
 import { http, HttpResponse } from 'msw';
 
@@ -510,5 +517,32 @@ export const handlers = [
     }
 
     return HttpResponse.json(verificationResponse);
+  }),
+
+  // Transaction details endpoint
+  http.get('/transactions/:id', ({ params }) => {
+    const { id } = params;
+
+    // Return different mocks based on transaction ID pattern
+    if (typeof id === 'string') {
+      if (id.includes('error')) {
+        return HttpResponse.json(mockTransactionWithError);
+      }
+      if (id.includes('minimal')) {
+        return HttpResponse.json(mockTransactionMinimal);
+      }
+      if (id.includes('fee-reversal')) {
+        return HttpResponse.json(mockTransactionFeeReversal);
+      }
+      if (id.includes('fee')) {
+        return HttpResponse.json(mockTransactionFee);
+      }
+      if (id.includes('complete')) {
+        return HttpResponse.json(mockTransactionComplete);
+      }
+    }
+
+    // Default: return complete transaction
+    return HttpResponse.json(mockTransactionComplete);
   }),
 ];
