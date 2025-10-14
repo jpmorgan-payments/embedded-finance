@@ -50,6 +50,18 @@ type LinkAccountFormDialogTriggerProps = {
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
+const RECIPIENT_STATUS_MESSAGES: Record<string, string> = {
+  MICRODEPOSITS_INITIATED:
+    'We initiated microdeposits to verify this account. This usually takes 1–2 business days.',
+  READY_FOR_VALIDATION:
+    'Your microdeposits are ready to be verified. Please enter the amounts to complete verification.',
+  ACTIVE: 'Your external account has been linked and is active.',
+  PENDING: 'We are processing your account. This may take a moment.',
+  INACTIVE: 'The account was linked but is currently inactive.',
+  REJECTED:
+    'We could not link this account. Please review details or try again.',
+};
+
 export const LinkAccountFormDialogTrigger: FC<
   LinkAccountFormDialogTriggerProps
 > = ({ children, onLinkedAccountSettled }) => {
@@ -147,19 +159,9 @@ export const LinkAccountFormDialogTrigger: FC<
           </DialogTitle>
           <DialogDescription>
             {createRecipientStatus === 'success'
-              ? createRecipientResponse?.status === 'MICRODEPOSITS_INITIATED'
-                ? 'We initiated microdeposits to verify this account. This usually takes 1–2 business days.'
-                : createRecipientResponse?.status === 'READY_FOR_VALIDATION'
-                  ? 'Your microdeposits are ready to be verified. Please enter the amounts to complete verification.'
-                  : createRecipientResponse?.status === 'ACTIVE'
-                    ? 'Your external account has been linked and is active.'
-                    : createRecipientResponse?.status === 'PENDING'
-                      ? 'We are processing your account. This may take a moment.'
-                      : createRecipientResponse?.status === 'INACTIVE'
-                        ? 'The account was linked but is currently inactive.'
-                        : createRecipientResponse?.status === 'REJECTED'
-                          ? 'We could not link this account. Please review details or try again.'
-                          : 'Your external account has been linked.'
+              ? (RECIPIENT_STATUS_MESSAGES[
+                  createRecipientResponse?.status ?? ''
+                ] ?? 'Your external account has been linked.')
               : "Enter your external account's information to link it"}
           </DialogDescription>
         </DialogHeader>
