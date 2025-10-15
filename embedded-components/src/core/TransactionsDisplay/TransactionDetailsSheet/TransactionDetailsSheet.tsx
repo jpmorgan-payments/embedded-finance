@@ -11,6 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 import { formatNumberToCurrency } from '../utils/formatNumberToCurrency';
 
@@ -23,11 +25,58 @@ export const TransactionDetailsDialogTrigger: FC<
   TransactionDetailsDialogTriggerProps
 > = ({ children, transactionId }) => {
   const [open, setOpen] = useState(false);
+  const [hideEmpty, setHideEmpty] = useState(true);
   const {
     data: transaction,
     status,
     error,
   } = useGetTransactionV2(transactionId, { query: { enabled: open } });
+
+  // Helper function to check if a field has a value
+  const hasValue = (val: any): boolean => {
+    return val !== null && val !== undefined && val !== '';
+  };
+
+  // Helper function to render a field conditionally
+  const renderField = (
+    label: string,
+    value: any,
+    formatter?: (val: any) => string
+  ) => {
+    const isEmpty = !hasValue(value);
+    if (hideEmpty && isEmpty) return null;
+
+    const displayValue = formatter ? formatter(value) : value || 'N/A';
+
+    return (
+      <div>
+        <span className="eb-text-muted-foreground">{label}</span>
+        <div>{displayValue}</div>
+      </div>
+    );
+  };
+
+  // Helper to format dates
+  const formatDate = (date: string | undefined) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  // Helper to format date-time
+  const formatDateTime = (date: string | undefined) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -47,6 +96,19 @@ export const TransactionDetailsDialogTrigger: FC<
             </Button>
           </DialogTitle>
         </DialogHeader>
+        <div className="eb--mt-2 eb-mb-3 eb-flex eb-items-center eb-justify-end eb-gap-2">
+          <Switch
+            id="show-all"
+            checked={!hideEmpty}
+            onCheckedChange={(checked) => setHideEmpty(!checked)}
+          />
+          <Label
+            htmlFor="show-all"
+            className="eb-text-xs eb-text-muted-foreground"
+          >
+            Show all fields
+          </Label>
+        </div>
         <div className="eb-scrollable-content eb-space-y-6 eb-text-sm">
           {status === 'pending' && (
             <div className="eb-py-8 eb-text-center eb-text-gray-500">
@@ -60,7 +122,7 @@ export const TransactionDetailsDialogTrigger: FC<
           )}
           {status === 'success' && transaction && (
             <>
-              {/* Amount at the top */}
+              {/* Amount Section */}
               <div className="eb-space-y-2">
                 <div className="eb-text-base eb-font-semibold">Amount</div>
                 <div className="eb-text-2xl eb-font-bold">
@@ -71,152 +133,157 @@ export const TransactionDetailsDialogTrigger: FC<
                       )
                     : 'N/A'}
                 </div>
-                <div className="eb-text-xs eb-text-muted-foreground">
-                  Currency: {transaction.currency || 'N/A'}
-                </div>
+                {renderField('Currency', transaction.currency)}
               </div>
 
-              {/* General Info */}
-              <div className="eb-space-y-2">
-                <div className="eb-text-base eb-font-semibold">General</div>
-                <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-                  <div>
-                    <span className="eb-text-muted-foreground">Type</span>
-                    <div>{transaction.type || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Status</span>
-                    <div>{transaction.status || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Transaction Reference ID
-                    </span>
-                    <div>{transaction.transactionReferenceId || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Memo</span>
-                    <div>{transaction.memo || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Originating ID
-                    </span>
-                    <div>{transaction.originatingId || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Originating Type
-                    </span>
-                    <div>{transaction.originatingTransactionType || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Posting Version
-                    </span>
-                    <div>{transaction.postingVersion ?? 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Ledger Balance
-                    </span>
-                    <div>{transaction.ledgerBalance ?? 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Payment Date
-                    </span>
-                    <div>
-                      {transaction.paymentDate
-                        ? new Date(transaction.paymentDate).toLocaleDateString(
-                            'en-US'
-                          )
-                        : 'N/A'}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Created At</span>
-                    <div>
-                      {transaction.createdAt
-                        ? new Date(transaction.createdAt).toLocaleString(
-                            'en-US'
-                          )
-                        : 'N/A'}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Effective Date
-                    </span>
-                    <div>
-                      {transaction.effectiveDate
-                        ? new Date(
-                            transaction.effectiveDate
-                          ).toLocaleDateString('en-US')
-                        : 'N/A'}
-                    </div>
+              {/* General Section */}
+              {(!hideEmpty ||
+                hasValue(transaction.type) ||
+                hasValue(transaction.status) ||
+                hasValue(transaction.feeType)) && (
+                <div className="eb-space-y-2">
+                  <div className="eb-text-base eb-font-semibold">General</div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField('Type', transaction.type)}
+                    {renderField('Status', transaction.status)}
+                    {renderField('Fee Type', transaction.feeType)}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Debtor Party */}
-              <div className="eb-space-y-2">
-                <div className="eb-text-base eb-font-semibold">Debtor</div>
-                <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-                  <div>
-                    <span className="eb-text-muted-foreground">Name</span>
-                    <div>{transaction.debtorName || 'N/A'}</div>
+              {/* Identifiers Section */}
+              {(!hideEmpty ||
+                hasValue(transaction.id) ||
+                hasValue(transaction.transactionReferenceId) ||
+                hasValue(transaction.originatingId) ||
+                hasValue(transaction.originatingTransactionType)) && (
+                <div className="eb-space-y-2">
+                  <div className="eb-text-base eb-font-semibold">
+                    Identifiers
                   </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Account ID</span>
-                    <div>{transaction.debtorAccountId || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Account Number
-                    </span>
-                    <div>{transaction.debtorAccountNumber || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Client ID</span>
-                    <div>{transaction.debtorClientId || 'N/A'}</div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField('Transaction ID', transaction.id)}
+                    {renderField(
+                      'Transaction Reference ID',
+                      transaction.transactionReferenceId
+                    )}
+                    {renderField('Originating ID', transaction.originatingId)}
+                    {renderField(
+                      'Originating Type',
+                      transaction.originatingTransactionType
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Creditor Party */}
-              <div className="eb-space-y-2">
-                <div className="eb-text-base eb-font-semibold">Creditor</div>
-                <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-                  <div>
-                    <span className="eb-text-muted-foreground">Name</span>
-                    <div>{transaction.creditorName || 'N/A'}</div>
+              {/* Dates & Versioning Section */}
+              {(!hideEmpty ||
+                hasValue(transaction.createdAt) ||
+                hasValue(transaction.paymentDate) ||
+                hasValue(transaction.effectiveDate) ||
+                hasValue(transaction.postingVersion)) && (
+                <div className="eb-space-y-2">
+                  <div className="eb-text-base eb-font-semibold">
+                    Dates & Versioning
                   </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Account ID</span>
-                    <div>{transaction.creditorAccountId || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">
-                      Account Number
-                    </span>
-                    <div>{transaction.creditorAccountNumber || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="eb-text-muted-foreground">Client ID</span>
-                    <div>{transaction.creditorClientId || 'N/A'}</div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField(
+                      'Created At',
+                      transaction.createdAt,
+                      formatDateTime
+                    )}
+                    {renderField(
+                      'Payment Date',
+                      transaction.paymentDate,
+                      formatDate
+                    )}
+                    {renderField(
+                      'Effective Date',
+                      transaction.effectiveDate,
+                      formatDateTime
+                    )}
+                    {renderField('Posting Version', transaction.postingVersion)}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Recipient ID */}
-              <div className="eb-space-y-2">
-                <div className="eb-text-base eb-font-semibold">Recipient</div>
-                <div>
-                  <span className="eb-text-muted-foreground">Recipient ID</span>
-                  <div>{transaction.recipientId || 'N/A'}</div>
+              {/* Debtor Section */}
+              {(!hideEmpty ||
+                hasValue(transaction.debtorName) ||
+                hasValue(transaction.debtorAccountId) ||
+                hasValue(transaction.debtorAccountNumber) ||
+                hasValue(transaction.debtorClientId)) && (
+                <div className="eb-space-y-2">
+                  <div className="eb-text-base eb-font-semibold">Debtor</div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField('Name', transaction.debtorName)}
+                    {renderField('Account ID', transaction.debtorAccountId)}
+                    {renderField(
+                      'Account Number',
+                      transaction.debtorAccountNumber
+                    )}
+                    {renderField('Client ID', transaction.debtorClientId)}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Creditor Section */}
+              {(!hideEmpty ||
+                hasValue(transaction.creditorName) ||
+                hasValue(transaction.creditorAccountId) ||
+                hasValue(transaction.creditorAccountNumber) ||
+                hasValue(transaction.creditorClientId)) && (
+                <div className="eb-space-y-2">
+                  <div className="eb-text-base eb-font-semibold">Creditor</div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField('Name', transaction.creditorName)}
+                    {renderField('Account ID', transaction.creditorAccountId)}
+                    {renderField(
+                      'Account Number',
+                      transaction.creditorAccountNumber
+                    )}
+                    {renderField('Client ID', transaction.creditorClientId)}
+                  </div>
+                </div>
+              )}
+
+              {/* Financial Section */}
+              {(!hideEmpty ||
+                hasValue(transaction.ledgerBalance) ||
+                hasValue(transaction.memo) ||
+                hasValue(transaction.recipientId)) && (
+                <div className="eb-space-y-2">
+                  <div className="eb-text-base eb-font-semibold">Financial</div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField(
+                      'Ledger Balance',
+                      transaction.ledgerBalance,
+                      (val) =>
+                        formatNumberToCurrency(
+                          val,
+                          transaction.currency ?? 'USD'
+                        )
+                    )}
+                    {renderField('Memo', transaction.memo)}
+                    {renderField('Recipient ID', transaction.recipientId)}
+                  </div>
+                </div>
+              )}
+
+              {/* Error Section (conditional) */}
+              {transaction.error && (
+                <div className="eb-space-y-2 eb-rounded-md eb-border eb-border-red-200 eb-bg-red-50 eb-p-3">
+                  <div className="eb-text-base eb-font-semibold eb-text-red-700">
+                    Error Details
+                  </div>
+                  <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                    {renderField('Title', transaction.error.title)}
+                    {renderField('HTTP Status', transaction.error.httpStatus)}
+                    {renderField('Trace ID', transaction.error.traceId)}
+                    {renderField('Request ID', transaction.error.requestId)}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

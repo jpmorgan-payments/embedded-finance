@@ -1,10 +1,9 @@
 import { FC, ReactNode, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle2Icon, Loader2Icon } from 'lucide-react';
+import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getRecipientLabel } from '@/lib/utils';
 import {
   useCreateRecipient,
   useGetAllRecipients,
@@ -38,8 +37,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Badge, Checkbox } from '@/components/ui';
+import { Checkbox } from '@/components/ui';
 
+import { LinkAccountConfirmation } from './LinkAccountConfirmation';
 import {
   LinkAccountFormDataType,
   LinkAccountFormSchema,
@@ -48,6 +48,18 @@ import {
 type LinkAccountFormDialogTriggerProps = {
   children: ReactNode;
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
+};
+
+const RECIPIENT_STATUS_MESSAGES: Record<string, string> = {
+  MICRODEPOSITS_INITIATED:
+    'We initiated microdeposits to verify this account. This usually takes 1–2 business days.',
+  READY_FOR_VALIDATION:
+    'Your microdeposits are ready to be verified. Please enter the amounts to complete verification.',
+  ACTIVE: 'Your external account has been linked and is active.',
+  PENDING: 'We are processing your account. This may take a moment.',
+  INACTIVE: 'The account was linked but is currently inactive.',
+  REJECTED:
+    'We could not link this account. Please review details or try again.',
 };
 
 export const LinkAccountFormDialogTrigger: FC<
@@ -138,11 +150,19 @@ export const LinkAccountFormDialogTrigger: FC<
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
+      <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
         <DialogHeader>
-          <DialogTitle>Link an Account</DialogTitle>
+          <DialogTitle>
+            {createRecipientStatus === 'success'
+              ? 'Account linked'
+              : 'Link an Account'}
+          </DialogTitle>
           <DialogDescription>
-            Enter your external account&apos;s information to link it
+            {createRecipientStatus === 'success'
+              ? (RECIPIENT_STATUS_MESSAGES[
+                  createRecipientResponse?.status ?? ''
+                ] ?? 'Your external account has been linked.')
+              : "Enter your external account's information to link it"}
           </DialogDescription>
         </DialogHeader>
         {createRecipientStatus === 'pending' ? (
@@ -153,36 +173,9 @@ export const LinkAccountFormDialogTrigger: FC<
             />
           </div>
         ) : createRecipientStatus === 'success' ? (
-          <div className="eb-space-y-6">
-            <div className="eb-flex eb-h-80 eb-items-center eb-justify-center">
-              <div className="eb-grid eb-gap-4 eb-text-center">
-                <CheckCircle2Icon
-                  className="eb-justify-self-center eb-stroke-green-600"
-                  size={72}
-                />
-                <p className="eb-text-lg eb-font-medium">Success!</p>
-
-                <div className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4">
-                  <div className="eb-flex eb-items-center eb-justify-between eb-gap-4">
-                    <h4 className="eb-text-base eb-font-medium eb-leading-none">
-                      {getRecipientLabel(createRecipientResponse)}
-                    </h4>
-                    <Badge>{createRecipientResponse.status}</Badge>
-                  </div>
-                  <p className="eb-text-sm eb-text-muted-foreground">
-                    {createRecipientResponse?.partyDetails?.type?.toLocaleUpperCase()}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <DialogFooter className="eb-gap-2">
-              <DialogClose asChild>
-                <Button>Done</Button>
-              </DialogClose>
-            </DialogFooter>
-          </div>
+          <LinkAccountConfirmation recipient={createRecipientResponse} />
         ) : (
-          <div className="eb-scrollable-content">
+          <div className="eb-scrollable-content eb-max-h-[70vh] eb-overflow-y-auto">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -225,7 +218,8 @@ export const LinkAccountFormDialogTrigger: FC<
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="eb-text-base eb-font-medium">
-                          Account Type
+                          Account Type{' '}
+                          <span className="eb-text-red-600">*</span>
                         </FormLabel>
                         <Select
                           onValueChange={(value) => {
@@ -265,7 +259,10 @@ export const LinkAccountFormDialogTrigger: FC<
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>
+                              First Name{' '}
+                              <span className="eb-text-red-600">*</span>
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -282,7 +279,10 @@ export const LinkAccountFormDialogTrigger: FC<
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel>
+                              Last Name{' '}
+                              <span className="eb-text-red-600">*</span>
+                            </FormLabel>
                             <FormControl>
                               <Input {...field} placeholder="Enter last name" />
                             </FormControl>
@@ -299,7 +299,10 @@ export const LinkAccountFormDialogTrigger: FC<
                       name="businessName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Business Name</FormLabel>
+                          <FormLabel>
+                            Business Name{' '}
+                            <span className="eb-text-red-600">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
@@ -322,7 +325,10 @@ export const LinkAccountFormDialogTrigger: FC<
                     name="routingNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Routing Number</FormLabel>
+                        <FormLabel>
+                          Routing Number{' '}
+                          <span className="eb-text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -339,7 +345,10 @@ export const LinkAccountFormDialogTrigger: FC<
                     name="accountNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Account Number</FormLabel>
+                        <FormLabel>
+                          Account Number{' '}
+                          <span className="eb-text-red-600">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -371,6 +380,7 @@ export const LinkAccountFormDialogTrigger: FC<
                           <FormLabel>
                             I authorize verification of my external bank
                             account, including my micro-deposit
+                            <span className="eb-text-red-600"> *</span>
                           </FormLabel>
                           <FormMessage />
                         </div>
