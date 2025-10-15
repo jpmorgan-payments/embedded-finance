@@ -44,11 +44,10 @@ gantt
 ## Theme 0: Functional Enhancements (In Progress)
 
 - OnboardingFlow
-  - Add support for new entity types; refine owner/controller flows
-  - Improve document request UX (multi-file, progress, retry)
+  - Add support for new entity types (with focus on publicly traded companies); refine owner/controller flows
   - Obfuscate SSN/EIN everywhere in read views
 - LinkedAccountWidget
-  - Parity with Recipients payment types; better status messaging
+  - Parity with Recipients payment methods; better status messaging
   - Robust microdeposit flows (retry/lockout messaging)
 - Recipients
   - Conditional attributes per payment method (ACH/RTP/WIRE)
