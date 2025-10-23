@@ -519,6 +519,41 @@ export const handlers = [
     return HttpResponse.json(verificationResponse);
   }),
 
+  // Add missing handlers for unhandled requests
+  http.get('/recipients', () => {
+    return HttpResponse.json({
+      recipients: [],
+      metadata: { total: 0 },
+    });
+  }),
+
+  http.get('/recipients/:id', ({ params }) => {
+    const { id } = params;
+    return HttpResponse.json({
+      id,
+      name: `Recipient ${id}`,
+      accountNumber: '****1234',
+      routingNumber: '123456789',
+    });
+  }),
+
+  http.get('/accounts', () => {
+    return HttpResponse.json({
+      accounts: [],
+      metadata: { total: 0 },
+    });
+  }),
+
+  http.get('/accounts/:id', ({ params }) => {
+    const { id } = params;
+    return HttpResponse.json({
+      id,
+      name: `Account ${id}`,
+      balance: '1000.00',
+      currency: 'USD',
+    });
+  }),
+
   // Transaction details endpoint
   http.get('/transactions/:id', ({ params }) => {
     const { id } = params;
