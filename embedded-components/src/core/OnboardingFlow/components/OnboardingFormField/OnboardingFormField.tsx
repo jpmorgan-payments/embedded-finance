@@ -87,6 +87,7 @@ interface BaseProps<
   inputProps?: React.ComponentProps<typeof Input>;
   maskFormat?: string;
   maskChar?: string;
+  obfuscateWhenUnfocused?: boolean;
   valueOverride?: string;
   onChange?: (...value: any[]) => void;
   labelClassName?: string;
@@ -136,6 +137,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   inputProps,
   maskFormat,
   maskChar,
+  obfuscateWhenUnfocused,
   shouldUnregister,
   valueOverride,
   onChange: onChangeProp,
@@ -530,6 +532,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             {...inputProps}
                             format={maskFormat ?? ''}
                             mask={maskChar}
+                            obfuscateWhenUnfocused={obfuscateWhenUnfocused}
                             type={type}
                             defaultValue={field.value}
                             value={valueOverride ?? field.value}
