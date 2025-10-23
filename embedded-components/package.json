@@ -80,7 +80,7 @@
     "react-hook-form": "^7.54.2",
     "react-i18next": "^15.1.1",
     "react-markdown": "^10.0.1",
-    "react-number-format": "^5.4.0",
+    "react-number-format": "^5.4.4",
     "react-phone-number-input": "^3.4.5",
     "react-string-replace": "^1.1.1",
     "react-window": "^1.8.11",

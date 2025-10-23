@@ -82,6 +82,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         type="text"
         maskFormat="### - ## - ####"
         maskChar="_"
+        obfuscateWhenUnfocused={!!form.watch('solePropSsn')?.length}
       />
       {form.watch('countryOfResidence') === 'US' &&
         getFieldRule('controllerIds.0.value').fieldRule.display ===
@@ -96,6 +97,9 @@ export const IndividualIdentityForm: FormStepComponent = () => {
               maskChar="_"
               label={getValueLabel(currentIdType)}
               description={getValueDescription(currentIdType)}
+              obfuscateWhenUnfocused={
+                !!form.watch('controllerIds.0.value')?.length
+              }
             />
 
             <DropdownMenu>
