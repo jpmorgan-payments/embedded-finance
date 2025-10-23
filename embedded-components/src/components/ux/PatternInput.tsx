@@ -43,8 +43,50 @@ function obfuscateValue(
 }
 
 const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
-  ({ onChange, value, obfuscateWhenUnfocused = false, ...props }, ref) => {
+  (
+    {
+      onChange,
+      value,
+      obfuscateWhenUnfocused = false,
+      onFocus,
+      onBlur,
+      ...props
+    },
+    ref
+  ) => {
     const [isFocused, setIsFocused] = React.useState(false);
+    const [inputElement, setInputElement] =
+      React.useState<HTMLInputElement | null>(null);
+
+    // Effect to focus the input when transitioning from obfuscated to focused state
+    React.useEffect(() => {
+      if (isFocused && obfuscateWhenUnfocused && inputElement) {
+        // Small delay to ensure the PatternFormat has finished rendering
+        const timeoutId = setTimeout(() => {
+          inputElement.focus();
+          inputElement.select();
+        }, 0);
+        return () => clearTimeout(timeoutId);
+      }
+      return undefined;
+    }, [isFocused, obfuscateWhenUnfocused, inputElement]);
+
+    // Expose the input ref to parent components
+    React.useImperativeHandle(ref, () => inputElement!, [inputElement]);
+
+    // Ref callback to handle internal focus ref
+    const refCallback = React.useCallback((node: HTMLInputElement | null) => {
+      setInputElement(node);
+    }, []);
+
+    // Combined focus handler that calls both internal and parent handlers
+    const handleFocus = React.useCallback(
+      (event: React.FocusEvent<HTMLInputElement>) => {
+        setIsFocused(true);
+        onFocus?.(event);
+      },
+      [onFocus]
+    );
 
     const displayValue =
       isFocused || !obfuscateWhenUnfocused
@@ -53,34 +95,32 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
 
     return (
       <div className="eb-space-y-1">
-        <PatternFormat
-          customInput={Input}
-          allowEmptyFormatting
-          onValueChange={(values) => {
-            if (values?.value) {
-              const syntheticEvent = {
-                target: {
-                  value: values.value,
-                },
-              } as React.ChangeEvent<HTMLInputElement>;
-              onChange?.(syntheticEvent);
-            }
-          }}
-          displayType={isFocused || !obfuscateWhenUnfocused ? 'input' : 'text'}
-          renderText={() => (
-            <>
-              <Input
-                value={displayValue as string}
-                onChange={onChange}
-                onFocus={() => setIsFocused(true)}
-                {...(props as React.ComponentProps<typeof Input>)}
-              />
-            </>
-          )}
-          value={displayValue}
-          getInputRef={ref}
-          {...props}
-        />
+        {!isFocused && obfuscateWhenUnfocused ? (
+          <Input
+            value={displayValue as string}
+            onChange={onChange}
+            onFocus={handleFocus}
+            {...(props as React.ComponentProps<typeof Input>)}
+          />
+        ) : (
+          <PatternFormat
+            customInput={Input}
+            allowEmptyFormatting
+            onValueChange={(values) => {
+              if (values?.value) {
+                const syntheticEvent = {
+                  target: {
+                    value: values.value,
+                  },
+                } as React.ChangeEvent<HTMLInputElement>;
+                onChange?.(syntheticEvent);
+              }
+            }}
+            value={displayValue}
+            getInputRef={refCallback}
+            {...props}
+          />
+        )}
       </div>
     );
   }
