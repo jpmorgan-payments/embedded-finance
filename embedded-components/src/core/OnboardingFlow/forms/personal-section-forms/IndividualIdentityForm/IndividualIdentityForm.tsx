@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ChevronDownIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,23 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
     >();
   const { getFieldRule } = useFormUtils();
+
+  // Track whether fields have initial data (should be obfuscated) vs user input (should not be obfuscated)
+  const hasInitialSolePropSsn = useRef(false);
+  const hasInitialControllerId = useRef(false);
+
+  // Check for initial data on mount
+  useEffect(() => {
+    const solePropSsn = form.getValues('solePropSsn');
+    const controllerId = form.getValues('controllerIds.0.value');
+
+    if (solePropSsn?.length) {
+      hasInitialSolePropSsn.current = true;
+    }
+    if (controllerId?.length) {
+      hasInitialControllerId.current = true;
+    }
+  }, [form]);
 
   const getValueLabel = (idType: IndividualIdentityIdType) => {
     if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
@@ -82,7 +99,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         type="text"
         maskFormat="### - ## - ####"
         maskChar="_"
-        obfuscateWhenUnfocused={!!form.watch('solePropSsn')?.length}
+        obfuscateWhenUnfocused={hasInitialSolePropSsn.current}
       />
       {form.watch('countryOfResidence') === 'US' &&
         getFieldRule('controllerIds.0.value').fieldRule.display ===
@@ -97,9 +114,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
               maskChar="_"
               label={getValueLabel(currentIdType)}
               description={getValueDescription(currentIdType)}
-              obfuscateWhenUnfocused={
-                !!form.watch('controllerIds.0.value')?.length
-              }
+              obfuscateWhenUnfocused={hasInitialControllerId.current}
             />
 
             <DropdownMenu>
