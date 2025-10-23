@@ -139,6 +139,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
               maskFormat="## - #######"
               maskChar="_"
               required
+              obfuscateWhenUnfocused
             />
           )}
           <div className="eb-space-y-3">

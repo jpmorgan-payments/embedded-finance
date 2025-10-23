@@ -4,7 +4,8 @@ import { PatternFormat, PatternFormatProps } from 'react-number-format';
 import { Input } from '@/components/ui/input';
 
 interface PatternInputProps extends PatternFormatProps {
-  /** Whether to obfuscate the value when the input is not focused */
+  /** Whether to obfuscate the value when the input is not focused.
+   * When true, only obfuscates if there was initial data (not user input) */
   obfuscateWhenUnfocused?: boolean;
 }
 
@@ -58,9 +59,24 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
     const [inputElement, setInputElement] =
       React.useState<HTMLInputElement | null>(null);
 
+    // Track whether the field had initial data (should be obfuscated) vs user input (should not be obfuscated)
+    const hasInitialData = React.useRef(false);
+
+    // Check for initial data on mount
+    React.useEffect(() => {
+      if (value && typeof value === 'string' && value.length > 0) {
+        hasInitialData.current = true;
+      }
+    }, []); // Only run on mount
+
     // Effect to focus the input when transitioning from obfuscated to focused state
     React.useEffect(() => {
-      if (isFocused && obfuscateWhenUnfocused && inputElement) {
+      if (
+        isFocused &&
+        obfuscateWhenUnfocused &&
+        hasInitialData.current &&
+        inputElement
+      ) {
         // Small delay to ensure the PatternFormat has finished rendering
         const timeoutId = setTimeout(() => {
           inputElement.focus();
@@ -88,14 +104,18 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
       [onFocus]
     );
 
+    // Smart obfuscation: only obfuscate if there was initial data AND user hasn't focused yet
+    const shouldObfuscate =
+      obfuscateWhenUnfocused && hasInitialData.current && !isFocused;
+
     const displayValue =
-      isFocused || !obfuscateWhenUnfocused
+      isFocused || !shouldObfuscate
         ? value
         : obfuscateValue(value as string, 4, props.format);
 
     return (
       <div className="eb-space-y-1">
-        {!isFocused && obfuscateWhenUnfocused ? (
+        {!isFocused && shouldObfuscate ? (
           <Input
             value={displayValue as string}
             onChange={onChange}
