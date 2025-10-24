@@ -11,7 +11,7 @@ jobs:
   health-check:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.55.1
+      image: mcr.microsoft.com/playwright:v1.55.0
     timeout-minutes: 15
 
     steps:
