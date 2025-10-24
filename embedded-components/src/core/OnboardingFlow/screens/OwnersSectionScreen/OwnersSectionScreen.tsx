@@ -49,6 +49,8 @@ import {
 } from '@/core/OnboardingFlow/utils/flowUtils';
 
 export const OwnersSectionScreen = () => {
+  const [openedRemoveDialog, setOpenedRemoveDialog] = useState(false);
+
   const {
     clientData,
     onPostPartySettled: onPostPartyResponse,
@@ -273,8 +275,6 @@ export const OwnersSectionScreen = () => {
       }
     );
   };
-
-  const [openedRemoveDialog, setOpenedRemoveDialog] = useState(false);
 
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
