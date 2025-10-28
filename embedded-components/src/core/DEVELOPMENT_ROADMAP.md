@@ -44,23 +44,27 @@ gantt
 ## Theme 0: Functional Enhancements (In Progress)
 
 - OnboardingFlow
-  - Add support for new entity types (with focus on publicly traded companies); refine owner/controller flows
-  - Obfuscate SSN/EIN everywhere in read views
+  - Add support for new entity types (with focus on publicly traded companies, government entities, and other non-profit entities)
+  - Refine owner/controller flows
 - LinkedAccountWidget
   - Parity with Recipients payment methods; better status messaging
   - Robust microdeposit flows (retry/lockout messaging)
 - Recipients
   - Conditional attributes per payment method (ACH/RTP/WIRE)
-  - Edit flows parity + masking; duplicate detection UX
+  - Edit flows parity + masking
+  - Recipient duplicate detection UX
 - MakePayment
-  - Recipient/method filtering logic; fee/time ETA display
+  - Recipient/method filtering logic
+  - Review fee/time ETA display
   - Review/confirmation UX
   - Cross-currency payment support
 - TransactionsDisplay
-  - Pagination; details attribute mapping (remove N/A)
-  - PAYIN/PAYOUT derivation and counterpart display
+  - Pagination; 
+  - Review details attribute mapping
+  - Review PAYIN/PAYOUT derivation and counterpart display
 - Accounts
-  - Responsive cards; balance types mapping and tooltips
+  - Responsive cards;
+  - Review balance types mapping and tooltips
   - Masking/toggle for sensitive routing/account info
 
 ## Theme 1: Security & Validation (In Progress)
@@ -79,31 +83,31 @@ gantt
 - Wire environment config for CAT endpoints/headers.
 - Smoke and regression suites against CAT APIs using generated hooks; record diffs, capture contract mismatches.
 
-## Theme 4: React 19 Readiness & Updates (Early)
+## Theme 4: React 19 Readiness
 
 - Verify peer compatibility, incremental adoption plan, and guardrails.
 - Migrate low-risk areas (test environment, Storybook, non-critical flows) first; keep feature flags.
 
-## Theme 5: RUM & Analytics (Week 6)
+## Theme 5: RUM & Analytics
 
 - Standard event catalog per component; configurable `userEventsHandler` hooks; perf timing utilities.
 
-## Theme 6: Atomic Design & Performance (Weeks 7–9)
+## Theme 6: Refined Atomic Design & Performance
 
 - Extract shared atoms/molecules/organisms and utilities.
 - Core Web Vitals targets TBD; apply memoization, virtualization, code-splitting.
 
-## Theme 7: A11y & UX Testing (Weeks 10–11)
+## Theme 7: A11y & UX Testing
 
 - WCAG 2.1 AA; axe automated tests; keyboard/focus management, ARIA correctness.
 - UX scenarios per component; mitigate found issues.
 
-## Theme 8: Comprehensive Testing (Weeks 12–13)
+## Theme 8: Comprehensive Testing
 
 - 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths.
 - Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y.
 
-## Theme 9: Documentation & AI Guides (Week 14)
+## Theme 9: Documentation & AI Guides
 
 ## Theme 10: Tech Debt & Dependency Hygiene
 
@@ -121,10 +125,6 @@ gantt
 
 - Per-component docs (usage, configuration, validation, security, a11y, testing, performance).
 - Enhanced Cursor rules and codegen/dev templates for AI agents.
-
-## React 19 Migration Notes
-
-- Plan controlled migration (use/useOptimistic/useFormStatus), with feature flags and regression tests.
 
 ## Orval & Dependencies
 
