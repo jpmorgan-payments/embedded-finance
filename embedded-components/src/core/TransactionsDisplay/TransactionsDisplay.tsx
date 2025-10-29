@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
 
+import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet/TransactionDetailsSheet';
 import { columns } from './TransactionsDisplay.columns';
 import { formatNumberToCurrency } from './utils/formatNumberToCurrency';
@@ -92,11 +93,23 @@ export const TransactionsDisplay = forwardRef<
   TransactionsDisplayRef,
   TransactionsDisplayProps
 >(({ accountIds }, ref) => {
+  const { interceptorReady } = useInterceptorStatus();
   const { data, status, failureReason, refetch, isFetching } =
-    useListTransactionsV2({});
+    useListTransactionsV2(
+      {},
+      {
+        query: {
+          enabled: interceptorReady,
+        },
+      }
+    );
   const isMobile = useMediaQuery('(max-width: 640px)');
 
-  const { data: accountsData } = useGetAccounts();
+  const { data: accountsData } = useGetAccounts(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
   const transactions = data?.items
     ? modifyTransactionsData(
         data.items,
