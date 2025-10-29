@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
+import { AlertTriangleIcon, PlusIcon } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 import { EmptyState } from './components/EmptyState';
 import { LinkedAccountCard } from './components/LinkedAccountCard';
+import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton';
 import { LinkAccountFormDialogTrigger } from './forms/LinkAccountForm/LinkAccountForm';
 import { MicrodepositsFormDialogTrigger } from './forms/MicrodepositsForm/MicrodepositsForm';
 import { useLinkedAccounts } from './hooks/useLinkedAccounts';
@@ -74,7 +75,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   return (
     <div className="eb-w-full eb-@container">
       <Card
-        className={`eb-component eb-mx-auto eb-w-full eb-max-w-4xl ${className || ''}`}
+        className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl ${className || ''}`}
       >
         <CardHeader className="eb-border-b eb-bg-muted/30">
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
@@ -100,19 +101,17 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         </CardHeader>
 
         <CardContent className="eb-space-y-4 eb-p-6">
-          {/* Loading state */}
+          {/* Loading state with skeleton cards */}
           {isLoading && (
-            <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12">
-              <Loader2Icon className="eb-h-8 eb-w-8 eb-animate-spin eb-text-primary" />
-              <p className="eb-text-sm eb-text-muted-foreground">
-                Loading linked accounts...
-              </p>
+            <div className="eb-grid eb-grid-cols-1 eb-gap-3 @4xl:eb-grid-cols-2">
+              {/* Show 1 skeleton card during loading */}
+              <LinkedAccountCardSkeleton />
             </div>
           )}
 
           {/* Error state */}
           {isError && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="eb-animate-fade-in">
               <AlertTriangleIcon className="eb-h-4 eb-w-4" />
               <AlertTitle>Error loading accounts</AlertTitle>
               <AlertDescription>
@@ -123,19 +122,31 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           )}
 
           {/* Empty state */}
-          {isSuccess && recipients.length === 0 && <EmptyState />}
+          {isSuccess && recipients.length === 0 && (
+            <div className="eb-animate-fade-in">
+              <EmptyState />
+            </div>
+          )}
 
-          {/* Linked accounts list */}
+          {/* Linked accounts list with staggered fade-in animation */}
           {isSuccess && recipients.length > 0 && (
-            <div className="eb-grid eb-grid-cols-1 eb-gap-3 @2xl:eb-grid-cols-2">
-              {recipients.map((recipient) => (
-                <LinkedAccountCard
+            <div className="eb-grid eb-grid-cols-1 eb-gap-3 @4xl:eb-grid-cols-2">
+              {recipients.map((recipient, index) => (
+                <div
                   key={recipient.id}
-                  recipient={recipient}
-                  makePaymentComponent={makePaymentComponent}
-                  onVerifyClick={handleVerifyClick}
-                  onUpdateRoutingClick={handleUpdateRoutingClick}
-                />
+                  className="eb-animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animationFillMode: 'backwards',
+                  }}
+                >
+                  <LinkedAccountCard
+                    recipient={recipient}
+                    makePaymentComponent={makePaymentComponent}
+                    onVerifyClick={handleVerifyClick}
+                    onUpdateRoutingClick={handleUpdateRoutingClick}
+                  />
+                </div>
               ))}
             </div>
           )}
