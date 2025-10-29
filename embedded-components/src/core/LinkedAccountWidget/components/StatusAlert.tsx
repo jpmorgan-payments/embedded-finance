@@ -21,6 +21,8 @@ export interface StatusAlertProps {
   description?: string;
   /** Optional CSS class name */
   className?: string;
+  /** Optional action button or element to display below the message */
+  action?: React.ReactNode;
 }
 
 /**
@@ -70,6 +72,7 @@ export const StatusAlert: React.FC<StatusAlertProps> = ({
   title,
   description,
   className,
+  action,
 }) => {
   const { variant, icon: Icon, iconClass } = getAlertConfig(status);
   const defaultDescription = STATUS_EXPLANATIONS[status];
@@ -84,6 +87,7 @@ export const StatusAlert: React.FC<StatusAlertProps> = ({
       <Icon className={`eb-h-4 eb-w-4 ${iconClass}`} />
       {title && <AlertTitle>{title}</AlertTitle>}
       <AlertDescription>{description || defaultDescription}</AlertDescription>
+      {action && <div className="eb-mt-3">{action}</div>}
     </Alert>
   );
 };

@@ -51,18 +51,34 @@ export function canMakePayment(recipient: Recipient): boolean {
 
 /**
  * Check if recipient needs additional routing information (Wire/RTP)
- * Returns true if account is active but only has ACH configured
+ * Returns true if account is active but missing Wire or RTP
  */
 export function needsAdditionalRouting(recipient: Recipient): boolean {
   if (recipient.status !== 'ACTIVE') return false;
 
   const methods = getSupportedPaymentMethods(recipient);
-  const hasACH = methods.includes('ACH');
   const hasWire = methods.includes('WIRE');
   const hasRTP = methods.includes('RTP');
 
-  // If only ACH is configured, suggest adding Wire or RTP
-  return hasACH && !hasWire && !hasRTP;
+  // Can add routing if either Wire or RTP is missing
+  return !hasWire || !hasRTP;
+}
+
+/**
+ * Get the missing payment methods that can be added
+ */
+export function getMissingPaymentMethods(recipient: Recipient): string[] {
+  const methods = getSupportedPaymentMethods(recipient);
+  const missing: string[] = [];
+
+  if (!methods.includes('WIRE')) {
+    missing.push('Wire');
+  }
+  if (!methods.includes('RTP')) {
+    missing.push('RTP');
+  }
+
+  return missing;
 }
 
 /**

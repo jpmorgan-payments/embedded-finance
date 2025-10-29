@@ -60,7 +60,7 @@ export const STATUS_LABELS: Record<RecipientStatus, string> = {
  */
 export const RECIPIENT_STATUS_MESSAGES: Record<string, string> = {
   MICRODEPOSITS_INITIATED:
-    'We initiated microdeposits to verify this account. This usually takes 1–2 business days.',
+    'We initiated microdeposits to verify this account. This usually takes 3-5 business days.',
   READY_FOR_VALIDATION:
     'Your microdeposits are ready to be verified. Please enter the amounts to complete verification.',
   ACTIVE: 'Your external account has been linked and is active.',
@@ -78,7 +78,7 @@ export const STATUS_EXPLANATIONS: Record<RecipientStatus, string> = {
   INACTIVE:
     'This account has been deactivated and cannot be used for transactions.',
   MICRODEPOSITS_INITIATED:
-    'Two small deposits are being sent to verify account ownership. This typically takes 1-2 business days.',
+    'Two small deposits are being sent to verify account ownership. This typically takes 3-5 business days.',
   PENDING:
     "Your account information is being processed. You'll be notified once complete.",
   READY_FOR_VALIDATION:

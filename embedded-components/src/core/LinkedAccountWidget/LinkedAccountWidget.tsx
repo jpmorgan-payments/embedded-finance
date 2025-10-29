@@ -91,7 +91,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
               <LinkAccountFormDialogTrigger
                 onLinkedAccountSettled={onLinkedAccountSettled}
               >
-                <Button size="sm" className="eb-shrink-0">
+                <Button variant="outline" size="sm" className="eb-shrink-0">
                   <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
                   Link Account
                 </Button>
@@ -130,7 +130,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
           {/* Linked accounts list with staggered fade-in animation */}
           {isSuccess && recipients.length > 0 && (
-            <div className="eb-grid eb-grid-cols-1 eb-gap-3 @4xl:eb-grid-cols-2">
+            <div className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-3 @4xl:eb-grid-cols-2">
               {recipients.map((recipient, index) => (
                 <div
                   key={recipient.id}
