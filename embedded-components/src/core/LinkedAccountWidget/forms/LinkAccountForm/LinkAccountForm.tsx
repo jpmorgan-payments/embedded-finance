@@ -1,14 +1,14 @@
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode, useState, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 import {
   useCreateRecipient,
   useGetAllRecipients,
 } from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,12 +23,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -39,34 +41,27 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui';
 
+import { RECIPIENT_STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 import { LinkAccountConfirmation } from './LinkAccountConfirmation';
 import {
   LinkAccountFormDataType,
   LinkAccountFormSchema,
 } from './LinkAccountForm.schema';
+import { PaymentTypeSelector } from './PaymentTypeSelector';
 
 type LinkAccountFormDialogTriggerProps = {
   children: ReactNode;
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
-const RECIPIENT_STATUS_MESSAGES: Record<string, string> = {
-  MICRODEPOSITS_INITIATED:
-    'We initiated microdeposits to verify this account. This usually takes 1–2 business days.',
-  READY_FOR_VALIDATION:
-    'Your microdeposits are ready to be verified. Please enter the amounts to complete verification.',
-  ACTIVE: 'Your external account has been linked and is active.',
-  PENDING: 'We are processing your account. This may take a moment.',
-  INACTIVE: 'The account was linked but is currently inactive.',
-  REJECTED:
-    'We could not link this account. Please review details or try again.',
-};
-
+/**
+ * LinkAccountFormDialogTrigger - Dialog for linking a new bank account
+ * Follows OnboardingFlow patterns for form structure and validation
+ */
 export const LinkAccountFormDialogTrigger: FC<
   LinkAccountFormDialogTriggerProps
 > = ({ children, onLinkedAccountSettled }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [selectedAccountType, setSelectedAccountType] = useState('INDIVIDUAL'); // Default to INDIVIDUAL
 
   const form = useForm<LinkAccountFormDataType>({
     resolver: zodResolver(LinkAccountFormSchema),
@@ -74,60 +69,90 @@ export const LinkAccountFormDialogTrigger: FC<
       accountType: 'INDIVIDUAL',
       firstName: '',
       lastName: '',
+      businessName: '',
       routingNumber: '',
       accountNumber: '',
+      bankAccountType: 'CHECKING',
+      paymentTypes: ['ACH'],
+      address: {
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        countryCode: 'US',
+      },
       certify: false,
     },
   });
-
-  const handleAccountTypeChange = (accountType: string) => {
-    setSelectedAccountType(accountType);
-  };
 
   const {
     mutate: createRecipient,
     reset: resetCreateRecipient,
     status: createRecipientStatus,
     data: createRecipientResponse,
+    error: createRecipientError,
   } = useCreateRecipient();
 
-  const { refetch: refetchCreateRecipient } = useGetAllRecipients();
+  const { refetch: refetchRecipients } = useGetAllRecipients();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onSubmit = (data: z.infer<typeof LinkAccountFormSchema>) => {
-    // Handle account linking logic here
-    createRecipient(
-      {
-        data: {
-          type: 'LINKED_ACCOUNT',
-          partyDetails: {
-            type: data.accountType,
-            ...(data.accountType === 'INDIVIDUAL'
-              ? {
-                  firstName: data.firstName,
-                  lastName: data.lastName,
-                }
-              : {
-                  businessName: data.businessName,
-                }),
-          },
-          account: {
-            type: 'CHECKING',
-            number: data.accountNumber,
-            routingInformation: [
-              {
-                routingCodeType: 'USABA',
-                routingNumber: data.routingNumber,
-                transactionType: 'ACH',
-              },
-            ],
-            countryCode: 'US',
-          },
-        },
+  // Watch form values for conditional rendering
+  const accountType = form.watch('accountType');
+  const paymentTypes = form.watch('paymentTypes');
+
+  // Determine if address fields should be shown
+  const showAddressFields = useMemo(
+    () => paymentTypes.includes('WIRE') || paymentTypes.includes('RTP'),
+    [paymentTypes]
+  );
+
+  const onSubmit = (data: LinkAccountFormDataType) => {
+    // Build routing information based on selected payment types
+    const routingInformation = data.paymentTypes.map((type) => ({
+      routingCodeType: type === 'WIRE' ? 'SWIFT' : 'USABA',
+      routingNumber: data.routingNumber,
+      transactionType: type,
+    }));
+
+    // Build request payload
+    const payload: any = {
+      type: 'LINKED_ACCOUNT',
+      partyDetails: {
+        type: data.accountType,
+        ...(data.accountType === 'INDIVIDUAL'
+          ? {
+              firstName: data.firstName,
+              lastName: data.lastName,
+            }
+          : {
+              businessName: data.businessName,
+            }),
       },
+      account: {
+        type: data.bankAccountType,
+        number: data.accountNumber,
+        routingInformation,
+        countryCode: 'US',
+      },
+    };
+
+    // Add address if provided (required for Wire/RTP)
+    if (showAddressFields && data.address) {
+      payload.partyDetails.address = {
+        addressLine1: data.address.addressLine1,
+        addressLine2: data.address.addressLine2,
+        city: data.address.city,
+        state: data.address.state,
+        postalCode: data.address.postalCode,
+        countryCode: data.address.countryCode,
+      };
+    }
+
+    createRecipient(
+      { data: payload },
       {
         onSuccess: (response) => {
-          refetchCreateRecipient();
+          refetchRecipients();
           onLinkedAccountSettled?.(response);
         },
         onError: (error) => {
@@ -138,154 +163,163 @@ export const LinkAccountFormDialogTrigger: FC<
     );
   };
 
+  const handleDialogChange = (open: boolean) => {
+    if (open) {
+      resetCreateRecipient();
+      form.reset();
+    }
+    setDialogOpen(open);
+  };
+
   return (
-    <Dialog
-      open={isDialogOpen}
-      onOpenChange={(open) => {
-        if (open) {
-          resetCreateRecipient();
-          form.reset();
-        }
-        setDialogOpen(open);
-      }}
-    >
+    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="eb-max-h-[90vh] eb-max-w-2xl eb-overflow-hidden eb-p-0">
+        <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-pb-4">
+          <DialogTitle className="eb-text-xl">
             {createRecipientStatus === 'success'
-              ? 'Account linked'
-              : 'Link an Account'}
+              ? 'Account Linked Successfully'
+              : 'Link a Bank Account'}
           </DialogTitle>
           <DialogDescription>
             {createRecipientStatus === 'success'
               ? (RECIPIENT_STATUS_MESSAGES[
                   createRecipientResponse?.status ?? ''
                 ] ?? 'Your external account has been linked.')
-              : "Enter your external account's information to link it"}
+              : 'Connect your external bank account to enable payments'}
           </DialogDescription>
         </DialogHeader>
-        {createRecipientStatus === 'pending' ? (
-          <div className="eb-flex eb-h-[25rem] eb-items-center eb-justify-center">
-            <Loader2Icon
-              className="eb-animate-spin eb-stroke-primary"
-              size={48}
-            />
-          </div>
-        ) : createRecipientStatus === 'success' ? (
-          <LinkAccountConfirmation recipient={createRecipientResponse} />
-        ) : (
-          <div className="eb-scrollable-content eb-max-h-[70vh] eb-overflow-y-auto">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="eb-space-y-6 eb-px-4 eb-py-2"
-              >
-                {/* Error Summary for Debugging */}
-                {Object.keys(form.formState.errors).length > 0 && (
-                  <div className="eb-mb-4 eb-rounded eb-border eb-border-red-200 eb-bg-red-50 eb-p-3">
-                    <p className="eb-mb-2 eb-font-semibold eb-text-red-700">
-                      Form Errors:
-                    </p>
-                    <ul className="eb-list-inside eb-list-disc eb-text-xs eb-text-red-600">
-                      {Object.entries(form.formState.errors).map(
-                        ([key, value]) => {
-                          if (
-                            value &&
-                            typeof value === 'object' &&
-                            'message' in value &&
-                            typeof value.message === 'string' &&
-                            value.message
-                          ) {
-                            return (
-                              <li key={key}>
-                                <strong>{key}:</strong> {value.message}
-                              </li>
-                            );
-                          }
-                          return null;
-                        }
-                      )}
-                    </ul>
-                  </div>
-                )}
 
-                {/* Account Type Section */}
-                <div className="eb-space-y-4">
+        {/* Loading State */}
+        {createRecipientStatus === 'pending' && (
+          <div className="eb-flex eb-h-96 eb-items-center eb-justify-center">
+            <div className="eb-text-center">
+              <Loader2Icon className="eb-mx-auto eb-mb-4 eb-h-10 eb-w-10 eb-animate-spin eb-text-primary" />
+              <p className="eb-text-sm eb-text-muted-foreground">
+                Linking your account...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Success State */}
+        {createRecipientStatus === 'success' && (
+          <div className="eb-px-6 eb-pb-6">
+            <LinkAccountConfirmation recipient={createRecipientResponse} />
+            <DialogFooter className="eb-mt-6">
+              <DialogClose asChild>
+                <Button className="eb-w-full">Done</Button>
+              </DialogClose>
+            </DialogFooter>
+          </div>
+        )}
+
+        {/* Form State */}
+        {createRecipientStatus === 'idle' && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="eb-flex eb-flex-col">
+              <div className="eb-max-h-[calc(90vh-180px)] eb-overflow-y-auto eb-px-6">
+                <div className="eb-space-y-6 eb-py-4">
+                  {/* Error Alert */}
+                  {createRecipientStatus === 'error' && createRecipientError && (
+                    <Alert variant="destructive">
+                      <AlertTitle>Unable to link account</AlertTitle>
+                      <AlertDescription>
+                        {(createRecipientError.response?.data as ApiError)
+                          ?.message || 'An error occurred. Please try again.'}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Account Holder Type */}
                   <FormField
                     control={form.control}
                     name="accountType"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="eb-text-base eb-font-medium">
-                          Account Type{' '}
-                          <span className="eb-text-red-600">*</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            handleAccountTypeChange(value);
-                          }}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select account type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="INDIVIDUAL">
-                              Individual
-                            </SelectItem>
-                            <SelectItem value="ORGANIZATION">
-                              Business
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <FormItem className="eb-space-y-3">
+                        <FormLabel asterisk>Account Holder Type</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="eb-flex eb-flex-col eb-space-y-2"
+                          >
+                            <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-lg eb-border eb-p-3">
+                              <FormControl>
+                                <RadioGroupItem value="INDIVIDUAL" />
+                              </FormControl>
+                              <FormLabel className="eb-flex-1 eb-cursor-pointer eb-font-normal">
+                                Individual / Personal Account
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0 eb-rounded-lg eb-border eb-p-3">
+                              <FormControl>
+                                <RadioGroupItem value="ORGANIZATION" />
+                              </FormControl>
+                              <FormLabel className="eb-flex-1 eb-cursor-pointer eb-font-normal">
+                                Business / Organization Account
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                {/* Personal/Business Details Section */}
-                <div className="eb-space-y-4">
-                  {selectedAccountType === 'INDIVIDUAL' && (
-                    <div className="eb-grid eb-grid-cols-2 eb-gap-4">
+                  {/* Account Holder Details */}
+                  {accountType === 'INDIVIDUAL' ? (
+                    <div className="eb-space-y-4">
+                      <h3 className="eb-text-sm eb-font-semibold">Account Holder Information</h3>
+                      <div className="eb-grid eb-grid-cols-2 eb-gap-4">
+                        <FormField
+                          control={form.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel asterisk>First Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="John" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel asterisk>Last Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Doe" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormDescription>
+                        Must exactly match the name on your bank account
+                      </FormDescription>
+                    </div>
+                  ) : (
+                    <div className="eb-space-y-4">
+                      <h3 className="eb-text-sm eb-font-semibold">Business Information</h3>
                       <FormField
                         control={form.control}
-                        name="firstName"
+                        name="businessName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>
-                              First Name{' '}
-                              <span className="eb-text-red-600">*</span>
-                            </FormLabel>
+                            <FormLabel asterisk>Business Name</FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Enter first name"
-                              />
+                              <Input {...field} placeholder="Acme Corporation" />
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Last Name{' '}
-                              <span className="eb-text-red-600">*</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Enter last name" />
-                            </FormControl>
+                            <FormDescription>
+                              Must exactly match the business name on your bank account
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -293,111 +327,212 @@ export const LinkAccountFormDialogTrigger: FC<
                     </div>
                   )}
 
-                  {selectedAccountType === 'ORGANIZATION' && (
+                  <Separator />
+
+                  {/* Bank Account Details */}
+                  <div className="eb-space-y-4">
+                    <h3 className="eb-text-sm eb-font-semibold">Bank Account Details</h3>
+                    <div className="eb-grid eb-grid-cols-2 eb-gap-4">
+                      <FormField
+                        control={form.control}
+                        name="routingNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel asterisk>Routing Number</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="123456789"
+                                maxLength={9}
+                              />
+                            </FormControl>
+                            <FormDescription>9-digit ABA routing number</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="bankAccountType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel asterisk>Account Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="CHECKING">Checking</SelectItem>
+                                <SelectItem value="SAVINGS">Savings</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
-                      name="businessName"
+                      name="accountNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
-                            Business Name{' '}
-                            <span className="eb-text-red-600">*</span>
-                          </FormLabel>
+                          <FormLabel asterisk>Account Number</FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Enter business name"
-                            />
+                            <Input {...field} placeholder="1234567890" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  <Separator />
+
+                  {/* Payment Methods */}
+                  <FormField
+                    control={form.control}
+                    name="paymentTypes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <PaymentTypeSelector
+                          selectedTypes={field.value}
+                          onChange={field.onChange}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Address Fields (shown when Wire or RTP is selected) */}
+                  {showAddressFields && (
+                    <>
+                      <Separator />
+                      <div className="eb-space-y-4">
+                        <div>
+                          <h3 className="eb-text-sm eb-font-semibold">Address Information</h3>
+                          <p className="eb-mt-1 eb-text-xs eb-text-muted-foreground">
+                            Required for Wire Transfer and Real-Time Payment methods
+                          </p>
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="address.addressLine1"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel asterisk>Street Address</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="123 Main St" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="address.addressLine2"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Address Line 2 (Optional)</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Apt 4B" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="eb-grid eb-grid-cols-2 eb-gap-4">
+                          <FormField
+                            control={form.control}
+                            name="address.city"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel asterisk>City</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="New York" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="address.state"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel asterisk>State</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="NY"
+                                    maxLength={2}
+                                    className="eb-uppercase"
+                                  />
+                                </FormControl>
+                                <FormDescription>2-letter code</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="address.postalCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel asterisk>ZIP Code</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="10001" maxLength={10} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </>
                   )}
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                {/* Account Details Section */}
-                <div className="eb-space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="routingNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Routing Number{' '}
-                          <span className="eb-text-red-600">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter routing number"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="accountNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Account Number{' '}
-                          <span className="eb-text-red-600">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter account number"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Separator />
-
-                {/* Authorization Section */}
-                <div className="eb-space-y-4">
+                  {/* Certification */}
                   <FormField
                     control={form.control}
                     name="certify"
                     render={({ field }) => (
-                      <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0">
+                      <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-lg eb-border eb-bg-muted/30 eb-p-4">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <div className="eb-space-y-1 eb-leading-none">
-                          <FormLabel>
-                            I authorize verification of my external bank
-                            account, including my micro-deposit
-                            <span className="eb-text-red-600"> *</span>
-                          </FormLabel>
+                        <div className="eb-space-y-1">
+                          <FormLabel asterisk>Authorization</FormLabel>
+                          <FormDescription className="eb-text-xs">
+                            I authorize verification of this external bank account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.
+                          </FormDescription>
                           <FormMessage />
                         </div>
                       </FormItem>
                     )}
                   />
                 </div>
+              </div>
 
+              {/* Footer */}
+              <div className="eb-border-t eb-p-6">
                 <DialogFooter className="eb-gap-2">
                   <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline" type="button">
+                      Cancel
+                    </Button>
                   </DialogClose>
                   <Button type="submit">Link Account</Button>
                 </DialogFooter>
-              </form>
-            </Form>
-          </div>
+              </div>
+            </form>
+          </Form>
         )}
       </DialogContent>
     </Dialog>

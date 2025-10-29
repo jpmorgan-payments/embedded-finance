@@ -12,6 +12,56 @@ The `LinkedAccountWidget` is a complex, feature-rich component that handles the 
 - Managing account status and actions
 - Integration with payment components
 
+## Responsive Design
+
+The `LinkedAccountWidget` uses **container queries** to adapt to its container width, making it responsive regardless of where it's placed in your application. This is particularly useful when the component is placed in sidebars, modals, or variable-width containers.
+
+### Container Query Breakpoints
+
+- **@md (448px)**: Header switches from stacked to horizontal layout, button becomes full-width on mobile
+- **@2xl (896px)**: Account cards switch from single-column to two-column grid layout
+
+### Layout Behaviors
+
+**Narrow containers (< 448px)**:
+
+- Header title and button stack vertically
+- Button becomes full-width
+- Single-column account card layout
+
+**Medium containers (448px - 896px)**:
+
+- Header becomes horizontal with title on left, button on right
+- Button returns to auto width
+- Single-column account card layout
+
+**Wide containers (> 896px)**:
+
+- Header remains horizontal
+- Account cards display in a two-column grid
+- Component has a max-width of 1024px and centers itself
+
+### Usage in Different Contexts
+
+```tsx
+// In a narrow sidebar (will adapt to narrow layout)
+<aside className="w-80">
+  <LinkedAccountWidget />
+</aside>
+
+// In a full-width page (will use max-width and center itself)
+<main className="container">
+  <LinkedAccountWidget />
+</main>
+
+// In a modal or dialog (will adapt to modal width)
+<Dialog>
+  <DialogContent className="max-w-2xl">
+    <LinkedAccountWidget />
+  </DialogContent>
+</Dialog>
+```
+
 ## Architecture
 
 This component follows a modular architecture with clear separation of concerns:

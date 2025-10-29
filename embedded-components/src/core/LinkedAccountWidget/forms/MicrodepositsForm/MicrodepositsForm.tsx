@@ -40,13 +40,23 @@ import {
 type MicrodepositsFormDialogTriggerProps = {
   children: ReactNode;
   recipientId: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
 export const MicrodepositsFormDialogTrigger: FC<
   MicrodepositsFormDialogTriggerProps
-> = ({ children, recipientId, onLinkedAccountSettled }) => {
-  const [isDialogOpen, setDialogOpen] = useState(false);
+> = ({
+  children,
+  recipientId,
+  open: controlledOpen,
+  onOpenChange,
+  onLinkedAccountSettled,
+}) => {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const isDialogOpen = isControlled ? controlledOpen : uncontrolledOpen;
   const {
     data: recipient,
     isLoading: isRecipientLoading,
@@ -106,7 +116,11 @@ export const MicrodepositsFormDialogTrigger: FC<
           resetVerify();
           form.reset();
         }
-        setDialogOpen(open);
+        if (isControlled) {
+          onOpenChange?.(open);
+        } else {
+          setUncontrolledOpen(open);
+        }
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>

@@ -27,6 +27,15 @@ export function getRecipientDisplayName(recipient: Recipient): string {
 }
 
 /**
+ * Get account holder type display text
+ */
+export function getAccountHolderType(recipient: Recipient): string {
+  return recipient.partyDetails?.type === 'INDIVIDUAL'
+    ? 'Individual'
+    : 'Business';
+}
+
+/**
  * Check if recipient can verify microdeposits
  */
 export function canVerifyMicrodeposits(recipient: Recipient): boolean {
@@ -38,6 +47,22 @@ export function canVerifyMicrodeposits(recipient: Recipient): boolean {
  */
 export function canMakePayment(recipient: Recipient): boolean {
   return recipient.status === 'ACTIVE';
+}
+
+/**
+ * Check if recipient needs additional routing information (Wire/RTP)
+ * Returns true if account is active but only has ACH configured
+ */
+export function needsAdditionalRouting(recipient: Recipient): boolean {
+  if (recipient.status !== 'ACTIVE') return false;
+
+  const methods = getSupportedPaymentMethods(recipient);
+  const hasACH = methods.includes('ACH');
+  const hasWire = methods.includes('WIRE');
+  const hasRTP = methods.includes('RTP');
+
+  // If only ACH is configured, suggest adding Wire or RTP
+  return hasACH && !hasWire && !hasRTP;
 }
 
 /**
@@ -63,4 +88,15 @@ export function formatRecipientDate(dateString?: string): string {
     month: 'short',
     day: 'numeric',
   });
+}
+
+/**
+ * Check if recipient has all required information for a payment type
+ */
+export function hasRequiredInfoForPaymentType(
+  recipient: Recipient,
+  paymentType: 'ACH' | 'WIRE' | 'RTP'
+): boolean {
+  const methods = getSupportedPaymentMethods(recipient);
+  return methods.includes(paymentType);
 }
