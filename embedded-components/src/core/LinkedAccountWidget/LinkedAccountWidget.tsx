@@ -72,14 +72,14 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   };
 
   return (
-    <div className="@container eb-w-full">
+    <div className="eb-w-full eb-@container">
       <Card
         className={`eb-component eb-mx-auto eb-w-full eb-max-w-4xl ${className || ''}`}
       >
         <CardHeader className="eb-border-b eb-bg-muted/30">
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
-              <CardTitle className="@md:eb-text-xl eb-text-lg eb-font-semibold">
+              <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
                 Linked Accounts
               </CardTitle>
               <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
@@ -127,7 +127,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
           {/* Linked accounts list */}
           {isSuccess && recipients.length > 0 && (
-            <div className="@2xl:eb-grid-cols-2 eb-grid eb-grid-cols-1 eb-gap-3">
+            <div className="eb-grid eb-grid-cols-1 eb-gap-3 @2xl:eb-grid-cols-2">
               {recipients.map((recipient) => (
                 <LinkedAccountCard
                   key={recipient.id}
