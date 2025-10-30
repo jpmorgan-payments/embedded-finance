@@ -7,7 +7,7 @@ export interface ModifiedTransaction extends TransactionGetResponseV2 {
 
 export const modifyTransactionsData = (
   transactions: TransactionGetResponseV2[],
-  accountId: string
+  accountIds: string[]
 ): ModifiedTransaction[] => {
   const sortedTransactions = transactions.sort((a, b) => {
     // Primary sort: by createdAt timestamp (most recent first)
@@ -35,8 +35,19 @@ export const modifyTransactionsData = (
   });
 
   return sortedTransactions.map((transaction) => {
-    const payinOrPayout =
-      transaction.creditorAccountId === accountId ? 'PAYIN' : 'PAYOUT';
+    if (!accountIds.length) {
+      return {
+        ...transaction,
+        payinOrPayout: undefined,
+        counterpartName: undefined,
+      };
+    }
+
+    const payinOrPayout = accountIds.includes(
+      transaction.creditorAccountId ?? ''
+    )
+      ? 'PAYIN'
+      : 'PAYOUT';
     const counterpartName =
       payinOrPayout === 'PAYIN'
         ? transaction.debtorName

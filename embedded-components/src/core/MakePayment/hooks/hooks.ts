@@ -7,6 +7,7 @@ import {
 } from '@/api/generated/ep-accounts';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 
+import { useInterceptorStatus } from '../../EBComponentsProvider/EBComponentsProvider';
 import type { PaymentFormData, PaymentMethod } from '../types';
 import {
   filterPaymentMethods,
@@ -21,18 +22,27 @@ export const usePaymentData = (
   paymentMethods: PaymentMethod[],
   form: UseFormReturn<PaymentFormData>
 ) => {
+  const { interceptorReady } = useInterceptorStatus();
   // Fetch recipients from API
   const {
     data: recipientsData,
     status: recipientsStatus,
     refetch: refetchRecipients,
-  } = useGetAllRecipients(undefined);
+  } = useGetAllRecipients(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
 
   const {
     data: accounts,
     status: accountsStatus,
     refetch: refetchAccounts,
-  } = useGetAccounts(undefined);
+  } = useGetAccounts(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
 
   const recipients = recipientsData?.recipients || [];
 
@@ -40,7 +50,11 @@ export const usePaymentData = (
 
   // Fetch account balance when account is selected
   const { data: accountBalance, isLoading: isBalanceLoading } =
-    useGetAccountBalance(selectedAccountId || '');
+    useGetAccountBalance(selectedAccountId || '', {
+      query: {
+        enabled: interceptorReady,
+      },
+    });
 
   // Get selected account details
   const selectedAccount = useMemo(() => {

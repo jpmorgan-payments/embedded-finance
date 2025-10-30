@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
+import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
 import { MicrodepositsFormDialogTrigger } from './MicrodepositsForm/MicrodepositsForm';
 
@@ -62,10 +63,18 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   makePaymentComponent,
   onLinkedAccountSettled,
 }) => {
+  const { interceptorReady } = useInterceptorStatus();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data, status, failureReason } = useGetAllRecipients({
-    type: 'LINKED_ACCOUNT',
-  });
+  const { data, status, failureReason } = useGetAllRecipients(
+    {
+      type: 'LINKED_ACCOUNT',
+    },
+    {
+      query: {
+        enabled: interceptorReady,
+      },
+    }
+  );
 
   const modifiedRecipients =
     variant === 'singleAccount'

@@ -45,6 +45,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { RecipientDetails } from './components/RecipientDetails/RecipientDetails';
 // Sub-components
 import { RecipientForm } from './components/RecipientForm/RecipientForm';
@@ -231,6 +232,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   userEventsHandler,
   isWidget = false,
 }) => {
+  const { interceptorReady } = useInterceptorStatus();
   // Merge user config with defaults
   const resolvedConfig = createRecipientsConfig(config);
 
@@ -264,12 +266,19 @@ export const Recipients: React.FC<RecipientsProps> = ({
     isLoading,
     isError,
     refetch,
-  } = useGetAllRecipients({
-    clientId,
-    type: filters.type,
-    page: currentPage,
-    limit: pageSize,
-  });
+  } = useGetAllRecipients(
+    {
+      clientId,
+      type: filters.type,
+      page: currentPage,
+      limit: pageSize,
+    },
+    {
+      query: {
+        enabled: interceptorReady,
+      },
+    }
+  );
 
   const createRecipientMutation = useCreateRecipient({
     mutation: {

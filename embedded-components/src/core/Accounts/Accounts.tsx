@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InfoPopover } from '@/components/LearnMorePopover/InfoPopover';
 
+import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
+
 export interface AccountsProps {
   allowedCategories: string[];
   clientId?: string;
@@ -38,8 +40,14 @@ export interface AccountCardRef {
 
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
   ({ allowedCategories, clientId, title = 'Accounts' }, ref) => {
+    const { interceptorReady } = useInterceptorStatus();
     const { data, isLoading, isError, refetch } = useGetAccounts(
-      clientId ? { clientId } : undefined
+      clientId ? { clientId } : undefined,
+      {
+        query: {
+          enabled: interceptorReady,
+        },
+      }
     );
 
     const filteredAccounts = useMemo(() => {
