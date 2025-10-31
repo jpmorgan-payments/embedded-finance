@@ -9,3 +9,5 @@ export { PaymentSuccess } from './PaymentSuccess/PaymentSuccess';
 export { RecipientDetails } from './RecipientDetails/RecipientDetails';
 export { RecipientSelector } from './RecipientSelector/RecipientSelector';
 export { ReviewPanel } from './ReviewPanel/ReviewPanel';
+export { RecipientModeToggle } from './recipient-mode/RecipientModeToggle';
+export { ManualRecipientFields } from './recipient-mode/ManualRecipientFields';

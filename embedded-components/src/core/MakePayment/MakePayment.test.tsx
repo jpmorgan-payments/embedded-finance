@@ -139,16 +139,12 @@ describe('MakePayment (Refactored)', () => {
 
     // Wait for the dialog to open and check for form elements
     await waitFor(() => {
-      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
       expect(
-        screen.getByText('2. Which account are you paying from?')
+        screen.getByText('Which account are you paying from?')
       ).toBeInTheDocument();
-      expect(
-        screen.getByText('3. How much are you paying?')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('4. How do you want to pay?')
-      ).toBeInTheDocument();
+      expect(screen.getByText('How much are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
     });
   });
 
@@ -160,7 +156,7 @@ describe('MakePayment (Refactored)', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('2. Which account are you paying from?')
+        screen.getByText('Which account are you paying from?')
       ).toBeInTheDocument();
     });
 
@@ -179,7 +175,7 @@ describe('MakePayment (Refactored)', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('2. Which account are you paying from?')
+        screen.getByText('Which account are you paying from?')
       ).toBeInTheDocument();
     });
 
@@ -204,7 +200,7 @@ describe('MakePayment (Refactored)', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('2. Which account are you paying from?')
+        screen.getByText('Which account are you paying from?')
       ).toBeInTheDocument();
     });
 
@@ -237,9 +233,7 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('3. How much are you paying?')
-      ).toBeInTheDocument();
+      expect(screen.getByText('How much are you paying?')).toBeInTheDocument();
     });
 
     // Find and interact with amount input
@@ -256,9 +250,7 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('4. How do you want to pay?')
-      ).toBeInTheDocument();
+      expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
     });
 
     // Check if payment method options are rendered
@@ -291,7 +283,7 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     });
 
     // Fill out the form
@@ -302,7 +294,7 @@ describe('MakePayment (Refactored)', () => {
 
     // Select account
     const accountSelect = screen.getByRole('combobox', {
-      name: /2\. Which account are you paying from\?/i,
+      name: /Which account are you paying from\?/i,
     });
     await userEvent.click(accountSelect);
     await waitFor(() => {
@@ -349,7 +341,7 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     });
 
     // Fill out and submit form (simplified version)
@@ -359,7 +351,7 @@ describe('MakePayment (Refactored)', () => {
     });
 
     const accountSelect = screen.getByRole('combobox', {
-      name: /2\. Which account are you paying from\?/i,
+      name: /Which account are you paying from\?/i,
     });
     await userEvent.click(accountSelect);
     await waitFor(() => {
@@ -395,7 +387,7 @@ describe('MakePayment (Refactored)', () => {
 
     // Should return to the form
     await waitFor(() => {
-      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     });
 
     // Since there's only one recipient, it should be displayed as text, not a select
@@ -453,7 +445,7 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     });
 
     // Preview panel should not be visible
@@ -496,16 +488,16 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(screen.getByText('Make a payment'));
 
     await waitFor(() => {
-      expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+      expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     });
 
     // Form should still be functional without preview panel
-    expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     expect(
-      screen.getByText('2. Which account are you paying from?')
+      screen.getByText('Which account are you paying from?')
     ).toBeInTheDocument();
-    expect(screen.getByText('3. How much are you paying?')).toBeInTheDocument();
-    expect(screen.getByText('4. How do you want to pay?')).toBeInTheDocument();
+    expect(screen.getByText('How much are you paying?')).toBeInTheDocument();
+    expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
     expect(screen.getByText(/Additional Information/)).toBeInTheDocument();
   });
 });

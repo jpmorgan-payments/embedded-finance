@@ -89,7 +89,7 @@ describe('AccountSelector', () => {
     );
 
     expect(
-      screen.getByText('2. Which account are you paying from?')
+      screen.getByText('Which account are you paying from?')
     ).toBeInTheDocument();
     // Note: Account options are not visible in the dropdown until it's opened
   });

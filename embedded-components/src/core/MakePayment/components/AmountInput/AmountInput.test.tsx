@@ -54,7 +54,7 @@ describe('AmountInput', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('3. How much are you paying?')).toBeInTheDocument();
+    expect(screen.getByText('How much are you paying?')).toBeInTheDocument();
     expect(screen.getByText('USD')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('0.00')).toBeInTheDocument();
   });
@@ -81,6 +81,6 @@ describe('AmountInput', () => {
     );
 
     // Validation errors are not shown in the basic render
-    expect(screen.getByText('3. How much are you paying?')).toBeInTheDocument();
+    expect(screen.getByText('How much are you paying?')).toBeInTheDocument();
   });
 });

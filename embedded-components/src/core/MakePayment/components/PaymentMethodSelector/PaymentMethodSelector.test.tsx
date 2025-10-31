@@ -76,7 +76,7 @@ describe('PaymentMethodSelector', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('4. How do you want to pay?')).toBeInTheDocument();
+    expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
     expect(screen.getByText('ACH')).toBeInTheDocument();
     expect(screen.getByText('RTP')).toBeInTheDocument();
   });

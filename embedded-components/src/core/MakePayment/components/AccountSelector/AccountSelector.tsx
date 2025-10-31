@@ -57,7 +57,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
         <FormItem>
           <FormLabel>
             {t('fields.from.label', {
-              defaultValue: '2. Which account are you paying from?',
+              defaultValue: 'Which account are you paying from?',
             })}
           </FormLabel>
           {accountsStatus === 'pending' && (

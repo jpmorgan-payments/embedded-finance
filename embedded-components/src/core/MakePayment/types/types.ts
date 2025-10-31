@@ -49,11 +49,25 @@ export type { AccountResponse as AccountResponseType };
 
 export interface PaymentFormData {
   from: string;
-  to: string;
+  recipientMode: 'existing' | 'manual';
+  to?: string;
   amount: string;
   method: string;
   currency: string;
   memo?: string;
+  // manual recipient fields
+  partyType?: 'INDIVIDUAL' | 'ORGANIZATION';
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  accountType?: 'CHECKING' | 'SAVINGS' | 'IBAN';
+  accountNumber?: string;
+  countryCode?: 'US';
+  routingNumber?: string;
+  addressLine1?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
 }
 
 export interface PaymentValidation {
