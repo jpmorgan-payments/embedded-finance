@@ -91,7 +91,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
               <LinkAccountFormDialogTrigger
                 onLinkedAccountSettled={onLinkedAccountSettled}
               >
-                <Button variant="outline" size="sm" className="eb-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="eb-shrink-0 eb-bg-background"
+                >
                   <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
                   Link Account
                 </Button>

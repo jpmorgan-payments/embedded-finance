@@ -214,7 +214,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                       return (
                         <div
                           key={method}
-                          className="eb-flex eb-max-w-sm eb-items-center eb-justify-between eb-gap-3 eb-rounded eb-border eb-border-border/40 eb-bg-background/50 eb-px-2.5 eb-py-2"
+                          className="eb-flex eb-max-w-xs eb-items-center eb-justify-between eb-gap-3 eb-rounded eb-border eb-border-border/40 eb-bg-background/50 eb-px-2.5 eb-py-2"
                         >
                           <Badge
                             variant="secondary"
@@ -331,7 +331,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
           <>
             <Separator />
             <div
-              className="eb-mt-auto eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2 eb-bg-muted/30 eb-p-3"
+              className="eb-mt-auto eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2 eb-bg-muted eb-p-3"
               role="group"
               aria-label="Account actions"
             >
@@ -343,6 +343,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="eb-bg-background"
                   disabled={!showPaymentButton}
                   aria-label={`Make payment from ${displayName}`}
                 >
