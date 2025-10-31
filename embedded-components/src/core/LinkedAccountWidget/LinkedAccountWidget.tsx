@@ -77,7 +77,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       <Card
         className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl ${className || ''}`}
       >
-        <CardHeader className="eb-border-b eb-bg-muted/30">
+        <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-3 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-4 @lg:eb-p-6">
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
               <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
@@ -111,7 +111,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           </div>
         </CardHeader>
 
-        <CardContent className="eb-space-y-4 eb-p-6">
+        <CardContent className="eb-space-y-4 eb-p-3 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-4 @lg:eb-p-6">
           {/* Loading state with skeleton cards */}
           {isLoading && (
             <div className="eb-grid eb-grid-cols-1 eb-gap-3 @4xl:eb-grid-cols-2">
