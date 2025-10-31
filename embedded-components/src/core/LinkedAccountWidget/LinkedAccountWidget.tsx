@@ -81,7 +81,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
               <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
-                Linked Accounts
+                Linked Accounts ({recipients.length})
               </CardTitle>
               <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
                 Manage your external bank accounts for payments
@@ -134,7 +134,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
           {/* Linked accounts list with staggered fade-in animation */}
           {isSuccess && recipients.length > 0 && (
-            <div className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-3 @4xl:eb-grid-cols-2">
+            <div
+              className={`eb-grid eb-grid-cols-1 eb-items-start eb-gap-3 ${recipients.length > 1 ? '@4xl:eb-grid-cols-2' : ''}`}
+            >
               {recipients.map((recipient, index) => (
                 <div
                   key={recipient.id}
