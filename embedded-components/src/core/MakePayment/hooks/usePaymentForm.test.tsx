@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
+import type { PaymentFormData } from '../types';
 import { usePaymentForm } from './usePaymentForm';
 
 // Setup QueryClient for tests
@@ -58,13 +59,14 @@ describe('usePaymentForm', () => {
       wrapper: TestWrapper,
     });
 
-    const mockData = {
+    const mockData: PaymentFormData = {
       from: 'account-1',
       to: 'recipient-1',
       amount: '100.50',
       method: 'ACH',
       currency: 'USD',
       memo: 'Test memo',
+      recipientMode: 'existing',
     };
 
     // Set form values

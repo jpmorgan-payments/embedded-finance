@@ -84,7 +84,7 @@ describe('RecipientSelector', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('1. Who are you paying?')).toBeInTheDocument();
+    expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
     // Note: Recipients are not visible in the dropdown until it's opened
   });
 
