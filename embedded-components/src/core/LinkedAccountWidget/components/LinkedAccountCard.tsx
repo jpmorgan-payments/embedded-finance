@@ -23,6 +23,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Card, CardContent } from '@/components/ui';
 
 import { LinkedAccountCardProps } from '../LinkedAccountWidget.types';
@@ -80,6 +85,26 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
       (info) => info.transactionType === method
     );
     return routingInfo?.routingNumber || null;
+  };
+
+  // Helper to get tooltip message for disabled pay button
+  const getDisabledPayTooltip = () => {
+    if (!recipient.status) return 'Payment unavailable';
+
+    switch (recipient.status) {
+      case 'READY_FOR_VALIDATION':
+        return 'Complete account verification to enable payments';
+      case 'MICRODEPOSITS_INITIATED':
+        return 'Waiting for microdeposit verification to enable payments';
+      case 'INACTIVE':
+        return 'Account is inactive. Please activate to make payments';
+      case 'REJECTED':
+        return 'Account verification was rejected. Please contact support';
+      case 'PENDING':
+        return 'Account is being processed. Please wait to make payments';
+      default:
+        return 'Payment unavailable for this account';
+    }
   };
 
   return (
@@ -343,12 +368,34 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 React.cloneElement(makePaymentComponent as React.ReactElement, {
                   recipientId: recipient.id,
                 })
+              ) : !showPaymentButton ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="eb-bg-background"
+                        disabled
+                        aria-label={`Make payment from ${displayName} - ${getDisabledPayTooltip()}`}
+                      >
+                        <span>Pay</span>
+                        <ArrowRightIcon
+                          className="eb-ml-2 eb-h-4 eb-w-4"
+                          aria-hidden="true"
+                        />
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{getDisabledPayTooltip()}</p>
+                  </TooltipContent>
+                </Tooltip>
               ) : (
                 <Button
                   variant="outline"
                   size="sm"
                   className="eb-bg-background"
-                  disabled={!showPaymentButton}
                   aria-label={`Make payment from ${displayName}`}
                 >
                   <span>Pay</span>
