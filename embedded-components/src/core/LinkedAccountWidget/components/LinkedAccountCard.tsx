@@ -92,10 +92,10 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         {/* Header Section */}
         <div className="eb-space-y-3 eb-p-4">
           {/* Name, Type, and Status */}
-          <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
-            <div className="eb-flex-1 eb-space-y-1.5">
+          <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
+            <div className="eb-min-w-0 eb-flex-1 eb-space-y-1.5">
               <h3
-                className="eb-truncate eb-text-base eb-font-semibold eb-leading-tight"
+                className="eb-break-words eb-text-base eb-font-semibold eb-leading-tight"
                 id={`account-name-${recipient.id}`}
               >
                 {displayName}
@@ -109,7 +109,11 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 <span>{accountType}</span>
               </div>
             </div>
-            {recipient.status && <StatusBadge status={recipient.status} />}
+            {recipient.status && (
+              <div className="eb-shrink-0 eb-self-start">
+                <StatusBadge status={recipient.status} />
+              </div>
+            )}
           </div>
 
           {/* Account Number with Toggle */}
