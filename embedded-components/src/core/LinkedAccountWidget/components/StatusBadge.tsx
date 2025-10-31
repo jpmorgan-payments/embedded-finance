@@ -28,7 +28,7 @@ export interface StatusBadgeProps {
  * Get icon for status
  */
 const getStatusIcon = (status: RecipientStatus) => {
-  const iconClass = 'eb-h-3 eb-w-3';
+  const iconClass = 'eb-h-3.5 eb-w-3.5';
   switch (status) {
     case 'ACTIVE':
       return <CheckCircle2Icon className={iconClass} />;
