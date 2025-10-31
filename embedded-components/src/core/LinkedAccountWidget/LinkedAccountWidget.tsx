@@ -82,7 +82,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
             <div>
               <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
                 Linked Accounts{' '}
-                {!isLoading && (
+                {!isLoading && !isError && (
                   <span className="eb-animate-fade-in">
                     ({recipients.length})
                   </span>
