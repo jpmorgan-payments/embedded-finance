@@ -81,25 +81,32 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
               <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
-                Linked Accounts ({recipients.length})
+                Linked Accounts{' '}
+                {!isLoading && (
+                  <span className="eb-animate-fade-in">
+                    ({recipients.length})
+                  </span>
+                )}
               </CardTitle>
               <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
                 Manage your external bank accounts for payments
               </p>
             </div>
             {showCreate && !isLoading && (
-              <LinkAccountFormDialogTrigger
-                onLinkedAccountSettled={onLinkedAccountSettled}
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="eb-shrink-0 eb-bg-background"
+              <div className="eb-animate-fade-in">
+                <LinkAccountFormDialogTrigger
+                  onLinkedAccountSettled={onLinkedAccountSettled}
                 >
-                  <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                  Link Account
-                </Button>
-              </LinkAccountFormDialogTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="eb-shrink-0 eb-bg-background"
+                  >
+                    <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                    Link Account
+                  </Button>
+                </LinkAccountFormDialogTrigger>
+              </div>
             )}
           </div>
         </CardHeader>
