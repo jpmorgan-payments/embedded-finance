@@ -115,7 +115,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
     >
       <CardContent className="eb-flex eb-flex-col eb-p-0">
         {/* Header Section */}
-        <div className="eb-space-y-3 eb-p-4">
+        <div className="eb-space-y-3 eb-p-3 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-4">
           {/* Name, Type, and Status */}
           <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
             <div className="eb-min-w-0 eb-flex-1 eb-space-y-1.5">
@@ -186,7 +186,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         {paymentMethods.length > 0 && (
           <>
             <Separator />
-            <div className="eb-space-y-2 eb-bg-muted/20 eb-px-4 eb-py-3">
+            <div className="eb-space-y-2 eb-bg-muted/20 eb-px-3 eb-py-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-4 @md:eb-py-3">
               <div className="eb-flex eb-items-center eb-gap-2">
                 <h4
                   className="eb-text-xs eb-font-medium eb-text-muted-foreground"
@@ -331,7 +331,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         {recipient.status && recipient.status !== 'ACTIVE' && (
           <>
             <Separator />
-            <div className="eb-px-4 eb-py-3">
+            <div className="eb-px-3 eb-py-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-4 @md:eb-py-3">
               <StatusAlert
                 status={recipient.status}
                 action={
@@ -360,7 +360,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
           <>
             <Separator />
             <div
-              className="eb-mt-auto eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2 eb-bg-muted eb-p-3"
+              className="eb-py-1.g eb-mt-auto eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2 eb-bg-muted eb-px-2.5 eb-py-2 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-3 @md:eb-py-2.5"
               role="group"
               aria-label="Account actions"
             >
