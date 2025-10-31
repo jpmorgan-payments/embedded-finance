@@ -100,7 +100,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     className="eb-shrink-0 eb-bg-background"
                   >
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                    Link Account
+                    Link A New Account
                   </Button>
                 </LinkAccountFormDialogTrigger>
               </div>
