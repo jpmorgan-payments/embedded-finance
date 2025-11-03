@@ -20,7 +20,7 @@ export const AdditionalInformation: React.FC = () => {
     <div className="eb-space-y-1">
       <FormLabel className="eb-block">
         {t('sections.additionalInfo', {
-          defaultValue: '5. Additional Information (optional)',
+          defaultValue: 'Additional Information (optional)',
         })}
       </FormLabel>
       <div className="eb-mb-1 eb-text-xs eb-text-muted-foreground">
