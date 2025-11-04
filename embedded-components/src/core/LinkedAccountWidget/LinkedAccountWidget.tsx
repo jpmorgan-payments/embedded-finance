@@ -50,16 +50,15 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
 
   const { data, isLoading, isError, error, isSuccess, refetch } =
-    useGetAllRecipients({
-      type: 'LINKED_ACCOUNT',
-    });
+    useGetAllRecipients();
 
   // Filter recipients based on variant
   const linkedAccounts = useMemo(() => {
-    if (!data?.recipients) return [];
-    return variant === 'singleAccount'
-      ? data.recipients.slice(0, 1)
-      : data.recipients;
+    const filtered = data?.recipients?.filter(
+      (recipient) => recipient.type === 'LINKED_ACCOUNT'
+    );
+    if (!filtered) return [];
+    return variant === 'singleAccount' ? filtered.slice(0, 1) : filtered;
   }, [data?.recipients, variant]);
 
   // Check if there's at least one active account
