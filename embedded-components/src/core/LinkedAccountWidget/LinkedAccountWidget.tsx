@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { AlertTriangleIcon, PlusIcon } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { PlusIcon } from 'lucide-react';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { Button } from '@/components/ui/button';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 import { EmptyState } from './components/EmptyState';
@@ -10,7 +11,6 @@ import { LinkedAccountCard } from './components/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton';
 import { LinkAccountFormDialogTrigger } from './forms/LinkAccountForm/LinkAccountForm';
 import { MicrodepositsFormDialogTrigger } from './forms/MicrodepositsForm/MicrodepositsForm';
-import { useLinkedAccounts } from './hooks/useLinkedAccounts';
 import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
 import { shouldShowCreateButton } from './utils/recipientHelpers';
 
@@ -49,8 +49,24 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   );
   const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
 
-  const { recipients, hasActiveAccount, isLoading, isError, error, isSuccess } =
-    useLinkedAccounts({ variant });
+  const { data, isLoading, isError, error, isSuccess, refetch } =
+    useGetAllRecipients({
+      type: 'LINKED_ACCOUNT',
+    });
+
+  // Filter recipients based on variant
+  const linkedAccounts = useMemo(() => {
+    if (!data?.recipients) return [];
+    return variant === 'singleAccount'
+      ? data.recipients.slice(0, 1)
+      : data.recipients;
+  }, [data?.recipients, variant]);
+
+  // Check if there's at least one active account
+  const hasActiveAccount = useMemo(
+    () => linkedAccounts.some((r) => r.status === 'ACTIVE'),
+    [linkedAccounts]
+  );
 
   const showCreate = shouldShowCreateButton(
     variant,
@@ -84,10 +100,13 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 Linked Accounts{' '}
                 {!isLoading && !isError && (
                   <span className="eb-animate-fade-in">
-                    ({recipients.length})
+                    ({linkedAccounts.length})
                   </span>
                 )}
               </CardTitle>
+              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+                Manage your external bank accounts for payments
+              </p>
             </div>
             {showCreate && !isLoading && (
               <div className="eb-animate-fade-in">
@@ -119,29 +138,32 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
           {/* Error state */}
           {isError && (
-            <Alert variant="destructive" className="eb-animate-fade-in">
-              <AlertTriangleIcon className="eb-h-4 eb-w-4" />
-              <AlertTitle>Error loading accounts</AlertTitle>
-              <AlertDescription>
-                {error?.message ??
-                  'An unexpected error occurred while loading your linked accounts. Please try again.'}
-              </AlertDescription>
-            </Alert>
+            <ServerErrorAlert
+              customTitle="Error loading linked accounts"
+              customErrorMessage={{
+                default:
+                  'An unexpected error occurred while loading your linked accounts. Please try again.',
+                400: 'An unexpected error occurred while loading your linked accounts.',
+              }}
+              error={error}
+              tryAgainAction={refetch}
+              showDetails
+            />
           )}
 
           {/* Empty state */}
-          {isSuccess && recipients.length === 0 && (
+          {isSuccess && linkedAccounts.length === 0 && (
             <div className="eb-animate-fade-in">
               <EmptyState />
             </div>
           )}
 
           {/* Linked accounts list with staggered fade-in animation */}
-          {isSuccess && recipients.length > 0 && (
+          {isSuccess && linkedAccounts.length > 0 && (
             <div
-              className={`eb-grid eb-grid-cols-1 eb-items-start eb-gap-3 ${recipients.length > 1 ? '@4xl:eb-grid-cols-2' : ''}`}
+              className={`eb-grid eb-grid-cols-1 eb-items-start eb-gap-3 ${linkedAccounts.length > 1 ? '@4xl:eb-grid-cols-2' : ''}`}
             >
-              {recipients.map((recipient, index) => (
+              {linkedAccounts.map((recipient, index) => (
                 <div
                   key={recipient.id}
                   className="eb-animate-fade-in"
