@@ -62,12 +62,14 @@ const mockEmptyAccountsResponse = { items: [] };
 
 const TransactionsDisplayWithProvider = ({
   apiBaseUrl,
+  apiBaseUrls,
   headers,
   theme,
   accountIds,
   contentTokens,
 }: {
   apiBaseUrl: string;
+  apiBaseUrls?: Record<string, string>;
   headers: Record<string, string>;
   theme?: Record<string, unknown>;
   accountIds?: string[];
@@ -77,6 +79,7 @@ const TransactionsDisplayWithProvider = ({
   return (
     <EBComponentsProvider
       apiBaseUrl={apiBaseUrl}
+      apiBaseUrls={apiBaseUrls}
       headers={headers}
       theme={theme}
       contentTokens={contentTokens || { name: 'enUS' }}
@@ -112,6 +115,9 @@ type Story = StoryObj<typeof TransactionsDisplayWithProvider>;
 export const WithAccountIdsProp: Story = {
   args: {
     apiBaseUrl: '/',
+    apiBaseUrls: {
+      transactions: '/v2/',
+    },
     headers: {},
     accountIds: ['account1', 'account2'],
   },

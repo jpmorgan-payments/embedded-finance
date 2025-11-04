@@ -525,7 +525,8 @@ export const Default: Story = {
   args: {
     apiBaseUrl: '/api',
     headers: {
-      api_gateway_client_id: 'test',
+      client_id: 'client01',
+      platform_id: 'platform01',
     },
     theme: {
       colorScheme: 'light',
@@ -1094,6 +1095,27 @@ export const ManualRecipientEntry: Story = {
       description: {
         story:
           'Use the new toggle to switch to “Enter details” and provide recipient info inline. This posts to /transactions without creating a recipient.',
+      },
+    },
+  },
+};
+
+export const FunctionalTestingNoMocks: Story = {
+  ...Default,
+  name: 'Functional Testing with no mocks',
+  args: {
+    ...Default.args,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+  },
+  parameters: {
+    msw: {
+      handlers: [],
+    },
+    docs: {
+      description: {
+        story:
+          'Functional testing story without any MSW mocks. Connects to a real backend API for end-to-end testing.',
       },
     },
   },
