@@ -119,8 +119,12 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
         try {
-          // Extract the path from the URL, removing leading slashes
-          const urlPath = config.url?.replace(/^\/+/, '') || '';
+          // Extract the first path segment from the URL, ignoring query parameters
+          const urlPath =
+            config.url
+              ?.replace(/^\/+/, '') // Remove leading slashes
+              .split('?')[0] // Remove query params first
+              .split('/')[0] || ''; // Then get first segment
 
           return {
             ...config,
