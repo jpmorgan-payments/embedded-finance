@@ -130,6 +130,7 @@ export function KycOnboarding({
         userEventsHandler={handleUserEvents}
         docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
         hideLinkAccountSection
+        enableSidebar
       />
     </EBComponentsProvider>
   );
