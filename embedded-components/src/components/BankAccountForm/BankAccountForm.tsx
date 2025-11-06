@@ -301,7 +301,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
             onChange={(e) =>
               handleRoutingNumberChange(singleMethod, e.target.value)
             }
-            placeholder="123456789"
+            placeholder="Enter 9-digit routing number"
             maxLength={9}
           />
         </FormControl>
@@ -348,7 +348,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
               onChange={(e) =>
                 handleRoutingNumberChange(paymentMethods[0], e.target.value)
               }
-              placeholder="123456789"
+              placeholder="Enter 9-digit routing number"
               maxLength={9}
             />
           </FormControl>
@@ -368,7 +368,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                     onChange={(e) =>
                       handleRoutingNumberChange(method, e.target.value)
                     }
-                    placeholder="123456789"
+                    placeholder="Enter 9-digit routing number"
                     maxLength={9}
                   />
                 </FormControl>
@@ -471,7 +471,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 type="email"
                 value={getContactValue('EMAIL')}
                 onChange={(e) => handleContactChange('EMAIL', e.target.value)}
-                placeholder="john@example.com"
+                placeholder="Enter email address"
               />
             </FormControl>
           </FormItem>
@@ -496,7 +496,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 type="tel"
                 value={getContactValue('PHONE')}
                 onChange={(e) => handleContactChange('PHONE', e.target.value)}
-                placeholder="+1 (555) 123-4567"
+                placeholder="Enter phone number"
               />
             </FormControl>
             {phoneReason && (
@@ -758,7 +758,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       label={
                         config.content.fieldLabels?.firstName || 'First Name'
                       }
-                      placeholder="John"
+                      placeholder="Enter first name"
                       required
                     />
                     <StandardFormField
@@ -768,7 +768,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       label={
                         config.content.fieldLabels?.lastName || 'Last Name'
                       }
-                      placeholder="Doe"
+                      placeholder="Enter last name"
                       required
                     />
                   </div>
@@ -781,7 +781,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       config.content.fieldLabels?.businessName ||
                       'Business Name'
                     }
-                    placeholder="Acme Corporation"
+                    placeholder="Enter business or organization name"
                     required
                   />
                 )}
@@ -796,7 +796,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       config.content.fieldLabels?.accountNumber ||
                       'Account Number'
                     }
-                    placeholder="1234567890"
+                    placeholder="Enter account number"
                     required
                   />
                   <StandardFormField
@@ -865,7 +865,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               config.content.fieldLabels?.primaryAddressLine ||
                               'Street Address'
                             }
-                            placeholder="123 Main St"
+                            placeholder="Enter street address"
                             required
                           />
                           <StandardFormField
@@ -876,14 +876,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               config.content.fieldLabels
                                 ?.secondaryAddressLine || 'Address Line 2'
                             }
-                            placeholder="Apt 4B"
+                            placeholder="Enter apartment, suite, unit, etc. (optional)"
                           />
                           <StandardFormField
                             control={form.control}
                             name="address.city"
                             type="text"
                             label="City"
-                            placeholder="New York"
+                            placeholder="Enter city"
                             required
                           />
                           <StandardFormField
@@ -899,7 +899,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             name="address.postalCode"
                             type="text"
                             label="ZIP Code"
-                            placeholder="10001"
+                            placeholder="Enter ZIP code"
                             className="eb-max-w-48"
                             required
                             inputProps={{ maxLength: 10 }}
