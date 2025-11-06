@@ -168,6 +168,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
       {showDetails && error?.response?.data && (
         <AlertDescription className="eb-mt-3">
           <Button
+            type="button"
             variant="link"
             onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
             className="eb-h-auto eb-p-0 eb-text-xs eb-text-red-900 eb-transition-colors hover:eb-text-red-700"
