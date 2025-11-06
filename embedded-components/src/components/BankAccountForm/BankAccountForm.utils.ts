@@ -61,27 +61,8 @@ export function transformBankAccountFormToRecipientPayload(
   }
 
   // Add contacts if provided
-  const contacts = [];
-  if (data.email) {
-    contacts.push({
-      contactType: 'EMAIL' as const,
-      value: data.email,
-    });
-  }
-  if (data.phone) {
-    contacts.push({
-      contactType: 'PHONE' as const,
-      value: data.phone,
-    });
-  }
-  if (data.website) {
-    contacts.push({
-      contactType: 'WEBSITE' as const,
-      value: data.website,
-    });
-  }
-  if (contacts.length > 0 && payload.partyDetails) {
-    payload.partyDetails.contacts = contacts;
+  if (data.contacts && data.contacts.length > 0 && payload.partyDetails) {
+    payload.partyDetails.contacts = data.contacts;
   }
 
   return payload;

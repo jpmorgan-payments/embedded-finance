@@ -63,7 +63,7 @@ export const LinkAccountFormDialogTrigger: FC<
     // Transform form data to API payload
     const payload = transformBankAccountFormToRecipientPayload(
       data,
-      'LINKED_ACCOUNT'
+      'RECIPIENT'
     );
 
     createRecipient({ data: payload });
@@ -118,6 +118,7 @@ export const LinkAccountFormDialogTrigger: FC<
           <>
             <div className="eb-px-6">
               <ServerErrorAlert
+                className="eb-mt-4"
                 error={createRecipientError}
                 showDetails
                 customTitle="Unable to link account"

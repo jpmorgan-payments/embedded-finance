@@ -102,7 +102,7 @@ export const linkedAccountConfig: BankAccountFormConfig = {
   accountHolder: {
     allowIndividual: true,
     allowOrganization: true,
-    defaultType: undefined,
+    defaultType: 'INDIVIDUAL',
   },
   requiredFields: {
     certification: true,
@@ -112,7 +112,7 @@ export const linkedAccountConfig: BankAccountFormConfig = {
     description: 'Connect your external bank account to enable payments',
     successTitle: 'Account Linked Successfully',
     successDescription: 'Your external account has been linked.',
-    submitButtonText: 'Link Account',
+    submitButtonText: 'Confirm and Link Account',
     cancelButtonText: 'Cancel',
     loadingMessage: 'Linking your account...',
     sections: {
@@ -122,7 +122,6 @@ export const linkedAccountConfig: BankAccountFormConfig = {
       paymentMethods: 'Payment Methods',
       addressInfo: 'Address Information',
       contactInfo: 'Contact Information',
-      certification: 'Authorization',
     },
     certificationText:
       'I authorize verification of this external bank account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.',
@@ -157,7 +156,7 @@ export const recipientConfig: BankAccountFormConfig = {
   accountHolder: {
     allowIndividual: true,
     allowOrganization: true,
-    defaultType: undefined,
+    defaultType: 'INDIVIDUAL',
   },
   requiredFields: {
     certification: false,

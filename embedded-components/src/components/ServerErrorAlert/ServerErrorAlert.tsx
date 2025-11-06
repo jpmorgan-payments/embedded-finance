@@ -80,11 +80,9 @@ const ReasonsSection: FC<{ reasons: any[] }> = ({ reasons }) => {
       <div>
         <ul className="eb-list-inside eb-list-disc eb-space-y-2 eb-text-red-800">
           {reasons.map((reason, index) => (
-            <pre key={index}>
-              <li>
-                <ReasonItem reason={reason} />
-              </li>
-            </pre>
+            <li key={index} className="eb-break-words">
+              <ReasonItem reason={reason} />
+            </li>
           ))}
         </ul>
       </div>
@@ -108,14 +106,12 @@ const ContextSection: FC<{ context: any[] }> = ({ context }) => {
       <div>
         <ul className="eb-list-inside eb-list-disc eb-space-y-0.5 eb-text-red-800">
           {context.map((item, index) => (
-            <pre key={index}>
-              <li>
-                {item.field && (
-                  <span className="eb-font-semibold">{item.field}: </span>
-                )}
-                {item.message}
-              </li>
-            </pre>
+            <li key={index} className="eb-break-words">
+              {item.field && (
+                <span className="eb-font-semibold">{item.field}: </span>
+              )}
+              {item.message}
+            </li>
           ))}
         </ul>
       </div>
@@ -191,9 +187,9 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
                   <div className="eb-font-semibold eb-text-red-900">
                     Status:
                   </div>
-                  <pre className="eb-text-red-800">
+                  <div className="eb-break-words eb-text-red-800">
                     {error.response.data.httpStatus} {error.response.data.title}
-                  </pre>
+                  </div>
                 </div>
               )}
 

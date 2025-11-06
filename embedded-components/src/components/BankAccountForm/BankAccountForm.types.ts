@@ -100,7 +100,6 @@ export interface BankAccountFormContent {
     paymentMethods?: string;
     addressInfo?: string;
     contactInfo?: string;
-    certification?: string;
   };
   /** Field labels (override defaults) */
   fieldLabels?: {
