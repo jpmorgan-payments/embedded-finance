@@ -252,7 +252,6 @@ export const StandardFormField = <
       control={control}
       name={name}
       render={({ field }) => {
-        // Render label - follows OnboardingFormField pattern:
         // - No asterisk by default
         // - Shows "(optional)" for non-required fields
         const renderLabel = () => {

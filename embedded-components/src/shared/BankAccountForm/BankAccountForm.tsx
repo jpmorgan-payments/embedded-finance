@@ -50,8 +50,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { StandardFormField } from '@/components/StandardFormField';
 import { Separator } from '@/components/ui';
-import { StandardFormField } from '@/components/ux/StandardFormField';
 
 import { createBankAccountFormSchema } from './BankAccountForm.schema';
 import type {
