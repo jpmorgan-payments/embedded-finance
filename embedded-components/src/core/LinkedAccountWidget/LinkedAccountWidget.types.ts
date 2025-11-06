@@ -53,13 +53,3 @@ export interface LinkedAccountCardProps {
   /** Callback when account needs to be updated with additional routing info */
   onUpdateRoutingClick?: (recipientId: string) => void;
 }
-
-/**
- * Payment type options for linked accounts
- */
-export type PaymentType = 'ACH' | 'WIRE' | 'RTP';
-
-/**
- * Account holder type
- */
-export type AccountHolderType = 'INDIVIDUAL' | 'ORGANIZATION';
