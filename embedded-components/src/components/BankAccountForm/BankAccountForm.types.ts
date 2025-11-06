@@ -195,6 +195,8 @@ export interface BankAccountFormProps {
   isLoading?: boolean;
   /** Whether to show form as a card */
   showCard?: boolean;
+  /** Custom alert/message to show above the form */
+  alert?: ReactNode;
 }
 
 /**

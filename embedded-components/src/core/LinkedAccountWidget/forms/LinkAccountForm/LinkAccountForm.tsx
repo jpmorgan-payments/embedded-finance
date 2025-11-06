@@ -32,7 +32,6 @@ type LinkAccountFormDialogTriggerProps = {
 
 /**
  * LinkAccountFormDialogTrigger - Dialog for linking a new bank account
- * Follows OnboardingFlow patterns for form structure and validation
  */
 export const LinkAccountFormDialogTrigger: FC<
   LinkAccountFormDialogTriggerProps
@@ -63,7 +62,7 @@ export const LinkAccountFormDialogTrigger: FC<
     // Transform form data to API payload
     const payload = transformBankAccountFormToRecipientPayload(
       data,
-      'RECIPIENT'
+      'LINKED_ACCOUNT'
     );
 
     createRecipient({ data: payload });
@@ -115,22 +114,19 @@ export const LinkAccountFormDialogTrigger: FC<
         {(createRecipientStatus === 'idle' ||
           createRecipientStatus === 'error' ||
           createRecipientStatus === 'pending') && (
-          <>
-            <div className="eb-px-6">
+          <BankAccountForm
+            config={linkedAccountConfig}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isLoading={createRecipientStatus === 'pending'}
+            alert={
               <ServerErrorAlert
-                className="eb-mt-4"
                 error={createRecipientError}
                 showDetails
                 customTitle="Unable to link account"
               />
-            </div>
-            <BankAccountForm
-              config={linkedAccountConfig}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-              isLoading={createRecipientStatus === 'pending'}
-            />
-          </>
+            }
+          />
         )}
       </DialogContent>
     </Dialog>

@@ -510,6 +510,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
+  alert,
 }) => {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
@@ -627,6 +628,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       >
         <div className="eb-max-h-[calc(90vh-180px)] eb-overflow-y-auto eb-px-6">
           <div className="eb-space-y-4 eb-py-4">
+            {alert}
             {/* Step 1: Account Type & Payment Method Selection */}
             {currentStep === 1 && (
               <div className="eb-space-y-6">
