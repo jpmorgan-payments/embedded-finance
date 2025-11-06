@@ -5,23 +5,21 @@
  * Used across different use cases: Linked Accounts, Recipients, Settlement Accounts
  */
 
-export { BankAccountForm, BankAccountFormDialog } from './BankAccountForm';
+export { BankAccountForm } from './BankAccountForm';
 export {
   linkedAccountConfig,
   recipientConfig,
   createCustomConfig,
 } from './BankAccountForm.configs';
 export { createBankAccountFormSchema } from './BankAccountForm.schema';
+export { transformBankAccountFormToRecipientPayload } from './BankAccountForm.utils';
 export type {
   BankAccountFormConfig,
   BankAccountFormContent,
   BankAccountFormData,
-  BankAccountFormDialogProps,
   BankAccountFormProps,
   PaymentMethodConfig,
   PaymentMethodType,
   BankAccountType,
-  Contact,
-  ContactType,
   Address,
 } from './BankAccountForm.types';

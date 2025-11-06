@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 import type {
-  ApiError,
   PartyType,
   Recipient,
 } from '@/api/generated/ep-recipients.schemas';
@@ -185,12 +184,8 @@ export interface BankAccountFormProps {
   config: BankAccountFormConfig;
   /** Existing recipient data (for edit mode) */
   recipient?: Recipient;
-  /** Callback when form is submitted successfully */
+  /** Callback when form is submitted - handle success/error in parent */
   onSubmit: (data: BankAccountFormData) => void;
-  /** Callback when form submission succeeds (with created/updated recipient) */
-  onSuccess?: (recipient: Recipient) => void;
-  /** Callback when form submission fails */
-  onError?: (error: ApiError) => void;
   /** Callback when form is cancelled */
   onCancel?: () => void;
   /** Whether to show the form in a dialog */
@@ -238,17 +233,4 @@ export interface BankAccountFormData {
 
   // Certification
   certify?: boolean;
-}
-
-/**
- * Props for dialog wrapper component
- */
-export interface BankAccountFormDialogProps
-  extends Omit<BankAccountFormProps, 'asDialog' | 'trigger'> {
-  /** Dialog trigger element */
-  children: ReactNode;
-  /** Callback when dialog open state changes */
-  onOpenChange?: (open: boolean) => void;
-  /** Controlled dialog open state */
-  open?: boolean;
 }

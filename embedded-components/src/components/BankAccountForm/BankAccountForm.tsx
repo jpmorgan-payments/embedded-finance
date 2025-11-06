@@ -16,18 +16,9 @@ import {
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -56,7 +47,6 @@ import { Separator } from '@/components/ui';
 import { createBankAccountFormSchema } from './BankAccountForm.schema';
 import type {
   BankAccountFormData,
-  BankAccountFormDialogProps,
   BankAccountFormProps,
   ContactType,
   PaymentMethodType,
@@ -518,16 +508,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   config,
   recipient,
   onSubmit,
-  onSuccess,
-  onError,
   onCancel,
   isLoading = false,
 }) => {
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [submitStatus, setSubmitStatus] = useState<
-    'idle' | 'pending' | 'success' | 'error'
-  >('idle');
-  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Create dynamic schema based on config
   const formSchema = useMemo(
@@ -604,35 +588,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     config.paymentMethods.configs,
   ]);
 
-  const handleFormSubmit = async (data: BankAccountFormData) => {
-    try {
-      setSubmitStatus('pending');
-      await onSubmit(data);
-      setSubmitStatus('success');
-      onSuccess?.(recipient!); // This would need proper recipient data
-    } catch (error: any) {
-      setSubmitStatus('error');
-      setErrorMessage(error.message || 'An error occurred');
-      onError?.(error);
-    }
+  const handleFormSubmit = (data: BankAccountFormData) => {
+    onSubmit(data);
   };
 
-  // Success state
-  if (submitStatus === 'success') {
-    return (
-      <div className="eb-space-y-4 eb-p-6">
-        <Alert>
-          <AlertTitle>{config.content.successTitle}</AlertTitle>
-          <AlertDescription>
-            {config.content.successDescription}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   // Loading state
-  if (submitStatus === 'pending' || isLoading) {
+  if (isLoading) {
     return (
       <div className="eb-flex eb-h-96 eb-items-center eb-justify-center">
         <div className="eb-text-center">
@@ -666,14 +627,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       >
         <div className="eb-max-h-[calc(90vh-180px)] eb-overflow-y-auto eb-px-6">
           <div className="eb-space-y-4 eb-py-4">
-            {/* Error Alert */}
-            {submitStatus === 'error' && errorMessage && (
-              <Alert variant="destructive">
-                <AlertTitle>Unable to submit</AlertTitle>
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            )}
-
             {/* Step 1: Account Type & Payment Method Selection */}
             {currentStep === 1 && (
               <div className="eb-space-y-6">
@@ -760,6 +713,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       }
                       placeholder="Enter first name"
                       required
+                      inputProps={{ autoFocus: true }}
                     />
                     <StandardFormField
                       control={form.control}
@@ -783,6 +737,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     }
                     placeholder="Enter business or organization name"
                     required
+                    inputProps={{ autoFocus: true }}
                   />
                 )}
 
@@ -999,59 +954,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 disabled={isLoading}
                 className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
-                    {config.content.loadingMessage || 'Submitting...'}
-                  </>
-                ) : (
-                  config.content.submitButtonText
-                )}
+                {config.content.submitButtonText}
               </Button>
             </>
           )}
         </DialogFooter>
       </form>
     </Form>
-  );
-};
-
-/**
- * BankAccountFormDialog - Dialog wrapper for the form
- */
-export const BankAccountFormDialog: FC<BankAccountFormDialogProps> = ({
-  children,
-  onOpenChange,
-  open,
-  ...formProps
-}) => {
-  const [isDialogOpen, setDialogOpen] = useState(open || false);
-
-  const handleDialogChange = (openState: boolean) => {
-    setDialogOpen(openState);
-    onOpenChange?.(openState);
-  };
-
-  return (
-    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-max-h-[90vh] eb-max-w-2xl eb-overflow-hidden eb-p-0">
-        <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
-          <DialogTitle className="eb-text-xl">
-            {formProps.config.content.title}
-          </DialogTitle>
-          <DialogDescription>
-            {formProps.config.content.description}
-          </DialogDescription>
-        </DialogHeader>
-        <BankAccountForm
-          {...formProps}
-          onCancel={() => {
-            handleDialogChange(false);
-            formProps.onCancel?.();
-          }}
-        />
-      </DialogContent>
-    </Dialog>
   );
 };

@@ -1,9 +1,7 @@
 import { FC, ReactNode, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import {
-  useCreateRecipient,
-  useGetAllRecipients,
-} from '@/api/generated/ep-recipients';
+import { useCreateRecipient } from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,8 +17,10 @@ import {
 import {
   BankAccountForm,
   linkedAccountConfig,
+  transformBankAccountFormToRecipientPayload,
   type BankAccountFormData,
 } from '@/components/BankAccountForm';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { RECIPIENT_STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 import { LinkAccountConfirmation } from './LinkAccountConfirmation';
@@ -38,88 +38,35 @@ export const LinkAccountFormDialogTrigger: FC<
   LinkAccountFormDialogTriggerProps
 > = ({ children, onLinkedAccountSettled }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     mutate: createRecipient,
     reset: resetCreateRecipient,
     status: createRecipientStatus,
     data: createRecipientResponse,
-  } = useCreateRecipient();
-
-  const { refetch: refetchRecipients } = useGetAllRecipients();
-
-  const handleSubmit = async (data: BankAccountFormData) => {
-    // Build routing information based on selected payment types
-    const routingInformation = data.paymentTypes.map((type) => ({
-      routingCodeType: type === 'WIRE' ? 'SWIFT' : 'USABA',
-      routingNumber: data.routingNumber,
-      transactionType: type,
-    }));
-
-    // Build request payload
-    const payload: any = {
-      type: 'LINKED_ACCOUNT',
-      partyDetails: {
-        type: data.accountType,
-        ...(data.accountType === 'INDIVIDUAL'
-          ? {
-              firstName: data.firstName,
-              lastName: data.lastName,
-            }
-          : {
-              businessName: data.businessName,
-            }),
+    error: createRecipientError,
+  } = useCreateRecipient({
+    mutation: {
+      onSuccess: (response) => {
+        queryClient.invalidateQueries({ queryKey: ['getAllRecipients'] });
+        onLinkedAccountSettled?.(response);
       },
-      account: {
-        type: data.bankAccountType,
-        number: data.accountNumber,
-        routingInformation,
-        countryCode: 'US',
+      onError: (error) => {
+        const apiError = error.response?.data as ApiError;
+        onLinkedAccountSettled?.(undefined, apiError);
       },
-    };
+    },
+  });
 
-    // Add address if provided (required for Wire/RTP)
-    if (data.address) {
-      payload.partyDetails.address = {
-        addressLine1: data.address.primaryAddressLine,
-        addressLine2: data.address.secondaryAddressLine,
-        city: data.address.city,
-        state: data.address.state,
-        postalCode: data.address.postalCode,
-        countryCode: data.address.countryCode,
-      };
-    }
+  const handleSubmit = (data: BankAccountFormData) => {
+    // Transform form data to API payload
+    const payload = transformBankAccountFormToRecipientPayload(
+      data,
+      'LINKED_ACCOUNT'
+    );
 
-    // Add contacts if provided
-    if (data.contacts && data.contacts.length > 0) {
-      payload.partyDetails.contacts = data.contacts;
-    }
-
-    return new Promise((resolve, reject) => {
-      createRecipient(
-        { data: payload },
-        {
-          onSuccess: (response) => {
-            refetchRecipients();
-            onLinkedAccountSettled?.(response);
-            resolve(response);
-          },
-          onError: (error) => {
-            const apiError = error.response?.data as ApiError;
-            onLinkedAccountSettled?.(undefined, apiError);
-            reject(apiError);
-          },
-        }
-      );
-    });
-  };
-
-  const handleSuccess = () => {
-    // Success is already handled in handleSubmit
-  };
-
-  const handleError = () => {
-    // Error is already handled in handleSubmit
+    createRecipient({ data: payload });
   };
 
   const handleDialogChange = (open: boolean) => {
@@ -168,14 +115,21 @@ export const LinkAccountFormDialogTrigger: FC<
         {(createRecipientStatus === 'idle' ||
           createRecipientStatus === 'error' ||
           createRecipientStatus === 'pending') && (
-          <BankAccountForm
-            config={linkedAccountConfig}
-            onSubmit={handleSubmit}
-            onSuccess={handleSuccess}
-            onError={handleError}
-            onCancel={handleCancel}
-            isLoading={createRecipientStatus === 'pending'}
-          />
+          <>
+            <div className="eb-px-6">
+              <ServerErrorAlert
+                error={createRecipientError}
+                showDetails
+                customTitle="Unable to link account"
+              />
+            </div>
+            <BankAccountForm
+              config={linkedAccountConfig}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={createRecipientStatus === 'pending'}
+            />
+          </>
         )}
       </DialogContent>
     </Dialog>

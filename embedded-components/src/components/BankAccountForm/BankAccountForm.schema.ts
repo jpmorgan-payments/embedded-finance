@@ -3,79 +3,37 @@ import { z } from 'zod';
 import type {
   BankAccountFormConfig,
   BankAccountFormData,
-  ContactType,
   PaymentMethodType,
 } from './BankAccountForm.types';
 
 /**
- * Contact validation schemas
- */
-const phoneContactSchema = z.object({
-  contactType: z.literal('PHONE'),
-  value: z
-    .string()
-    .min(1, 'Phone number is required')
-    .max(2048, 'Phone number is too long'),
-  countryCode: z.string().optional(),
-});
-
-const emailContactSchema = z.object({
-  contactType: z.literal('EMAIL'),
-  value: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Invalid email address')
-    .max(2048, 'Email is too long'),
-  countryCode: z.string().optional(),
-});
-
-const websiteContactSchema = z.object({
-  contactType: z.literal('WEBSITE'),
-  value: z
-    .string()
-    .min(1, 'Website is required')
-    .url('Invalid website URL')
-    .max(2048, 'Website URL is too long'),
-  countryCode: z.string().optional(),
-});
-
-const contactSchema = z.discriminatedUnion('contactType', [
-  phoneContactSchema,
-  emailContactSchema,
-  websiteContactSchema,
-]);
-
-/**
- * Address schema
+ * Address schema - All fields optional in base schema, validation in superRefine
  */
 const addressSchema = z.object({
-  primaryAddressLine: z.string().min(1, 'Street address is required').max(34),
+  primaryAddressLine: z.string().max(34).optional(),
   secondaryAddressLine: z.string().max(34).optional(),
   tertiaryAddressLine: z.string().max(34).optional(),
-  city: z.string().min(1, 'City is required').max(34),
-  state: z
-    .string()
-    .min(2, 'State is required')
-    .max(2, 'Use 2-letter state code')
-    .regex(/^[A-Z]{2}$/, 'State must be a 2-letter code'),
-  postalCode: z
-    .string()
-    .min(5, 'ZIP code must be at least 5 digits')
-    .max(10)
-    .regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code format'),
+  city: z.string().max(34).optional(),
+  state: z.string().max(2).optional(),
+  postalCode: z.string().max(10).optional(),
   countryCode: z.string().default('US'),
 });
 
 /**
- * Payment method routing number schema
+ * Payment method routing number schema - Validation moved to superRefine
  */
 const paymentMethodRoutingNumberSchema = z.object({
   paymentType: z.enum(['ACH', 'WIRE', 'RTP']),
-  routingNumber: z
-    .string()
-    .min(9, 'Routing number must be 9 digits')
-    .max(9, 'Routing number must be 9 digits')
-    .regex(/^\d{9}$/, 'Routing number must be 9 digits'),
+  routingNumber: z.string(),
+});
+
+/**
+ * Contact information schema
+ */
+const contactSchema = z.object({
+  contactType: z.enum(['EMAIL', 'PHONE', 'WEBSITE']),
+  value: z.string(),
+  countryCode: z.string().optional(),
 });
 
 /**
@@ -90,9 +48,7 @@ const createBaseSchema = (config: BankAccountFormConfig) => {
     businessName: z.string().max(140),
 
     // Bank account details
-    routingNumbers: z
-      .array(paymentMethodRoutingNumberSchema)
-      .min(1, 'Routing numbers are required'),
+    routingNumbers: z.array(paymentMethodRoutingNumberSchema).optional(),
     useSameRoutingNumber: z.boolean().optional(),
     accountNumber: z.string(),
     bankAccountType: z.enum(['CHECKING', 'SAVINGS']).optional(),
@@ -105,7 +61,7 @@ const createBaseSchema = (config: BankAccountFormConfig) => {
     // Address (conditional)
     address: addressSchema.optional(),
 
-    // Contacts (conditional)
+    // Contact information (array of contacts)
     contacts: z.array(contactSchema).optional(),
 
     // Certification (conditional)
@@ -142,8 +98,8 @@ function isAddressRequired(
 function getRequiredContactTypes(
   config: BankAccountFormConfig,
   paymentTypes: PaymentMethodType[]
-): Set<ContactType> {
-  const required = new Set<ContactType>();
+): Set<'EMAIL' | 'PHONE' | 'WEBSITE'> {
+  const required = new Set<'EMAIL' | 'PHONE' | 'WEBSITE'>();
 
   // Add global requirements
   config.requiredFields.contacts?.forEach((type) => required.add(type));
@@ -151,11 +107,9 @@ function getRequiredContactTypes(
   // Add per-payment-method requirements
   paymentTypes.forEach((type) => {
     const methodConfig = config.paymentMethods.configs[type];
-    if (methodConfig?.enabled && methodConfig.requiredFields.contacts) {
-      methodConfig.requiredFields.contacts.forEach((contactType) =>
-        required.add(contactType)
-      );
-    }
+    methodConfig?.requiredFields.contacts?.forEach((contactType) =>
+      required.add(contactType)
+    );
   });
 
   return required;
@@ -199,40 +153,24 @@ export function createBankAccountFormSchema(
       }
     }
 
-    // 2. Validate bank account details based on selected payment methods
-    const selectedMethods = paymentTypes as PaymentMethodType[];
-
-    // Check if account number is required
-    const accountNumberRequired = selectedMethods.some((method) => {
-      const methodConfig = config.paymentMethods.configs[method];
-      return methodConfig?.enabled && methodConfig.requiredFields.accountNumber;
-    });
-
-    if (accountNumberRequired) {
-      if (!data.accountNumber || data.accountNumber.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Account number is required',
-          path: ['accountNumber'],
-        });
-      } else if (!/^\d+$/.test(data.accountNumber)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Account number must contain only digits',
-          path: ['accountNumber'],
-        });
-      }
+    // 2. Validate bank account details
+    // Account number is ALWAYS required for bank accounts
+    if (!data.accountNumber || data.accountNumber.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Account number is required',
+        path: ['accountNumber'],
+      });
+    } else if (!/^\d+$/.test(data.accountNumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Account number must contain only digits',
+        path: ['accountNumber'],
+      });
     }
 
-    // Check if bank account type is required
-    const accountTypeRequired = selectedMethods.some((method) => {
-      const methodConfig = config.paymentMethods.configs[method];
-      return (
-        methodConfig?.enabled && methodConfig.requiredFields.bankAccountType
-      );
-    });
-
-    if (accountTypeRequired && !data.bankAccountType) {
+    // Bank account type is ALWAYS required
+    if (!data.bankAccountType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Account type is required',
@@ -241,6 +179,8 @@ export function createBankAccountFormSchema(
     }
 
     // 3. Validate routing numbers for each selected payment method
+    const selectedMethods = paymentTypes as PaymentMethodType[];
+
     selectedMethods.forEach((method) => {
       const methodConfig = config.paymentMethods.configs[method];
 
@@ -255,14 +195,26 @@ export function createBankAccountFormSchema(
             message: `Routing number is required for ${methodConfig.label}`,
             path: ['routingNumbers'],
           });
-        } else if (methodConfig.routingValidation) {
-          const { pattern, errorMessage } = methodConfig.routingValidation;
-          if (!pattern.test(routingEntry.routingNumber)) {
+        } else {
+          // Validate routing number format (always 9 digits)
+          if (!/^\d{9}$/.test(routingEntry.routingNumber)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: errorMessage,
+              message: 'Routing number must be 9 digits',
               path: ['routingNumbers'],
             });
+          }
+
+          // Additional payment-method-specific validation if configured
+          if (methodConfig.routingValidation) {
+            const { pattern, errorMessage } = methodConfig.routingValidation;
+            if (!pattern.test(routingEntry.routingNumber)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: errorMessage,
+                path: ['routingNumbers'],
+              });
+            }
           }
         }
       }
@@ -280,41 +232,89 @@ export function createBankAccountFormSchema(
           message: `Address is required for ${methodsRequiringAddress.map((m) => config.paymentMethods.configs[m].label).join(', ')}`,
           path: ['address'],
         });
+      } else {
+        // Validate address fields
+        if (
+          !data.address.primaryAddressLine ||
+          data.address.primaryAddressLine.trim().length === 0
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Street address is required',
+            path: ['address', 'primaryAddressLine'],
+          });
+        }
+
+        if (!data.address.city || data.address.city.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'City is required',
+            path: ['address', 'city'],
+          });
+        }
+
+        if (!data.address.state || data.address.state.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'State is required',
+            path: ['address', 'state'],
+          });
+        } else if (!/^[A-Z]{2}$/.test(data.address.state)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'State must be a 2-letter code',
+            path: ['address', 'state'],
+          });
+        }
+
+        if (
+          !data.address.postalCode ||
+          data.address.postalCode.trim().length === 0
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'ZIP code is required',
+            path: ['address', 'postalCode'],
+          });
+        } else if (!/^\d{5}(-\d{4})?$/.test(data.address.postalCode)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Invalid ZIP code format',
+            path: ['address', 'postalCode'],
+          });
+        }
       }
     }
 
-    // 5. Validate contacts if required
+    // 5. Validate contact fields if required
     const requiredContactTypes = getRequiredContactTypes(
       config,
       selectedMethods
     );
 
-    if (requiredContactTypes.size > 0) {
-      const contacts = data.contacts || [];
+    requiredContactTypes.forEach((contactType) => {
+      const contact = data.contacts?.find((c) => c.contactType === contactType);
 
-      requiredContactTypes.forEach((contactType) => {
-        const hasContact = contacts.some(
-          (contact) =>
-            contact.contactType === contactType &&
-            contact.value &&
-            contact.value.trim().length > 0
+      if (!contact || !contact.value.trim()) {
+        const methodsRequiringContact = selectedMethods.filter((method) =>
+          config.paymentMethods.configs[
+            method
+          ]?.requiredFields.contacts?.includes(contactType)
         );
 
-        if (!hasContact) {
-          const methodsRequiringContact = selectedMethods.filter((method) =>
-            config.paymentMethods.configs[
-              method
-            ]?.requiredFields.contacts?.includes(contactType)
-          );
+        const methodLabels = methodsRequiringContact
+          .map((m) => config.paymentMethods.configs[m].label)
+          .join(', ');
 
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${contactType.toLowerCase()} contact is required for ${methodsRequiringContact.map((m) => config.paymentMethods.configs[m].label).join(', ')}`,
-            path: ['contacts'],
-          });
-        }
-      });
-    }
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: methodLabels
+            ? `${contactType.charAt(0) + contactType.slice(1).toLowerCase()} is required for ${methodLabels}`
+            : `${contactType.charAt(0) + contactType.slice(1).toLowerCase()} is required`,
+          path: ['contacts'],
+        });
+      }
+    });
 
     // 6. Validate locked payment methods (for linked accounts)
     selectedMethods.forEach((method) => {
