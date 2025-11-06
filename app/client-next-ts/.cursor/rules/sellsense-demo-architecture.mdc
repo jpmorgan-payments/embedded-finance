@@ -19,7 +19,7 @@ The `client-next-ts` project is a showcase application demonstrating embedded fi
 ```typescript
 const sellsenseDemoSearchSchema = z.object({
   scenario: z.enum(['New Seller - Onboarding', 'Active Seller - Fresh Start', ...]).optional(),
-  theme: z.enum(['Default', 'Dark', 'Partner A', 'SellSense', 'S&P Theme']).optional(),
+  theme: z.enum(['Default', 'Dark', 'Partner A', 'SellSense', 'Salt Theme']).optional(),
   contentTone: z.enum(['Standard', 'Friendly']).optional(),
   fullscreen: z.boolean().optional(),
 });
@@ -241,7 +241,7 @@ interface EnhancedThemeVariables {
 
 1. **Default**: Modern purple/indigo with sophisticated design tokens
 2. **SellSense**: Brand orange with teal accents, uppercase styling
-3. **S&P Theme**: Professional teal with Amplitude typography
+3. **Salt Theme**: Professional teal with Amplitude typography
 4. **Dark**: Dark mode with SellSense brand colors
 5. **Partner A**: JP Morgan blue/brown corporate styling
 

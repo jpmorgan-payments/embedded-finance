@@ -27,7 +27,7 @@ export const useThemes = () => {
       },
       {
         id: 'CUSTOM2',
-        name: 'S&P Theme',
+        name: 'Salt Theme',
         fontFamily: 'Open Sans',
         headerFontFamily: 'Amplitude',
         backgroundColor: '#f6f7f8',
