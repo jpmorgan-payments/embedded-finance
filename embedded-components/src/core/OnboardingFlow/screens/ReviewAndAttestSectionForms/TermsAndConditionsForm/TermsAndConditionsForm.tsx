@@ -24,6 +24,7 @@ import {
 } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   Button,
   Checkbox,
@@ -34,7 +35,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
-import { ServerErrorAlert } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,
