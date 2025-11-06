@@ -1,11 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 
 import {
-  BankAccountForm,
-  linkedAccountConfig,
-  type BankAccountFormData,
-} from '@/shared/BankAccountForm';
-import {
   useCreateRecipient,
   useGetAllRecipients,
 } from '@/api/generated/ep-recipients';
@@ -21,6 +16,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  BankAccountForm,
+  linkedAccountConfig,
+  type BankAccountFormData,
+} from '@/components/BankAccountForm';
 
 import { RECIPIENT_STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 import { LinkAccountConfirmation } from './LinkAccountConfirmation';
