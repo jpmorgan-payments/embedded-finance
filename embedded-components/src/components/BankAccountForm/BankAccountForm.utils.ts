@@ -1,5 +1,6 @@
 import type {
   RecipientRequest,
+  RecipientType,
   RoutingInformation,
 } from '@/api/generated/ep-recipients.schemas';
 
@@ -15,7 +16,7 @@ import type { BankAccountFormData } from './BankAccountForm.types';
  */
 export function transformBankAccountFormToRecipientPayload(
   data: BankAccountFormData,
-  recipientType: 'LINKED_ACCOUNT' | 'RECIPIENT'
+  recipientType: RecipientType
 ): RecipientRequest {
   // Build routing information based on payment types and their routing numbers
   const routingInformation: RoutingInformation[] = data.routingNumbers.map(

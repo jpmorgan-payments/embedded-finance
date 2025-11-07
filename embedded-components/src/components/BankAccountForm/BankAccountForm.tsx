@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeftIcon,
@@ -266,6 +266,23 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
     }
   };
 
+  const handleUseSameForAllChange = (checked: boolean) => {
+    onUseSameForAllChange(checked);
+
+    if (checked) {
+      // When switching to "same for all", use the first method's routing number
+      // and apply it to all other payment methods
+      const firstRoutingNumber = getRoutingNumber(paymentMethods[0]);
+      if (firstRoutingNumber) {
+        const updatedRoutingNumbers = paymentMethods.map((method) => ({
+          paymentType: method,
+          routingNumber: firstRoutingNumber,
+        }));
+        onChange(updatedRoutingNumbers);
+      }
+    }
+  };
+
   const getRoutingNumber = (paymentType: PaymentMethodType) => {
     return (
       value.find((r) => r.paymentType === paymentType)?.routingNumber || ''
@@ -314,7 +331,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
         <Checkbox
           id="useSameRoutingNumber"
           checked={useSameForAll}
-          onCheckedChange={onUseSameForAllChange}
+          onCheckedChange={handleUseSameForAllChange}
         />
         <span className="eb-text-sm eb-font-medium eb-leading-none">
           Use same routing number for all payment methods
@@ -560,6 +577,25 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   const paymentTypes = form.watch('paymentTypes');
   const useSameRoutingNumber = form.watch('useSameRoutingNumber');
 
+  // Clear routing number errors when toggling "use same" checkbox
+  useEffect(() => {
+    // Clear errors when switching between single/multiple routing number modes
+    form.clearErrors('routingNumbers');
+  }, [useSameRoutingNumber, form]);
+
+  // When payment types change, clean up routing numbers for removed methods
+  useEffect(() => {
+    const currentRoutingNumbers = form.getValues('routingNumbers') || [];
+    const validRoutingNumbers = currentRoutingNumbers.filter((rn) =>
+      paymentTypes.includes(rn.paymentType)
+    );
+
+    // Only update if there were removed payment methods
+    if (validRoutingNumbers.length !== currentRoutingNumbers.length) {
+      form.setValue('routingNumbers', validRoutingNumbers);
+    }
+  }, [paymentTypes, form]);
+
   // Determine required fields based on selected payment methods
   const showAddressFields = useMemo(() => {
     if (config.requiredFields.address) return true;
@@ -590,7 +626,32 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   ]);
 
   const handleFormSubmit = (data: BankAccountFormData) => {
-    onSubmit(data);
+    // Clean up the data before submission
+    const cleanedData = { ...data };
+
+    // Remove address if it wasn't required/shown
+    if (!showAddressFields || !cleanedData.address) {
+      delete cleanedData.address;
+    } else {
+      // Clean up empty optional address fields
+      const { address } = cleanedData;
+      if (!address.secondaryAddressLine?.trim()) {
+        delete address.secondaryAddressLine;
+      }
+      if (!address.tertiaryAddressLine?.trim()) {
+        delete address.tertiaryAddressLine;
+      }
+    }
+
+    // Remove contacts if not required
+    if (requiredContactTypes.size === 0) {
+      delete cleanedData.contacts;
+    }
+
+    // Remove useSameRoutingNumber helper field (not part of API payload)
+    delete cleanedData.useSameRoutingNumber;
+
+    onSubmit(cleanedData);
   };
 
   // Loading state
