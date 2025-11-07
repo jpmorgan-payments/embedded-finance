@@ -59,7 +59,7 @@ export const LinkAccountFormDialogTrigger: FC<
     // Transform form data to API payload
     const payload = transformBankAccountFormToRecipientPayload(
       data,
-      'SETTLEMENT_ACCOUNT'
+      'LINKED_ACCOUNT'
     );
 
     createRecipient({ data: payload });

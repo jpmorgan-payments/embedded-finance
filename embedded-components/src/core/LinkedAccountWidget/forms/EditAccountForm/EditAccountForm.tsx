@@ -60,7 +60,7 @@ export const EditAccountFormDialogTrigger: FC<
     // Transform form data to API payload
     const payload = transformBankAccountFormToRecipientPayload(
       data,
-      'SETTLEMENT_ACCOUNT'
+      'LINKED_ACCOUNT'
     );
 
     // Call amendRecipient with recipient ID and payload
