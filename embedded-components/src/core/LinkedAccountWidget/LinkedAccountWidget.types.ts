@@ -47,11 +47,8 @@ export interface LinkedAccountCardProps {
   /** Optional MakePayment component to render when account is active */
   makePaymentComponent?: React.ReactNode;
 
-  /** Callback when verify microdeposits is clicked */
-  onVerifyClick?: (recipientId: string) => void;
-
-  /** Callback when account needs to be updated with additional routing info */
-  onUpdateRoutingClick?: (recipientId: string) => void;
+  /** Callback when account is edited or removed */
+  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 
   /** Hide action buttons and status alerts (useful for confirmation views) */
   hideActions?: boolean;

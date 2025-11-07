@@ -2,17 +2,18 @@
  * Pre-configured settings for different use cases
  */
 
+import { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
+
 import type {
   BankAccountFormConfig,
   PaymentMethodConfig,
-  PaymentMethodType,
 } from './BankAccountForm.types';
 
 /**
  * Default payment method configurations
  */
 const defaultPaymentMethodConfigs: Record<
-  PaymentMethodType,
+  RoutingInformationTransactionType,
   PaymentMethodConfig
 > = {
   ACH: {
@@ -125,6 +126,68 @@ export const linkedAccountConfig: BankAccountFormConfig = {
     },
     certificationText:
       'I authorize verification of this external bank account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.',
+  },
+};
+
+/**
+ * Pre-configured settings for Editing Linked Accounts
+ * - Same as linkedAccountConfig but:
+ *   - Certification is NOT required (account already verified)
+ *   - Different content/messaging for editing context
+ *   - Account number and type can be displayed but typically readonly
+ */
+export const linkedAccountEditConfig: BankAccountFormConfig = {
+  useCase: 'LINKED_ACCOUNT',
+  paymentMethods: {
+    available: ['ACH', 'WIRE', 'RTP'],
+    configs: {
+      ACH: {
+        ...defaultPaymentMethodConfigs.ACH,
+        locked: true, // Cannot be deselected for linked accounts
+      },
+      WIRE: {
+        ...defaultPaymentMethodConfigs.WIRE,
+      },
+      RTP: {
+        ...defaultPaymentMethodConfigs.RTP,
+      },
+    },
+    allowMultiple: true,
+    defaultSelected: ['ACH'],
+  },
+  accountHolder: {
+    allowIndividual: true,
+    allowOrganization: true,
+    defaultType: 'INDIVIDUAL',
+  },
+  requiredFields: {
+    certification: false, // No certification needed when editing
+  },
+  readonlyFields: {
+    accountType: true,
+    firstName: true,
+    lastName: true,
+    businessName: true,
+    accountNumber: true,
+    bankAccountType: true,
+  },
+  content: {
+    title: 'Edit Linked Account',
+    description: 'Update your bank account information and payment methods',
+    successTitle: 'Account Updated Successfully',
+    successDescription: 'Your linked account has been updated.',
+    submitButtonText: 'Save Changes',
+    cancelButtonText: 'Cancel',
+    loadingMessage: 'Updating your account...',
+    sections: {
+      accountHolderType: 'Account Holder Type',
+      accountHolderInfo: 'Account Holder Information',
+      bankAccountDetails: 'Bank Account Details',
+      paymentMethods: 'Payment Methods',
+      addressInfo: 'Address Information',
+      contactInfo: 'Contact Information',
+    },
+    certificationText: '', // Not used when certification is false
   },
 };
 

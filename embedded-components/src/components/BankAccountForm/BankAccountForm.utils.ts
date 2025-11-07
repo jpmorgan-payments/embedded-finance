@@ -52,12 +52,13 @@ export function transformBankAccountFormToRecipientPayload(
   // Add address if provided (required for Wire/RTP)
   if (data.address && payload.partyDetails) {
     payload.partyDetails.address = {
-      addressLine1: data.address.primaryAddressLine,
-      addressLine2: data.address.secondaryAddressLine,
+      addressLine1: data.address.addressLine1,
+      addressLine2: data.address.addressLine2,
+      addressLine3: data.address.addressLine3,
       city: data.address.city,
       state: data.address.state,
       postalCode: data.address.postalCode,
-      countryCode: 'US',
+      countryCode: data.address.countryCode,
     };
   }
 

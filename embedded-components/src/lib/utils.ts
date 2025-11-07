@@ -5,8 +5,6 @@ import DOMPurify from 'dompurify';
 import { getI18n } from 'react-i18next';
 import { extendTailwindMerge } from 'tailwind-merge';
 
-import { Recipient } from '@/api/generated/ep-recipients.schemas';
-
 const twMerge = extendTailwindMerge({
   prefix: 'eb-',
   extend: {
@@ -83,18 +81,6 @@ export function createRegExpAndMessage(
     prependedMessage + (specialCharacters ?? '').split('').join(' '),
   ];
 }
-
-export const getRecipientLabel = (recipient: Recipient) => {
-  const name =
-    recipient.partyDetails?.type === 'INDIVIDUAL'
-      ? [
-          recipient.partyDetails?.firstName,
-          recipient.partyDetails?.lastName,
-        ].join(' ')
-      : recipient.partyDetails?.businessName;
-
-  return `${name} (...${recipient.account ? recipient.account.number?.slice(-4) : ''})`;
-};
 
 // DEPRECATED - to remove
 export const loadContentTokens = (

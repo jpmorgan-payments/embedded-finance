@@ -1,4 +1,3 @@
-import { getRecipientLabel } from '@/lib/utils';
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
 /**
@@ -19,12 +18,17 @@ export function getMaskedAccountNumber(recipient: Recipient): string {
   return `****${recipient.account.number.slice(-4)}`;
 }
 
-/**
- * Get display name for recipient using existing utility
- */
-export function getRecipientDisplayName(recipient: Recipient): string {
-  return getRecipientLabel(recipient);
-}
+export const getRecipientDisplayName = (recipient: Recipient) => {
+  const name =
+    recipient.partyDetails?.type === 'INDIVIDUAL'
+      ? [
+          recipient.partyDetails?.firstName,
+          recipient.partyDetails?.lastName,
+        ].join(' ')
+      : recipient.partyDetails?.businessName;
+
+  return `${name} (...${recipient.account ? recipient.account.number?.slice(-4) : ''})`;
+};
 
 /**
  * Get account holder type display text

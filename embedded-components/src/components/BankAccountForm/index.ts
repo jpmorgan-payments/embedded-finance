@@ -8,6 +8,7 @@
 export { BankAccountForm } from './BankAccountForm';
 export {
   linkedAccountConfig,
+  linkedAccountEditConfig,
   recipientConfig,
   createCustomConfig,
 } from './BankAccountForm.configs';
@@ -19,7 +20,4 @@ export type {
   BankAccountFormData,
   BankAccountFormProps,
   PaymentMethodConfig,
-  PaymentMethodType,
-  BankAccountType,
-  Address,
 } from './BankAccountForm.types';

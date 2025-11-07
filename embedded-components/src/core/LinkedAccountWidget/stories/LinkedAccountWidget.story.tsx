@@ -145,7 +145,7 @@ const createRecipientHandlers = (mockData: typeof linkedAccountListMock) => [
 
     // Mock successful verification response
     return HttpResponse.json({
-      status: 'SUCCESS',
+      status: 'VERIFIED',
       message: 'Microdeposits verified successfully',
       recipientId: id,
     });

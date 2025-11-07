@@ -1,7 +1,7 @@
 import { FC, ReactNode, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { useCreateRecipient } from '@/api/generated/ep-recipients';
+import { useAmendRecipient } from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   BankAccountForm,
-  linkedAccountConfig,
+  linkedAccountEditConfig,
   transformBankAccountFormToRecipientPayload,
   type BankAccountFormData,
 } from '@/components/BankAccountForm';
@@ -22,27 +22,28 @@ import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AccountConfirmation } from '../../components/AccountConfirmation';
 import { STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 
-type LinkAccountFormDialogTriggerProps = {
+type EditAccountFormDialogTriggerProps = {
   children: ReactNode;
+  recipient: Recipient;
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 };
 
 /**
- * LinkAccountFormDialogTrigger - Dialog for linking a new bank account
+ * EditAccountFormDialogTrigger - Dialog for editing an existing linked bank account
  */
-export const LinkAccountFormDialogTrigger: FC<
-  LinkAccountFormDialogTriggerProps
-> = ({ children, onLinkedAccountSettled }) => {
+export const EditAccountFormDialogTrigger: FC<
+  EditAccountFormDialogTriggerProps
+> = ({ children, recipient, onLinkedAccountSettled }) => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const {
-    mutate: createRecipient,
-    reset: resetCreateRecipient,
-    status: createRecipientStatus,
-    data: createRecipientResponse,
-    error: createRecipientError,
-  } = useCreateRecipient({
+    mutate: amendRecipient,
+    reset: resetAmendRecipient,
+    status: amendRecipientStatus,
+    data: amendRecipientResponse,
+    error: amendRecipientError,
+  } = useAmendRecipient({
     mutation: {
       onSuccess: (response) => {
         queryClient.invalidateQueries({ queryKey: ['getAllRecipients'] });
@@ -62,12 +63,16 @@ export const LinkAccountFormDialogTrigger: FC<
       'SETTLEMENT_ACCOUNT'
     );
 
-    createRecipient({ data: payload });
+    // Call amendRecipient with recipient ID and payload
+    amendRecipient({
+      id: recipient.id,
+      data: payload,
+    });
   };
 
   const handleDialogChange = (open: boolean) => {
     if (open) {
-      resetCreateRecipient();
+      resetAmendRecipient();
     }
     setDialogOpen(open);
   };
@@ -82,40 +87,41 @@ export const LinkAccountFormDialogTrigger: FC<
       <DialogContent className="eb-max-h-[90vh] eb-max-w-2xl eb-overflow-hidden eb-p-0">
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-text-xl">
-            {createRecipientStatus === 'success'
-              ? 'Account Linked Successfully'
-              : linkedAccountConfig.content.title}
+            {amendRecipientStatus === 'success'
+              ? 'Account Updated Successfully'
+              : 'Edit Linked Account'}
           </DialogTitle>
           <DialogDescription>
-            {createRecipientStatus === 'success'
-              ? createRecipientResponse?.status
-                ? STATUS_MESSAGES[createRecipientResponse.status]
-                : linkedAccountConfig.content.successDescription
-              : linkedAccountConfig.content.description}
+            {amendRecipientStatus === 'success'
+              ? amendRecipientResponse?.status
+                ? STATUS_MESSAGES[amendRecipientResponse.status]
+                : 'Your linked account has been updated successfully.'
+              : 'Update the bank account information and payment methods.'}
           </DialogDescription>
         </DialogHeader>
 
         {/* Success State */}
-        {createRecipientStatus === 'success' && (
+        {amendRecipientStatus === 'success' && (
           <div className="eb-p-6">
-            <AccountConfirmation recipient={createRecipientResponse} />
+            <AccountConfirmation recipient={amendRecipientResponse} />
           </div>
         )}
 
         {/* Form State */}
-        {(createRecipientStatus === 'idle' ||
-          createRecipientStatus === 'error' ||
-          createRecipientStatus === 'pending') && (
+        {(amendRecipientStatus === 'idle' ||
+          amendRecipientStatus === 'error' ||
+          amendRecipientStatus === 'pending') && (
           <BankAccountForm
-            config={linkedAccountConfig}
+            config={linkedAccountEditConfig}
+            recipient={recipient}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            isLoading={createRecipientStatus === 'pending'}
+            isLoading={amendRecipientStatus === 'pending'}
             alert={
               <ServerErrorAlert
-                error={createRecipientError}
+                error={amendRecipientError}
                 showDetails
-                customTitle="Unable to link account"
+                customTitle="Unable to update account"
               />
             }
           />

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { PlusIcon } from 'lucide-react';
 
+import { shouldShowCreateButton } from '@/lib/recipientHelpers';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
@@ -10,9 +11,7 @@ import { EmptyState } from './components/EmptyState';
 import { LinkedAccountCard } from './components/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton';
 import { LinkAccountFormDialogTrigger } from './forms/LinkAccountForm/LinkAccountForm';
-import { MicrodepositsFormDialogTrigger } from './forms/MicrodepositsForm/MicrodepositsForm';
 import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
-import { shouldShowCreateButton } from './utils/recipientHelpers';
 
 /**
  * LinkedAccountWidget - Main component for managing linked bank accounts
@@ -44,11 +43,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   onLinkedAccountSettled,
   className,
 }) => {
-  const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(
-    null
-  );
-  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
-
   const { data, isLoading, isError, error, isSuccess, refetch } =
     useGetAllRecipients();
 
@@ -72,20 +66,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     hasActiveAccount,
     showCreateButton
   );
-
-  const handleVerifyClick = (recipientId: string) => {
-    setSelectedRecipientId(recipientId);
-    setIsVerifyDialogOpen(true);
-  };
-
-  const handleUpdateRoutingClick = (recipientId: string) => {
-    // TODO: Implement update routing dialog in future iteration
-    // This would open a form to add Wire or RTP routing information
-    // For now, we just prevent the unused variable warning
-    if (recipientId) {
-      // Placeholder for future implementation
-    }
-  };
 
   return (
     <div className="eb-w-full eb-@container">
@@ -174,31 +154,13 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                   <LinkedAccountCard
                     recipient={recipient}
                     makePaymentComponent={makePaymentComponent}
-                    onVerifyClick={handleVerifyClick}
-                    onUpdateRoutingClick={handleUpdateRoutingClick}
+                    onLinkedAccountSettled={onLinkedAccountSettled}
                   />
                 </div>
               ))}
             </div>
           )}
         </CardContent>
-
-        {/* Microdeposits verification dialog */}
-        {selectedRecipientId && (
-          <MicrodepositsFormDialogTrigger
-            recipientId={selectedRecipientId}
-            open={isVerifyDialogOpen}
-            onOpenChange={(open) => {
-              setIsVerifyDialogOpen(open);
-              if (!open) {
-                setSelectedRecipientId(null);
-              }
-            }}
-            onLinkedAccountSettled={onLinkedAccountSettled}
-          >
-            <div style={{ display: 'none' }} />
-          </MicrodepositsFormDialogTrigger>
-        )}
       </Card>
     </div>
   );

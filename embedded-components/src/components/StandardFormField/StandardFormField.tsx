@@ -91,10 +91,14 @@ export interface StandardFormFieldProps<
   textareaProps?: React.TextareaHTMLAttributes<HTMLTextAreaElement>;
   /** Whether field is disabled */
   disabled?: boolean;
+  /** Whether field is readonly (shows value as text) */
+  readonly?: boolean;
   /** Custom icon to display in label */
   icon?: ReactNode;
   /** Text to display when no combobox options are found (default: "No option found") */
   noOptionsText?: string;
+  /** Prefix content to display at the start of the input (e.g., "$" for currency) */
+  prefix?: ReactNode;
 }
 
 /**
@@ -244,8 +248,10 @@ export const StandardFormField = <
   inputProps,
   textareaProps,
   disabled = false,
+  readonly = false,
   icon,
-  noOptionsText,
+  noOptionsText = 'No option found',
+  prefix,
 }: StandardFormFieldProps<TFieldValues, TName>) => {
   return (
     <FormField
@@ -291,6 +297,39 @@ export const StandardFormField = <
           );
         };
 
+        // Render readonly value as text
+        if (readonly) {
+          const displayValue = (() => {
+            if (
+              type === 'select' ||
+              type === 'combobox' ||
+              type === 'us-state' ||
+              type === 'radio-group' ||
+              type === 'radio-group-blocks'
+            ) {
+              return (
+                options.find((opt) => opt.value === field.value)?.label ||
+                field.value ||
+                'N/A'
+              );
+            }
+            if (type === 'checkbox' || type === 'checkbox-basic') {
+              return field.value ? 'Yes' : 'No';
+            }
+            return field.value || 'N/A';
+          })();
+
+          return (
+            <FormItem className={className}>
+              {renderLabel()}
+              <p className="eb-rounded-md eb-border eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-font-medium">
+                {displayValue}
+              </p>
+              {renderDescription()}
+            </FormItem>
+          );
+        }
+
         // Render different field types
         switch (type) {
           case 'text':
@@ -301,16 +340,36 @@ export const StandardFormField = <
             return (
               <FormItem className={className}>
                 {renderLabel()}
-                <FormControl>
-                  <Input
-                    {...field}
-                    type={type}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    className={inputClassName}
-                    {...inputProps}
-                  />
-                </FormControl>
+                {prefix ? (
+                  <div className="eb-relative">
+                    <div className="eb-pointer-events-none eb-absolute eb-inset-y-0 eb-left-0 eb-flex eb-items-center eb-pl-3">
+                      <span className="eb-text-sm eb-text-muted-foreground">
+                        {prefix}
+                      </span>
+                    </div>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type={type}
+                        placeholder={placeholder}
+                        disabled={disabled}
+                        className={cn('eb-pl-7', inputClassName)}
+                        {...inputProps}
+                      />
+                    </FormControl>
+                  </div>
+                ) : (
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type={type}
+                      placeholder={placeholder}
+                      disabled={disabled}
+                      className={inputClassName}
+                      {...inputProps}
+                    />
+                  </FormControl>
+                )}
                 {renderDescription()}
                 <FormMessage />
               </FormItem>
@@ -335,6 +394,23 @@ export const StandardFormField = <
             );
 
           case 'select':
+            if (readonly) {
+              const selectedOption = options.find(
+                (opt) => opt.value === field.value
+              );
+              const displayValue = selectedOption?.label || field.value || '';
+
+              return (
+                <FormItem className={className}>
+                  {renderLabel()}
+                  <p className="eb-rounded-md eb-border eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-font-medium">
+                    {displayValue}
+                  </p>
+                  {renderDescription()}
+                </FormItem>
+              );
+            }
+
             return (
               <FormItem className={className}>
                 {renderLabel()}

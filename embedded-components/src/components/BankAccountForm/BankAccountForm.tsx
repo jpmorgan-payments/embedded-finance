@@ -16,6 +16,10 @@ import {
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+import {
+  RecipientContactContactType,
+  RoutingInformationTransactionType,
+} from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DialogFooter } from '@/components/ui/dialog';
@@ -48,17 +52,15 @@ import { createBankAccountFormSchema } from './BankAccountForm.schema';
 import type {
   BankAccountFormData,
   BankAccountFormProps,
-  ContactType,
-  PaymentMethodType,
 } from './BankAccountForm.types';
 
 /**
  * PaymentMethodSelector - Compact checkbox selector for payment methods
  */
 interface PaymentMethodSelectorProps {
-  selectedTypes: PaymentMethodType[];
-  onChange: (types: PaymentMethodType[]) => void;
-  availableTypes: PaymentMethodType[];
+  selectedTypes: RoutingInformationTransactionType[];
+  onChange: (types: RoutingInformationTransactionType[]) => void;
+  availableTypes: RoutingInformationTransactionType[];
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
   allowMultiple: boolean;
 }
@@ -70,7 +72,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
   configs,
   allowMultiple,
 }) => {
-  const handleToggle = (type: PaymentMethodType) => {
+  const handleToggle = (type: RoutingInformationTransactionType) => {
     const config = configs[type];
 
     // Don't allow deselecting locked payment methods
@@ -78,7 +80,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
       return;
     }
 
-    let newTypes: PaymentMethodType[];
+    let newTypes: RoutingInformationTransactionType[];
 
     if (allowMultiple) {
       if (selectedTypes.includes(type)) {
@@ -99,7 +101,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
   };
 
   // Get icon for payment method type
-  const getPaymentIcon = (type: PaymentMethodType) => {
+  const getPaymentIcon = (type: RoutingInformationTransactionType) => {
     switch (type) {
       case 'ACH':
         return <BanknoteIcon className="eb-h-4 eb-w-4" />;
@@ -188,7 +190,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
  */
 const getConditionalRequirementReason = (
   fieldType: 'address' | 'email' | 'phone',
-  paymentTypes: PaymentMethodType[],
+  paymentTypes: RoutingInformationTransactionType[],
   configs: BankAccountFormProps['config']['paymentMethods']['configs']
 ): string | null => {
   const reasons: string[] = [];
@@ -224,7 +226,7 @@ const getConditionalRequirementReason = (
 interface RoutingNumberFieldsProps {
   value: BankAccountFormData['routingNumbers'];
   onChange: (routingNumbers: BankAccountFormData['routingNumbers']) => void;
-  paymentMethods: PaymentMethodType[];
+  paymentMethods: RoutingInformationTransactionType[];
   useSameForAll: boolean;
   onUseSameForAllChange: (value: boolean) => void;
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
@@ -239,7 +241,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   configs,
 }) => {
   const handleRoutingNumberChange = (
-    paymentType: PaymentMethodType,
+    paymentType: RoutingInformationTransactionType,
     routingNumber: string
   ) => {
     if (useSameForAll) {
@@ -283,7 +285,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
     }
   };
 
-  const getRoutingNumber = (paymentType: PaymentMethodType) => {
+  const getRoutingNumber = (paymentType: RoutingInformationTransactionType) => {
     return (
       value.find((r) => r.paymentType === paymentType)?.routingNumber || ''
     );
@@ -394,8 +396,8 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
 interface ContactFieldsProps {
   value: BankAccountFormData['contacts'];
   onChange: (contacts: BankAccountFormData['contacts']) => void;
-  requiredTypes: Set<ContactType>;
-  paymentTypes: PaymentMethodType[];
+  requiredTypes: Set<RecipientContactContactType>;
+  paymentTypes: RoutingInformationTransactionType[];
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
 }
 
@@ -407,7 +409,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
   configs,
 }) => {
   const handleContactChange = (
-    type: ContactType,
+    type: RecipientContactContactType,
     contactValue: string,
     countryCode?: string
   ) => {
@@ -435,7 +437,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
     onChange(newContacts);
   };
 
-  const getContactValue = (type: ContactType) => {
+  const getContactValue = (type: RecipientContactContactType) => {
     return value.find((c) => c.contactType === type)?.value || '';
   };
 
@@ -537,37 +539,99 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     [config]
   );
 
+  // Extract payment types and routing numbers from recipient if editing
+  const initialPaymentTypes = useMemo(() => {
+    if (recipient?.account?.routingInformation) {
+      return recipient.account.routingInformation
+        .map((ri) => ri.transactionType)
+        .filter(
+          (type): type is RoutingInformationTransactionType =>
+            type !== undefined && ['ACH', 'WIRE', 'RTP'].includes(type)
+        );
+    }
+    return config.paymentMethods.defaultSelected || [];
+  }, [recipient, config.paymentMethods.defaultSelected]);
+
+  const initialRoutingNumbers = useMemo(() => {
+    if (recipient?.account?.routingInformation) {
+      return recipient.account.routingInformation
+        .filter((ri) => ri.transactionType && ri.routingNumber)
+        .map((ri) => ({
+          paymentType: ri.transactionType,
+          routingNumber: ri.routingNumber,
+        }));
+    }
+    return [];
+  }, [recipient]);
+
+  // Extract contacts from recipient with proper validation
+  const initialContacts = useMemo(() => {
+    if (
+      !recipient?.partyDetails?.contacts ||
+      !Array.isArray(recipient.partyDetails.contacts)
+    ) {
+      return [];
+    }
+
+    // Filter and validate contacts to ensure proper structure
+    return recipient.partyDetails.contacts
+      .filter((contact) => {
+        // Ensure contact has required properties
+        return (
+          contact &&
+          typeof contact === 'object' &&
+          contact.contactType &&
+          contact.value &&
+          typeof contact.value === 'string' &&
+          contact.value.trim() !== '' &&
+          ['EMAIL', 'PHONE', 'WEBSITE'].includes(contact.contactType)
+        );
+      })
+      .map((contact) => ({
+        contactType: contact.contactType as RecipientContactContactType,
+        value: contact.value,
+        // Only include countryCode for PHONE contacts
+        ...(contact.contactType === 'PHONE' && contact.countryCode
+          ? { countryCode: contact.countryCode }
+          : {}),
+      }));
+  }, [recipient]);
+
   const form = useForm<BankAccountFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(formSchema),
     defaultValues: {
-      accountType: config.accountHolder.defaultType || undefined,
+      accountType:
+        recipient?.partyDetails?.type ||
+        config.accountHolder.defaultType ||
+        undefined,
       firstName: recipient?.partyDetails?.firstName || '',
       lastName: recipient?.partyDetails?.lastName || '',
       businessName: recipient?.partyDetails?.businessName || '',
-      routingNumbers: [],
-      useSameRoutingNumber: true,
+      routingNumbers: initialRoutingNumbers,
+      useSameRoutingNumber: (() => {
+        // Calculate if all routing numbers are the same
+        if (initialRoutingNumbers.length <= 1) return true;
+        const firstRouting = initialRoutingNumbers[0]?.routingNumber;
+        return initialRoutingNumbers.every(
+          (rn) => rn.routingNumber === firstRouting
+        );
+      })(),
       accountNumber: recipient?.account?.number || '',
       bankAccountType: (recipient?.account?.type as any) || 'CHECKING',
-      paymentTypes: config.paymentMethods.defaultSelected || [],
+      paymentTypes: initialPaymentTypes,
       address: recipient?.partyDetails?.address
         ? {
-            primaryAddressLine:
-              (recipient.partyDetails.address as any).primaryAddressLine ||
-              (recipient.partyDetails.address as any).addressLine1 ||
-              '',
-            secondaryAddressLine:
-              (recipient.partyDetails.address as any).secondaryAddressLine ||
-              (recipient.partyDetails.address as any).addressLine2,
-            tertiaryAddressLine:
-              (recipient.partyDetails.address as any).tertiaryAddressLine ||
-              (recipient.partyDetails.address as any).addressLine3,
+            addressLine1: recipient.partyDetails.address.addressLine1 || '',
+            addressLine2: recipient.partyDetails.address.addressLine2 || '',
+            addressLine3: recipient.partyDetails.address.addressLine3 || '',
             city: recipient.partyDetails.address.city || '',
             state: recipient.partyDetails.address.state || '',
             postalCode: recipient.partyDetails.address.postalCode || '',
             countryCode: recipient.partyDetails.address.countryCode || 'US',
           }
         : undefined,
-      contacts: [],
+      contacts: initialContacts,
       certify: false,
     },
   });
@@ -584,15 +648,64 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   }, [useSameRoutingNumber, form]);
 
   // When payment types change, clean up routing numbers for removed methods
+  // and update useSameRoutingNumber checkbox if needed
   useEffect(() => {
     const currentRoutingNumbers = form.getValues('routingNumbers') || [];
+
+    // Remove routing numbers for deselected payment methods
     const validRoutingNumbers = currentRoutingNumbers.filter((rn) =>
       paymentTypes.includes(rn.paymentType)
     );
 
-    // Only update if there were removed payment methods
-    if (validRoutingNumbers.length !== currentRoutingNumbers.length) {
-      form.setValue('routingNumbers', validRoutingNumbers);
+    // Add empty routing numbers for newly selected payment methods
+    const updatedRoutingNumbers = [...validRoutingNumbers];
+    let hasNewPaymentMethod = false;
+
+    paymentTypes.forEach((paymentType) => {
+      if (!updatedRoutingNumbers.find((rn) => rn.paymentType === paymentType)) {
+        // New payment method - add with empty routing number
+        updatedRoutingNumbers.push({ paymentType, routingNumber: '' });
+        hasNewPaymentMethod = true;
+      }
+    });
+
+    // Only update if there were changes
+    if (
+      JSON.stringify(updatedRoutingNumbers) !==
+      JSON.stringify(currentRoutingNumbers)
+    ) {
+      form.setValue('routingNumbers', updatedRoutingNumbers);
+    }
+
+    // Update useSameRoutingNumber checkbox based on current routing numbers
+    if (paymentTypes.length <= 1) {
+      // If only one payment method, always set to true
+      form.setValue('useSameRoutingNumber', true);
+    } else if (hasNewPaymentMethod) {
+      // If a new payment method was added, uncheck if any existing routing numbers have values
+      // (because the new method will have empty routing number, creating inconsistency)
+      const hasExistingValues = updatedRoutingNumbers.some(
+        (rn) => rn.routingNumber && rn.routingNumber.trim() !== ''
+      );
+
+      if (hasExistingValues) {
+        // Uncheck because we now have a mix of filled and empty routing numbers
+        form.setValue('useSameRoutingNumber', false);
+      }
+      // If no existing values, keep checkbox in current state (checked by default)
+    } else {
+      // No new payment methods - auto-update based on existing routing numbers
+      const routingNumbersWithValues = updatedRoutingNumbers.filter(
+        (rn) => rn.routingNumber
+      );
+
+      if (routingNumbersWithValues.length > 1) {
+        const firstRouting = routingNumbersWithValues[0]?.routingNumber;
+        const allSame = routingNumbersWithValues.every(
+          (rn) => rn.routingNumber === firstRouting
+        );
+        form.setValue('useSameRoutingNumber', allSame);
+      }
     }
   }, [paymentTypes, form]);
 
@@ -610,7 +723,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   ]);
 
   const requiredContactTypes = useMemo(() => {
-    const required = new Set<ContactType>();
+    const required = new Set<RecipientContactContactType>();
     config.requiredFields.contacts?.forEach((type) => required.add(type));
     paymentTypes.forEach((type) => {
       const methodConfig = config.paymentMethods.configs[type];
@@ -635,11 +748,11 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     } else {
       // Clean up empty optional address fields
       const { address } = cleanedData;
-      if (!address.secondaryAddressLine?.trim()) {
-        delete address.secondaryAddressLine;
+      if (!address.addressLine2?.trim()) {
+        delete address.addressLine2;
       }
-      if (!address.tertiaryAddressLine?.trim()) {
-        delete address.tertiaryAddressLine;
+      if (!address.addressLine3?.trim()) {
+        delete address.addressLine3;
       }
     }
 
@@ -704,34 +817,54 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           <FormLabel className="eb-text-base eb-font-semibold">
                             Select account holder type
                           </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="eb-h-12">
-                                <SelectValue placeholder="Choose account type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {config.accountHolder.allowIndividual && (
-                                <SelectItem value="INDIVIDUAL">
-                                  <div className="eb-flex eb-items-center eb-gap-2">
+                          {config.readonlyFields?.accountType ? (
+                            <div className="eb-rounded-md eb-border eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-font-medium">
+                              <div className="eb-flex eb-items-center eb-gap-2">
+                                {field.value === 'INDIVIDUAL' ? (
+                                  <>
                                     <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                                     <span>Individual / Personal Account</span>
-                                  </div>
-                                </SelectItem>
-                              )}
-                              {config.accountHolder.allowOrganization && (
-                                <SelectItem value="ORGANIZATION">
-                                  <div className="eb-flex eb-items-center eb-gap-2">
+                                  </>
+                                ) : (
+                                  <>
                                     <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                                     <span>Business / Organization Account</span>
-                                  </div>
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="eb-h-12">
+                                  <SelectValue placeholder="Choose account type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {config.accountHolder.allowIndividual && (
+                                  <SelectItem value="INDIVIDUAL">
+                                    <div className="eb-flex eb-items-center eb-gap-2">
+                                      <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                                      <span>Individual / Personal Account</span>
+                                    </div>
+                                  </SelectItem>
+                                )}
+                                {config.accountHolder.allowOrganization && (
+                                  <SelectItem value="ORGANIZATION">
+                                    <div className="eb-flex eb-items-center eb-gap-2">
+                                      <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                                      <span>
+                                        Business / Organization Account
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -776,6 +909,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       }
                       placeholder="Enter first name"
                       required
+                      readonly={config.readonlyFields?.firstName}
                       inputProps={{ autoFocus: true }}
                     />
                     <StandardFormField
@@ -787,6 +921,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       }
                       placeholder="Enter last name"
                       required
+                      readonly={config.readonlyFields?.lastName}
                     />
                   </div>
                 ) : (
@@ -800,6 +935,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     }
                     placeholder="Enter business or organization name"
                     required
+                    readonly={config.readonlyFields?.businessName}
                     inputProps={{ autoFocus: true }}
                   />
                 )}
@@ -816,6 +952,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     }
                     placeholder="Enter account number"
                     required
+                    readonly={config.readonlyFields?.accountNumber}
                   />
                   <StandardFormField
                     control={form.control}
@@ -827,6 +964,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     }
                     placeholder="Select type"
                     required
+                    readonly={config.readonlyFields?.bankAccountType}
                     options={[
                       { value: 'CHECKING', label: 'Checking' },
                       { value: 'SAVINGS', label: 'Savings' },
@@ -877,7 +1015,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                         <div className="eb-grid eb-gap-3">
                           <StandardFormField
                             control={form.control}
-                            name="address.primaryAddressLine"
+                            name="address.addressLine1"
                             type="text"
                             label={
                               config.content.fieldLabels?.primaryAddressLine ||
@@ -886,42 +1024,56 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             placeholder="Enter street address"
                             required
                           />
-                          <StandardFormField
-                            control={form.control}
-                            name="address.secondaryAddressLine"
-                            type="text"
-                            label={
-                              config.content.fieldLabels
-                                ?.secondaryAddressLine || 'Address Line 2'
-                            }
-                            placeholder="Enter apartment, suite, unit, etc. (optional)"
-                          />
-                          <StandardFormField
-                            control={form.control}
-                            name="address.city"
-                            type="text"
-                            label="City"
-                            placeholder="Enter city"
-                            required
-                          />
-                          <StandardFormField
-                            control={form.control}
-                            name="address.state"
-                            type="us-state"
-                            label="State"
-                            placeholder="Select state"
-                            required
-                          />
-                          <StandardFormField
-                            control={form.control}
-                            name="address.postalCode"
-                            type="text"
-                            label="ZIP Code"
-                            placeholder="Enter ZIP code"
-                            className="eb-max-w-48"
-                            required
-                            inputProps={{ maxLength: 10 }}
-                          />
+                          <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                            <StandardFormField
+                              control={form.control}
+                              name="address.addressLine2"
+                              type="text"
+                              label={
+                                config.content.fieldLabels
+                                  ?.secondaryAddressLine || 'Address Line 2'
+                              }
+                              placeholder="Apt, suite, unit, etc. (optional)"
+                            />
+                            <StandardFormField
+                              control={form.control}
+                              name="address.addressLine3"
+                              type="text"
+                              label={
+                                config.content.fieldLabels
+                                  ?.tertiaryAddressLine || 'Address Line 3'
+                              }
+                              placeholder="Additional info (optional)"
+                            />
+                          </div>
+                          <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-3">
+                            <StandardFormField
+                              control={form.control}
+                              name="address.city"
+                              type="text"
+                              label="City"
+                              placeholder="Enter city"
+                              required
+                              className="md:eb-col-span-1"
+                            />
+                            <StandardFormField
+                              control={form.control}
+                              name="address.state"
+                              type="us-state"
+                              label="State"
+                              placeholder="Select state"
+                              required
+                            />
+                            <StandardFormField
+                              control={form.control}
+                              name="address.postalCode"
+                              type="text"
+                              label="ZIP Code"
+                              placeholder="Enter ZIP code"
+                              required
+                              inputProps={{ maxLength: 10 }}
+                            />
+                          </div>
                         </div>
                       </fieldset>
                     );
@@ -947,31 +1099,32 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                   />
                 )}
 
-                <Separator />
-
                 {/* Certification */}
                 {config.requiredFields.certification && (
-                  <FormField
-                    control={form.control}
-                    name="certify"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="eb-flex eb-items-start eb-space-x-2">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              className="eb-mt-0.5"
-                            />
-                          </FormControl>
-                          <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                            {config.content.certificationText}
-                          </FormLabel>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <>
+                    <Separator />
+                    <FormField
+                      control={form.control}
+                      name="certify"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="eb-flex eb-items-start eb-space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="eb-mt-0.5"
+                              />
+                            </FormControl>
+                            <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                              {config.content.certificationText}
+                            </FormLabel>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
                 )}
               </div>
             )}

@@ -58,7 +58,7 @@ type Story = StoryObj<typeof Recipients>;
 
 // Remove getPaymentMethodConfigs function
 // Only keep stories that use getPaymentMethodConfigs and are valid
-// Remove any configs or stories that do not include all required PaymentMethodType keys
+// Remove any configs or stories that do not include all required RoutingInformationTransactionType keys
 
 export const ConditionalFieldRequirements: Story = {
   name: 'Conditional Field Requirements',

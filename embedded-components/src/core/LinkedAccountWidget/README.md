@@ -148,18 +148,7 @@ Complex form components that:
 - Integrate with validation schemas
 - Communicate results through callbacks
 
-### 5. Utility Layer
-
-**Files:** `utils/recipientHelpers.ts`, `LinkedAccountWidget.constants.ts`
-
-Helper functions and constants that:
-
-- Extract and format data from complex objects
-- Provide business logic decisions
-- Define reusable constants
-- Keep logic DRY across the component
-
-### 6. Type Layer
+### 5. Type Layer
 
 **File:** `LinkedAccountWidget.types.ts`
 

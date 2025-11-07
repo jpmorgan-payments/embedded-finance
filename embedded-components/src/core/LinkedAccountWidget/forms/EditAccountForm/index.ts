@@ -1,0 +1,1 @@
+export { EditAccountFormDialogTrigger } from './EditAccountForm';

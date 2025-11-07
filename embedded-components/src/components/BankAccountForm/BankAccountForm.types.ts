@@ -1,46 +1,14 @@
 import type { ReactNode } from 'react';
 
 import type {
+  AccountType,
   PartyType,
   Recipient,
+  RecipientAddress,
+  RecipientContact,
+  RecipientContactContactType,
+  RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
-
-/**
- * Payment method types supported across all use cases
- */
-export type PaymentMethodType = 'ACH' | 'WIRE' | 'RTP';
-
-/**
- * Bank account types
- */
-export type BankAccountType = 'CHECKING' | 'SAVINGS';
-
-/**
- * Contact type for recipient communications
- */
-export type ContactType = 'EMAIL' | 'PHONE' | 'WEBSITE';
-
-/**
- * Contact information structure
- */
-export interface Contact {
-  contactType: ContactType;
-  value: string;
-  countryCode?: string;
-}
-
-/**
- * Address information structure
- */
-export interface Address {
-  primaryAddressLine: string;
-  secondaryAddressLine?: string;
-  tertiaryAddressLine?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  countryCode: string;
-}
 
 /**
  * Configuration for a single payment method
@@ -62,7 +30,7 @@ export interface PaymentMethodConfig {
     routingNumber?: boolean;
     bankAccountType?: boolean;
     address?: boolean;
-    contacts?: ContactType[];
+    contacts?: RecipientContactContactType[];
   };
   /** Validation rules for routing number */
   routingValidation?: {
@@ -131,13 +99,13 @@ export interface BankAccountFormConfig {
   /** Payment methods configuration */
   paymentMethods: {
     /** Available payment methods */
-    available: PaymentMethodType[];
+    available: RoutingInformationTransactionType[];
     /** Configuration for each payment method */
-    configs: Record<PaymentMethodType, PaymentMethodConfig>;
+    configs: Record<RoutingInformationTransactionType, PaymentMethodConfig>;
     /** Whether multiple payment methods can be selected */
     allowMultiple: boolean;
     /** Default selected payment methods */
-    defaultSelected?: PaymentMethodType[];
+    defaultSelected?: RoutingInformationTransactionType[];
   };
 
   /** Account holder type configuration */
@@ -155,9 +123,19 @@ export interface BankAccountFormConfig {
     /** Always require address regardless of payment method */
     address?: boolean;
     /** Always require contacts regardless of payment method */
-    contacts?: ContactType[];
+    contacts?: RecipientContactContactType[];
     /** Require certification/authorization */
     certification?: boolean;
+  };
+
+  /** Readonly fields (for edit mode) */
+  readonlyFields?: {
+    accountType?: boolean;
+    firstName?: boolean;
+    lastName?: boolean;
+    businessName?: boolean;
+    accountNumber?: boolean;
+    bankAccountType?: boolean;
   };
 
   /** Content/text configuration */
@@ -170,7 +148,7 @@ export interface BankAccountFormConfig {
     /** Custom validation function for routing number */
     routingNumber?: (
       value: string,
-      paymentMethod: PaymentMethodType
+      paymentMethod: RoutingInformationTransactionType
     ) => boolean | string;
   };
 }
@@ -203,7 +181,7 @@ export interface BankAccountFormProps {
  * Routing number configuration per payment method
  */
 export interface PaymentMethodRoutingNumber {
-  paymentType: PaymentMethodType;
+  paymentType: RoutingInformationTransactionType;
   routingNumber: string;
 }
 
@@ -221,16 +199,16 @@ export interface BankAccountFormData {
   routingNumbers: PaymentMethodRoutingNumber[];
   useSameRoutingNumber?: boolean; // UX helper to use same routing for all methods
   accountNumber: string;
-  bankAccountType: BankAccountType;
+  bankAccountType: AccountType;
 
   // Payment methods
-  paymentTypes: PaymentMethodType[];
+  paymentTypes: RoutingInformationTransactionType[];
 
   // Address (conditional)
-  address?: Address;
+  address?: RecipientAddress;
 
   // Contacts (conditional)
-  contacts?: Contact[];
+  contacts?: RecipientContact[];
 
   // Certification
   certify?: boolean;

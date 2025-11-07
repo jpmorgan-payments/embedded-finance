@@ -1,18 +1,19 @@
 import { z } from 'zod';
 
+import { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
+
 import type {
   BankAccountFormConfig,
   BankAccountFormData,
-  PaymentMethodType,
 } from './BankAccountForm.types';
 
 /**
  * Address schema - All fields optional in base schema, validation in superRefine
  */
 const addressSchema = z.object({
-  primaryAddressLine: z.string().max(34).optional(),
-  secondaryAddressLine: z.string().max(34).optional(),
-  tertiaryAddressLine: z.string().max(34).optional(),
+  addressLine1: z.string().max(34).optional(),
+  addressLine2: z.string().max(34).optional(),
+  addressLine3: z.string().max(34).optional(),
   city: z.string().max(34).optional(),
   state: z.string().max(2).optional(),
   postalCode: z.string().max(10).optional(),
@@ -78,7 +79,7 @@ const createBaseSchema = (config: BankAccountFormConfig) => {
  */
 function isAddressRequired(
   config: BankAccountFormConfig,
-  paymentTypes: PaymentMethodType[]
+  paymentTypes: RoutingInformationTransactionType[]
 ): boolean {
   // Check global requirements
   if (config.requiredFields.address) {
@@ -97,7 +98,7 @@ function isAddressRequired(
  */
 function getRequiredContactTypes(
   config: BankAccountFormConfig,
-  paymentTypes: PaymentMethodType[]
+  paymentTypes: RoutingInformationTransactionType[]
 ): Set<'EMAIL' | 'PHONE' | 'WEBSITE'> {
   const required = new Set<'EMAIL' | 'PHONE' | 'WEBSITE'>();
 
@@ -179,7 +180,7 @@ export function createBankAccountFormSchema(
     }
 
     // 3. Validate routing numbers for each selected payment method
-    const selectedMethods = paymentTypes as PaymentMethodType[];
+    const selectedMethods = paymentTypes as RoutingInformationTransactionType[];
 
     selectedMethods.forEach((method) => {
       const methodConfig = config.paymentMethods.configs[method];
@@ -235,13 +236,13 @@ export function createBankAccountFormSchema(
       } else {
         // Validate address fields
         if (
-          !data.address.primaryAddressLine ||
-          data.address.primaryAddressLine.trim().length === 0
+          !data.address.addressLine1 ||
+          data.address.addressLine1.trim().length === 0
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Street address is required',
-            path: ['address', 'primaryAddressLine'],
+            path: ['address', 'addressLine1'],
           });
         }
 
