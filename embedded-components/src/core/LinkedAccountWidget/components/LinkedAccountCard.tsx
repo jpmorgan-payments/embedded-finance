@@ -53,6 +53,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   makePaymentComponent,
   onVerifyClick,
   onUpdateRoutingClick,
+  hideActions = false,
 }) => {
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showDetailedPaymentMethods, setShowDetailedPaymentMethods] =
@@ -272,7 +273,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                       );
                     })}
                     {/* Add Wire/RTP button in expanded view */}
-                    {showAddRoutingButton && (
+                    {!hideActions && showAddRoutingButton && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -300,7 +301,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                         {method}
                       </Badge>
                     ))}
-                    {showAddRoutingButton && (
+                    {!hideActions && showAddRoutingButton && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -328,7 +329,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         )}
 
         {/* Status Alert - Show for non-active statuses or when action is needed */}
-        {recipient.status && recipient.status !== 'ACTIVE' && (
+        {!hideActions && recipient.status && recipient.status !== 'ACTIVE' && (
           <>
             <Separator />
             <div className="eb-px-3 eb-py-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-4 @md:eb-py-3">
@@ -356,7 +357,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         )}
 
         {/* Action Buttons Section - Show pay button (disabled if not active or no component) and manage menu */}
-        {(showPaymentButton || !isActive) && (
+        {!hideActions && (showPaymentButton || !isActive) && (
           <>
             <Separator />
             <div

@@ -52,4 +52,7 @@ export interface LinkedAccountCardProps {
 
   /** Callback when account needs to be updated with additional routing info */
   onUpdateRoutingClick?: (recipientId: string) => void;
+
+  /** Hide action buttons and status alerts (useful for confirmation views) */
+  hideActions?: boolean;
 }

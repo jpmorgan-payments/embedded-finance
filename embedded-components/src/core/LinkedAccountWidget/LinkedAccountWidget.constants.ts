@@ -56,24 +56,9 @@ export const STATUS_LABELS: Record<RecipientStatus, string> = {
 };
 
 /**
- * Status messages to display for each recipient status
+ * Status messages for each recipient status
  */
-export const RECIPIENT_STATUS_MESSAGES: Record<string, string> = {
-  MICRODEPOSITS_INITIATED:
-    'We initiated microdeposits to verify this account. This usually takes 3-5 business days.',
-  READY_FOR_VALIDATION:
-    'Your microdeposits are ready to be verified. Please enter the amounts to complete verification.',
-  ACTIVE: 'Your external account has been linked and is active.',
-  PENDING: 'We are processing your account. This may take a moment.',
-  INACTIVE: 'The account was linked but is currently inactive.',
-  REJECTED:
-    'We could not link this account. Please review details or try again.',
-};
-
-/**
- * Detailed explanations for each status
- */
-export const STATUS_EXPLANATIONS: Record<RecipientStatus, string> = {
+export const STATUS_MESSAGES: Record<RecipientStatus, string> = {
   ACTIVE: 'This account is verified and ready for transactions.',
   INACTIVE:
     'This account has been deactivated and cannot be used for transactions.',

@@ -3,13 +3,10 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useCreateRecipient } from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,7 +19,7 @@ import {
 } from '@/components/BankAccountForm';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
-import { RECIPIENT_STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
+import { STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 import { LinkAccountConfirmation } from './LinkAccountConfirmation';
 
 type LinkAccountFormDialogTriggerProps = {
@@ -62,7 +59,7 @@ export const LinkAccountFormDialogTrigger: FC<
     // Transform form data to API payload
     const payload = transformBankAccountFormToRecipientPayload(
       data,
-      'LINKED_ACCOUNT'
+      'SETTLEMENT_ACCOUNT'
     );
 
     createRecipient({ data: payload });
@@ -91,22 +88,17 @@ export const LinkAccountFormDialogTrigger: FC<
           </DialogTitle>
           <DialogDescription>
             {createRecipientStatus === 'success'
-              ? (RECIPIENT_STATUS_MESSAGES[
-                  createRecipientResponse?.status ?? ''
-                ] ?? linkedAccountConfig.content.successDescription)
+              ? (createRecipientResponse?.status
+                  ? STATUS_MESSAGES[createRecipientResponse.status]
+                  : linkedAccountConfig.content.successDescription)
               : linkedAccountConfig.content.description}
           </DialogDescription>
         </DialogHeader>
 
         {/* Success State */}
         {createRecipientStatus === 'success' && (
-          <div className="eb-px-6 eb-pb-6">
+          <div className="eb-p-6">
             <LinkAccountConfirmation recipient={createRecipientResponse} />
-            <DialogFooter className="eb-mt-6">
-              <DialogClose asChild>
-                <Button className="eb-w-full">Done</Button>
-              </DialogClose>
-            </DialogFooter>
           </div>
         )}
 
