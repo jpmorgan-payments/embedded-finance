@@ -88,9 +88,9 @@ export const LinkAccountFormDialogTrigger: FC<
           </DialogTitle>
           <DialogDescription>
             {createRecipientStatus === 'success'
-              ? (createRecipientResponse?.status
-                  ? STATUS_MESSAGES[createRecipientResponse.status]
-                  : linkedAccountConfig.content.successDescription)
+              ? createRecipientResponse?.status
+                ? STATUS_MESSAGES[createRecipientResponse.status]
+                : linkedAccountConfig.content.successDescription
               : linkedAccountConfig.content.description}
           </DialogDescription>
         </DialogHeader>
