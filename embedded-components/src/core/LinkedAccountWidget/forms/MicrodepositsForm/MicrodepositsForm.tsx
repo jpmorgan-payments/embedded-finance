@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import {
+  getGetAllRecipientsQueryKey,
   useGetRecipient,
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
@@ -82,7 +83,9 @@ export const MicrodepositsFormDialogTrigger: FC<
   } = useRecipientsVerification({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['getAllRecipients'] });
+        queryClient.invalidateQueries({
+          queryKey: getGetAllRecipientsQueryKey({}),
+        });
         queryClient.invalidateQueries({
           queryKey: ['getRecipient', recipientId],
         });

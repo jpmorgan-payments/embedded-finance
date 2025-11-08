@@ -1,7 +1,10 @@
 import { FC, ReactNode, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { useCreateRecipient } from '@/api/generated/ep-recipients';
+import {
+  getGetAllRecipientsQueryKey,
+  useCreateRecipient,
+} from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
   Dialog,
@@ -45,7 +48,9 @@ export const LinkAccountFormDialogTrigger: FC<
   } = useCreateRecipient({
     mutation: {
       onSuccess: (response) => {
-        queryClient.invalidateQueries({ queryKey: ['getAllRecipients'] });
+        queryClient.invalidateQueries({
+          queryKey: getGetAllRecipientsQueryKey({}),
+        });
         onLinkedAccountSettled?.(response);
       },
       onError: (error) => {
