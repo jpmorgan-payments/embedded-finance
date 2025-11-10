@@ -21,7 +21,7 @@ Verify the API flow when additional documents are requested for a party during t
 
 **Steps:**
 
-1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where a party with role `CLIENT` has an `"externalId"` set to `"docRequested"`.
+1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where a party with role `CLIENT` has an `"externalId"` set to `"kycDocRequest"`.
 
    **Request Payload Example:**
 
@@ -31,7 +31,7 @@ Verify the API flow when additional documents are requested for a party during t
         {
             "partyType": "ORGANIZATION",
             "roles": ["CLIENT"],
-            "externalId": "docRequested",
+            "externalId": "kycDocRequest",
             "organizationDetails":{
                 ...
             },
@@ -84,7 +84,7 @@ Verify the API flow when additional documents are requested for a related party 
 
 **Steps:**
 
-1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where a party with role `CONTROLLER` or `BENEFICIAL_OWNER` has an `"externalId"` set to `"docRequested"`.
+1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where a party with role `CONTROLLER` or `BENEFICIAL_OWNER` has an `"externalId"` set to `"kycDocRequest"`.
 
    **Request Payload Example:**
 
@@ -94,7 +94,7 @@ Verify the API flow when additional documents are requested for a related party 
         {
             "partyType": "INDIVIDUAL",
             "roles": ["CONTROLLER"],
-            "externalId": "docRequested",
+            "externalId": "kycDocRequest",
             "individualDetails":{
                 ...
             },
@@ -107,7 +107,6 @@ Verify the API flow when additional documents are requested for a related party 
    ```
 
 2. Once the client is created, verify that the client state is `NEW`. Then, answer the outstanding questions and submit an attestation.
-
    - Use the `PATCH https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}` endpoint.
    - Start the KYC process using `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}/verifications`.
 
@@ -151,7 +150,7 @@ Verify the API flow when additional documents are requested for multiple related
 
 **Steps:**
 
-1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where parties with roles `CLIENT`, `CONTROLLER`, and `BENEFICIAL_OWNER` have an `"externalId"` set to `"docRequested"`.
+1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint, where parties with roles `CLIENT`, `CONTROLLER`, and `BENEFICIAL_OWNER` have an `"externalId"` set to `"kycDocRequest"`.
 
    **Request Payload Example:**
 
@@ -161,19 +160,19 @@ Verify the API flow when additional documents are requested for multiple related
        {
          "partyType": "ORGANIZATION",
          "roles": ["CLIENT"],
-         "externalId": "docRequested",
+         "externalId": "kycDocRequest",
          ...
        },
        {
          "partyType": "INDIVIDUAL",
          "roles": ["CONTROLLER"],
-         "externalId": "docRequested",
+         "externalId": "kycDocRequest",
          ...
        },
        {
          "partyType": "INDIVIDUAL",
          "roles": ["BENEFICIAL_OWNER"],
-         "externalId": "docRequested",
+         "externalId": "kycDocRequest",
          ...
        }
      ],
@@ -182,7 +181,6 @@ Verify the API flow when additional documents are requested for multiple related
    ```
 
 2. Once the client is created, verify that the client state is `NEW`. Then, answer the outstanding questions and submit an attestation.
-
    - Use the `PATCH https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}` endpoint.
    - Start the KYC process using `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}/verifications`.
 
@@ -264,7 +262,7 @@ Verify the flow when KYC is declined.
 
 **Steps:**
 
-1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint to create a client with a party object where `externalId` is set to `kycDeclined`.
+1. Use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients` endpoint to create a client with standard party information.
 
    **Request Payload Example:**
 
@@ -274,7 +272,6 @@ Verify the flow when KYC is declined.
         {
             "partyType": "ORGANIZATION",
             "roles": ["CLIENT"],
-            "externalId": "kycDeclined",
             "organizationDetails":{
                 ...
             },
@@ -285,10 +282,26 @@ Verify the flow when KYC is declined.
    }
    ```
 
-   Alternatively, use the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/parties/{partyId}` endpoint to update an existing party and set `externalId` to `kycDeclined`.
+2. Once the client is created, verify that the client state is `NEW`. Answer the outstanding questions, including question **30158** (about operations/services in sanctioned countries). Answer this question as **"yes"** to trigger the decline status.
 
-2. Trigger the verification process using the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}/verifications` endpoint.
+   Use the `PATCH https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}` endpoint to submit question responses:
 
-3. Verify that the client state transitions to `DECLINED` using:
+   **Request Payload Example:**
+
+   ```json
+   {
+       "questionResponses": [
+           {
+               "questionId": "30158",
+               "values": ["yes"]
+           },
+           ...
+       ]
+   }
+   ```
+
+3. Trigger the verification process using the `POST https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}/verifications` endpoint.
+
+4. Verify that the client state transitions to `DECLINED` using:
 
    `GET https://api-sandbox.payments.jpmorgan.com/onboarding/v1/clients/{clientId}`

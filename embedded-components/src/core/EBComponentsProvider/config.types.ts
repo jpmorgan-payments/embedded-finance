@@ -86,6 +86,8 @@ export type EBTheme = {
 
 export type EBConfig = {
   apiBaseUrl: string;
+  // Optional map of base URLs for different resources
+  apiBaseUrls?: Record<string, string>;
   theme?: EBTheme;
   headers?: Record<string, string>;
   reactQueryDefaultOptions?: DefaultOptions;

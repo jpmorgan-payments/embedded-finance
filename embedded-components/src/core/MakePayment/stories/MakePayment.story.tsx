@@ -389,6 +389,7 @@ const mockAccountBalances = {
         amount: 25000.0,
       },
     ],
+    currency: 'USD',
   },
 };
 
@@ -407,6 +408,19 @@ const meta: Meta<MakePaymentWithProviderProps> = {
           return HttpResponse.json(mockAccounts);
         }),
         http.get('*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        // Also support versioned paths like /v1/accounts/:accountId/balances
+        http.get('*/v*/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -511,7 +525,8 @@ export const Default: Story = {
   args: {
     apiBaseUrl: '/api',
     headers: {
-      api_gateway_client_id: 'test',
+      client_id: 'client01',
+      platform_id: 'platform01',
     },
     theme: {
       colorScheme: 'light',
@@ -1026,6 +1041,81 @@ export const SellSenseTheme: Story = {
       description: {
         story:
           'This story demonstrates the MakePayment component with SellSense brand theming. The component uses the official SellSense color palette with orange primary colors, warm backgrounds, and brand-consistent typography.',
+      },
+    },
+  },
+};
+
+/**
+ * Manual Recipient Entry: Demonstrates entering recipient details and posting a transaction without creating a recipient.
+ */
+export const ManualRecipientEntry: Story = {
+  ...Default,
+  name: 'Manual recipient entry',
+  args: {
+    ...Default.args,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          // Still return recipients; user will switch to manual mode
+          return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json(mockAccounts);
+        }),
+        http.get('*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.post('*/transactions', async ({ request }) => {
+          // Accept both recipientId or inline recipient details
+          const body = (await request.json()) as any;
+          return HttpResponse.json({
+            id: 'txn-manual-12345',
+            ...body,
+            status: 'PENDING',
+            createdAt: '2024-01-15T10:30:00Z',
+          });
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'Use the new toggle to switch to “Enter details” and provide recipient info inline. This posts to /transactions without creating a recipient.',
+      },
+    },
+  },
+};
+
+export const FunctionalTestingNoMocks: Story = {
+  ...Default,
+  name: 'Functional Testing with no mocks',
+  args: {
+    ...Default.args,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+  },
+  parameters: {
+    msw: {
+      handlers: [],
+    },
+    docs: {
+      description: {
+        story:
+          'Functional testing story without any MSW mocks. Connects to a real backend API for end-to-end testing.',
       },
     },
   },

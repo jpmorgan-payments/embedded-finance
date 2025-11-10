@@ -18,7 +18,7 @@ const sellsenseDemoSearchSchema = z.object({
     .enum([
       'Empty',
       'Default Blue',
-      'S&P Theme',
+      'Salt Theme',
       'Create Commerce',
       'SellSense',
       'PayFicient',

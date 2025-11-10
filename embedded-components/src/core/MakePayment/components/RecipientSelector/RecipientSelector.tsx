@@ -60,7 +60,7 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
       render={({ field }) => (
         <FormItem>
           <FormLabel>
-            {t('fields.to.label', { defaultValue: '1. Who are you paying?' })}
+            {t('fields.to.label', { defaultValue: 'Who are you paying?' })}
           </FormLabel>
           {recipientsStatus === 'pending' && (
             <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">

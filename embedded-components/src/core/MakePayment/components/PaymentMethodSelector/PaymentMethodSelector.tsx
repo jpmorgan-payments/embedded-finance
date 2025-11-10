@@ -29,6 +29,8 @@ interface PaymentMethodSelectorProps {
   isFormFilled: boolean;
   amount: number;
   fee: number;
+  /** When true, show all available methods (manual recipient entry) */
+  forceAllMethods?: boolean;
 }
 
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
@@ -37,10 +39,12 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   isFormFilled,
   amount,
   fee,
+  forceAllMethods,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
   const [isOpen, setIsOpen] = useState(true);
+  const list = forceAllMethods ? paymentMethods : dynamicPaymentMethods;
 
   return (
     <>
@@ -50,16 +54,22 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         render={({ field }) => (
           <FormItem className="eb-space-y-3">
             <FormLabel>
-              {t('fields.method.label', {
-                defaultValue: '4. How do you want to pay?',
-              })}
+              {forceAllMethods
+                ? t('fields.method.manualLabel', {
+                    defaultValue: 'Payment method',
+                  })
+                : t('fields.method.label', {
+                    defaultValue: 'How do you want to pay?',
+                  })}
             </FormLabel>
-            <div className="eb-text-xs eb-text-muted-foreground">
-              {t('helpers.method', {
-                defaultValue:
-                  "Available methods depend on the recipient's bank.",
-              })}
-            </div>
+            {!forceAllMethods && (
+              <div className="eb-text-xs eb-text-muted-foreground">
+                {t('helpers.method', {
+                  defaultValue:
+                    "Available methods depend on the recipient's bank.",
+                })}
+              </div>
+            )}
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -67,12 +77,12 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 value={field.value}
                 className="eb-flex eb-flex-row eb-flex-wrap eb-gap-3"
               >
-                {dynamicPaymentMethods.length === 0 && (
+                {!forceAllMethods && list.length === 0 && (
                   <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
                     No payment methods available for this recipient.
                   </div>
                 )}
-                {dynamicPaymentMethods.map((paymentMethod) => (
+                {list.map((paymentMethod) => (
                   <div
                     key={paymentMethod.id}
                     className="eb-relative eb-min-w-[120px] eb-max-w-[160px] eb-flex-1"

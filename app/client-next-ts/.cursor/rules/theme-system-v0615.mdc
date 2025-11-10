@@ -65,7 +65,7 @@ destructiveBorderColor: '#dc2626',  // Matching border
 type ThemeOption = 
   | 'Empty'           // NEW: Shows component defaults without design tokens
   | 'Default Blue'    // Renamed from 'Default'
-  | 'S&P Theme'       // Enhanced with new design tokens
+  | 'Salt Theme'       // Enhanced with new design tokens
   | 'Create Commerce' // Enhanced dark theme
   | 'SellSense'       // Primary brand theme
   | 'PayFicient';     // Enhanced with brand colors
@@ -121,7 +121,7 @@ function MyComponent({ theme }: { theme: ThemeOption }) {
     <SelectItem value="Empty">Empty (Defaults)</SelectItem>
     <SelectItem value="Default Blue">Default Blue</SelectItem>
     <SelectItem value="SellSense">SellSense</SelectItem>
-    <SelectItem value="S&P Theme">S&P Theme</SelectItem>
+    <SelectItem value="Salt Theme">Salt Theme</SelectItem>
     <SelectItem value="Create Commerce">Create Commerce</SelectItem>
     <SelectItem value="PayFicient">PayFicient</SelectItem>
   </SelectContent>
@@ -135,7 +135,7 @@ const sellsenseDemoSearchSchema = z.object({
   theme: z.enum([
     'Empty',
     'Default Blue', 
-    'S&P Theme',
+    'Salt Theme',
     'Create Commerce', 
     'SellSense', 
     'PayFicient'
@@ -146,7 +146,7 @@ const sellsenseDemoSearchSchema = z.object({
 
 ## Brand-Specific Theme Enhancements
 
-### S&P Theme
+### Salt Theme
 ```typescript
 {
   // Primary teal brand color from S&P design system
@@ -219,7 +219,7 @@ const sellsenseDemoSearchSchema = z.object({
 const themeSchema = z.enum([
   'Empty',        // ← NEW: Must be added to schema
   'Default Blue',
-  'S&P Theme',
+  'Salt Theme',
   'Create Commerce',
   'SellSense',
   'PayFicient'
@@ -232,7 +232,7 @@ const themeSchema = z.enum([
 ```typescript
 // Verify all themes load without errors
 const themes: ThemeOption[] = [
-  'Empty', 'Default Blue', 'S&P Theme', 
+  'Empty', 'Default Blue', 'Salt Theme', 
   'Create Commerce', 'SellSense', 'PayFicient'
 ];
 

@@ -23,10 +23,10 @@ describe('useSellSenseThemes hook', () => {
     expect(typeof themeVars).toBe('object');
   });
 
-  it('should return theme variables for S&P Theme', () => {
+  it('should return theme variables for Salt Theme', () => {
     const { result } = renderHook(() => useSellSenseThemes());
 
-    const themeVars = result.current.getThemeVariables('S&P Theme');
+    const themeVars = result.current.getThemeVariables('Salt Theme');
     expect(themeVars).toBeDefined();
     expect(typeof themeVars).toBe('object');
   });

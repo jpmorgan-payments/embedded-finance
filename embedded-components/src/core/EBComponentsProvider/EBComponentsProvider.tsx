@@ -98,6 +98,7 @@ const mergeContentTokens = (
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
+  apiBaseUrls,
   headers = {},
   queryParams = {},
   theme = {},
@@ -118,6 +119,13 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
         try {
+          // Extract the first path segment from the URL, ignoring query parameters
+          const urlPath =
+            config.url
+              ?.replace(/^\/+/, '') // Remove leading slashes
+              .split('?')[0] // Remove query params first
+              .split('/')[0] || ''; // Then get first segment
+
           return {
             ...config,
             headers: {
@@ -128,7 +136,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
               ...config.params,
               ...queryParams,
             },
-            baseURL: apiBaseUrl,
+            baseURL: apiBaseUrls?.[urlPath] ?? apiBaseUrl,
           };
         } catch (error) {
           console.error('Error processing URL in interceptor:', error);

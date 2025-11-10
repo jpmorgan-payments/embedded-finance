@@ -467,7 +467,7 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <TransactionsDisplay accountId="0030000131" />
+                  <TransactionsDisplay accountIds={["0030000131"]} />
                 </EBComponentsProvider>
               </div>
             </div>

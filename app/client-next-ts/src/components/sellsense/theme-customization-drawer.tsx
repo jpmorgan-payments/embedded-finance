@@ -190,7 +190,7 @@ const TOKEN_GROUPS = {
 const AVAILABLE_THEMES: ThemeOption[] = [
   'Empty',
   'Default Blue',
-  'S&P Theme',
+  'Salt Theme',
   'Create Commerce',
   'SellSense',
   'PayFicient',

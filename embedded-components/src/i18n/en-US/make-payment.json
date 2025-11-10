@@ -3,13 +3,13 @@
   "description": "All fields are required unless specified optional.",
   "fields": {
     "from": {
-      "label": "2. Which account are you paying from?",
+      "label": "Which account are you paying from?",
       "placeholder": "Pay from",
       "description": "",
       "tooltip": ""
     },
     "to": {
-      "label": "1. Who are you paying?",
+      "label": "Who are you paying?",
       "placeholder": "Select or type recipient",
       "description": "",
       "tooltip": ""
@@ -26,7 +26,7 @@
       }
     },
     "method": {
-      "label": "4. How do you want to pay?",
+      "label": "How do you want to pay?",
       "placeholder": "",
       "description": "",
       "tooltip": ""
@@ -39,9 +39,9 @@
     }
   },
   "sections": {
-    "amount": "3. How much are you paying?",
-    "arrivalDate": "5. When do you want the payment to arrive?",
-    "additionalInfo": "6. Additional Information (optional)"
+    "amount": "How much are you paying?",
+    "arrivalDate": "When do you want the payment to arrive?",
+    "additionalInfo": "Additional Information (optional)"
   },
   "helpers": {
     "to": "Select or type recipient",

@@ -215,7 +215,7 @@ export function WalletOverview({
         'Display transaction details and status',
         'Real-time transaction updates',
       ],
-      component: <TransactionsDisplay accountId="0030000131" />,
+      component: <TransactionsDisplay accountIds={["0030000131"]} />,
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',

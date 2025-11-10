@@ -21,9 +21,11 @@ import {
   AccountSelector,
   AdditionalInformation,
   AmountInput,
+  ManualRecipientFields,
   PaymentMethodSelector,
   PaymentSuccess,
   RecipientDetails,
+  RecipientModeToggle,
   RecipientSelector,
   ReviewPanel,
 } from './components';
@@ -109,34 +111,98 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // On submit, build payload and call mutation
   const handlePaymentSubmit = (values: any) => {
-    const recipient = paymentData.filteredRecipients?.find(
-      (r) => r.id === values.to
-    );
     const fromAccount = paymentData.accounts?.items.find(
       (a: { id: any }) => a.id === values.from
     );
-    if (!recipient || !fromAccount) return;
+    if (!fromAccount) return;
+
+    const common = {
+      amount: Number(values.amount),
+      currency: 'USD',
+      debtorAccountId: fromAccount.id,
+      transactionReferenceId: `PAY-${Date.now()}`,
+      type: values.method,
+      memo: values.memo || '',
+    } as any;
+
+    if (values.recipientMode === 'manual') {
+      const routingInfo = [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: values.routingNumber,
+          transactionType: values.method,
+        },
+      ];
+      const partyDetails =
+        values.partyType === 'INDIVIDUAL'
+          ? {
+              type: 'INDIVIDUAL',
+              firstName: values.firstName,
+              lastName: values.lastName,
+              address:
+                values.method === 'RTP'
+                  ? {
+                      addressLine1: values.addressLine1,
+                      city: values.city,
+                      state: values.state,
+                      countryCode: 'US',
+                      postalCode: values.postalCode,
+                    }
+                  : undefined,
+            }
+          : {
+              type: 'ORGANIZATION',
+              businessName: values.businessName,
+              address:
+                values.method === 'RTP'
+                  ? {
+                      addressLine1: values.addressLine1,
+                      city: values.city,
+                      state: values.state,
+                      countryCode: 'US',
+                      postalCode: values.postalCode,
+                    }
+                  : undefined,
+            };
+
+      createTransaction(
+        {
+          data: {
+            ...common,
+            recipient: {
+              account: {
+                countryCode: 'US',
+                number: values.accountNumber,
+                type: values.accountType,
+                routingInformation: routingInfo,
+              },
+              partyDetails,
+            },
+          },
+        },
+        {
+          onSuccess: () => setLocalSuccess(true),
+          onSettled: () => onTransactionSettled?.(),
+        }
+      );
+      return;
+    }
+
+    const recipient = paymentData.filteredRecipients?.find(
+      (r) => r.id === values.to
+    );
+    if (!recipient) return;
 
     createTransaction(
       {
         data: {
-          amount: Number(values.amount),
-          currency: 'USD',
-          debtorAccountId: fromAccount.id,
-          creditorAccountId: recipient?.account?.number,
+          ...common,
           recipientId: recipient.id,
-          transactionReferenceId: `PAY-${Date.now()}`,
-          type: values.method,
-          memo: values.memo || '',
         },
       },
       {
-        onSuccess: () => {
-          setLocalSuccess(true);
-        },
-        onSettled: () => {
-          onTransactionSettled?.();
-        },
+        onSuccess: () => setLocalSuccess(true),
+        onSettled: () => onTransactionSettled?.(),
       }
     );
   };
@@ -260,27 +326,53 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                         className={`eb-grid eb-grid-cols-1 eb-gap-4 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
                       >
                         <div className="eb-space-y-6">
-                          {/* Section 1: Who are you paying? */}
+                          {/* Recipient section */}
                           <Card className="eb-p-4">
                             <CardContent className="eb-space-y-4 eb-p-0">
-                              <RecipientSelector
-                                filteredRecipients={
-                                  paymentData.filteredRecipients
-                                }
-                                selectedAccount={paymentData.selectedAccount}
-                                recipientsStatus={paymentData.recipientsStatus}
-                                refetchRecipients={
-                                  paymentData.refetchRecipients
-                                }
-                              />
+                              <div className="eb-flex eb-items-center eb-justify-end">
+                                <RecipientModeToggle />
+                              </div>
 
-                              {/* Hide recipient details when there's only one recipient */}
-                              {paymentData.filteredRecipients?.length !== 1 && (
-                                <RecipientDetails
-                                  selectedRecipient={
-                                    paymentData.selectedRecipient
-                                  }
-                                />
+                              {form.watch('recipientMode') !== 'manual' ? (
+                                <>
+                                  <RecipientSelector
+                                    filteredRecipients={
+                                      paymentData.filteredRecipients
+                                    }
+                                    selectedAccount={
+                                      paymentData.selectedAccount
+                                    }
+                                    recipientsStatus={
+                                      paymentData.recipientsStatus
+                                    }
+                                    refetchRecipients={
+                                      paymentData.refetchRecipients
+                                    }
+                                  />
+                                  {paymentData.filteredRecipients?.length !==
+                                    1 && (
+                                    <RecipientDetails
+                                      selectedRecipient={
+                                        paymentData.selectedRecipient
+                                      }
+                                    />
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  {/* Payment method becomes first control in section when manual */}
+                                  <PaymentMethodSelector
+                                    dynamicPaymentMethods={
+                                      paymentData.dynamicPaymentMethods
+                                    }
+                                    paymentMethods={paymentMethods}
+                                    forceAllMethods
+                                    isFormFilled={validation.isFormFilled}
+                                    amount={validation.amount}
+                                    fee={validation.fee}
+                                  />
+                                  <ManualRecipientFields />
+                                </>
                               )}
                             </CardContent>
                           </Card>
@@ -310,20 +402,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             </CardContent>
                           </Card>
 
-                          {/* Section 4: How do you want to pay? */}
-                          <Card className="eb-p-4">
-                            <CardContent className="eb-p-0">
-                              <PaymentMethodSelector
-                                dynamicPaymentMethods={
-                                  paymentData.dynamicPaymentMethods
-                                }
-                                paymentMethods={paymentMethods}
-                                isFormFilled={validation.isFormFilled}
-                                amount={validation.amount}
-                                fee={validation.fee}
-                              />
-                            </CardContent>
-                          </Card>
+                          {/* Section 4: How do you want to pay? (disappears in manual mode) */}
+                          {form.watch('recipientMode') !== 'manual' && (
+                            <Card className="eb-p-4">
+                              <CardContent className="eb-p-0">
+                                <PaymentMethodSelector
+                                  dynamicPaymentMethods={
+                                    paymentData.dynamicPaymentMethods
+                                  }
+                                  paymentMethods={paymentMethods}
+                                  isFormFilled={validation.isFormFilled}
+                                  amount={validation.amount}
+                                  fee={validation.fee}
+                                />
+                              </CardContent>
+                            </Card>
+                          )}
 
                           {/* Section 5: Additional Information (optional) */}
                           <Card className="eb-p-4">

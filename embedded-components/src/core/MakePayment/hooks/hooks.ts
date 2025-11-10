@@ -7,6 +7,7 @@ import {
 } from '@/api/generated/ep-accounts';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 
+import { useInterceptorStatus } from '../../EBComponentsProvider/EBComponentsProvider';
 import type { PaymentFormData, PaymentMethod } from '../types';
 import {
   filterPaymentMethods,
@@ -21,18 +22,27 @@ export const usePaymentData = (
   paymentMethods: PaymentMethod[],
   form: UseFormReturn<PaymentFormData>
 ) => {
+  const { interceptorReady } = useInterceptorStatus();
   // Fetch recipients from API
   const {
     data: recipientsData,
     status: recipientsStatus,
     refetch: refetchRecipients,
-  } = useGetAllRecipients(undefined);
+  } = useGetAllRecipients(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
 
   const {
     data: accounts,
     status: accountsStatus,
     refetch: refetchAccounts,
-  } = useGetAccounts(undefined);
+  } = useGetAccounts(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
 
   const recipients = recipientsData?.recipients || [];
 
@@ -40,7 +50,11 @@ export const usePaymentData = (
 
   // Fetch account balance when account is selected
   const { data: accountBalance, isLoading: isBalanceLoading } =
-    useGetAccountBalance(selectedAccountId || '');
+    useGetAccountBalance(selectedAccountId || '', {
+      query: {
+        enabled: interceptorReady && Boolean(selectedAccountId),
+      },
+    });
 
   // Get selected account details
   const selectedAccount = useMemo(() => {
@@ -100,8 +114,44 @@ export const usePaymentValidation = (
   const to = form.watch('to');
   const method = form.watch('method');
   const currency = form.watch('currency');
+  const recipientMode = form.watch('recipientMode');
 
-  const isFormFilled = Boolean(amount > 0 && from && to && method && currency);
+  // In manual mode, validate minimal manual fields are present
+  const manualFilled = (() => {
+    if (recipientMode !== 'manual') return false;
+    const partyType = form.watch('partyType');
+    const accountType = form.watch('accountType');
+    const accountNumber = form.watch('accountNumber');
+    const routingNumber = form.watch('routingNumber');
+    const firstName = form.watch('firstName');
+    const lastName = form.watch('lastName');
+    const businessName = form.watch('businessName');
+    const addressLine1 = form.watch('addressLine1');
+    const city = form.watch('city');
+    const state = form.watch('state');
+
+    const baseOk = Boolean(
+      partyType && accountType && accountNumber && routingNumber
+    );
+    const partyOk =
+      partyType === 'INDIVIDUAL'
+        ? Boolean(firstName && lastName)
+        : partyType === 'ORGANIZATION'
+          ? Boolean(businessName)
+          : false;
+    const rtpOk =
+      method === 'RTP' ? Boolean(addressLine1 && city && state) : true;
+    return baseOk && partyOk && rtpOk;
+  })();
+
+  const existingFilled = Boolean(to);
+  const isFormFilled = Boolean(
+    amount > 0 &&
+      from &&
+      method &&
+      currency &&
+      (recipientMode === 'manual' ? manualFilled : existingFilled)
+  );
 
   const validation = useMemo(() => {
     const fee = paymentMethods?.find((m) => m.id === method)?.fee || 0;

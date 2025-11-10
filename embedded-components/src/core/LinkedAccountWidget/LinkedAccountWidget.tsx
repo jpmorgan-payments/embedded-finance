@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
+import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { EmptyState } from './components/EmptyState';
 import { LinkedAccountCard } from './components/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton';
@@ -43,10 +44,19 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   onLinkedAccountSettled,
   className,
 }) => {
+  const { interceptorReady } = useInterceptorStatus();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, isLoading, isError, error, isSuccess, refetch } =
-    useGetAllRecipients({
-      type: 'LINKED_ACCOUNT',
-    });
+    useGetAllRecipients(
+      {
+        type: 'LINKED_ACCOUNT',
+      },
+      {
+        query: {
+          enabled: interceptorReady,
+        },
+      }
+    );
 
   // Filter recipients based on variant
   const linkedAccounts = useMemo(() => {
