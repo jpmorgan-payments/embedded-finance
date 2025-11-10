@@ -134,9 +134,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
           {/* Empty state */}
           {isSuccess && linkedAccounts.length === 0 && (
-            <div className="eb-animate-fade-in">
-              <EmptyState />
-            </div>
+            <EmptyState className="eb-animate-fade-in" />
           )}
 
           {/* Linked accounts list with staggered fade-in animation */}
