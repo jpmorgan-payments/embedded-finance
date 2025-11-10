@@ -44,7 +44,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   className,
 }) => {
   const { data, isLoading, isError, error, isSuccess, refetch } =
-    useGetAllRecipients();
+    useGetAllRecipients({
+      type: 'LINKED_ACCOUNT',
+    });
 
   // Filter recipients based on variant
   const linkedAccounts = useMemo(() => {
@@ -122,7 +124,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
               customErrorMessage={{
                 default:
                   'An unexpected error occurred while loading your linked accounts. Please try again.',
-                400: 'An unexpected error occurred while loading your linked accounts.',
+                400: 'Your platform does not have permission to access linked accounts. Please contact support.',
               }}
               error={error}
               tryAgainAction={refetch}
