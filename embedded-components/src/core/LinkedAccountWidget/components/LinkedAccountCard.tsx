@@ -26,6 +26,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { MakePayment } from '@/core/MakePayment';
 
 import { EditAccountFormDialogTrigger } from '../forms/EditAccountForm';
 import { MicrodepositsFormDialogTrigger } from '../forms/MicrodepositsForm/MicrodepositsForm';
@@ -161,18 +162,23 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             </TooltipContent>
           </Tooltip>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            className="eb-bg-background"
-            aria-label={`Make payment from ${displayName}`}
-          >
-            <span>Pay</span>
-            <ArrowRightIcon
-              className="eb-ml-2 eb-h-4 eb-w-4"
-              aria-hidden="true"
-            />
-          </Button>
+          <MakePayment
+            triggerButton={
+              <Button
+                variant="outline"
+                size="sm"
+                className="eb-bg-background"
+                aria-label={`Make payment from ${displayName}`}
+              >
+                <span>Pay</span>
+                <ArrowRightIcon
+                  className="eb-ml-2 eb-h-4 eb-w-4"
+                  aria-hidden="true"
+                />
+              </Button>
+            }
+            recipientId={recipient.id}
+          />
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
