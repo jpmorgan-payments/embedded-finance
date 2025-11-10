@@ -121,7 +121,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
           {/* Loading state with skeleton cards */}
           {isLoading && (
-            <div className="eb-grid eb-grid-cols-1 eb-gap-3 @4xl:eb-grid-cols-2">
+            <div className="eb-grid eb-grid-cols-1 eb-gap-3">
               {/* Show 1 skeleton card during loading */}
               <LinkedAccountCardSkeleton />
             </div>
