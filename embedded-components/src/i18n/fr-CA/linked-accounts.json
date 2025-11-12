@@ -42,7 +42,7 @@
   },
   "actions": {
     "verifyAccount": "Vérifier le compte",
-    "makePayment": "Effectuer un paiement",
+    "makePayment": "Payer",
     "addWireRtp": "Ajouter Wire/RTP",
     "addWire": "Ajouter WIRE",
     "addRtp": "Ajouter RTP",

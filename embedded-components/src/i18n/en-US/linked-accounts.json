@@ -43,7 +43,7 @@
   },
   "actions": {
     "verifyAccount": "Verify Account",
-    "makePayment": "Make Payment",
+    "makePayment": "Pay",
     "addWireRtp": "Add Wire/RTP",
     "addWire": "Add WIRE",
     "addRtp": "Add RTP",
