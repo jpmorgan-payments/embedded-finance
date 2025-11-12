@@ -8,7 +8,7 @@ import {
   useState,
   type ErrorInfo,
 } from 'react';
-import { defaultResources, i18n } from '@/i18n/config';
+import { createI18nInstance } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -69,30 +69,8 @@ function ErrorFallback({ error }: { error: Error }) {
 
 const logError = (error: Error, info: ErrorInfo) => {
   // In production, you might want to send this to an error reporting service
+  // eslint-disable-next-line no-console
   console.error('Caught by error boundary:', error, info);
-};
-
-const mergeContentTokens = (
-  resources: typeof defaultResources,
-  contentTokens?: EBConfig['contentTokens']
-) => {
-  if (!contentTokens?.tokens) return;
-
-  Object.keys(resources).forEach((langKey) => {
-    const lang = langKey as keyof typeof resources;
-    Object.keys(resources[lang]).forEach((namespace) => {
-      const ns = namespace as keyof (typeof resources)[typeof lang];
-      if (contentTokens.tokens && contentTokens.tokens[ns]) {
-        i18n.addResourceBundle(
-          lang,
-          ns,
-          contentTokens.tokens[ns],
-          true, // deep merge
-          true // overwrite
-        );
-      }
-    });
-  });
 };
 
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
@@ -107,6 +85,13 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
   const [interceptorReady, setInterceptorReady] = useState(false);
+
+  // Create a provider-scoped i18n instance
+  // This prevents global state pollution when multiple providers exist or routes change
+  const i18nInstance = useMemo(
+    () => createI18nInstance(contentTokens),
+    [contentTokens?.name, JSON.stringify(contentTokens?.tokens)]
+  );
 
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
@@ -139,6 +124,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             baseURL: apiBaseUrls?.[urlPath] ?? apiBaseUrl,
           };
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error('Error processing URL in interceptor:', error);
           return config; // Return original config if URL processing fails
         }
@@ -206,18 +192,6 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     [JSON.stringify(theme)]
   );
 
-  useEffect(() => {
-    i18n.reloadResources();
-    if (contentTokens.tokens) {
-      // Apply new tokens across all languages and namespaces
-      mergeContentTokens(defaultResources, contentTokens);
-    }
-    // Set the language if specified
-    if (contentTokens.name && contentTokens.name !== i18n.language) {
-      i18n.changeLanguage(contentTokens.name);
-    }
-  }, [contentTokens]);
-
   return (
     <>
       <style
@@ -228,7 +202,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       />
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
-        <I18nextProvider i18n={i18n}>
+        <I18nextProvider i18n={i18nInstance}>
           <QueryClientProvider client={queryClient}>
             <ContentTokensContext.Provider value={contentTokens}>
               <InterceptorContext.Provider value={{ interceptorReady }}>
