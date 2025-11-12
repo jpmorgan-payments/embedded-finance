@@ -11,6 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from '@/components/ui/accordion';
 
 import type { IndirectOwnershipComponentProps } from './types/types';
 
@@ -72,56 +78,220 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 
   const ownershipTree = buildOwnershipTree();
 
+  // Mock ownership percentages for display (since schema doesn't include this field)
+  const getOwnershipPercentage = (partyId: string, parentId?: string) => {
+    const ownershipMap: Record<string, number> = {
+      'party-sub-001': 60, // Innovation Ventures LLC
+      'party-sub-002': 25, // TechCorp Management LLC  
+      'party-sub-003': 15, // Strategic Investors Group
+      'party-ind-001': 40, // John Smith (under Innovation Ventures)
+      'party-ind-002': 60, // Sarah Johnson (under Innovation Ventures)
+      'party-ind-003': 80, // Michael Davis (under TechCorp Management)
+      'party-ind-004': 20, // Lisa Chen (under TechCorp Management)
+      'party-ind-005': 70, // Robert Wilson (under Strategic Investors)
+      'party-org-004': 30, // Investment Fund Alpha LP (under Strategic Investors)
+    };
+    return ownershipMap[partyId];
+  };
+
+  // Count beneficial owners for a given party
+  const countBeneficialOwners = (party: any): number => {
+    if (!party.children || party.children.length === 0) return 0;
+    
+    let count = 0;
+    party.children.forEach((child: any) => {
+      if (child.roles?.includes('BENEFICIAL_OWNER')) {
+        count++;
+      }
+      count += countBeneficialOwners(child); // Recursively count nested owners
+    });
+    
+    return count;
+  };
+
   // Render a single party in the ownership tree
   const renderParty = (party: any, depth = 0) => {
     const isOrganization = party.partyType === 'ORGANIZATION';
     const name = isOrganization 
       ? party.organizationDetails?.organizationName
       : `${party.individualDetails?.firstName || ''} ${party.individualDetails?.lastName || ''}`.trim();
+    
+    const ownershipPercentage = getOwnershipPercentage(party.id, party.parentPartyId);
+    const isBeneficialOwner = party.roles?.includes('BENEFICIAL_OWNER');
+    const isClient = party.roles?.includes('CLIENT');
+    const beneficialOwnerCount = countBeneficialOwners(party);
+    const hasChildren = party.children && party.children.length > 0;
 
-    return (
-      <div key={party.id} className={`eb-ml-${depth * 4}`}>
-        <Card className="eb-mb-2">
-          <CardContent className="eb-p-4">
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <div className="eb-flex eb-items-center eb-space-x-3">
-                {isOrganization ? (
-                  <Building className="eb-h-5 eb-w-5 eb-text-blue-600" />
-                ) : (
-                  <Users className="eb-h-5 eb-w-5 eb-text-green-600" />
-                )}
-                <div>
-                  <div className="eb-font-medium">{name || 'Unnamed Entity'}</div>
-                  <div className="eb-text-sm eb-text-gray-500">
-                    {isOrganization 
-                      ? party.organizationDetails?.organizationType 
-                      : 'Individual'}
-                    {party.roles?.includes('CLIENT') && (
-                      <Badge variant="secondary" className="eb-ml-2">Client</Badge>
-                    )}
-                    {party.roles?.includes('BENEFICIAL_OWNER') && (
-                      <Badge variant="outline" className="eb-ml-2">Beneficial Owner</Badge>
-                    )}
+    // If this party has children, wrap in accordion
+    if (hasChildren) {
+      // Count direct children only (not nested)
+      const directBeneficialOwnerCount = party.children.filter((child: any) => 
+        child.roles?.includes('BENEFICIAL_OWNER')
+      ).length;
+
+      // Determine default value - only open for root level (depth 0)
+      const defaultValue = depth === 0 ? "open" : undefined;
+
+      return (
+        <div key={party.id} className="eb-mb-2">
+          <Accordion type="single" collapsible defaultValue={defaultValue}>
+            <AccordionItem value="open" className="eb-border eb-border-gray-200 eb-rounded-lg">
+              <AccordionTrigger className="eb-px-3 sm:eb-px-4 eb-py-3 hover:eb-no-underline hover:eb-bg-gray-50 eb-rounded-t-lg">
+                <div className="eb-flex eb-items-center eb-justify-between eb-w-full eb-mr-2">
+                  {/* Mobile Layout - Stacked */}
+                  <div className="eb-block sm:eb-hidden eb-w-full">
+                    <div className="eb-flex eb-items-center eb-space-x-3 eb-mb-2">
+                      {isOrganization ? (
+                        <Building className="eb-h-5 eb-w-5 eb-text-blue-600 eb-flex-shrink-0" />
+                      ) : (
+                        <Users className="eb-h-5 eb-w-5 eb-text-green-600 eb-flex-shrink-0" />
+                      )}
+                      <div className="eb-flex-1 eb-min-w-0">
+                        <div className="eb-font-medium eb-truncate eb-text-left">{name || 'Unnamed Entity'}</div>
+                      </div>
+                      {ownershipPercentage && (
+                        <Badge variant="default" className="eb-bg-orange-100 eb-text-orange-800 eb-flex-shrink-0">
+                          {ownershipPercentage}%
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="eb-flex eb-flex-wrap eb-gap-2 eb-text-sm eb-text-left">
+                      <span className="eb-text-gray-600">
+                        {isOrganization 
+                          ? party.organizationDetails?.organizationType 
+                          : 'Individual'}
+                      </span>
+                      {isClient && (
+                        <Badge variant="secondary" className="eb-text-xs">Client</Badge>
+                      )}
+                      {isBeneficialOwner && (
+                        <Badge variant="outline" className="eb-text-xs">Beneficial Owner</Badge>
+                      )}
+                      <Badge variant="secondary" className="eb-text-xs eb-bg-blue-100 eb-text-blue-800">
+                        {directBeneficialOwnerCount} Direct Owner{directBeneficialOwnerCount !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout - Single Line */}
+                  <div className="eb-hidden sm:eb-flex eb-items-center eb-justify-between eb-w-full">
+                    <div className="eb-flex eb-items-center eb-space-x-3 eb-flex-1 eb-min-w-0">
+                      {isOrganization ? (
+                        <Building className="eb-h-5 eb-w-5 eb-text-blue-600 eb-flex-shrink-0" />
+                      ) : (
+                        <Users className="eb-h-5 eb-w-5 eb-text-green-600 eb-flex-shrink-0" />
+                      )}
+                      <div className="eb-flex-1 eb-min-w-0">
+                        <span className="eb-font-medium eb-truncate eb-block eb-text-left">{name || 'Unnamed Entity'}</span>
+                      </div>
+                      <div className="eb-text-sm eb-text-gray-600 eb-flex-shrink-0">
+                        {isOrganization 
+                          ? party.organizationDetails?.organizationType 
+                          : 'Individual'}
+                      </div>
+                    </div>
+                    
+                    <div className="eb-flex eb-items-center eb-space-x-2 eb-flex-shrink-0">
+                      {ownershipPercentage && (
+                        <Badge variant="default" className="eb-bg-orange-100 eb-text-orange-800">
+                          {ownershipPercentage}%
+                        </Badge>
+                      )}
+                      {isClient && (
+                        <Badge variant="secondary" className="eb-text-xs">Client</Badge>
+                      )}
+                      {isBeneficialOwner && (
+                        <Badge variant="outline" className="eb-text-xs">Beneficial Owner</Badge>
+                      )}
+                      <Badge variant="secondary" className="eb-text-xs eb-bg-blue-100 eb-text-blue-800">
+                        {directBeneficialOwnerCount} Direct Owner{directBeneficialOwnerCount !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-              {depth > 0 && (
-                <div className="eb-text-sm eb-text-gray-500">
-                  <Badge variant="secondary">
-                    Level {depth + 1}
-                  </Badge>
+              </AccordionTrigger>
+              <AccordionContent className="eb-px-3 sm:eb-px-4 eb-pb-3">
+                <div className="eb-space-y-2 eb-pt-2">
+                  {party.children.map((child: any) => renderParty(child, depth + 1))}
                 </div>
-              )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      );
+    }
+
+    // If no children, render as a simple card (leaf node)
+    return (
+      <div key={party.id}>
+        <Card className="eb-mb-2 eb-border eb-border-gray-200 hover:eb-border-gray-300 eb-transition-colors">
+          <CardContent className="eb-p-3 sm:eb-p-4">
+            {/* Mobile Layout - Stacked */}
+            <div className="eb-block sm:eb-hidden">
+              <div className="eb-flex eb-items-center eb-space-x-3 eb-mb-2">
+                {isOrganization ? (
+                  <Building className="eb-h-5 eb-w-5 eb-text-blue-600 eb-flex-shrink-0" />
+                ) : (
+                  <Users className="eb-h-5 eb-w-5 eb-text-green-600 eb-flex-shrink-0" />
+                )}
+                <div className="eb-flex-1 eb-min-w-0">
+                  <div className="eb-font-medium eb-truncate">{name || 'Unnamed Entity'}</div>
+                </div>
+                {ownershipPercentage && (
+                  <Badge variant="default" className="eb-bg-orange-100 eb-text-orange-800 eb-flex-shrink-0">
+                    {ownershipPercentage}%
+                  </Badge>
+                )}
+              </div>
+              <div className="eb-flex eb-flex-wrap eb-gap-2 eb-text-sm">
+                <span className="eb-text-gray-600">
+                  {isOrganization 
+                    ? party.organizationDetails?.organizationType 
+                    : 'Individual'}
+                </span>
+                {isClient && (
+                  <Badge variant="secondary" className="eb-text-xs">Client</Badge>
+                )}
+                {isBeneficialOwner && (
+                  <Badge variant="outline" className="eb-text-xs">Beneficial Owner</Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop Layout - Single Line */}
+            <div className="eb-hidden sm:eb-flex eb-items-center eb-justify-between eb-gap-4">
+              <div className="eb-flex eb-items-center eb-space-x-3 eb-flex-1 eb-min-w-0">
+                {isOrganization ? (
+                  <Building className="eb-h-5 eb-w-5 eb-text-blue-600 eb-flex-shrink-0" />
+                ) : (
+                  <Users className="eb-h-5 eb-w-5 eb-text-green-600 eb-flex-shrink-0" />
+                )}
+                <div className="eb-flex-1 eb-min-w-0">
+                  <span className="eb-font-medium eb-truncate eb-block">{name || 'Unnamed Entity'}</span>
+                </div>
+                <div className="eb-text-sm eb-text-gray-600 eb-flex-shrink-0">
+                  {isOrganization 
+                    ? party.organizationDetails?.organizationType 
+                    : 'Individual'}
+                </div>
+              </div>
+              
+              <div className="eb-flex eb-items-center eb-space-x-2 eb-flex-shrink-0">
+                {ownershipPercentage && (
+                  <Badge variant="default" className="eb-bg-orange-100 eb-text-orange-800">
+                    {ownershipPercentage}%
+                  </Badge>
+                )}
+                {isClient && (
+                  <Badge variant="secondary" className="eb-text-xs">Client</Badge>
+                )}
+                {isBeneficialOwner && (
+                  <Badge variant="outline" className="eb-text-xs">Beneficial Owner</Badge>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
-        
-        {/* Render children */}
-        {party.children && party.children.length > 0 && (
-          <div className="eb-ml-4 eb-border-l-2 eb-border-gray-200 eb-pl-4">
-            {party.children.map((child: any) => renderParty(child, depth + 1))}
-          </div>
-        )}
       </div>
     );
   };
