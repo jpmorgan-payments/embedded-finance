@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Building, Plus, AlertCircle, Info, ChevronRight } from 'lucide-react';
+import { Users, Building, Plus, AlertCircle, Info, ChevronRight, UserPlus } from 'lucide-react';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 
@@ -17,6 +17,23 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from '@/components/ui/accordion';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import type { IndirectOwnershipComponentProps } from './types/types';
 
@@ -34,6 +51,43 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  // Dialog state
+  const [isAddOwnerDialogOpen, setIsAddOwnerDialogOpen] = React.useState(false);
+  const [selectedParent, setSelectedParent] = React.useState<any>(null);
+  const [ownerType, setOwnerType] = React.useState<'entity' | 'individual' | null>(null);
+
+  // Local state for ownership data (overrides API data when modified)
+  const [localOwnershipData, setLocalOwnershipData] = React.useState<any>(null);
+
+  // Form state
+  const [formData, setFormData] = React.useState({
+    // Individual fields
+    firstName: '',
+    lastName: '',
+    middleName: '',
+    ownershipPercentage: '',
+    // Entity fields
+    organizationName: '',
+    organizationType: '',
+    countryOfFormation: 'US',
+  });
+
+  // Reset form when dialog closes
+  React.useEffect(() => {
+    if (!isAddOwnerDialogOpen) {
+      setOwnerType(null);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        middleName: '',
+        ownershipPercentage: '',
+        organizationName: '',
+        organizationType: '',
+        countryOfFormation: 'US',
+      });
+    }
+  }, [isAddOwnerDialogOpen]);
+
   // Fetch client data using SMBDO API
   const { 
     data: clientData, 
@@ -45,24 +99,27 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
     },
   });
 
+  // Use local ownership data if available, otherwise use API data
+  const currentOwnershipData = localOwnershipData || clientData;
+
   // Check if client needs ownership information
-  const needsOwnershipInfo = clientData?.status === 'INFORMATION_REQUESTED' || 
-    clientData?.parties?.[0]?.profileStatus === 'INFORMATION_REQUESTED';
+  const needsOwnershipInfo = currentOwnershipData?.status === 'INFORMATION_REQUESTED' || 
+    currentOwnershipData?.parties?.[0]?.profileStatus === 'INFORMATION_REQUESTED';
 
   // Check if client has ownership structure (parties beyond the root client)
-  const hasOwnershipStructure = clientData?.parties && clientData.parties.length > 1;
+  const hasOwnershipStructure = currentOwnershipData?.parties && currentOwnershipData.parties.length > 1;
 
   // Build ownership tree from parties data
   const buildOwnershipTree = () => {
-    if (!clientData?.parties) return [];
+    if (!currentOwnershipData?.parties) return [];
 
-    const rootParty = clientData.parties.find(p => p.roles?.includes('CLIENT'));
+    const rootParty = currentOwnershipData.parties.find(p => p.roles?.includes('CLIENT'));
     if (!rootParty) return [];
 
     const getChildren = (parentId: string, currentDepth = 0): any[] => {
-      if (currentDepth >= maxDepth || !clientData?.parties) return [];
+      if (currentDepth >= maxDepth || !currentOwnershipData?.parties) return [];
       
-      return clientData.parties
+      return currentOwnershipData.parties
         .filter(p => p.parentPartyId === parentId)
         .map(party => ({
           ...party,
@@ -78,20 +135,30 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 
   const ownershipTree = buildOwnershipTree();
 
+  // Local state for ownership percentages (includes dynamically added owners)
+  const [ownershipPercentages, setOwnershipPercentages] = React.useState<Record<string, number>>({
+    'party-sub-001': 60, // Innovation Ventures LLC
+    'party-sub-002': 25, // TechCorp Management LLC  
+    'party-sub-003': 15, // Strategic Investors Group
+    'party-ind-001': 40, // John Smith (under Innovation Ventures)
+    'party-ind-002': 60, // Sarah Johnson (under Innovation Ventures)
+    'party-ind-003': 80, // Michael Davis (under TechCorp Management)
+    'party-ind-004': 20, // Lisa Chen (under TechCorp Management)
+    'party-ind-005': 70, // Robert Wilson (under Strategic Investors)
+    'party-org-004': 30, // Investment Fund Alpha LP (under Strategic Investors)
+  });
+
   // Mock ownership percentages for display (since schema doesn't include this field)
   const getOwnershipPercentage = (partyId: string, parentId?: string) => {
-    const ownershipMap: Record<string, number> = {
-      'party-sub-001': 60, // Innovation Ventures LLC
-      'party-sub-002': 25, // TechCorp Management LLC  
-      'party-sub-003': 15, // Strategic Investors Group
-      'party-ind-001': 40, // John Smith (under Innovation Ventures)
-      'party-ind-002': 60, // Sarah Johnson (under Innovation Ventures)
-      'party-ind-003': 80, // Michael Davis (under TechCorp Management)
-      'party-ind-004': 20, // Lisa Chen (under TechCorp Management)
-      'party-ind-005': 70, // Robert Wilson (under Strategic Investors)
-      'party-org-004': 30, // Investment Fund Alpha LP (under Strategic Investors)
-    };
-    return ownershipMap[partyId];
+    return ownershipPercentages[partyId];
+  };
+
+  // Helper function to add ownership percentage for new owners
+  const addOwnershipPercentage = (partyId: string, percentage: number) => {
+    setOwnershipPercentages(prev => ({
+      ...prev,
+      [partyId]: percentage
+    }));
   };
 
   // Count beneficial owners for a given party
@@ -107,6 +174,77 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
     });
     
     return count;
+  };
+
+  // Handle adding an owner to a specific party
+  const handleAddOwner = (parentParty: any) => {
+    setSelectedParent(parentParty);
+    setIsAddOwnerDialogOpen(true);
+  };
+
+  // Handle form submission
+  const handleSubmitOwner = () => {
+    if (!selectedParent || !ownerType || !currentOwnershipData) return;
+
+    const newOwner = {
+      id: `party-${Date.now()}`, // Generate temporary ID
+      partyType: ownerType === 'entity' ? 'ORGANIZATION' : 'INDIVIDUAL',
+      externalId: `NEW${Date.now()}`,
+      email: ownerType === 'entity' ? `contact@${formData.organizationName.toLowerCase().replace(/\s+/g, '')}.com` : `${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@email.com`,
+      roles: ['BENEFICIAL_OWNER'],
+      profileStatus: 'NEW',
+      active: true,
+      createdAt: new Date().toISOString(),
+      parentPartyId: selectedParent.id,
+      ...(ownerType === 'entity' ? {
+        organizationDetails: {
+          organizationType: formData.organizationType,
+          organizationName: formData.organizationName,
+          countryOfFormation: formData.countryOfFormation,
+        }
+      } : {
+        individualDetails: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          middleName: formData.middleName || undefined,
+        }
+      })
+    };
+
+    // Update local ownership data by adding the new owner to the parties array
+    const updatedOwnershipData = {
+      ...currentOwnershipData,
+      parties: [
+        ...currentOwnershipData.parties,
+        newOwner
+      ]
+    };
+
+    // Update local state to immediately reflect the change
+    setLocalOwnershipData(updatedOwnershipData);
+
+    // Also update the mock ownership percentage map
+    const newOwnershipPercentage = parseFloat(formData.ownershipPercentage);
+    if (newOwnershipPercentage) {
+      addOwnershipPercentage(newOwner.id, newOwnershipPercentage);
+    }
+
+    console.log('Adding new owner:', newOwner);
+
+    // Call the callback with new owner data
+    if (onOwnershipStructureUpdate) {
+      onOwnershipStructureUpdate({
+        action: 'ADD_OWNER',
+        parentPartyId: selectedParent.id,
+        parentPartyName: selectedParent.organizationDetails?.organizationName || 
+          `${selectedParent.individualDetails?.firstName || ''} ${selectedParent.individualDetails?.lastName || ''}`.trim(),
+        newOwner: newOwner,
+        ownershipPercentage: newOwnershipPercentage || undefined
+      });
+    }
+
+    // Close dialog
+    setIsAddOwnerDialogOpen(false);
   };
 
   // Render a single party in the ownership tree
@@ -213,6 +351,21 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               <AccordionContent className="eb-px-3 sm:eb-px-4 eb-pb-3">
                 <div className="eb-space-y-2 eb-pt-2">
                   {party.children.map((child: any) => renderParty(child, depth + 1))}
+                  
+                  {/* Add Owner Button */}
+                  {!readOnly && (
+                    <div className="eb-pt-2 eb-border-t eb-border-gray-100">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddOwner(party)}
+                        className="eb-w-full sm:eb-w-auto eb-text-sm"
+                      >
+                        <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
+                        {t('indirectOwnership.addOwnership', 'Add Ownership')}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -243,7 +396,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                   </Badge>
                 )}
               </div>
-              <div className="eb-flex eb-flex-wrap eb-gap-2 eb-text-sm">
+              <div className="eb-flex eb-flex-wrap eb-gap-2 eb-text-sm eb-items-center">
                 <span className="eb-text-gray-600">
                   {isOrganization 
                     ? party.organizationDetails?.organizationType 
@@ -254,6 +407,17 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                 )}
                 {isBeneficialOwner && (
                   <Badge variant="outline" className="eb-text-xs">Beneficial Owner</Badge>
+                )}
+                {/* Add Owner Button for Mobile - Organizations Only */}
+                {!readOnly && isOrganization && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAddOwner(party)}
+                    className="eb-h-6 eb-px-2 eb-text-xs eb-ml-auto"
+                  >
+                    <Plus className="eb-h-3 eb-w-3" />
+                  </Button>
                 )}
               </div>
             </div>
@@ -287,6 +451,18 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                 )}
                 {isBeneficialOwner && (
                   <Badge variant="outline" className="eb-text-xs">Beneficial Owner</Badge>
+                )}
+                {/* Add Owner Button for Desktop - Organizations Only */}
+                {!readOnly && isOrganization && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAddOwner(party)}
+                    className="eb-h-7 eb-px-2 eb-text-xs"
+                  >
+                    <Plus className="eb-mr-1 eb-h-3 eb-w-3" />
+                    {t('indirectOwnership.addOwnership', 'Add Ownership')}
+                  </Button>
                 )}
               </div>
             </div>
@@ -352,12 +528,6 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
           <CardTitle className="eb-text-xl eb-font-semibold">
             {t('indirectOwnership.title', 'Indirect Ownership Structure')}
           </CardTitle>
-          {!readOnly && clientId && (
-            <Button>
-              <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
-              {t('indirectOwnership.addOwner', 'Add Owner')}
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="eb-space-y-4">
@@ -381,7 +551,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                 {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
               </h3>
               <Badge variant="outline">
-                {clientData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
+                {currentOwnershipData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
               </Badge>
             </div>
             
@@ -401,50 +571,35 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
             </div>
           </div>
         ) : !hasOwnershipStructure && !needsOwnershipInfo ? (
-          <div className="eb-py-8 eb-text-center">
-            <div className="eb-mb-4">
-              <Users className="eb-mx-auto eb-h-12 eb-w-12 eb-text-gray-400" />
+          <div className="eb-space-y-4">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <h3 className="eb-text-lg eb-font-medium">
+                {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
+              </h3>
+              <Badge variant="outline">
+                {currentOwnershipData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
+              </Badge>
             </div>
-            <div className="eb-text-lg eb-font-medium eb-text-gray-900">
-              {t('indirectOwnership.emptyState.title', 'No Ownership Structure Defined')}
-            </div>
-            <div className="eb-mt-2 eb-text-sm eb-text-gray-500">
-              {t('indirectOwnership.emptyState.description', 
-                'Start building your ownership structure by adding entities and individuals that have ownership interest in your company.'
-              )}
+            
+            {showVisualization && (
+              <Alert>
+                <Info className="eb-h-4 eb-w-4" />
+                <AlertDescription>
+                  {t('indirectOwnership.structure.description', 
+                    'This shows your organization. Add entities and individuals that have ownership interest in your company.'
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="eb-space-y-2">
+              {ownershipTree.map(party => renderParty(party))}
             </div>
           </div>
         ) : null}
         
-        {/* Empty State Actions or Component Placeholders */}
-        {clientId && !readOnly ? (
-          <div className="eb-text-center eb-space-y-4">
-            <div className="eb-text-sm eb-text-gray-500">
-              {t('indirectOwnership.emptyState.getStarted', 'Get started by adding your first entity or individual owner')}
-            </div>
-            <div className="eb-flex eb-justify-center eb-gap-3">
-              <Button 
-                onClick={() => {
-                  // TODO: Implement add entity functionality
-                  console.log('Add entity');
-                }}
-              >
-                <Building className="eb-mr-2 eb-h-4 eb-w-4" />
-                {t('indirectOwnership.emptyState.addEntity', 'Add Entity')}
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  // TODO: Implement add individual functionality
-                  console.log('Add individual');
-                }}
-              >
-                <Users className="eb-mr-2 eb-h-4 eb-w-4" />
-                {t('indirectOwnership.emptyState.addIndividual', 'Add Individual')}
-              </Button>
-            </div>
-          </div>
-        ) : clientId && readOnly ? (
+        {/* Read-only mode display */}
+        {clientId && readOnly && !hasOwnershipStructure && !needsOwnershipInfo && (
           <div className="eb-py-8 eb-text-center eb-text-gray-500">
             <div className="eb-mb-4">
               <Users className="eb-mx-auto eb-h-8 eb-w-8 eb-text-gray-400" />
@@ -453,7 +608,10 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               {t('indirectOwnership.readOnly', 'Ownership structure is in read-only mode')}
             </div>
           </div>
-        ) : !clientId ? (
+        )}
+        
+        {/* Component placeholder (when no clientId provided) */}
+        {!clientId && (
           <div className="eb-grid eb-gap-4">
             <div className="eb-rounded-lg eb-border-2 eb-border-dashed eb-border-gray-200 eb-p-4">
               <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-gray-600">
@@ -487,7 +645,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               </div>
             </div>
           </div>
-        ) : null}
+        )}
 
         {/* Beneficial Ownership Information */}
         {clientId && !readOnly && (
@@ -514,6 +672,222 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
           </div>
         )}
       </CardContent>
+
+      {/* Add Owner Dialog */}
+      <Dialog open={isAddOwnerDialogOpen} onOpenChange={setIsAddOwnerDialogOpen}>
+        <DialogContent className="eb-max-w-lg eb-w-full eb-mx-4">
+          <DialogHeader>
+            <DialogTitle>
+              {t('indirectOwnership.addOwnerDialog.title', 'Add Owner')}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedParent && (
+                <>
+                  {t('indirectOwnership.addOwnerDialog.description', 'Add a new owner to')}{' '}
+                  <strong>
+                    {selectedParent.organizationDetails?.organizationName || 
+                     `${selectedParent.individualDetails?.firstName || ''} ${selectedParent.individualDetails?.lastName || ''}`.trim()}
+                  </strong>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="eb-space-y-4">
+            {/* Owner Type Selection */}
+            {!ownerType && (
+              <div className="eb-space-y-3">
+                <Label>{t('indirectOwnership.addOwnerDialog.ownerType', 'What type of owner are you adding?')}</Label>
+                <div className="eb-space-y-3">
+                  <Button
+                    variant="outline"
+                    className="eb-w-full eb-h-auto eb-p-4 eb-justify-start eb-flex eb-items-start eb-text-wrap"
+                    onClick={() => setOwnerType('individual')}
+                  >
+                    <Users className="eb-mr-3 eb-h-5 eb-w-5 eb-text-green-600 eb-flex-shrink-0 eb-mt-0.5" />
+                    <div className="eb-text-left eb-flex-1 eb-min-w-0 eb-max-w-full eb-overflow-hidden">
+                      <div className="eb-font-medium eb-break-words eb-w-full eb-whitespace-normal">{t('indirectOwnership.addOwnerDialog.individual', 'Individual')}</div>
+                      <div className="eb-text-sm eb-text-gray-500 eb-break-words eb-leading-relaxed eb-mt-1 eb-w-full eb-whitespace-normal">
+                        {t('indirectOwnership.addOwnerDialog.individualDesc', 'A person who owns part of this entity')}
+                      </div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="eb-w-full eb-h-auto eb-p-4 eb-justify-start eb-flex eb-items-start eb-text-wrap"
+                    onClick={() => setOwnerType('entity')}
+                  >
+                    <Building className="eb-mr-3 eb-h-5 eb-w-5 eb-text-blue-600 eb-flex-shrink-0 eb-mt-0.5" />
+                    <div className="eb-text-left eb-flex-1 eb-min-w-0 eb-max-w-full eb-overflow-hidden">
+                      <div className="eb-font-medium eb-break-words eb-w-full eb-whitespace-normal">{t('indirectOwnership.addOwnerDialog.entity', 'Entity')}</div>
+                      <div className="eb-text-sm eb-text-gray-500 eb-break-words eb-leading-relaxed eb-mt-1 eb-w-full eb-whitespace-normal">
+                        {t('indirectOwnership.addOwnerDialog.entityDesc', 'A company or organization that owns part of this entity')}
+                      </div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Individual Form */}
+            {ownerType === 'individual' && (
+              <div className="eb-space-y-4">
+                <div className="eb-flex eb-items-center eb-justify-between">
+                  <Label className="eb-text-base eb-font-medium">
+                    {t('indirectOwnership.addOwnerDialog.individualDetails', 'Individual Details')}
+                  </Label>
+                  <Button variant="ghost" size="sm" onClick={() => setOwnerType(null)}>
+                    {t('common.back', 'Back')}
+                  </Button>
+                </div>
+                
+                <div className="eb-grid eb-gap-4">
+                  <div>
+                    <Label htmlFor="firstName">{t('indirectOwnership.addOwnerDialog.firstName', 'First Name')} *</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder={t('indirectOwnership.addOwnerDialog.firstNamePlaceholder', 'Enter first name')}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="lastName">{t('indirectOwnership.addOwnerDialog.lastName', 'Last Name')} *</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder={t('indirectOwnership.addOwnerDialog.lastNamePlaceholder', 'Enter last name')}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="middleName">{t('indirectOwnership.addOwnerDialog.middleName', 'Middle Name')}</Label>
+                    <Input
+                      id="middleName"
+                      value={formData.middleName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, middleName: e.target.value }))}
+                      placeholder={t('indirectOwnership.addOwnerDialog.middleNamePlaceholder', 'Enter middle name (optional)')}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="ownershipPercentage">{t('indirectOwnership.addOwnerDialog.ownershipPercentage', 'Ownership Percentage')} *</Label>
+                    <Input
+                      id="ownershipPercentage"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.ownershipPercentage}
+                      onChange={(e) => setFormData(prev => ({ ...prev, ownershipPercentage: e.target.value }))}
+                      placeholder={t('indirectOwnership.addOwnerDialog.ownershipPercentagePlaceholder', 'e.g., 25.5')}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Entity Form */}
+            {ownerType === 'entity' && (
+              <div className="eb-space-y-4">
+                <div className="eb-flex eb-items-center eb-justify-between">
+                  <Label className="eb-text-base eb-font-medium">
+                    {t('indirectOwnership.addOwnerDialog.entityDetails', 'Entity Details')}
+                  </Label>
+                  <Button variant="ghost" size="sm" onClick={() => setOwnerType(null)}>
+                    {t('common.back', 'Back')}
+                  </Button>
+                </div>
+                
+                <div className="eb-grid eb-gap-4">
+                  <div>
+                    <Label htmlFor="organizationName">{t('indirectOwnership.addOwnerDialog.organizationName', 'Organization Name')} *</Label>
+                    <Input
+                      id="organizationName"
+                      value={formData.organizationName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, organizationName: e.target.value }))}
+                      placeholder={t('indirectOwnership.addOwnerDialog.organizationNamePlaceholder', 'Enter organization name')}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="organizationType">{t('indirectOwnership.addOwnerDialog.organizationType', 'Organization Type')} *</Label>
+                    <Select
+                      value={formData.organizationType}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, organizationType: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('indirectOwnership.addOwnerDialog.organizationTypePlaceholder', 'Select organization type')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="LIMITED_LIABILITY_COMPANY">LLC</SelectItem>
+                        <SelectItem value="C_CORPORATION">C Corporation</SelectItem>
+                        <SelectItem value="S_CORPORATION">S Corporation</SelectItem>
+                        <SelectItem value="PARTNERSHIP">Partnership</SelectItem>
+                        <SelectItem value="LIMITED_PARTNERSHIP">Limited Partnership</SelectItem>
+                        <SelectItem value="LIMITED_LIABILITY_PARTNERSHIP">Limited Liability Partnership</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="countryOfFormation">{t('indirectOwnership.addOwnerDialog.countryOfFormation', 'Country of Formation')} *</Label>
+                    <Select
+                      value={formData.countryOfFormation}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, countryOfFormation: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="US">United States</SelectItem>
+                        <SelectItem value="CA">Canada</SelectItem>
+                        <SelectItem value="GB">United Kingdom</SelectItem>
+                        <SelectItem value="DE">Germany</SelectItem>
+                        <SelectItem value="FR">France</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="ownershipPercentageEntity">{t('indirectOwnership.addOwnerDialog.ownershipPercentage', 'Ownership Percentage')} *</Label>
+                    <Input
+                      id="ownershipPercentageEntity"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.ownershipPercentage}
+                      onChange={(e) => setFormData(prev => ({ ...prev, ownershipPercentage: e.target.value }))}
+                      placeholder={t('indirectOwnership.addOwnerDialog.ownershipPercentagePlaceholder', 'e.g., 25.5')}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {ownerType && (
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddOwnerDialogOpen(false)}>
+                {t('common.cancel', 'Cancel')}
+              </Button>
+              <Button 
+                onClick={handleSubmitOwner}
+                disabled={
+                  !formData.ownershipPercentage ||
+                  (ownerType === 'individual' && (!formData.firstName || !formData.lastName)) ||
+                  (ownerType === 'entity' && (!formData.organizationName || !formData.organizationType))
+                }
+              >
+                {t('indirectOwnership.addOwnerDialog.addOwner', 'Add Owner')}
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
