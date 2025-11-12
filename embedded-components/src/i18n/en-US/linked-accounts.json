@@ -48,8 +48,8 @@
     "addWire": "Add WIRE",
     "addRtp": "Add RTP",
     "manage": "Manage",
-    "edit": "Edit",
-    "remove": "Remove",
+    "edit": "Edit Payment Methods",
+    "remove": "Remove Account",
     "moreActions": "More actions for {{name}}"
   },
   "forms": {

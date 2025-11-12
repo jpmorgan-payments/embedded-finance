@@ -47,8 +47,8 @@
     "addWire": "Ajouter WIRE",
     "addRtp": "Ajouter RTP",
     "manage": "Gérer",
-    "edit": "Modifier",
-    "remove": "Supprimer",
+    "edit": "Modifier les méthodes de paiement",
+    "remove": "Supprimer le compte",
     "moreActions": "Plus d'actions pour {{name}}"
   },
   "paymentTypes": {
