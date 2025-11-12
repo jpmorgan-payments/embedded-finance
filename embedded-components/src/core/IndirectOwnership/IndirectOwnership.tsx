@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Building, Plus, AlertCircle, Info } from 'lucide-react';
+import { Users, Building, Plus, AlertCircle, Info, ChevronRight } from 'lucide-react';
+
+import { useSmbdoGetClient } from '@/api/generated/smbdo';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -26,12 +28,103 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // TODO: Add loading and error states when API integration is implemented
-  const isLoading = false;
-  const isError = false;
-  
-  // Mock state to demonstrate different scenarios based on clientId
-  const needsOwnershipInfo = clientId === 'needs-info-client-002';
+  // Fetch client data using SMBDO API
+  const { 
+    data: clientData, 
+    isLoading, 
+    isError 
+  } = useSmbdoGetClient(clientId!, {
+    query: {
+      enabled: !!clientId,
+    },
+  });
+
+  // Check if client needs ownership information
+  const needsOwnershipInfo = clientData?.status === 'INFORMATION_REQUESTED' || 
+    clientData?.parties?.[0]?.profileStatus === 'INFORMATION_REQUESTED';
+
+  // Check if client has ownership structure (parties beyond the root client)
+  const hasOwnershipStructure = clientData?.parties && clientData.parties.length > 1;
+
+  // Build ownership tree from parties data
+  const buildOwnershipTree = () => {
+    if (!clientData?.parties) return [];
+
+    const rootParty = clientData.parties.find(p => p.roles?.includes('CLIENT'));
+    if (!rootParty) return [];
+
+    const getChildren = (parentId: string, currentDepth = 0): any[] => {
+      if (currentDepth >= maxDepth || !clientData?.parties) return [];
+      
+      return clientData.parties
+        .filter(p => p.parentPartyId === parentId)
+        .map(party => ({
+          ...party,
+          children: party.id ? getChildren(party.id, currentDepth + 1) : []
+        }));
+    };
+
+    return [{
+      ...rootParty,
+      children: rootParty.id ? getChildren(rootParty.id) : []
+    }];
+  };
+
+  const ownershipTree = buildOwnershipTree();
+
+  // Render a single party in the ownership tree
+  const renderParty = (party: any, depth = 0) => {
+    const isOrganization = party.partyType === 'ORGANIZATION';
+    const name = isOrganization 
+      ? party.organizationDetails?.organizationName
+      : `${party.individualDetails?.firstName || ''} ${party.individualDetails?.lastName || ''}`.trim();
+
+    return (
+      <div key={party.id} className={`eb-ml-${depth * 4}`}>
+        <Card className="eb-mb-2">
+          <CardContent className="eb-p-4">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <div className="eb-flex eb-items-center eb-space-x-3">
+                {isOrganization ? (
+                  <Building className="eb-h-5 eb-w-5 eb-text-blue-600" />
+                ) : (
+                  <Users className="eb-h-5 eb-w-5 eb-text-green-600" />
+                )}
+                <div>
+                  <div className="eb-font-medium">{name || 'Unnamed Entity'}</div>
+                  <div className="eb-text-sm eb-text-gray-500">
+                    {isOrganization 
+                      ? party.organizationDetails?.organizationType 
+                      : 'Individual'}
+                    {party.roles?.includes('CLIENT') && (
+                      <Badge variant="secondary" className="eb-ml-2">Client</Badge>
+                    )}
+                    {party.roles?.includes('BENEFICIAL_OWNER') && (
+                      <Badge variant="outline" className="eb-ml-2">Beneficial Owner</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {depth > 0 && (
+                <div className="eb-text-sm eb-text-gray-500">
+                  <Badge variant="secondary">
+                    Level {depth + 1}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Render children */}
+        {party.children && party.children.length > 0 && (
+          <div className="eb-ml-4 eb-border-l-2 eb-border-gray-200 eb-pl-4">
+            {party.children.map((child: any) => renderParty(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Loading state
   if (isLoading) {
@@ -110,8 +203,34 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
           </Alert>
         )}
 
-        {/* Empty State */}
-        {clientId && !needsOwnershipInfo ? (
+        {/* Ownership Structure Display */}
+        {hasOwnershipStructure && !needsOwnershipInfo ? (
+          <div className="eb-space-y-4">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <h3 className="eb-text-lg eb-font-medium">
+                {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
+              </h3>
+              <Badge variant="outline">
+                {clientData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
+              </Badge>
+            </div>
+            
+            {showVisualization && (
+              <Alert>
+                <Info className="eb-h-4 eb-w-4" />
+                <AlertDescription>
+                  {t('indirectOwnership.structure.description', 
+                    'This shows the complete ownership hierarchy from your organization down to individual beneficial owners.'
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="eb-space-y-2">
+              {ownershipTree.map(party => renderParty(party))}
+            </div>
+          </div>
+        ) : !hasOwnershipStructure && !needsOwnershipInfo ? (
           <div className="eb-py-8 eb-text-center">
             <div className="eb-mb-4">
               <Users className="eb-mx-auto eb-h-12 eb-w-12 eb-text-gray-400" />
@@ -125,21 +244,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               )}
             </div>
           </div>
-        ) : (
-          <div className="eb-py-8 eb-text-center eb-text-gray-500">
-            <div className="eb-mb-4">
-              <Building className="eb-mx-auto eb-h-12 eb-w-12 eb-text-gray-400" />
-            </div>
-            <div className="eb-text-lg eb-font-medium">
-              {t('indirectOwnership.placeholder', 'Indirect Ownership Component')}
-            </div>
-            <div className="eb-mt-2 eb-text-sm">
-              {t('indirectOwnership.description', 
-                'This component handles complex ownership structures where entities own other entities.'
-              )}
-            </div>
-          </div>
-        )}
+        ) : null}
         
         {/* Empty State Actions or Component Placeholders */}
         {clientId && !readOnly ? (

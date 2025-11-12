@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import { DEFAULT_THEME } from '@/core/themes';
+import { SELLSENSE_THEME } from '@/core/themes';
 
 import { IndirectOwnership } from '../IndirectOwnership';
-import { efClientEmptyOwnership, efClientNeedsOwnershipInfo } from '../mocks';
+import { efClientEmptyOwnership, efClientNeedsOwnershipInfo, efClientComplexOwnership } from '../mocks';
 
 interface IndirectOwnershipWithProviderProps {
   apiBaseUrl: string;
@@ -32,7 +32,7 @@ const IndirectOwnershipWithProvider = ({
     <EBComponentsProvider
       apiBaseUrl={apiBaseUrl}
       headers={headers || {}}
-      theme={theme || DEFAULT_THEME}
+      theme={theme || SELLSENSE_THEME}
     >
       <IndirectOwnership
         clientId={clientId}
@@ -79,10 +79,36 @@ export const Default: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
     headers: { Authorization: 'Bearer demo-token' },
-    theme: DEFAULT_THEME,
+    theme: SELLSENSE_THEME,
+    clientId: 'complex-ownership-client-001',
     showVisualization: true,
     maxDepth: 10,
     readOnly: false,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        // Mock the SMBDO Get Client API to return a complex 3-layer ownership structure
+        http.get('*/clients/complex-ownership-client-001', () => {
+          return HttpResponse.json(efClientComplexOwnership);
+        }),
+        // Mock the SMBDO Update Client API
+        http.put('*/clients/complex-ownership-client-001', () => {
+          return HttpResponse.json(efClientComplexOwnership);
+        }),
+        // Mock the List Questions API with no outstanding questions
+        http.get('*/questions', () => {
+          return HttpResponse.json({
+            questions: [],
+            metadata: {
+              total: 0,
+              page: 1,
+              limit: 50,
+            },
+          });
+        }),
+      ],
+    },
   },
 };
 
@@ -100,7 +126,7 @@ export const EmptyState: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
     headers: { Authorization: 'Bearer demo-token' },
-    theme: DEFAULT_THEME,
+    theme: SELLSENSE_THEME,
     clientId: 'empty-ownership-client-001',
     showVisualization: true,
     maxDepth: 10,
@@ -148,7 +174,7 @@ export const InformationRequested: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
     headers: { Authorization: 'Bearer demo-token' },
-    theme: DEFAULT_THEME,
+    theme: SELLSENSE_THEME,
     clientId: 'needs-info-client-002',
     showVisualization: true,
     maxDepth: 10,
@@ -202,7 +228,7 @@ export const ReadOnly: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
     headers: { Authorization: 'Bearer demo-token' },
-    theme: DEFAULT_THEME,
+    theme: SELLSENSE_THEME,
     clientId: 'readonly-client-003',
     showVisualization: true,
     maxDepth: 10,
