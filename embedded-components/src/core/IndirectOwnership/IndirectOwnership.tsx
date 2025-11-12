@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+// Removed tabs import due to missing dependency - using button-based toggle instead
 
 import type { IndirectOwnershipComponentProps } from './types/types';
 
@@ -58,6 +59,9 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 
   // Local state for ownership data (overrides API data when modified)
   const [localOwnershipData, setLocalOwnershipData] = React.useState<any>(null);
+  
+  // Tab state
+  const [activeTab, setActiveTab] = React.useState('full-structure');
 
   // Form state
   const [formData, setFormData] = React.useState({
@@ -113,15 +117,15 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
   const buildOwnershipTree = () => {
     if (!currentOwnershipData?.parties) return [];
 
-    const rootParty = currentOwnershipData.parties.find(p => p.roles?.includes('CLIENT'));
+    const rootParty = currentOwnershipData.parties.find((p: any) => p.roles?.includes('CLIENT'));
     if (!rootParty) return [];
 
     const getChildren = (parentId: string, currentDepth = 0): any[] => {
       if (currentDepth >= maxDepth || !currentOwnershipData?.parties) return [];
       
       return currentOwnershipData.parties
-        .filter(p => p.parentPartyId === parentId)
-        .map(party => ({
+        .filter((p: any) => p.parentPartyId === parentId)
+        .map((party: any) => ({
           ...party,
           children: party.id ? getChildren(party.id, currentDepth + 1) : []
         }));
@@ -160,6 +164,86 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
       [partyId]: percentage
     }));
   };
+
+  // Calculate beneficial owners with ownership chains
+  const calculateBeneficialOwners = () => {
+    if (!currentOwnershipData?.parties) return [];
+
+    const beneficialOwners: Array<{
+      party: any;
+      effectiveOwnership: number;
+      ownershipChain: Array<{ name: string; percentage: number }>;
+      chainDescription: string;
+    }> = [];
+
+    // Find all individuals who are beneficial owners
+    const individuals = currentOwnershipData.parties.filter(
+      (p: any) => p.partyType === 'INDIVIDUAL' && p.roles?.includes('BENEFICIAL_OWNER')
+    );
+
+    individuals.forEach((individual: any) => {
+      // Build ownership chain from individual to root
+      const chain: Array<{ name: string; percentage: number; id: string }> = [];
+      let currentPartyId = individual.parentPartyId;
+      let effectiveOwnership = getOwnershipPercentage(individual.id) || 0;
+
+      // Traverse up the ownership chain
+      while (currentPartyId) {
+        const parentParty = currentOwnershipData.parties.find((p: any) => p.id === currentPartyId);
+        if (!parentParty) break;
+
+        const parentOwnership = getOwnershipPercentage(parentParty.id) || 100;
+        const parentName = parentParty.partyType === 'ORGANIZATION'
+          ? parentParty.organizationDetails?.organizationName
+          : `${parentParty.individualDetails?.firstName || ''} ${parentParty.individualDetails?.lastName || ''}`.trim();
+
+        chain.push({
+          name: parentName || 'Unnamed Entity',
+          percentage: parentOwnership,
+          id: parentParty.id
+        });
+
+        // Calculate effective ownership (multiply percentages through chain)
+        if (parentParty.parentPartyId) {
+          effectiveOwnership = (effectiveOwnership * parentOwnership) / 100;
+        }
+
+        currentPartyId = parentParty.parentPartyId;
+      }
+
+      // Build chain description
+      const individualName = `${individual.individualDetails?.firstName || ''} ${individual.individualDetails?.lastName || ''}`.trim();
+      const individualOwnership = getOwnershipPercentage(individual.id) || 0;
+      
+      let chainDescription = `${individualName} owns ${individualOwnership}%`;
+      
+      if (chain.length > 0) {
+        // Reverse chain to go from individual up to root
+        const reversedChain = chain.reverse();
+        
+        // Build the ownership chain text
+        for (let i = 0; i < reversedChain.length; i++) {
+          const entity = reversedChain[i];
+          if (i === 0) {
+            chainDescription += ` of ${entity.name}`;
+          } else {
+            chainDescription += ` which owns ${entity.percentage}% of ${entity.name}`;
+          }
+        }
+      }
+
+      beneficialOwners.push({
+        party: individual,
+        effectiveOwnership: chain.length > 0 ? effectiveOwnership : individualOwnership,
+        ownershipChain: chain.map(c => ({ name: c.name, percentage: c.percentage })),
+        chainDescription
+      });
+    });
+
+    return beneficialOwners;
+  };
+
+  const beneficialOwners = calculateBeneficialOwners();
 
   // Count beneficial owners for a given party
   const countBeneficialOwners = (party: any): number => {
@@ -231,16 +315,13 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 
     console.log('Adding new owner:', newOwner);
 
-    // Call the callback with new owner data
+    // Call the callback with updated ownership structure
     if (onOwnershipStructureUpdate) {
-      onOwnershipStructureUpdate({
-        action: 'ADD_OWNER',
-        parentPartyId: selectedParent.id,
-        parentPartyName: selectedParent.organizationDetails?.organizationName || 
-          `${selectedParent.individualDetails?.firstName || ''} ${selectedParent.individualDetails?.lastName || ''}`.trim(),
-        newOwner: newOwner,
-        ownershipPercentage: newOwnershipPercentage || undefined
-      });
+      const updatedOwnership = {
+        ...currentOwnershipData,
+        parties: [...(currentOwnershipData.parties || []), newOwner]
+      };
+      onOwnershipStructureUpdate(updatedOwnership);
     }
 
     // Close dialog
@@ -543,60 +624,178 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
           </Alert>
         )}
 
-        {/* Ownership Structure Display */}
-        {hasOwnershipStructure && !needsOwnershipInfo ? (
+        {/* Tab-like Navigation with Buttons */}
+        <div className="eb-border-b eb-border-gray-200 eb-mb-4">
+          <nav className="eb-flex eb-space-x-8">
+            <button
+              onClick={() => setActiveTab('full-structure')}
+              className={`eb-py-2 eb-px-1 eb-border-b-2 eb-font-medium eb-text-sm eb-transition-colors eb-duration-200 ${
+                activeTab === 'full-structure'
+                  ? 'eb-border-orange-500 eb-text-orange-600'
+                  : 'eb-border-transparent eb-text-gray-500 hover:eb-text-gray-700 hover:eb-border-gray-300'
+              }`}
+            >
+              {t('indirectOwnership.tabs.fullStructure', 'Full Structure')}
+            </button>
+            <button
+              onClick={() => setActiveTab('beneficial-owners')}
+              className={`eb-py-2 eb-px-1 eb-border-b-2 eb-font-medium eb-text-sm eb-transition-colors eb-duration-200 ${
+                activeTab === 'beneficial-owners'
+                  ? 'eb-border-orange-500 eb-text-orange-600'
+                  : 'eb-border-transparent eb-text-gray-500 hover:eb-text-gray-700 hover:eb-border-gray-300'
+              }`}
+            >
+              {t('indirectOwnership.tabs.beneficialOwners', 'Beneficial Owners')}
+            </button>
+          </nav>
+        </div>
+
+        {/* Full Structure Content */}
+        {activeTab === 'full-structure' && (
+          <div className="eb-space-y-4">
+
+            {/* Ownership Structure Display */}
+            {hasOwnershipStructure && !needsOwnershipInfo ? (
+              <div className="eb-space-y-4">
+                <div className="eb-flex eb-items-center eb-justify-between">
+                  <h3 className="eb-text-lg eb-font-medium">
+                    {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
+                  </h3>
+                  <Badge variant="outline">
+                    {currentOwnershipData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
+                  </Badge>
+                </div>
+                
+                {showVisualization && (
+                  <Alert>
+                    <Info className="eb-h-4 eb-w-4" />
+                    <AlertDescription>
+                      {t('indirectOwnership.structure.description', 
+                        'This shows the complete ownership hierarchy from your organization down to individual beneficial owners.'
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="eb-space-y-2">
+                  {ownershipTree.map(party => renderParty(party))}
+                </div>
+              </div>
+            ) : !hasOwnershipStructure && !needsOwnershipInfo ? (
+              <div className="eb-space-y-4">
+                <div className="eb-flex eb-items-center eb-justify-between">
+                  <h3 className="eb-text-lg eb-font-medium">
+                    {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
+                  </h3>
+                  <Badge variant="outline">
+                    {currentOwnershipData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
+                  </Badge>
+                </div>
+                
+                {showVisualization && (
+                  <Alert>
+                    <Info className="eb-h-4 eb-w-4" />
+                    <AlertDescription>
+                      {t('indirectOwnership.structure.description', 
+                        'This shows your organization. Add entities and individuals that have ownership interest in your company.'
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="eb-space-y-2">
+                  {ownershipTree.map(party => renderParty(party))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* Beneficial Owners Content */}
+        {activeTab === 'beneficial-owners' && (
           <div className="eb-space-y-4">
             <div className="eb-flex eb-items-center eb-justify-between">
               <h3 className="eb-text-lg eb-font-medium">
-                {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
+                {t('indirectOwnership.beneficialOwners.title', 'Beneficial Owners')}
               </h3>
               <Badge variant="outline">
-                {currentOwnershipData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
+                {beneficialOwners.length} {t('indirectOwnership.beneficialOwners.count', beneficialOwners.length === 1 ? 'Individual' : 'Individuals')}
               </Badge>
             </div>
-            
-            {showVisualization && (
-              <Alert>
-                <Info className="eb-h-4 eb-w-4" />
-                <AlertDescription>
-                  {t('indirectOwnership.structure.description', 
-                    'This shows the complete ownership hierarchy from your organization down to individual beneficial owners.'
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
 
-            <div className="eb-space-y-2">
-              {ownershipTree.map(party => renderParty(party))}
-            </div>
-          </div>
-        ) : !hasOwnershipStructure && !needsOwnershipInfo ? (
-          <div className="eb-space-y-4">
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <h3 className="eb-text-lg eb-font-medium">
-                {t('indirectOwnership.structure.title', 'Ownership Hierarchy')}
-              </h3>
-              <Badge variant="outline">
-                {currentOwnershipData?.parties?.length || 0} {t('indirectOwnership.structure.parties', 'Parties')}
-              </Badge>
-            </div>
-            
-            {showVisualization && (
-              <Alert>
-                <Info className="eb-h-4 eb-w-4" />
-                <AlertDescription>
-                  {t('indirectOwnership.structure.description', 
-                    'This shows your organization. Add entities and individuals that have ownership interest in your company.'
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
+            <Alert>
+              <Info className="eb-h-4 eb-w-4" />
+              <AlertDescription>
+                {t('indirectOwnership.beneficialOwners.description', 
+                  'These are natural persons (individuals) who ultimately own or control your organization through direct or indirect ownership.'
+                )}
+              </AlertDescription>
+            </Alert>
 
-            <div className="eb-space-y-2">
-              {ownershipTree.map(party => renderParty(party))}
-            </div>
+            {beneficialOwners.length > 0 ? (
+              <div className="eb-space-y-3">
+                {beneficialOwners.map((beneficialOwner, index) => {
+                  const name = `${beneficialOwner.party.individualDetails?.firstName || ''} ${beneficialOwner.party.individualDetails?.lastName || ''}`.trim();
+                  const isAboveThreshold = beneficialOwner.effectiveOwnership >= 25; // 25% threshold
+                  
+                  return (
+                    <Card key={beneficialOwner.party.id} className={`eb-border ${isAboveThreshold ? 'eb-border-orange-200 eb-bg-orange-50' : 'eb-border-gray-200'}`}>
+                      <CardContent className="eb-p-4">
+                        <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
+                          <div className="eb-flex eb-items-start eb-gap-3 eb-flex-1">
+                            <Users className="eb-h-5 eb-w-5 eb-text-green-600 eb-flex-shrink-0 eb-mt-0.5" />
+                            <div className="eb-flex-1 eb-min-w-0">
+                              <div className="eb-flex eb-items-center eb-gap-2 eb-mb-2">
+                                <h4 className="eb-font-medium eb-text-gray-900">{name || 'Unnamed Individual'}</h4>
+                                {isAboveThreshold && (
+                                  <Badge variant="default" className="eb-bg-orange-100 eb-text-orange-800 eb-text-xs">
+                                    {t('indirectOwnership.beneficialOwners.significantOwner', 'Significant Owner')}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="eb-text-sm eb-text-gray-600 eb-leading-relaxed">
+                                {beneficialOwner.chainDescription}
+                              </div>
+                              {beneficialOwner.effectiveOwnership !== (getOwnershipPercentage(beneficialOwner.party.id) || 0) && (
+                                <div className="eb-text-xs eb-text-gray-500 eb-mt-1">
+                                  {t('indirectOwnership.beneficialOwners.effectiveOwnership', 'Effective ownership')}: {beneficialOwner.effectiveOwnership.toFixed(2)}%
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="eb-flex eb-items-center eb-gap-2 eb-flex-shrink-0">
+                            <Badge variant="secondary" className="eb-bg-blue-100 eb-text-blue-800">
+                              {beneficialOwner.effectiveOwnership.toFixed(1)}%
+                            </Badge>
+                            {beneficialOwner.party.profileStatus === 'APPROVED' && (
+                              <Badge variant="outline" className="eb-text-xs eb-text-green-700 eb-border-green-200">
+                                {t('indirectOwnership.beneficialOwners.verified', 'Verified')}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="eb-py-8 eb-text-center">
+                <div className="eb-mb-4">
+                  <Users className="eb-mx-auto eb-h-12 eb-w-12 eb-text-gray-400" />
+                </div>
+                <div className="eb-text-lg eb-font-medium eb-text-gray-900">
+                  {t('indirectOwnership.beneficialOwners.emptyState.title', 'No Beneficial Owners Identified')}
+                </div>
+                <div className="eb-mt-2 eb-text-sm eb-text-gray-500">
+                  {t('indirectOwnership.beneficialOwners.emptyState.description', 
+                    'Add individuals to your ownership structure to identify beneficial owners.'
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        ) : null}
+        )}
         
         {/* Read-only mode display */}
         {clientId && readOnly && !hasOwnershipStructure && !needsOwnershipInfo && (
