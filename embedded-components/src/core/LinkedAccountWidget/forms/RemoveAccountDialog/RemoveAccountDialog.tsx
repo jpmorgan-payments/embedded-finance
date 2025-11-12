@@ -1,6 +1,7 @@
 import { FC, ReactNode, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangleIcon, CheckCircle2Icon, Loader2Icon } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import {
@@ -33,6 +34,7 @@ type RemoveAccountDialogTriggerProps = {
 export const RemoveAccountDialogTrigger: FC<
   RemoveAccountDialogTriggerProps
 > = ({ children, recipient, onLinkedAccountSettled }) => {
+  const { t } = useTranslation('linked-accounts');
   const [isDialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -94,22 +96,25 @@ export const RemoveAccountDialogTrigger: FC<
             )}
             <DialogTitle className="eb-text-xl">
               {amendRecipientStatus === 'success'
-                ? 'Account Removed'
-                : 'Remove Account'}
+                ? t('forms.removeAccount.titleSuccess')
+                : t('forms.removeAccount.title')}
             </DialogTitle>
           </div>
           <DialogDescription>
             {amendRecipientStatus === 'success' ? (
-              <>
-                <b>{getRecipientDisplayName(recipient)}</b> has been
-                successfully removed from your linked accounts.
-              </>
+              <Trans
+                i18nKey="forms.removeAccount.descriptionSuccess"
+                ns="linked-accounts"
+                values={{ name: getRecipientDisplayName(recipient) }}
+                components={{ strong: <strong /> }}
+              />
             ) : (
-              <>
-                Are you sure you want to remove{' '}
-                <b>{getRecipientDisplayName(recipient)}</b> from your linked
-                accounts?
-              </>
+              <Trans
+                i18nKey="forms.removeAccount.description"
+                ns="linked-accounts"
+                values={{ name: getRecipientDisplayName(recipient) }}
+                components={{ strong: <strong /> }}
+              />
             )}
           </DialogDescription>
         </DialogHeader>
@@ -118,14 +123,14 @@ export const RemoveAccountDialogTrigger: FC<
           <ServerErrorAlert
             error={amendRecipientError}
             showDetails
-            customTitle="Unable to remove account"
+            customTitle={t('forms.removeAccount.error.title')}
           />
         )}
 
         <DialogFooter className="eb-gap-2 sm:eb-gap-0">
           {amendRecipientStatus === 'success' ? (
             <Button onClick={handleCancel} className="eb-w-full sm:eb-w-auto">
-              Close
+              {t('forms.removeAccount.close')}
             </Button>
           ) : (
             <>
@@ -134,7 +139,7 @@ export const RemoveAccountDialogTrigger: FC<
                 onClick={handleCancel}
                 disabled={amendRecipientStatus === 'pending'}
               >
-                Cancel
+                {t('forms.removeAccount.cancel')}
               </Button>
               <Button
                 variant="destructive"
@@ -146,8 +151,8 @@ export const RemoveAccountDialogTrigger: FC<
                   <Loader2Icon className="eb-h-4 eb-w-4 eb-animate-spin" />
                 )}
                 {amendRecipientStatus === 'pending'
-                  ? 'Removing...'
-                  : 'Remove Account'}
+                  ? t('forms.removeAccount.removing')
+                  : t('forms.removeAccount.confirm')}
               </Button>
             </>
           )}

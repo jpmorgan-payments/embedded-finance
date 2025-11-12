@@ -6,14 +6,12 @@ import {
   ClockIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
 
-import {
-  STATUS_BADGE_VARIANTS,
-  STATUS_LABELS,
-} from '../LinkedAccountWidget.constants';
+import { STATUS_BADGE_VARIANTS } from '../LinkedAccountWidget.constants';
 
 export interface StatusBadgeProps {
   /** The recipient status to display */
@@ -54,13 +52,15 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   showIcon = true,
   className,
 }) => {
+  const { t } = useTranslation('linked-accounts');
+
   return (
     <Badge
       {...STATUS_BADGE_VARIANTS[status]}
       className={`eb-inline-flex eb-items-center eb-gap-1 eb-text-xs ${className || ''}`}
     >
       {showIcon && getStatusIcon(status)}
-      {STATUS_LABELS[status]}
+      {t(`status.labels.${status}`)}
     </Badge>
   );
 };

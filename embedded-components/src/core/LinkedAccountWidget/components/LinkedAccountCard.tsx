@@ -6,6 +6,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   canMakePayment,
@@ -46,6 +47,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   onLinkedAccountSettled,
   hideActions = false,
 }) => {
+  const { t } = useTranslation('linked-accounts');
   const isActive = recipient.status === 'ACTIVE';
   const displayName = getRecipientDisplayName(recipient);
   const showVerifyButton = canVerifyMicrodeposits(recipient);
@@ -55,28 +57,20 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   // Generate button label based on missing methods
   const getAddRoutingButtonLabel = () => {
     if (missingPaymentMethods.length === 0) return '';
-    if (missingPaymentMethods.length === 2) return 'Add Wire/RTP';
-    return `Add ${missingPaymentMethods[0]}`;
+    if (missingPaymentMethods.length === 2) return t('actions.addWireRtp');
+    return t(
+      `actions.add${missingPaymentMethods[0].charAt(0) + missingPaymentMethods[0].slice(1).toLowerCase()}` as any
+    );
   };
 
   // Helper to get tooltip message for disabled pay button
   const getDisabledPayTooltip = () => {
-    if (!recipient.status) return 'Payment unavailable';
-
-    switch (recipient.status) {
-      case 'READY_FOR_VALIDATION':
-        return 'Complete account verification to enable payments';
-      case 'MICRODEPOSITS_INITIATED':
-        return 'Waiting for microdeposit verification to enable payments';
-      case 'INACTIVE':
-        return 'Account is inactive. Please activate to make payments';
-      case 'REJECTED':
-        return 'Account verification was rejected. Please contact support';
-      case 'PENDING':
-        return 'Account is being processed. Please wait to make payments';
-      default:
-        return 'Payment unavailable for this account';
-    }
+    if (!recipient.status)
+      return t('status.paymentDisabledTooltip.unavailable');
+    return t([
+      `status.paymentDisabledTooltip.${recipient.status}`,
+      'status.paymentDisabledTooltip.unavailable',
+    ]);
   };
 
   // Add routing button component
@@ -112,9 +106,9 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
               <Button
                 variant="default"
                 size="sm"
-                aria-label={`Verify account for ${displayName}`}
+                aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
               >
-                <span>Verify Account</span>
+                <span>{t('actions.verifyAccount')}</span>
                 <ArrowRightIcon
                   className="eb-ml-2 eb-h-4 eb-w-4"
                   aria-hidden="true"
@@ -147,9 +141,9 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                   size="sm"
                   className="eb-bg-background"
                   disabled
-                  aria-label={`Make payment from ${displayName} - ${getDisabledPayTooltip()}`}
+                  aria-label={`${t('actions.makePayment')} from ${displayName} - ${getDisabledPayTooltip()}`}
                 >
-                  <span>Pay</span>
+                  <span>{t('actions.makePayment')}</span>
                   <ArrowRightIcon
                     className="eb-ml-2 eb-h-4 eb-w-4"
                     aria-hidden="true"
@@ -168,9 +162,9 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 variant="outline"
                 size="sm"
                 className="eb-bg-background"
-                aria-label={`Make payment from ${displayName}`}
+                aria-label={`${t('actions.makePayment')} from ${displayName}`}
               >
-                <span>Pay</span>
+                <span>{t('actions.makePayment')}</span>
                 <ArrowRightIcon
                   className="eb-ml-2 eb-h-4 eb-w-4"
                   aria-hidden="true"
@@ -185,9 +179,9 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              aria-label={`Manage account options for ${displayName}`}
+              aria-label={t('actions.moreActions', { name: displayName })}
             >
-              <span>Manage</span>
+              <span>{t('actions.manage')}</span>
               <MoreVerticalIcon
                 className="eb-ml-2 eb-h-4 eb-w-4"
                 aria-hidden="true"
@@ -204,7 +198,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 className="eb-cursor-pointer"
               >
                 <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                <span>Edit Payment Methods</span>
+                <span>{t('actions.edit')}</span>
               </DropdownMenuItem>
             </EditAccountFormDialogTrigger>
             <DropdownMenuSeparator />
@@ -217,7 +211,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
               >
                 <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                <span>Remove Account</span>
+                <span>{t('actions.remove')}</span>
               </DropdownMenuItem>
             </RemoveAccountDialogTrigger>
           </DropdownMenuContent>

@@ -44,62 +44,9 @@ export const STATUS_BADGE_VARIANTS: Record<
 };
 
 /**
- * Status display labels for each recipient status
- */
-export const STATUS_LABELS: Record<RecipientStatus, string> = {
-  ACTIVE: 'Active',
-  INACTIVE: 'Inactive',
-  MICRODEPOSITS_INITIATED: 'Pending Verification',
-  PENDING: 'Processing',
-  READY_FOR_VALIDATION: 'Action Required',
-  REJECTED: 'Rejected',
-};
-
-/**
- * Status messages for each recipient status
- */
-export const STATUS_MESSAGES: Record<RecipientStatus, string> = {
-  ACTIVE: 'This account is verified and ready for transactions.',
-  INACTIVE:
-    'This account has been deactivated and cannot be used for transactions.',
-  MICRODEPOSITS_INITIATED:
-    'Two small deposits are being sent to verify account ownership. This typically takes 3-5 business days.',
-  PENDING:
-    "Your account information is being processed. You'll be notified once complete.",
-  READY_FOR_VALIDATION:
-    'The verification deposits have arrived in your account.',
-  REJECTED:
-    'There was an issue linking this account. Please check the account details or contact support.',
-};
-
-/**
  * Constants for validation
  */
 export const ROUTING_NUMBER_LENGTH = 9;
 export const MIN_MICRODEPOSIT_AMOUNT = 0.01;
 export const MAX_MICRODEPOSIT_AMOUNT = 0.99;
 export const MAX_VERIFICATION_ATTEMPTS = 3;
-
-/**
- * Payment type labels and descriptions
- */
-export const PAYMENT_TYPE_INFO = {
-  ACH: {
-    label: 'ACH / Direct Payment',
-    description: 'Standard electronic bank transfer (1-3 business days)',
-    requiredFields: ['routingNumber', 'accountNumber', 'accountType'],
-    routingCodeType: 'USABA',
-  },
-  WIRE: {
-    label: 'Wire Transfer',
-    description: 'Fast domestic or international transfer (same day)',
-    requiredFields: ['routingNumber', 'accountNumber', 'address'],
-    routingCodeType: 'SWIFT',
-  },
-  RTP: {
-    label: 'Real-Time Payments (RTP)',
-    description: 'Instant transfer available 24/7',
-    requiredFields: ['routingNumber', 'accountNumber'],
-    routingCodeType: 'USABA',
-  },
-} as const;

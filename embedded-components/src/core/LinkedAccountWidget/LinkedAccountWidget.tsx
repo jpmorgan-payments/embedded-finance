@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { PlusIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { shouldShowCreateButton } from '@/lib/recipientHelpers';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
@@ -44,6 +45,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   onLinkedAccountSettled,
   className,
 }) => {
+  const { t } = useTranslation('linked-accounts');
   const { interceptorReady } = useInterceptorStatus();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, isLoading, isError, error, isSuccess, refetch } =
@@ -88,15 +90,15 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
               <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
-                Linked Accounts{' '}
+                {t('title')}{' '}
                 {!isLoading && !isError && (
                   <span className="eb-animate-fade-in">
-                    ({linkedAccounts.length})
+                    {t('count', { count: linkedAccounts.length })}
                   </span>
                 )}
               </CardTitle>
               <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-                Manage your external bank accounts for payments
+                {t('description')}
               </p>
             </div>
             {showCreate && !isLoading && (
@@ -110,7 +112,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     className="eb-shrink-0 eb-bg-background"
                   >
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                    Link A New Account
+                    {t('linkNewAccount')}
                   </Button>
                 </LinkAccountFormDialogTrigger>
               </div>
@@ -130,11 +132,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Error state */}
           {isError && (
             <ServerErrorAlert
-              customTitle="Error loading linked accounts"
+              customTitle={t('errors.loading.title')}
               customErrorMessage={{
-                default:
-                  'An unexpected error occurred while loading your linked accounts. Please try again.',
-                400: 'Your platform does not have permission to access linked accounts. Please contact support.',
+                default: t('errors.loading.default'),
+                400: t('errors.loading.400'),
               }}
               error={error}
               tryAgainAction={refetch}

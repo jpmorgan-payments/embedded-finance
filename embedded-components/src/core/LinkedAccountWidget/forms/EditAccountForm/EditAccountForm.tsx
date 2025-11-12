@@ -1,5 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import {
   getGetAllRecipientsQueryKey,
@@ -16,14 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import {
   BankAccountForm,
-  linkedAccountEditConfig,
   transformBankAccountFormToRecipientPayload,
+  useLinkedAccountEditConfig,
   type BankAccountFormData,
 } from '@/components/BankAccountForm';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { AccountConfirmation } from '../../components/AccountConfirmation';
-import { STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 
 type EditAccountFormDialogTriggerProps = {
   children: ReactNode;
@@ -37,6 +37,8 @@ type EditAccountFormDialogTriggerProps = {
 export const EditAccountFormDialogTrigger: FC<
   EditAccountFormDialogTriggerProps
 > = ({ children, recipient, onLinkedAccountSettled }) => {
+  const { t } = useTranslation('linked-accounts');
+  const linkedAccountEditConfig = useLinkedAccountEditConfig();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -93,15 +95,15 @@ export const EditAccountFormDialogTrigger: FC<
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-text-xl">
             {amendRecipientStatus === 'success'
-              ? 'Account Updated Successfully'
-              : 'Edit Linked Account'}
+              ? t('forms.editAccount.titleSuccess')
+              : t('forms.editAccount.title')}
           </DialogTitle>
           <DialogDescription>
             {amendRecipientStatus === 'success'
               ? amendRecipientResponse?.status
-                ? STATUS_MESSAGES[amendRecipientResponse.status]
-                : 'Your linked account has been updated successfully.'
-              : 'Update the bank account information and payment methods.'}
+                ? t(`status.messages.${amendRecipientResponse.status}`)
+                : t('forms.editAccount.descriptionSuccess')
+              : t('forms.editAccount.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,7 +128,7 @@ export const EditAccountFormDialogTrigger: FC<
               <ServerErrorAlert
                 error={amendRecipientError}
                 showDetails
-                customTitle="Unable to update account"
+                customTitle={t('forms.editAccount.error.title')}
               />
             }
           />

@@ -6,11 +6,10 @@ import {
   InfoIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-import { STATUS_MESSAGES } from '../LinkedAccountWidget.constants';
 
 export interface StatusAlertProps {
   /** The recipient status */
@@ -74,8 +73,9 @@ export const StatusAlert: React.FC<StatusAlertProps> = ({
   className,
   action,
 }) => {
+  const { t } = useTranslation('linked-accounts');
   const { variant, icon: Icon, iconClass } = getAlertConfig(status);
-  const defaultDescription = STATUS_MESSAGES[status];
+  const defaultDescription = t(`status.messages.${status}`);
 
   // Don't show alert for active accounts unless custom content is provided
   if (status === 'ACTIVE' && !title && !description) {

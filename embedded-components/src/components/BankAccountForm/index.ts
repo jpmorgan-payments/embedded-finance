@@ -7,9 +7,11 @@
 
 export { BankAccountForm } from './BankAccountForm';
 export {
-  linkedAccountConfig,
-  linkedAccountEditConfig,
-  recipientConfig,
+  useLinkedAccountConfig,
+  useLinkedAccountEditConfig,
+  useRecipientConfig,
+  usePaymentMethodConfig,
+  useDefaultPaymentMethodConfigs,
   createCustomConfig,
 } from './BankAccountForm.configs';
 export { createBankAccountFormSchema } from './BankAccountForm.schema';

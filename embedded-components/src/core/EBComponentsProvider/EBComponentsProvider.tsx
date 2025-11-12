@@ -202,8 +202,8 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       />
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
-        <I18nextProvider i18n={i18nInstance}>
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <I18nextProvider i18n={i18nInstance}>
             <ContentTokensContext.Provider value={contentTokens}>
               <InterceptorContext.Provider value={{ interceptorReady }}>
                 {children}
@@ -212,8 +212,8 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             <Toaster closeButton expand position="bottom-left" />
             {process.env.NODE_ENV === 'development' &&
               ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
-          </QueryClientProvider>
-        </I18nextProvider>
+          </I18nextProvider>
+        </QueryClientProvider>
       </ErrorBoundary>
     </>
   );

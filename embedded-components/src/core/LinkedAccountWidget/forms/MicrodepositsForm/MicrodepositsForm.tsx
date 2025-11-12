@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import {
@@ -30,7 +30,7 @@ import { StandardFormField } from '@/components/StandardFormField';
 import { AccountConfirmation } from '../../components/AccountConfirmation';
 import {
   MicrodepositsFormDataType,
-  MicrodepositsFormSchema,
+  useMicrodepositsFormSchema,
 } from './MicrodepositsForm.schema';
 
 type MicrodepositsFormDialogTriggerProps = {
@@ -53,10 +53,13 @@ export const MicrodepositsFormDialogTrigger: FC<
   onOpenChange,
   onLinkedAccountSettled,
 }) => {
+  const { t } = useTranslation('linked-accounts');
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const isDialogOpen = isControlled ? controlledOpen : uncontrolledOpen;
   const queryClient = useQueryClient();
+
+  const MicrodepositsFormSchema = useMicrodepositsFormSchema();
 
   const {
     data: recipient,
@@ -99,7 +102,7 @@ export const MicrodepositsFormDialogTrigger: FC<
     },
   });
 
-  const handleSubmit = (data: z.infer<typeof MicrodepositsFormSchema>) => {
+  const handleSubmit = (data: MicrodepositsFormDataType) => {
     verify({
       id: recipientId,
       data: {
@@ -135,25 +138,21 @@ export const MicrodepositsFormDialogTrigger: FC<
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-text-xl">
             {verifyStatus === 'success' && verifyResponse?.status === 'VERIFIED'
-              ? 'Account Verified Successfully'
-              : 'Verify Microdeposits'}
+              ? t('forms.microdeposits.titleSuccess')
+              : t('forms.microdeposits.title')}
           </DialogTitle>
           <DialogDescription>
             {verifyStatus === 'success' &&
             verifyResponse?.status === 'VERIFIED' ? (
-              'Your account has been verified and is ready for transactions.'
+              t('forms.microdeposits.descriptionSuccess')
             ) : (
-              <>
-                Enter the two micro-deposits we sent to your external bank
-                account
-                {recipient && (
-                  <>
-                    {' '}
-                    <b>{getRecipientDisplayName(recipient)}</b>
-                  </>
-                )}{' '}
-                in any order. You have three attempts to enter these amounts.
-              </>
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: t('forms.microdeposits.description', {
+                    name: recipient ? getRecipientDisplayName(recipient) : '',
+                  }),
+                }}
+              />
             )}
           </DialogDescription>
         </DialogHeader>
@@ -174,12 +173,16 @@ export const MicrodepositsFormDialogTrigger: FC<
             <ServerErrorAlert
               error={recipientError}
               showDetails
-              customTitle="Error loading account information"
-              customErrorMessage="Unable to load the account details. Please try again or contact support."
+              customTitle={t('forms.microdeposits.errors.loading.title')}
+              customErrorMessage={t(
+                'forms.microdeposits.errors.loading.message'
+              )}
             />
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline">
+                  {t('forms.removeAccount.cancel')}
+                </Button>
               </DialogClose>
             </DialogFooter>
           </div>
@@ -224,11 +227,16 @@ export const MicrodepositsFormDialogTrigger: FC<
                         <ServerErrorAlert
                           error={verifyError}
                           showDetails
-                          customTitle="Verification failed"
+                          customTitle={t(
+                            'forms.microdeposits.errors.verificationFailed.title'
+                          )}
                           customErrorMessage={{
-                            400: 'The microdeposits you have entered were incorrect. Please try again.',
-                            default:
-                              'An error occurred during verification. Please try again.',
+                            400: t(
+                              'forms.microdeposits.errors.verificationFailed.400'
+                            ),
+                            default: t(
+                              'forms.microdeposits.errors.verificationFailed.default'
+                            ),
                           }}
                         />
                       )}
@@ -236,8 +244,12 @@ export const MicrodepositsFormDialogTrigger: FC<
                       {verifyResponse?.status === 'FAILED' && (
                         <ServerErrorAlert
                           error={null}
-                          customTitle="Verification failed"
-                          customErrorMessage="The microdeposits you have entered were incorrect. Please try again."
+                          customTitle={t(
+                            'forms.microdeposits.errors.verificationFailed.title'
+                          )}
+                          customErrorMessage={t(
+                            'forms.microdeposits.errors.verificationFailed.400'
+                          )}
                         />
                       )}
 
@@ -245,8 +257,12 @@ export const MicrodepositsFormDialogTrigger: FC<
                         'FAILED_MAX_ATTEMPTS_EXCEEDED' && (
                         <ServerErrorAlert
                           error={null}
-                          customTitle="Max number of attempts exceeded"
-                          customErrorMessage="You have exceeded the maximum number of attempts to verify microdeposits. Please contact support."
+                          customTitle={t(
+                            'forms.microdeposits.errors.maxAttemptsExceeded.title'
+                          )}
+                          customErrorMessage={t(
+                            'forms.microdeposits.errors.maxAttemptsExceeded.message'
+                          )}
                         />
                       )}
 
@@ -257,8 +273,10 @@ export const MicrodepositsFormDialogTrigger: FC<
                             control={form.control}
                             name="amount1"
                             type="number"
-                            label="Microdeposit Amount 1"
-                            placeholder="0.00"
+                            label={t('forms.microdeposits.amount1.label')}
+                            placeholder={t(
+                              'forms.microdeposits.amount1.placeholder'
+                            )}
                             prefix="$"
                             required
                             inputProps={{
@@ -271,8 +289,10 @@ export const MicrodepositsFormDialogTrigger: FC<
                             control={form.control}
                             name="amount2"
                             type="number"
-                            label="Microdeposit Amount 2"
-                            placeholder="0.00"
+                            label={t('forms.microdeposits.amount2.label')}
+                            placeholder={t(
+                              'forms.microdeposits.amount2.placeholder'
+                            )}
                             prefix="$"
                             required
                             inputProps={{
@@ -290,11 +310,11 @@ export const MicrodepositsFormDialogTrigger: FC<
                             type="button"
                             onClick={handleCancel}
                           >
-                            Cancel
+                            {t('forms.removeAccount.cancel')}
                           </Button>
                         </DialogClose>
                         <Button type="submit" disabled={isVerifyPending}>
-                          Verify
+                          {t('actions.verifyAccount')}
                         </Button>
                       </DialogFooter>
                     </form>

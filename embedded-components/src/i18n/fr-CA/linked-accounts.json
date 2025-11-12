@@ -1,0 +1,253 @@
+{
+  "title": "Comptes liés",
+  "description": "Gérez vos comptes bancaires externes pour les paiements",
+  "linkNewAccount": "Lier un nouveau compte",
+  "count": "({{count}})",
+  "emptyState": {
+    "title": "Aucun compte lié",
+    "description": "Liez un compte bancaire pour commencer à effectuer des paiements. Vous pouvez utiliser ACH, virements bancaires ou paiements en temps réel."
+  },
+  "errors": {
+    "loading": {
+      "title": "Erreur lors du chargement des comptes liés",
+      "default": "Une erreur inattendue s'est produite lors du chargement de vos comptes liés. Veuillez réessayer.",
+      "400": "Votre plateforme n'a pas l'autorisation d'accéder aux comptes liés. Veuillez contacter le support."
+    }
+  },
+  "status": {
+    "labels": {
+      "ACTIVE": "Actif",
+      "INACTIVE": "Inactif",
+      "MICRODEPOSITS_INITIATED": "Vérification en attente",
+      "PENDING": "En traitement",
+      "READY_FOR_VALIDATION": "Action requise",
+      "REJECTED": "Rejeté"
+    },
+    "messages": {
+      "ACTIVE": "Ce compte est vérifié et prêt pour les transactions.",
+      "INACTIVE": "Ce compte a été désactivé et ne peut pas être utilisé pour les transactions.",
+      "MICRODEPOSITS_INITIATED": "Deux petits dépôts sont en cours d'envoi pour vérifier la propriété du compte. Cela prend généralement 3 à 5 jours ouvrables.",
+      "PENDING": "Les informations de votre compte sont en cours de traitement. Vous serez notifié une fois terminé.",
+      "READY_FOR_VALIDATION": "Les dépôts de vérification sont arrivés sur votre compte.",
+      "REJECTED": "Il y a eu un problème lors de la liaison de ce compte. Veuillez vérifier les détails du compte ou contacter le support."
+    },
+    "tooltips": {
+      "unavailable": "Paiement non disponible",
+      "READY_FOR_VALIDATION": "Complétez la vérification du compte pour activer les paiements",
+      "MICRODEPOSITS_INITIATED": "En attente de la vérification des microdépôts pour activer les paiements",
+      "INACTIVE": "Le compte est inactif. Veuillez activer pour effectuer des paiements",
+      "REJECTED": "La vérification du compte a été rejetée. Veuillez contacter le support",
+      "PENDING": "Le compte est en cours de traitement. Veuillez patienter pour effectuer des paiements"
+    }
+  },
+  "actions": {
+    "verifyAccount": "Vérifier le compte",
+    "makePayment": "Effectuer un paiement",
+    "addWireRtp": "Ajouter Wire/RTP",
+    "addWire": "Ajouter WIRE",
+    "addRtp": "Ajouter RTP",
+    "manage": "Gérer",
+    "edit": "Modifier",
+    "remove": "Supprimer",
+    "moreActions": "Plus d'actions pour {{name}}"
+  },
+  "paymentTypes": {
+    "ACH": {
+      "label": "ACH / Paiement direct",
+      "description": "Virement bancaire électronique standard (1-3 jours ouvrables)"
+    },
+    "WIRE": {
+      "label": "Virement bancaire",
+      "description": "Virement national ou international rapide (même jour)"
+    },
+    "RTP": {
+      "label": "Paiements en temps réel (RTP)",
+      "description": "Paiement instantané (en quelques secondes)"
+    }
+  },
+  "forms": {
+    "linkAccount": {
+      "title": "Lier un nouveau compte",
+      "titleSuccess": "Compte lié avec succès",
+      "description": "Connectez votre compte bancaire externe pour effectuer des paiements.",
+      "descriptionSuccess": "Votre compte a été lié et est prêt à être utilisé.",
+      "error": {
+        "title": "Impossible de lier le compte"
+      },
+      "accountHolderType": {
+        "label": "Type de titulaire de compte",
+        "individual": "Individuel",
+        "organization": "Organisation"
+      },
+      "firstName": {
+        "label": "Prénom",
+        "placeholder": "Entrez le prénom",
+        "validation": {
+          "required": "$t(validation:required, {'fieldName': 'Prénom'})"
+        }
+      },
+      "lastName": {
+        "label": "Nom",
+        "placeholder": "Entrez le nom",
+        "validation": {
+          "required": "$t(validation:required, {'fieldName': 'Nom'})"
+        }
+      },
+      "businessName": {
+        "label": "Nom de l'entreprise",
+        "placeholder": "Entrez le nom de l'entreprise",
+        "validation": {
+          "required": "$t(validation:required, {'fieldName': 'Nom de l\\'entreprise'})"
+        }
+      },
+      "routingNumber": {
+        "label": "Numéro d'acheminement",
+        "placeholder": "Numéro d'acheminement à 9 chiffres",
+        "validation": {
+          "required": "$t(validation:required, {'fieldName': 'Numéro d\\'acheminement'})",
+          "length": "Le numéro d'acheminement doit comporter 9 chiffres",
+          "digitsOnly": "$t(validation:numeric.digitsOnly)"
+        }
+      },
+      "accountNumber": {
+        "label": "Numéro de compte",
+        "placeholder": "Entrez le numéro de compte",
+        "validation": {
+          "required": "$t(validation:required, {'fieldName': 'Numéro de compte'})",
+          "digitsOnly": "$t(validation:numeric.digitsOnly)"
+        }
+      },
+      "bankAccountType": {
+        "label": "Type de compte",
+        "checking": "Chèques",
+        "savings": "Épargne",
+        "validation": {
+          "required": "$t(validation:required, {'fieldName': 'Type de compte'})"
+        }
+      },
+      "paymentTypes": {
+        "label": "Méthodes de paiement",
+        "description": "Sélectionnez les méthodes de paiement que vous souhaitez utiliser avec ce compte",
+        "validation": {
+          "required": "$t(validation:selection.required)"
+        }
+      },
+      "address": {
+        "label": "Adresse du titulaire du compte",
+        "description": "Requis pour les méthodes de paiement Wire et RTP",
+        "validation": {
+          "required": "L'adresse est requise pour les méthodes de paiement Wire ou RTP"
+        },
+        "addressLine1": {
+          "label": "Adresse",
+          "placeholder": "Entrez l'adresse",
+          "validation": {
+            "required": "$t(validation:required, {'fieldName': 'Adresse'})"
+          }
+        },
+        "addressLine2": {
+          "label": "App, Suite, etc.",
+          "placeholder": "Optionnel"
+        },
+        "city": {
+          "label": "Ville",
+          "placeholder": "Entrez la ville",
+          "validation": {
+            "required": "$t(validation:required, {'fieldName': 'Ville'})"
+          }
+        },
+        "state": {
+          "label": "État",
+          "placeholder": "Sélectionnez l'état",
+          "validation": {
+            "required": "$t(validation:required, {'fieldName': 'État'})",
+            "format": "Utilisez le code d'état à 2 lettres"
+          }
+        },
+        "postalCode": {
+          "label": "Code postal",
+          "placeholder": "Entrez le code postal",
+          "validation": {
+            "required": "$t(validation:required, {'fieldName': 'Code postal'})",
+            "minLength": "$t(validation:text.minLength, {'fieldName': 'Code postal', 'count': 5})",
+            "format": "$t(validation:address.postalCode.us)"
+          }
+        }
+      },
+      "certify": {
+        "label": "J'autorise la vérification de mes informations bancaires",
+        "validation": {
+          "required": "Vous devez autoriser la vérification pour continuer"
+        }
+      },
+      "errors": {
+        "unableToLink": "Impossible de lier le compte"
+      }
+    },
+    "editAccount": {
+      "title": "Modifier le compte lié",
+      "titleSuccess": "Compte mis à jour avec succès",
+      "description": "Mettre à jour les informations du compte bancaire et les méthodes de paiement.",
+      "descriptionSuccess": "Votre compte lié a été mis à jour avec succès.",
+      "error": {
+        "title": "Impossible de mettre à jour le compte"
+      }
+    },
+    "removeAccount": {
+      "title": "Supprimer le compte",
+      "titleSuccess": "Compte supprimé",
+      "description": "Êtes-vous sûr de vouloir supprimer <strong>{{name}}</strong> de vos comptes liés?",
+      "descriptionSuccess": "<strong>{{name}}</strong> a été supprimé avec succès de vos comptes liés.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer le compte",
+      "removing": "Suppression...",
+      "close": "Fermer",
+      "error": {
+        "title": "Impossible de supprimer le compte"
+      }
+    },
+    "microdeposits": {
+      "title": "Vérifier les microdépôts",
+      "titleSuccess": "Compte vérifié avec succès",
+      "description": "Entrez les deux microdépôts que nous avons envoyés à votre compte bancaire externe <strong>{{name}}</strong> dans n'importe quel ordre. Vous avez trois tentatives pour entrer ces montants.",
+      "descriptionSuccess": "Votre compte a été vérifié et est prêt pour les transactions.",
+      "amount1": {
+        "label": "Montant du microdépôt 1",
+        "placeholder": "0,00",
+        "validation": {
+          "required": "Le montant du premier dépôt est requis",
+          "invalid": "Veuillez entrer un montant valide",
+          "min": "$t(validation:money.min, {'amount': '0,01 $'})",
+          "max": "$t(validation:money.max, {'amount': '1,00 $'})",
+          "decimals": "$t(validation:numeric.decimal, {'places': 2})"
+        }
+      },
+      "amount2": {
+        "label": "Montant du microdépôt 2",
+        "placeholder": "0,00",
+        "validation": {
+          "required": "Le montant du deuxième dépôt est requis",
+          "invalid": "Veuillez entrer un montant valide",
+          "min": "$t(validation:money.min, {'amount': '0,01 $'})",
+          "max": "$t(validation:money.max, {'amount': '1,00 $'})",
+          "decimals": "$t(validation:numeric.decimal, {'places': 2})"
+        }
+      },
+      "errors": {
+        "loading": {
+          "title": "Erreur lors du chargement des informations du compte",
+          "message": "Impossible de charger les détails du compte. Veuillez réessayer ou contacter le support."
+        },
+        "verificationFailed": {
+          "title": "Échec de la vérification",
+          "default": "Une erreur s'est produite lors de la vérification. Veuillez réessayer.",
+          "400": "Les microdépôts que vous avez saisis sont incorrects. Veuillez réessayer."
+        },
+        "maxAttemptsExceeded": {
+          "title": "Nombre maximum de tentatives dépassé",
+          "message": "Vous avez dépassé le nombre maximum de tentatives pour vérifier les microdépôts. Veuillez contacter le support."
+        }
+      }
+    }
+  }
+}

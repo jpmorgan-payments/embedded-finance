@@ -1,5 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import {
   getGetAllRecipientsQueryKey,
@@ -16,14 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import {
   BankAccountForm,
-  linkedAccountConfig,
   transformBankAccountFormToRecipientPayload,
+  useLinkedAccountConfig,
   type BankAccountFormData,
 } from '@/components/BankAccountForm';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { AccountConfirmation } from '../../components/AccountConfirmation';
-import { STATUS_MESSAGES } from '../../LinkedAccountWidget.constants';
 
 type LinkAccountFormDialogTriggerProps = {
   children: ReactNode;
@@ -36,6 +36,8 @@ type LinkAccountFormDialogTriggerProps = {
 export const LinkAccountFormDialogTrigger: FC<
   LinkAccountFormDialogTriggerProps
 > = ({ children, onLinkedAccountSettled }) => {
+  const { t } = useTranslation('linked-accounts');
+  const linkedAccountConfig = useLinkedAccountConfig();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -88,15 +90,15 @@ export const LinkAccountFormDialogTrigger: FC<
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-text-xl">
             {createRecipientStatus === 'success'
-              ? 'Account Linked Successfully'
-              : linkedAccountConfig.content.title}
+              ? t('forms.linkAccount.titleSuccess')
+              : t('forms.linkAccount.title')}
           </DialogTitle>
           <DialogDescription>
             {createRecipientStatus === 'success'
               ? createRecipientResponse?.status
-                ? STATUS_MESSAGES[createRecipientResponse.status]
-                : linkedAccountConfig.content.successDescription
-              : linkedAccountConfig.content.description}
+                ? t(`status.messages.${createRecipientResponse.status}`)
+                : t('forms.linkAccount.descriptionSuccess')
+              : t('forms.linkAccount.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -120,7 +122,7 @@ export const LinkAccountFormDialogTrigger: FC<
               <ServerErrorAlert
                 error={createRecipientError}
                 showDetails
-                customTitle="Unable to link account"
+                customTitle={t('forms.linkAccount.error.title')}
               />
             }
           />
