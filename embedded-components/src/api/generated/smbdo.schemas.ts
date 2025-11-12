@@ -3,38 +3,8 @@
  * Do not edit manually.
  * Digital Onboarding API
  * Digital Onboarding APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.17
+ * OpenAPI spec version: 1.0.18
  */
-export type SmbdoListSessionsParams = {
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Id of the party or client
-   */
-  targetId: string;
-};
-
-export type GetAllPartiesParams = {
-  /**
-   * Unique party identifier.
-   */
-  parentPartyId?: ParentPartyIdInQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-};
-
 export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
 
 export type SmbdoUploadDocumentBody = {
@@ -43,74 +13,48 @@ export type SmbdoUploadDocumentBody = {
   file: Blob;
 };
 
-export type SmbdoListQuestionsParams = {
-  /**
-   * Comma-separated list of Question IDs.
-   */
-  questionIds?: QuestionIdListInQueryParameter;
-};
-
-/**
- * The type of resource for which recommendations were requested.
- */
-export type SmbdoGetRecommendations200ResourceType =
-  (typeof SmbdoGetRecommendations200ResourceType)[keyof typeof SmbdoGetRecommendations200ResourceType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SmbdoGetRecommendations200ResourceType = {
-  NAICS_CODE: 'NAICS_CODE',
-} as const;
-
-export type SmbdoGetRecommendations200ResourceItem = {
-  /** The NAICS code identifier. */
-  naicsCode: string;
-  /** The description of the NAICS code. */
-  naicsDescription: string;
-};
-
-export type SmbdoGetRecommendations200 = {
-  /** Optional message with additional information about the recommendations. */
-  message?: string;
-  /** List of recommended resources based on the input. */
-  resource: SmbdoGetRecommendations200ResourceItem[];
-  /** The type of resource for which recommendations were requested. */
-  resourceType: SmbdoGetRecommendations200ResourceType;
-};
-
-export type SmbdoGetRecommendationsBodyValuesItem = {
-  /** The key identifier for the information. */
-  key: string;
-  /** The value associated with the key. */
-  value: string;
-};
-
-/**
- * The type of resource for which recommendations are requested.
- */
-export type SmbdoGetRecommendationsBodyResourceType =
-  (typeof SmbdoGetRecommendationsBodyResourceType)[keyof typeof SmbdoGetRecommendationsBodyResourceType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SmbdoGetRecommendationsBodyResourceType = {
-  NAICS_CODE: 'NAICS_CODE',
-} as const;
-
-export type SmbdoGetRecommendationsBody = {
-  /** The type of resource for which recommendations are requested. */
-  resourceType: SmbdoGetRecommendationsBodyResourceType;
-  /** List of key-value pairs containing information about the organization. */
-  values: SmbdoGetRecommendationsBodyValuesItem[];
-};
-
 /**
  * Number of records per page.
  */
 export type PageSizeParameter = number;
 
+export type SmbdoListSessionsParams = {
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+/**
+ * Id of the party or client
+ */
+targetId: string;
+};
+
+export type SmbdoListClientsParams = {
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+};
+
 /**
  * Comma-separated list of Question IDs.
  */
 export type QuestionIdListInQueryParameter = string;
+
+export type SmbdoListQuestionsParams = {
+/**
+ * Comma-separated list of Question IDs.
+ */
+questionIds?: QuestionIdListInQueryParameter;
+};
 
 /**
  * Unique Party identifier.
@@ -123,14 +67,14 @@ export type PartyIdQueryParameter = string;
 export type ClientIdQueryParameter = string;
 
 export type SmbdoListDocumentRequestsParams = {
-  /**
-   * Unique Client identifier.
-   */
-  clientId?: ClientIdQueryParameter;
-  /**
-   * Unique Party identifier.
-   */
-  partyId?: PartyIdQueryParameter;
+/**
+ * Unique Client identifier.
+ */
+clientId?: ClientIdQueryParameter;
+/**
+ * Unique Party identifier.
+ */
+partyId?: PartyIdQueryParameter;
 };
 
 /**
@@ -139,39 +83,43 @@ export type SmbdoListDocumentRequestsParams = {
 export type PageNumberParameter = number;
 
 export type SmbdoGetAllDocumentDetailsParams = {
-  /**
-   * Unique Client identifier.
-   */
-  clientId?: ClientIdQueryParameter;
-  /**
-   * Unique Party identifier.
-   */
-  partyId?: PartyIdQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-};
-
-export type SmbdoListClientsParams = {
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
+/**
+ * Unique Client identifier.
+ */
+clientId?: ClientIdQueryParameter;
+/**
+ * Unique Party identifier.
+ */
+partyId?: PartyIdQueryParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
 };
 
 /**
  * Unique party identifier.
  */
 export type ParentPartyIdInQueryParameter = string;
+
+export type GetAllPartiesParams = {
+/**
+ * Unique party identifier.
+ */
+parentPartyId?: ParentPartyIdInQueryParameter;
+/**
+ * Page number.
+ */
+page?: PageNumberParameter;
+/**
+ * Number of records per page.
+ */
+limit?: PageSizeParameter;
+};
 
 /**
  * Bad Request
@@ -232,7 +180,106 @@ export type N202Response = {
   acceptedAt: string;
 };
 
-export type SessionsType = (typeof SessionsType)[keyof typeof SessionsType];
+/**
+ * Request was accepted
+ */
+export type N202Response = N202Response;
+
+/**
+ * Represents an ENUM value that helps determine which recommendation needs to be performed.
+ */
+export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ResourceType = {
+  NAICS_CODE: 'NAICS_CODE',
+} as const;
+
+export interface RecommendationDocumentResponse {
+  /** Unique identifier for the document. */
+  documentId?: string;
+  /** Name of the document. */
+  documentName?: string;
+}
+
+export interface NaicsCodeResponse {
+  /** NAICS code for the recommendation. */
+  naicsCode?: string;
+  /** Description of the NAICS code. */
+  naicsDescription?: string;
+}
+
+/**
+ * @minItems 0
+ */
+export type Resource = NaicsCodeResponse[];
+
+export interface RecommendationsResponse {
+  /**
+   * Optional message providing additional information.
+   * @nullable
+   */
+  message?: string | null;
+  resource?: Resource;
+  resourceType?: ResourceType;
+}
+
+export type ValuesItem = {
+  /** Field names which help generate recommendations. */
+  key?: string;
+  /** Represents the value associated with the key. */
+  value?: string;
+};
+
+/**
+ * Contains key-value pairs providing additional context.
+ * @minItems 0
+ */
+export type Values = ValuesItem[];
+
+export interface RecommendationsRequest {
+  resourceType: ResourceType;
+  values: Values;
+}
+
+/**
+ * Provide details for stock exchange and ticker symbol if your organization is a publicly traded company.
+If your organization is a subsidiary use these fields to provide details of the parent organization. If
+your organization is listed on multiple stock exchanges provide the highest priority listing by order:
+- "XNYS" for the New York Stock Exchange or "XNAS" for NASDAQ.
+- One of the exchanges listed in [Publicly Traded Companies](https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/publicly-traded-companies)
+- Other
+
+ */
+export interface PubliclyTraded {
+  /**
+   * Supported options are "XNYS", "XNAS", one of the symbols listed on [Publicly Traded Companies](https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/publicly-traded-companies) or "Other". The stock exchange symbol used by the organization which is registered with the provided "tickerSymbol". This field is case-sensitive.
+
+   * @minLength 1
+   * @maxLength 10
+   * @pattern ^[A-Za-z]*$
+   */
+  stockExchange: string;
+  /**
+   * If "stockExchange" is "Other", use this field to provide the name of the stock exchange.
+
+   * @minLength 1
+   * @maxLength 100
+   * @pattern ^.*$
+   */
+  stockExchangeName?: string;
+  /**
+   * The official ticker symbol assigned to the organization for the provided "stockExchange" field. This typically consists of 3 to 6 uppercase letters.
+   * @minLength 1
+   * @maxLength 10
+   * @pattern ^[A-Z0-9]*$
+   */
+  tickerSymbol: string;
+}
+
+export type SessionsType = typeof SessionsType[keyof typeof SessionsType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SessionsType = {
@@ -251,8 +298,8 @@ export type SessionId = string;
  * Client or party type.
 
  */
-export type SessionTargetType =
-  (typeof SessionTargetType)[keyof typeof SessionTargetType];
+export type SessionTargetType = typeof SessionTargetType[keyof typeof SessionTargetType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SessionTargetType = {
@@ -401,7 +448,7 @@ export type RequestId = string;
  */
 export interface PostUploadDocument {
   /** The base64 encoded string of the file data. The maximum allowed file size is 2MB. Use the base64 content itself and omit headers like `data:image/png;base64`.
-   */
+ */
   documentContent: string;
   /** Document metadata. */
   documentMetadata: PostUploadDocumentDocumentMetadata;
@@ -420,8 +467,8 @@ The supported file types are:
   requestId?: RequestId;
 }
 
-export type DocumentMetadataKeyEnum =
-  (typeof DocumentMetadataKeyEnum)[keyof typeof DocumentMetadataKeyEnum];
+export type DocumentMetadataKeyEnum = typeof DocumentMetadataKeyEnum[keyof typeof DocumentMetadataKeyEnum];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentMetadataKeyEnum = {
@@ -474,8 +521,8 @@ export interface DocumentRequestListResponse {
  */
 export type ValidForDays = number;
 
-export type DocumentRequestStatus =
-  (typeof DocumentRequestStatus)[keyof typeof DocumentRequestStatus];
+export type DocumentRequestStatus = typeof DocumentRequestStatus[keyof typeof DocumentRequestStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentRequestStatus = {
@@ -484,8 +531,8 @@ export const DocumentRequestStatus = {
   EXPIRED: 'EXPIRED',
 } as const;
 
-export type DocumentRequestRequirementLevel =
-  (typeof DocumentRequestRequirementLevel)[keyof typeof DocumentRequestRequirementLevel];
+export type DocumentRequestRequirementLevel = typeof DocumentRequestRequirementLevel[keyof typeof DocumentRequestRequirementLevel];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentRequestRequirementLevel = {
@@ -502,8 +549,8 @@ export type DocumentRequestId = string;
 /**
  * Supported document types
  */
-export type DocumentTypeSmbdo =
-  (typeof DocumentTypeSmbdo)[keyof typeof DocumentTypeSmbdo];
+export type DocumentTypeSmbdo = typeof DocumentTypeSmbdo[keyof typeof DocumentTypeSmbdo];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DocumentTypeSmbdo = {
@@ -634,8 +681,8 @@ export type QuestionResponseSubQuestionsItem = {
   questionIds?: QuestionIdList;
 };
 
-export type ResponseSchemaType =
-  (typeof ResponseSchemaType)[keyof typeof ResponseSchemaType];
+export type ResponseSchemaType = typeof ResponseSchemaType[keyof typeof ResponseSchemaType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseSchemaType = {
@@ -646,8 +693,8 @@ export const ResponseSchemaType = {
  * The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
 
  */
-export type ResponseSchemaItemType =
-  (typeof ResponseSchemaItemType)[keyof typeof ResponseSchemaItemType];
+export type ResponseSchemaItemType = typeof ResponseSchemaItemType[keyof typeof ResponseSchemaItemType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseSchemaItemType = {
@@ -661,8 +708,8 @@ export const ResponseSchemaItemType = {
 /**
  * Only applicable to string, number, and integer.
  */
-export type ResponseSchemaItemFormat =
-  (typeof ResponseSchemaItemFormat)[keyof typeof ResponseSchemaItemFormat];
+export type ResponseSchemaItemFormat = typeof ResponseSchemaItemFormat[keyof typeof ResponseSchemaItemFormat];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ResponseSchemaItemFormat = {
@@ -694,7 +741,7 @@ export interface ResponseSchemaItem {
   /** Only applicable to string. */
   pattern?: string;
   /** The data type for the response values. The `enum` type is deprecated, refer to the `enum` field instead.
-   */
+ */
   type: ResponseSchemaItemType;
 }
 
@@ -752,6 +799,8 @@ export interface ClientVerificationResponse {
 export interface ClientVerificationRequest {
   consumerDevice?: ConsumerDevice;
 }
+
+export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline & UpdatePartyRequestInline;
 
 /**
  * Describes which attestation to remove. An existing attestation with a matching `documentId` will be removed.
@@ -811,9 +860,6 @@ export interface UpdatePartyRequestInline {
   roles?: PartyRoleList;
 }
 
-export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
-  UpdatePartyRequestInline;
-
 export type ClientUpdatedResponse = ClientResponse & {
   consumerDevice?: ConsumerDevice;
 };
@@ -829,8 +875,8 @@ export type ClientResponseOutstanding = {
 /**
  * The status of the customer identification process.
  */
-export type CustomerIdentityStatus =
-  (typeof CustomerIdentityStatus)[keyof typeof CustomerIdentityStatus];
+export type CustomerIdentityStatus = typeof CustomerIdentityStatus[keyof typeof CustomerIdentityStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CustomerIdentityStatus = {
@@ -863,31 +909,6 @@ export interface ClientQuestionResponse {
   values?: ResponseValueList;
 }
 
-export interface ClientResponse {
-  /**
-   * @deprecated
-   * @minItems 0
-   * @maxItems 10
-   */
-  attestations?: Attestation[];
-  consumerDevice?: ConsumerDevice;
-  /** Date and time when the client was created */
-  createdAt?: string;
-  id: ClientId;
-  outstanding: ClientResponseOutstanding;
-  /** @minItems 0 */
-  parties?: PartyResponse[];
-  partyId: PartyId;
-  products: ClientProductList;
-  /**
-   * @minItems 0
-   * @maxItems 200
-   */
-  questionResponses?: ClientQuestionResponse[];
-  results?: ClientResults;
-  status: ClientStatus;
-}
-
 /**
  * The preferences of the party.
  */
@@ -914,6 +935,31 @@ export interface PartyResponse {
   roles?: PartyRoleList;
   status?: PartyStatus;
   validationResponse?: ValidationResponse;
+}
+
+export interface ClientResponse {
+  /**
+   * @deprecated
+   * @minItems 0
+   * @maxItems 10
+   */
+  attestations?: Attestation[];
+  consumerDevice?: ConsumerDevice;
+  /** Date and time when the client was created */
+  createdAt?: string;
+  id: ClientId;
+  outstanding: ClientResponseOutstanding;
+  /** @minItems 0 */
+  parties?: PartyResponse[];
+  partyId: PartyId;
+  products: ClientProductList;
+  /**
+   * @minItems 0
+   * @maxItems 200
+   */
+  questionResponses?: ClientQuestionResponse[];
+  results?: ClientResults;
+  status: ClientStatus;
 }
 
 /**
@@ -956,8 +1002,8 @@ export type DiscoverDebtRepayment = boolean;
  * The American Express status code for the merchant if they are terminated or reinstated. The payment provider must provide this if the merchant was previously terminated and AMEX_OPT_BLUE is a selected method of payment.
 
  */
-export type ServiceEstablishmentStatus =
-  (typeof ServiceEstablishmentStatus)[keyof typeof ServiceEstablishmentStatus];
+export type ServiceEstablishmentStatus = typeof ServiceEstablishmentStatus[keyof typeof ServiceEstablishmentStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ServiceEstablishmentStatus = {
@@ -970,8 +1016,8 @@ export const ServiceEstablishmentStatus = {
  * The mechanism used to provide details at the merchant's terminal for transactions.  Required when DISCOVER is selected.
 
  */
-export type TransactionDeviceType =
-  (typeof TransactionDeviceType)[keyof typeof TransactionDeviceType];
+export type TransactionDeviceType = typeof TransactionDeviceType[keyof typeof TransactionDeviceType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TransactionDeviceType = {
@@ -986,8 +1032,8 @@ export const TransactionDeviceType = {
  * The merchant's preferred currency for transactions. Required when AMEX_OPT_BLUE is selected.
 
  */
-export type NetworkRegistrationCurrencyCode =
-  (typeof NetworkRegistrationCurrencyCode)[keyof typeof NetworkRegistrationCurrencyCode];
+export type NetworkRegistrationCurrencyCode = typeof NetworkRegistrationCurrencyCode[keyof typeof NetworkRegistrationCurrencyCode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const NetworkRegistrationCurrencyCode = {
@@ -1000,8 +1046,8 @@ export const NetworkRegistrationCurrencyCode = {
 /**
  * The type of Visa debit card acceptance. Required when VISA is selected.
  */
-export type VisaDebitAcceptance =
-  (typeof VisaDebitAcceptance)[keyof typeof VisaDebitAcceptance];
+export type VisaDebitAcceptance = typeof VisaDebitAcceptance[keyof typeof VisaDebitAcceptance];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const VisaDebitAcceptance = {
@@ -1014,8 +1060,8 @@ export const VisaDebitAcceptance = {
 /**
  * The method of payment used in network registration.
  */
-export type SettlementPaymentMethods =
-  (typeof SettlementPaymentMethods)[keyof typeof SettlementPaymentMethods];
+export type SettlementPaymentMethods = typeof SettlementPaymentMethods[keyof typeof SettlementPaymentMethods];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SettlementPaymentMethods = {
@@ -1037,7 +1083,7 @@ export interface NetworkRegistration {
   jcbAccepted?: JcbAccepted;
   serviceEstablishmentStatus?: ServiceEstablishmentStatus;
   /** The last update date of the service establishment status.  Required if the service establishment status is provided.
-   */
+ */
   serviceEstablishmentStatusUpdateDate?: string;
   /**
    * The selection of method of payments used in network registration.
@@ -1046,7 +1092,7 @@ export interface NetworkRegistration {
    */
   settlementPaymentMethods?: SettlementPaymentMethods[];
   /** The opting out of settlement payment method selection. Required to specify true if the merchant is not selecting any settlement payment method.
-   */
+ */
   settlementPaymentMethodsOptOut?: boolean;
   transactionDeviceType?: TransactionDeviceType;
   visaDebitAcceptance?: VisaDebitAcceptance;
@@ -1079,8 +1125,8 @@ export interface PartyField {
 | LIVENESS_CHECK | Validation of the liveliness of an individual party. This validation can be completed with a LIVENESS_CHECK-type party session. |
 
  */
-export type ValidationType =
-  (typeof ValidationType)[keyof typeof ValidationType];
+export type ValidationType = typeof ValidationType[keyof typeof ValidationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ValidationType = {
@@ -1092,8 +1138,8 @@ export const ValidationType = {
  * Status of a party validation. Missing fields result in `NEEDS_INFO`.
 
  */
-export type ValidationStatus =
-  (typeof ValidationStatus)[keyof typeof ValidationStatus];
+export type ValidationStatus = typeof ValidationStatus[keyof typeof ValidationStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ValidationStatus = {
@@ -1139,7 +1185,8 @@ export type Active = boolean;
 /**
  * @deprecated
  */
-export type PartyStatus = (typeof PartyStatus)[keyof typeof PartyStatus];
+export type PartyStatus = typeof PartyStatus[keyof typeof PartyStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PartyStatus = {
@@ -1147,7 +1194,8 @@ export const PartyStatus = {
   INACTIVE: 'INACTIVE',
 } as const;
 
-export type ProfileStatus = (typeof ProfileStatus)[keyof typeof ProfileStatus];
+export type ProfileStatus = typeof ProfileStatus[keyof typeof ProfileStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProfileStatus = {
@@ -1182,8 +1230,8 @@ export interface CreateClientRequestSmbdo {
  * @minLength 5
  * @maxLength 5
  */
-export type DefaultLanguagePreferenceEnum =
-  (typeof DefaultLanguagePreferenceEnum)[keyof typeof DefaultLanguagePreferenceEnum];
+export type DefaultLanguagePreferenceEnum = typeof DefaultLanguagePreferenceEnum[keyof typeof DefaultLanguagePreferenceEnum];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DefaultLanguagePreferenceEnum = {
@@ -1245,8 +1293,8 @@ export type Website = string;
 /**
  * The ID type
  */
-export type OrganizationIdentityDtoIdType =
-  (typeof OrganizationIdentityDtoIdType)[keyof typeof OrganizationIdentityDtoIdType];
+export type OrganizationIdentityDtoIdType = typeof OrganizationIdentityDtoIdType[keyof typeof OrganizationIdentityDtoIdType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrganizationIdentityDtoIdType = {
@@ -1286,8 +1334,12 @@ export interface OrganizationIdentityDto {
   value: string;
 }
 
-export type OrganizationType =
-  (typeof OrganizationType)[keyof typeof OrganizationType];
+/**
+ * This field specifies the legal structure or classification of the organization and identifies whether the entity is a Corporation, Sole Proprietorship, Non-Profit, or Government Body. Note: The values `PARTNERSHIP` and `PUBLICLY_TRADED_COMPANY` are deprecated and should not be used.
+
+ */
+export type OrganizationType = typeof OrganizationType[keyof typeof OrganizationType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrganizationType = {
@@ -1327,8 +1379,8 @@ export type OrganizationName = string;
  */
 export type MerchantCategoryCode = string;
 
-export type OrganizationIndustryCodeType =
-  (typeof OrganizationIndustryCodeType)[keyof typeof OrganizationIndustryCodeType];
+export type OrganizationIndustryCodeType = typeof OrganizationIndustryCodeType[keyof typeof OrganizationIndustryCodeType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrganizationIndustryCodeType = {
@@ -1346,14 +1398,14 @@ export interface OrganizationIndustry {
 }
 
 /**
- * The industry type of the business connected to the client. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/industry-descriptor-reference) to get a list of acceptable values.
+ * The industry type of the business connected to the client. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/industry-descriptor-reference) to get a list of acceptable values.
 
  * @minLength 0
  */
 export type OrganizationIndustryType = string;
 
 /**
- * The industry category of the business connected to the client. For example, `Accommodation and Food Services`. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/industry-descriptor-reference) to get a list of acceptable values.
+ * The industry category of the business connected to the client. For example, `Accommodation and Food Services`. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/industry-descriptor-reference) to get a list of acceptable values.
 
  * @minLength 0
  */
@@ -1393,6 +1445,9 @@ export interface OrganizationDetails {
   industry?: OrganizationIndustry;
   industryCategory?: OrganizationIndustryCategory;
   industryType?: OrganizationIndustryType;
+  /** Is your organization a subsidiary of a publicly traded company or not. This field is required when "publiclyTraded" block is provided in organization details. If this field is given in payload (true | false),  then the "publiclyTraded" will be required as well.
+ */
+  isSubsidiary?: boolean;
   /** @deprecated */
   jurisdiction?: CountryCodeIsoAlpha2;
   mcc?: MerchantCategoryCode;
@@ -1405,6 +1460,7 @@ export interface OrganizationDetails {
   organizationName?: OrganizationName;
   organizationType?: OrganizationType;
   phone?: PhoneSmbdo;
+  publiclyTraded?: PubliclyTraded;
   /**
    * The list of additional merchant category codes describing  industries that the business is in.
 
@@ -1418,8 +1474,6 @@ export interface OrganizationDetails {
   yearOfFormation?: YearOfFormation;
 }
 
-export type IndividualDetailsRequired = IndividualDetails;
-
 export type SoleOwner = boolean;
 
 /**
@@ -1431,6 +1485,39 @@ export type SoleOwner = boolean;
 export type SocialMediaUrl = string;
 
 /**
+ * Details of an individual.
+ */
+export interface IndividualDetails {
+  /**
+   * @minItems 1
+   * @maxItems 5
+   */
+  addresses?: AddressDto[];
+  birthDate?: BirthDate;
+  countryOfResidence?: CountryCodeIsoAlpha2;
+  firstName?: FirstName;
+  /**
+   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
+   * @minItems 0
+   * @maxItems 16
+   */
+  individualIds?: IndividualIdentity[];
+  jobTitle?: IndividualJobTitle;
+  jobTitleDescription?: IndividualJobTitleDescription;
+  lastName?: LastName;
+  middleName?: MiddleName;
+  nameSuffix?: NameSuffix;
+  natureOfOwnership?: NatureOfOwnership;
+  phone?: PhoneSmbdo;
+  socialMedia?: SocialMediaList;
+  socialMediaUrl?: SocialMediaUrl;
+  /** @deprecated */
+  soleOwner?: SoleOwner;
+}
+
+export type IndividualDetailsRequired = IndividualDetails;
+
+/**
  * The platform of the social media profile.
 | Platform | Description |
 | -- | -- |
@@ -1439,8 +1526,8 @@ export type SocialMediaUrl = string;
 | X | X (formerly known as Twitter), the social media profile at x.com. |
 
  */
-export type SocialMediaProfilePlatform =
-  (typeof SocialMediaProfilePlatform)[keyof typeof SocialMediaProfilePlatform];
+export type SocialMediaProfilePlatform = typeof SocialMediaProfilePlatform[keyof typeof SocialMediaProfilePlatform];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SocialMediaProfilePlatform = {
@@ -1480,39 +1567,8 @@ export type SocialMediaList = SocialMedia[];
  */
 export type NatureOfOwnership = string;
 
-/**
- * Details of an individual.
- */
-export interface IndividualDetails {
-  /**
-   * @minItems 1
-   * @maxItems 5
-   */
-  addresses?: AddressDto[];
-  birthDate?: BirthDate;
-  countryOfResidence?: CountryCodeIsoAlpha2;
-  firstName?: FirstName;
-  /**
-   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
-   * @minItems 0
-   * @maxItems 16
-   */
-  individualIds?: IndividualIdentity[];
-  jobTitle?: IndividualJobTitle;
-  jobTitleDescription?: IndividualJobTitleDescription;
-  lastName?: LastName;
-  middleName?: MiddleName;
-  nameSuffix?: NameSuffix;
-  natureOfOwnership?: NatureOfOwnership;
-  phone?: PhoneSmbdo;
-  socialMedia?: SocialMediaList;
-  socialMediaUrl?: SocialMediaUrl;
-  /** @deprecated */
-  soleOwner?: SoleOwner;
-}
+export type PhoneSmbdoPhoneType = typeof PhoneSmbdoPhoneType[keyof typeof PhoneSmbdoPhoneType];
 
-export type PhoneSmbdoPhoneType =
-  (typeof PhoneSmbdoPhoneType)[keyof typeof PhoneSmbdoPhoneType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PhoneSmbdoPhoneType = {
@@ -1561,8 +1617,8 @@ export type IndividualJobTitle = string;
  * `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
 
  */
-export type IndividualIdentityIdType =
-  (typeof IndividualIdentityIdType)[keyof typeof IndividualIdentityIdType];
+export type IndividualIdentityIdType = typeof IndividualIdentityIdType[keyof typeof IndividualIdentityIdType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const IndividualIdentityIdType = {
@@ -1589,7 +1645,7 @@ export interface IndividualIdentity {
   /** @deprecated */
   expiryDate?: string;
   /** `idType` denotes the type of taxpayer identification number (e.g. Social Security Number or Individual Taxpayer Identification Number). A Social Security Number or Individual Taxpayer Identification Number is accepted for an owner or controller individual. Decision makers do not require any tax identifier.
-   */
+ */
   idType: IndividualIdentityIdType;
   /**
    * Identification issuer country code e.g. US
@@ -1653,8 +1709,8 @@ export type BirthDate = string;
 /**
  * Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`.
  */
-export type AddressDtoAddressType =
-  (typeof AddressDtoAddressType)[keyof typeof AddressDtoAddressType];
+export type AddressDtoAddressType = typeof AddressDtoAddressType[keyof typeof AddressDtoAddressType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AddressDtoAddressType = {
@@ -1669,7 +1725,7 @@ export const AddressDtoAddressType = {
  */
 export interface AddressDto {
   /**
-   * The address lines. Post-office boxes (PO Box) and private mail boxes (PMB) addresses are not allowed. Each line has a maximum of 60 characters.  The line format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&\_\'\ \#]*$`.
+   * The address lines. Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address has to be the be principal place of business. Each line has a maximum of 60 characters. The line format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&\_\'\ \#]*$`.
 
    * @minItems 1
    * @maxItems 5
@@ -1678,8 +1734,8 @@ export interface AddressDto {
   /** Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`. */
   addressType?: AddressDtoAddressType;
   /**
-   * City has a maximum of 34 characters. City would serve as County in countries where applicable.
-   * @maxLength 34
+   * City has a maximum of 40 characters. City would serve as County in countries where applicable.
+   * @maxLength 40
    */
   city: string;
   /**
@@ -1706,7 +1762,8 @@ export interface AddressDto {
 /**
  * The party type
  */
-export type PartyType = (typeof PartyType)[keyof typeof PartyType];
+export type PartyType = typeof PartyType[keyof typeof PartyType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PartyType = {
@@ -1812,8 +1869,8 @@ export interface Attester {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorContextLocation =
-  (typeof ApiErrorContextLocation)[keyof typeof ApiErrorContextLocation];
+export type ApiErrorContextLocation = typeof ApiErrorContextLocation[keyof typeof ApiErrorContextLocation];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApiErrorContextLocation = {
@@ -1860,7 +1917,8 @@ export interface SchemasApiError {
 /**
  * The client's status.
  */
-export type ClientStatus = (typeof ClientStatus)[keyof typeof ClientStatus];
+export type ClientStatus = typeof ClientStatus[keyof typeof ClientStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ClientStatus = {
@@ -1904,7 +1962,8 @@ export interface ClientListResponse {
 - `AUTHORIZED_USER`: Individuals empowered to perform operational tasks, make decisions, and interact with the entity's systems on behalf of the organization.
 
  */
-export type Role = (typeof Role)[keyof typeof Role];
+export type Role = typeof Role[keyof typeof Role];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const Role = {
@@ -1982,7 +2041,8 @@ export type ClientSummaryResponseOutstanding = {
 | MERCHANT_SERVICES | JPMorgan solution for online or point-of-sale payment processing |
 
  */
-export type ClientProduct = (typeof ClientProduct)[keyof typeof ClientProduct];
+export type ClientProduct = typeof ClientProduct[keyof typeof ClientProduct];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ClientProduct = {
@@ -2048,8 +2108,8 @@ export interface PageMetaData {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location =
-  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
+export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApiErrorReasonV2Location = {
@@ -2100,3 +2160,4 @@ export interface ApiError {
   /** Internal assigned traced identifier */
   traceId?: string;
 }
+

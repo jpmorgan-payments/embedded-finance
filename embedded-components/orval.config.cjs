@@ -70,7 +70,7 @@ module.exports = {
     },
   },
   smbdo: {
-    input: './api-specs/embedded-finance-pub-smbdo-1.0.17-rec.yaml',
+    input: './api-specs/embedded-finance-pub-smbdo-1.0.18.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/smbdo.ts',
