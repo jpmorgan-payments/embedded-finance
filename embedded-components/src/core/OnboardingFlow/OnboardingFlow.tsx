@@ -247,7 +247,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
-  console.log('state', currentStepperStepId);
+
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {
