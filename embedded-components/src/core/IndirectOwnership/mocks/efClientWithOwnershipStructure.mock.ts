@@ -74,9 +74,6 @@ export const efClientWithOwnershipStructure: ClientResponse = {
           validationType: 'ENTITY_VALIDATION',
           fields: [
             {
-              name: 'ownership_percentage',
-            },
-            {
               name: 'verification_documents',
             },
           ],
