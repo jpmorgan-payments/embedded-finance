@@ -40,7 +40,7 @@ export const efClientComplexOwnership: ClientResponse = {
       },
     },
     
-    // Layer 2: Innovation Ventures LLC (60% ownership)
+    // Layer 2: Innovation Ventures LLC (60% ownership) - Intermediary Owner
     {
       id: 'party-sub-001',
       partyType: 'ORGANIZATION', 
