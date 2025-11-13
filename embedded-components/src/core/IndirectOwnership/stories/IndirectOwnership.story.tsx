@@ -5,7 +5,14 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { SELLSENSE_THEME } from '@/core/themes';
 
 import { IndirectOwnership } from '../IndirectOwnership';
-import { efClientEmptyOwnership, efClientNeedsOwnershipInfo, efClientComplexOwnership } from '../mocks';
+import { 
+  efClientEmptyOwnership, 
+  efClientNeedsOwnershipInfo, 
+  efClientComplexOwnership,
+  efClientIncompleteOwnership,
+  efClientTooManyOwners,
+  efClientMultipleValidationErrors 
+} from '../mocks';
 
 interface IndirectOwnershipWithProviderProps {
   apiBaseUrl: string;
@@ -240,6 +247,178 @@ export const ReadOnly: Story = {
         // Mock the SMBDO Get Client API to return a basic client
         http.get('*/clients/readonly-client-003', () => {
           return HttpResponse.json(efClientEmptyOwnership);
+        }),
+      ],
+    },
+  },
+};
+
+/**
+ * Validation Error: Incomplete Beneficial Ownership
+ * 
+ * This story demonstrates the validation error that occurs when entities
+ * in the ownership structure do not have identified beneficial owners (individuals).
+ * 
+ * The scenario shows:
+ * - Red error alert at the top explaining the issue
+ * - Orange warning badges on entities that need beneficial owners
+ * - Orange borders around problematic entities
+ * - Blocked form submission until issues are resolved
+ * 
+ * Error Type: INCOMPLETE_BENEFICIAL_OWNERSHIP
+ * Trigger: Entities with partyType='ORGANIZATION' and roles=['BENEFICIAL_OWNER'] 
+ *          that don't have any children with partyType='INDIVIDUAL'
+ */
+export const ValidationErrorIncompleteOwnership: Story = {
+  args: {
+    apiBaseUrl: 'https://api.example.com',
+    headers: { Authorization: 'Bearer demo-token' },
+    theme: SELLSENSE_THEME,
+    clientId: 'incomplete-ownership-client-001',
+    showVisualization: true,
+    maxDepth: 10,
+    readOnly: false,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        // Mock the SMBDO Get Client API to return client with incomplete ownership
+        http.get('*/clients/incomplete-ownership-client-001', () => {
+          return HttpResponse.json(efClientIncompleteOwnership);
+        }),
+        // Mock the SMBDO Update Client API
+        http.put('*/clients/incomplete-ownership-client-001', () => {
+          return HttpResponse.json(efClientIncompleteOwnership);
+        }),
+        // Mock the List Questions API
+        http.get('*/questions', () => {
+          return HttpResponse.json({
+            questions: [],
+            metadata: {
+              total: 0,
+              page: 1,
+              limit: 50,
+            },
+          });
+        }),
+      ],
+    },
+  },
+};
+
+/**
+ * Validation Error: Too Many Beneficial Owners (Mixed Direct/Indirect)
+ * 
+ * This story demonstrates the validation error that occurs when there are
+ * more than 4 individual beneficial owners across both direct and indirect ownership.
+ * 
+ * The scenario shows:
+ * - Complex ownership structure with both direct individuals and entities with indirect owners
+ * - Red error alert explaining the mathematical impossibility 
+ * - Disabled "Add Individual Owner" buttons
+ * - Warning text about reaching the 4-owner limit
+ * - Clear explanation that each owner must have ≥25% ownership
+ * - Demonstrates how indirect ownership still counts toward the 4-person limit
+ * 
+ * Error Type: TOO_MANY_BENEFICIAL_OWNERS  
+ * Trigger: More than 4 parties with partyType='INDIVIDUAL' and roles=['BENEFICIAL_OWNER']
+ * Mathematical Logic: 5 owners × 25% minimum = 125% > 100% (impossible)
+ * Structure: 3 direct + 2 indirect = 5 total individuals (exceeds limit)
+ */
+export const ValidationErrorTooManyOwners: Story = {
+  args: {
+    apiBaseUrl: 'https://api.example.com',
+    headers: { Authorization: 'Bearer demo-token' },
+    theme: SELLSENSE_THEME,
+    clientId: 'too-many-owners-client-001',
+    showVisualization: true,
+    maxDepth: 10,
+    readOnly: false,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        // Mock the SMBDO Get Client API to return client with too many owners
+        http.get('*/clients/too-many-owners-client-001', () => {
+          return HttpResponse.json(efClientTooManyOwners);
+        }),
+        // Mock the SMBDO Update Client API
+        http.put('*/clients/too-many-owners-client-001', () => {
+          return HttpResponse.json(efClientTooManyOwners);
+        }),
+        // Mock the List Questions API
+        http.get('*/questions', () => {
+          return HttpResponse.json({
+            questions: [],
+            metadata: {
+              total: 0,
+              page: 1,
+              limit: 50,
+            },
+          });
+        }),
+      ],
+    },
+  },
+};
+
+/**
+ * Validation Error: Multiple Issues Combined
+ * 
+ * This story demonstrates the "worst case" scenario where BOTH validation
+ * errors occur simultaneously in the same ownership structure.
+ * 
+ * The scenario shows:
+ * - Multiple error messages in the red alert box
+ * - Both types of visual warnings (orange borders, badges, disabled buttons)
+ * - Comprehensive error state with clear guidance for resolution
+ * - Blocked functionality until all issues are resolved
+ * 
+ * Error Types: 
+ * 1. TOO_MANY_BENEFICIAL_OWNERS (5 individuals > 4 limit)
+ * 2. INCOMPLETE_BENEFICIAL_OWNERSHIP (entity without individuals)
+ * 
+ * This story is useful for testing how the component handles multiple
+ * simultaneous validation failures and ensures all error states work together.
+ */
+export const ValidationErrorMultipleIssues: Story = {
+  args: {
+    apiBaseUrl: 'https://api.example.com',
+    headers: { Authorization: 'Bearer demo-token' },
+    theme: SELLSENSE_THEME,
+    clientId: 'multiple-errors-client-001',
+    showVisualization: true,
+    maxDepth: 10,
+    readOnly: false,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        // Mock the SMBDO Get Client API to return client with multiple validation errors
+        http.get('*/clients/multiple-errors-client-001', () => {
+          return HttpResponse.json(efClientMultipleValidationErrors);
+        }),
+        // Mock the SMBDO Update Client API
+        http.put('*/clients/multiple-errors-client-001', () => {
+          return HttpResponse.json(efClientMultipleValidationErrors);
+        }),
+        // Mock the List Questions API
+        http.get('*/questions', () => {
+          return HttpResponse.json({
+            questions: [
+              {
+                id: 'validation-001',
+                text: 'Please resolve ownership structure validation errors',
+                type: 'BENEFICIAL_OWNERSHIP',
+                required: true,
+              },
+            ],
+            metadata: {
+              total: 1,
+              page: 1,
+              limit: 50,
+            },
+          });
         }),
       ],
     },
