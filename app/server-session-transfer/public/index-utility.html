@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Finance Session Transfer Demo - Utility Library</title>
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 222.2 84% 4.9%;
+            --primary: 222.2 47.4% 11.2%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96%;
+            --secondary-foreground: 222.2 47.4% 11.2%;
+            --muted: 210 40% 96%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96%;
+            --accent-foreground: 222.2 47.4% 11.2%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 222.2 84% 4.9%;
+            --radius: 0.5rem;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 1rem;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .container {
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .card {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) + 2px);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin: 0 0 0.5rem 0;
+        }
+
+        .card-description {
+            color: hsl(var(--muted-foreground));
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: hsl(var(--foreground));
+            margin-bottom: 0.5rem;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            height: 2.5rem;
+            width: 100%;
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .button:hover {
+            background-color: hsl(var(--primary) / 0.9);
+        }
+
+        .button:disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-top: 1rem;
+            border: 1px solid;
+        }
+
+        .alert-info {
+            background-color: hsl(210 40% 98%);
+            color: hsl(var(--foreground));
+            border-color: hsl(var(--border));
+        }
+
+        .alert-success {
+            background-color: hsl(143 85% 96%);
+            color: hsl(140 100% 27%);
+            border-color: hsl(145 92% 91%);
+        }
+
+        .alert-error {
+            background-color: hsl(0 93% 94%);
+            color: hsl(0 84% 60%);
+            border-color: hsl(0 93% 94%);
+        }
+
+        .alert-warning {
+            background-color: hsl(48 96% 89%);
+            color: hsl(25 95% 53%);
+            border-color: hsl(48 96% 89%);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .iframe-container {
+            margin-top: 1.5rem;
+        }
+
+        .iframe-wrapper {
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            overflow: hidden;
+            background-color: hsl(var(--background));
+        }
+
+        .iframe-header {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            padding: 1rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .iframe-header h3 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .iframe-header p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        #onboarding-container {
+            min-height: 600px;
+            width: 100%;
+        }
+
+        .scroll-target {
+            scroll-margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">🏦 Embedded Finance Session Transfer Demo</h1>
+                <p class="card-description">
+                    Using JavaScript Utility Library (Section 3.3) - Simplified Integration
+                </p>
+            </div>
+            
+            <div class="alert alert-info">
+                <h3 class="font-medium">📋 Utility Library Integration</h3>
+                <p class="text-sm">This demo uses the <strong>PartiallyHostedUIComponent</strong> utility library from section 3.3:</p>
+                <ol class="text-sm space-y-1">
+                    <li><strong>ES Module:</strong> Uses <code>partially-hosted-ui-component.mjs</code> for modern browser support</li>
+                    <li><strong>Simplified API:</strong> Just provide sessionToken and mount to a container</li>
+                    <li><strong>Event System:</strong> Subscribe to lifecycle and onboarding events</li>
+                    <li><strong>Automatic URL Construction:</strong> Library handles iframe URL building with encoded parameters</li>
+                    <li><strong>Security:</strong> Built-in sandbox attributes and origin validation</li>
+                </ol>
+                <p class="text-sm mt-2"><strong>Note:</strong> Check Console tab to see utility library events and lifecycle messages.</p>
+            </div>
+
+            <div class="alert alert-warning">
+                <h3 class="font-medium">⚠️ Production Considerations</h3>
+                <p class="text-sm">
+                    <strong>Demo Environment:</strong> This uses JPMorgan's sandbox API endpoints<br>
+                    <strong>Test Client ID:</strong> <code>3100002010</code> (sandbox only)<br>
+                    <strong>Certificate Required:</strong> Valid p12 certificate must be configured in .env<br>
+                    <strong>Security:</strong> Tokens are short-lived and single-use for security
+                </p>
+            </div>
+
+            <form id="sessionForm" class="space-y-4 mt-4">
+                <div class="form-group">
+                    <label for="clientId" class="label">Client ID</label>
+                    <input 
+                        type="text" 
+                        id="clientId" 
+                        name="clientId" 
+                        class="input"
+                        placeholder="Enter your client ID (e.g., 3100002010)"
+                        required
+                    />
+                </div>
+                
+                <button type="submit" id="submitButton" class="button">
+                    🚀 Create Embedded Session
+                </button>
+                
+                <div class="alert alert-info hidden" id="loading">
+                    <p class="text-sm">⏳ Creating session... Please wait.</p>
+                </div>
+                
+                <div class="alert alert-error hidden" id="errorMessage"></div>
+                <div class="alert alert-success hidden" id="successMessage"></div>
+            </form>
+            
+            <div id="iframeContainer" class="iframe-container hidden">
+                <div class="iframe-wrapper scroll-target">
+                    <div class="iframe-header">
+                        <h3>JPMorgan Embedded Finance Onboarding</h3>
+                        <p>Complete your onboarding process in the embedded experience below</p>
+                    </div>
+                    <div id="onboarding-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
+
+        let onboardingUI = null;
+
+        function showIframeContainer() {
+            const iframeContainer = document.getElementById('iframeContainer');
+            iframeContainer.classList.remove('hidden');
+            
+            // Smooth scroll to iframe after a short delay
+            setTimeout(() => {
+                const target = document.querySelector('.scroll-target');
+                if (target) {
+                    target.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            }, 300);
+        }
+
+        document.getElementById('sessionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const clientId = document.getElementById('clientId').value;
+            const submitButton = document.getElementById('submitButton');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Reset messages
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+            
+            // Clean up existing component if any
+            if (onboardingUI) {
+                onboardingUI.destroy();
+                onboardingUI = null;
+            }
+            
+            // Show loading state
+            submitButton.disabled = true;
+            loading.classList.remove('hidden');
+            
+            try {
+                // Create session
+                const sessionResponse = await fetch('/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ clientId: clientId })
+                });
+                
+                const sessionData = await sessionResponse.json();
+                
+                if (sessionData.success) {
+                    // Show success message briefly
+                    successMessage.innerHTML = `
+                        <strong>✅ Session Created Successfully!</strong><br>
+                        <span class="text-sm">Session ID: ${sessionData.sessionId}</span>
+                    `;
+                    successMessage.classList.remove('hidden');
+                    
+                    // Initialize the utility library component
+                    onboardingUI = new PartiallyHostedUIComponent({
+                        sessionToken: sessionData.sessionToken,
+                        baseUrl: sessionData.baseUrl,
+                        experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+                        theme: {
+                            colorScheme: 'light',
+                            variables: {
+                                primaryColor: '#222222',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                            }
+                        },
+                        contentTokens: {
+                            locale: 'en-US',
+                            brandName: 'Your Platform'
+                        },
+                        debug: true // Enable debug logging
+                    });
+                    
+                    // Subscribe to events
+                    onboardingUI.subscribe((event) => {
+                        console.log('[Event]', event);
+                        
+                        // Handle onboarding completion
+                        if (event.namespace === 'onboarding' && event.level === 'info') {
+                            if (event.message === 'OnboardingComplete') {
+                                console.log('✅ Onboarding completed!', event.payload);
+                                successMessage.innerHTML = `
+                                    <strong>🎉 Onboarding Completed!</strong><br>
+                                    <span class="text-sm">Check the console for details.</span>
+                                `;
+                                successMessage.classList.remove('hidden');
+                            }
+                        }
+                        
+                        // Handle errors
+                        if (event.level === 'error') {
+                            console.error('❌ Error event:', event);
+                            errorMessage.innerHTML = `
+                                <strong>❌ Error</strong><br>
+                                <span class="text-sm">${event.message || 'An error occurred'}</span>
+                            `;
+                            errorMessage.classList.remove('hidden');
+                        }
+                    });
+                    
+                    // Mount the component
+                    onboardingUI.mount('onboarding-container');
+                    
+                    // Show iframe container
+                    setTimeout(() => {
+                        showIframeContainer();
+                    }, 500);
+                    
+                } else {
+                    throw new Error(sessionData.error || 'Unknown error occurred');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                errorMessage.innerHTML = `
+                    <strong>❌ Error Creating Session</strong><br>
+                    <span class="text-sm">${error.message || 'Please check your certificate configuration and try again.'}</span>
+                `;
+                errorMessage.classList.remove('hidden');
+            } finally {
+                // Hide loading state
+                submitButton.disabled = false;
+                loading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+
