@@ -28,7 +28,7 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
           {validationStatus && (
             <div className="mt-2 text-xs text-muted-foreground">
               Valid: {validationStatus.isValid ? 'Yes' : 'No'} | 
-              Completion: {validationStatus.completionPercentage}%
+              Status: {validationStatus.completionLevel}
             </div>
           )}
         </div>

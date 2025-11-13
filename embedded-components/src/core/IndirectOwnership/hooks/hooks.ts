@@ -55,7 +55,7 @@ export function useIndirectOwnership(props: IndirectOwnershipComponentProps) {
         isValid: false,
         errors: [],
         warnings: [],
-        completionPercentage: 0,
+        completionLevel: 'INCOMPLETE',
       },
     } satisfies OwnershipStructure;
   }, [clientData, clientId]);
@@ -88,7 +88,7 @@ export function useOwnershipValidation(ownershipStructure: OwnershipStructure | 
         isValid: false,
         errors: [{ code: 'NO_STRUCTURE', message: 'No ownership structure provided', severity: 'ERROR' }],
         warnings: [],
-        completionPercentage: 0,
+        completionLevel: 'INCOMPLETE',
       };
     }
 
@@ -109,7 +109,7 @@ export function useOwnershipValidation(ownershipStructure: OwnershipStructure | 
       isValid: errors.length === 0,
       errors,
       warnings,
-      completionPercentage: errors.length === 0 ? 100 : 50,
+      completionLevel: errors.length === 0 ? 'COMPLETE' : 'INCOMPLETE',
     };
   }, [ownershipStructure]);
 
@@ -122,7 +122,6 @@ export function useOwnershipValidation(ownershipStructure: OwnershipStructure | 
 const ownershipEntitySchema = z.object({
   partyType: z.enum(['INDIVIDUAL', 'ORGANIZATION']),
   parentPartyId: z.string().optional(),
-  ownershipPercentage: z.number().min(0).max(100).optional(),
   
   // Organization fields
   organizationName: z.string().min(1).optional(),

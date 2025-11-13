@@ -36,7 +36,7 @@ export function transformPartiesToOwnershipStructure(
       isValid: ultimateOwners.length > 0,
       errors: [],
       warnings: [],
-      completionPercentage: ultimateOwners.length > 0 ? 100 : 50,
+      completionLevel: ultimateOwners.length > 0 ? 'COMPLETE' : 'INCOMPLETE',
     },
   };
 }
@@ -117,7 +117,6 @@ function findUltimateBeneficialOwners(rootParty: OwnershipParty): IndividualOwne
                      `${party.individualDetails?.firstName} ${party.individualDetails?.lastName}` || 
                      'Unknown',
           entityId: party.id || '',
-          ownershipPercentage: 0, // TODO: Extract ownership percentage
           relationship: 'OWNS',
         },
       ];
@@ -142,20 +141,12 @@ function createIndividualOwner(
     partyId: party.id,
     firstName: party.individualDetails.firstName || '',
     lastName: party.individualDetails.lastName || '',
-    ownershipPercentage: 0, // TODO: Extract from party data or calculate
     ownershipPath: path,
     verificationStatus: 'PENDING', // TODO: Map from actual status
   };
 }
 
-/**
- * Calculates total ownership percentage for validation
- */
-export function calculateTotalOwnership(parties: OwnershipParty[]): number {
-  return parties.reduce((total, party) => {
-    return total + (party.ownershipPercentage || 0);
-  }, 0);
-}
+
 
 /**
  * Validates ownership structure completeness
@@ -169,19 +160,16 @@ export function validateOwnershipCompleteness(structure: OwnershipStructure) {
     errors.push('No ultimate beneficial owners identified');
   }
   
-  // Check ownership percentages
-  const totalOwnership = calculateTotalOwnership([structure.rootParty]);
-  if (totalOwnership < 100) {
-    warnings.push('Total ownership is less than 100%');
-  } else if (totalOwnership > 100) {
-    errors.push('Total ownership exceeds 100%');
+  // Check for complete ownership chains
+  if (!structure.rootParty.children || structure.rootParty.children.length === 0) {
+    warnings.push('No ownership structure defined');
   }
   
   return {
     isValid: errors.length === 0,
     errors,
     warnings,
-    completionPercentage: Math.min(100, (totalOwnership / 100) * 100),
+    completionLevel: structure.ultimateBeneficialOwners.length > 0 ? 'COMPLETE' : 'INCOMPLETE',
   };
 }
 

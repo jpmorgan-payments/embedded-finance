@@ -60,7 +60,6 @@ export interface OwnershipLevel {
  */
 export interface OwnershipParty extends Omit<PartyResponse, 'roles'> {
   roles: Role[];
-  ownershipPercentage?: number;
   ownershipType: 'DIRECT' | 'INDIRECT';
   children: OwnershipParty[];
   ultimateBeneficialOwner?: IndividualOwner;
@@ -73,7 +72,6 @@ export interface IndividualOwner {
   partyId: string;
   firstName: string;
   lastName: string;
-  ownershipPercentage: number;
   ownershipPath: OwnershipPathStep[];
   verificationStatus: 'PENDING' | 'VERIFIED' | 'FAILED';
 }
@@ -84,7 +82,6 @@ export interface IndividualOwner {
 export interface OwnershipPathStep {
   entityName: string;
   entityId: string;
-  ownershipPercentage: number;
   relationship: string;
 }
 
@@ -95,7 +92,7 @@ export interface OwnershipValidationStatus {
   isValid: boolean;
   errors: OwnershipValidationError[];
   warnings: OwnershipValidationWarning[];
-  completionPercentage: number;
+  completionLevel: 'INCOMPLETE' | 'PARTIAL' | 'COMPLETE';
 }
 
 /**
@@ -124,7 +121,6 @@ export interface OwnershipValidationWarning {
 export interface OwnershipEntityFormData {
   partyType: PartyType;
   parentPartyId?: string;
-  ownershipPercentage?: number;
   
   // Organization details
   organizationName?: string;
@@ -151,7 +147,6 @@ export interface OwnershipEntityFormData {
  * Configuration for ownership visualization
  */
 export interface OwnershipVisualizationConfig {
-  showPercentages: boolean;
   showRoles: boolean;
   highlightUltimateOwners: boolean;
   expandDepth: number;
