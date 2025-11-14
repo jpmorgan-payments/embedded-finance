@@ -14,6 +14,7 @@ import {
   getMissingPaymentMethods,
   getRecipientDisplayName,
 } from '@/lib/recipientHelpers';
+import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,11 +28,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { MakePayment } from '@/core/MakePayment';
-import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
-import { AccountDisplayCard } from '../AccountDisplayCard/AccountDisplayCard';
 import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
 import { StatusAlert } from '../StatusAlert/StatusAlert';
@@ -56,7 +56,7 @@ export interface LinkedAccountCardProps {
 /**
  * LinkedAccountCard - Displays a single linked account with its details and actions
  * Enhanced with better visual hierarchy and contextual information
- * Now uses AccountDisplayCard for consistent display patterns
+ * Now uses RecipientAccountDisplayCard for consistent display patterns
  */
 export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   recipient,
@@ -239,7 +239,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
     ) : undefined;
 
   return (
-    <AccountDisplayCard
+    <RecipientAccountDisplayCard
       recipient={recipient}
       statusAlert={statusAlert}
       actionsContent={actionsContent}

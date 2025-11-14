@@ -24,10 +24,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
+import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { StandardFormField } from '@/components/StandardFormField';
 
-import { AccountConfirmation } from '../../components/AccountConfirmation/AccountConfirmation';
 import {
   MicrodepositsFormDataType,
   useMicrodepositsFormSchema,
@@ -197,7 +197,15 @@ export const MicrodepositsFormDialogTrigger: FC<
           verifyResponse?.status === 'VERIFIED' &&
           recipient && (
             <div className="eb-p-6">
-              <AccountConfirmation recipient={recipient} />
+              <div className="eb-space-y-6">
+                <RecipientAccountDisplayCard recipient={recipient} />
+
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button className="eb-w-full">Done</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </div>
             </div>
           )}
 

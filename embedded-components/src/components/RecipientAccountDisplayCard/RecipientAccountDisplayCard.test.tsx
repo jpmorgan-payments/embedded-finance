@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@test-utils';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
-import { AccountDisplayCard } from './AccountDisplayCard';
+import { RecipientAccountDisplayCard } from './RecipientAccountDisplayCard';
 
 const mockRecipient: Recipient = {
   id: 'recipient-1',
@@ -33,29 +33,29 @@ const mockRecipient: Recipient = {
   createdAt: new Date().toISOString(),
 };
 
-describe('AccountDisplayCard', () => {
+describe('RecipientAccountDisplayCard', () => {
   it('should render recipient name and status', () => {
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     expect(screen.getByText(/john doe/i)).toBeInTheDocument();
     expect(screen.getByText(/active/i)).toBeInTheDocument();
   });
 
   it('should render account holder type', () => {
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     expect(screen.getByText(/individual/i)).toBeInTheDocument();
   });
 
   it('should render masked account number by default', () => {
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
   });
 
   it('should toggle account number visibility', async () => {
     const user = userEvent.setup();
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     // Initially masked
     expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
@@ -79,7 +79,10 @@ describe('AccountDisplayCard', () => {
 
   it('should hide account toggle when showAccountToggle is false', () => {
     render(
-      <AccountDisplayCard recipient={mockRecipient} showAccountToggle={false} />
+      <RecipientAccountDisplayCard
+        recipient={mockRecipient}
+        showAccountToggle={false}
+      />
     );
 
     expect(
@@ -88,7 +91,7 @@ describe('AccountDisplayCard', () => {
   });
 
   it('should render payment methods', () => {
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     expect(screen.getByText(/ach/i)).toBeInTheDocument();
     expect(screen.getByText(/wire/i)).toBeInTheDocument();
@@ -96,7 +99,7 @@ describe('AccountDisplayCard', () => {
 
   it('should hide payment methods when showPaymentMethods is false', () => {
     render(
-      <AccountDisplayCard
+      <RecipientAccountDisplayCard
         recipient={mockRecipient}
         showPaymentMethods={false}
       />
@@ -107,7 +110,7 @@ describe('AccountDisplayCard', () => {
 
   it('should toggle detailed payment method info', async () => {
     const user = userEvent.setup();
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     // Click expand button
     const expandButton = screen.getByRole('button', { name: /view routing/i });
@@ -122,7 +125,7 @@ describe('AccountDisplayCard', () => {
     const headerContent = <div>Success Message</div>;
 
     render(
-      <AccountDisplayCard
+      <RecipientAccountDisplayCard
         recipient={mockRecipient}
         headerContent={headerContent}
       />
@@ -135,7 +138,10 @@ describe('AccountDisplayCard', () => {
     const statusAlert = <div role="alert">Needs verification</div>;
 
     render(
-      <AccountDisplayCard recipient={mockRecipient} statusAlert={statusAlert} />
+      <RecipientAccountDisplayCard
+        recipient={mockRecipient}
+        statusAlert={statusAlert}
+      />
     );
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -143,10 +149,10 @@ describe('AccountDisplayCard', () => {
   });
 
   it('should render actions content when provided', () => {
-    const actionsContent = <button>Make Payment</button>;
+    const actionsContent = <button type="button">Make Payment</button>;
 
     render(
-      <AccountDisplayCard
+      <RecipientAccountDisplayCard
         recipient={mockRecipient}
         actionsContent={actionsContent}
       />
@@ -159,11 +165,13 @@ describe('AccountDisplayCard', () => {
 
   it('should render add routing button when callback provided', () => {
     const renderAddRoutingButton = (isExpanded: boolean) => (
-      <button>{isExpanded ? 'Expanded Button' : 'Add Routing'}</button>
+      <button type="button">
+        {isExpanded ? 'Expanded Button' : 'Add Routing'}
+      </button>
     );
 
     render(
-      <AccountDisplayCard
+      <RecipientAccountDisplayCard
         recipient={mockRecipient}
         renderAddRoutingButton={renderAddRoutingButton}
       />
@@ -174,15 +182,18 @@ describe('AccountDisplayCard', () => {
 
   it('should apply custom className', () => {
     const { container } = render(
-      <AccountDisplayCard recipient={mockRecipient} className="custom-class" />
+      <RecipientAccountDisplayCard
+        recipient={mockRecipient}
+        className="eb-custom-class"
+      />
     );
 
-    const card = container.querySelector('.custom-class');
+    const card = container.querySelector('.eb-custom-class');
     expect(card).toBeInTheDocument();
   });
 
   it('should have accessible labels', () => {
-    render(<AccountDisplayCard recipient={mockRecipient} />);
+    render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     expect(
       screen.getByRole('article', { name: /account: john doe/i })

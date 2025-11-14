@@ -2,10 +2,13 @@ import { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -16,10 +19,10 @@ import {
   useLinkedAccountEditConfig,
   type BankAccountFormData,
 } from '@/components/BankAccountForm';
+import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { useLinkedAccountForm, type LinkedAccountFormMode } from '../../hooks';
-import { AccountConfirmation } from '../AccountConfirmation/AccountConfirmation';
 
 /**
  * Props for LinkedAccountFormDialog component
@@ -144,7 +147,15 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
         {/* Success State */}
         {status === 'success' && responseData && (
           <div className="eb-p-6">
-            <AccountConfirmation recipient={responseData} />
+            <div className="eb-space-y-6">
+              <RecipientAccountDisplayCard recipient={responseData} />
+
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button className="eb-w-full">Done</Button>
+                </DialogClose>
+              </DialogFooter>
+            </div>
           </div>
         )}
 

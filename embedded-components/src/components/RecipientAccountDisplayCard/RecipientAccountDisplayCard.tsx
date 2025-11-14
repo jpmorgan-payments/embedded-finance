@@ -20,10 +20,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui';
+import { StatusBadge } from '@/core/LinkedAccountWidget/components/StatusBadge/StatusBadge';
 
-import { StatusBadge } from '../StatusBadge/StatusBadge';
-
-interface AccountDisplayCardProps {
+export interface RecipientAccountDisplayCardProps {
   /** The recipient/account data to display */
   recipient: Recipient;
 
@@ -53,16 +52,18 @@ interface AccountDisplayCardProps {
 }
 
 /**
- * AccountDisplayCard - Generic reusable card component for displaying account information
+ * RecipientAccountDisplayCard - Generic reusable card component for displaying recipient account information
  *
  * This component provides a consistent display pattern for:
  * - LinkedAccountCard (with full actions and status)
- * - AccountConfirmation (simplified success view)
- * - Future RecipientCard (similar structure)
+ * - Recipients (in recipient management)
+ * - Account confirmation views
  *
  * By centralizing the display logic, we maintain consistency and reduce duplication.
  */
-export const AccountDisplayCard: React.FC<AccountDisplayCardProps> = ({
+export const RecipientAccountDisplayCard: React.FC<
+  RecipientAccountDisplayCardProps
+> = ({
   recipient,
   headerContent,
   statusAlert,
