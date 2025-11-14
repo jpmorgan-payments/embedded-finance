@@ -1,399 +1,297 @@
 # LinkedAccountWidget
 
-A comprehensive React component for managing linked bank accounts (external bank account linking) in the Embedded Finance Components library.
+A React component for managing linked bank accounts (external bank account linking) in embedded finance applications.
 
-## Overview
+## What It Does
 
-The `LinkedAccountWidget` is a complex, feature-rich component that handles the complete lifecycle of linked bank accounts, including:
+The LinkedAccountWidget provides a complete interface for end users to:
 
-- Displaying existing linked accounts
-- Linking new bank accounts
-- Verifying microdeposits
-- Managing account status and actions
-- Integration with payment components
+- **View** their linked external bank accounts
+- **Add** new bank accounts via ACH
+- **Verify** accounts through microdeposit validation
+- **Monitor** account status (active, pending, verification needed)
+- **Initiate** payments from active accounts (optional integration)
 
-## Responsive Design
-
-The `LinkedAccountWidget` uses **container queries** to adapt to its container width, making it responsive regardless of where it's placed in your application. This is particularly useful when the component is placed in sidebars, modals, or variable-width containers.
-
-### Container Query Breakpoints
-
-- **@md (448px)**: Header switches from stacked to horizontal layout, button becomes full-width on mobile
-- **@2xl (896px)**: Account cards switch from single-column to two-column grid layout
-
-### Layout Behaviors
-
-**Narrow containers (< 448px)**:
-
-- Header title and button stack vertically
-- Button becomes full-width
-- Single-column account card layout
-
-**Medium containers (448px - 896px)**:
-
-- Header becomes horizontal with title on left, button on right
-- Button returns to auto width
-- Single-column account card layout
-
-**Wide containers (> 896px)**:
-
-- Header remains horizontal
-- Account cards display in a two-column grid
-- Component has a max-width of 1024px and centers itself
-
-### Usage in Different Contexts
+## Quick Start
 
 ```tsx
-// In a narrow sidebar (will adapt to narrow layout)
+import { LinkedAccountWidget } from '@/core/LinkedAccountWidget';
+
+// Simplest usage - show all linked accounts
+<LinkedAccountWidget />
+
+// With callback to handle when accounts are linked/verified
+<LinkedAccountWidget
+  onLinkedAccountSettled={(recipient, error) => {
+    if (error) {
+      showNotification('Failed to link account');
+    } else {
+      showNotification('Account linked successfully!');
+    }
+  }}
+/>
+```
+
+## Usage Examples
+
+### Show All Linked Accounts (Default)
+
+```tsx
+import { LinkedAccountWidget } from '@/core/LinkedAccountWidget';
+
+function AccountsPage() {
+  return (
+    <div className="container">
+      <LinkedAccountWidget />
+    </div>
+  );
+}
+```
+
+### Single Account Mode (Only Show First Active Account)
+
+Useful when you only want users to link one account:
+
+```tsx
+<LinkedAccountWidget
+  variant="singleAccount"
+  showCreateButton={false} // Hide "Link Account" if one already exists
+/>
+```
+
+### With Payment Integration
+
+The widget includes a built-in payment button for active accounts by default. You typically **don't need to pass** `makePaymentComponent` unless you have a custom implementation:
+
+```tsx
+// Default behavior - uses embedded-components MakePayment automatically
+<LinkedAccountWidget />
+
+// Only override if you need a custom payment component
+import { CustomPaymentButton } from './CustomPaymentButton';
+
+<LinkedAccountWidget
+  makePaymentComponent={<CustomPaymentButton />}
+/>
+```
+
+### Handle Account Linking Events
+
+Get notified when accounts are successfully linked or verified:
+
+```tsx
+function MyApp() {
+  const handleAccountSettled = (recipient, error) => {
+    if (error) {
+      toast.error('Failed to link account');
+      analytics.track('account_link_failed', { error });
+    } else {
+      toast.success(`Account ${recipient.accountNumberMask} linked!`);
+      analytics.track('account_link_success', { recipientId: recipient.id });
+      // Refresh other data, redirect, etc.
+    }
+  };
+
+  return <LinkedAccountWidget onLinkedAccountSettled={handleAccountSettled} />;
+}
+```
+
+### Responsive Layouts
+
+The widget uses **container queries** to adapt to its container width:
+
+```tsx
+// In a narrow sidebar (< 448px): stacked layout, full-width button
 <aside className="w-80">
   <LinkedAccountWidget />
 </aside>
 
-// In a full-width page (will use max-width and center itself)
-<main className="container">
-  <LinkedAccountWidget />
-</main>
-
-// In a modal or dialog (will adapt to modal width)
+// In a modal (448px - 896px): horizontal header, single column cards
 <Dialog>
   <DialogContent className="max-w-2xl">
     <LinkedAccountWidget />
   </DialogContent>
 </Dialog>
+
+// In full-width page (> 896px): two-column card grid, max-width 1024px
+<main className="container">
+  <LinkedAccountWidget />
+</main>
 ```
 
-## Architecture
+## Props
 
-This component follows a modular architecture with clear separation of concerns:
+| Prop                     | Type                           | Default     | Description                                                                                                                                              |
+| ------------------------ | ------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`                | `'default' \| 'singleAccount'` | `'default'` | **`default`**: Show all linked accounts<br>**`singleAccount`**: Only show first active account                                                           |
+| `showCreateButton`       | `boolean`                      | `true`      | Show/hide the "Link A New Account" button<br>In `singleAccount` mode, hides if account exists                                                            |
+| `makePaymentComponent`   | `ReactNode`                    | Built-in    | **Optional**: Custom payment component for active accounts<br>Uses embedded-components `MakePayment` by default—only override for custom implementations |
+| `onLinkedAccountSettled` | `(recipient?, error?) => void` | `undefined` | Callback fired when account is linked or verified<br>Use for notifications, analytics, data refresh                                                      |
+| `className`              | `string`                       | `undefined` | Additional CSS classes for the root container                                                                                                            |
 
-```
-LinkedAccountWidget/
-├── index.ts                           # Public API exports
-├── LinkedAccountWidget.tsx            # Main orchestrator component
-├── LinkedAccountWidget.test.tsx       # Integration tests
-├── LinkedAccountWidget.types.ts       # TypeScript type definitions
-├── LinkedAccountWidget.constants.ts   # Constants and configuration
-├── LINKED_ACCOUNTS_REQUIREMENTS.md    # Business requirements
-├── README.md                          # This file
-├── components/                        # Internal presentational components
-│   ├── LinkedAccountCard.tsx          # Individual account card display
-│   ├── StatusBadge.tsx                # Status indicator component
-│   └── EmptyState.tsx                 # No accounts state
-├── forms/                             # Complex form sub-components
-│   ├── LinkAccountForm/               # New account linking flow
-│   │   ├── LinkAccountForm.tsx
-│   │   ├── LinkAccountForm.schema.ts
-│   │   └── LinkAccountConfirmation.tsx
-│   └── MicrodepositsForm/             # Microdeposit verification flow
-│       ├── MicrodepositsForm.tsx
-│       └── MicrodepositsForm.schema.ts
-├── hooks/                             # Custom React hooks
-│   └── useLinkedAccounts.ts           # Data fetching and state management
-├── utils/                             # Helper functions
-│   └── recipientHelpers.ts            # Business logic utilities
-└── stories/                           # Storybook documentation
-    ├── LinkedAccountWidget.story.tsx
-    └── LinkedAccountWidget.create.story.tsx
-```
+## User Flows
 
-## Component Layers
+### Adding a New Account
 
-### 1. Main Component Layer
+1. User clicks "Link A New Account" button
+2. Dialog opens with bank account form
+3. User enters:
+   - Bank routing number (ACH)
+   - Account number
+   - Account type (Individual/Business, Checking/Savings)
+   - Account holder name
+4. Form validates and submits
+5. Success confirmation shown
+6. `onLinkedAccountSettled` callback fires
+7. Account appears in list with appropriate status
 
-**File:** `LinkedAccountWidget.tsx`
+### Verifying with Microdeposits
 
-The main orchestrator that:
+For accounts requiring verification:
 
-- Manages component state (selected recipient for verification)
-- Coordinates between data layer (hooks) and presentation layer (sub-components)
-- Handles user interactions and callbacks
-- Provides the overall layout structure
+1. Account shows "Verify" button when status is `READY_FOR_VALIDATION`
+2. User clicks "Verify Account"
+3. Dialog opens requesting two microdeposit amounts
+4. User enters amounts as decimal values (e.g., `0.12`, `0.32`)
+5. Verification submitted
+6. Success/error feedback shown
+7. Account status updates to `ACTIVE` if successful
 
-### 2. Data Layer
+### Account Statuses
 
-**File:** `hooks/useLinkedAccounts.ts`
+| Status                    | Badge Color | Description                              | User Action Available |
+| ------------------------- | ----------- | ---------------------------------------- | --------------------- |
+| `ACTIVE`                  | Green       | Ready to use for payments                | Make Payment          |
+| `PENDING`                 | Yellow      | Processing, no action needed             | None                  |
+| `MICRODEPOSITS_INITIATED` | Blue        | Deposits sent, waiting for user to check | None                  |
+| `READY_FOR_VALIDATION`    | Purple      | Ready to verify microdeposits            | Verify Account        |
+| `INACTIVE`                | Gray        | Linked but not active                    | None                  |
+| `REJECTED`                | Red         | Failed to link                           | None                  |
 
-Custom hook that:
+## Common Scenarios
 
-- Fetches linked accounts from the API
-- Filters data based on component variant
-- Provides derived state (hasActiveAccount, loading states)
-- Exposes refetch functionality
-
-### 3. Presentation Layer
-
-**Directory:** `components/`
-
-Presentational components that:
-
-- Display data in a consistent manner
-- Are pure and reusable
-- Handle their own internal UI logic
-- Receive all data through props
-
-**Components:**
-
-- `LinkedAccountCard` - Displays individual account details and actions
-- `StatusBadge` - Shows account status with appropriate styling
-- `EmptyState` - Displays message when no accounts exist
-
-### 4. Form Layer
-
-**Directory:** `forms/`
-
-Complex form components that:
-
-- Handle multi-step user input flows
-- Manage their own form state
-- Integrate with validation schemas
-- Communicate results through callbacks
-
-### 5. Type Layer
-
-**File:** `LinkedAccountWidget.types.ts`
-
-TypeScript definitions that:
-
-- Define public API interfaces
-- Document prop shapes and purposes
-- Provide type safety across the component
-- Enable better IDE autocomplete
-
-## Usage
-
-### Basic Usage
-
-```tsx
-import { LinkedAccountWidget } from '@/core/LinkedAccountWidget';
-
-function MyApp() {
-  return (
-    <EBComponentsProvider apiBaseUrl="https://api.example.com">
-      <LinkedAccountWidget />
-    </EBComponentsProvider>
-  );
-}
-```
-
-### Advanced Usage
-
-```tsx
-import { MakePaymentButton } from '@/components/MakePaymentButton';
-import { LinkedAccountWidget } from '@/core/LinkedAccountWidget';
-
-function MyApp() {
-  const handleAccountSettled = (recipient, error) => {
-    if (error) {
-      console.error('Failed to link account:', error);
-      // Show error notification
-    } else {
-      console.log('Account linked successfully:', recipient);
-      // Show success notification
-      // Maybe refresh other data
-    }
-  };
-
-  return (
-    <EBComponentsProvider apiBaseUrl="https://api.example.com">
-      <LinkedAccountWidget
-        variant="default"
-        showCreateButton={true}
-        makePaymentComponent={<MakePaymentButton />}
-        onLinkedAccountSettled={handleAccountSettled}
-        className="my-custom-class"
-      />
-    </EBComponentsProvider>
-  );
-}
-```
-
-### Single Account Mode
+### Scenario: Only Allow One Linked Account
 
 ```tsx
 <LinkedAccountWidget
   variant="singleAccount"
-  showCreateButton={true}
-  onLinkedAccountSettled={(recipient, error) => {
-    // Handle account linking
-  }}
+  showCreateButton={false} // Button auto-hides when account exists
 />
 ```
 
-## Props API
+### Scenario: Refresh Data After Account Links
 
-| Prop                     | Type                           | Default     | Description                                              |
-| ------------------------ | ------------------------------ | ----------- | -------------------------------------------------------- |
-| `variant`                | `'default' \| 'singleAccount'` | `'default'` | Display mode - show all accounts or just one             |
-| `showCreateButton`       | `boolean`                      | `true`      | Whether to show "Link A New Account" button              |
-| `makePaymentComponent`   | `React.ReactNode`              | `undefined` | Optional payment component to render for active accounts |
-| `onLinkedAccountSettled` | `(recipient?, error?) => void` | `undefined` | Callback when account linking/verification completes     |
-| `className`              | `string`                       | `undefined` | Additional CSS classes                                   |
+```tsx
+const { refetch: refetchPayments } = usePayments();
 
-## Key Features
-
-### 1. Account Listing
-
-- Displays all linked accounts with key details
-- Shows account status with visual indicators
-- Displays masked account numbers for security
-- Shows supported payment methods
-
-### 2. Status Management
-
-The component handles multiple account statuses:
-
-- `ACTIVE` - Ready to use for payments
-- `INACTIVE` - Linked but not active
-- `PENDING` - Processing
-- `MICRODEPOSITS_INITIATED` - Verification in progress
-- `READY_FOR_VALIDATION` - Ready for microdeposit verification
-- `REJECTED` - Failed to link
-
-### 3. Account Linking Flow
-
-- Dialog-based form for adding new accounts
-- Support for both Individual and Business accounts
-- ACH routing number validation
-- Account type selection
-
-### 4. Microdeposit Verification
-
-- Separate verification flow for accounts requiring it
-- Amount input validation
-- Success/error feedback
-
-### 5. Payment Integration
-
-- Optional integration with payment components
-- Automatic props passing to payment component
-- Only shown for active accounts
-
-## Internal Component Communication
-
-```
-LinkedAccountWidget (Main)
-│
-├─→ useLinkedAccounts (Hook)
-│   └─→ API (useGetAllRecipients)
-│
-├─→ LinkAccountFormDialogTrigger (Form)
-│   ├─→ LinkAccountForm
-│   └─→ LinkAccountConfirmation
-│
-├─→ LinkedAccountCard (Presentation)
-│   ├─→ StatusBadge
-│   ├─→ Badge (UI)
-│   └─→ Button (UI)
-│
-└─→ MicrodepositsFormDialogTrigger (Form)
-    └─→ MicrodepositsForm
+<LinkedAccountWidget
+  onLinkedAccountSettled={(recipient, error) => {
+    if (!error) {
+      refetchPayments(); // Refresh payment data
+    }
+  }}
+/>;
 ```
 
-## Extension Points
+### Scenario: Navigate After Successful Link
 
-### Custom Account Card
+```tsx
+const router = useRouter();
 
-You can extend the `LinkedAccountCard` component to add custom actions or display additional information.
-
-### Custom Status Mapping
-
-Modify `LinkedAccountWidget.constants.ts` to change status badge variants or add new statuses.
-
-### Custom Empty State
-
-Pass a custom empty state message or component by modifying `EmptyState` component.
-
-## Testing Strategy
-
-### Unit Tests
-
-Each utility function and helper should have unit tests:
-
-- `recipientHelpers.ts` functions
-- Status mapping logic
-- Date formatting
-
-### Component Tests
-
-Test individual components in isolation:
-
-- `LinkedAccountCard` rendering with different recipient states
-- `StatusBadge` with different statuses
-- `EmptyState` display
-
-### Integration Tests
-
-Test the complete widget functionality:
-
-- Account listing with API mock
-- Account creation flow
-- Microdeposit verification flow
-- Error handling
-- Loading states
-
-### Example Test Structure
-
-```typescript
-import { render, screen, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
-import { LinkedAccountWidget } from './LinkedAccountWidget';
-
-describe('LinkedAccountWidget', () => {
-  it('displays linked accounts', async () => {
-    render(<LinkedAccountWidget />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Account:/i)).toBeInTheDocument();
-    });
-  });
-
-  it('opens link account form when button clicked', async () => {
-    const user = userEvent.setup();
-    render(<LinkedAccountWidget />);
-
-    await user.click(screen.getByText(/Link A New Account/i));
-
-    expect(screen.getByText(/Bank Routing Number/i)).toBeInTheDocument();
-  });
-});
+<LinkedAccountWidget
+  onLinkedAccountSettled={(recipient, error) => {
+    if (!error) {
+      router.push(`/payment?account=${recipient.id}`);
+    }
+  }}
+/>;
 ```
 
-## Performance Considerations
+### Scenario: Custom Styling
 
-1. **Memoization**: The `useLinkedAccounts` hook uses `useMemo` to prevent unnecessary re-computations
-2. **Component Splitting**: Large forms are in separate components to reduce bundle size
-3. **Lazy Loading**: Forms are only loaded when needed (dialog open)
-4. **Efficient Updates**: React Query handles caching and refetching efficiently
+```tsx
+<LinkedAccountWidget className="rounded-xl bg-gray-50 p-6 shadow-lg" />
+```
+
+## Troubleshooting
+
+### Account Not Appearing After Linking
+
+**Problem**: User links an account but it doesn't show in the list.
+
+**Solutions**:
+
+- Check if `onLinkedAccountSettled` callback is refetching data
+- Verify the API response includes `type: 'LINKED_ACCOUNT'`
+- Check browser console for API errors
+
+### "Link A New Account" Button Not Showing
+
+**Problem**: Button is hidden when it should be visible.
+
+**Causes**:
+
+- `showCreateButton={false}` prop is set
+- In `singleAccount` variant with an existing active account
+- Check `shouldShowCreateButton` utility logic
+
+### Microdeposit Verification Failing
+
+**Problem**: User enters amounts but verification fails.
+
+**Common Issues**:
+
+- Amounts must be decimal values between 0.01 and 0.99 (e.g., `0.12` for $0.12)
+- Maximum 2 decimal places allowed
+- Check API error response for specific validation errors
+- Ensure account status is `READY_FOR_VALIDATION`
+
+### Payment Component Not Showing
+
+**Problem**: `makePaymentComponent` passed but not rendering.
+
+**Check**:
+
+- Account status must be `ACTIVE`
+- Ensure component is passed correctly as JSX: `makePaymentComponent={<Component />}`
+- Verify account has necessary data (`id`, `status`)
+
+## Testing
+
+Run tests for this component:
+
+```bash
+# All LinkedAccountWidget tests
+npm test -- LinkedAccountWidget
+
+# Specific test file
+npm test -- useLinkedAccounts.test
+
+# Watch mode
+npm test -- --watch LinkedAccountWidget
+```
+
+## API Requirements
+
+This component requires the following API endpoints (provided by `EBComponentsProvider`):
+
+- **GET** `/recipients` - Fetch all recipients (filtered by `type: 'LINKED_ACCOUNT'`)
+- **POST** `/recipients` - Create new linked account
+- **PUT** `/recipients/{id}` - Update/verify linked account
+- **POST** `/recipients/{id}/validate-microdeposits` - Verify microdeposit amounts
+
+See [LINKED_ACCOUNTS_REQUIREMENTS.md](./LINKED_ACCOUNTS_REQUIREMENTS.md) for detailed API specifications.
+
+## Related Documentation
+
+- **Business Requirements**: [LINKED_ACCOUNTS_REQUIREMENTS.md](./LINKED_ACCOUNTS_REQUIREMENTS.md)
+- **Storybook**: View interactive examples in Storybook
+- **Architecture**: See main [ARCHITECTURE.md](../../ARCHITECTURE.md) for component patterns
 
 ## Accessibility
 
-- All interactive elements have proper ARIA labels
-- Keyboard navigation fully supported
-- Screen reader compatible
-- Proper heading hierarchy
-- Color contrast meets WCAG AA standards
-
-## Future Enhancements
-
-- [ ] Add bulk account operations
-- [ ] Add account editing capability
-- [ ] Add account deactivation flow
-- [ ] Add filtering/sorting for multiple accounts
-- [ ] Add export functionality
-- [ ] Add account verification status polling
-- [ ] Add analytics tracking hooks
-
-## Related Components
-
-- `MakePaymentWidget` - For initiating payments
-- `TransactionHistoryWidget` - For viewing payment history
-- `RecipientManager` - For managing all types of recipients
-
-## Support
-
-For questions or issues with this component:
-
-1. Check the Storybook documentation
-2. Review the LINKED_ACCOUNTS_REQUIREMENTS.md file
-3. Check the API documentation
-4. Contact the Embedded Finance team
+- ✅ ARIA labels on all interactive elements
+- ✅ Keyboard navigation (Tab, Enter, Escape)
+- ✅ Screen reader announcements for status changes
+- ✅ WCAG AA compliant color contrast
+- ✅ Focus management in dialogs

@@ -18,6 +18,8 @@ import { LinkedAccountWidget } from '../LinkedAccountWidget';
 
 const LinkedAccountsWithProvider = ({
   apiBaseUrl,
+  clientId,
+  platformId,
   headers,
   theme,
   variant,
@@ -26,7 +28,9 @@ const LinkedAccountsWithProvider = ({
   onLinkedAccountSettled,
 }: {
   apiBaseUrl: string;
-  headers: Record<string, string>;
+  clientId: string;
+  platformId: string;
+  headers?: Record<string, string>;
   theme: EBTheme;
   variant?: 'default' | 'singleAccount';
   makePaymentComponent?: React.ReactNode;
@@ -40,7 +44,7 @@ const LinkedAccountsWithProvider = ({
     <>
       <EBComponentsProvider
         apiBaseUrl={apiBaseUrl}
-        headers={headers}
+        headers={{ ...headers, platform_id: platformId }}
         theme={theme}
         contentTokens={contentTokens}
       >
@@ -48,6 +52,7 @@ const LinkedAccountsWithProvider = ({
           variant={variant}
           makePaymentComponent={makePaymentComponent}
           onLinkedAccountSettled={onLinkedAccountSettled}
+          clientId={clientId}
         />
       </EBComponentsProvider>
     </>

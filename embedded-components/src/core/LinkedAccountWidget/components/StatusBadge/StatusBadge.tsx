@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
 
-import { STATUS_BADGE_VARIANTS } from '../LinkedAccountWidget.constants';
+import { STATUS_BADGE_VARIANTS } from '../../LinkedAccountWidget.constants';
 
 export interface StatusBadgeProps {
   /** The recipient status to display */

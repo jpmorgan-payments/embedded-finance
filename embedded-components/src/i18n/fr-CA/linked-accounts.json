@@ -26,9 +26,9 @@
     "messages": {
       "ACTIVE": "Ce compte est vérifié et prêt pour les transactions.",
       "INACTIVE": "Ce compte a été désactivé et ne peut pas être utilisé pour les transactions.",
-      "MICRODEPOSITS_INITIATED": "Deux petits dépôts sont en cours d'envoi pour vérifier la propriété du compte. Cela prend généralement 3 à 5 jours ouvrables.",
+      "MICRODEPOSITS_INITIATED": "Nous envoyons deux petits dépôts à votre compte pour vérifier la propriété. Cela prend généralement 3 à 5 jours ouvrables. Une fois arrivés, vous devrez vérifier les montants.",
       "PENDING": "Les informations de votre compte sont en cours de traitement. Vous serez notifié une fois terminé.",
-      "READY_FOR_VALIDATION": "Les dépôts de vérification sont arrivés sur votre compte.",
+      "READY_FOR_VALIDATION": "Les dépôts de vérification sont arrivés sur votre compte. Veuillez vérifier les montants dans les 20 jours ouvrables pour activer votre compte.",
       "REJECTED": "Il y a eu un problème lors de la liaison de ce compte. Veuillez vérifier les détails du compte ou contacter le support."
     },
     "tooltips": {
@@ -207,12 +207,12 @@
       }
     },
     "microdeposits": {
-      "title": "Vérifier les microdépôts",
+      "title": "Vérifier le compte",
       "titleSuccess": "Compte vérifié avec succès",
-      "description": "Entrez les deux microdépôts que nous avons envoyés à votre compte bancaire externe <strong>{{name}}</strong> dans n'importe quel ordre. Vous avez trois tentatives pour entrer ces montants.",
+      "description": "Entrez les deux petits montants de dépôt que nous avons envoyés à <strong>{{name}}</strong> dans n'importe quel ordre. Vous avez <strong>3 tentatives au total</strong> pour entrer ces montants.",
       "descriptionSuccess": "Votre compte a été vérifié et est prêt pour les transactions.",
       "amount1": {
-        "label": "Montant du microdépôt 1",
+        "label": "Premier montant de dépôt",
         "placeholder": "0,00",
         "validation": {
           "required": "Le montant du premier dépôt est requis",
@@ -223,7 +223,7 @@
         }
       },
       "amount2": {
-        "label": "Montant du microdépôt 2",
+        "label": "Deuxième montant de dépôt",
         "placeholder": "0,00",
         "validation": {
           "required": "Le montant du deuxième dépôt est requis",

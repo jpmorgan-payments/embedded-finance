@@ -86,19 +86,6 @@ export function getMissingPaymentMethods(recipient: Recipient): string[] {
 }
 
 /**
- * Determine if the create button should be shown based on variant and account state
- */
-export function shouldShowCreateButton(
-  variant: 'default' | 'singleAccount',
-  hasActiveAccount: boolean,
-  showCreateButton: boolean
-): boolean {
-  if (!showCreateButton) return false;
-  if (variant === 'singleAccount' && hasActiveAccount) return false;
-  return true;
-}
-
-/**
  * Format date for display
  */
 export function formatRecipientDate(dateString?: string): string {
@@ -119,4 +106,78 @@ export function hasRequiredInfoForPaymentType(
 ): boolean {
   const methods = getSupportedPaymentMethods(recipient);
   return methods.includes(paymentType);
+}
+
+/**
+ * SHARED STATUS UTILITIES
+ * These functions work for ALL recipient types (LINKED_ACCOUNT, RECIPIENT, etc.)
+ */
+
+/**
+ * Check if a recipient is in a final state (success or terminal error)
+ */
+export function isRecipientInFinalState(recipient: Recipient): boolean {
+  const finalStates = ['ACTIVE', 'REJECTED', 'INACTIVE'];
+  return finalStates.includes(recipient.status || '');
+}
+
+/**
+ * Check if a recipient needs user action
+ */
+export function doesRecipientNeedAction(recipient: Recipient): boolean {
+  return recipient.status === 'READY_FOR_VALIDATION';
+}
+
+/**
+ * Get a user-friendly message key for recipient status (use with i18n)
+ */
+export function getRecipientStatusMessageKey(recipient: Recipient): string {
+  return `status.messages.${recipient.status}`;
+}
+
+/**
+ * Sort recipients by priority (action needed > active > pending > inactive)
+ */
+export function sortRecipientsByPriority(recipients: Recipient[]): Recipient[] {
+  return [...recipients].sort((a, b) => {
+    const priorityMap: Record<string, number> = {
+      READY_FOR_VALIDATION: 1,
+      ACTIVE: 2,
+      PENDING: 3,
+      MICRODEPOSITS_INITIATED: 4,
+      INACTIVE: 5,
+      REJECTED: 6,
+    };
+
+    const aPriority = priorityMap[a.status || ''] || 99;
+    const bPriority = priorityMap[b.status || ''] || 99;
+
+    return aPriority - bPriority;
+  });
+}
+
+/**
+ * Get the number of accounts by status
+ */
+export function getAccountCountsByStatus(
+  recipients: Recipient[]
+): Record<string, number> {
+  return recipients.reduce(
+    (acc, recipient) => {
+      const status = recipient.status || 'UNKNOWN';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+}
+
+/**
+ * Filter recipients by status
+ */
+export function filterRecipientsByStatus(
+  recipients: Recipient[],
+  statuses: string[]
+): Recipient[] {
+  return recipients.filter((r) => r.status && statuses.includes(r.status));
 }

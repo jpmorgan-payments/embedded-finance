@@ -28,13 +28,30 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { MakePayment } from '@/core/MakePayment';
+import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 
-import { EditAccountFormDialogTrigger } from '../forms/EditAccountForm';
-import { MicrodepositsFormDialogTrigger } from '../forms/MicrodepositsForm/MicrodepositsForm';
-import { RemoveAccountDialogTrigger } from '../forms/RemoveAccountDialog';
-import { LinkedAccountCardProps } from '../LinkedAccountWidget.types';
-import { AccountDisplayCard } from './AccountDisplayCard';
-import { StatusAlert } from './StatusAlert';
+import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
+import { AccountDisplayCard } from '../AccountDisplayCard/AccountDisplayCard';
+import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
+import { StatusAlert } from '../StatusAlert/StatusAlert';
+
+/**
+ * Props for the LinkedAccountCard component
+ */
+export interface LinkedAccountCardProps {
+  /** The recipient/linked account data to display */
+  recipient: Recipient;
+
+  /** Optional MakePayment component to render when account is active */
+  makePaymentComponent?: React.ReactNode;
+
+  /** Callback when account is edited or removed */
+  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
+
+  /** Hide action buttons and status alerts (useful for confirmation views) */
+  hideActions?: boolean;
+}
 
 /**
  * LinkedAccountCard - Displays a single linked account with its details and actions
@@ -75,7 +92,8 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
 
   // Add routing button component
   const renderAddRoutingButton = (isExpanded: boolean) => (
-    <EditAccountFormDialogTrigger
+    <LinkedAccountFormDialog
+      mode="edit"
       recipient={recipient}
       onLinkedAccountSettled={onLinkedAccountSettled}
     >
@@ -92,7 +110,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         <PlusIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" aria-hidden="true" />
         <span>{getAddRoutingButtonLabel()}</span>
       </Button>
-    </EditAccountFormDialogTrigger>
+    </LinkedAccountFormDialog>
   );
 
   // Status alert component
@@ -189,7 +207,8 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <EditAccountFormDialogTrigger
+            <LinkedAccountFormDialog
+              mode="edit"
               recipient={recipient}
               onLinkedAccountSettled={onLinkedAccountSettled}
             >
@@ -200,7 +219,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
                 <span>{t('actions.edit')}</span>
               </DropdownMenuItem>
-            </EditAccountFormDialogTrigger>
+            </LinkedAccountFormDialog>
             <DropdownMenuSeparator />
             <RemoveAccountDialogTrigger
               recipient={recipient}

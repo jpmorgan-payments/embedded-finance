@@ -4,7 +4,7 @@ import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 
-import { AccountDisplayCard } from './AccountDisplayCard';
+import { AccountDisplayCard } from '../AccountDisplayCard/AccountDisplayCard';
 
 interface AccountConfirmationProps {
   recipient: Recipient;

@@ -1,7 +1,7 @@
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 
 /**
- * Props for the LinkedAccountWidget component
+ * Props for the LinkedAccountWidget component (Public API)
  */
 export interface LinkedAccountWidgetProps {
   /**
@@ -35,21 +35,7 @@ export interface LinkedAccountWidgetProps {
    * Optional CSS class name for custom styling
    */
   className?: string;
-}
 
-/**
- * Props for the LinkedAccountCard component
- */
-export interface LinkedAccountCardProps {
-  /** The recipient/linked account data to display */
-  recipient: Recipient;
-
-  /** Optional MakePayment component to render when account is active */
-  makePaymentComponent?: React.ReactNode;
-
-  /** Callback when account is edited or removed */
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
-
-  /** Hide action buttons and status alerts (useful for confirmation views) */
-  hideActions?: boolean;
+  /** Client ID for API requests */
+  clientId: string;
 }

@@ -1,19 +1,18 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { shouldShowCreateButton } from '@/lib/recipientHelpers';
-import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
-import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
-import { EmptyState } from './components/EmptyState';
-import { LinkedAccountCard } from './components/LinkedAccountCard';
-import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton';
-import { LinkAccountFormDialogTrigger } from './forms/LinkAccountForm/LinkAccountForm';
+import { EmptyState } from './components/EmptyState/EmptyState';
+import { LinkedAccountCard } from './components/LinkedAccountCard/LinkedAccountCard';
+import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
+import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { useLinkedAccounts } from './hooks';
 import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
+import { shouldShowCreateButton } from './utils';
 
 /**
  * LinkedAccountWidget - Main component for managing linked bank accounts
@@ -44,37 +43,22 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   makePaymentComponent,
   onLinkedAccountSettled,
   className,
+  clientId,
 }) => {
   const { t } = useTranslation('linked-accounts');
-  const { interceptorReady } = useInterceptorStatus();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data, isLoading, isError, error, isSuccess, refetch } =
-    useGetAllRecipients(
-      {
-        type: 'LINKED_ACCOUNT',
-      },
-      {
-        query: {
-          enabled: interceptorReady,
-        },
-      }
-    );
 
-  // Filter recipients based on variant
-  const linkedAccounts = useMemo(() => {
-    const filtered = data?.recipients?.filter(
-      (recipient) => recipient.type === 'LINKED_ACCOUNT'
-    );
-    if (!filtered) return [];
-    return variant === 'singleAccount' ? filtered.slice(0, 1) : filtered;
-  }, [data?.recipients, variant]);
+  // Use custom hook for data fetching and state management
+  const {
+    linkedAccounts,
+    hasActiveAccount,
+    isLoading,
+    isError,
+    error,
+    isSuccess,
+    refetch,
+  } = useLinkedAccounts({ variant, clientId });
 
-  // Check if there's at least one active account
-  const hasActiveAccount = useMemo(
-    () => linkedAccounts.some((r) => r.status === 'ACTIVE'),
-    [linkedAccounts]
-  );
-
+  // Determine if create button should be shown
   const showCreate = shouldShowCreateButton(
     variant,
     hasActiveAccount,
@@ -103,8 +87,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
             </div>
             {showCreate && !isLoading && (
               <div className="eb-animate-fade-in">
-                <LinkAccountFormDialogTrigger
+                <LinkedAccountFormDialog
+                  mode="create"
                   onLinkedAccountSettled={onLinkedAccountSettled}
+                  clientId={clientId}
                 >
                   <Button
                     variant="outline"
@@ -114,7 +100,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
                     {t('linkNewAccount')}
                   </Button>
-                </LinkAccountFormDialogTrigger>
+                </LinkedAccountFormDialog>
               </div>
             )}
           </div>
@@ -137,7 +123,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 default: t('errors.loading.default'),
                 400: t('errors.loading.400'),
               }}
-              error={error}
+              error={error as any}
               tryAgainAction={refetch}
               showDetails
             />

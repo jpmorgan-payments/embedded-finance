@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import {
@@ -27,7 +27,7 @@ import { Form } from '@/components/ui/form';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { StandardFormField } from '@/components/StandardFormField';
 
-import { AccountConfirmation } from '../../components/AccountConfirmation';
+import { AccountConfirmation } from '../../components/AccountConfirmation/AccountConfirmation';
 import {
   MicrodepositsFormDataType,
   useMicrodepositsFormSchema,
@@ -134,7 +134,7 @@ export const MicrodepositsFormDialogTrigger: FC<
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-max-h-[90vh] eb-max-w-2xl eb-overflow-hidden eb-p-0">
+      <DialogContent className="eb-max-h-[90vh] eb-max-w-lg eb-overflow-hidden eb-p-0">
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-text-xl">
             {verifyStatus === 'success' && verifyResponse?.status === 'VERIFIED'
@@ -146,11 +146,13 @@ export const MicrodepositsFormDialogTrigger: FC<
             verifyResponse?.status === 'VERIFIED' ? (
               t('forms.microdeposits.descriptionSuccess')
             ) : (
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: t('forms.microdeposits.description', {
-                    name: recipient ? getRecipientDisplayName(recipient) : '',
-                  }),
+              <Trans
+                i18nKey="forms.microdeposits.description"
+                ns="linked-accounts"
+                values={{
+                  name: recipient
+                    ? getRecipientDisplayName(recipient)
+                    : undefined,
                 }}
               />
             )}

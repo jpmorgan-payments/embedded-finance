@@ -14,7 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
-import { cn, useIPAddress } from '@/lib/utils';
+import { useIPAddress } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
   smbdoDownloadDocument,

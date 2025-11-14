@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui';
 
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge } from '../StatusBadge/StatusBadge';
 
 interface AccountDisplayCardProps {
   /** The recipient/account data to display */

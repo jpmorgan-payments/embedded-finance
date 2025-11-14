@@ -1,5 +1,4 @@
 import { defaultResources } from '@/i18n/config';
-import { useQuery } from '@tanstack/react-query';
 import { clsx, type ClassValue } from 'clsx';
 import DOMPurify from 'dompurify';
 import { getI18n } from 'react-i18next';
@@ -245,27 +244,4 @@ export const sanitizeInput = (input: string): string => {
     .trim();
 
   return sanitized;
-};
-
-export const useIPAddress = () => {
-  return useQuery<string>({
-    queryKey: ['useIPAddress'],
-    queryFn: async () => {
-      if (process.env.NODE_ENV !== 'test') {
-        const { publicIpv4 } = await import('public-ip');
-
-        return publicIpv4({
-          fallbackUrls: [
-            `https://ifconfig.co/ip`,
-            'https://api64.ipify.org/',
-            'https://ipapi.co/ip',
-          ],
-        });
-      }
-      return new Promise((resolve) => {
-        resolve('1.1.1.1');
-      });
-    },
-    retry: 5,
-  });
 };

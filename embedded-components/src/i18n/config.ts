@@ -76,11 +76,24 @@ i18n.use(initReactI18next).init({
   resources,
   interpolation: {
     escapeValue: false,
-    format: (value, format) => {
+    format: (value, format, lng) => {
       if (format === 'inc') {
         if (!Number.isNaN(Number(value))) {
           return Number(value) + 1;
         }
+      }
+
+      // Format dateOnly as date without time
+      if (format === 'dateOnly' && value instanceof Date) {
+        const locale =
+          (lng &&
+            defaultResources[lng as keyof typeof defaultResources]?.locale) ||
+          'en-US';
+        return value.toLocaleDateString(locale, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
       }
 
       return value;
@@ -121,12 +134,26 @@ export const createI18nInstance = (
     resources: cloneDeep(defaultResources),
     interpolation: {
       escapeValue: false,
-      format: (value: any, format?: any) => {
+      format: (value: any, format?: any, lng?: any) => {
         if (format === 'inc') {
           if (!Number.isNaN(Number(value))) {
             return Number(value) + 1;
           }
         }
+
+        // Format dateOnly as date without time
+        if (format === 'dateOnly' && value instanceof Date) {
+          const locale =
+            (lng &&
+              defaultResources[lng as keyof typeof defaultResources]?.locale) ||
+            'en-US';
+          return value.toLocaleDateString(locale, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+        }
+
         return value;
       },
     },
