@@ -1,32 +1,31 @@
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
- * Mock client data with too many beneficial owners (5 individuals) using Central Perk characters.
- * This triggers the TOO_MANY_BENEFICIAL_OWNERS validation error since
- * mathematically, you can only have 4 individuals if each must own ≥25%.
+ * Mock client data specifically designed for testing the removal functionality.
+ * This structure allows testing various removal scenarios using Central Perk structure:
+ * 
+ * 1. Removing individuals from entities (while keeping the entity)
+ * 2. Removing entire entities (cascade deletion)
+ * 3. Testing nested entity structures with multi-level ownership
  * 
  * Structure:
  * Central Perk Coffee & Cookies (Client)
- * ├── Monica Gellar - Individual (1st beneficial owner - DIRECT)
- * ├── Ross Gellar - Individual (2nd beneficial owner - DIRECT)  
- * ├── Central Perk Coffee - Entity
- * │   └── Rachel Green - Individual (3rd beneficial owner - INDIRECT)
- * ├── Central Perk Cookies - Entity  
- * │   └── Chandler Bing - Individual (4th beneficial owner - INDIRECT)
- * └── Joey Tribbiani - Individual (5th beneficial owner - DIRECT) ⚠️ VALIDATION ERROR
- * 
- * Having 5 individuals is mathematically impossible if each must own ≥25%
- * (5 × 25% = 125% > 100%), demonstrating the error with Friends characters.
+ * ├── Monica Gellar - Individual (can be removed)
+ * ├── Central Perk Coffee - Entity 
+ * │   └── Ross Gellar - Individual (can be removed, last individual will trigger orphan warning)
+ * └── Central Perk Cookies - Entity
+ *     └── Cookie Co. - Entity (nested entity)
+ *         └── Rachel Green - Individual (can be removed, last in nested chain)
  */
-export const efClientTooManyOwners: ClientResponse = {
-  id: 'too-many-owners-client-001',
+export const efClientRemovalTest: ClientResponse = {
+  id: 'removal-test-client-001',
   attestations: [],
   parties: [
     // Root client entity - Central Perk Coffee & Cookies
     {
       id: 'party-client-001',
       partyType: 'ORGANIZATION',
-      externalId: 'CENTRALPERK001',
+      externalId: 'CLIENT001',
       email: 'contact@centralperk.com',
       roles: ['CLIENT'],
       profileStatus: 'APPROVED',
@@ -38,11 +37,11 @@ export const efClientTooManyOwners: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    // 1st Individual Beneficial Owner (DIRECT) - Monica Gellar
+    // Direct individual beneficial owner - Monica Gellar
     {
       id: 'party-individual-001',
       partyType: 'INDIVIDUAL',
-      externalId: 'MONICA001',
+      externalId: 'IND001',
       email: 'monica.gellar@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
@@ -54,27 +53,11 @@ export const efClientTooManyOwners: ClientResponse = {
         lastName: 'Gellar',
       },
     },
-    // 2nd Individual Beneficial Owner (DIRECT) - Ross Gellar
-    {
-      id: 'party-individual-002',
-      partyType: 'INDIVIDUAL',
-      externalId: 'ROSS001',
-      email: 'ross.gellar@centralperk.com',
-      roles: ['BENEFICIAL_OWNER'],
-      profileStatus: 'APPROVED',
-      active: true,
-      createdAt: '2024-01-15T10:00:00Z',
-      parentPartyId: 'party-client-001',
-      individualDetails: {
-        firstName: 'Ross',
-        lastName: 'Gellar',
-      },
-    },
-    // Intermediary Entity 1 - Central Perk Coffee
+    // Central Perk Coffee entity
     {
       id: 'party-entity-001',
       partyType: 'ORGANIZATION',
-      externalId: 'COFFEE001',
+      externalId: 'ENT001',
       email: 'coffee@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
@@ -87,27 +70,27 @@ export const efClientTooManyOwners: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    // 3rd Individual Beneficial Owner (INDIRECT via Central Perk Coffee) - Rachel Green
+    // Ross Gellar under Central Perk Coffee (can be removed - last individual will trigger orphan warning)
     {
-      id: 'party-individual-003',
+      id: 'party-individual-002',
       partyType: 'INDIVIDUAL',
-      externalId: 'RACHEL001',
-      email: 'rachel.green@centralperk.com',
+      externalId: 'IND002',
+      email: 'ross.gellar@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
       active: true,
       createdAt: '2024-01-15T10:00:00Z',
       parentPartyId: 'party-entity-001',
       individualDetails: {
-        firstName: 'Rachel',
-        lastName: 'Green',
+        firstName: 'Ross',
+        lastName: 'Gellar',
       },
     },
-    // Intermediary Entity 2 - Central Perk Cookies
+    // Central Perk Cookies entity
     {
       id: 'party-entity-002',
       partyType: 'ORGANIZATION',
-      externalId: 'COOKIES001',
+      externalId: 'ENT002',
       email: 'cookies@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
@@ -120,36 +103,37 @@ export const efClientTooManyOwners: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    // 4th Individual Beneficial Owner (INDIRECT via Central Perk Cookies) - Chandler Bing
+    // Cookie Co. - nested entity under Central Perk Cookies
     {
-      id: 'party-individual-004',
-      partyType: 'INDIVIDUAL',
-      externalId: 'CHANDLER001',
-      email: 'chandler.bing@centralperk.com',
+      id: 'party-entity-003',
+      partyType: 'ORGANIZATION',
+      externalId: 'ENT003',
+      email: 'info@cookieco.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
       active: true,
       createdAt: '2024-01-15T10:00:00Z',
       parentPartyId: 'party-entity-002',
-      individualDetails: {
-        firstName: 'Chandler',
-        lastName: 'Bing',
+      organizationDetails: {
+        organizationType: 'C_CORPORATION',
+        organizationName: 'Cookie Co.',
+        countryOfFormation: 'US',
       },
     },
-    // 5th Individual Beneficial Owner (DIRECT) ⚠️ VALIDATION ERROR - TOO MANY - Joey Tribbiani
+    // Rachel Green under Cookie Co. (can be removed - last individual in nested chain)
     {
-      id: 'party-individual-005',
+      id: 'party-individual-003',
       partyType: 'INDIVIDUAL',
-      externalId: 'JOEY001',
-      email: 'joey.tribbiani@centralperk.com',
+      externalId: 'IND003',
+      email: 'rachel.green@cookieco.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
       active: true,
       createdAt: '2024-01-15T10:00:00Z',
-      parentPartyId: 'party-client-001',
+      parentPartyId: 'party-entity-003',
       individualDetails: {
-        firstName: 'Joey',
-        lastName: 'Tribbiani',
+        firstName: 'Rachel',
+        lastName: 'Green',
       },
     },
   ],

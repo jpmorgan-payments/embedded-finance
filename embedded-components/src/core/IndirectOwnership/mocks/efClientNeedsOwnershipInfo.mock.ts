@@ -11,15 +11,15 @@ export const efClientNeedsOwnershipInfo: ClientResponse = {
     {
       id: 'party-002',
       partyType: 'ORGANIZATION',
-      externalId: 'INFO002',
-      email: 'compliance@acmecorp.com',
+      externalId: 'CENTRALPERK002',
+      email: 'compliance@centralperk.com',
       roles: ['CLIENT'],
       profileStatus: 'INFORMATION_REQUESTED',
       active: true,
       createdAt: '2025-11-10T15:30:00.000Z',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationName: 'Acme Corporation LLC',
+        organizationName: 'Central Perk Coffee & Cookies',
         countryOfFormation: 'US',
       },
       validationResponse: [

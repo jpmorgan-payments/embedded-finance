@@ -7,15 +7,15 @@ export const efClientEmptyOwnership: ClientResponse = {
     {
       id: 'party-001',
       partyType: 'ORGANIZATION',
-      externalId: 'EMPTY001',
-      email: 'contact@newcompany.com',
+      externalId: 'CENTRALPERK001',
+      email: 'contact@centralperk.com',
       roles: ['CLIENT'],
       profileStatus: 'NEW',
       active: true,
       createdAt: '2025-11-12T10:00:00.000Z',
       organizationDetails: {
-        organizationType: 'C_CORPORATION',
-        organizationName: 'New Company Corp',
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        organizationName: 'Central Perk Coffee & Cookies',
         countryOfFormation: 'US',
       },
       // No parentPartyId - this is the root organization

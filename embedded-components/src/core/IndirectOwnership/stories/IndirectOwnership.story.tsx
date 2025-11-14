@@ -11,7 +11,8 @@ import {
   efClientComplexOwnership,
   efClientIncompleteOwnership,
   efClientTooManyOwners,
-  efClientMultipleValidationErrors 
+  efClientMultipleValidationErrors,
+  efClientRemovalTest
 } from '../mocks';
 
 interface IndirectOwnershipWithProviderProps {
@@ -95,7 +96,7 @@ export const Default: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return a complex 3-layer ownership structure
+        // Mock the SMBDO Get Client API to return Central Perk's 3-layer ownership structure
         http.get('*/clients/complex-ownership-client-001', () => {
           return HttpResponse.json(efClientComplexOwnership);
         }),
@@ -120,7 +121,7 @@ export const Default: Story = {
 };
 
 /**
- * Empty State story shows the component when a client exists but has no ownership
+ * Empty State story shows Central Perk Coffee & Cookies when it has no ownership
  * structure defined yet. This is the typical starting point for users who need to
  * add their first entities or individuals with ownership interest.
  * 
@@ -142,7 +143,7 @@ export const EmptyState: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return a client with no ownership structure
+        // Mock the SMBDO Get Client API to return Central Perk with no ownership structure
         http.get('*/clients/empty-ownership-client-001', () => {
           return HttpResponse.json(efClientEmptyOwnership);
         }),
@@ -167,7 +168,7 @@ export const EmptyState: Story = {
 };
 
 /**
- * Information Requested state shows the component when a client has been created
+ * Information Requested state shows Central Perk Coffee & Cookies when it has been created
  * but is specifically flagged as needing additional ownership information for
  * compliance purposes. This represents a more urgent empty state where action
  * is required to proceed with onboarding.
@@ -190,7 +191,7 @@ export const InformationRequested: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return a client that needs ownership info
+        // Mock the SMBDO Get Client API to return Central Perk that needs ownership info
         http.get('*/clients/needs-info-client-002', () => {
           return HttpResponse.json(efClientNeedsOwnershipInfo);
         }),
@@ -228,7 +229,7 @@ export const InformationRequested: Story = {
 };
 
 /**
- * Read Only state shows the component when a client has ownership structure
+ * Read Only state shows Central Perk Coffee & Cookies when it has ownership structure
  * but the component is in read-only mode, preventing modifications.
  */
 export const ReadOnly: Story = {
@@ -244,7 +245,7 @@ export const ReadOnly: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return a basic client
+        // Mock the SMBDO Get Client API to return Central Perk in read-only mode
         http.get('*/clients/readonly-client-003', () => {
           return HttpResponse.json(efClientEmptyOwnership);
         }),
@@ -256,18 +257,18 @@ export const ReadOnly: Story = {
 /**
  * Validation Error: Incomplete Beneficial Ownership
  * 
- * This story demonstrates the validation error that occurs when entities
- * in the ownership structure do not have identified beneficial owners (individuals).
+ * This story demonstrates the validation error using Central Perk's structure when
+ * entities do not have identified beneficial owners (individuals).
  * 
  * The scenario shows:
+ * - Central Perk Coffee & Central Perk Cookies without beneficial owners
  * - Red error alert at the top explaining the issue
  * - Orange warning badges on entities that need beneficial owners
  * - Orange borders around problematic entities
  * - Blocked form submission until issues are resolved
  * 
  * Error Type: INCOMPLETE_BENEFICIAL_OWNERSHIP
- * Trigger: Entities with partyType='ORGANIZATION' and roles=['BENEFICIAL_OWNER'] 
- *          that don't have any children with partyType='INDIVIDUAL'
+ * Trigger: Central Perk Coffee and Central Perk Cookies entities without individual children
  */
 export const ValidationErrorIncompleteOwnership: Story = {
   args: {
@@ -282,7 +283,7 @@ export const ValidationErrorIncompleteOwnership: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return client with incomplete ownership
+        // Mock the SMBDO Get Client API to return Central Perk with incomplete ownership
         http.get('*/clients/incomplete-ownership-client-001', () => {
           return HttpResponse.json(efClientIncompleteOwnership);
         }),
@@ -307,23 +308,23 @@ export const ValidationErrorIncompleteOwnership: Story = {
 };
 
 /**
- * Validation Error: Too Many Beneficial Owners (Mixed Direct/Indirect)
+ * Validation Error: Too Many Beneficial Owners (Friends Characters)
  * 
- * This story demonstrates the validation error that occurs when there are
- * more than 4 individual beneficial owners across both direct and indirect ownership.
+ * This story demonstrates the validation error using all main Friends characters
+ * when there are more than 4 individual beneficial owners.
  * 
  * The scenario shows:
- * - Complex ownership structure with both direct individuals and entities with indirect owners
+ * - Central Perk structure with Monica, Ross, Rachel, Chandler, and Joey (5 total)
+ * - Mixed direct and indirect ownership through Central Perk entities
  * - Red error alert explaining the mathematical impossibility 
  * - Disabled "Add Individual Owner" buttons
  * - Warning text about reaching the 4-owner limit
  * - Clear explanation that each owner must have ≥25% ownership
- * - Demonstrates how indirect ownership still counts toward the 4-person limit
  * 
  * Error Type: TOO_MANY_BENEFICIAL_OWNERS  
- * Trigger: More than 4 parties with partyType='INDIVIDUAL' and roles=['BENEFICIAL_OWNER']
+ * Trigger: 5 Friends characters as beneficial owners (exceeds 4-person limit)
  * Mathematical Logic: 5 owners × 25% minimum = 125% > 100% (impossible)
- * Structure: 3 direct + 2 indirect = 5 total individuals (exceeds limit)
+ * Structure: Monica, Ross direct + Rachel, Chandler indirect + Joey direct = 5 total
  */
 export const ValidationErrorTooManyOwners: Story = {
   args: {
@@ -338,7 +339,7 @@ export const ValidationErrorTooManyOwners: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return client with too many owners
+        // Mock the SMBDO Get Client API to return Central Perk with too many owners (Friends characters)
         http.get('*/clients/too-many-owners-client-001', () => {
           return HttpResponse.json(efClientTooManyOwners);
         }),
@@ -363,23 +364,24 @@ export const ValidationErrorTooManyOwners: Story = {
 };
 
 /**
- * Validation Error: Multiple Issues Combined
+ * Validation Error: Multiple Issues Combined (Friends Chaos)
  * 
- * This story demonstrates the "worst case" scenario where BOTH validation
- * errors occur simultaneously in the same ownership structure.
+ * This story demonstrates the "worst case" scenario using Friends characters where BOTH validation
+ * errors occur simultaneously in Central Perk's ownership structure.
  * 
  * The scenario shows:
+ * - All Friends characters as beneficial owners (Monica, Ross, Rachel, Chandler, Joey)
+ * - Central Perk Merchandise entity without beneficial owners
  * - Multiple error messages in the red alert box
  * - Both types of visual warnings (orange borders, badges, disabled buttons)
  * - Comprehensive error state with clear guidance for resolution
  * - Blocked functionality until all issues are resolved
  * 
  * Error Types: 
- * 1. TOO_MANY_BENEFICIAL_OWNERS (5 individuals > 4 limit)
- * 2. INCOMPLETE_BENEFICIAL_OWNERSHIP (entity without individuals)
+ * 1. TOO_MANY_BENEFICIAL_OWNERS (5 Friends characters > 4 limit)
+ * 2. INCOMPLETE_BENEFICIAL_OWNERSHIP (Central Perk Merchandise without individuals)
  * 
- * This story is useful for testing how the component handles multiple
- * simultaneous validation failures and ensures all error states work together.
+ * This story shows how the component handles multiple simultaneous validation failures.
  */
 export const ValidationErrorMultipleIssues: Story = {
   args: {
@@ -394,7 +396,7 @@ export const ValidationErrorMultipleIssues: Story = {
   parameters: {
     msw: {
       handlers: [
-        // Mock the SMBDO Get Client API to return client with multiple validation errors
+        // Mock the SMBDO Get Client API to return Central Perk with multiple validation errors
         http.get('*/clients/multiple-errors-client-001', () => {
           return HttpResponse.json(efClientMultipleValidationErrors);
         }),
@@ -415,6 +417,66 @@ export const ValidationErrorMultipleIssues: Story = {
             ],
             metadata: {
               total: 1,
+              page: 1,
+              limit: 50,
+            },
+          });
+        }),
+      ],
+    },
+  },
+};
+
+/**
+ * Node Removal Testing Story
+ * 
+ * This story demonstrates the enhanced removal functionality using the Central Perk
+ * structure from the documentation. It provides a comprehensive test environment
+ * for validating removal scenarios with nested entities.
+ * 
+ * Test Scenarios Available:
+ * 1. **Remove Direct Individual**: Monica Gellar can be removed (direct owner)
+ * 2. **Remove Individual from Entity**: Ross Gellar can be removed from Central Perk Coffee (will trigger orphan warning)
+ * 3. **Remove Nested Individual**: Rachel Green can be removed from Cookie Co. (nested structure)
+ * 4. **Remove Entire Entity**: Central Perk Coffee can be removed (removes Ross Gellar too)
+ * 5. **Remove Nested Entity Chain**: Central Perk Cookies can be removed (removes Cookie Co. and Rachel Green)
+ * 6. **Complex Nested Structure**: Cookie Co. demonstrates multi-level entity nesting
+ * 
+ * Expected Behaviors:
+ * - Delete buttons appear on removable parties with red styling
+ * - Root client (Central Perk Coffee & Cookies) cannot be removed
+ * - Confirmation dialogs show appropriate messaging for individuals vs entities
+ * - Cascade warnings appear when removing entities with children
+ * - Orphan warnings appear when removing last individual from entity
+ * - Successful removal updates the tree structure immediately
+ */
+export const NodeRemovalTesting: Story = {
+  args: {
+    apiBaseUrl: 'https://api.example.com',
+    headers: { Authorization: 'Bearer demo-token' },
+    theme: SELLSENSE_THEME,
+    clientId: 'removal-test-client-001',
+    showVisualization: true,
+    maxDepth: 10,
+    readOnly: false,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        // Mock the SMBDO Get Client API to return client designed for removal testing
+        http.get('*/clients/removal-test-client-001', () => {
+          return HttpResponse.json(efClientRemovalTest);
+        }),
+        // Mock the SMBDO Update Client API
+        http.put('*/clients/removal-test-client-001', () => {
+          return HttpResponse.json(efClientRemovalTest);
+        }),
+        // Mock the List Questions API
+        http.get('*/questions', () => {
+          return HttpResponse.json({
+            questions: [],
+            metadata: {
+              total: 0,
               page: 1,
               limit: 50,
             },

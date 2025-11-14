@@ -43,6 +43,7 @@ The `IndirectOwnership` component includes comprehensive validation to ensure be
 |-----------|---------|------------------|-------------|
 | `efClientIncompleteOwnership.mock.ts` | INCOMPLETE_BENEFICIAL_OWNERSHIP | ✅ | 2 entities without individual children |
 | `efClientTooManyOwners.mock.ts` | TOO_MANY_BENEFICIAL_OWNERS | ✅ | 5 individual beneficial owners (exceeds limit) |
+| `efClientRemovalTest.mock.ts` | Removal Testing | ❌ | Clean structure for testing removal scenarios |
 
 ### Combined Scenario
 
@@ -59,6 +60,7 @@ The `IndirectOwnership` component includes comprehensive validation to ensure be
 | `ValidationErrorIncompleteOwnership` | `efClientIncompleteOwnership` | Demo entities without beneficial owners |
 | `ValidationErrorTooManyOwners` | `efClientTooManyOwners` | Demo mathematical limit violation |
 | `ValidationErrorMultipleIssues` | `efClientMultipleValidationErrors` | Demo both errors simultaneously |
+| `NodeRemovalTesting` | `efClientRemovalTest` | Demo enhanced removal functionality for individuals and entities |
 
 ### Usage in Storybook
 
@@ -92,17 +94,102 @@ The `IndirectOwnership` component includes comprehensive validation to ensure be
 - [ ] No visual conflicts between different error types
 - [ ] Component remains usable despite multiple errors
 
+**For Node Removal**:
+- [ ] Delete buttons appear on all removable parties with red styling
+- [ ] Delete button is hidden for root client entity only
+- [ ] Individual removal works for any individual (including last in entity)
+- [ ] Removing last individual from entity shows orphan warning dialog
+- [ ] Entity removal includes cascade warning dialog
+- [ ] Confirmation dialog shows different messaging for individuals vs entities
+- [ ] Successful deletion removes party and all descendants
+- [ ] Tree structure updates immediately after deletion
+- [ ] Validation errors are recalculated after deletion (showing incomplete ownership warnings)
+- [ ] Can remove all individuals from entities (triggers validation warning as expected)
+
 ### Automated Testing
 
 The validation logic is implemented in:
 - `validateOwnershipStructure()` function
 - `canAddMoreOwners()` helper function
+- `canDeleteParty()` deletion validation function
+- `handleDeleteOwner()` and `confirmDeleteOwner()` removal functions
 
 Test scenarios should cover:
 - Empty ownership structure (no errors)
 - Single validation errors
 - Multiple validation errors
 - Edge cases (exactly 4 owners, single entity without children)
+- Node removal with cascade deletion
+- Individual removal creating orphaned entities (shows warnings)
+- Entity removal with descendants
+- Root client deletion protection
+- Validation system response to removal actions
+
+## Node Removal Functionality
+
+### Remove Owner Feature
+
+The IndirectOwnership component includes the ability to remove ownership nodes with proper validation and cascading deletion:
+
+**Remove Button Availability**:
+- 🗑️ Delete buttons appear on all removable parties with red styling
+- 🚫 Root client entity cannot be removed (no delete button)
+- ✅ All individuals can be removed (including last individual in entity)
+- ✅ Entire entities can be removed (with cascade deletion)
+- ⚠️ Confirmation dialog shows warnings for orphaned entities and cascade deletion
+
+**Deletion Rules**:
+- **Cannot delete root client**: The CLIENT entity cannot be removed
+- **Individual removal**: Can remove individuals from entities (if siblings exist)
+- **Entity removal**: Can remove entire entities (cascade deletes all descendants)
+- **Flexible removal**: Can remove last individual from entity (triggers validation warning)
+- **Cascade deletion**: Removing a party also removes all its descendants 
+- **Validation feedback**: Deletions that create incomplete beneficial ownership show warnings
+- **Confirmation required**: User must confirm deletion through contextual dialog with warnings
+
+**Visual Indicators**:
+- 🗑️ Red delete buttons with trash icons (hover effects)
+- 🚫 Hidden delete buttons only for root client entity
+- ⚠️ Contextual confirmation dialogs (different messaging for individuals vs entities)
+- ⚠️ Cascade warning when removing entities with children
+- 🟠 Orphan warning when removing last individual from entity
+- 📄 Entity/individual preview showing what will be deleted
+- 🔄 Immediate tree structure updates after deletion
+
+### Deletion Validation Logic
+
+```typescript
+const canDeleteParty = (party: any): boolean => {
+  // Cannot delete the root client entity
+  if (party.roles?.includes('CLIENT')) return false;
+  
+  // For individuals: Always allow deletion (validation system will handle warnings for empty entities)
+  if (party.partyType === 'INDIVIDUAL') {
+    return true;
+  }
+  
+  // For entities: Standard validation for cascade deletion
+  if (party.partyType === 'ORGANIZATION') {
+    if (party.parentPartyId) {
+      const parent = currentOwnershipData?.parties?.find(p => p.id === party.parentPartyId);
+      if (parent) {
+        const siblings = currentOwnershipData?.parties?.filter(p => 
+          p.parentPartyId === party.parentPartyId && p.id !== party.id
+        ) || [];
+        
+        // If this is the only child of a beneficial owner entity, cannot delete
+        if (parent.roles?.includes('BENEFICIAL_OWNER') && 
+            parent.partyType === 'ORGANIZATION' && 
+            siblings.length === 0) {
+          return false;
+        }
+      }
+    }
+  }
+  
+  return true;
+};
+```
 
 ## Developer Notes
 

@@ -5,3 +5,4 @@ export { efClientComplexOwnership } from './efClientComplexOwnership.mock';
 export { efClientIncompleteOwnership } from './efClientIncompleteOwnership.mock';
 export { efClientTooManyOwners } from './efClientTooManyOwners.mock';
 export { efClientMultipleValidationErrors } from './efClientMultipleValidationErrors.mock';
+export { efClientRemovalTest } from './efClientRemovalTest.mock';

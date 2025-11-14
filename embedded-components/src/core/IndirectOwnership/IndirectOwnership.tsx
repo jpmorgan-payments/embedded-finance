@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Building, Plus, AlertCircle, Info, ChevronRight, UserPlus, ArrowRight, User, CheckCircle2 } from 'lucide-react';
+import { Users, Building, Plus, AlertCircle, Info, ChevronRight, UserPlus, ArrowRight, User, CheckCircle2, Trash2 } from 'lucide-react';
 
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 
@@ -56,6 +56,10 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
   const [isAddOwnerDialogOpen, setIsAddOwnerDialogOpen] = React.useState(false);
   const [selectedParent, setSelectedParent] = React.useState<any>(null);
   const [ownerType, setOwnerType] = React.useState<'entity' | 'individual' | null>(null);
+  
+  // Delete confirmation dialog state
+  const [isDeleteConfirmDialogOpen, setIsDeleteConfirmDialogOpen] = React.useState(false);
+  const [partyToDelete, setPartyToDelete] = React.useState<any>(null);
 
   // Local state for ownership data (overrides API data when modified)
   const [localOwnershipData, setLocalOwnershipData] = React.useState<any>(null);
@@ -318,6 +322,83 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
     return count;
   };
 
+  // Check if a party can be deleted
+  const canDeleteParty = (party: any): boolean => {
+    // Cannot delete the root client entity
+    if (party.roles?.includes('CLIENT')) return false;
+    
+    // For individuals: Always allow deletion (validation system will handle warnings for empty entities)
+    if (party.partyType === 'INDIVIDUAL') {
+      return true;
+    }
+    
+    // For entities: Cannot delete if it would leave parent without any beneficial owners
+    if (party.partyType === 'ORGANIZATION') {
+      if (party.parentPartyId) {
+        const parent = currentOwnershipData?.parties?.find((p: any) => p.id === party.parentPartyId);
+        if (parent) {
+          const siblings = currentOwnershipData?.parties?.filter((p: any) => 
+            p.parentPartyId === party.parentPartyId && p.id !== party.id
+          ) || [];
+          
+          // If this is the only child of a beneficial owner entity, cannot delete
+          if (parent.roles?.includes('BENEFICIAL_OWNER') && 
+              parent.partyType === 'ORGANIZATION' && 
+              siblings.length === 0) {
+            return false;
+          }
+        }
+      }
+    }
+    
+    return true;
+  };
+
+  // Handle deleting a party and all its children
+  const handleDeleteOwner = (party: any) => {
+    setPartyToDelete(party);
+    setIsDeleteConfirmDialogOpen(true);
+  };
+
+  // Confirm and execute deletion
+  const confirmDeleteOwner = () => {
+    if (!partyToDelete || !currentOwnershipData) return;
+
+    // Get all descendant IDs (including the party itself)
+    const getDescendantIds = (partyId: string): string[] => {
+      const descendants: string[] = [partyId];
+      const children = currentOwnershipData.parties?.filter((p: any) => p.parentPartyId === partyId) || [];
+      
+      children.forEach((child: any) => {
+        descendants.push(...getDescendantIds(child.id));
+      });
+      
+      return descendants;
+    };
+
+    const idsToDelete = getDescendantIds(partyToDelete.id);
+
+    // Update local ownership data by removing the party and all its descendants
+    const updatedOwnershipData = {
+      ...currentOwnershipData,
+      parties: currentOwnershipData.parties?.filter((p: any) => !idsToDelete.includes(p.id)) || []
+    };
+
+    // Update local state to immediately reflect the change
+    setLocalOwnershipData(updatedOwnershipData);
+
+    console.log('Deleting party and descendants:', idsToDelete);
+
+    // Call the callback with updated ownership structure
+    if (onOwnershipStructureUpdate) {
+      onOwnershipStructureUpdate(updatedOwnershipData);
+    }
+
+    // Close dialog and clear state
+    setIsDeleteConfirmDialogOpen(false);
+    setPartyToDelete(null);
+  };
+
   // Handle adding an owner to a specific party
   const handleAddOwner = (parentParty: any) => {
     setSelectedParent(parentParty);
@@ -493,19 +574,32 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                 <div className="eb-space-y-2 eb-pt-2">
                   {party.children.map((child: any) => renderParty(child, depth + 1))}
                   
-                  {/* Add Owner Button */}
+                  {/* Action Buttons */}
                   {!readOnly && (
                     <div className="eb-pt-2 eb-border-t eb-border-gray-100">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddOwner(party)}
-                        disabled={ownerType === 'individual' && !canAddMoreOwners()}
-                        className="eb-w-full sm:eb-w-auto eb-text-sm"
-                      >
-                        <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
-                        {t('indirectOwnership.addOwnership', 'Add Ownership')}
-                      </Button>
+                      <div className="eb-flex eb-gap-2 eb-flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddOwner(party)}
+                          disabled={ownerType === 'individual' && !canAddMoreOwners()}
+                          className="eb-flex-1 sm:eb-flex-initial eb-text-sm"
+                        >
+                          <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
+                          {t('indirectOwnership.addOwnership', 'Add Ownership')}
+                        </Button>
+                        {canDeleteParty(party) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteOwner(party)}
+                            className="eb-flex-1 sm:eb-flex-initial eb-text-sm eb-text-red-600 hover:eb-text-red-700 hover:eb-border-red-300"
+                          >
+                            <Trash2 className="eb-mr-2 eb-h-4 eb-w-4" />
+                            {t('indirectOwnership.removeOwnership', 'Remove')}
+                          </Button>
+                        )}
+                      </div>
                       {!canAddMoreOwners() && (
                         <p className="eb-text-xs eb-text-orange-600 eb-mt-1">
                           Maximum of 4 beneficial owners reached
@@ -558,16 +652,30 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                     Needs Individual Owner
                   </Badge>
                 )}
-                {/* Add Owner Button for Mobile - Organizations Only */}
-                {!readOnly && isOrganization && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleAddOwner(party)}
-                    className="eb-h-6 eb-px-2 eb-text-xs eb-ml-auto"
-                  >
-                    <Plus className="eb-h-3 eb-w-3" />
-                  </Button>
+                {/* Action Buttons for Mobile */}
+                {!readOnly && (
+                  <div className="eb-flex eb-gap-1 eb-ml-auto">
+                    {isOrganization && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddOwner(party)}
+                        className="eb-h-6 eb-px-2 eb-text-xs"
+                      >
+                        <Plus className="eb-h-3 eb-w-3" />
+                      </Button>
+                    )}
+                    {canDeleteParty(party) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteOwner(party)}
+                        className="eb-h-6 eb-px-2 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
+                      >
+                        <Trash2 className="eb-h-3 eb-w-3" />
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -603,17 +711,32 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                     Needs Individual Owner
                   </Badge>
                 )}
-                {/* Add Owner Button for Desktop - Organizations Only */}
-                {!readOnly && isOrganization && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleAddOwner(party)}
-                    className="eb-h-7 eb-px-2 eb-text-xs"
-                  >
-                    <Plus className="eb-mr-1 eb-h-3 eb-w-3" />
-                    {t('indirectOwnership.addOwnership', 'Add Ownership')}
-                  </Button>
+                {/* Action Buttons for Desktop */}
+                {!readOnly && (
+                  <div className="eb-flex eb-gap-2">
+                    {isOrganization && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddOwner(party)}
+                        className="eb-h-7 eb-px-2 eb-text-xs"
+                      >
+                        <Plus className="eb-mr-1 eb-h-3 eb-w-3" />
+                        {t('indirectOwnership.addOwnership', 'Add Ownership')}
+                      </Button>
+                    )}
+                    {canDeleteParty(party) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteOwner(party)}
+                        className="eb-h-7 eb-px-2 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
+                      >
+                        <Trash2 className="eb-mr-1 eb-h-3 eb-w-3" />
+                        {t('indirectOwnership.removeOwnership', 'Remove')}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -1212,6 +1335,104 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               </Button>
             </DialogFooter>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteConfirmDialogOpen} onOpenChange={setIsDeleteConfirmDialogOpen}>
+        <DialogContent className="eb-max-w-md">
+          <DialogHeader>
+            <DialogTitle className="eb-flex eb-items-center eb-gap-2">
+              <Trash2 className="eb-h-5 eb-w-5 eb-text-red-600" />
+              {t('indirectOwnership.deleteConfirm.title', 'Confirm Deletion')}
+            </DialogTitle>
+            <DialogDescription className="eb-text-left">
+              {partyToDelete && (
+                partyToDelete.partyType === 'INDIVIDUAL' 
+                  ? t('indirectOwnership.deleteConfirm.messageIndividual', 'Are you sure you want to remove this individual from the ownership structure?')
+                  : t('indirectOwnership.deleteConfirm.messageEntity', 'Are you sure you want to delete this entity and all its ownership relationships?')
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {partyToDelete && (
+            <div className="eb-space-y-3 eb-px-6">
+              <div className="eb-bg-gray-50 eb-p-3 eb-rounded eb-border">
+                <div className="eb-flex eb-items-center eb-gap-2">
+                  {partyToDelete.partyType === 'ORGANIZATION' ? (
+                    <Building className="eb-h-4 eb-w-4 eb-text-blue-600" />
+                  ) : (
+                    <Users className="eb-h-4 eb-w-4 eb-text-green-600" />
+                  )}
+                  <span className="eb-font-medium">
+                    {partyToDelete.partyType === 'ORGANIZATION' 
+                      ? partyToDelete.organizationDetails?.organizationName
+                      : `${partyToDelete.individualDetails?.firstName || ''} ${partyToDelete.individualDetails?.lastName || ''}`.trim()
+                    }
+                  </span>
+                </div>
+                <p className="eb-text-sm eb-text-gray-600 eb-mt-1">
+                  {partyToDelete.partyType === 'ORGANIZATION'
+                    ? partyToDelete.organizationDetails?.organizationType
+                    : 'Individual'
+                  }
+                </p>
+              </div>
+              
+              {currentOwnershipData?.parties?.some((p: any) => p.parentPartyId === partyToDelete.id) && (
+                <div className="eb-text-sm eb-text-amber-700 eb-bg-amber-50 eb-p-2 eb-rounded eb-border eb-border-amber-200">
+                  <AlertCircle className="eb-h-4 eb-w-4 eb-inline eb-mr-1" />
+                  {partyToDelete.partyType === 'ORGANIZATION'
+                    ? t('indirectOwnership.deleteConfirm.cascadeWarningEntity', 'This will also remove all entities and individuals owned by this organization.')
+                    : t('indirectOwnership.deleteConfirm.cascadeWarningIndividual', 'This individual owns other entities that will also be removed.')
+                  }
+                </div>
+              )}
+              
+              {/* Warning for removing last individual from entity */}
+              {partyToDelete.partyType === 'INDIVIDUAL' && partyToDelete.parentPartyId && (() => {
+                const parent = currentOwnershipData?.parties?.find((p: any) => p.id === partyToDelete.parentPartyId);
+                if (parent && parent.roles?.includes('BENEFICIAL_OWNER') && parent.partyType === 'ORGANIZATION') {
+                  const individualSiblings = currentOwnershipData?.parties?.filter((p: any) => 
+                    p.parentPartyId === partyToDelete.parentPartyId && 
+                    p.id !== partyToDelete.id && 
+                    p.partyType === 'INDIVIDUAL'
+                  ) || [];
+                  
+                  if (individualSiblings.length === 0) {
+                    return (
+                      <div className="eb-text-sm eb-text-orange-700 eb-bg-orange-50 eb-p-2 eb-rounded eb-border eb-border-orange-200">
+                        <AlertCircle className="eb-h-4 eb-w-4 eb-inline eb-mr-1" />
+                        {t('indirectOwnership.deleteConfirm.orphanWarning', 'This will leave {{entityName}} without any beneficial owners, which will require attention.', 
+                          { entityName: parent.organizationDetails?.organizationName || 'the entity' }
+                        )}
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteConfirmDialogOpen(false)}
+            >
+              {t('common.cancel', 'Cancel')}
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteOwner}
+              className="eb-bg-red-600 hover:eb-bg-red-700"
+            >
+              <Trash2 className="eb-mr-2 eb-h-4 eb-w-4" />
+              {partyToDelete?.partyType === 'INDIVIDUAL'
+                ? t('indirectOwnership.deleteConfirm.removeIndividual', 'Remove Individual')
+                : t('indirectOwnership.deleteConfirm.deleteEntity', 'Delete Entity')
+              }
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
