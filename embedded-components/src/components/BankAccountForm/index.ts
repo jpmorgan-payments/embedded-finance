@@ -6,16 +6,22 @@
  */
 
 export { BankAccountForm } from './BankAccountForm';
+
+// Configuration hooks (modern pattern - individual files)
 export {
   useLinkedAccountConfig,
   useLinkedAccountEditConfig,
   useRecipientConfig,
   usePaymentMethodConfig,
   useDefaultPaymentMethodConfigs,
-  createCustomConfig,
-} from './BankAccountForm.configs';
+} from './hooks';
+
+// Utilities
 export { createBankAccountFormSchema } from './BankAccountForm.schema';
 export { transformBankAccountFormToRecipientPayload } from './BankAccountForm.utils';
+export { createCustomConfig } from './utils';
+
+// Types
 export type {
   BankAccountFormConfig,
   BankAccountFormContent,
