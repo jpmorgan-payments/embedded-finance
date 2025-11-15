@@ -3,13 +3,13 @@
  */
 
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
-import { http, HttpResponse } from 'msw';
 import {
   baseStoryArgTypes,
   baseStoryDefaults,
   BaseStoryProps,
 } from '@storybook/shared-story-types';
 import { ThemeName, THEMES } from '@storybook/themes';
+import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -87,6 +87,43 @@ export const LinkedAccountWidgetStory: React.FC<
 export const createRecipientHandlers = (responseData: any) => [
   http.get('*/recipients', () => {
     return HttpResponse.json(responseData);
+  }),
+  http.get('*/recipients/:id', ({ params }) => {
+    const { id } = params;
+    // Try to find the recipient in the mock data
+    const recipient = linkedAccountListMock.recipients?.find(
+      (r) => r.id === id
+    );
+
+    if (recipient) {
+      return HttpResponse.json(recipient);
+    }
+
+    // If not found in mock data, return a default recipient with the requested ID
+    return HttpResponse.json({
+      id,
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId: '3002024303',
+      partyDetails: {
+        type: 'INDIVIDUAL',
+        firstName: 'John',
+        lastName: 'Doe',
+      },
+      account: {
+        type: 'CHECKING',
+        number: '1234567890',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '123456789',
+            transactionType: 'ACH',
+          },
+        ],
+        countryCode: 'US',
+      },
+      createdAt: new Date().toISOString(),
+    });
   }),
   http.post('*/recipients', async ({ request }) => {
     const body = (await request.json()) as any;
