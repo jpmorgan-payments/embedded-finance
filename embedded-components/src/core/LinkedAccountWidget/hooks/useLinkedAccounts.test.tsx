@@ -112,7 +112,7 @@ describe('useLinkedAccounts', () => {
     );
 
     const { result } = renderHook(
-      () => useLinkedAccounts({ variant: 'default', clientId: 'test-client' }),
+      () => useLinkedAccounts({ variant: 'default' }),
       { wrapper: createWrapper() }
     );
 
@@ -138,7 +138,6 @@ describe('useLinkedAccounts', () => {
       () =>
         useLinkedAccounts({
           variant: 'singleAccount',
-          clientId: 'test-client',
         }),
       { wrapper: createWrapper() }
     );
@@ -161,12 +160,9 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(
-      () => useLinkedAccounts({ clientId: 'test-client' }),
-      {
-        wrapper: createWrapper(),
-      }
-    );
+    const { result } = renderHook(() => useLinkedAccounts({}), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -188,12 +184,9 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(
-      () => useLinkedAccounts({ clientId: 'test-client' }),
-      {
-        wrapper: createWrapper(),
-      }
-    );
+    const { result } = renderHook(() => useLinkedAccounts({}), {
+      wrapper: createWrapper(),
+    });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.linkedAccounts).toHaveLength(0);
@@ -210,12 +203,9 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(
-      () => useLinkedAccounts({ clientId: 'test-client' }),
-      {
-        wrapper: createWrapper(),
-      }
-    );
+    const { result } = renderHook(() => useLinkedAccounts({}), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);
@@ -236,12 +226,9 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(
-      () => useLinkedAccounts({ clientId: 'test-client' }),
-      {
-        wrapper: createWrapper(),
-      }
-    );
+    const { result } = renderHook(() => useLinkedAccounts({}), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
