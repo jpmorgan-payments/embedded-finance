@@ -84,7 +84,7 @@ export const RemoveAccountDialogTrigger: FC<
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="eb-max-w-md eb-space-y-4">
         <DialogHeader className="eb-space-y-3">
-          <div className="eb-flex eb-items-center eb-gap-3">
+          <div className="eb-flex eb-items-center eb-gap-3 eb-font-header">
             {amendRecipientStatus === 'success' ? (
               <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-green-100">
                 <CheckCircle2Icon className="eb-h-5 eb-w-5 eb-text-green-600" />

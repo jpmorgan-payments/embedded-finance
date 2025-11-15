@@ -125,7 +125,7 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="eb-max-h-[90vh] eb-max-w-2xl eb-overflow-hidden eb-p-0">
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
-          <DialogTitle className="eb-text-xl">
+          <DialogTitle className="eb-font-header eb-text-xl">
             {status === 'success'
               ? t(`forms.${translationKey}.titleSuccess`)
               : t(`forms.${translationKey}.title`)}

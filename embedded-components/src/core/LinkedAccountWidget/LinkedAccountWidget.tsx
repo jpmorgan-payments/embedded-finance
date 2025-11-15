@@ -72,7 +72,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
-              <CardTitle className="eb-text-lg eb-font-semibold @md:eb-text-xl">
+              <CardTitle className="eb-font-header eb-text-lg eb-font-semibold @md:eb-text-xl">
                 {t('title')}{' '}
                 {!isLoading && !isError && (
                   <span className="eb-animate-fade-in">
