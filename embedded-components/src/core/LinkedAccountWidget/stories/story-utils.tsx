@@ -7,11 +7,11 @@ import {
   baseStoryDefaults,
   BaseStoryProps,
 } from '@/../.storybook/shared-story-types';
+import { ThemeName, THEMES } from '@/../.storybook/themes';
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import { ThemeName, THEMES } from '@/core/themes';
 
 import { LinkedAccountWidget } from '../LinkedAccountWidget';
 

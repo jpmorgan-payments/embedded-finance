@@ -5,7 +5,9 @@
  * across all component stories for consistent theming.
  */
 
-import { EBTheme } from './EBComponentsProvider/config.types';
+import { defaultTheme } from '@/core/EBComponentsProvider/defaultTheme';
+
+import { EBTheme } from '../src/core/EBComponentsProvider/config.types';
 
 /**
  * SellSense Theme Configuration
@@ -213,7 +215,7 @@ export const SELLSENSE_THEME: EBTheme = {
  *
  * Clean, neutral theme for general use
  */
-export const DEFAULT_THEME: EBTheme = {
+export const NEUTRAL_THEME: EBTheme = {
   variables: {
     fontFamily: 'Inter',
     headerFontFamily: 'Inter',
@@ -291,12 +293,40 @@ export const DEFAULT_THEME: EBTheme = {
   },
 };
 
+export const SALT_THEME: EBTheme = {
+  variables: {
+    fontFamily: 'Open Sans',
+    headerFontFamily: 'Amplitude',
+    backgroundColor: '#f6f7f8',
+    inputColor: '#FFFFFF',
+    inputBorderColor: '#0000004D',
+    borderColor: '#0000004D',
+    borderRadius: '6px',
+    inputBorderRadius: '4px',
+    buttonBorderRadius: '8px',
+    buttonFontFamily: 'Amplitude',
+    buttonTextTransform: 'uppercase',
+    buttonLetterSpacing: '0.6px',
+    primaryColor: '#1B7F9E',
+    secondaryColor: 'transparent',
+    secondaryForegroundColor: '#1B7F9E',
+    secondaryBorderWidth: '1px',
+    secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
+    formLabelFontSize: '0.75rem',
+    formLabelLineHeight: '1rem',
+    formLabelFontWeight: '600',
+    formLabelForegroundColor: '#4C5157',
+  },
+};
+
 /**
  * Available themes for use in stories
  */
 export const THEMES = {
-  SELLSENSE: SELLSENSE_THEME,
-  DEFAULT: DEFAULT_THEME,
+  SellSense: SELLSENSE_THEME,
+  Neutral: NEUTRAL_THEME,
+  Default: defaultTheme,
+  Salt: SALT_THEME,
 } as const;
 
 export type ThemeName = keyof typeof THEMES;

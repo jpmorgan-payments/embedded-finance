@@ -9,9 +9,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 import { userEvent, within } from '@test-utils';
 
+import { SELLSENSE_THEME } from '../../../../.storybook/themes';
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
-import { SELLSENSE_THEME } from '../../themes';
 import { Recipients, RecipientsProps } from '../Recipients';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay

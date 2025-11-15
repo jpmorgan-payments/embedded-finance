@@ -15,7 +15,7 @@
 import { defaultResources } from '@/i18n/config';
 
 import { EBTheme } from '../src/core/EBComponentsProvider/config.types';
-import { ThemeName, THEMES } from '../src/core/themes';
+import { ThemeName, THEMES } from './themes';
 
 /**
  * Base props that are common to all component stories.
@@ -46,7 +46,7 @@ export const baseStoryDefaults: BaseStoryProps = {
   headers: {
     platform_id: import.meta.env.VITE_API_PLATFORM_ID ?? '',
   },
-  themePreset: 'DEFAULT',
+  themePreset: 'Salt',
   contentTokensPreset: 'enUS',
 };
 
@@ -70,13 +70,13 @@ export const baseStoryArgTypes = {
     },
   },
   themePreset: {
-    control: { type: 'select' },
+    control: { type: 'radio' },
     options: ['custom', ...Object.keys(THEMES)],
     description:
       'Select a theme preset or choose "custom" to edit the theme object',
     table: {
       category: 'Provider',
-      defaultValue: { summary: 'DEFAULT' },
+      defaultValue: { summary: 'Salt' },
     },
   },
   theme: {
