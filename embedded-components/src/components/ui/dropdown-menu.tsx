@@ -65,7 +65,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'eb-z-50 eb-max-h-[var(--radix-dropdown-menu-content-available-height)] eb-min-w-[8rem] eb-overflow-y-auto eb-overflow-x-hidden eb-rounded-md eb-border eb-bg-popover eb-p-1 eb-text-popover-foreground eb-shadow-md',
+        'eb-component eb-z-50 eb-max-h-[var(--radix-dropdown-menu-content-available-height)] eb-min-w-[8rem] eb-overflow-y-auto eb-overflow-x-hidden eb-rounded-md eb-border eb-bg-popover eb-p-1 eb-text-popover-foreground eb-shadow-md',
         'eb-origin-[--radix-dropdown-menu-content-transform-origin] data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0 data-[state=closed]:eb-zoom-out-95 data-[state=open]:eb-zoom-in-95 data-[side=bottom]:eb-slide-in-from-top-2 data-[side=left]:eb-slide-in-from-right-2 data-[side=right]:eb-slide-in-from-left-2 data-[side=top]:eb-slide-in-from-bottom-2',
         className
       )}

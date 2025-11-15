@@ -13,6 +13,7 @@ module.exports = {
     '^(react$)',
     '<BUILTIN_MODULES',
     '<THIRD_PARTY_MODULES>',
+    '^@storybook/(.*)$',
     '^@test-utils$',
     '',
     '^types$',

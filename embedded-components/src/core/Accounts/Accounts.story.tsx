@@ -1,10 +1,10 @@
 import React from 'react';
-import { Meta, StoryObj } from '@storybook/react-vite';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
+import { Meta, StoryObj } from '@storybook/react-vite';
 
+import { SELLSENSE_THEME } from '../../../.storybook/themes';
 import { EBComponentsProvider } from '../EBComponentsProvider';
-import { SELLSENSE_THEME } from '../themes';
 import { Accounts, AccountsProps } from './Accounts';
 
 // --- Mock Data (aligned with JPMorgan API docs) ---

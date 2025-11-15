@@ -1,0 +1,65 @@
+{
+  "paymentMethods": {
+    "ACH": {
+      "label": "ACH",
+      "shortLabel": "ACH",
+      "description": "Automated Clearing House - Virement bancaire électronique standard",
+      "helperText": "Virement bancaire standard, règlement en 1-3 jours ouvrables",
+      "routingError": "Le numéro d'acheminement ACH doit comporter exactement 9 chiffres"
+    },
+    "WIRE": {
+      "label": "Virement bancaire",
+      "shortLabel": "Wire",
+      "description": "Virement bancaire traditionnel avec règlement le jour même",
+      "helperText": "Virement le jour même, nécessite l'adresse complète",
+      "routingError": "Le numéro d'acheminement Wire doit comporter exactement 9 chiffres"
+    },
+    "RTP": {
+      "label": "Paiements en temps réel (RTP)",
+      "shortLabel": "RTP",
+      "description": "Paiements instantanés 24/7/365 avec règlement immédiat",
+      "helperText": "Virement instantané disponible 24/7",
+      "routingError": "Le numéro d'acheminement RTP doit comporter exactement 9 chiffres"
+    }
+  },
+  "sections": {
+    "accountHolderType": "Type de titulaire de compte",
+    "accountHolderInfo": "Informations sur le titulaire du compte",
+    "bankAccountDetails": "Détails du compte bancaire",
+    "paymentMethods": "Méthodes de paiement",
+    "addressInfo": "Informations sur l'adresse",
+    "contactInfo": "Informations de contact"
+  },
+  "linkedAccount": {
+    "title": "Lier un compte bancaire",
+    "description": "Connectez votre compte bancaire externe pour activer les paiements",
+    "successTitle": "Compte lié avec succès",
+    "successDescription": "Votre compte externe a été lié.",
+    "submitButton": "Confirmer et lier le compte",
+    "cancelButton": "Annuler",
+    "loadingMessage": "Liaison de votre compte...",
+    "certificationText": "J'autorise la vérification de ce compte bancaire externe, y compris la vérification par microdépôts si nécessaire. Je certifie que les informations fournies sont exactes et correspondent aux détails de mon compte bancaire."
+  },
+  "linkedAccountEdit": {
+    "title": "Modifier le compte lié",
+    "description": "Mettre à jour les informations de votre compte bancaire et les méthodes de paiement",
+    "successTitle": "Compte mis à jour avec succès",
+    "successDescription": "Votre compte lié a été mis à jour.",
+    "submitButton": "Enregistrer les modifications",
+    "cancelButton": "Annuler",
+    "loadingMessage": "Mise à jour de votre compte..."
+  },
+  "recipient": {
+    "title": "Créer un nouveau destinataire",
+    "description": "Ajouter un nouveau destinataire de paiement",
+    "successTitle": "Destinataire créé avec succès",
+    "successDescription": "Le destinataire a été ajouté.",
+    "submitButton": "Créer le destinataire",
+    "cancelButton": "Annuler",
+    "loadingMessage": "Création du destinataire...",
+    "sections": {
+      "accountHolderType": "Type de destinataire",
+      "accountHolderInfo": "Informations sur le destinataire"
+    }
+  }
+}

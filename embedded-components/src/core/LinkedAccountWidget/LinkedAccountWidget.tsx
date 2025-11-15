@@ -1,218 +1,162 @@
 import React from 'react';
+import { PlusIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-import { getRecipientLabel } from '@/lib/utils';
-import { useGetAllRecipients } from '@/api/generated/ep-recipients';
-import {
-  ApiError,
-  Recipient,
-  RecipientStatus,
-} from '@/api/generated/ep-recipients.schemas';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
-import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
-import { LinkAccountFormDialogTrigger } from './LinkAccountForm/LinkAccountForm';
-import { MicrodepositsFormDialogTrigger } from './MicrodepositsForm/MicrodepositsForm';
+import { EmptyState } from './components/EmptyState/EmptyState';
+import { LinkedAccountCard } from './components/LinkedAccountCard/LinkedAccountCard';
+import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
+import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { useLinkedAccounts } from './hooks';
+import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
+import { shouldShowCreateButton } from './utils';
 
-const StatusBadge = ({ status }: { status: RecipientStatus }) => {
-  const propsMap: Record<RecipientStatus, Record<string, string>> = {
-    ACTIVE: {
-      variant: 'success',
-    },
-    INACTIVE: {
-      variant: 'secondary',
-    },
-    MICRODEPOSITS_INITIATED: {
-      variant: 'secondary',
-    },
-    PENDING: {
-      variant: 'secondary',
-    },
-    READY_FOR_VALIDATION: {},
-    REJECTED: {
-      variant: 'destructive',
-    },
-  };
-
-  return (
-    <Badge {...propsMap[status]} className="eb-text-xs">
-      {status.replace(/_/g, ' ')}
-    </Badge>
-  );
-};
-
-// Helper to get supported payment methods as a string array
-function getSupportedPaymentMethods(recipient: any): string[] {
-  if (!recipient.account?.routingInformation) return [];
-  return recipient.account.routingInformation
-    .map((ri: any) => ri.transactionType)
-    .filter(Boolean);
-}
-
-type LinkedAccountWidgetProps = {
-  variant?: 'default' | 'singleAccount';
-  showCreateButton?: boolean;
-  makePaymentComponent?: React.ReactNode; // Optional MakePayment component to render in each card
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
-};
-
+/**
+ * LinkedAccountWidget - Main component for managing linked bank accounts
+ *
+ * This component displays a list of linked bank accounts and provides functionality
+ * for linking new accounts and verifying microdeposits.
+ *
+ * Enhanced with improved loading states, error handling, and visual design.
+ *
+ * @example
+ * ```tsx
+ * <LinkedAccountWidget
+ *   variant="default"
+ *   showCreateButton={true}
+ *   onLinkedAccountSettled={(recipient, error) => {
+ *     if (error) {
+ *       console.error('Failed to link account:', error);
+ *     } else {
+ *       console.log('Account linked successfully:', recipient);
+ *     }
+ *   }}
+ * />
+ * ```
+ */
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   variant = 'default',
   showCreateButton = true,
   makePaymentComponent,
   onLinkedAccountSettled,
+  className,
 }) => {
-  const { interceptorReady } = useInterceptorStatus();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data, status, failureReason } = useGetAllRecipients(
-    {
-      type: 'LINKED_ACCOUNT',
-    },
-    {
-      query: {
-        enabled: interceptorReady,
-      },
-    }
+  const { t } = useTranslation('linked-accounts');
+
+  // Use custom hook for data fetching and state management
+  const {
+    linkedAccounts,
+    hasActiveAccount,
+    isLoading,
+    isError,
+    error,
+    isSuccess,
+    refetch,
+  } = useLinkedAccounts({ variant });
+
+  // Determine if create button should be shown
+  const showCreate = shouldShowCreateButton(
+    variant,
+    hasActiveAccount,
+    showCreateButton
   );
 
-  const modifiedRecipients =
-    variant === 'singleAccount'
-      ? data?.recipients?.slice(0, 1)
-      : data?.recipients;
-
   return (
-    <Card className="eb-component eb-w-full">
-      <CardHeader>
-        <div className="eb-flex eb-items-center eb-justify-between">
-          <CardTitle className="eb-text-xl eb-font-semibold">
-            Linked Accounts
-          </CardTitle>
-          {showCreateButton &&
-            !(
-              variant === 'singleAccount' &&
-              status === 'success' &&
-              modifiedRecipients &&
-              modifiedRecipients.some(
-                (recipient) => recipient.status === 'ACTIVE'
-              )
-            ) && (
-              <LinkAccountFormDialogTrigger
-                onLinkedAccountSettled={onLinkedAccountSettled}
-              >
-                <Button>Link A New Account</Button>
-              </LinkAccountFormDialogTrigger>
-            )}
-        </div>
-      </CardHeader>
-      <CardContent className="eb-space-y-4">
-        {status === 'pending' && (
-          <div className="eb-py-8 eb-text-center eb-text-gray-500">
-            Loading linked accounts...
-          </div>
-        )}
-        {status === 'error' && (
-          <div className="eb-py-8 eb-text-center eb-text-red-500">
-            Error: {failureReason?.message ?? 'Unknown error'}
-          </div>
-        )}
-
-        {status === 'success' &&
-          modifiedRecipients &&
-          modifiedRecipients.length > 0 &&
-          modifiedRecipients.map((recipient) => (
-            <div
-              key={recipient.id}
-              className="eb-space-y-2 eb-rounded-lg eb-border eb-p-4"
-            >
-              <div className="eb-flex eb-items-center eb-justify-between">
-                <div className="eb-truncate eb-text-base eb-font-semibold">
-                  {getRecipientLabel(recipient)}
-                </div>
-                <Badge variant="outline" className="eb-text-sm">
-                  {recipient.partyDetails?.type === 'INDIVIDUAL'
-                    ? 'Individual'
-                    : 'Business'}
-                </Badge>
-              </div>
-              <div className="eb-flex eb-items-center eb-gap-2">
-                {recipient.status && <StatusBadge status={recipient.status} />}
-                <span className="eb-text-xs eb-text-gray-500">
-                  {recipient.createdAt
-                    ? new Date(recipient.createdAt).toLocaleDateString(
-                        undefined,
-                        {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        }
-                      )
-                    : 'N/A'}
-                </span>
-              </div>
-              <div className="eb-text-xs eb-text-gray-600">
-                <span className="eb-font-medium">Account:</span>{' '}
-                {recipient.account?.number
-                  ? `****${recipient.account.number.slice(-4)}`
-                  : 'N/A'}
-              </div>
-              {/* Supported Payment Methods */}
-              <div className="eb-mt-1 eb-flex eb-flex-wrap eb-gap-1">
-                {getSupportedPaymentMethods(recipient).length > 0 ? (
-                  getSupportedPaymentMethods(recipient).map(
-                    (method: string) => (
-                      <Badge
-                        key={method}
-                        variant="secondary"
-                        className="eb-text-xs"
-                      >
-                        {method}
-                      </Badge>
-                    )
-                  )
-                ) : (
-                  <span className="eb-text-xs eb-text-gray-400">
-                    No payment methods
+    <div className="eb-w-full eb-@container">
+      <Card
+        className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl ${className || ''}`}
+      >
+        <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+          <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
+            <div>
+              <CardTitle className="eb-font-header eb-text-lg eb-font-semibold @md:eb-text-xl">
+                {t('title')}{' '}
+                {!isLoading && !isError && (
+                  <span className="eb-animate-fade-in">
+                    {t('count', { count: linkedAccounts.length })}
                   </span>
                 )}
-              </div>
-              <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
-                {recipient.status === 'READY_FOR_VALIDATION' && (
-                  <MicrodepositsFormDialogTrigger
-                    recipientId={recipient.id}
-                    onLinkedAccountSettled={onLinkedAccountSettled}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="eb-text-xs"
-                      title="Verify microdeposits"
-                    >
-                      Verify microdeposits
-                    </Button>
-                  </MicrodepositsFormDialogTrigger>
-                )}
-                {makePaymentComponent && recipient.status === 'ACTIVE' && (
-                  <div className="eb-ml-auto">
-                    {React.cloneElement(
-                      makePaymentComponent as React.ReactElement,
-                      {
-                        recipientId: recipient.id,
-                      }
-                    )}
-                  </div>
-                )}
-              </div>
+              </CardTitle>
+              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+                {t('description')}
+              </p>
             </div>
-          ))}
-        {status === 'success' &&
-          modifiedRecipients &&
-          modifiedRecipients.length === 0 && (
-            <div className="eb-py-8 eb-text-center eb-text-gray-500">
-              No linked accounts found
+            {showCreate && !isLoading && (
+              <div className="eb-animate-fade-in">
+                <LinkedAccountFormDialog
+                  mode="create"
+                  onLinkedAccountSettled={onLinkedAccountSettled}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="eb-shrink-0 eb-bg-background"
+                  >
+                    <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                    {t('linkNewAccount')}
+                  </Button>
+                </LinkedAccountFormDialog>
+              </div>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+          {/* Loading state with skeleton cards */}
+          {isLoading && (
+            <div className="eb-grid eb-grid-cols-1 eb-gap-3">
+              {/* Show 1 skeleton card during loading */}
+              <LinkedAccountCardSkeleton />
             </div>
           )}
-      </CardContent>
-    </Card>
+
+          {/* Error state */}
+          {isError && (
+            <ServerErrorAlert
+              customTitle={t('errors.loading.title')}
+              customErrorMessage={{
+                default: t('errors.loading.default'),
+                400: t('errors.loading.400'),
+              }}
+              error={error as any}
+              tryAgainAction={refetch}
+              showDetails
+            />
+          )}
+
+          {/* Empty state */}
+          {isSuccess && linkedAccounts.length === 0 && (
+            <EmptyState className="eb-animate-fade-in" />
+          )}
+
+          {/* Linked accounts list with staggered fade-in animation */}
+          {isSuccess && linkedAccounts.length > 0 && (
+            <div
+              className={`eb-grid eb-grid-cols-1 eb-items-start eb-gap-3 ${linkedAccounts.length > 1 ? '@4xl:eb-grid-cols-2' : ''}`}
+            >
+              {linkedAccounts.map((recipient, index) => (
+                <div
+                  key={recipient.id}
+                  className="eb-animate-fade-in"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animationFillMode: 'backwards',
+                  }}
+                >
+                  <LinkedAccountCard
+                    recipient={recipient}
+                    makePaymentComponent={makePaymentComponent}
+                    onLinkedAccountSettled={onLinkedAccountSettled}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };

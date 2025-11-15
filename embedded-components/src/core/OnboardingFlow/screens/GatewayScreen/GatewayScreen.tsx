@@ -17,10 +17,10 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import { AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form } from '@/components/ui/form';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Alert, Button } from '@/components/ui';
 import {
   OnboardingFormField,
-  ServerErrorAlert,
   StepLayout,
 } from '@/core/OnboardingFlow/components';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';

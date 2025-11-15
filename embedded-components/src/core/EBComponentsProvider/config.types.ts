@@ -96,4 +96,5 @@ export type EBConfig = {
     tokens?: DeepPartial<(typeof defaultResources)['enUS']>;
   };
   queryParams?: Record<string, string>;
+  clientId?: string;
 };

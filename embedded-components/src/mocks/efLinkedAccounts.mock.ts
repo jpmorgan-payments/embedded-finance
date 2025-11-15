@@ -140,6 +140,7 @@ export const linkedAccountListMock: ListRecipientsResponse = {
       type: RecipientType.LINKED_ACCOUNT,
       status: RecipientStatus.READY_FOR_VALIDATION,
       createdAt: '2024-03-10T09:15:00Z',
+      updatedAt: '2024-03-12T14:30:00Z',
     },
   ],
 };
@@ -243,6 +244,7 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
       type: RecipientType.LINKED_ACCOUNT,
       status: RecipientStatus.READY_FOR_VALIDATION,
       createdAt: '2024-01-15T10:30:00Z',
+      updatedAt: '2024-01-18T16:45:00Z',
     },
   ],
 };

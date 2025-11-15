@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
+import { useIPAddress } from '@/lib/hooks';
 import { _get, isValueEmpty } from '@/lib/utils';
 import {
   smbdoDownloadDocument,
@@ -26,7 +27,6 @@ import {
   useOnboardingContext,
 } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { useIPAddress } from '../utils/getIPAddress';
 import { MissingPartyFields } from './MissingPartyFields';
 import OutstandingKYCRequirements from './OutstandingKYCRequirements';
 import { individualFields, organizationFields } from './partyFields';

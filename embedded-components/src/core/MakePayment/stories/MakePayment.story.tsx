@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { SELLSENSE_THEME } from '@storybook/themes';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
-import { SELLSENSE_THEME } from '@/core/themes';
 
 import { MakePayment } from '../MakePayment';
 

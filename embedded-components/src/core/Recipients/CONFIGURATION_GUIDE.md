@@ -10,8 +10,11 @@ The Recipients component now supports a flexible configuration system that allow
 
 ```typescript
 interface RecipientsConfig {
-  availablePaymentMethods: PaymentMethodType[];
-  paymentMethodConfigs: Record<PaymentMethodType, PaymentTypeFieldConfig>;
+  availablePaymentMethods: RoutingInformationTransactionType[];
+  paymentMethodConfigs: Record<
+    RoutingInformationTransactionType,
+    PaymentTypeFieldConfig
+  >;
   globalSettings: GlobalSettings;
   uiSettings: UISettings;
 }

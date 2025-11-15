@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react-vite';
+import { SELLSENSE_THEME } from '@storybook/themes';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import { OnboardingFlow, OnboardingFlowProps } from '@/core/OnboardingFlow';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
-import { SELLSENSE_THEME } from '@/core/themes';
 
 import { handlers } from '../../../msw/handlers';
 
