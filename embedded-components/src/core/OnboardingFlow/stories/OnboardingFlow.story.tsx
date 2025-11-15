@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React, { useEffect, useState } from 'react';
-import { SELLSENSE_THEME } from '@/../.storybook/themes';
 import type { Meta, StoryFn } from '@storybook/react-vite';
+import { SELLSENSE_THEME } from '@storybook/themes';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';

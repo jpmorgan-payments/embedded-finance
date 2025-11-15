@@ -2,13 +2,13 @@
  * Shared utilities for LinkedAccountWidget stories
  */
 
+import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import {
   baseStoryArgTypes,
   baseStoryDefaults,
   BaseStoryProps,
-} from '@/../.storybook/shared-story-types';
-import { ThemeName, THEMES } from '@/../.storybook/themes';
-import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
+} from '@storybook/shared-story-types';
+import { ThemeName, THEMES } from '@storybook/themes';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
