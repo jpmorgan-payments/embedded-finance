@@ -12,8 +12,9 @@
 - [3. Frontend Implementation: Embedding the Onboarding UI](#3-frontend-implementation-embedding-the-onboarding-ui)
   - [3.1. Triggering Session Transfer and Receiving Token](#31-triggering-session-transfer-and-receiving-token)
   - [3.2. Rendering the Iframe](#32-rendering-the-iframe)
-  - [3.3. Iframe Security Attributes](#33-iframe-security-attributes)
-  - [3.4. Optional: Communication with Iframe (using window.postMessage)](#34-optional-communication-with-iframe-using-windowpostmessage)
+  - [3.3. JavaScript Utility Library for Simplified Integration](#33-javascript-utility-library-for-simplified-integration)
+  - [3.4. Iframe Security Attributes](#34-iframe-security-attributes)
+  - [3.5. Optional: Communication with Iframe (using window.postMessage)](#35-optional-communication-with-iframe-using-windowpostmessage)
 - [4. Platform Implementation Guidance (Your Responsibilities)](#4-platform-implementation-guidance-your-responsibilities)
   - [4.1. Service Layer (Your Platform's Backend)](#41-service-layer-your-platforms-backend)
   - [4.2. Representation Layer (Your Platform's Frontend UI)](#42-representation-layer-your-platforms-frontend-ui)
@@ -31,15 +32,15 @@ your platform.
 
 The integration involves the following key steps:
 
-1.  **Client Status Check (Optional but Recommended):** Before initiating
+1. **Client Status Check (Optional but Recommended):** Before initiating
     onboarding, your platform can check the client's current onboarding status
     (e.g., by calling an API endpoint such as `GET /clients/:id`). If the client
     status is `INFORMATION_REQUESTED`, you might display a specific visual
     indicator to the user.
-2.  **Session Initiation (User Action):** When the user triggers the onboarding
+2. **Session Initiation (User Action):** When the user triggers the onboarding
     UI (e.g., by clicking a "Wallet" or "Complete Onboarding" button), your
     platform's frontend initiates a session.
-3.  **Backend Session Transfer:**
+3. **Backend Session Transfer:**
     - The frontend calls a secure backend endpoint on your platform (e.g.,
       `POST /sessions`).
     - Your backend authenticates this request.
@@ -48,14 +49,14 @@ The integration involves the following key steps:
     - The Onboarding Service responds with a short-lived JWT token (expected to
       be valid for 60 seconds).
     - Your backend securely returns this token to your frontend.
-4.  **Frontend Iframe Embedding:**
-    - The frontend receives the session token.    
+4. **Frontend Iframe Embedding:**
+    - The frontend receives the session token.
     - It uses the provided URL from the response, which already contains the embedded
-      authentication token (e.g., 
+      authentication token (e.g.,
       `https://url.jpmorgan.com/t/17465629080405AI41`).
     - The Onboarding UI is then loaded within an `<iframe>` on your platform's
       page.
-5.  **Communication (Optional):** The iframe can communicate events (e.g.,
+5. **Communication (Optional):** The iframe can communicate events (e.g.,
     status changes, errors, other events) back to the parent window using
     `window.postMessage`.
 
@@ -89,6 +90,7 @@ backend** to manage session transfer to the hosted Onboarding UI.
 - **Description:** Called by your frontend to initiate an onboarding session for
   a user and retrieve a session token required to load the hosted Onboarding UI.
 - **Example Request Payload (from your backend to the Onboarding Service):**
+
   ```json
   {
     "type": "EMBEDDED_UI",
@@ -98,12 +100,13 @@ backend** to manage session transfer to the hosted Onboarding UI.
     }
   }
   ```
+
 - **Backend Logic (on your platform's backend):**
-  1.  Authenticate the request from your frontend (ensure the user is logged in
+  1. Authenticate the request from your frontend (ensure the user is logged in
       on your platform).
-  2.  Make a secure server-to-server call to the Onboarding Service's API
+  2. Make a secure server-to-server call to the Onboarding Service's API
       endpoint (provided by the Onboarding Service) to create a session for the
-      given `clientId`. This request requires specifying both the session type (`EMBEDDED_UI`) 
+      given `clientId`. This request requires specifying both the session type (`EMBEDDED_UI`)
       and the target object with ID and type (`CLIENT` or `PARTY`).
       2.1. In case of error try to retry the request.
       Possible errors:
@@ -111,13 +114,14 @@ backend** to manage session transfer to the hosted Onboarding UI.
   - `404`: The clientId is not found.
   - `422`: The clientId is not valid.
   - `500`: Server error.
-  3.  The Onboarding Service's API responds with:
+  3. The Onboarding Service's API responds with:
       - The URL (or components to build the URL) for the hosted Onboarding UI
         with a short-lived JWT token (or similar) to authenticate the user
         session within the iframe.
-  4.  Your backend securely returns the necessary information (e.g., the JWT
+  4. Your backend securely returns the necessary information (e.g., the JWT
       token) to your frontend.
 - **Example Response (from the Onboarding Service to your backend):**
+
   ```json
   {
     "id": "9000005555",
@@ -142,21 +146,21 @@ them according to your specific requirements.
 
 When the user initiates onboarding on your platform:
 
-1.  Make an authenticated call from your frontend to your platform's backend
+1. Make an authenticated call from your frontend to your platform's backend
     endpoint (e.g., `POST /sessions` as described above).
-2.  On success, your frontend receives the session token (and other necessary
+2. On success, your frontend receives the session token (and other necessary
     details) from your backend.
-3.  Display appropriate loading indicators during this process (e.g., on the
+3. Display appropriate loading indicators during this process (e.g., on the
     button that triggers the action, as shown in the `SampleDashboard.tsx`
     example).
 
 ### 3.2. Rendering the Iframe
 
-1.  **Use the provided URL:** The response includes a complete `url` field that should be
+1. **Use the provided URL:** The response includes a complete `url` field that should be
     used directly as the iframe's `src` attribute. The token is already embedded in this URL.
     For example: `https://url.jpmorgan.com/t/17465629080405AI41`
 
-2.  **Create and mount the iframe**
+2. **Create and mount the iframe**
 
     - **React Implementation:** In React applications, manage iframe state,
       loading indicators, and resize handling using `useEffect`, `useState`, and
@@ -257,7 +261,539 @@ When the user initiates onboarding on your platform:
     </script>
     ```
 
-### 3.3. Iframe Responsiveness Best Practices
+### 3.3. JavaScript Utility Library for Simplified Integration
+
+⚠️ **Work in Progress - Reference Implementation Only** ⚠️
+
+> The utility library described in this section is provided as a reference implementation for integration guidance. It is not recommended for production use without thorough testing and validation. Platforms should adapt this code to meet their specific requirements and security standards.
+
+For a streamlined integration experience, you can use our lightweight JavaScript utility library that simplifies iframe mounting and configuration. This approach is similar to popular drop-in UI patterns and works with any web framework or vanilla JavaScript.
+
+**Library Files:**
+
+- **ES Module:** [`partially-hosted-ui-component.mjs`](./partially-hosted-ui-component.mjs) - Modern ES6+ module format
+- **UMD Build:** [`partially-hosted-ui-component.js`](./partially-hosted-ui-component.js) - Universal module for broader compatibility
+- **Documentation:** [`PARTIALLY_HOSTED_UI_COMPONENT_README.md`](./PARTIALLY_HOSTED_UI_COMPONENT_README.md) - Complete API reference
+
+#### 3.3.1. Using the Library
+
+**Step 1: Include the Library**
+
+The library is available in two formats:
+
+```html
+<!-- Option 1: ES Module (Recommended for modern browsers) -->
+<script type="module" src="./partially-hosted-ui-component.mjs"></script>
+
+<!-- Option 2: UMD Build (Broader compatibility) -->
+<script src="./partially-hosted-ui-component.js"></script>
+```
+
+**Step 2: Create a Container Element**
+
+```html
+<div id="onboarding-container"></div>
+```
+
+**Step 3: Initialize and Mount**
+
+```javascript
+// Import the library (ES Module)
+import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
+
+// Initialize the component
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken: 'your-session-token-here',
+  experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      primaryColor: '#0070f3',
+      fontFamily: 'system-ui, sans-serif'
+    }
+  },
+  contentTokens: {
+    locale: 'en-US',
+    brandName: 'Your Platform'
+  }
+});
+
+// Mount to the target element
+onboardingUI.mount('onboarding-container');
+
+// Optional: Subscribe to events
+onboardingUI.subscribe((event) => {
+  if (event.namespace === 'onboarding' && event.level === 'info') {
+    if (event.message === 'OnboardingComplete') {
+      console.log('Onboarding completed!', event.payload);
+    }
+  }
+});
+```
+
+#### 3.3.2. Configuration Options
+
+**Constructor Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `sessionToken` | `string` | Yes | JWT token from session transfer API |
+| `experienceType` | `string` | No | Type of hosted experience (default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`) |
+| `theme` | `object` | No | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming)) |
+| `contentTokens` | `object` | No | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#content-tokens)) |
+| `iframeAttributes` | `object` | No | Additional iframe attributes (e.g., `{ allowfullscreen: true }`) |
+
+**Theme Object Structure:**
+
+```javascript
+{
+  colorScheme: 'light', // or 'dark'
+  variables: {
+    // Color tokens
+    primaryColor: '#0070f3',
+    backgroundColor: '#ffffff',
+    textColor: '#000000',
+    
+    // Typography tokens
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '16px',
+    
+    // Spacing tokens
+    borderRadius: '8px',
+    spacing: '16px'
+  }
+}
+```
+
+**Content Tokens Structure:**
+
+```javascript
+{
+  locale: 'en-US', // or 'es-ES', 'fr-FR', etc.
+  brandName: 'Your Platform',
+  customLabels: {
+    submitButton: 'Complete Application',
+    cancelButton: 'Exit'
+  }
+}
+```
+
+#### 3.3.3. API Methods
+
+**`mount(targetElementId: string): void`**
+
+Mounts the iframe to the specified DOM element.
+
+```javascript
+hostedOnboardingUI.mount('onboarding-container');
+```
+
+**`unmount(): void`**
+
+Removes the iframe and cleans up event listeners.
+
+```javascript
+hostedOnboardingUI.unmount();
+```
+
+**`subscribe(callback: Function): Function`**
+
+Subscribes to events from the hosted UI. Returns an unsubscribe function.
+
+```javascript
+const unsubscribe = hostedOnboardingUI.subscribe((event) => {
+  console.log('Event received:', event);
+});
+
+// Later, to unsubscribe:
+unsubscribe();
+```
+
+**Event Structure:**
+
+```javascript
+{
+  level: 'info' | 'error' | 'warning' | 'debug',
+  namespace: string, // e.g., 'onboarding', 'session', 'error'
+  message: string,   // e.g., 'OnboardingComplete', 'SessionExpired'
+  payload: object    // Additional event data
+}
+```
+
+**`updateTheme(theme: object): void`**
+
+Dynamically updates the theme (requires iframe reload).
+
+```javascript
+hostedOnboardingUI.updateTheme({
+  colorScheme: 'dark',
+  variables: {
+    primaryColor: '#1a73e8'
+  }
+});
+```
+
+**`refresh(): void`**
+
+Refreshes the iframe (useful when session token is renewed).
+
+```javascript
+hostedOnboardingUI.refresh();
+```
+
+#### 3.3.4. Library Implementation Reference
+
+The complete, production-ready library implementation is available in the following files:
+
+- **[`partially-hosted-ui-component.mjs`](./partially-hosted-ui-component.mjs)** - ES Module implementation (~700 lines)
+- **[`partially-hosted-ui-component.js`](./partially-hosted-ui-component.js)** - UMD build for broader compatibility
+- **[`PARTIALLY_HOSTED_UI_COMPONENT_README.md`](./PARTIALLY_HOSTED_UI_COMPONENT_README.md)** - Complete API documentation
+
+**Key Implementation Details:**
+
+1. **URL Construction with Encoded Parameters:**
+
+```javascript
+// Theme and content tokens are JSON-encoded and URL-encoded
+function encodeJsonParam(obj) {
+  return encodeURIComponent(JSON.stringify(obj));
+}
+
+// URL structure: {baseUrl}/onboarding?token={jwt}&experienceType={type}&theme={encoded}&contentTokens={encoded}
+const url = `${baseUrl}/onboarding?token=${token}&theme=${encodeJsonParam(theme)}&contentTokens=${encodeJsonParam(tokens)}`;
+```
+
+2. **Iframe Security:**
+
+```javascript
+// Iframe is created with strict security attributes
+iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
+iframe.setAttribute('referrerpolicy', 'no-referrer');
+iframe.setAttribute('title', 'Complete your account onboarding - interactive form');
+```
+
+3. **Event Communication (Pub/Sub Pattern):**
+
+```javascript
+// Subscribe to events from the iframe
+const unsubscribe = componentInstance.subscribe((event) => {
+  console.log('Event received:', event);
+  // Handle lifecycle events, errors, etc.
+});
+
+// Unsubscribe when done
+unsubscribe();
+```
+
+4. **Core API Methods:**
+   - `mount(targetElementId)` - Render iframe to DOM element
+   - `unmount()` - Remove iframe and cleanup
+   - `subscribe(callback)` - Listen to iframe events (returns unsubscribe function)
+   - `updateTheme(theme)` - Update theme dynamically
+   - `refresh()` - Reload iframe with current config
+   - `destroy()` - Complete cleanup and removal
+
+For the complete implementation details, architecture decisions, and advanced usage patterns, refer to the implementation files listed above.
+
+---
+
+#### 3.3.5. Complete Integration Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding Integration Example</title>
+  <style>
+    #onboarding-container {
+      width: 100%;
+      min-height: 600px;
+      margin: 20px auto;
+      max-width: 1200px;
+    }
+    
+    .loading-indicator {
+      text-align: center;
+      padding: 40px;
+      font-family: system-ui, sans-serif;
+    }
+    
+    .status-message {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-family: system-ui, sans-serif;
+    }
+    
+    .status-message.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .status-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-messages"></div>
+  <div id="onboarding-container">
+    <div class="loading-indicator">Loading onboarding experience...</div>
+  </div>
+
+  <script type="module">
+    // Import the library
+    import { PartiallyHostedUIComponent } from './partially-hosted-ui-component.mjs';
+
+    async function initializeOnboarding() {
+      try {
+        // Step 1: Fetch session token from your backend
+        const response = await fetch('/api/sessions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer YOUR_AUTH_TOKEN'
+          },
+          body: JSON.stringify({
+            clientId: 'YOUR_CLIENT_ID'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create session');
+        }
+
+        const sessionData = await response.json();
+
+        // Step 2: Initialize Hosted Onboarding UI
+        const onboardingUI = new PartiallyHostedUIComponent({
+          sessionToken: sessionData.token,
+          experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+          theme: {
+            colorScheme: 'light',
+            variables: {
+              primaryColor: '#0070f3',
+              backgroundColor: '#ffffff',
+              textColor: '#1a1a1a',
+              fontFamily: 'system-ui, sans-serif',
+              borderRadius: '8px'
+            }
+          },
+          contentTokens: {
+            locale: 'en-US',
+            brandName: 'Your Platform Name'
+          },
+          iframeAttributes: {
+            allowfullscreen: true,
+            height: '800'
+          }
+        });
+
+        // Step 3: Subscribe to events
+        onboardingUI.subscribe((event) => {
+          console.log('Onboarding event:', event);
+          
+          const statusDiv = document.getElementById('status-messages');
+          
+          if (event.namespace === 'onboarding') {
+            if (event.message === 'OnboardingComplete') {
+              statusDiv.innerHTML = `
+                <div class="status-message success">
+                  ✓ Onboarding completed successfully!
+                </div>
+              `;
+              
+              // Notify your backend
+              fetch('/api/onboarding/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(event.payload)
+              });
+            } else if (event.message === 'OnboardingError') {
+              statusDiv.innerHTML = `
+                <div class="status-message error">
+                  ✗ An error occurred: ${event.payload.message || 'Unknown error'}
+                </div>
+              `;
+            }
+          }
+        });
+
+        // Step 4: Mount the UI
+        onboardingUI.mount('onboarding-container');
+
+      } catch (error) {
+        console.error('Onboarding initialization error:', error);
+        document.getElementById('status-messages').innerHTML = `
+          <div class="status-message error">
+            Failed to initialize onboarding: ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeOnboarding);
+    } else {
+      initializeOnboarding();
+    }
+  </script>
+</body>
+</html>
+```
+
+#### 3.3.6. Framework-Specific Examples
+
+**React Example:**
+
+```jsx
+import { useEffect, useRef, useState } from 'react';
+
+function OnboardingComponent({ sessionToken }) {
+  const containerRef = useRef(null);
+  const [onboardingUI, setOnboardingUI] = useState(null);
+  const [status, setStatus] = useState('loading');
+
+  useEffect(() => {
+    // Dynamically import the library
+    import('./partially-hosted-ui-component.mjs')
+      .then(({ PartiallyHostedUIComponent }) => {
+        const ui = new PartiallyHostedUIComponent({
+          sessionToken,
+          experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+          theme: {
+            colorScheme: 'light',
+            variables: { primaryColor: '#0070f3' }
+          }
+        });
+
+        ui.subscribe((event) => {
+          if (event.message === 'OnboardingComplete') {
+            setStatus('complete');
+          }
+        });
+
+        ui.mount('onboarding-container');
+        setOnboardingUI(ui);
+      });
+
+    // Cleanup on unmount
+    return () => {
+      if (onboardingUI) {
+        onboardingUI.unmount();
+      }
+    };
+  }, [sessionToken]);
+
+  return (
+    <div>
+      {status === 'complete' && (
+        <div className="success-message">Onboarding completed!</div>
+      )}
+      <div id="onboarding-container" ref={containerRef} />
+    </div>
+  );
+}
+```
+
+**Vue Example:**
+
+```vue
+<template>
+  <div>
+    <div v-if="status === 'complete'" class="success-message">
+      Onboarding completed!
+    </div>
+    <div id="onboarding-container" ref="container"></div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['sessionToken'],
+  data() {
+    return {
+      onboardingUI: null,
+      status: 'loading'
+    };
+  },
+  async mounted() {
+    const { PartiallyHostedUIComponent } = await import(
+      './partially-hosted-ui-component.mjs'
+    );
+
+    this.onboardingUI = new PartiallyHostedUIComponent({
+      sessionToken: this.sessionToken,
+      experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+      theme: {
+        colorScheme: 'light',
+        variables: { primaryColor: '#0070f3' }
+      }
+    });
+
+    this.onboardingUI.subscribe((event) => {
+      if (event.message === 'OnboardingComplete') {
+        this.status = 'complete';
+      }
+    });
+
+    this.onboardingUI.mount('onboarding-container');
+  },
+  beforeUnmount() {
+    if (this.onboardingUI) {
+      this.onboardingUI.unmount();
+    }
+  }
+};
+</script>
+```
+
+#### 3.3.7. Library Distribution and Integration Options
+
+**Available File Formats:**
+
+The library is provided in two formats to support different integration scenarios:
+
+1. **ES Module (`.mjs`)** - For modern browsers with native ES6 module support:
+
+   ```javascript
+   import { PartiallyHostedUIComponent } from './partially-hosted-ui-component.mjs';
+   ```
+
+2. **UMD Build (`.js`)** - For broader compatibility (CommonJS, AMD, browser globals):
+
+   ```html
+   <script src="./partially-hosted-ui-component.js"></script>
+   <script>
+     const ui = new PartiallyHostedUIComponent({ /* config */ });
+   </script>
+   ```
+
+**Hosting Options:**
+
+1. **Self-Hosted (Recommended for Development):**
+   - Copy the library files to your static assets directory
+   - Reference them with relative paths as shown above
+   - Provides full control over versioning and updates
+
+2. **CDN Distribution (Future):**
+   - When available, use versioned CDN URLs for production
+   - Include Subresource Integrity (SRI) hash for security
+
+   ```html
+   <script 
+     type="module" 
+     src="https://your-cdn.example.com/partially-hosted-ui-component@1.0.0.mjs"
+     integrity="sha384-[HASH_VALUE]"
+     crossorigin="anonymous">
+   </script>
+   ```
+
+### 3.4. Iframe Responsiveness Best Practices
 
 - **Container Queries:** Use CSS container queries (`@container`) for responsive
   behavior that adapts to the iframe's container size rather than the viewport.
@@ -268,7 +804,7 @@ When the user initiates onboarding on your platform:
 - **Flexible Width:** Always use `width="100%"` and responsive CSS to ensure the
   iframe adapts to its container.
 
-### 3.4. Accessibility Note
+### 3.5. Accessibility Note
 
 > **Accessibility (a11y) Notice:**
 >
@@ -280,7 +816,7 @@ When the user initiates onboarding on your platform:
 > but is not limited to, proper semantic markup, keyboard navigation, screen
 > reader support, and sufficient color contrast.
 
-### 3.5. Iframe Security Attributes
+### 3.6. Iframe Security Attributes
 
 - **`sandbox`**: Restricts the capabilities of the content within the iframe.
   This is a critical security feature. Start with the most restrictive set of
@@ -294,7 +830,7 @@ When the user initiates onboarding on your platform:
   practice for privacy and security, unless the provider specifically requires
   it.
 
-### 3.6. Optional: Communication with Iframe (using `window.postMessage`)
+### 3.7. Optional: Communication with Iframe (using `window.postMessage`)
 
 > **Note:** All postMessage communication options are subject to discussion
 > during the integration implementation and are optional. The structure and
@@ -359,7 +895,7 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 - **Responsibilities:**
   - Provide a UI element (e.g., a button) for the user to initiate the
     onboarding process.
-  - Call your platform's backend to obtain the session token.  - Create and render the `<iframe>` using the complete `url` provided in the session 
+  - Call your platform's backend to obtain the session token.  - Create and render the `<iframe>` using the complete `url` provided in the session
     response and appropriate security attributes.
   - Manage loading states:
     - While waiting for the session token from your backend.

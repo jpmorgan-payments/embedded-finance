@@ -57,25 +57,26 @@ This demo implements JPMorgan's recommended session transfer approach for embedd
 
 ### Running the Demo
 
-1. **Start the server:**
-   ```bash
-   npm start
-   ```
-   
-   For development with auto-reload:
-   ```bash
-   npm run dev
-   ```
+**Option 1: Manual Implementation (Default)**
+```bash
+npm start
+# or for development with auto-reload:
+npm run dev
+```
 
-2. **Open your browser:**
-   ```
-   http://localhost:3000
-   ```
+**Option 2: Utility Library Implementation**
+```bash
+npm run start:utility
+# or for development with auto-reload:
+npm run dev:utility
+```
 
-3. **Test the demo:**
-   - Enter a client ID (e.g., `3100002010`)
-   - Click "Create Embedded Session"
-   - The iframe will open with the JPMorgan onboarding experience
+Both methods serve on `http://localhost:3000` - the server uses the `INDEX_FILE` environment variable to determine which HTML file to serve.
+
+**Test the demo:**
+- Enter a client ID (e.g., `3100002010`)
+- Click "Create Embedded Session"
+- The iframe will open with the JPMorgan onboarding experience
 
 ## 🔧 How It Works
 
@@ -130,6 +131,131 @@ The token is appended to the URL as a query parameter:
 const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
 ```
 
+## 🎯 Implementation Methods Comparison
+
+This demo provides two implementation approaches for embedding the JPMorgan onboarding UI. Choose the method that best fits your project's needs.
+
+### Method 1: Manual Implementation (`index.html`)
+
+**Approach**: Direct iframe manipulation with manual URL construction and DOM management.
+
+**Code Example:**
+```javascript
+// Manual iframe creation and URL construction
+const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
+const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrl)}`);
+const embedData = await embedResponse.json();
+showIframe(embedData.html);
+
+// Manual iframe height adjustment
+function adjustIframeHeight(iframe) {
+  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+  const height = Math.max(/* ... height calculations ... */);
+  iframe.style.height = height + 'px';
+}
+```
+
+**Characteristics:**
+- ✅ **Full Control**: Complete control over iframe creation and lifecycle
+- ✅ **No Dependencies**: Pure vanilla JavaScript, no external libraries
+- ✅ **Customizable**: Easy to customize iframe attributes and behavior
+- ⚠️ **More Code**: Requires manual implementation of URL construction, height adjustment, error handling
+- ⚠️ **Manual Security**: You must manually configure sandbox attributes and security settings
+- ⚠️ **No Built-in Events**: Manual postMessage handling required for iframe communication
+
+**Best For:**
+- Projects requiring maximum control and customization
+- Simple integrations with minimal iframe interaction needs
+- Teams comfortable with manual DOM manipulation
+- Environments where adding dependencies is not desired
+
+---
+
+### Method 2: Utility Library (`index-utility.html`)
+
+**Approach**: Uses `PartiallyHostedUIComponent` utility library (Section 3.3) for simplified integration.
+
+**Code Example:**
+```javascript
+// Import the utility library
+import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
+
+// Initialize with configuration
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken: sessionData.sessionToken,
+  baseUrl: sessionData.baseUrl,
+  experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+  theme: { colorScheme: 'light' },
+  contentTokens: { locale: 'en-US' }
+});
+
+// Subscribe to events
+onboardingUI.subscribe((event) => {
+  if (event.message === 'OnboardingComplete') {
+    console.log('Onboarding completed!', event.payload);
+  }
+});
+
+// Mount to container
+onboardingUI.mount('onboarding-container');
+```
+
+**Characteristics:**
+- ✅ **Simplified API**: Clean, declarative configuration-based approach
+- ✅ **Built-in Security**: Automatic sandbox attributes and origin validation
+- ✅ **Event System**: Built-in pub/sub pattern for iframe communication
+- ✅ **URL Construction**: Automatic URL building with encoded parameters (theme, contentTokens)
+- ✅ **Lifecycle Management**: Automatic mount/unmount handling
+- ✅ **Type Safety**: JSDoc comments for IDE autocomplete and type hints
+- ⚠️ **Dependency**: Requires the utility library file (~750 lines)
+- ⚠️ **Less Control**: Some customization options abstracted away
+
+**Best For:**
+- Teams wanting faster integration with less boilerplate
+- Projects requiring theme customization and content localization
+- Applications needing robust event handling for iframe communication
+- Teams preferring declarative, configuration-based APIs
+- Production applications requiring built-in security best practices
+
+---
+
+### Side-by-Side Comparison
+
+| Feature | Manual Implementation | Utility Library |
+|---------|----------------------|-----------------|
+| **Lines of Code** | ~150 lines | ~50 lines |
+| **Dependencies** | None | 1 ES module file |
+| **URL Construction** | Manual string concatenation | Automatic with encoding |
+| **Security Attributes** | Manual configuration | Built-in defaults |
+| **Event Handling** | Manual postMessage listeners | Built-in pub/sub system |
+| **Theme Support** | Manual URL parameter encoding | Declarative configuration |
+| **Content Tokens** | Manual URL parameter encoding | Declarative configuration |
+| **Lifecycle Management** | Manual DOM manipulation | Automatic mount/unmount |
+| **Error Handling** | Manual try/catch blocks | Built-in error events |
+| **Debugging** | Console.log statements | Structured event logging |
+| **Learning Curve** | Moderate (DOM APIs) | Low (declarative API) |
+| **Maintenance** | Higher (manual updates) | Lower (library updates) |
+
+### Running Each Version
+
+**Manual Implementation:**
+```bash
+npm start
+# or
+npm run dev
+# Opens: http://localhost:3000
+```
+
+**Utility Library:**
+```bash
+npm run start:utility
+# or
+npm run dev:utility
+# Opens: http://localhost:3000 (serves index-utility.html)
+```
+
+Both methods use the same backend API (`/sessions` endpoint) and provide identical functionality - the difference is in the frontend implementation approach.
+
 ## 📁 Project Structure
 
 ```
@@ -139,7 +265,9 @@ server-session-transfer/
 ├── .env.example          # Environment variables template
 ├── .env                  # Your actual environment variables (not in repo)
 ├── public/
-│   └── index.html        # Client-side form interface
+│   ├── index.html        # Manual implementation (default)
+│   ├── index-utility.html # Utility library implementation
+│   └── partially-hosted-ui-component.mjs # Utility library (Section 3.3)
 └── README.md            # This file
 ```
 
