@@ -1,6 +1,6 @@
-import { Preview } from '@storybook/react-vite';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import { themes } from 'storybook/theming';
+import { Preview } from '@storybook/react-vite';
 
 import '../src/index.css';
 

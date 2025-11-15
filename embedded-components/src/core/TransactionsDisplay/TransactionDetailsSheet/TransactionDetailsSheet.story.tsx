@@ -5,8 +5,8 @@ import {
   mockTransactionMinimal,
   mockTransactionWithError,
 } from '@/mocks/transactions.mock';
-import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Button } from '@/components/ui/button';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';

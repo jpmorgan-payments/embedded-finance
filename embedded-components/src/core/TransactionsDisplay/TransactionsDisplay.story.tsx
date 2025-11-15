@@ -1,8 +1,8 @@
 import { mockTransactionsResponse } from '@/mocks/transactions.mock';
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SELLSENSE_THEME } from '@storybook/themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { SELLSENSE_THEME } from '@storybook/themes';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
