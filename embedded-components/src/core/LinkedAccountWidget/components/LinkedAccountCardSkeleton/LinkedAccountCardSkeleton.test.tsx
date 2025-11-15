@@ -24,7 +24,8 @@ describe('LinkedAccountCardSkeleton', () => {
     const { container } = render(<LinkedAccountCardSkeleton />);
 
     // Should have multiple skeleton elements for different parts
-    const skeletons = container.querySelectorAll('[class*="skeleton"]');
+    // Looking for the eb-animate-pulse class which is on Skeleton components
+    const skeletons = container.querySelectorAll('[class*="eb-animate-pulse"]');
     expect(skeletons.length).toBeGreaterThan(5);
   });
 
@@ -34,8 +35,10 @@ describe('LinkedAccountCardSkeleton', () => {
     // Should have card structure
     expect(container.querySelector('[role="article"]')).toBeInTheDocument();
 
-    // Should have separators for sections
-    const separators = container.querySelectorAll('[role="separator"]');
+    // Should have separators for sections (checking by data-orientation attribute from Radix UI)
+    const separators = container.querySelectorAll(
+      '[data-orientation="horizontal"]'
+    );
     expect(separators.length).toBeGreaterThanOrEqual(2);
   });
 });

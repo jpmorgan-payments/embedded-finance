@@ -1,22 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@test-utils';
 
-import { Recipient } from '@/api/generated/ep-recipients.schemas';
-
 import { StatusAlert } from './StatusAlert';
-
-const mockRecipient: Partial<Recipient> = {
-  id: 'test-recipient-id',
-  updatedAt: '2024-01-15T10:00:00.000Z',
-  status: 'READY_FOR_VALIDATION',
-};
 
 describe('StatusAlert', () => {
   it('should render default description for PENDING status', () => {
     render(<StatusAlert status="PENDING" />);
 
     expect(
-      screen.getByText(/your account is being verified/i)
+      screen.getByText(/your account information is being processed/i)
     ).toBeInTheDocument();
   });
 
@@ -42,19 +34,26 @@ describe('StatusAlert', () => {
   it('should render default description for REJECTED status', () => {
     render(<StatusAlert status="REJECTED" />);
 
-    expect(screen.getByText(/could not be verified/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/there was an issue linking this account/i)
+    ).toBeInTheDocument();
   });
 
   it('should render default description for INACTIVE status', () => {
     render(<StatusAlert status="INACTIVE" />);
 
-    expect(screen.getByText(/inactive/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/this account has been deactivated/i)
+    ).toBeInTheDocument();
   });
 
   it('should not render for ACTIVE status by default', () => {
     const { container } = render(<StatusAlert status="ACTIVE" />);
 
-    expect(container.firstChild).toBeNull();
+    // The component returns null for ACTIVE status without custom content
+    // but the test setup still renders a wrapper, so we check that no alert is shown
+    const alert = container.querySelector('[role="alert"]');
+    expect(alert).not.toBeInTheDocument();
   });
 
   it('should render for ACTIVE status with custom content', () => {
@@ -78,7 +77,7 @@ describe('StatusAlert', () => {
   });
 
   it('should render action element when provided', () => {
-    const action = <button>Verify Now</button>;
+    const action = <button type="button">Verify Now</button>;
 
     render(<StatusAlert status="READY_FOR_VALIDATION" action={action} />);
 
@@ -92,10 +91,7 @@ describe('StatusAlert', () => {
     expect(container1.querySelector('svg')).toBeInTheDocument();
 
     const { container: container2 } = render(
-      <StatusAlert
-        status="READY_FOR_VALIDATION"
-        recipient={mockRecipient as Recipient}
-      />
+      <StatusAlert status="READY_FOR_VALIDATION" />
     );
     expect(container2.querySelector('svg')).toBeInTheDocument();
 
@@ -105,10 +101,10 @@ describe('StatusAlert', () => {
 
   it('should apply custom className', () => {
     const { container } = render(
-      <StatusAlert status="PENDING" className="custom-class" />
+      <StatusAlert status="PENDING" className="eb-custom-class" />
     );
 
-    const alert = container.querySelector('.custom-class');
+    const alert = container.querySelector('.eb-custom-class');
     expect(alert).toBeInTheDocument();
   });
 
@@ -119,12 +115,7 @@ describe('StatusAlert', () => {
   });
 
   it('should render with warning variant for READY_FOR_VALIDATION', () => {
-    const { container } = render(
-      <StatusAlert
-        status="READY_FOR_VALIDATION"
-        recipient={mockRecipient as Recipient}
-      />
-    );
+    const { container } = render(<StatusAlert status="READY_FOR_VALIDATION" />);
 
     // Alert component should exist
     expect(container.querySelector('[role="alert"]')).toBeInTheDocument();

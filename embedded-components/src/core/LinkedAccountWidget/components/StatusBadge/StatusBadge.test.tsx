@@ -16,19 +16,19 @@ describe('StatusBadge', () => {
   it('should render PENDING status with clock icon', () => {
     render(<StatusBadge status="PENDING" />);
 
-    expect(screen.getByText(/pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/processing/i)).toBeInTheDocument();
   });
 
   it('should render MICRODEPOSITS_INITIATED status', () => {
     render(<StatusBadge status="MICRODEPOSITS_INITIATED" />);
 
-    expect(screen.getByText(/microdeposits initiated/i)).toBeInTheDocument();
+    expect(screen.getByText(/pending verification/i)).toBeInTheDocument();
   });
 
   it('should render READY_FOR_VALIDATION status with alert icon', () => {
     render(<StatusBadge status="READY_FOR_VALIDATION" />);
 
-    expect(screen.getByText(/ready for validation/i)).toBeInTheDocument();
+    expect(screen.getByText(/action required/i)).toBeInTheDocument();
   });
 
   it('should render REJECTED status with X icon', () => {
@@ -56,10 +56,10 @@ describe('StatusBadge', () => {
 
   it('should apply custom className', () => {
     const { container } = render(
-      <StatusBadge status="ACTIVE" className="custom-class" />
+      <StatusBadge status="ACTIVE" className="eb-custom-class" />
     );
 
-    const badge = container.querySelector('.custom-class');
+    const badge = container.querySelector('.eb-custom-class');
     expect(badge).toBeInTheDocument();
   });
 

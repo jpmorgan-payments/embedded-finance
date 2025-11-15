@@ -7,9 +7,9 @@ describe('EmptyState', () => {
   it('should render default message and description', () => {
     render(<EmptyState />);
 
-    expect(screen.getByText(/no linked accounts found/i)).toBeInTheDocument();
+    expect(screen.getByText(/no linked accounts/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/link your first bank account/i)
+      screen.getByText(/link a bank account to start making payments/i)
     ).toBeInTheDocument();
   });
 
@@ -35,9 +35,9 @@ describe('EmptyState', () => {
   });
 
   it('should apply custom className', () => {
-    const { container } = render(<EmptyState className="custom-class" />);
+    const { container } = render(<EmptyState className="eb-custom-class" />);
 
-    const emptyState = container.querySelector('.custom-class');
+    const emptyState = container.querySelector('.eb-custom-class');
     expect(emptyState).toBeInTheDocument();
   });
 

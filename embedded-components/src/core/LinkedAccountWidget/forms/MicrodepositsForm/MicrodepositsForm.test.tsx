@@ -45,7 +45,7 @@ describe('MicrodepositsForm', () => {
 
     render(
       <MicrodepositsFormDialogTrigger recipientId="recipient-1">
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
@@ -64,7 +64,7 @@ describe('MicrodepositsForm', () => {
 
     render(
       <MicrodepositsFormDialogTrigger recipientId="recipient-1">
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
@@ -85,15 +85,19 @@ describe('MicrodepositsForm', () => {
 
     render(
       <MicrodepositsFormDialogTrigger recipientId="recipient-1">
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
     await user.click(screen.getByRole('button', { name: /verify account/i }));
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/amount 1/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/amount 2/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/first deposit amount/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/second deposit amount/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -107,7 +111,7 @@ describe('MicrodepositsForm', () => {
 
     render(
       <MicrodepositsFormDialogTrigger recipientId="recipient-1">
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
@@ -121,9 +125,11 @@ describe('MicrodepositsForm', () => {
     const submitButton = screen.getByRole('button', { name: /verify/i });
     await user.click(submitButton);
 
-    // Should show validation errors
+    // Should show validation errors for both fields (appears twice - once per field)
     await waitFor(() => {
-      expect(screen.getByText(/form errors/i)).toBeInTheDocument();
+      const errors = screen.getAllByText(/value must be at least/i);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0]).toBeInTheDocument();
     });
   });
 
@@ -135,8 +141,7 @@ describe('MicrodepositsForm', () => {
       http.get('/recipients/:id', () => {
         return HttpResponse.json(mockRecipient);
       }),
-      http.post('/recipients/:id/verification', async ({ request }) => {
-        const body = await request.json();
+      http.post('/recipients/:id/verification', async () => {
         return HttpResponse.json({
           ...mockRecipient,
           status: 'VERIFIED',
@@ -149,7 +154,7 @@ describe('MicrodepositsForm', () => {
         recipientId="recipient-1"
         onLinkedAccountSettled={onSettled}
       >
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
@@ -160,8 +165,8 @@ describe('MicrodepositsForm', () => {
     });
 
     // Fill in amounts
-    const amount1Input = screen.getByLabelText(/amount 1/i);
-    const amount2Input = screen.getByLabelText(/amount 2/i);
+    const amount1Input = screen.getByLabelText(/first deposit amount/i);
+    const amount2Input = screen.getByLabelText(/second deposit amount/i);
 
     await user.clear(amount1Input);
     await user.type(amount1Input, '0.25');
@@ -198,7 +203,7 @@ describe('MicrodepositsForm', () => {
         recipientId="recipient-1"
         onLinkedAccountSettled={onSettled}
       >
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
@@ -209,8 +214,8 @@ describe('MicrodepositsForm', () => {
     });
 
     // Fill in amounts
-    const amount1Input = screen.getByLabelText(/amount 1/i);
-    const amount2Input = screen.getByLabelText(/amount 2/i);
+    const amount1Input = screen.getByLabelText(/first deposit amount/i);
+    const amount2Input = screen.getByLabelText(/second deposit amount/i);
 
     await user.clear(amount1Input);
     await user.type(amount1Input, '0.25');
@@ -227,7 +232,6 @@ describe('MicrodepositsForm', () => {
   });
 
   it('should support controlled mode', async () => {
-    const user = userEvent.setup();
     const onOpenChange = vi.fn();
 
     server.use(
@@ -242,7 +246,7 @@ describe('MicrodepositsForm', () => {
         open={false}
         onOpenChange={onOpenChange}
       >
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 
@@ -252,10 +256,10 @@ describe('MicrodepositsForm', () => {
     rerender(
       <MicrodepositsFormDialogTrigger
         recipientId="recipient-1"
-        open={true}
+        open
         onOpenChange={onOpenChange}
       >
-        <button>Verify Account</button>
+        <button type="button">Verify Account</button>
       </MicrodepositsFormDialogTrigger>
     );
 

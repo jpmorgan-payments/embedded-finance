@@ -75,36 +75,14 @@ const mockReadyForValidationRecipient: Recipient = {
   createdAt: new Date().toISOString(),
 };
 
-const mockIncompleteRecipient: Recipient = {
-  id: 'recipient-4',
-  status: 'ACTIVE',
-  type: 'LINKED_ACCOUNT',
-  partyDetails: {
-    type: 'INDIVIDUAL',
-    firstName: 'Bob',
-    lastName: 'Brown',
-  },
-  account: {
-    number: '99999999',
-    countryCode: 'US',
-    routingInformation: [
-      {
-        transactionType: 'ACH',
-        routingNumber: '999999999',
-        routingCodeType: 'USABA',
-      },
-    ],
-  },
-  createdAt: new Date().toISOString(),
-};
-
 describe('LinkedAccountCard', () => {
   it('should render active recipient with account details', () => {
     render(<LinkedAccountCard recipient={mockActiveRecipient} />);
 
     expect(screen.getByText(/john doe/i)).toBeInTheDocument();
     expect(screen.getByText(/active/i)).toBeInTheDocument();
-    expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
+    // Account number appears in the heading as (...5678)
+    expect(screen.getByText(/john doe \(\.\.\.5678\)/i)).toBeInTheDocument();
   });
 
   it('should render status badge for all statuses', () => {
@@ -114,10 +92,12 @@ describe('LinkedAccountCard', () => {
     expect(screen.getByText(/active/i)).toBeInTheDocument();
 
     rerender(<LinkedAccountCard recipient={mockPendingRecipient} />);
-    expect(screen.getByText(/pending/i)).toBeInTheDocument();
+    // PENDING status shows as "Processing"
+    expect(screen.getByText(/processing/i)).toBeInTheDocument();
 
     rerender(<LinkedAccountCard recipient={mockReadyForValidationRecipient} />);
-    expect(screen.getByText(/ready for validation/i)).toBeInTheDocument();
+    // READY_FOR_VALIDATION status shows as "Action Required"
+    expect(screen.getByText(/action required/i)).toBeInTheDocument();
   });
 
   it('should show verify button for READY_FOR_VALIDATION status', () => {
@@ -138,7 +118,10 @@ describe('LinkedAccountCard', () => {
     const user = userEvent.setup();
     render(<LinkedAccountCard recipient={mockActiveRecipient} />);
 
-    const manageButton = screen.getByRole('button', { name: /manage/i });
+    // The button accessible name includes "More actions for {name}"
+    const manageButton = screen.getByRole('button', {
+      name: /more actions for john doe/i,
+    });
     expect(manageButton).toBeInTheDocument();
 
     await user.click(manageButton);
@@ -148,20 +131,20 @@ describe('LinkedAccountCard', () => {
   });
 
   it('should hide actions when hideActions is true', () => {
-    render(
-      <LinkedAccountCard recipient={mockActiveRecipient} hideActions={true} />
-    );
+    render(<LinkedAccountCard recipient={mockActiveRecipient} hideActions />);
 
     expect(
-      screen.queryByRole('button', { name: /manage/i })
+      screen.queryByRole('button', { name: /more actions/i })
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /make payment/i })
+      screen.queryByRole('button', { name: /pay from/i })
     ).not.toBeInTheDocument();
   });
 
   it('should render custom payment component when provided', () => {
-    const CustomPaymentComponent = <button>Custom Payment</button>;
+    const CustomPaymentComponent = (
+      <button type="button">Custom Payment</button>
+    );
 
     render(
       <LinkedAccountCard
@@ -190,16 +173,18 @@ describe('LinkedAccountCard', () => {
   it('should show make payment button for active accounts', () => {
     render(<LinkedAccountCard recipient={mockActiveRecipient} />);
 
-    // Should show make payment button or component
-    const payButton = screen.queryByRole('button', { name: /make payment/i });
+    // Should show make payment button with "Pay from {name}" label
+    const payButton = screen.queryByRole('button', {
+      name: /pay from john doe/i,
+    });
     expect(payButton).toBeInTheDocument();
   });
 
   it('should render masked account number', () => {
     render(<LinkedAccountCard recipient={mockActiveRecipient} />);
 
-    // Should show last 4 digits masked
-    expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
+    // Account number appears in the heading as (...5678)
+    expect(screen.getByText(/john doe \(\.\.\.5678\)/i)).toBeInTheDocument();
   });
 
   it('should display payment methods', () => {
@@ -213,7 +198,7 @@ describe('LinkedAccountCard', () => {
 
     // Should have status alert present
     const alert = screen
-      .getByText(/ready for validation/i)
+      .getByText(/verification deposits have arrived/i)
       .closest('[role="alert"]');
     expect(alert).toBeInTheDocument();
   });
