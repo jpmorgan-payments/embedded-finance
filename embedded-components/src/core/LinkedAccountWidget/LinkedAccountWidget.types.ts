@@ -35,7 +35,4 @@ export interface LinkedAccountWidgetProps {
    * Optional CSS class name for custom styling
    */
   className?: string;
-
-  /** Client ID for API requests */
-  clientId: string;
 }

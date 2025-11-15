@@ -82,6 +82,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   theme = {},
   reactQueryDefaultOptions = {},
   contentTokens = {},
+  clientId,
 }) => {
   const [currentInterceptor, setCurrentInterceptor] = useState(0);
   const [interceptorReady, setInterceptorReady] = useState(false);
@@ -111,6 +112,9 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
               .split('?')[0] // Remove query params first
               .split('/')[0] || ''; // Then get first segment
 
+          // Check if this is a GET request
+          const isGetRequest = config.method?.toUpperCase() === 'GET';
+
           return {
             ...config,
             headers: {
@@ -120,7 +124,15 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             params: {
               ...config.params,
               ...queryParams,
+              ...(clientId && isGetRequest ? { clientId } : {}),
             },
+            data:
+              !isGetRequest && clientId && config.data
+                ? {
+                    ...config.data,
+                    clientId,
+                  }
+                : config.data,
             baseURL: apiBaseUrls?.[urlPath] ?? apiBaseUrl,
           };
         } catch (error) {

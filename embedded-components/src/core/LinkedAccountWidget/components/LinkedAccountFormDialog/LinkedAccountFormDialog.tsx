@@ -37,9 +37,6 @@ export interface LinkedAccountFormDialogProps {
   /** Recipient data (required for edit mode) */
   recipient?: Recipient;
 
-  /** Client ID for API requests */
-  clientId?: string;
-
   /** Whether dialog is open (controlled mode) */
   open?: boolean;
 
@@ -78,7 +75,6 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   children,
   mode,
   recipient,
-  clientId,
   open,
   onOpenChange,
   onLinkedAccountSettled,
@@ -100,7 +96,6 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   } = useLinkedAccountForm({
     mode,
     recipientId: recipient?.id,
-    clientId,
     onSettled: onLinkedAccountSettled,
   });
 

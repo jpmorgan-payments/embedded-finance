@@ -26,9 +26,6 @@ export interface UseLinkedAccountFormOptions {
   /** Recipient ID (required for edit mode) */
   recipientId?: string;
 
-  /** Client ID for API requests */
-  clientId?: string;
-
   /** Callback when operation succeeds */
   onSuccess?: (recipient?: Recipient) => void;
 
@@ -95,7 +92,6 @@ export interface UseLinkedAccountFormReturn {
 export function useLinkedAccountForm({
   mode,
   recipientId,
-  clientId,
   onSuccess,
   onError,
   onSettled,
@@ -149,7 +145,7 @@ export function useLinkedAccountForm({
         data,
         'LINKED_ACCOUNT'
       );
-      createMutation.mutate({ data: { ...createPayload, clientId } });
+      createMutation.mutate({ data: createPayload });
     } else if (mode === 'edit' && recipientId) {
       // Edit: Use UpdateRecipientRequest (no type field, only account/partyDetails)
       const updatePayload = transformBankAccountFormToRecipientPayload(

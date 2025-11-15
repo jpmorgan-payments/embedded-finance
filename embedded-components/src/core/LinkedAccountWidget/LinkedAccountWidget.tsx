@@ -43,7 +43,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   makePaymentComponent,
   onLinkedAccountSettled,
   className,
-  clientId,
 }) => {
   const { t } = useTranslation('linked-accounts');
 
@@ -56,7 +55,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     error,
     isSuccess,
     refetch,
-  } = useLinkedAccounts({ variant, clientId });
+  } = useLinkedAccounts({ variant });
 
   // Determine if create button should be shown
   const showCreate = shouldShowCreateButton(
@@ -90,7 +89,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 <LinkedAccountFormDialog
                   mode="create"
                   onLinkedAccountSettled={onLinkedAccountSettled}
-                  clientId={clientId}
                 >
                   <Button
                     variant="outline"

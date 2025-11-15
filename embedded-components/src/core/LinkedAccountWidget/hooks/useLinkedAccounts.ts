@@ -11,9 +11,6 @@ export interface UseLinkedAccountsOptions {
    * - 'singleAccount': Shows only the first verified linked account (for simplified views)
    */
   variant?: 'default' | 'singleAccount';
-
-  /** Client ID for API requests */
-  clientId: string;
 }
 
 /**
@@ -64,13 +61,11 @@ export interface UseLinkedAccountsReturn {
  */
 export function useLinkedAccounts({
   variant = 'default',
-  clientId,
 }: UseLinkedAccountsOptions): UseLinkedAccountsReturn {
   const { data, isLoading, isError, error, isSuccess, refetch } =
     useGetAllRecipients(
       {
         type: 'LINKED_ACCOUNT',
-        clientId,
       },
       {
         query: {

@@ -67,13 +67,13 @@ export const LinkedAccountWidgetStory: React.FC<
       headers={{ ...headers, ...(platformId && { platform_id: platformId }) }}
       theme={selectedTheme}
       contentTokens={selectedContentTokens}
+      clientId={clientId ?? ''}
     >
       <LinkedAccountWidget
         variant={variant}
         showCreateButton={showCreateButton}
         makePaymentComponent={makePaymentComponent}
         onLinkedAccountSettled={onLinkedAccountSettled}
-        clientId={clientId ?? ''}
         className={className}
       />
     </EBComponentsProvider>
