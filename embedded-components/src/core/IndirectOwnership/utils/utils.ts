@@ -49,7 +49,7 @@ function buildOwnershipHierarchy(
   parties: PartyResponse[],
   rootParty: PartyResponse
 ): OwnershipParty {
-  const partyMap = new Map(parties.map((p) => [p.id, p]));
+  // const partyMap = new Map(parties.map((p) => [p.id, p]));
 
   function buildParty(party: PartyResponse, depth = 0): OwnershipParty {
     const children = parties

@@ -15,10 +15,10 @@ interface EntityFormProps {
  * Placeholder component for entity/individual form
  */
 export const EntityForm: React.FC<EntityFormProps> = ({
-  onSubmit,
-  initialData,
+  // onSubmit,
+  // initialData,
   parentPartyId,
-  isLoading,
+  // isLoading,
 }) => {
   return (
     <Card>
@@ -26,12 +26,12 @@ export const EntityForm: React.FC<EntityFormProps> = ({
         <CardTitle>Add Entity/Individual</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="p-4 border-2 border-dashed border-muted rounded-lg text-center">
-          <div className="text-sm text-muted-foreground">
+        <div className="eb-rounded-lg eb-border-2 eb-border-dashed eb-border-muted eb-p-4 eb-text-center">
+          <div className="eb-text-sm eb-text-muted-foreground">
             Entity/Individual form coming soon...
           </div>
           {parentPartyId && (
-            <div className="mt-2 text-xs text-muted-foreground">
+            <div className="eb-mt-2 eb-text-xs eb-text-muted-foreground">
               Parent Party: {parentPartyId}
             </div>
           )}
