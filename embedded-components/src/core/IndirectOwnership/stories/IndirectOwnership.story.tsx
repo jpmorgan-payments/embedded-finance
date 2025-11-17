@@ -5,14 +5,14 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { SELLSENSE_THEME } from '@/core/themes';
 
 import { IndirectOwnership } from '../IndirectOwnership';
-import { 
-  efClientEmptyOwnership, 
-  efClientNeedsOwnershipInfo, 
+import {
   efClientComplexOwnership,
+  efClientEmptyOwnership,
   efClientIncompleteOwnership,
-  efClientTooManyOwners,
   efClientMultipleValidationErrors,
-  efClientRemovalTest
+  efClientNeedsOwnershipInfo,
+  efClientRemovalTest,
+  efClientTooManyOwners,
 } from '../mocks';
 
 interface IndirectOwnershipWithProviderProps {
@@ -24,8 +24,6 @@ interface IndirectOwnershipWithProviderProps {
   maxDepth?: number;
   readOnly?: boolean;
 }
-
-
 
 const IndirectOwnershipWithProvider = ({
   apiBaseUrl,
@@ -124,7 +122,7 @@ export const Default: Story = {
  * Empty State story shows Central Perk Coffee & Cookies when it has no ownership
  * structure defined yet. This is the typical starting point for users who need to
  * add their first entities or individuals with ownership interest.
- * 
+ *
  * In this state, the component shows:
  * - Empty state messaging encouraging users to get started
  * - Action buttons to add entities or individuals
@@ -172,7 +170,7 @@ export const EmptyState: Story = {
  * but is specifically flagged as needing additional ownership information for
  * compliance purposes. This represents a more urgent empty state where action
  * is required to proceed with onboarding.
- * 
+ *
  * In this state, the component shows:
  * - Clear indication that information is needed
  * - Specific validation requirements that must be addressed
@@ -256,17 +254,17 @@ export const ReadOnly: Story = {
 
 /**
  * Validation Error: Incomplete Beneficial Ownership
- * 
+ *
  * This story demonstrates the validation error using Central Perk's structure when
  * entities do not have identified beneficial owners (individuals).
- * 
+ *
  * The scenario shows:
  * - Central Perk Coffee & Central Perk Cookies without beneficial owners
  * - Red error alert at the top explaining the issue
  * - Orange warning badges on entities that need beneficial owners
  * - Orange borders around problematic entities
  * - Blocked form submission until issues are resolved
- * 
+ *
  * Error Type: INCOMPLETE_BENEFICIAL_OWNERSHIP
  * Trigger: Central Perk Coffee and Central Perk Cookies entities without individual children
  */
@@ -309,19 +307,19 @@ export const ValidationErrorIncompleteOwnership: Story = {
 
 /**
  * Validation Error: Too Many Beneficial Owners (Friends Characters)
- * 
+ *
  * This story demonstrates the validation error using all main Friends characters
  * when there are more than 4 individual beneficial owners.
- * 
+ *
  * The scenario shows:
  * - Central Perk structure with Monica, Ross, Rachel, Chandler, and Joey (5 total)
  * - Mixed direct and indirect ownership through Central Perk entities
- * - Red error alert explaining the mathematical impossibility 
+ * - Red error alert explaining the mathematical impossibility
  * - Disabled "Add Individual Owner" buttons
  * - Warning text about reaching the 4-owner limit
  * - Clear explanation that each owner must have ≥25% ownership
- * 
- * Error Type: TOO_MANY_BENEFICIAL_OWNERS  
+ *
+ * Error Type: TOO_MANY_BENEFICIAL_OWNERS
  * Trigger: 5 Friends characters as beneficial owners (exceeds 4-person limit)
  * Mathematical Logic: 5 owners × 25% minimum = 125% > 100% (impossible)
  * Structure: Monica, Ross direct + Rachel, Chandler indirect + Joey direct = 5 total
@@ -365,10 +363,10 @@ export const ValidationErrorTooManyOwners: Story = {
 
 /**
  * Validation Error: Multiple Issues Combined (Friends Chaos)
- * 
+ *
  * This story demonstrates the "worst case" scenario using Friends characters where BOTH validation
  * errors occur simultaneously in Central Perk's ownership structure.
- * 
+ *
  * The scenario shows:
  * - All Friends characters as beneficial owners (Monica, Ross, Rachel, Chandler, Joey)
  * - Central Perk Merchandise entity without beneficial owners
@@ -376,11 +374,11 @@ export const ValidationErrorTooManyOwners: Story = {
  * - Both types of visual warnings (orange borders, badges, disabled buttons)
  * - Comprehensive error state with clear guidance for resolution
  * - Blocked functionality until all issues are resolved
- * 
- * Error Types: 
+ *
+ * Error Types:
  * 1. TOO_MANY_BENEFICIAL_OWNERS (5 Friends characters > 4 limit)
  * 2. INCOMPLETE_BENEFICIAL_OWNERSHIP (Central Perk Merchandise without individuals)
- * 
+ *
  * This story shows how the component handles multiple simultaneous validation failures.
  */
 export const ValidationErrorMultipleIssues: Story = {
@@ -429,11 +427,11 @@ export const ValidationErrorMultipleIssues: Story = {
 
 /**
  * Node Removal Testing Story
- * 
+ *
  * This story demonstrates the enhanced removal functionality using the Central Perk
  * structure from the documentation. It provides a comprehensive test environment
  * for validating removal scenarios with nested entities.
- * 
+ *
  * Test Scenarios Available:
  * 1. **Remove Direct Individual**: Monica Gellar can be removed (direct owner)
  * 2. **Remove Individual from Entity**: Ross Gellar can be removed from Central Perk Coffee (will trigger orphan warning)
@@ -441,7 +439,7 @@ export const ValidationErrorMultipleIssues: Story = {
  * 4. **Remove Entire Entity**: Central Perk Coffee can be removed (removes Ross Gellar too)
  * 5. **Remove Nested Entity Chain**: Central Perk Cookies can be removed (removes Cookie Co. and Rachel Green)
  * 6. **Complex Nested Structure**: Cookie Co. demonstrates multi-level entity nesting
- * 
+ *
  * Expected Behaviors:
  * - Delete buttons appear on removable parties with red styling
  * - Root client (Central Perk Coffee & Cookies) cannot be removed

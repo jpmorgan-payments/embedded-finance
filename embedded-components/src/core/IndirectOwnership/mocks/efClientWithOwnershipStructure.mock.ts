@@ -1,7 +1,7 @@
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
- * Mock client with multiple ownership parties demonstrating the LinkedAccountWidget 
+ * Mock client with multiple ownership parties demonstrating the LinkedAccountWidget
  * multiple accounts theme
  */
 export const efClientWithOwnershipStructure: ClientResponse = {

@@ -4,13 +4,13 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
  * Mock client data with BOTH validation errors using Central Perk characters:
  * 1. Too many beneficial owners (5 individuals > 4 limit)
  * 2. Incomplete beneficial ownership (entity without individuals)
- * 
+ *
  * This creates a "worst case" scenario for testing comprehensive validation.
- * 
+ *
  * Structure:
  * Central Perk Coffee & Cookies (Client)
  * ├── Monica Gellar - Individual (1st beneficial owner)
- * ├── Ross Gellar - Individual (2nd beneficial owner)  
+ * ├── Ross Gellar - Individual (2nd beneficial owner)
  * ├── Rachel Green - Individual (3rd beneficial owner)
  * ├── Chandler Bing - Individual (4th beneficial owner)
  * ├── Joey Tribbiani - Individual (5th beneficial owner) ⚠️ TOO_MANY_BENEFICIAL_OWNERS

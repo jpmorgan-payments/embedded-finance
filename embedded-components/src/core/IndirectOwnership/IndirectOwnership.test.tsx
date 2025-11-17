@@ -86,8 +86,12 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Indirect Ownership Structure')).toBeInTheDocument();
-    expect(screen.getByText('Indirect ownership component coming soon...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Indirect Ownership Structure')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Indirect ownership component coming soon...')
+    ).toBeInTheDocument();
   });
 
   it('renders with client ID prop', async () => {
@@ -104,8 +108,10 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Indirect Ownership Structure')).toBeInTheDocument();
-    
+    expect(
+      screen.getByText('Indirect Ownership Structure')
+    ).toBeInTheDocument();
+
     // In development mode, should show debug info
     if (process.env.NODE_ENV === 'development') {
       expect(screen.getByText('Client ID: client-1')).toBeInTheDocument();
@@ -117,24 +123,23 @@ describe('IndirectOwnership Component', () => {
 
     render(
       <TestWrapper>
-        <IndirectOwnership 
-          clientId="client-1" 
+        <IndirectOwnership
+          clientId="client-1"
           onOwnershipStructureUpdate={onUpdateMock}
         />
       </TestWrapper>
     );
 
-    expect(screen.getByText('Indirect Ownership Structure')).toBeInTheDocument();
+    expect(
+      screen.getByText('Indirect Ownership Structure')
+    ).toBeInTheDocument();
     // Callback functionality will be tested when actual implementation is added
   });
 
   it('respects showVisualization prop', async () => {
     render(
       <TestWrapper>
-        <IndirectOwnership 
-          clientId="client-1" 
-          showVisualization={false}
-        />
+        <IndirectOwnership clientId="client-1" showVisualization={false} />
       </TestWrapper>
     );
 
@@ -147,10 +152,7 @@ describe('IndirectOwnership Component', () => {
   it('respects maxDepth prop', async () => {
     render(
       <TestWrapper>
-        <IndirectOwnership 
-          clientId="client-1" 
-          maxDepth={5}
-        />
+        <IndirectOwnership clientId="client-1" maxDepth={5} />
       </TestWrapper>
     );
 
@@ -167,8 +169,12 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Ownership Tree Visualization')).toBeInTheDocument();
+    expect(
+      screen.getByText('Ownership Tree Visualization')
+    ).toBeInTheDocument();
     expect(screen.getByText('Entity/Individual Form')).toBeInTheDocument();
-    expect(screen.getByText('Ownership Validation Summary')).toBeInTheDocument();
+    expect(
+      screen.getByText('Ownership Validation Summary')
+    ).toBeInTheDocument();
   });
 });

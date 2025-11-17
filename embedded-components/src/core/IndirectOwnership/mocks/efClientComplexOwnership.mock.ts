@@ -2,11 +2,11 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
  * Mock data representing Central Perk's complex beneficial ownership structure:
- * 
+ *
  * Layer 1 (Root): Central Perk Coffee & Cookies (Client)
  * Layer 2: Intermediary entities that qualify for beneficial ownership (≥25%)
  * Layer 3: Individual beneficial owners (3 total = mathematically valid)
- * 
+ *
  * Structure (Central Perk Beneficial Ownership):
  * Central Perk Coffee & Cookies
  * ├── Monica Gellar - Direct Individual Owner (40% beneficial ownership)
@@ -21,7 +21,7 @@ export const efClientComplexOwnership: ClientResponse = {
   parties: [
     // Layer 1: Root Client Organization - Central Perk Coffee & Cookies
     {
-      id: 'party-root-001', 
+      id: 'party-root-001',
       partyType: 'ORGANIZATION',
       externalId: 'CENTRALPERK001',
       email: 'contact@centralperk.com',
@@ -35,11 +35,11 @@ export const efClientComplexOwnership: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    
+
     // Layer 2: Central Perk Coffee (35% beneficial ownership) - Coffee Division
     {
       id: 'party-sub-001',
-      partyType: 'ORGANIZATION', 
+      partyType: 'ORGANIZATION',
       externalId: 'COFFEE001',
       email: 'coffee@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
@@ -53,12 +53,12 @@ export const efClientComplexOwnership: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    
+
     // Layer 2: Central Perk Cookies (25% beneficial ownership) - Cookie Division
     {
       id: 'party-sub-002',
       partyType: 'ORGANIZATION',
-      externalId: 'COOKIES001', 
+      externalId: 'COOKIES001',
       email: 'cookies@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
@@ -67,17 +67,17 @@ export const efClientComplexOwnership: ClientResponse = {
       parentPartyId: 'party-root-001',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationName: 'Central Perk Cookies', 
+        organizationName: 'Central Perk Cookies',
         countryOfFormation: 'US',
       },
     },
-    
+
     // Layer 3: Individual owner under Central Perk Coffee (35% beneficial ownership through entity)
     {
       id: 'party-ind-001',
       partyType: 'INDIVIDUAL',
       externalId: 'ROSS001',
-      email: 'ross.gellar@centralperk.com', 
+      email: 'ross.gellar@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
       active: true,
@@ -89,11 +89,11 @@ export const efClientComplexOwnership: ClientResponse = {
         lastName: 'Gellar',
       },
     },
-    
+
     // Layer 3: Individual owner under Central Perk Cookies (25% beneficial ownership through entity)
     {
       id: 'party-ind-002',
-      partyType: 'INDIVIDUAL', 
+      partyType: 'INDIVIDUAL',
       externalId: 'RACHEL001',
       email: 'rachel.green@centralperk.com',
       roles: ['BENEFICIAL_OWNER'],
@@ -103,7 +103,7 @@ export const efClientComplexOwnership: ClientResponse = {
       parentPartyId: 'party-sub-002',
       individualDetails: {
         firstName: 'Rachel',
-        lastName: 'Green', 
+        lastName: 'Green',
       },
     },
 
@@ -134,6 +134,6 @@ export const efClientComplexOwnership: ClientResponse = {
     partyRoles: [],
     questionIds: [],
   },
-  createdAt: '2025-11-12T09:00:00.000Z', 
+  createdAt: '2025-11-12T09:00:00.000Z',
   status: 'APPROVED',
 };

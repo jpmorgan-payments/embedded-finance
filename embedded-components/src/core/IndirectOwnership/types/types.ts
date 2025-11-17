@@ -3,8 +3,8 @@ import type React from 'react';
 import {
   ClientResponse,
   PartyResponse,
-  Role,
   PartyType,
+  Role,
 } from '@/api/generated/smbdo.schemas';
 
 /**
@@ -13,25 +13,25 @@ import {
 export interface IndirectOwnershipComponentProps {
   /** The client ID for which to manage ownership structure */
   clientId?: string;
-  
+
   /** Callback when ownership structure is updated */
   onOwnershipStructureUpdate?: (
     ownershipData?: OwnershipStructure,
     error?: any
   ) => void;
-  
+
   /** Whether to show the ownership visualization tree */
   showVisualization?: boolean;
-  
+
   /** Maximum depth of ownership hierarchy to display */
   maxDepth?: number;
-  
+
   /** Optional trigger button to open the component */
   triggerButton?: React.ReactNode;
-  
+
   /** Initial ownership data to populate the component */
   initialOwnershipData?: OwnershipStructure;
-  
+
   /** Whether the component is in read-only mode */
   readOnly?: boolean;
 }
@@ -121,17 +121,17 @@ export interface OwnershipValidationWarning {
 export interface OwnershipEntityFormData {
   partyType: PartyType;
   parentPartyId?: string;
-  
+
   // Organization details
   organizationName?: string;
   organizationType?: string;
   countryOfFormation?: string;
-  
+
   // Individual details
   firstName?: string;
   lastName?: string;
   dateOfBirth?: string;
-  
+
   // Common
   roles: Role[];
   address?: {

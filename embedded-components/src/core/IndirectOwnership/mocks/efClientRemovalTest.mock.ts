@@ -3,15 +3,15 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 /**
  * Mock client data specifically designed for testing the removal functionality.
  * This structure allows testing various removal scenarios using Central Perk structure:
- * 
+ *
  * 1. Removing individuals from entities (while keeping the entity)
  * 2. Removing entire entities (cascade deletion)
  * 3. Testing nested entity structures with multi-level ownership
- * 
+ *
  * Structure:
  * Central Perk Coffee & Cookies (Client)
  * ├── Monica Gellar - Individual (can be removed)
- * ├── Central Perk Coffee - Entity 
+ * ├── Central Perk Coffee - Entity
  * │   └── Ross Gellar - Individual (can be removed, last individual will trigger orphan warning)
  * └── Central Perk Cookies - Entity
  *     └── Cookie Co. - Entity (nested entity)

@@ -4,17 +4,17 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
  * Mock client data with too many beneficial owners (5 individuals) using Central Perk characters.
  * This triggers the TOO_MANY_BENEFICIAL_OWNERS validation error since
  * mathematically, you can only have 4 individuals if each must own ≥25%.
- * 
+ *
  * Structure:
  * Central Perk Coffee & Cookies (Client)
  * ├── Monica Gellar - Individual (1st beneficial owner - DIRECT)
- * ├── Ross Gellar - Individual (2nd beneficial owner - DIRECT)  
+ * ├── Ross Gellar - Individual (2nd beneficial owner - DIRECT)
  * ├── Central Perk Coffee - Entity
  * │   └── Rachel Green - Individual (3rd beneficial owner - INDIRECT)
- * ├── Central Perk Cookies - Entity  
+ * ├── Central Perk Cookies - Entity
  * │   └── Chandler Bing - Individual (4th beneficial owner - INDIRECT)
  * └── Joey Tribbiani - Individual (5th beneficial owner - DIRECT) ⚠️ VALIDATION ERROR
- * 
+ *
  * Having 5 individuals is mathematically impossible if each must own ≥25%
  * (5 × 25% = 125% > 100%), demonstrating the error with Friends characters.
  */

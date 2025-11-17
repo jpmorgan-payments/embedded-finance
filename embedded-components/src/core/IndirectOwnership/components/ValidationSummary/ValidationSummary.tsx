@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import type { OwnershipValidationStatus } from '../../types';
@@ -27,8 +28,8 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
           </div>
           {validationStatus && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Valid: {validationStatus.isValid ? 'Yes' : 'No'} | 
-              Status: {validationStatus.completionLevel}
+              Valid: {validationStatus.isValid ? 'Yes' : 'No'} | Status:{' '}
+              {validationStatus.completionLevel}
             </div>
           )}
         </div>

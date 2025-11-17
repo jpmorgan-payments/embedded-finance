@@ -1,20 +1,17 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useCallback, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { 
-  useSmbdoGetClient,
-  useSmbdoUpdateClient,
-} from '@/api/generated/smbdo';
+import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
 
 import type {
-  OwnershipStructure,
-  OwnershipEntityFormData,
-  OwnershipValidationStatus,
-  OwnershipValidationError,
-  OwnershipValidationWarning,
   IndirectOwnershipComponentProps,
+  OwnershipEntityFormData,
+  OwnershipStructure,
+  OwnershipValidationError,
+  OwnershipValidationStatus,
+  OwnershipValidationWarning,
 } from '../types';
 
 /**
@@ -22,23 +19,21 @@ import type {
  */
 export function useIndirectOwnership(props: IndirectOwnershipComponentProps) {
   const { clientId, onOwnershipStructureUpdate } = props;
-  
+
   // Fetch client data including parties
-  const { 
-    data: clientData, 
+  const {
+    data: clientData,
     isLoading: isLoadingClient,
-    error: clientError 
-  } = useSmbdoGetClient(
-    clientId || '',
-    { 
-      query: { 
-        enabled: Boolean(clientId) 
-      } 
-    }
-  );
+    error: clientError,
+  } = useSmbdoGetClient(clientId || '', {
+    query: {
+      enabled: Boolean(clientId),
+    },
+  });
 
   // State for ownership structure
-  const [ownershipStructure, setOwnershipStructure] = useState<OwnershipStructure | null>(null);
+  const [ownershipStructure, setOwnershipStructure] =
+    useState<OwnershipStructure | null>(null);
 
   // Build ownership structure from client data
   const processedOwnership = useMemo(() => {
@@ -81,12 +76,20 @@ export function useIndirectOwnership(props: IndirectOwnershipComponentProps) {
 /**
  * Hook for ownership structure validation
  */
-export function useOwnershipValidation(ownershipStructure: OwnershipStructure | null) {
+export function useOwnershipValidation(
+  ownershipStructure: OwnershipStructure | null
+) {
   const validationStatus = useMemo((): OwnershipValidationStatus => {
     if (!ownershipStructure) {
       return {
         isValid: false,
-        errors: [{ code: 'NO_STRUCTURE', message: 'No ownership structure provided', severity: 'ERROR' }],
+        errors: [
+          {
+            code: 'NO_STRUCTURE',
+            message: 'No ownership structure provided',
+            severity: 'ERROR',
+          },
+        ],
         warnings: [],
         completionLevel: 'INCOMPLETE',
       };
@@ -122,17 +125,17 @@ export function useOwnershipValidation(ownershipStructure: OwnershipStructure | 
 const ownershipEntitySchema = z.object({
   partyType: z.enum(['INDIVIDUAL', 'ORGANIZATION']),
   parentPartyId: z.string().optional(),
-  
+
   // Organization fields
   organizationName: z.string().min(1).optional(),
   organizationType: z.string().optional(),
   countryOfFormation: z.string().optional(),
-  
+
   // Individual fields
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
   dateOfBirth: z.string().optional(),
-  
+
   // Common fields
   roles: z.array(z.string()),
 });
@@ -148,26 +151,23 @@ export function useOwnershipEntityForm() {
     },
   });
 
-  const handleSubmit = useCallback(
-    async (data: OwnershipEntityFormData) => {
-      try {
-        // TODO: Transform form data to API format and submit
-        console.log('Submitting ownership entity:', data);
-        
-        // Placeholder for API call - will use useSmbdoUpdateClient to add parties
-        // const result = await updateClientMutation.mutateAsync({
-        //   id: clientId,
-        //   data: { addParties: [transformToApiFormat(data)] }
-        // });
-        
-        return { success: true };
-      } catch (error) {
-        console.error('Error creating ownership entity:', error);
-        throw error;
-      }
-    },
-    []
-  );
+  const handleSubmit = useCallback(async (data: OwnershipEntityFormData) => {
+    try {
+      // TODO: Transform form data to API format and submit
+      console.log('Submitting ownership entity:', data);
+
+      // Placeholder for API call - will use useSmbdoUpdateClient to add parties
+      // const result = await updateClientMutation.mutateAsync({
+      //   id: clientId,
+      //   data: { addParties: [transformToApiFormat(data)] }
+      // });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error creating ownership entity:', error);
+      throw error;
+    }
+  }, []);
 
   return {
     form,
@@ -180,12 +180,14 @@ export function useOwnershipEntityForm() {
 /**
  * Hook for ownership tree navigation and manipulation
  */
-export function useOwnershipTree(ownershipStructure: OwnershipStructure | null) {
+export function useOwnershipTree(
+  ownershipStructure: OwnershipStructure | null
+) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
   const toggleNode = useCallback((nodeId: string) => {
-    setExpandedNodes(prev => {
+    setExpandedNodes((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(nodeId)) {
         newSet.delete(nodeId);
@@ -202,7 +204,7 @@ export function useOwnershipTree(ownershipStructure: OwnershipStructure | null) 
 
   const expandAll = useCallback(() => {
     if (!ownershipStructure) return;
-    
+
     // TODO: Extract all node IDs from ownership structure
     const allNodeIds: string[] = [];
     setExpandedNodes(new Set(allNodeIds));
