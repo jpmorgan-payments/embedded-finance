@@ -14,12 +14,9 @@ import {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
 } from '@/api/generated/smbdo.schemas';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Badge, Button, Form } from '@/components/ui';
-import {
-  FormLoadingState,
-  ServerErrorAlert,
-  StepLayout,
-} from '@/core/OnboardingFlow/components';
+import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,

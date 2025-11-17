@@ -566,7 +566,10 @@
       }
     },
     "organizationPhone": {
-      "fieldName": "Business phone number",
+      "fieldName": {
+        "default": "Company phone number",
+        "soleProp": "Business phone number"
+      },
       "phoneNumber": {
         "label": "Business phone number",
         "validation": {
@@ -612,6 +615,7 @@
       "default": "Personal address",
       "owner": "Owner's personal address"
     },
+    "individualAddress.label": "Address",
     "individualAddress.country": {
       "label": "Country",
       "placeholder": "Select country",
@@ -686,6 +690,10 @@
     },
     "organizationAddress.sectionTitle": "Registered address",
     "organizationAddress.sectionDescription": "Please provide the address registered to your company with your local authority",
+    "organizationAddress.label": {
+      "default": "Registered address",
+      "soleProp": "Business address"
+    },
     "organizationAddress.country": {
       "label": "Country",
       "placeholder": "Select country",

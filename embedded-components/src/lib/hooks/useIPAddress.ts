@@ -1,5 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 
+/**
+ * Custom hook to fetch the user's public IP address
+ *
+ * This hook uses multiple fallback services to ensure reliability.
+ * In test environments, it returns a mock IP address.
+ *
+ * @returns Query result containing the IP address string
+ *
+ * @example
+ * ```tsx
+ * const { data: IPAddress, isLoading } = useIPAddress();
+ *
+ * if (isLoading) return <div>Loading IP...</div>;
+ * return <div>Your IP: {IPAddress}</div>;
+ * ```
+ */
 export const useIPAddress = () => {
   return useQuery<string>({
     queryKey: ['useIPAddress'],

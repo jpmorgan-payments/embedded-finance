@@ -32,10 +32,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
 import {
   OnboardingFormField,
-  ServerErrorAlert,
   StepLayout,
 } from '@/core/OnboardingFlow/components';
 import {
