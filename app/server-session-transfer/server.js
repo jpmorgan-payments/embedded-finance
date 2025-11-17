@@ -94,9 +94,13 @@ async function createEmbeddedSession(clientId) {
 /**
  * Route: GET /
  * Serves the main HTML form where users can enter their client ID
+ * Uses INDEX_FILE environment variable to determine which HTML file to serve
+ * Default: index.html
+ * Set INDEX_FILE=index-utility.html to use the utility library version
  */
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexFile = process.env.INDEX_FILE || 'index.html';
+  res.sendFile(path.join(__dirname, 'public', indexFile));
 });
 
 /**
@@ -121,11 +125,17 @@ app.post('/sessions', async (req, res) => {
     // Construct the iframe URL with token
     const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
     
-    // Return session data
+    // Extract base URL from sessionData.url for utility library
+    const urlObj = new URL(sessionData.url);
+    const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+    
+    // Return session data (including token and baseUrl for utility library)
     res.json({
       success: true,
       sessionId: sessionData.id,
       iframeUrl: iframeUrl,
+      sessionToken: sessionData.token,
+      baseUrl: baseUrl,
       clientId: clientId
     });
     
