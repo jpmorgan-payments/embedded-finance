@@ -1,4 +1,3 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {"ghcr.io/devcontainers-extra/features/node-asdf:0": {}}
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20"
 }
