@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSmbdoGetClient, useSmbdoUpdateClient } from '@/api/generated/smbdo';
+import { useSmbdoGetClient } from '@/api/generated/smbdo';
 
 import type {
   IndirectOwnershipComponentProps,
@@ -31,10 +31,6 @@ export function useIndirectOwnership(props: IndirectOwnershipComponentProps) {
     },
   });
 
-  // State for ownership structure
-  const [ownershipStructure, setOwnershipStructure] =
-    useState<OwnershipStructure | null>(null);
-
   // Build ownership structure from client data
   const processedOwnership = useMemo(() => {
     if (!clientData?.parties) return null;
@@ -58,7 +54,6 @@ export function useIndirectOwnership(props: IndirectOwnershipComponentProps) {
   // Update callback
   const handleOwnershipUpdate = useCallback(
     (newStructure: OwnershipStructure, error?: any) => {
-      setOwnershipStructure(newStructure);
       onOwnershipStructureUpdate?.(newStructure, error);
     },
     [onOwnershipStructureUpdate]

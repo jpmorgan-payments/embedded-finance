@@ -3,15 +3,12 @@
 import React from 'react';
 import {
   AlertCircle,
-  ArrowRight,
   Building,
   CheckCircle2,
-  ChevronRight,
   Info,
   Plus,
   Trash2,
   User,
-  UserPlus,
   Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -233,7 +230,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
           chain.reverse(); // Show from individual outward
           chainDescription += ` owns ${chain[0].name}`;
 
-          for (let i = 1; i < chain.length; i++) {
+          for (let i = 1; i < chain.length; i += 1) {
             chainDescription += ` which owns ${chain[i].name}`;
           }
         }
@@ -342,21 +339,6 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
           p.partyType === 'INDIVIDUAL' && p.roles?.includes('BENEFICIAL_OWNER')
       ) || [];
     return individuals.length < 4;
-  };
-
-  // Count beneficial owners for a given party
-  const countBeneficialOwners = (party: any): number => {
-    if (!party.children || party.children.length === 0) return 0;
-
-    let count = 0;
-    party.children.forEach((child: any) => {
-      if (child.roles?.includes('BENEFICIAL_OWNER')) {
-        count++;
-      }
-      count += countBeneficialOwners(child); // Recursively count nested owners
-    });
-
-    return count;
   };
 
   // Check if a party can be deleted
@@ -529,7 +511,6 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
 
     const isBeneficialOwner = party.roles?.includes('BENEFICIAL_OWNER');
     const isClient = party.roles?.includes('CLIENT');
-    const beneficialOwnerCount = countBeneficialOwners(party);
     const hasChildren = party.children && party.children.length > 0;
 
     // Check if this entity needs beneficial owner identification
@@ -942,6 +923,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
         <div className="eb-mb-4 eb-border-b eb-border-gray-200">
           <nav className="eb-flex eb-space-x-8">
             <button
+              type="button"
               onClick={() => setActiveTab('full-structure')}
               className={`eb-border-b-2 eb-px-1 eb-py-2 eb-text-sm eb-font-medium eb-transition-colors eb-duration-200 ${
                 activeTab === 'full-structure'
@@ -952,6 +934,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               {t('indirectOwnership.tabs.fullStructure', 'Full Structure')}
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('beneficial-owners')}
               className={`eb-border-b-2 eb-px-1 eb-py-2 eb-text-sm eb-font-medium eb-transition-colors eb-duration-200 ${
                 activeTab === 'beneficial-owners'

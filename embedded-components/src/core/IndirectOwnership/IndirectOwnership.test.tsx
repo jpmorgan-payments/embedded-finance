@@ -1,8 +1,7 @@
 import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { userEvent } from '@test-utils';
+import { render, screen } from '@test-utils';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
