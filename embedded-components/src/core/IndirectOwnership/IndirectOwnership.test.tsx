@@ -86,17 +86,31 @@ describe('IndirectOwnership Component', () => {
     );
 
     // Main heading
-    expect(screen.getByText(/Indirect Ownership Structure/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Indirect Ownership Structure/i)
+    ).toBeInTheDocument();
     // Tab navigation
-    expect(screen.getByRole('button', { name: /Full Structure/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Beneficial Owners/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Full Structure/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Beneficial Owners/i })
+    ).toBeInTheDocument();
     // Ownership Hierarchy section
     expect(screen.getByText(/Ownership Hierarchy/i)).toBeInTheDocument();
     // Info alert
-    expect(screen.getByText(/Add entities and individuals that have ownership interest/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Add entities and individuals that have ownership interest/i
+      )
+    ).toBeInTheDocument();
     // Ownership Tree Visualization section
-    expect(screen.getByText(/Ownership Tree Visualization/i)).toBeInTheDocument();
-    expect(screen.getByText(/Interactive hierarchy showing ownership relationships/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Ownership Tree Visualization/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Interactive hierarchy showing ownership relationships/i)
+    ).toBeInTheDocument();
   });
 
   it('renders loading skeletons when clientId is provided', async () => {
@@ -148,8 +162,12 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText(/Ownership Tree Visualization/i)).toBeInTheDocument();
-    expect(screen.getByText(/Interactive hierarchy showing ownership relationships/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Ownership Tree Visualization/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Interactive hierarchy showing ownership relationships/i)
+    ).toBeInTheDocument();
     // The other sections may be present as headings or info blocks
     expect(screen.getByText(/Ownership Hierarchy/i)).toBeInTheDocument();
   });
