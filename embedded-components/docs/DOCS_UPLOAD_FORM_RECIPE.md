@@ -15,7 +15,7 @@ sequenceDiagram
     participant API
 
     UI->>API: Load document request (ACTIVE status)
-    Note over API, UI: API GET /document-requests?clientId={id}&includeRelatedParties=true<br/>OR API GET /clients/{id} -> API GET /document-requests/{id}
+    Note over API, UI: API GET /document-requests?clientId={id}&includeRelatedParty=true<br/>OR API GET /clients/{id} -> API GET /document-requests/{id}
     Note over UI: Show all requirements as steps<br/>Only first one interactive
 
     alt manage/render requirements state via UI State (recommended)
