@@ -3,13 +3,13 @@
  */
 
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
-import { http, HttpResponse } from 'msw';
 import {
   baseStoryArgTypes,
   baseStoryDefaults,
   BaseStoryProps,
 } from '@storybook/shared-story-types';
 import { ThemeName, THEMES } from '@storybook/themes';
+import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -85,10 +85,10 @@ export const LinkedAccountWidgetStory: React.FC<
 // ============================================================================
 
 export const createRecipientHandlers = (responseData: any) => [
-  http.get('*/recipients', () => {
+  http.get('/recipients', () => {
     return HttpResponse.json(responseData);
   }),
-  http.get('*/recipients/:id', ({ params }) => {
+  http.get('/recipients/:id', ({ params }) => {
     const { id } = params;
     // Try to find the recipient in the mock data
     const recipient = linkedAccountListMock.recipients?.find(
@@ -125,7 +125,7 @@ export const createRecipientHandlers = (responseData: any) => [
       createdAt: new Date().toISOString(),
     });
   }),
-  http.post('*/recipients', async ({ request }) => {
+  http.post('/recipients', async ({ request }) => {
     const body = (await request.json()) as any;
     const created = {
       id: `recipient-${Date.now()}`,
@@ -166,7 +166,7 @@ export const createRecipientHandlers = (responseData: any) => [
 
     return HttpResponse.json(created, { status: 201 });
   }),
-  http.post('*/recipients/:id/verify-microdeposit', ({ params }) => {
+  http.post('/recipients/:id/verify-microdeposit', ({ params }) => {
     const { id } = params;
     const firstRecipient = linkedAccountListMock.recipients?.[0];
     return HttpResponse.json({
