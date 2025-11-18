@@ -1,5 +1,6 @@
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
+import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 /**
  * Options for the useLinkedAccounts hook
@@ -62,6 +63,7 @@ export interface UseLinkedAccountsReturn {
 export function useLinkedAccounts({
   variant = 'default',
 }: UseLinkedAccountsOptions): UseLinkedAccountsReturn {
+  const { interceptorReady } = useInterceptorStatus();
   const { data, isLoading, isError, error, isSuccess, refetch } =
     useGetAllRecipients(
       {
@@ -81,6 +83,7 @@ export function useLinkedAccounts({
             // Default: return all verified accounts
             return accounts;
           },
+          enabled: interceptorReady,
         },
       }
     );
