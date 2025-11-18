@@ -998,6 +998,311 @@ useGetAllRecipients({
 
 ---
 
+## Technical Patterns
+
+### OAS-Driven Type-Safe API Integration
+
+**Description**: Pattern for generating type-safe React Query hooks and TypeScript types from OpenAPI Specifications (OAS) using Orval, ensuring compile-time type safety and API contract compliance.
+
+**Implementation**:
+
+- **Primary**: All components using generated hooks from `@/api/generated/ep-*`
+- **Code Generation**: Orval configuration generating hooks from OAS files
+- **Status**: ✅ Well-implemented across all components
+
+**Pattern Details**:
+
+```typescript
+// Generated hooks from OAS
+import {
+  useGetAccountBalance,
+  useGetAccounts,
+} from '@/api/generated/ep-accounts';
+// Generated types ensure type safety
+import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
+import {
+  useAmendRecipient,
+  useCreateRecipient,
+  useGetAllRecipients,
+} from '@/api/generated/ep-recipients';
+import type {
+  Recipient,
+  RecipientRequest,
+} from '@/api/generated/ep-recipients.schemas';
+
+// Type-safe usage
+const { data, isLoading, isError, refetch } = useGetAccounts(
+  clientId ? { clientId } : undefined,
+  {
+    query: {
+      enabled: interceptorReady,
+    },
+  }
+);
+```
+
+**Features**:
+
+- Automatic code generation from OAS
+- Type-safe API calls at compile time
+- React Query hooks pre-configured
+- Type definitions for all API contracts
+- Consistent error types
+- Pagination types generated
+- Request/response type safety
+
+**Refinement Needed**:
+
+- ✅ All components properly use generated hooks
+- ⚠️ Some components could benefit from more generated utility types
+
+**Technical Benefits**:
+
+- ✅ **Type Safety**: Compile-time validation of API contracts
+- ✅ **Maintainability**: Single source of truth (OAS)
+- ✅ **Consistency**: Standardized API interaction patterns
+- ✅ **Developer Experience**: Auto-completion and type checking
+
+---
+
+### API Error Mapping Pattern
+
+**Description**: Pattern for mapping API error responses to form field errors and user-friendly error messages, with support for field-level and global error handling.
+
+**Implementation**:
+
+- **Primary**: `OnboardingFlow/utils/formUtils.ts` (lines 133-228)
+- **Secondary**: `components/ServerErrorAlert/`
+- **Status**: ✅ Well-implemented with field-level mapping
+
+**Pattern Details**:
+
+```typescript
+// API error to form error mapping
+export function mapPartyApiErrorsToFormErrors(
+  errors: ApiErrorReasonV2[]
+): FormError[] {
+  return errors.map((error) => ({
+    field: error.field as keyof OnboardingFormValuesSubmit,
+    message: error.message,
+    path: error.path,
+  }));
+}
+
+// Setting form errors from API response
+export function setApiFormErrors(
+  form: UseFormReturn<any, any, any>,
+  apiFormErrors: FormError[]
+) {
+  apiFormErrors.forEach((error) => {
+    if (error.field) {
+      form.setError(error.field as any, {
+        type: 'server',
+        message: error.message,
+      });
+    }
+  });
+}
+
+// Usage in components
+const { mutate: createRecipient } = useCreateRecipient({
+  mutation: {
+    onError: (error) => {
+      const formErrors = mapApiErrorsToFormErrors(error);
+      setApiFormErrors(form, formErrors);
+    },
+  },
+});
+```
+
+**Features**:
+
+- Field-level error mapping
+- Global error handling
+- ServerErrorAlert component for API errors
+- Status code-specific error messages
+- Development mode error details
+- User-friendly error messages
+
+**Refinement Needed**:
+
+- ⚠️ **MakePayment**: Could benefit from more granular error mapping
+- ⚠️ **Recipients**: Some error scenarios could be more specific
+
+**Technical Benefits**:
+
+- ✅ **Error Recovery**: Clear error communication to users
+- ✅ **Developer Experience**: Structured error handling
+- ✅ **Maintainability**: Centralized error mapping logic
+
+---
+
+### Custom Hooks Pattern for Business Logic
+
+**Description**: Pattern for extracting complex business logic into reusable custom hooks, separating concerns and improving testability.
+
+**Implementation**:
+
+- **Primary**: `MakePayment/hooks/` (usePaymentForm, usePaymentData, usePaymentValidation)
+- **Secondary**: `Recipients/hooks/useRecipientsFilters.ts`
+- **Tertiary**: `LinkedAccountWidget/hooks/useLinkedAccounts.ts`
+- **Status**: ✅ Well-implemented with clear separation of concerns
+
+**Pattern Details**:
+
+```typescript
+// Custom hook for payment data aggregation
+export const usePaymentData = (
+  paymentMethods: PaymentMethod[],
+  form: UseFormReturn<PaymentFormData>
+) => {
+  const { interceptorReady } = useInterceptorStatus();
+
+  // Multiple API calls
+  const { data: accounts } = useGetAccounts(undefined, {
+    query: { enabled: interceptorReady },
+  });
+
+  const { data: recipients } = useGetAllRecipients(undefined, {
+    query: { enabled: interceptorReady },
+  });
+
+  // Derived state
+  const selectedAccount = useMemo(() => {
+    const accountId = form.watch('from');
+    return accounts?.items.find((a) => a.id === accountId);
+  }, [accounts, form.watch('from')]);
+
+  // Filtered data
+  const filteredRecipients = useMemo(() => {
+    if (!recipients?.recipients || !selectedAccount) return [];
+    return filterRecipientsByAccount(recipients.recipients, selectedAccount);
+  }, [recipients, selectedAccount]);
+
+  return {
+    accounts,
+    recipients,
+    selectedAccount,
+    filteredRecipients,
+    // ... other derived values
+  };
+};
+
+// Usage in component
+const paymentData = usePaymentData(paymentMethods, form);
+```
+
+**Features**:
+
+- Business logic encapsulation
+- Reusable across components
+- Testable in isolation
+- Clear dependency management
+- Memoized derived state
+- React Query integration
+
+**Refinement Needed**:
+
+- ⚠️ **OnboardingFlow**: Some logic could be extracted to custom hooks
+- ⚠️ **Accounts**: Balance fetching logic could be a custom hook
+
+**Technical Benefits**:
+
+- ✅ **Separation of Concerns**: Logic separated from UI
+- ✅ **Reusability**: Hooks can be shared across components
+- ✅ **Testability**: Business logic tested independently
+- ✅ **Maintainability**: Easier to update and debug
+
+---
+
+### Context Provider Pattern for Shared State
+
+**Description**: Pattern for managing shared application state and configuration through React Context providers, enabling component composition and prop drilling avoidance.
+
+**Implementation**:
+
+- **Primary**: `EBComponentsProvider/EBComponentsProvider.tsx`
+- **Secondary**: `OnboardingFlow/contexts/FlowContext.tsx`
+- **Tertiary**: `OnboardingFlow/contexts/OnboardingContext.tsx`
+- **Status**: ✅ Well-implemented with multiple context layers
+
+**Pattern Details**:
+
+```typescript
+// Provider with multiple concerns
+export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
+  children,
+  apiBaseUrl,
+  headers = {},
+  theme = {},
+  contentTokens = {},
+}) => {
+  const [interceptorReady, setInterceptorReady] = useState(false);
+
+  // i18n instance creation
+  const i18nInstance = useMemo(
+    () => createI18nInstance(contentTokens),
+    [contentTokens?.name, JSON.stringify(contentTokens?.tokens)]
+  );
+
+  // Axios interceptor setup
+  useEffect(() => {
+    const interceptorId = AXIOS_INSTANCE.interceptors.request.use((config) => {
+      config.baseURL = apiBaseUrl;
+      config.headers = { ...config.headers, ...headers };
+      return config;
+    });
+
+    setInterceptorReady(true);
+    return () => {
+      AXIOS_INSTANCE.interceptors.request.eject(interceptorId);
+    };
+  }, [apiBaseUrl, headers]);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <I18nextProvider i18n={i18nInstance}>
+        <InterceptorContext.Provider value={{ interceptorReady }}>
+          <ContentTokensContext.Provider value={contentTokens}>
+            <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
+              {children}
+            </ErrorBoundary>
+          </ContentTokensContext.Provider>
+        </InterceptorContext.Provider>
+      </I18nextProvider>
+    </QueryClientProvider>
+  );
+};
+
+// Usage in components
+const { interceptorReady } = useInterceptorStatus();
+const contentTokens = useContext(ContentTokensContext);
+```
+
+**Features**:
+
+- Multiple context layers
+- Provider composition
+- Error boundary integration
+- Interceptor state management
+- i18n instance scoping
+- Theme configuration
+- Content token management
+
+**Refinement Needed**:
+
+- ✅ Well-structured with clear separation
+- ⚠️ Some contexts could benefit from reducer pattern for complex state
+
+**Technical Benefits**:
+
+- ✅ **State Management**: Centralized configuration
+- ✅ **Composition**: Multiple providers compose cleanly
+- ✅ **Type Safety**: TypeScript interfaces for context values
+- ✅ **Performance**: Memoized context values prevent unnecessary re-renders
+
+---
+
 ## Pattern Refinement Matrix
 
 | Pattern                    | Accounts | Recipients | MakePayment | TransactionsDisplay | OnboardingFlow | LinkedAccountWidget |
