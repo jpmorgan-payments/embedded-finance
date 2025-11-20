@@ -798,9 +798,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="eb-flex eb-flex-col"
+        className="eb-flex eb-min-h-0 eb-flex-1 eb-flex-col"
       >
-        <div className="eb-max-h-[calc(90vh-180px)] eb-overflow-y-auto eb-px-6">
+        <div className="eb-min-h-0 eb-flex-1 eb-overflow-y-auto eb-px-6">
           <div className="eb-space-y-4 eb-py-4">
             {alert}
             {/* Step 1: Account Type & Payment Method Selection */}
@@ -1132,7 +1132,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
+        <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
           {currentStep === 1 && (
             <>
               {onCancel && (
