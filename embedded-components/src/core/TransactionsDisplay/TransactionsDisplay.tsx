@@ -4,9 +4,9 @@ import { RefreshCw } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table';
 
 import { TransactionCard } from './components/TransactionCard/TransactionCard';
+import { TransactionsTable } from './components/TransactionsTable/TransactionsTable';
 import { transactionsColumns } from './components/TransactionsTable/TransactionsTable.columns';
 import { useAccountsData, useTransactionsData } from './hooks';
 import type {
@@ -19,15 +19,10 @@ export const TransactionsDisplay = forwardRef<
   TransactionsDisplayProps
 >(({ accountIds }, ref) => {
   const { filteredAccountIds } = useAccountsData();
-  const {
-    transactions,
-    status,
-    failureReason,
-    refetch,
-    isFetching,
-  } = useTransactionsData({
-    accountIds: accountIds ?? filteredAccountIds,
-  });
+  const { transactions, status, failureReason, refetch, isFetching } =
+    useTransactionsData({
+      accountIds: accountIds ?? filteredAccountIds,
+    });
 
   const isMobile = useMediaQuery('(max-width: 640px)');
 
@@ -86,7 +81,10 @@ export const TransactionsDisplay = forwardRef<
               ))}
             </div>
           ) : (
-            <DataTable columns={transactionsColumns} data={transactions} />
+            <TransactionsTable
+              columns={transactionsColumns}
+              data={transactions}
+            />
           ))}
         {status === 'success' && transactions.length === 0 && (
           <div className="eb-py-8 eb-text-center eb-text-gray-500">

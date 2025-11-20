@@ -1,7 +1,21 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 
 import { TransactionCard } from './TransactionCard';
 import type { ModifiedTransaction } from '../../utils';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
+
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+};
 
 const mockTransaction: ModifiedTransaction = {
   id: 'txn-123',
@@ -19,8 +33,12 @@ const mockTransaction: ModifiedTransaction = {
 };
 
 describe('TransactionCard', () => {
+  beforeEach(() => {
+    queryClient.clear();
+  });
+
   test('renders transaction information', () => {
-    render(<TransactionCard transaction={mockTransaction} />);
+    renderWithProviders(<TransactionCard transaction={mockTransaction} />);
 
     expect(screen.getByText('ACH')).toBeInTheDocument();
     expect(screen.getByText('COMPLETED')).toBeInTheDocument();
@@ -29,7 +47,7 @@ describe('TransactionCard', () => {
   });
 
   test('renders formatted amount', () => {
-    render(<TransactionCard transaction={mockTransaction} />);
+    renderWithProviders(<TransactionCard transaction={mockTransaction} />);
 
     expect(screen.getByText('$1,000.00')).toBeInTheDocument();
   });
@@ -43,10 +61,11 @@ describe('TransactionCard', () => {
       currency: 'USD',
     };
 
-    render(<TransactionCard transaction={minimalTransaction} />);
+    renderWithProviders(<TransactionCard transaction={minimalTransaction} />);
 
     expect(screen.getByText('TRANSFER')).toBeInTheDocument();
-    expect(screen.getByText('N/A')).toBeInTheDocument();
+    // Check that N/A appears (there may be multiple instances)
+    expect(screen.getAllByText('N/A').length).toBeGreaterThan(0);
   });
 });
 
