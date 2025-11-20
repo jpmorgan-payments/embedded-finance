@@ -1,17 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { ChevronRightIcon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import { PaymentTypeResponse } from '@/api/generated/ep-transactions.schemas';
 import { Badge } from '@/components/ui/badge';
-import {
-  TransactionStatus,
-  PaymentTypeResponse,
-} from '@/api/generated/ep-transactions.schemas';
+import { Button } from '@/components/ui/button';
 
 import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
-import { DataTableColumnHeader } from './DataTableColumnHeader';
 import { formatNumberToCurrency } from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
+import { DataTableColumnHeader } from './DataTableColumnHeader';
 
 /**
  * Get status badge variant based on transaction status
@@ -95,9 +92,7 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
     cell: ({ row }) => {
       const status = row.getValue('status') as string | undefined;
       return (
-        <Badge variant={getStatusVariant(status)}>
-          {status || 'N/A'}
-        </Badge>
+        <Badge variant={getStatusVariant(status)}>{status || 'N/A'}</Badge>
       );
     },
     filterFn: (row, id, value) => {
@@ -172,10 +167,10 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
       <DataTableColumnHeader column={column} title="Reference ID" />
     ),
     cell: ({ row }) => {
-      const refId = row.getValue('transactionReferenceId') as string | undefined;
-      return (
-        <div className="eb-font-mono eb-text-xs">{refId || 'N/A'}</div>
-      );
+      const refId = row.getValue('transactionReferenceId') as
+        | string
+        | undefined;
+      return <div className="eb-font-mono eb-text-xs">{refId || 'N/A'}</div>;
     },
     filterFn: (row, id, value) => {
       const refId = (row.getValue(id) as string | undefined) || '';
@@ -222,7 +217,9 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
     ),
     cell: ({ row }) => {
       const memo = row.getValue('memo') as string | undefined;
-      return <div className="eb-max-w-[200px] eb-truncate">{memo || 'N/A'}</div>;
+      return (
+        <div className="eb-max-w-[200px] eb-truncate">{memo || 'N/A'}</div>
+      );
     },
     filterFn: (row, id, value) => {
       const memo = (row.getValue(id) as string | undefined) || '';

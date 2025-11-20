@@ -1,4 +1,3 @@
-import { render, screen } from '@testing-library/react';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -6,6 +5,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { render, screen } from '@testing-library/react';
 
 import { DataTablePagination } from './DataTablePagination';
 
@@ -42,7 +42,6 @@ const PaginationWrapper = ({ dataLength }: { dataLength: number }) => {
 };
 
 describe('DataTablePagination', () => {
-
   describe('Rendering', () => {
     test('displays row count', () => {
       render(<PaginationWrapper dataLength={10} />);
@@ -96,16 +95,12 @@ describe('DataTablePagination', () => {
       // With 50 items and page size 25, there should be 2 pages
       // Check that pagination controls are rendered
       expect(screen.getByText(/Page 1 of 2/)).toBeInTheDocument();
-      
+
       // Verify navigation buttons exist
       const buttons = screen.getAllByRole('button');
-      const nextButton = buttons.find((btn) =>
-        btn.getAttribute('aria-label')?.toLowerCase().includes('next')
-      );
       // Next button should exist when there are more pages
       // If not found by aria-label, check that buttons exist (might use different label)
       expect(buttons.length).toBeGreaterThan(0);
     });
   });
 });
-

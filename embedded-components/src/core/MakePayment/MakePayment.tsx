@@ -320,7 +320,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(handlePaymentSubmit)}
-                      className="eb-px-2 eb-py-2"
+                      className="eb-p-2"
                     >
                       <div
                         className={`eb-grid eb-grid-cols-1 eb-gap-4 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}

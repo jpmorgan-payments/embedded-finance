@@ -1,6 +1,6 @@
 /**
  * TransactionsDisplay - Public API Types
- * 
+ *
  * Only public types that consumers need should be exported here.
  * Internal types should be colocated with their respective components/hooks/utils.
  */
@@ -25,4 +25,3 @@ export interface TransactionsDisplayRef {
    */
   refresh: () => void;
 }
-

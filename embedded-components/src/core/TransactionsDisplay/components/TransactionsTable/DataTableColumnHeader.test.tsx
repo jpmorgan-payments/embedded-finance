@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import {
   createColumnHelper,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { DataTableColumnHeader } from './DataTableColumnHeader';
 
@@ -20,7 +20,9 @@ const TableWrapper = ({
   column,
   title,
 }: {
-  column: ReturnType<typeof columnHelper.display> | ReturnType<typeof columnHelper.accessor>;
+  column:
+    | ReturnType<typeof columnHelper.display>
+    | ReturnType<typeof columnHelper.accessor>;
   title: string;
 }) => {
   const table = useReactTable({
@@ -108,4 +110,3 @@ describe('DataTableColumnHeader', () => {
     });
   });
 });
-

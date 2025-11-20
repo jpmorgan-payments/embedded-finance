@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 
-import { TransactionCard } from './TransactionCard';
 import type { ModifiedTransaction } from '../../utils';
+import { TransactionCard } from './TransactionCard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,4 +68,3 @@ describe('TransactionCard', () => {
     expect(screen.getAllByText('N/A').length).toBeGreaterThan(0);
   });
 });
-

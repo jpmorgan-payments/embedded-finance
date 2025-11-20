@@ -1,8 +1,7 @@
+import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-
-import { server } from '@/msw/server';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { useTransactionsData } from './useTransactionsData';
@@ -20,9 +19,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
     headers={{}}
     contentTokens={{ name: 'enUS' }}
   >
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   </EBComponentsProvider>
 );
 
@@ -95,4 +92,3 @@ describe('useTransactionsData', () => {
     expect(result.current.error).toBeTruthy();
   });
 });
-

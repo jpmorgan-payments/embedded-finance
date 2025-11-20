@@ -542,15 +542,15 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
               value="open"
               className="eb-rounded-lg eb-border eb-border-gray-200"
             >
-              <AccordionTrigger className="eb-rounded-t-lg eb-px-3 eb-py-3 hover:eb-bg-gray-50 hover:eb-no-underline sm:eb-px-4">
+              <AccordionTrigger className="eb-rounded-t-lg eb-p-3 hover:eb-bg-gray-50 hover:eb-no-underline sm:eb-px-4">
                 <div className="eb-mr-2 eb-flex eb-w-full eb-items-center eb-justify-between">
                   {/* Mobile Layout - Stacked */}
                   <div className="eb-block eb-w-full sm:eb-hidden">
                     <div className="eb-mb-2 eb-flex eb-items-center eb-space-x-3">
                       {isOrganization ? (
-                        <Building className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-blue-600" />
+                        <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
                       ) : (
-                        <Users className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-green-600" />
+                        <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
                       )}
                       <div className="eb-min-w-0 eb-flex-1">
                         <div className="eb-truncate eb-text-left eb-font-medium">
@@ -588,23 +588,23 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                   <div className="eb-hidden eb-w-full eb-items-center eb-justify-between sm:eb-flex">
                     <div className="eb-flex eb-min-w-0 eb-flex-1 eb-items-center eb-space-x-3">
                       {isOrganization ? (
-                        <Building className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-blue-600" />
+                        <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
                       ) : (
-                        <Users className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-green-600" />
+                        <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
                       )}
                       <div className="eb-min-w-0 eb-flex-1">
                         <span className="eb-block eb-truncate eb-text-left eb-font-medium">
                           {name || 'Unnamed Entity'}
                         </span>
                       </div>
-                      <div className="eb-flex-shrink-0 eb-text-sm eb-text-gray-600">
+                      <div className="eb-shrink-0 eb-text-sm eb-text-gray-600">
                         {isOrganization
                           ? party.organizationDetails?.organizationType
                           : 'Individual'}
                       </div>
                     </div>
 
-                    <div className="eb-flex eb-flex-shrink-0 eb-items-center eb-space-x-2">
+                    <div className="eb-flex eb-shrink-0 eb-items-center eb-space-x-2">
                       {isClient && (
                         <Badge variant="secondary" className="eb-text-xs">
                           Client
@@ -690,9 +690,9 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
             <div className="eb-block sm:eb-hidden">
               <div className="eb-mb-2 eb-flex eb-items-center eb-space-x-3">
                 {isOrganization ? (
-                  <Building className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-blue-600" />
+                  <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
                 ) : (
-                  <Users className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-green-600" />
+                  <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
                 )}
                 <div className="eb-min-w-0 eb-flex-1">
                   <div className="eb-truncate eb-font-medium">
@@ -756,23 +756,23 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
             <div className="eb-hidden eb-items-center eb-justify-between eb-gap-4 sm:eb-flex">
               <div className="eb-flex eb-min-w-0 eb-flex-1 eb-items-center eb-space-x-3">
                 {isOrganization ? (
-                  <Building className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-blue-600" />
+                  <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
                 ) : (
-                  <Users className="eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-green-600" />
+                  <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
                 )}
                 <div className="eb-min-w-0 eb-flex-1">
                   <span className="eb-block eb-truncate eb-font-medium">
                     {name || 'Unnamed Entity'}
                   </span>
                 </div>
-                <div className="eb-flex-shrink-0 eb-text-sm eb-text-gray-600">
+                <div className="eb-shrink-0 eb-text-sm eb-text-gray-600">
                   {isOrganization
                     ? party.organizationDetails?.organizationType
                     : 'Individual'}
                 </div>
               </div>
 
-              <div className="eb-flex eb-flex-shrink-0 eb-items-center eb-space-x-2">
+              <div className="eb-flex eb-shrink-0 eb-items-center eb-space-x-2">
                 {isClient && (
                   <Badge variant="secondary" className="eb-text-xs">
                     Client
@@ -1085,7 +1085,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                             <CardContent className="eb-p-4">
                               <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
                                 <div className="eb-flex eb-flex-1 eb-items-start eb-gap-3">
-                                  <User className="eb-mt-0.5 eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-blue-600" />
+                                  <User className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
                                   <div className="eb-flex-1">
                                     <div className="eb-mb-2 eb-flex eb-items-center eb-gap-2">
                                       <h4 className="eb-font-medium eb-text-gray-900">
@@ -1149,7 +1149,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                             <CardContent className="eb-p-4">
                               <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
                                 <div className="eb-flex eb-flex-1 eb-items-start eb-gap-3">
-                                  <Users className="eb-mt-0.5 eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-orange-600" />
+                                  <Users className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-orange-600" />
                                   <div className="eb-flex-1">
                                     <div className="eb-mb-2 eb-flex eb-items-center eb-gap-2">
                                       <h4 className="eb-font-medium eb-text-gray-900">
@@ -1370,7 +1370,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                     onClick={() => setOwnerType('individual')}
                     disabled={!canAddMoreOwners()}
                   >
-                    <Users className="eb-mr-3 eb-mt-0.5 eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-green-600" />
+                    <Users className="eb-mr-3 eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
                     <div className="eb-min-w-0 eb-max-w-full eb-flex-1 eb-overflow-hidden eb-text-left">
                       <div className="eb-w-full eb-whitespace-normal eb-break-words eb-font-medium">
                         {t(
@@ -1398,7 +1398,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
                     className="eb-flex eb-h-auto eb-w-full eb-items-start eb-justify-start eb-text-wrap eb-p-4"
                     onClick={() => setOwnerType('entity')}
                   >
-                    <Building className="eb-mr-3 eb-mt-0.5 eb-h-5 eb-w-5 eb-flex-shrink-0 eb-text-blue-600" />
+                    <Building className="eb-mr-3 eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
                     <div className="eb-min-w-0 eb-max-w-full eb-flex-1 eb-overflow-hidden eb-text-left">
                       <div className="eb-w-full eb-whitespace-normal eb-break-words eb-font-medium">
                         {t(

@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import type { ModifiedTransaction } from '../../utils';
 import { TransactionsTable } from './TransactionsTable';
 import { transactionsColumns } from './TransactionsTable.columns';
-import type { ModifiedTransaction } from '../../utils';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,7 +66,10 @@ describe('TransactionsTable', () => {
   describe('Rendering', () => {
     test('renders table with transactions', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       expect(screen.getByText('Date')).toBeInTheDocument();
@@ -79,7 +82,10 @@ describe('TransactionsTable', () => {
 
     test('renders transaction data', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -97,7 +103,10 @@ describe('TransactionsTable', () => {
 
     test('renders pagination controls', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       expect(screen.getByText(/row\(s\) total/)).toBeInTheDocument();
@@ -108,7 +117,10 @@ describe('TransactionsTable', () => {
   describe('Sorting', () => {
     test('sorts by date descending by default', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       // Verify that transactions are displayed (table is sorted)
@@ -116,7 +128,7 @@ describe('TransactionsTable', () => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();
       expect(screen.getByText('Acme Corp')).toBeInTheDocument();
-      
+
       // Verify dates are displayed (indicating sorting is working)
       const dateCells = screen.getAllByText(/May \d+, 2024/);
       expect(dateCells.length).toBeGreaterThan(0);
@@ -125,7 +137,10 @@ describe('TransactionsTable', () => {
     test('allows sorting by clicking column header', async () => {
       const user = userEvent.setup();
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       const statusHeader = screen.getByText('Status');
@@ -139,10 +154,15 @@ describe('TransactionsTable', () => {
   describe('Filtering', () => {
     test('renders filter toolbar', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
-      expect(screen.getByPlaceholderText('Filter counterpart...')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Filter counterpart...')
+      ).toBeInTheDocument();
       expect(
         screen.getByPlaceholderText('Filter reference ID...')
       ).toBeInTheDocument();
@@ -151,10 +171,15 @@ describe('TransactionsTable', () => {
     test('filters by counterpart name', async () => {
       const user = userEvent.setup();
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
-      const counterpartFilter = screen.getByPlaceholderText('Filter counterpart...');
+      const counterpartFilter = screen.getByPlaceholderText(
+        'Filter counterpart...'
+      );
       await user.type(counterpartFilter, 'John');
 
       // Should filter to show only John Doe transaction
@@ -165,7 +190,10 @@ describe('TransactionsTable', () => {
     test('filters by reference ID', async () => {
       const user = userEvent.setup();
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       const refFilter = screen.getByPlaceholderText('Filter reference ID...');
@@ -179,16 +207,21 @@ describe('TransactionsTable', () => {
   describe('Pagination', () => {
     test('displays correct page information', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       expect(screen.getByText(/Page 1 of/)).toBeInTheDocument();
     });
 
-    test('allows changing page size', async () => {
-      const user = userEvent.setup();
+    test('allows changing page size', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       const pageSizeSelect = screen.getByText('Rows per page').parentElement;
@@ -199,7 +232,10 @@ describe('TransactionsTable', () => {
   describe('Column Visibility', () => {
     test('renders view options button', () => {
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       // There may be multiple view buttons (one in toolbar, one in column header)
@@ -210,7 +246,10 @@ describe('TransactionsTable', () => {
     test('toggles column visibility', async () => {
       const user = userEvent.setup();
       renderWithProviders(
-        <TransactionsTable columns={transactionsColumns} data={mockTransactions} />
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
       );
 
       // Get the view button from the toolbar (first one)
@@ -223,4 +262,3 @@ describe('TransactionsTable', () => {
     });
   });
 });
-

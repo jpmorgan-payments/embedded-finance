@@ -10,4 +10,3 @@ export type {
 
 export { useAccountsData } from './useAccountsData';
 export type { UseAccountsDataReturn } from './useAccountsData';
-

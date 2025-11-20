@@ -77,12 +77,9 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
         </div>
         <div>
           <span className="eb-text-xs eb-text-muted-foreground">Creditor</span>
-          <div className="eb-text-xs">
-            {transaction.creditorName || 'N/A'}
-          </div>
+          <div className="eb-text-xs">{transaction.creditorName || 'N/A'}</div>
         </div>
       </div>
     </Card>
   );
 };
-

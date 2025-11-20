@@ -1,8 +1,7 @@
+import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-
-import { server } from '@/msw/server';
 
 import { EBComponentsProvider } from '../EBComponentsProvider';
 import { TransactionsDisplay } from './TransactionsDisplay';

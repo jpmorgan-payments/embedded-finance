@@ -1,6 +1,10 @@
 import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
 
+import {
+  PaymentTypeResponse,
+  TransactionStatus,
+} from '@/api/generated/ep-transactions.schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,13 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  TransactionStatus,
-  PaymentTypeResponse,
-} from '@/api/generated/ep-transactions.schemas';
 
 import { DataTableViewOptions } from './DataTableViewOptions';
-import type { ModifiedTransaction } from '../../utils';
 
 /**
  * Props for TransactionsTableToolbar component
@@ -60,9 +59,7 @@ export function TransactionsTableToolbar<TData>({
         {/* Status Filter */}
         <Select
           value={
-            statusFilter && statusFilter.length > 0
-              ? statusFilter[0]
-              : 'all'
+            statusFilter && statusFilter.length > 0 ? statusFilter[0] : 'all'
           }
           onValueChange={(value) => {
             if (value === 'all') {
@@ -148,4 +145,3 @@ export function TransactionsTableToolbar<TData>({
     </div>
   );
 }
-
