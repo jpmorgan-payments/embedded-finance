@@ -308,7 +308,7 @@ export const SALT_THEME: EBTheme = {
     buttonTextTransform: 'uppercase',
     buttonLetterSpacing: '0.6px',
     primaryColor: '#1B7F9E',
-    secondaryColor: 'transparent',
+    secondaryColor: '#f6f7f8',
     secondaryForegroundColor: '#1B7F9E',
     secondaryBorderWidth: '1px',
     secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
