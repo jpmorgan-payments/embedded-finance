@@ -204,9 +204,9 @@ export const IndustryForm: FormStepComponent = () => {
               </p>
             </div>
             <div className="eb-flex eb-max-w-full eb-flex-col eb-gap-2 eb-overflow-hidden md:eb-flex-row md:eb-flex-wrap">
-              {recommendations.map((rec) => (
+              {recommendations.map((rec, index) => (
                 <Button
-                  key={rec.naicsCode ?? Math.random()}
+                  key={rec.naicsCode ?? `rec-${index}`}
                   variant="secondary"
                   size="sm"
                   type="button"
