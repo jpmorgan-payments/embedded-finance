@@ -134,3 +134,6 @@ storybook-static/
 .pnp.*
 
 .DS_Store
+
+# Vite timestamp files
+vite.config.mjs.timestamp-*.mjs
