@@ -19,6 +19,12 @@ This is a monorepo architecture with the following structure:
 
 > **Active Development**: Focus on `embedded-components` package. Other packages are for future development.
 
+## ⚠️ IMPORTANT: Follow ARCHITECTURE.md
+
+**All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
+
+**Before generating any component code, review ARCHITECTURE.md for the complete pattern.**
+
 ## Technology Stack
 
 When suggesting code, use these technologies:
@@ -30,21 +36,6 @@ When suggesting code, use these technologies:
 - Zod for validation
 - MSW for API mocking
 - Storybook 8.x for component development
-
-## Code Generation Guidelines
-
-### Component Structure
-
-Always generate components following this structure:
-
-```typescript
-ComponentName/
-├── ComponentName.tsx          # Main component
-├── ComponentName.test.tsx     # Tests
-├── ComponentName.story.tsx    # Storybook
-├── ComponentName.schema.ts    # Validation schema (if needed)
-└── index.ts                  # Exports
-```
 
 ### Component Implementation
 
@@ -73,7 +64,72 @@ ComponentName/
    };
    ```
 
-3. **Styling**:
+3. **Hook Patterns (Modern 2025)**:
+
+   ```typescript
+   // ✅ CORRECT - Individual hook files
+   // File: hooks/useComponentData.ts
+   import { useQuery } from "@tanstack/react-query";
+
+   export function useComponentData() {
+     return useQuery({
+       queryKey: ["component-data"],
+       queryFn: () => fetch("/api/data"),
+     });
+   }
+
+   // File: hooks/useComponentData.test.tsx
+   import { renderHook, waitFor } from "@testing-library/react";
+   import { useComponentData } from "./useComponentData";
+
+   describe("useComponentData", () => {
+     test("fetches data", async () => {
+       const { result } = renderHook(() => useComponentData());
+       await waitFor(() => expect(result.current.isSuccess).toBe(true));
+     });
+   });
+
+   // File: hooks/index.ts
+   export { useComponentData } from "./useComponentData";
+   export { useComponentForm } from "./useComponentForm";
+   ```
+
+4. **Utility Patterns (Modern 2025)**:
+
+   ```typescript
+   // ✅ CORRECT - Individual util files
+   // File: utils/formatValue.ts
+   export function formatValue(value: number): string {
+     return new Intl.NumberFormat("en-US").format(value);
+   }
+
+   // File: utils/formatValue.test.ts
+   import { formatValue } from "./formatValue";
+
+   describe("formatValue", () => {
+     test("formats numbers correctly", () => {
+       expect(formatValue(1000)).toBe("1,000");
+     });
+   });
+
+   // File: utils/index.ts
+   export { formatValue } from "./formatValue";
+   export { validateInput } from "./validateInput";
+   ```
+
+5. **Import Patterns**:
+
+   ```typescript
+   // ✅ CORRECT - Direct imports (tree-shakeable)
+   import { ComponentCard } from "./components/ComponentCard";
+   import { ComponentSkeleton } from "./components/ComponentSkeleton";
+   import { useComponentData } from "./hooks"; // Can use barrel for convenience
+
+   // ❌ WRONG - Aggregation barrel (prevents tree-shaking)
+   import { ComponentCard, ComponentSkeleton } from "./components"; // No index.ts!
+   ```
+
+6. **Styling**:
 
    - Use Tailwind CSS classes
    - Prefix custom Tailwind classes with `eb-` for embedded components
@@ -103,7 +159,7 @@ ComponentName/
      <div className="flex items-center space-x-4 p-4 rounded-lg bg-white shadow-sm eb-custom-style">
      ```
 
-4. **Data Fetching**:
+7. **Data Fetching**:
 
    ```typescript
    import { useQuery } from "@tanstack/react-query";
@@ -114,7 +170,7 @@ ComponentName/
    });
    ```
 
-5. **Validation**:
+8. **Validation**:
 
    ```typescript
    import { z } from "zod";
@@ -124,9 +180,15 @@ ComponentName/
    });
    ```
 
-### Testing Requirements
+### Testing Requirements (2025 Pattern)
 
 Generate comprehensive tests that cover component functionality, API interactions, and user flows. Follow these patterns:
+
+**Key Principles:**
+
+- ✅ Tests colocated with implementation (not in separate `__tests__/` directories)
+- ✅ One test file per implementation file
+- ✅ Clear test structure with descriptive names
 
 1. **Test Setup and Utilities**:
 

@@ -1,0 +1,1073 @@
+openapi: 3.0.1
+info:
+  title: Recipients API
+  version: 1.0.35
+  description: Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
+servers:
+  - url: https://api.payments.jpmorgan.com/embedded/v1
+    description: PRODUCTION - MTLS
+  - url: https://api-sandbox.payments.jpmorgan.com/embedded/v1
+    description: CLIENT TESTING - MTLS
+  - url: https://api-mock.payments.jpmorgan.com/embedded/v1
+    description: MOCK
+tags:
+  - name: Recipients
+    description: Set up and manage who can be paid through transactions.
+paths:
+  /recipients:
+    get:
+      summary: List recipients
+      description: Returns a list of all recipients for a given client profile.
+      operationId: getAllRecipients
+      tags:
+        - Recipients
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/clientIdInQuery'
+        - name: type
+          in: query
+          description: Recipient type to return
+          required: false
+          example: RECIPIENT
+          schema:
+            $ref: '#/components/schemas/RecipientType'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/pageNo'
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRecipientsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    post:
+      summary: Create recipient
+      description: Creates a new recipient.
+      operationId: createRecipient
+      tags:
+        - Recipients
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipientRequest'
+            examples:
+              Create a recipient using RTP into a checking account:
+                summary: Create Recipient - Sole Prop
+                description: Create Recipient - Sole Prop
+                value:
+                  clientId: '1000010400'
+                  partyId: '2000000111'
+                  account:
+                    number: '182119492'
+                    type: CHECKING
+                    countryCode: US
+                    routingInformation:
+                      - routingNumber: '541798298'
+                        transactionType: RTP
+                        routingCodeType: USABA
+                  type: LINKED_ACCOUNT
+              Create a recipient using pay-by-email:
+                summary: Create Recipient - Payment Intent
+                description: Create Recipient - Payment Intent
+                value:
+                  partyDetails:
+                    firstName: Monica
+                    lastName: Gellar
+                    type: INDIVIDUAL
+                    contacts:
+                      - contactType: EMAIL
+                        value: monica@cpgetaways.com
+                  type: RECIPIENT
+      responses:
+        '201':
+          description: The recipient was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+              examples:
+                CreateRecipientRes:
+                  $ref: '#/components/examples/CreateRecipientRes'
+                CreatePaymentIntentRecipientRes:
+                  $ref: '#/components/examples/CreatePaymentIntentRecipientRes'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /recipients/{id}:
+    get:
+      summary: Get recipient
+      description: Returns information about a specific recipient.
+      operationId: getRecipient
+      tags:
+        - Recipients
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - name: id
+          in: path
+          description: Recipient ID. A unique identifier for a recipient.
+          required: true
+          schema:
+            type: string
+          example: 616d93a1-ce53-4c71-b03b-02a11396db28
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+              examples:
+                GetRecipientRes:
+                  $ref: '#/components/examples/GetRecipientRes'
+                GetPaymentIntentRecipientRes:
+                  $ref: '#/components/examples/GetPaymentIntentRecipientRes'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    post:
+      summary: Update recipient
+      description: Updates details of a recipient, such as adding values for attributes related to payment types. All attributes must be provided in the same format as when creating a recipient. The value partyDetails.type cannot be amended after creation.
+      operationId: amendRecipient
+      tags:
+        - Recipients
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - name: id
+          in: path
+          description: Recipient ID. A unique identifier for a recipient.
+          required: true
+          schema:
+            type: string
+          example: 616d93a1-ce53-4c71-b03b-02a11396db28
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecipientRequest'
+            examples:
+              UpdateRecipientRequest_make_inactive:
+                summary: Update Recipient By Id - Sole Prop
+                description: Update Recipient By Id - Sole Prop
+                value:
+                  status: INACTIVE
+      responses:
+        '200':
+          description: The recipient was amended successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+              examples:
+                UpdateRecipientRes:
+                  $ref: '#/components/examples/UpdateRecipientRes'
+                UpdatePaymentIntentRecipientRes:
+                  $ref: '#/components/examples/UpdatePaymentIntentRecipientRes'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /recipients/{id}/verify-microdeposit:
+    post:
+      summary: Creates a microdeposits verification process.
+      description: Creates a microdeposits verification process.
+      operationId: recipientsVerification
+      tags:
+        - Recipients
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - name: id
+          in: path
+          description: Recipient ID. A unique identifier for a recipient.
+          required: true
+          schema:
+            type: string
+          example: dea21834-f876-404b-a240-9977e598da5e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicrodepositAmounts'
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MicrodepositVerificationResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+components:
+  parameters:
+    token:
+      name: token
+      in: header
+      description: JWT Client token
+      required: false
+      schema:
+        type: string
+        minLength: 0
+    clientIdInQuery:
+      name: clientId
+      in: query
+      description: Unique Client identifier
+      required: false
+      example: '9000000001'
+      schema:
+        type: string
+        pattern: ^\d{10}$
+        minLength: 10
+        maxLength: 10
+    pageSize:
+      name: limit
+      in: query
+      description: Number of records per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 25
+        default: 25
+      required: false
+    pageNo:
+      name: page
+      in: query
+      description: Page Number
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      required: false
+  schemas:
+    RecipientType:
+      type: string
+      enum:
+        - RECIPIENT
+        - LINKED_ACCOUNT
+        - SETTLEMENT_ACCOUNT
+      nullable: false
+      example: RECIPIENT
+    PageMetaData:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+          description: |
+            Page Number.
+        limit:
+          type: integer
+          example: 30
+          description: |
+            Number of records per page.
+        total_items:
+          type: integer
+          example: 1
+          description: |
+            Total number of items.
+    CountryCode:
+      type: string
+      enum:
+        - US
+      description: Two letter country code based on ISO 3166 standard
+      example: US
+    RecipientAddress:
+      description: Address details for the recipient. Mandatory for payments using the RTP payment type.
+      type: object
+      required:
+        - addressLine1
+        - city
+        - countryCode
+      properties:
+        addressType:
+          type: string
+          example: Principal place of business
+          description: Type of address e.g. 'Primary Residence' | 'Principal place of business'.
+        addressLine1:
+          type: string
+          minLength: 0
+          maxLength: 34
+          example: 90 Bedford Street
+          description: First line of address; required and must begin with a number and must not be a PO Box.
+        addressLine2:
+          type: string
+          minLength: 0
+          maxLength: 34
+          example: Apt 2E
+          description: Second line of address; not required.
+        addressLine3:
+          type: string
+          minLength: 0
+          maxLength: 34
+          example: ''
+          description: Third line of address; not required.
+        city:
+          type: string
+          maxLength: 34
+          example: New York
+          description: Address city.
+        state:
+          type: string
+          maxLength: 30
+          example: NY
+          description: State code in alpha-2 format. State is mandatory for countries like United States.
+        postalCode:
+          type: string
+          maxLength: 10
+          example: '10014'
+          description: Postal/ZIP code.
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    PartyType:
+      type: string
+      enum:
+        - INDIVIDUAL
+        - ORGANIZATION
+      nullable: false
+      example: INDIVIDUAL
+    RecipientContact:
+      type: object
+      required:
+        - contactType
+        - value
+      properties:
+        contactType:
+          type: string
+          nullable: false
+          enum:
+            - EMAIL
+            - WEBSITE
+            - PHONE
+          description: Type of contact information being provided
+          example: PHONE
+        countryCode:
+          type: string
+          pattern: ^\+[1-9]\d{0,2}$
+          description: |
+            E.164 format compatible telephone country code
+            Mandatory for contactType PHONE
+          example: '+1'
+        value:
+          type: string
+          nullable: false
+          minLength: 1
+          maxLength: 2048
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: "Contact information corresponding to contactType: \nPHONE - E.164-compliant telephone number (excluding country code).\nEMAIL - Email address (addr-spec in Section 3.4 of RFC 5322).\nWEBSITE - URL starting with http:// or https://.\n"
+          example: '6316215110'
+    RecipientPartyDetails:
+      type: object
+      required:
+        - type
+      properties:
+        address:
+          $ref: '#/components/schemas/RecipientAddress'
+        type:
+          $ref: '#/components/schemas/PartyType'
+        firstName:
+          type: string
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient's first name. Mandatory for recipient type INDIVIDUAL.
+          example: Monica
+        lastName:
+          type: string
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient's last name. Mandatory for recipient type INDIVIDUAL.
+          example: Gellar
+        businessName:
+          type: string
+          maxLength: 140
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient company name. Mandatory for recipient type ORGANIZATION.
+          example: Central Park Getaways
+        contacts:
+          type: array
+          description: Contact details for the recipient.
+          items:
+            $ref: '#/components/schemas/RecipientContact'
+          minItems: 0
+    AccountNumber:
+      type: string
+      nullable: false
+      pattern: ^[A-Z0-9]{1,35}$
+      description: Demand Deposit Account number or International Account Number (IBAN).
+      example: '021000021'
+    AccountType:
+      type: string
+      nullable: false
+      enum:
+        - CHECKING
+        - IBAN
+        - SAVINGS
+      description: Type of bank account.
+      example: CHECKING
+    RoutingNumber:
+      type: string
+      nullable: false
+      minLength: 1
+      maxLength: 13
+      pattern: ^[A-Za-z0-9]([A-Za-z0-9\-]{0,11})[A-Za-z0-9]$
+      description: Routing number corresponding to the routing code type
+      example: '021000021'
+    RoutingInformationTransactionType:
+      type: string
+      nullable: false
+      enum:
+        - ACH
+        - RTP
+        - WIRE
+      description: Type of transaction.
+      example: RTP
+    RoutingCodeType:
+      type: string
+      nullable: false
+      enum:
+        - USABA
+      description: Type of routing code.
+      example: USABA
+    RoutingInformation:
+      type: object
+      required:
+        - routingNumber
+        - transactionType
+        - routingCodeType
+      properties:
+        routingNumber:
+          $ref: '#/components/schemas/RoutingNumber'
+        transactionType:
+          $ref: '#/components/schemas/RoutingInformationTransactionType'
+        routingCodeType:
+          $ref: '#/components/schemas/RoutingCodeType'
+    RecipientAccount:
+      type: object
+      required:
+        - number
+        - countryCode
+      description: Bank account details of the recipient.
+      properties:
+        number:
+          $ref: '#/components/schemas/AccountNumber'
+        type:
+          $ref: '#/components/schemas/AccountType'
+        routingInformation:
+          type: array
+          description: Routing information.
+          items:
+            $ref: '#/components/schemas/RoutingInformation'
+          minItems: 1
+          maxItems: 3
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    RecipientStatus:
+      description: Callback event type needs to send to notsub for correct status.
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - MICRODEPOSITS_INITIATED
+        - READY_FOR_VALIDATION
+        - REJECTED
+        - PENDING
+      nullable: false
+      example: ACTIVE
+    Result:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Account validation response code
+          example: 1002
+        message:
+          type: string
+          description: Account validation response message, message is based on the code
+          example: Open Valid
+        description:
+          type: string
+          description: Account validation response description, description is based on the code
+          example: Multiple validations to the same account is restricted
+    Codes:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/Result'
+        verification:
+          $ref: '#/components/schemas/Result'
+        authentication:
+          $ref: '#/components/schemas/Result'
+        verificationMicroDeposit:
+          $ref: '#/components/schemas/Result'
+        authenticationMicroDeposit:
+          $ref: '#/components/schemas/Result'
+    ClearingSystemId:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Routing number
+          example: '122199983'
+        idType:
+          type: string
+          description: Routing code
+          example: ABA
+    FinancialInstitutionId:
+      type: object
+      properties:
+        clearingSystemId:
+          $ref: '#/components/schemas/ClearingSystemId'
+    ProviderResponse:
+      description: Contains additional, unstructured information from the provider.
+      type: object
+      additionalProperties: true
+    Details:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          description: Account number
+          example: XXXXXXXX052
+        financialInstitutionId:
+          $ref: '#/components/schemas/FinancialInstitutionId'
+        paymentCheckContributingStatus:
+          type: string
+          description: Payment Check Contributing Status
+          example: Participant
+        providerResponse:
+          $ref: '#/components/schemas/ProviderResponse'
+    Responses:
+      type: object
+      properties:
+        codes:
+          $ref: '#/components/schemas/Codes'
+        provider:
+          type: string
+          description: Name of the entity that provided the validation
+          example: EWS
+        details:
+          $ref: '#/components/schemas/Details'
+    AccountValidationResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Unique identifier for a set of related requests
+          example: 53281d03-dfff-4094-a6d8-b43c29b92bef
+        profileName:
+          description: Profile name to identify account validation configuration
+          type: string
+        responses:
+          type: array
+          description: Account validation responses
+          items:
+            $ref: '#/components/schemas/Responses'
+          minItems: 0
+    ExpiryDate:
+      type: string
+      description: Expiry date of card in the format MM-YY
+      example: '2205'
+      pattern: ^(?:[0-9]{2})(0[1-9]|1[0-2])$
+    RecipientCard:
+      type: object
+      properties:
+        pan:
+          type: string
+          minLength: 13
+          maxLength: 19
+          example: '*********0123'
+          pattern: ^\*{9,15}\d{4}$
+          description: A tokenized and masked card Primary Account Number (PAN)
+        expiryDate:
+          $ref: '#/components/schemas/ExpiryDate'
+    Recipient:
+      type: object
+      required:
+        - id
+        - partyDetails
+      properties:
+        id:
+          type: string
+          example: a8eb71c9-7bbb-41f2-8d9e-b0f52d1ecd71
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        partyId:
+          type: string
+          description: Related Party Identifier for Linked Accounts
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        type:
+          $ref: '#/components/schemas/RecipientType'
+        status:
+          $ref: '#/components/schemas/RecipientStatus'
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+        createdAt:
+          description: The date and time the recipient was created
+          type: string
+          format: date-time
+          example: 2023-02-22T15:05:46.952+0000
+        updatedAt:
+          description: The date and time the recipient was last updated
+          type: string
+          format: date-time
+          example: 2023-02-22T16:05:46.952+0000
+        accountValidationResponse:
+          type: array
+          description: Account validation response
+          items:
+            $ref: '#/components/schemas/AccountValidationResponse'
+          minItems: 0
+          maxItems: 10
+        card:
+          $ref: '#/components/schemas/RecipientCard'
+    ListRecipientsResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PageMetaData'
+        - type: object
+          properties:
+            metadata:
+              $ref: '#/components/schemas/PageMetaData'
+            recipients:
+              type: array
+              description: Recipients available in current page
+              items:
+                $ref: '#/components/schemas/Recipient'
+              minItems: 0
+    ApiErrorReasonV2:
+      type: object
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+        location:
+          type: string
+          enum:
+            - BODY
+            - QUERY
+            - PATH
+            - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+        field:
+          type: string
+          description: The location of the property or parameter in error
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+    ApiError:
+      type: object
+      required:
+        - title
+        - httpStatus
+        - error
+      properties:
+        title:
+          type: string
+          description: Short humanly-readable title of the error
+          example: BAD REQUEST
+        httpStatus:
+          type: integer
+          description: HTTP status code
+          example: 422
+        traceId:
+          type: string
+          description: Internal assigned traced identifier
+        requestId:
+          type: string
+          description: Client provided request identifier
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
+    RecipientRequest:
+      type: object
+      properties:
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        partyId:
+          type: string
+          description: Related Party Identifier for Linked Accounts
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        type:
+          $ref: '#/components/schemas/RecipientType'
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+        card:
+          type: object
+          properties:
+            pan:
+              type: string
+              minLength: 13
+              maxLength: 19
+              example: '123456789123456'
+              pattern: ^\d{13,19}$
+              description: A card Primary Account Number (PAN)
+            expiryDate:
+              $ref: '#/components/schemas/ExpiryDate'
+    RecipientCardUpdate:
+      type: object
+      properties:
+        expiryDate:
+          $ref: '#/components/schemas/ExpiryDate'
+    UpdateRecipientRequest:
+      type: object
+      properties:
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        status:
+          $ref: '#/components/schemas/RecipientStatus'
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        card:
+          $ref: '#/components/schemas/RecipientCardUpdate'
+    MicrodepositAmounts:
+      type: object
+      required:
+        - amounts
+      description: Microdeposit amount verification
+      properties:
+        amounts:
+          type: array
+          items:
+            type: number
+          example:
+            - 0.12
+            - 0.58
+          minItems: 0
+    MicrodepositVerificationResponse:
+      type: object
+      required:
+        - status
+      description: Microdeposit verification outcome
+      properties:
+        status:
+          type: string
+          enum:
+            - VERIFIED
+            - FAILED
+            - FAILED_MAX_ATTEMPTS_EXCEEDED
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Bad Request
+              summary: Bad Request
+              value:
+                title: Bad Request
+                httpStatus: 400
+                error: BAD_REQUEST
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Unauthorized
+              summary: Unauthorized
+              value:
+                title: Unauthorized Request
+                httpStatus: 401
+                error: UNAUTHORIZED
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Forbidden
+              summary: Forbidden
+              value:
+                title: Forbidden
+                httpStatus: 403
+                error: FORBIDDEN
+    '404':
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Not Found
+              summary: Not Found
+              value:
+                title: Not Found
+                httpStatus: 404
+                error: NOT_FOUND
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Internal Server Error
+              summary: Internal Server Error
+              value:
+                title: Internal Server Error
+                httpStatus: 500
+                error: INTERNAL_SERVER_ERROR
+    '503':
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Service Unavailable
+              summary: Service Unavailable
+              value:
+                title: Service Unavailable
+                httpStatus: 503
+                error: SERVICE_UNAVAILABLE
+  examples:
+    CreateRecipientRes:
+      summary: Create Recipient - Sole Prop
+      description: Create Recipient - Sole Prop
+      value:
+        clientId: '1000010400'
+        partyId: '2000000111'
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          address:
+            addressLine1: 90 Bedford Street
+            addressLine2: Apt 2E
+            city: New York
+            countryCode: US
+            state: NY
+            postalCode: '10014'
+          firstName: Monica
+          lastName: Gellar
+          type: INDIVIDUAL
+          contacts:
+            - contactType: PHONE
+              countryCode: '+1'
+              value: '6316215110'
+        account:
+          number: '0182119492'
+          type: CHECKING
+          routingInformation:
+            - routingNumber: '541798298'
+              transactionType: RTP
+              routingCodeType: USABA
+          countryCode: US
+        type: SETTLEMENT_ACCOUNT
+        status: ACTIVE
+        createdAt: 2023-02-22T15:05:46.952+0000
+        accountValidationResponse:
+          - requestId: 81950670-d6b3-4fbb-bcce-20169d7a85d3
+            profileName: verificationauth
+            responses:
+              - codes:
+                  verification:
+                    code: 1002
+                    message: Open valid
+                  authentication:
+                    code: 5002
+                    message: Ownership Match
+                provider: EWS
+                details:
+                  accountNumber: XXXXXXXX052
+                  financialInstitutionId:
+                    clearingSystemId:
+                      id: '987654321'
+                      idType: ABA
+    CreatePaymentIntentRecipientRes:
+      summary: Create Recipient - Payment Intent
+      description: Create Recipient - Payment Intent
+      value:
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          firstName: Monica
+          lastName: Gellar
+          type: INDIVIDUAL
+          contacts:
+            - contactType: EMAIL
+              value: monica@cpgetaways.com
+        type: RECIPIENT
+        status: ACTIVE
+        createdAt: 2023-02-22T15:05:46.952+0000
+    GetRecipientRes:
+      summary: Get Recipient By Id - Sole Prop
+      description: Get Recipient By Id - Sole Prop
+      value:
+        clientId: '1000010400'
+        partyId: '2000000111'
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          address:
+            addressLine1: 90 Bedford Street
+            addressLine2: Apt 2E
+            city: New York
+            countryCode: US
+            state: NY
+            postalCode: '10014'
+          type: ORGANIZATION
+          firstName: Monica
+          lastName: Gellar
+          businessName: Central Park Getaways
+          contacts:
+            - contactType: PHONE
+              countryCode: '+1'
+              value: '6316215110'
+        account:
+          number: '0182119492'
+          type: CHECKING
+          routingInformation:
+            - routingNumber: '541798298'
+              transactionType: RTP
+              routingCodeType: USABA
+          countryCode: US
+        type: LINKED_ACCOUNT
+        status: ACTIVE
+    GetPaymentIntentRecipientRes:
+      summary: Get Recipient By Id - Payment Intent
+      description: Get Recipient By Id - Payment Intent
+      value:
+        clientId: '1000010400'
+        partyId: '2000000111'
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Monica
+          lastName: Gellar
+          businessName: Central Park Getaways
+          contacts:
+            - contactType: EMAIL
+              value: monica@cpgetaways.com
+        type: RECIPIENT
+        status: ACTIVE
+    UpdateRecipientRes:
+      summary: Update Recipient By Id - Sole Prop
+      description: Update Recipient By Id - Sole Prop
+      value:
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        clientId: '1000010400'
+        partyId: '2000000111'
+        partyDetails:
+          address:
+            addressLine1: 90 Bedford Street
+            addressLine2: Apt 2E
+            city: New York
+            countryCode: US
+            state: NY
+            postalCode: '10014'
+          type: INDIVIDUAL
+          firstName: Monica
+          lastName: Gellar
+          businessName: Central Park Getaways
+          contacts:
+            - contactType: PHONE
+              countryCode: '+1'
+              value: '6316215110'
+        account:
+          number: '0182119492'
+          type: CHECKING
+          routingInformation:
+            - routingNumber: '541798298'
+              transactionType: RTP
+              routingCodeType: USABA
+          countryCode: US
+        type: LINKED_ACCOUNT
+        status: INACTIVE
+    UpdatePaymentIntentRecipientRes:
+      summary: Update Recipient By Id - Payment Intent
+      description: Update Recipient By Id - Payment Intent
+      value:
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        clientId: '1000010400'
+        partyId: '2000000111'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Monica
+          lastName: Gellar
+          contacts:
+            - contactType: EMAIL
+              value: monica@cpgetaways.com
+        type: RECIPIENT
+        status: INACTIVE
+x-jpmc-securityDefinitions:
+  MutualTLS:
+    type: x509
+    description: Mutual TLS authentication using client and server certificates.
+x-jpmc-security:
+  - MutualTLS

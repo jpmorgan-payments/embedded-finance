@@ -19,8 +19,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@test-utils": ["./test-utils"]
+      "@test-utils": ["./test-utils"],
+      "@storybook/*": [".storybook/*"]
     }
   },
-  "include": ["src", "test-utils"]
+  "include": ["src", "test-utils", ".storybook"]
 }

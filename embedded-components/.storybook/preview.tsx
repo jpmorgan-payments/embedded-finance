@@ -1,6 +1,6 @@
-import { Preview } from '@storybook/react-vite';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import { themes } from 'storybook/theming';
+import { Preview } from '@storybook/react-vite';
 
 import '../src/index.css';
 
@@ -19,6 +19,7 @@ initialize({
 const preview: Preview = {
   // Provide the MSW addon loader globally
   loaders: [mswLoader, async () => await mockWatcher],
+
   parameters: {
     darkMode: {
       stylePreview: true,
@@ -45,7 +46,5 @@ const preview: Preview = {
   initialGlobals: {
     sb_theme: 'light',
   },
-
-  tags: ['autodocs'],
 };
 export default preview;

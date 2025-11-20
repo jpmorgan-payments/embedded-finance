@@ -204,22 +204,24 @@ export const IndustryForm: FormStepComponent = () => {
               </p>
             </div>
             <div className="eb-flex eb-max-w-full eb-flex-col eb-gap-2 eb-overflow-hidden md:eb-flex-row md:eb-flex-wrap">
-              {recommendations.map((rec) => (
+              {recommendations.map((rec, index) => (
                 <Button
-                  key={rec.naicsCode}
+                  key={rec.naicsCode ?? `rec-${index}`}
                   variant="secondary"
                   size="sm"
                   type="button"
-                  onClick={() => handleRecommendationClick(rec.naicsCode)}
+                  onClick={() =>
+                    rec.naicsCode && handleRecommendationClick(rec.naicsCode)
+                  }
                   className="eb-h-auto eb-max-w-full eb-justify-start eb-px-3 eb-py-2 eb-text-left eb-text-xs hover:eb-bg-primary/5 active:eb-scale-[0.98] sm:eb-max-w-fit"
-                  title={`${rec.naicsCode} - ${rec.naicsDescription}`}
+                  title={`${rec.naicsCode ?? ''} - ${rec.naicsDescription ?? ''}`}
                 >
                   <div className="eb-flex eb-max-w-full eb-items-center eb-gap-2">
                     <span className="eb-font-mono eb-shrink-0 eb-rounded-sm eb-bg-primary/10 eb-px-1.5 eb-py-0.5 eb-font-semibold eb-text-primary">
-                      {rec.naicsCode}
+                      {rec.naicsCode ?? ''}
                     </span>
                     <span className="eb-line-clamp-1 eb-truncate">
-                      {rec.naicsDescription}
+                      {rec.naicsDescription ?? ''}
                     </span>
                   </div>
                 </Button>

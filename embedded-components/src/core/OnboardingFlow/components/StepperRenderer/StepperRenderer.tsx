@@ -12,12 +12,9 @@ import {
   useUpdatePartyLegacy,
 } from '@/api/generated/smbdo';
 import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Form } from '@/components/ui';
-import {
-  ServerErrorAlert,
-  StepLayout,
-  StepsReviewCards,
-} from '@/core/OnboardingFlow/components';
+import { StepLayout, StepsReviewCards } from '@/core/OnboardingFlow/components';
 import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
   useFlowContext,

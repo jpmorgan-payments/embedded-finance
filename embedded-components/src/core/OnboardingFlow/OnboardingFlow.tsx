@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   getOrganizationParty,
@@ -14,7 +15,6 @@ import {
 import {
   FormLoadingState,
   OnboardingTimeline,
-  ServerErrorAlert,
   TimelineStep,
 } from './components';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
@@ -247,7 +247,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
-  console.log('state', currentStepperStepId);
+
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {

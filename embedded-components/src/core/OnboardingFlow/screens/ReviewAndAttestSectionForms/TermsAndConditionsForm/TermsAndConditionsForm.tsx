@@ -14,7 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
-import { cn, useIPAddress } from '@/lib/utils';
+import { useIPAddress } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
   smbdoDownloadDocument,
@@ -24,6 +25,7 @@ import {
 } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   Button,
   Checkbox,
@@ -34,7 +36,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
-import { ServerErrorAlert } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,

@@ -2,8 +2,8 @@ import {
   createMockRecipient,
   mockRecipientsResponse,
 } from '@/mocks/recipients.mock';
-import { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
+import { Meta, StoryObj } from '@storybook/react-vite';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { Recipients, RecipientsProps } from '../Recipients';

@@ -30,12 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Checkbox, Separator } from '@/components/ui';
-import {
-  FormLoadingState,
-  ServerErrorAlert,
-  StepLayout,
-} from '@/core/OnboardingFlow/components';
+import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,

@@ -4,7 +4,7 @@ import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-compo
 // Updated ThemeOption type to include Custom theme for user-defined themes
 export type ThemeOption =
   | 'Default Blue'
-  | 'S&P Theme'
+  | 'Salt Theme'
   | 'Create Commerce'
   | 'SellSense'
   | 'PayFicient'
@@ -122,8 +122,8 @@ export const useSellSenseThemes = () => {
             zIndexOverlay: 1000,
           };
 
-        case 'S&P Theme':
-          // S&P Theme with v0.6.15 design tokens (matching useThemes.ts)
+        case 'Salt Theme':
+          // Salt Theme with v0.6.15 design tokens (matching useThemes.ts)
           return {
             fontFamily: 'Open Sans',
             headerFontFamily: 'Amplitude',
@@ -157,10 +157,10 @@ export const useSellSenseThemes = () => {
             accentForegroundColor: '#475569',
 
             // Enhanced alert system colors (v0.6.15)
-            alertColor: '#f6f7f8', // S&P themed alert background
+            alertColor: '#f6f7f8', // Salt Themed alert background
             alertForegroundColor: '#1e293b',
             informativeColor: '#1B7F9E', // Using S&P primary for info
-            informativeAccentColor: '#e6f3f7', // S&P themed info background
+            informativeAccentColor: '#e6f3f7', // Salt Themed info background
             warningColor: '#f59e0b',
             warningAccentColor: '#fef3c7',
             successColor: '#10b981',

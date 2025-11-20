@@ -147,7 +147,7 @@ export function SettingsDrawer({
                 <SelectItem value="Empty">Empty (Defaults)</SelectItem>
                 <SelectItem value="Default Blue">Default Blue</SelectItem>
                 <SelectItem value="SellSense">SellSense</SelectItem>
-                <SelectItem value="S&P Theme">S&P Theme</SelectItem>
+                <SelectItem value="Salt Theme">Salt Theme</SelectItem>
                 <SelectItem value="Create Commerce">Create Commerce</SelectItem>
                 <SelectItem value="PayFicient">PayFicient</SelectItem>
               </SelectContent>

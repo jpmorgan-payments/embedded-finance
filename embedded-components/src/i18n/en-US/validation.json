@@ -94,7 +94,8 @@
     "decimal": "Value can have up to {{places}} decimal places",
     "positive": "Value must be positive",
     "negative": "Value must be negative",
-    "nonZero": "Value cannot be zero"
+    "nonZero": "Value cannot be zero",
+    "digitsOnly": "Value must contain only digits"
   },
   "file": {
     "size": "File size cannot exceed {{size}}",
@@ -110,5 +111,8 @@
     "lessThan": "{{field1}} must be less than {{field2}}",
     "greaterOrEqual": "{{field1}} must be greater than or equal to {{field2}}",
     "lessOrEqual": "{{field1}} must be less than or equal to {{field2}}"
+  },
+  "selection": {
+    "required": "Please select at least one option"
   }
 }
