@@ -14,7 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
-import { formatNumberToCurrency } from '../utils/formatNumberToCurrency';
+import { formatNumberToCurrency } from '../utils';
 
 export type TransactionDetailsDialogTriggerProps = {
   children: React.ReactNode;

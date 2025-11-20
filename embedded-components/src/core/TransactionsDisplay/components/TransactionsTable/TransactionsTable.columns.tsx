@@ -3,11 +3,14 @@ import { ChevronRightIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 
-import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet/TransactionDetailsSheet';
-import { formatNumberToCurrency } from './utils/formatNumberToCurrency';
-import { ModifiedTransaction } from './utils/modifyTransactionsData';
+import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
+import { formatNumberToCurrency } from '../../utils';
+import type { ModifiedTransaction } from '../../utils';
 
-export const columns: ColumnDef<ModifiedTransaction>[] = [
+/**
+ * Column definitions for the transactions data table
+ */
+export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
   {
     accessorKey: 'paymentDate',
     header: 'Date',
@@ -68,3 +71,4 @@ export const columns: ColumnDef<ModifiedTransaction>[] = [
     },
   },
 ];
+
