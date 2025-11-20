@@ -4,6 +4,7 @@ import { RefreshCw } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { TransactionCard } from './components/TransactionCard/TransactionCard';
 import { TransactionsTable } from './components/TransactionsTable/TransactionsTable';
@@ -65,9 +66,24 @@ export const TransactionsDisplay = forwardRef<
           </div>
         )}
         {status === 'error' && (
-          <div className="eb-py-8 eb-text-center eb-text-red-500">
-            Error: {failureReason?.message ?? 'Unknown error'}
-          </div>
+          <ServerErrorAlert
+            error={failureReason as any}
+            customTitle="Failed to load transactions"
+            customErrorMessage={{
+              '400':
+                'Invalid request. Please check your account filters and try again.',
+              '401': 'Please log in and try again.',
+              '403': 'You do not have permission to view these transactions.',
+              '404': 'Transactions not found.',
+              '500':
+                'An unexpected error occurred while loading transactions. Please try again later.',
+              '503':
+                'The service is currently unavailable. Please try again later.',
+              default: 'Failed to load transactions. Please try again.',
+            }}
+            tryAgainAction={() => refetch()}
+            showDetails={false}
+          />
         )}
         {status === 'success' &&
           transactions.length > 0 &&

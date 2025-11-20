@@ -8,8 +8,12 @@ import { TransactionsDisplay } from './TransactionsDisplay';
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: false },
-    mutations: { retry: false },
+    queries: {
+      retry: 0, // Disable retries for faster test execution
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+    mutations: { retry: 0 },
   },
 });
 
@@ -52,18 +56,31 @@ describe('TransactionsDisplay', () => {
       expect(screen.getByText('Transactions')).toBeInTheDocument();
     });
 
-    test('renders error state', async () => {
+    test('renders ServerErrorAlert on error', async () => {
       server.use(
         http.get('/transactions', () => {
-          return HttpResponse.json({ error: 'Failed' }, { status: 500 });
+          return HttpResponse.json(
+            {
+              title: 'INTERNAL_SERVER_ERROR',
+              httpStatus: 500,
+              traceId: 'trace-500-001',
+            },
+            { status: 500 }
+          );
         })
       );
 
       renderComponent({ accountIds: ['account1'] });
 
+      // Wait for error state - ServerErrorAlert renders an alert
       await waitFor(() => {
-        expect(screen.getByText(/error/i)).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toBeInTheDocument();
       });
+
+      // Verify try again button is present
+      expect(
+        screen.getByRole('button', { name: /Try Again/i })
+      ).toBeInTheDocument();
     });
 
     test('renders empty state when no transactions', async () => {

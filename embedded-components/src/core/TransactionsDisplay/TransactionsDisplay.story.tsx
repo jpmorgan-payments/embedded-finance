@@ -323,22 +323,7 @@ export const Loading: Story = {
   },
 };
 
-export const Error: Story = {
-  args: {
-    apiBaseUrl: '/',
-    headers: {},
-    accountIds: ['account1'],
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/transactions', () =>
-          HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-        ),
-      ],
-    },
-  },
-};
+// Error stories are organized in stories/TransactionsDisplay.errors.story.tsx
 
 export const SellSenseTheme: Story = {
   args: {
