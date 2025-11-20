@@ -224,73 +224,20 @@ const getConditionalRequirementReason = (
  * RoutingNumberFields - Dynamic routing number input fields per payment method
  */
 interface RoutingNumberFieldsProps {
-  value: BankAccountFormData['routingNumbers'];
-  onChange: (routingNumbers: BankAccountFormData['routingNumbers']) => void;
   paymentMethods: RoutingInformationTransactionType[];
   useSameForAll: boolean;
   onUseSameForAllChange: (value: boolean) => void;
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
+  control: any; // React Hook Form control
 }
 
 const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
-  value = [],
-  onChange,
   paymentMethods,
   useSameForAll,
   onUseSameForAllChange,
   configs,
+  control,
 }) => {
-  const handleRoutingNumberChange = (
-    paymentType: RoutingInformationTransactionType,
-    routingNumber: string
-  ) => {
-    if (useSameForAll) {
-      // Update all payment methods with the same routing number
-      const updatedRoutingNumbers = paymentMethods.map((method) => ({
-        paymentType: method,
-        routingNumber,
-      }));
-      onChange(updatedRoutingNumbers);
-    } else {
-      // Update only the specific payment method
-      const existingIndex = value.findIndex(
-        (r) => r.paymentType === paymentType
-      );
-      const newRoutingNumbers = [...value];
-
-      if (existingIndex >= 0) {
-        newRoutingNumbers[existingIndex] = { paymentType, routingNumber };
-      } else {
-        newRoutingNumbers.push({ paymentType, routingNumber });
-      }
-
-      onChange(newRoutingNumbers);
-    }
-  };
-
-  const handleUseSameForAllChange = (checked: boolean) => {
-    onUseSameForAllChange(checked);
-
-    if (checked) {
-      // When switching to "same for all", use the first method's routing number
-      // and apply it to all other payment methods
-      const firstRoutingNumber = getRoutingNumber(paymentMethods[0]);
-      if (firstRoutingNumber) {
-        const updatedRoutingNumbers = paymentMethods.map((method) => ({
-          paymentType: method,
-          routingNumber: firstRoutingNumber,
-        }));
-        onChange(updatedRoutingNumbers);
-      }
-    }
-  };
-
-  const getRoutingNumber = (paymentType: RoutingInformationTransactionType) => {
-    return (
-      value.find((r) => r.paymentType === paymentType)?.routingNumber || ''
-    );
-  };
-
   // Only show checkbox if there are multiple payment methods
   const showCheckbox = paymentMethods.length > 1;
 
@@ -298,23 +245,26 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   if (!showCheckbox) {
     const singleMethod = paymentMethods[0];
     const config = configs[singleMethod];
-    const routingNumber = getRoutingNumber(singleMethod);
 
     return (
-      <FormItem>
-        <FormLabel>{config.shortLabel} Routing Number</FormLabel>
-        <FormControl>
-          <Input
-            type="text"
-            value={routingNumber}
-            onChange={(e) =>
-              handleRoutingNumberChange(singleMethod, e.target.value)
-            }
-            placeholder="Enter 9-digit routing number"
-            maxLength={9}
-          />
-        </FormControl>
-      </FormItem>
+      <FormField
+        control={control}
+        name="routingNumbers.0.routingNumber"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>{config.shortLabel} Routing Number</FormLabel>
+            <FormControl>
+              <Input
+                {...field}
+                type="text"
+                placeholder="Enter 9-digit routing number"
+                maxLength={9}
+              />
+            </FormControl>
+            <FormMessage>{fieldState.error?.message}</FormMessage>
+          </FormItem>
+        )}
+      />
     );
   }
 
@@ -333,7 +283,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
         <Checkbox
           id="useSameRoutingNumber"
           checked={useSameForAll}
-          onCheckedChange={handleUseSameForAllChange}
+          onCheckedChange={onUseSameForAllChange}
         />
         <span className="eb-text-sm eb-font-medium eb-leading-none">
           Use same routing number for all payment methods
@@ -343,45 +293,54 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
       {/* Routing number fields */}
       {useSameForAll ? (
         // Single field when using same for all
-        <FormItem>
-          <FormLabel>
-            {paymentMethods
-              .map((method) => configs[method].shortLabel)
-              .join(' / ')}{' '}
-            Routing Number
-          </FormLabel>
-          <FormControl>
-            <Input
-              type="text"
-              value={getRoutingNumber(paymentMethods[0])}
-              onChange={(e) =>
-                handleRoutingNumberChange(paymentMethods[0], e.target.value)
-              }
-              placeholder="Enter 9-digit routing number"
-              maxLength={9}
-            />
-          </FormControl>
-        </FormItem>
+        <FormField
+          control={control}
+          name="routingNumbers.0.routingNumber"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              <FormLabel>
+                {paymentMethods
+                  .map((method) => configs[method].shortLabel)
+                  .join(' / ')}{' '}
+                Routing Number
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  type="text"
+                  placeholder="Enter 9-digit routing number"
+                  maxLength={9}
+                />
+              </FormControl>
+              <FormMessage>{fieldState.error?.message}</FormMessage>
+            </FormItem>
+          )}
+        />
       ) : (
         // Individual fields for each payment method
         <div className="eb-space-y-3">
-          {paymentMethods.map((method) => {
+          {paymentMethods.map((method, index) => {
             const config = configs[method];
             return (
-              <FormItem key={method}>
-                <FormLabel>{config.shortLabel} Routing Number</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    value={getRoutingNumber(method)}
-                    onChange={(e) =>
-                      handleRoutingNumberChange(method, e.target.value)
-                    }
-                    placeholder="Enter 9-digit routing number"
-                    maxLength={9}
-                  />
-                </FormControl>
-              </FormItem>
+              <FormField
+                key={method}
+                control={control}
+                name={`routingNumbers.${index}.routingNumber`}
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>{config.shortLabel} Routing Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Enter 9-digit routing number"
+                        maxLength={9}
+                      />
+                    </FormControl>
+                    <FormMessage>{fieldState.error?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
             );
           })}
         </div>
@@ -973,24 +932,33 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 </div>
 
                 {/* Routing Numbers */}
-                <FormField
+                <RoutingNumberFields
                   control={form.control}
-                  name="routingNumbers"
-                  render={({ field }) => (
-                    <FormItem>
-                      <RoutingNumberFields
-                        value={field.value}
-                        onChange={field.onChange}
-                        paymentMethods={paymentTypes}
-                        useSameForAll={useSameRoutingNumber ?? true}
-                        onUseSameForAllChange={(value) =>
-                          form.setValue('useSameRoutingNumber', value)
-                        }
-                        configs={config.paymentMethods.configs}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  paymentMethods={paymentTypes}
+                  useSameForAll={useSameRoutingNumber ?? true}
+                  onUseSameForAllChange={(value) => {
+                    form.setValue('useSameRoutingNumber', value);
+
+                    if (value) {
+                      // When switching to "same for all", use the first method's routing number
+                      // and apply it to all other payment methods
+                      const currentRoutingNumbers =
+                        form.getValues('routingNumbers') || [];
+                      const firstRoutingNumber =
+                        currentRoutingNumbers[0]?.routingNumber || '';
+
+                      if (firstRoutingNumber) {
+                        const updatedRoutingNumbers = paymentTypes.map(
+                          (method) => ({
+                            paymentType: method,
+                            routingNumber: firstRoutingNumber,
+                          })
+                        );
+                        form.setValue('routingNumbers', updatedRoutingNumbers);
+                      }
+                    }
+                  }}
+                  configs={config.paymentMethods.configs}
                 />
 
                 {/* Address Fields */}
