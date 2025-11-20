@@ -1,6 +1,6 @@
-# Embedded Finance Components - Cursor Rules
+# Embedded Finance Components - Agent Instructions
 
-## Repository Structure
+## Repository Overview
 
 This is a monorepo containing multiple packages:
 
@@ -19,6 +19,15 @@ This is a monorepo containing multiple packages:
 
 > **Note**: Currently, active development is focused on the `embedded-components` package. Other packages are planned for future development.
 
+## Setup Commands
+
+- Install dependencies: `yarn install` (from root) or `cd embedded-components && yarn install`
+- Start development server: `cd embedded-components && yarn dev`
+- Run Storybook: `cd embedded-components && yarn storybook`
+- Run tests: `cd embedded-components && yarn test`
+- Type checking: `cd embedded-components && yarn typecheck`
+- Linting: `cd embedded-components && yarn lint`
+
 ## ⚠️ CRITICAL: Follow ARCHITECTURE.md
 
 **All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
@@ -26,6 +35,7 @@ This is a monorepo containing multiple packages:
 **Before generating any component code, review `embedded-components/ARCHITECTURE.md` for the complete pattern.**
 
 Key architecture principles:
+
 - ✅ Individual hook/util files with colocated tests
 - ✅ Direct imports for components (no aggregation barrels)
 - ✅ Type colocation - only public API in `.types.ts`
@@ -42,6 +52,15 @@ Key architecture principles:
 - Zod for validation
 - MSW for API mocking
 - Storybook 8.x for component development
+
+## Code Style
+
+- TypeScript strict mode enabled
+- Functional components with hooks only
+- Use explicit prop interfaces with JSDoc comments
+- No 'any' types
+- Single quotes preferred
+- Tailwind CSS for styling with `eb-` prefix for custom classes
 
 ## Component Structure (2025 Pattern)
 
@@ -92,14 +111,6 @@ import { useComponentData } from "./hooks"; // Can use barrel for convenience
 import { ComponentCard, ComponentSkeleton } from "./components"; // No index.ts!
 ```
 
-## Testing Requirements
-
-- Tests colocated with implementation (not in separate `__tests__/` directories)
-- One test file per implementation file
-- Minimum 80% line coverage
-- Use MSW for API mocking
-- See `.cursor/rules/component-testing-patterns.mdc` for detailed patterns
-
 ## Code Organization Decision Tree
 
 ```
@@ -121,9 +132,19 @@ New Code?
   │   └─→ No schema? → ComponentName/components/DialogName/
 ```
 
-## Package-Specific Rules
+## Testing Instructions
 
-- **embedded-components**: See `embedded-components/.cursorrules` for package-specific rules
+- Tests must be colocated with implementation (not in separate `__tests__/` directories)
+- One test file per implementation file
+- Minimum 80% line coverage required
+- Use MSW for API mocking
+- Always run tests before committing: `yarn test`
+- Run type checking: `yarn typecheck`
+- Run linting: `yarn lint`
+
+## Package-Specific Instructions
+
+- **embedded-components**: See `embedded-components/AGENTS.md` for package-specific instructions
 - **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app-specific rules
 
 ## Additional Resources
@@ -132,19 +153,18 @@ New Code?
 - **Component creation**: `.cursor/rules/component-creation-workflow.mdc`
 - **Testing patterns**: `.cursor/rules/component-testing-patterns.mdc`
 - **Styling guidelines**: `.cursor/rules/styling-guidelines.mdc`
-- **React hooks**: `.cursor/rules/react-hooks-best-practices.mdc`
-
-> **Note**: For `embedded-components` package-specific architecture details, see `embedded-components/.cursorrules` and `embedded-components/ARCHITECTURE.md`
 
 ## Git Commit Conventions
 
-- "fix:" for bug fixes
-- "feat:" for new features
-- "perf:" for performance improvements
-- "docs:" for documentation changes
-- "style:" for formatting changes
-- "refactor:" for code refactoring
-- "test:" for adding missing tests
-- "chore:" for maintenance tasks
+Use conventional commit format with lowercase prefixes:
 
-Use lowercase for commit messages. Keep the summary line concise.
+- `fix:` for bug fixes
+- `feat:` for new features
+- `perf:` for performance improvements
+- `docs:` for documentation changes
+- `style:` for formatting changes
+- `refactor:` for code refactoring
+- `test:` for adding missing tests
+- `chore:` for maintenance tasks
+
+Keep the summary line concise. Include description for non-obvious changes.
