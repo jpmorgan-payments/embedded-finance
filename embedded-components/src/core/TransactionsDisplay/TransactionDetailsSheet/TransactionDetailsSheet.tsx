@@ -13,8 +13,9 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
-import { formatNumberToCurrency } from '../utils/formatNumberToCurrency';
+import { formatNumberToCurrency } from '../utils';
 
 export type TransactionDetailsDialogTriggerProps = {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ export const TransactionDetailsDialogTrigger: FC<
     data: transaction,
     status,
     error,
+    refetch,
   } = useGetTransactionV2(transactionId, { query: { enabled: open } });
 
   // Helper function to check if a field has a value
@@ -116,9 +118,26 @@ export const TransactionDetailsDialogTrigger: FC<
             </div>
           )}
           {status === 'error' && (
-            <div className="eb-py-8 eb-text-center eb-text-red-500">
-              Error: {error?.message || 'Failed to load transaction.'}
-            </div>
+            <ServerErrorAlert
+              error={error as any}
+              customTitle="Failed to load transaction details"
+              customErrorMessage={{
+                '400': 'Invalid transaction ID. Please check and try again.',
+                '401': 'Please log in and try again.',
+                '403': 'You do not have permission to view this transaction.',
+                '404': 'Transaction not found.',
+                '500':
+                  'An unexpected error occurred while loading transaction details. Please try again later.',
+                '503':
+                  'The service is currently unavailable. Please try again later.',
+                default:
+                  'Failed to load transaction details. Please try again.',
+              }}
+              tryAgainAction={() => {
+                refetch();
+              }}
+              showDetails={false}
+            />
           )}
           {status === 'success' && transaction && (
             <>

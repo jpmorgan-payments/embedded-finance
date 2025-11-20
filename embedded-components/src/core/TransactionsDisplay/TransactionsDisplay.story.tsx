@@ -1,4 +1,7 @@
-import { mockTransactionsResponse } from '@/mocks/transactions.mock';
+import {
+  mockTransactions,
+  mockTransactionsResponse,
+} from '@/mocks/transactions.mock';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -7,6 +10,16 @@ import { SELLSENSE_THEME } from '@storybook/themes';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { TransactionsDisplay } from './TransactionsDisplay';
+
+// Helper to get transaction by ID for details endpoint
+const getTransactionById = (id: string) => {
+  const transaction = mockTransactions.find((t) => t.id === id);
+  if (transaction) {
+    return transaction;
+  }
+  // Fallback to first transaction if not found
+  return mockTransactions[0] || null;
+};
 
 // --- Mock Data (aligned with Accounts.story.tsx) ---
 const mockAccountsResponse = {
@@ -48,17 +61,39 @@ const mockAccountsResponse = {
       category: 'LIMITED_DDA_PAYMENTS',
     },
   ],
+  metadata: {
+    limit: 25,
+    page: 1,
+    total_items: 2,
+  },
 };
 
 const mockLimitedDDAAccountResponse = {
   items: [mockAccountsResponse.items[0]],
+  metadata: {
+    limit: 25,
+    page: 1,
+    total_items: 1,
+  },
 };
 
 const mockLimitedDDAPaymentsAccountResponse = {
   items: [mockAccountsResponse.items[1]],
+  metadata: {
+    limit: 25,
+    page: 1,
+    total_items: 1,
+  },
 };
 
-const mockEmptyAccountsResponse = { items: [] };
+const mockEmptyAccountsResponse = {
+  items: [],
+  metadata: {
+    limit: 25,
+    page: 1,
+    total_items: 0,
+  },
+};
 
 const TransactionsDisplayWithProvider = ({
   apiBaseUrl,
@@ -127,6 +162,17 @@ export const WithAccountIdsProp: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const transaction = getTransactionById(id as string);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
       ],
     },
   },
@@ -147,6 +193,17 @@ export const AutoFetchWithLimitedDDA: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const transaction = getTransactionById(id as string);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
       ],
     },
   },
@@ -169,6 +226,17 @@ export const AutoFetchWithLimitedDDAPayments: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const transaction = getTransactionById(id as string);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
       ],
     },
   },
@@ -189,6 +257,17 @@ export const AutoFetchWithBothCategories: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const transaction = getTransactionById(id as string);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
       ],
     },
   },
@@ -211,6 +290,17 @@ export const AutoFetchNoAccounts: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const transaction = getTransactionById(id as string);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
       ],
     },
   },
@@ -233,22 +323,7 @@ export const Loading: Story = {
   },
 };
 
-export const Error: Story = {
-  args: {
-    apiBaseUrl: '/',
-    headers: {},
-    accountIds: ['account1'],
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/transactions', () =>
-          HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-        ),
-      ],
-    },
-  },
-};
+// Error stories are organized in stories/TransactionsDisplay.errors.story.tsx
 
 export const SellSenseTheme: Story = {
   args: {
@@ -264,6 +339,17 @@ export const SellSenseTheme: Story = {
         http.get('*/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const transaction = getTransactionById(id as string);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
       ],
     },
   },

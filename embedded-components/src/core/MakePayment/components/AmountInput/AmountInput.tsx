@@ -59,7 +59,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
           control={form.control}
           name="currency"
           render={({ field }) => (
-            <FormItem className="eb-flex-shrink-0">
+            <FormItem className="eb-shrink-0">
               <Select
                 onValueChange={field.onChange}
                 defaultValue="USD"

@@ -18,7 +18,10 @@ import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
+      retry: false, // Disable retries completely
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
     },
   },
 });
@@ -349,44 +352,40 @@ describe('TransactionDetailsSheet', () => {
       );
     });
 
-    test.skip('handles API errors gracefully', async () => {
+    test.skip('renders ServerErrorAlert on API error', async () => {
       server.use(
         http.get('/transactions/:id', () => {
-          return new HttpResponse(null, { status: 500 });
+          return HttpResponse.json(
+            {
+              title: 'INTERNAL_SERVER_ERROR',
+              httpStatus: 500,
+              traceId: 'trace-500-001',
+            },
+            { status: 500 }
+          );
         })
       );
 
       renderComponent('txn-001');
       await userEvent.click(screen.getByText('View Details'));
 
+      // Wait for dialog to open first
+      await waitFor(() => {
+        expect(screen.getByText(/Transaction: txn-001/i)).toBeInTheDocument();
+      });
+
+      // Then wait for error state - ServerErrorAlert renders an alert
       await waitFor(
         () => {
-          // The component displays a red error message when the request fails
-          const errorElement = screen.getByText(/Failed to load transaction/i);
-          expect(errorElement).toBeInTheDocument();
+          expect(screen.getByRole('alert')).toBeInTheDocument();
         },
-        { timeout: 3000 }
-      );
-    });
-
-    test.skip('shows error message on fetch failure', async () => {
-      server.use(
-        http.get('/transactions/:id', () => {
-          return new HttpResponse(null, { status: 404 });
-        })
+        { timeout: 5000 }
       );
 
-      renderComponent('txn-001');
-      await userEvent.click(screen.getByText('View Details'));
-
-      await waitFor(
-        () => {
-          // Check for the error state rendering
-          const errorElement = screen.getByText(/Failed to load transaction/i);
-          expect(errorElement).toBeInTheDocument();
-        },
-        { timeout: 3000 }
-      );
+      // Verify try again button is present
+      expect(
+        screen.getByRole('button', { name: /Try Again/i })
+      ).toBeInTheDocument();
     });
 
     test('does not fetch when dialog is closed', async () => {
