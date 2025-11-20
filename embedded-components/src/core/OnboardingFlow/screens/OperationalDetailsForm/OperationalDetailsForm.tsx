@@ -493,18 +493,16 @@ export const OperationalDetailsForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title={
-            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-gap-4">
-              <span>Operational details</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goTo('overview')}
-              >
-                Overview
-                <MenuIcon />
-              </Button>
-            </div>
+          title="Operational details"
+          headerElement={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goTo('overview')}
+            >
+              Overview
+              <MenuIcon />
+            </Button>
           }
           description="Please answer these additional questions to help us understand your business operations."
         >

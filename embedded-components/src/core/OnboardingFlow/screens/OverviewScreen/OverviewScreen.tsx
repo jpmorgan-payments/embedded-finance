@@ -67,13 +67,11 @@ export const OverviewScreen = () => {
 
   return (
     <StepLayout
-      title={
-        <div className="eb-flex eb-items-center eb-justify-between">
-          <p>{t('screens.overview.title')}</p>
-          <Button variant="outline" size="sm">
-            <DownloadIcon /> {t('screens.overview.downloadChecklist')}
-          </Button>
-        </div>
+      title={t('screens.overview.title')}
+      headerElement={
+        <Button variant="outline" size="sm">
+          <DownloadIcon /> {t('screens.overview.downloadChecklist')}
+        </Button>
       }
       subTitle={
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
