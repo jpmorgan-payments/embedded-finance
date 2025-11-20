@@ -188,4 +188,3 @@ export const Error503: Story = {
     },
   },
 };
-
