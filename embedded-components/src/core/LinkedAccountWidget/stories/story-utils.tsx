@@ -3,13 +3,13 @@
  */
 
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
-import { http, HttpResponse } from 'msw';
 import {
   baseStoryArgTypes,
   baseStoryDefaults,
   BaseStoryProps,
+  resolveTheme,
 } from '@storybook/shared-story-types';
-import { ThemeName, THEMES } from '@storybook/themes';
+import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -24,8 +24,6 @@ import { LinkedAccountWidget } from '../LinkedAccountWidget';
  * Extends BaseStoryProps for common provider/theme configuration.
  */
 export interface LinkedAccountWidgetStoryProps extends BaseStoryProps {
-  /** Client ID for API requests */
-  clientId?: string;
   /** Display variant for the widget */
   variant?: 'default' | 'singleAccount';
   /** Whether to show the "Link New Account" button */
@@ -43,9 +41,8 @@ export const LinkedAccountWidgetStory: React.FC<
 > = ({
   apiBaseUrl,
   clientId,
-  platformId,
   headers,
-  themePreset = 'DEFAULT',
+  themePreset = 'Default',
   theme: customTheme,
   contentTokensPreset = 'enUS',
   contentTokens,
@@ -56,15 +53,14 @@ export const LinkedAccountWidgetStory: React.FC<
   className,
 }) => {
   // Resolve theme: use custom theme if themePreset is 'custom', otherwise use preset
-  const selectedTheme =
-    themePreset === 'custom' ? customTheme : THEMES[themePreset as ThemeName];
+  const selectedTheme = resolveTheme(themePreset, customTheme);
 
   const selectedContentTokens = contentTokens ?? { name: contentTokensPreset };
 
   return (
     <EBComponentsProvider
       apiBaseUrl={apiBaseUrl}
-      headers={{ ...headers, ...(platformId && { platform_id: platformId }) }}
+      headers={headers}
       theme={selectedTheme}
       contentTokens={selectedContentTokens}
       clientId={clientId ?? ''}

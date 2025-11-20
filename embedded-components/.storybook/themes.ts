@@ -323,9 +323,9 @@ export const SALT_THEME: EBTheme = {
  * Available themes for use in stories
  */
 export const THEMES = {
+  Default: defaultTheme,
   SellSense: SELLSENSE_THEME,
   Neutral: NEUTRAL_THEME,
-  Default: defaultTheme,
   Salt: SALT_THEME,
 } as const;
 
