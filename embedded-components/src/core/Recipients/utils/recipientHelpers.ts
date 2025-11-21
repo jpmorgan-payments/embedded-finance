@@ -15,7 +15,13 @@ import type {
 /**
  * Formats a recipient's name based on their type
  */
-export const formatRecipientName = (recipient: Recipient): string => {
+export const formatRecipientName = (
+  recipient: Recipient | null | undefined
+): string => {
+  if (!recipient || !recipient.partyDetails) {
+    return 'Unknown';
+  }
+
   if (recipient.partyDetails.type === 'INDIVIDUAL') {
     const firstName = recipient.partyDetails.firstName || '';
     const lastName = recipient.partyDetails.lastName || '';
