@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -185,30 +184,33 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.type) ||
                 hasValue(transaction.status) ||
                 hasValue(transaction.feeType)) && (
-                <div className="eb-space-y-1.5">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                    General
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField('Type', transaction.type)}
-                    {transaction.status && (
-                      <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
-                        <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
-                          Status
-                        </Label>
-                        <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
-                          <Badge
-                            variant={getStatusVariant(transaction.status)}
-                            className="eb-text-sm"
-                          >
-                            {transaction.status}
-                          </Badge>
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                      General
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField('Type', transaction.type)}
+                      {transaction.status && (
+                        <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
+                          <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
+                            Status
+                          </Label>
+                          <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+                            <Badge
+                              variant={getStatusVariant(transaction.status)}
+                              className="eb-text-sm"
+                            >
+                              {transaction.status}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {renderField('Fee Type', transaction.feeType)}
+                      )}
+                      {renderField('Fee Type', transaction.feeType)}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Identifiers Section */}
@@ -217,23 +219,26 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.transactionReferenceId) ||
                 hasValue(transaction.originatingId) ||
                 hasValue(transaction.originatingTransactionType)) && (
-                <div className="eb-space-y-1.5">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                    Identifiers
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField('Transaction ID', transaction.id)}
-                    {renderField(
-                      'Transaction Reference ID',
-                      transaction.transactionReferenceId
-                    )}
-                    {renderField('Originating ID', transaction.originatingId)}
-                    {renderField(
-                      'Originating Type',
-                      transaction.originatingTransactionType
-                    )}
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                      Identifiers
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField('Transaction ID', transaction.id)}
+                      {renderField(
+                        'Transaction Reference ID',
+                        transaction.transactionReferenceId
+                      )}
+                      {renderField('Originating ID', transaction.originatingId)}
+                      {renderField(
+                        'Originating Type',
+                        transaction.originatingTransactionType
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Dates & Versioning Section */}
@@ -242,29 +247,35 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.paymentDate) ||
                 hasValue(transaction.effectiveDate) ||
                 hasValue(transaction.postingVersion)) && (
-                <div className="eb-space-y-1.5">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                    Dates & Versioning
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField(
-                      'Created At',
-                      transaction.createdAt,
-                      formatDateTime
-                    )}
-                    {renderField(
-                      'Payment Date',
-                      transaction.paymentDate,
-                      formatDate
-                    )}
-                    {renderField(
-                      'Effective Date',
-                      transaction.effectiveDate,
-                      formatDateTime
-                    )}
-                    {renderField('Posting Version', transaction.postingVersion)}
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                      Dates & Versioning
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField(
+                        'Created At',
+                        transaction.createdAt,
+                        formatDateTime
+                      )}
+                      {renderField(
+                        'Payment Date',
+                        transaction.paymentDate,
+                        formatDate
+                      )}
+                      {renderField(
+                        'Effective Date',
+                        transaction.effectiveDate,
+                        formatDateTime
+                      )}
+                      {renderField(
+                        'Posting Version',
+                        transaction.postingVersion
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Debtor Section */}
@@ -273,20 +284,23 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.debtorAccountId) ||
                 hasValue(transaction.debtorAccountNumber) ||
                 hasValue(transaction.debtorClientId)) && (
-                <div className="eb-space-y-1.5">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                    Debtor
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField('Name', transaction.debtorName)}
-                    {renderField('Account ID', transaction.debtorAccountId)}
-                    {renderField(
-                      'Account Number',
-                      transaction.debtorAccountNumber
-                    )}
-                    {renderField('Client ID', transaction.debtorClientId)}
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                      Debtor
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField('Name', transaction.debtorName)}
+                      {renderField('Account ID', transaction.debtorAccountId)}
+                      {renderField(
+                        'Account Number',
+                        transaction.debtorAccountNumber
+                      )}
+                      {renderField('Client ID', transaction.debtorClientId)}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Creditor Section */}
@@ -295,20 +309,23 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.creditorAccountId) ||
                 hasValue(transaction.creditorAccountNumber) ||
                 hasValue(transaction.creditorClientId)) && (
-                <div className="eb-space-y-1.5">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                    Creditor
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField('Name', transaction.creditorName)}
-                    {renderField('Account ID', transaction.creditorAccountId)}
-                    {renderField(
-                      'Account Number',
-                      transaction.creditorAccountNumber
-                    )}
-                    {renderField('Client ID', transaction.creditorClientId)}
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                      Creditor
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField('Name', transaction.creditorName)}
+                      {renderField('Account ID', transaction.creditorAccountId)}
+                      {renderField(
+                        'Account Number',
+                        transaction.creditorAccountNumber
+                      )}
+                      {renderField('Client ID', transaction.creditorClientId)}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Financial Section */}
@@ -316,46 +333,49 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.ledgerBalance) ||
                 hasValue(transaction.memo) ||
                 hasValue(transaction.recipientId)) && (
-                <div className="eb-space-y-1.5">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                    Financial
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField(
-                      'Ledger Balance',
-                      transaction.ledgerBalance,
-                      (val) =>
-                        formatNumberToCurrency(
-                          val,
-                          transaction.currency ?? 'USD'
-                        )
-                    )}
-                    {renderField('Memo', transaction.memo)}
-                    {renderField('Recipient ID', transaction.recipientId)}
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                      Financial
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField(
+                        'Ledger Balance',
+                        transaction.ledgerBalance,
+                        (val) =>
+                          formatNumberToCurrency(
+                            val,
+                            transaction.currency ?? 'USD'
+                          )
+                      )}
+                      {renderField('Memo', transaction.memo)}
+                      {renderField('Recipient ID', transaction.recipientId)}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Error Section (conditional) */}
               {transaction.error && (
-                <div className="eb-space-y-1.5 eb-rounded-md eb-border eb-border-destructive/50 eb-bg-destructive/5 eb-p-2">
-                  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-destructive">
-                    Error Details
-                  </h3>
-                  <div className="eb-space-y-1">
-                    {renderField('Title', transaction.error.title)}
-                    {renderField('HTTP Status', transaction.error.httpStatus)}
-                    {renderField('Trace ID', transaction.error.traceId)}
-                    {renderField('Request ID', transaction.error.requestId)}
+                <>
+                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-space-y-1.5 eb-rounded-md eb-border eb-border-destructive/50 eb-bg-destructive/5 eb-p-2">
+                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-destructive">
+                      Error Details
+                    </h3>
+                    <div className="eb-space-y-1">
+                      {renderField('Title', transaction.error.title)}
+                      {renderField('HTTP Status', transaction.error.httpStatus)}
+                      {renderField('Trace ID', transaction.error.traceId)}
+                      {renderField('Request ID', transaction.error.requestId)}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </>
           )}
         </div>
-        <DialogClose asChild>
-          <Button variant="outline">Close</Button>
-        </DialogClose>
       </DialogContent>
     </Dialog>
   );

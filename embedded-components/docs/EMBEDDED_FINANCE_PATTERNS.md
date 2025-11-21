@@ -408,6 +408,235 @@ const isTablet = containerWidth >= 640 && containerWidth < 1024;
 
 ---
 
+### Compact Resource Details Pattern
+
+**Description**: Single-column, minimal-gap layout for displaying complex resource details in dialogs or panels. Optimized for space efficiency while maintaining readability.
+
+**Implementation**:
+
+- **Primary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx`
+- **Secondary**: `Recipients/components/RecipientDetails/RecipientDetails.tsx`
+- **Status**: ✅ Well-implemented with consistent field rendering
+
+**Pattern Details**:
+
+```typescript
+// Helper function for consistent field rendering
+const renderField = (label: string, value: any, formatter?: (val: any) => string) => {
+  if (!value) return null;
+  const displayValue = formatter ? formatter(value) : value || 'N/A';
+  return (
+    <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
+      <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
+        {label}
+      </Label>
+      <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+        {displayValue}
+      </div>
+    </div>
+  );
+};
+
+// Section structure
+<div className="eb-space-y-1.5">
+  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+    Section Name
+  </h3>
+  <div className="eb-space-y-1">
+    {renderField('Field Label', fieldValue)}
+    {renderField('Another Field', anotherValue)}
+  </div>
+</div>
+```
+
+**Features**:
+
+- Single-column layout (no grid columns)
+- Minimal spacing (`eb-space-y-2` for sections, `eb-space-y-1` for fields)
+- Label/value pairs with flex layout (label left, value right-aligned)
+- Uppercase section headers with muted styling
+- Compact font sizes (`eb-text-sm` for labels/values)
+- No Card components for sections (spacing-only separation)
+- Conditional field rendering (hide empty values)
+- Prominent display for key values (amount, name)
+- Subtle separators between sections (`eb-border-t-2 eb-border-border/40`)
+
+**Status and State Display**:
+
+Use Badge components for status and important state attributes:
+
+```typescript
+// Status with semantic variants
+<Badge variant={getStatusVariant(status)} className="eb-text-sm">
+  {status}
+</Badge>
+
+// Status variant mapping
+const getStatusVariant = (status?: string) => {
+  switch (status) {
+    case 'COMPLETED': return 'default';
+    case 'PENDING': return 'secondary';
+    case 'REJECTED':
+    case 'RETURNED':
+    case 'FAILED': return 'destructive';
+    default: return 'outline';
+  }
+};
+```
+
+**When to Use Badges/Chips**:
+
+- ✅ **Status values**: Transaction status, recipient status, account state
+- ✅ **Type indicators**: Transaction type, payment method type
+- ✅ **State attributes**: Active/Inactive, Verified/Unverified
+- ❌ **Regular data fields**: Names, IDs, dates, amounts (use plain text)
+
+**Dialog Header Structure**:
+
+The resource name/identifier should be displayed in the DialogHeader (sticky area), not in the content. Include a resource type prefix for clarity:
+
+```typescript
+// Dialog wrapper (in parent component)
+<Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
+    <DialogHeader className="eb-pb-4">
+      <DialogTitle>
+        {resourceType}: {resourceName}
+      </DialogTitle>
+    </DialogHeader>
+    <div className="eb-scrollable-content">
+      <ResourceDetails {...props} />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+**Examples**:
+
+- `Transaction: {transactionId}`
+- `Recipient: {recipientName}`
+- `Account: {accountNumber}`
+
+**Optimal Element Order** (Based on Nielsen's Heuristics):
+
+The recommended order for detail views follows UX best practices:
+
+```typescript
+// 1. Status Tags/Badges - Quick visual status indicators (first in content)
+<div className="eb-flex eb-items-center eb-gap-2">
+  <Badge variant={getStatusVariant(status)}>{status}</Badge>
+  <Badge variant="outline">{type}</Badge>
+</div>
+
+// 3. Critical Alerts - Blocking issues (validation errors, critical warnings)
+{!validation.isValid && (
+  <Alert variant="destructive">
+    <AlertDescription>
+      {/* Error details */}
+    </AlertDescription>
+  </Alert>
+)}
+
+// 4. Informational Alerts - Contextual information (status descriptions, helpful tips)
+<Alert>
+  <Info className="eb-h-4 eb-w-4" />
+  <AlertDescription>{statusDescription}</AlertDescription>
+</Alert>
+
+// 5. Actions - Available after user understands the state
+{(showEditButton || showDeactivateButton) && (
+  <div className="eb-flex eb-gap-2">
+    {showEditButton && (
+      <Button onClick={onEdit} variant="secondary" size="sm">
+        Edit Resource
+      </Button>
+    )}
+    {showDeactivateButton && (
+      <Button onClick={onDeactivate} variant="secondary" size="sm">
+        Deactivate
+      </Button>
+    )}
+  </div>
+)}
+
+// 6. Details Sections - The actual resource data
+<div className="eb-space-y-1.5">
+  {/* Resource details */}
+</div>
+
+// 7. Close Button - Always at bottom, full width
+<div className="eb-pt-3">
+  <Button onClick={onClose} variant="outline" className="eb-w-full">
+    Close
+  </Button>
+</div>
+```
+
+**Order Rationale** (Nielsen's 10 Heuristics):
+
+1. **Title** → Visibility of System Status (users know what they're viewing)
+2. **Tags/Badges** → Visibility of System Status (immediate status recognition)
+3. **Critical Alerts** → Help Users Recognize Errors (blocking issues first)
+4. **Informational Alerts** → Help & Documentation (contextual guidance)
+5. **Actions** → User Control (actions available after understanding state)
+6. **Details** → Recognition Rather Than Recall (information visible)
+7. **Close** → User Control (easy exit)
+
+**Action Placement Guidelines**:
+
+- **Actions placement**: After alerts, before details (allows informed decisions)
+- **Primary actions** (Edit): Inline with other actions, use `variant="secondary" size="sm"`
+- **Destructive actions** (Deactivate, Delete): Same section, use red styling (`eb-text-red-600 hover:eb-bg-red-50`)
+- **Close button**: Always full-width at bottom (`eb-w-full`)
+- **Action buttons**: Use `size="sm"` for compact display
+- **Action grouping**: Group related actions together in a flex container
+
+**History and Timeline Details**:
+
+For resources with history or timeline information, display in a dedicated section:
+
+```typescript
+// Timeline/History section
+{resource.createdAt && (
+  <>
+    <div className="eb-border-t-2 eb-border-border/40" />
+    <div className="eb-space-y-1.5">
+      <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+        Timeline
+      </h3>
+      <div className="eb-space-y-1">
+        {renderField('Created', formatDateTime(resource.createdAt))}
+        {renderField('Updated', formatDateTime(resource.updatedAt))}
+        {renderField('Last Modified', formatDateTime(resource.lastModifiedAt))}
+      </div>
+    </div>
+  </>
+)}
+```
+
+**History Display Guidelines**:
+
+- Use "Timeline" or "History" as section header
+- Include: Created date, Updated date, Last modified date
+- Format dates consistently using `toLocaleString()` or custom formatters
+- Show most recent events first (if displaying event history)
+- Use conditional rendering (only show if dates exist)
+
+**Refinement Needed**:
+
+- ⚠️ **Accounts**: Account details could use this pattern
+- ⚠️ **LinkedAccountWidget**: Account details view could adopt this pattern
+
+**Usability Alignment**:
+
+- ✅ **Aesthetic & Minimalist Design**: Clean, space-efficient layout
+- ✅ **Recognition Rather Than Recall**: Consistent field structure
+- ✅ **Flexibility & Efficiency**: Quick scanning of information
+- ✅ **Visibility of System Status**: Clear section organization with status badges
+- ✅ **User Control**: Accessible actions for resource management
+
+---
+
 ### Filter & Search Pattern
 
 **Description**: Combined search and filter controls with real-time filtering, clear filters action, and filter state persistence.
@@ -1308,13 +1537,14 @@ const contentTokens = useContext(ContentTokensContext);
 | Pattern                    | Accounts | Recipients | MakePayment | TransactionsDisplay | OnboardingFlow | LinkedAccountWidget |
 | -------------------------- | -------- | ---------- | ----------- | ------------------- | -------------- | ------------------- |
 | **Sensitive Data Masking** | ✅       | ⚠️ Needs   | -           | ⚠️ Needs            | -              | -                   |
-| **Status Badges**          | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | ✅                  |
+| **Status Badges**          | ⚠️ Needs | ✅         | -           | ✅                  | -              | ✅                  |
 | **Progressive Validation** | -        | ✅         | ✅          | -                   | ⚠️ Partial     | -                   |
 | **Loading Skeletons**      | ✅       | ✅         | -           | ⚠️ Needs            | ⚠️ Partial     | ✅                  |
 | **Error with Retry**       | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | ✅             | ✅                  |
 | **Empty States**           | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | -              | ✅                  |
 | **Responsive Table/Cards** | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 | **Dialog Forms**           | -        | ✅         | ✅          | -                   | ⚠️ Partial     | ✅                  |
+| **Compact Details**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | ⚠️ Needs            |
 | **Filter & Search**        | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | -                   |
 | **Review Panel**           | -        | ⚠️ Needs   | ✅          | -                   | ⚠️ Needs       | -                   |
 | **Wizard/Stepper**         | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |

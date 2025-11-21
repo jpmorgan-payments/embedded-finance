@@ -923,14 +923,15 @@ export const Recipients: React.FC<RecipientsProps> = ({
       {/* Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
         <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Recipient Details</DialogTitle>
+          <DialogHeader className="eb-pb-4">
+            <DialogTitle>
+              Recipient: {formatRecipientName(selectedRecipient!)}
+            </DialogTitle>
           </DialogHeader>
           <div className="eb-scrollable-content">
             {selectedRecipient && (
               <RecipientDetails
                 recipient={selectedRecipient}
-                onClose={() => setIsDetailsDialogOpen(false)}
                 onEdit={handleEditRecipient}
                 onDeactivate={handleDeactivateRecipient}
                 showEditButton
