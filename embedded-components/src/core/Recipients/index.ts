@@ -1,5 +1,12 @@
+/**
+ * Recipients - Public API
+ */
+
+// Main component
 export { Recipients } from './Recipients';
-export type { RecipientsProps } from './Recipients';
+
+// Public types only
+export type { RecipientsProps } from './Recipients.types';
 
 // Export payment configuration types and defaults
 export type {
@@ -26,3 +33,17 @@ export type {
 
 // Export utilities
 export * from './utils/recipientHelpers';
+
+// Export column configuration
+export {
+  defaultRecipientsColumnConfig,
+  widgetRecipientsColumnConfig,
+  mergeColumnConfig,
+  getVisibleColumns,
+  getSortableColumns,
+} from './Recipients.columns';
+export type {
+  RecipientColumnKey,
+  RecipientColumnConfig,
+  RecipientsColumnConfiguration,
+} from './Recipients.columns';

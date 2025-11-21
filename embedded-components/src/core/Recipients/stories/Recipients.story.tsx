@@ -12,7 +12,8 @@ import { userEvent, within } from '@test-utils';
 import { SELLSENSE_THEME } from '../../../../.storybook/themes';
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
-import { Recipients, RecipientsProps } from '../Recipients';
+import { Recipients } from '../Recipients';
+import type { RecipientsProps } from '../Recipients.types';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay
 const RecipientsWithProvider = ({
@@ -359,6 +360,201 @@ export const LargeDataset: Story = {
           return HttpResponse.json(
             createMockRecipientsResponse(largeDataset, page, limit)
           );
+        }),
+      ],
+    },
+  },
+};
+
+// Story with 100 recipients to showcase sorting and pagination
+export const OneHundredRecipients: Story = {
+  args: {
+    clientId: 'client-001',
+    showCreateButton: true,
+    userEventsToTrack: ['click', 'view', 'edit', 'create'],
+  },
+  render: (args) => <RecipientsWithProvider {...args} />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the Recipients table with 100 recipients to showcase sorting and pagination capabilities. Features include:\n\n- **Sorting**: Click column headers to sort by Name, Status, Account Number, or Created Date\n- **Pagination**: Navigate through pages with enhanced controls including page size selector (10, 20, 25, 30, 40, 50)\n- **Filtering**: Use search and status filters to narrow down results\n- **Client-side operations**: All sorting and pagination happens client-side for instant feedback\n\nTry sorting by different columns and changing the page size to see the enhanced data grid in action.',
+      },
+    },
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          // Generate 100 mock recipients with varied data
+          const firstNames = [
+            'Alice',
+            'Bob',
+            'Charlie',
+            'Diana',
+            'Edward',
+            'Fiona',
+            'George',
+            'Hannah',
+            'Isaac',
+            'Julia',
+            'Kevin',
+            'Laura',
+            'Michael',
+            'Nancy',
+            'Oliver',
+            'Patricia',
+            'Quinn',
+            'Rachel',
+            'Samuel',
+            'Tina',
+          ];
+          const lastNames = [
+            'Anderson',
+            'Brown',
+            'Chen',
+            'Davis',
+            'Evans',
+            'Foster',
+            'Garcia',
+            'Harris',
+            'Ivanov',
+            'Johnson',
+            'Kim',
+            'Lee',
+            'Martinez',
+            'Nguyen',
+            "O'Connor",
+            'Patel',
+            'Quinn',
+            'Rodriguez',
+            'Smith',
+            'Taylor',
+          ];
+          const businessNames = [
+            'Acme Corp',
+            'Beta Industries',
+            'Gamma Solutions',
+            'Delta Services',
+            'Epsilon Group',
+            'Zeta Enterprises',
+            'Eta Technologies',
+            'Theta Systems',
+            'Iota Consulting',
+            'Kappa Partners',
+          ];
+          const statuses: Array<
+            | 'ACTIVE'
+            | 'INACTIVE'
+            | 'PENDING'
+            | 'REJECTED'
+            | 'READY_FOR_VALIDATION'
+            | 'MICRODEPOSITS_INITIATED'
+          > = [
+            'ACTIVE',
+            'ACTIVE',
+            'ACTIVE',
+            'INACTIVE',
+            'PENDING',
+            'REJECTED',
+            'READY_FOR_VALIDATION',
+            'MICRODEPOSITS_INITIATED',
+          ];
+          const states = [
+            'NY',
+            'CA',
+            'TX',
+            'FL',
+            'IL',
+            'PA',
+            'OH',
+            'GA',
+            'NC',
+            'MI',
+          ];
+
+          const recipients = Array.from({ length: 100 }, (_, i) => {
+            const isIndividual = i % 3 !== 0; // 2/3 individuals, 1/3 organizations
+            const firstNameIndex = i % firstNames.length;
+            const lastNameIndex =
+              Math.floor(i / firstNames.length) % lastNames.length;
+            const businessIndex = Math.floor(i / 3) % businessNames.length;
+            const statusIndex = i % statuses.length;
+            const stateIndex = i % states.length;
+
+            // Create varied dates (spread over last 6 months)
+            const daysAgo = 180 - (i % 180);
+            const createdAt = new Date();
+            createdAt.setDate(createdAt.getDate() - daysAgo);
+
+            const updatedAt = new Date(createdAt);
+            updatedAt.setDate(
+              updatedAt.getDate() + Math.floor(Math.random() * 30)
+            );
+
+            return createMockRecipient({
+              id: `recipient-${String(i + 1).padStart(3, '0')}`,
+              type: 'RECIPIENT',
+              status: statuses[statusIndex],
+              clientId: 'client-001',
+              partyDetails: {
+                type: isIndividual ? 'INDIVIDUAL' : 'ORGANIZATION',
+                firstName: isIndividual
+                  ? `${firstNames[firstNameIndex]}${i > 19 ? i : ''}`
+                  : undefined,
+                lastName: isIndividual
+                  ? `${lastNames[lastNameIndex]}${i > 19 ? i : ''}`
+                  : undefined,
+                businessName: !isIndividual
+                  ? `${businessNames[businessIndex]} ${i > 9 ? `#${Math.floor(i / 10)}` : ''}`
+                  : undefined,
+                address: {
+                  addressLine1: `${(i % 9999) + 1} ${isIndividual ? 'Main' : 'Business'} Street`,
+                  city: `City ${String.fromCharCode(65 + (i % 26))}`,
+                  state: states[stateIndex],
+                  postalCode: String(10000 + (i % 90000)),
+                  countryCode: 'US',
+                },
+                contacts: [
+                  {
+                    contactType: 'EMAIL',
+                    value: isIndividual
+                      ? `${firstNames[firstNameIndex].toLowerCase()}${i}.${lastNames[lastNameIndex].toLowerCase()}@example.com`
+                      : `contact${i}@${businessNames[businessIndex].toLowerCase().replace(/\s+/g, '')}.com`,
+                  },
+                ],
+              },
+              account: {
+                number: String(1000000000 + i).padStart(10, '0'),
+                type: 'CHECKING',
+                countryCode: 'US',
+                routingInformation: [
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber: String(100000000 + (i % 1000000)).padStart(
+                      9,
+                      '0'
+                    ),
+                    transactionType: i % 2 === 0 ? 'ACH' : 'WIRE',
+                  },
+                ],
+              },
+              createdAt: createdAt.toISOString(),
+              updatedAt: updatedAt.toISOString(),
+            });
+          });
+
+          // Return all 100 recipients (client-side pagination will handle it)
+          return HttpResponse.json({
+            recipients,
+            limit: 100,
+            page: 1,
+            total_items: 100,
+          });
+        }),
+        http.post('*/recipients', () => {
+          return HttpResponse.json(createMockRecipient());
+        }),
+        http.post('*/recipients/:id', () => {
+          return HttpResponse.json(createMockRecipient());
         }),
       ],
     },

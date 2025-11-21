@@ -6,7 +6,8 @@ import { http, HttpResponse } from 'msw';
 import { Meta, StoryObj } from '@storybook/react-vite';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
-import { Recipients, RecipientsProps } from '../Recipients';
+import { Recipients } from '../Recipients';
+import type { RecipientsProps } from '../Recipients.types';
 import type { RecipientsConfig } from '../types/paymentConfig';
 
 // Wrapper component that follows the same pattern as the original Recipients.story.tsx
