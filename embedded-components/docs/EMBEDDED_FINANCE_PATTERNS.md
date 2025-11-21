@@ -359,6 +359,296 @@ const isTablet = containerWidth >= 640 && containerWidth < 1024;
 
 ---
 
+### Enhanced Data Grid Pattern (TanStack Table)
+
+**Description**: Powerful data tables built with TanStack Table (formerly React Table) following shadcn/ui patterns, providing sorting, filtering, pagination, column visibility, and advanced interactions.
+
+**Implementation**:
+
+- **Primary**: `TransactionsDisplay/components/TransactionsTable/`
+- **Secondary**: `app/client/src/features/Recipients/RecipientsTable.tsx`
+- **Status**: ✅ Well-implemented with full feature set
+
+**Pattern Details**:
+
+```typescript
+// Table setup with TanStack Table
+const table = useReactTable({
+  data,
+  columns,
+  onSortingChange: setSorting,
+  onColumnFiltersChange: setColumnFilters,
+  getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  onColumnVisibilityChange: setColumnVisibility,
+  state: {
+    sorting,
+    columnFilters,
+    columnVisibility,
+  },
+  initialState: {
+    pagination: { pageSize: 25 },
+    sorting: [{ id: 'createdAt', desc: true }],
+  },
+});
+
+// Column definitions with sorting, filtering, formatting
+export const columns: ColumnDef<DataType>[] = [
+  {
+    accessorKey: 'name',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Name" />
+    ),
+    cell: ({ row }) => <div>{formatName(row.original)}</div>,
+    filterFn: (row, id, value) => {
+      return row.getValue(id).toLowerCase().includes(value.toLowerCase());
+    },
+  },
+  // ... more columns
+];
+```
+
+**Features**:
+
+- **Sorting**: All columns sortable with visual indicators (asc/desc/unsorted)
+- **Filtering**: Multiple filter types (dropdown selects, text inputs, custom filter functions)
+- **Column Visibility**: Toggle columns on/off via dropdown menu
+- **Pagination**: Client-side pagination with page size controls (10, 20, 25, 30, 40, 50)
+- **Column Headers**: Reusable `DataTableColumnHeader` component with sort/hide controls
+- **Actions Column**: Dropdown menu for row actions (view, edit, delete, etc.)
+- **Empty States**: Proper handling of no results
+- **Loading States**: Skeleton loading during data fetch
+- **Responsive**: Works across device sizes
+
+**Component Structure**:
+
+```
+ComponentTable/
+├── ComponentTable.tsx              # Main table component
+├── ComponentTable.columns.tsx       # Column definitions
+├── ComponentTableToolbar.tsx       # Filter controls
+├── DataTablePagination.tsx         # Pagination controls
+├── DataTableColumnHeader.tsx       # Sortable column header
+└── DataTableViewOptions.tsx        # Column visibility toggle
+```
+
+**Column Definition Pattern**:
+
+```typescript
+// Default visible columns
+{
+  accessorKey: 'status',
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Status" />
+  ),
+  cell: ({ row }) => (
+    <Badge variant={getStatusVariant(row.getValue('status'))}>
+      {row.getValue('status')}
+    </Badge>
+  ),
+  filterFn: (row, id, value) => {
+    return value.includes(row.getValue(id));
+  },
+}
+
+// Hidden by default (toggleable)
+{
+  accessorKey: 'createdAt',
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Created" />
+  ),
+  cell: ({ row }) => formatDate(row.original.createdAt),
+}
+
+// Actions column (always visible)
+{
+  id: 'actions',
+  enableHiding: false,
+  cell: ({ row }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => onView(row.original)}>
+          View Details
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(row.original)}>
+          Edit
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+}
+```
+
+**Toolbar Pattern**:
+
+```typescript
+// Filter controls in toolbar
+<div className="flex items-center gap-2">
+  {/* Status Filter */}
+  <Select
+    value={statusFilter || 'all'}
+    onValueChange={(value) => {
+      table.getColumn('status')?.setFilterValue(
+        value === 'all' ? undefined : [value]
+      );
+    }}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder="All statuses" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">All statuses</SelectItem>
+      {statusOptions.map((status) => (
+        <SelectItem key={status} value={status}>
+          {status}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+
+  {/* Text Filter */}
+  <Input
+    placeholder="Filter name..."
+    value={nameFilter ?? ''}
+    onChange={(event) =>
+      table.getColumn('name')?.setFilterValue(event.target.value)
+    }
+  />
+
+  {/* Reset Filters */}
+  {isFiltered && (
+    <Button
+      variant="ghost"
+      onClick={() => table.resetColumnFilters()}
+    >
+      Reset <X />
+    </Button>
+  )}
+</div>
+```
+
+**Pagination Pattern**:
+
+```typescript
+// Pagination controls
+<div className="flex items-center justify-between">
+  <div className="text-sm text-muted-foreground">
+    {table.getFilteredRowModel().rows.length} row(s) total
+  </div>
+  <div className="flex items-center gap-6">
+    <div className="flex items-center gap-2">
+      <p className="text-sm font-medium">Rows per page</p>
+      <Select
+        value={`${table.getState().pagination.pageSize}`}
+        onValueChange={(value) => table.setPageSize(Number(value))}
+      >
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {[10, 20, 25, 30, 40, 50].map((size) => (
+            <SelectItem key={size} value={`${size}`}>
+              {size}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+    <div className="text-sm font-medium">
+      Page {table.getState().pagination.pageIndex + 1} of{' '}
+      {table.getPageCount()}
+    </div>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.setPageIndex(0)}
+        disabled={!table.getCanPreviousPage()}
+      >
+        <ChevronsLeft />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.previousPage()}
+        disabled={!table.getCanPreviousPage()}
+      >
+        <ChevronLeft />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.nextPage()}
+        disabled={!table.getCanNextPage()}
+      >
+        <ChevronRight />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+        disabled={!table.getCanNextPage()}
+      >
+        <ChevronsRight />
+      </Button>
+    </div>
+  </div>
+</div>
+```
+
+**Best Practices**:
+
+1. **Column Organization**:
+   - Most important columns visible by default
+   - Less frequently used columns hidden by default (toggleable)
+   - Actions column always visible, non-hideable
+
+2. **Filtering**:
+   - Use dropdown selects for enum values (status, type)
+   - Use text inputs for searchable fields (name, ID, account number)
+   - Provide "Reset" button when filters are active
+   - Show filter count or active filter indicators
+
+3. **Sorting**:
+   - Default sort by most recent/important column (descending)
+   - All data columns should be sortable
+   - Use `DataTableColumnHeader` for consistent sorting UI
+
+4. **Actions**:
+   - Use dropdown menu for row actions (3+ actions)
+   - Use icon buttons for single primary action
+   - Group related actions together
+   - Destructive actions (delete, deactivate) at bottom with red styling
+
+5. **Performance**:
+   - Use client-side filtering/sorting for < 1000 rows
+   - Consider server-side pagination for large datasets
+   - Memoize column definitions if using dynamic columns
+   - Use `enableHiding: false` for critical columns
+
+**Refinement Needed**:
+
+- ⚠️ **Accounts**: Could benefit from enhanced data grid pattern
+- ⚠️ **Recipients (embedded-components)**: Could migrate to this pattern
+- ⚠️ **Server-side pagination**: Some tables may need server-side implementation
+
+**Usability Alignment**:
+
+- ✅ **Flexibility & Efficiency**: Powerful filtering and sorting capabilities
+- ✅ **User Control**: Column visibility, filter reset, pagination controls
+- ✅ **Recognition Rather Than Recall**: Visible filter state, sort indicators
+- ✅ **Visibility of System Status**: Loading states, empty states, row counts
+- ✅ **Error Prevention**: Filter validation, disabled states for pagination
+
+---
+
 ### Dialog/Modal Form Pattern
 
 **Description**: Forms presented in modal dialogs with scrollable content, proper focus management, and state preservation.
@@ -1543,9 +1833,10 @@ const contentTokens = useContext(ContentTokensContext);
 | **Error with Retry**       | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | ✅             | ✅                  |
 | **Empty States**           | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | -              | ✅                  |
 | **Responsive Table/Cards** | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
+| **Enhanced Data Grid**      | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 | **Dialog Forms**           | -        | ✅         | ✅          | -                   | ⚠️ Partial     | ✅                  |
 | **Compact Details**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | ⚠️ Needs            |
-| **Filter & Search**        | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | -                   |
+| **Filter & Search**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 | **Review Panel**           | -        | ⚠️ Needs   | ✅          | -                   | ⚠️ Needs       | -                   |
 | **Wizard/Stepper**         | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |
 | **Timeline/Progress**      | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |
@@ -1554,7 +1845,7 @@ const contentTokens = useContext(ContentTokensContext);
 | **Config-Driven Forms**    | -        | ✅         | ⚠️ Needs    | -                   | ⚠️ Partial     | -                   |
 | **Multi-Mode Forms**       | -        | ⚠️ Needs   | ✅          | -                   | -              | ⚠️ Needs            |
 | **Success States**         | -        | ⚠️ Needs   | ✅          | -                   | -              | ⚠️ Needs            |
-| **Pagination**             | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | -                   |
+| **Pagination**             | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 
 **Legend**:
 
@@ -1598,7 +1889,7 @@ const contentTokens = useContext(ContentTokensContext);
 1. **Standardize Status Badge System**: Create shared status badge component with consistent variants
 2. **Implement Sensitive Data Masking**: Add masking pattern to Recipients and TransactionsDisplay
 3. **Enhance Error States**: Improve error handling consistency across all components
-4. **Add Pagination**: Implement pagination for TransactionsDisplay and Accounts when needed
+4. **Migrate to Enhanced Data Grid**: Migrate Accounts and Recipients (embedded-components) to Enhanced Data Grid pattern
 
 ### Medium Priority
 
@@ -1610,7 +1901,7 @@ const contentTokens = useContext(ContentTokensContext);
 ### Low Priority
 
 1. **Wizard Pattern Extraction**: Extract wizard pattern for reuse in MakePayment and LinkedAccountWidget
-2. **Filter & Search Enhancement**: Add search/filter to TransactionsDisplay and Accounts
+2. **Filter & Search Enhancement**: Add search/filter to Accounts (TransactionsDisplay and Recipients now have it)
 3. **Multi-Mode Form Pattern**: Extend multi-mode pattern to Recipients and LinkedAccountWidget
 4. **Configuration-Driven Forms**: Enhance MakePayment and OnboardingFlow with more configuration options
 

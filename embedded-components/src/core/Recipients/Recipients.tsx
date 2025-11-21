@@ -1,7 +1,15 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useElementWidth } from '@/utils/useElementWidth';
 // Icons
-import { AlertCircle, Plus, Search } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Plus,
+  Search,
+} from 'lucide-react';
 
 import {
   useAmendRecipient,
@@ -49,37 +57,25 @@ import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvid
 import { RecipientDetails } from './components/RecipientDetails/RecipientDetails';
 // Sub-components
 import { RecipientForm } from './components/RecipientForm/RecipientForm';
+import { RecipientsColumnVisibility } from './components/RecipientsColumnVisibility/RecipientsColumnVisibility';
+import { SortableColumnHeader } from './components/SortableColumnHeader/SortableColumnHeader';
 // Hooks
 import { useRecipientsFilters } from './hooks/useRecipientsFilters';
-import type { RecipientsConfig } from './types/paymentConfig';
+// Column Configuration
+import {
+  defaultRecipientsColumnConfig,
+  getVisibleColumns,
+  mergeColumnConfig,
+  widgetRecipientsColumnConfig,
+  type RecipientColumnKey,
+  type RecipientsColumnConfiguration,
+} from './Recipients.columns';
+// Types
+import type { RecipientsProps } from './Recipients.types';
 import { createRecipientsConfig } from './types/paymentConfig';
 // Utils
 import { formatRecipientName } from './utils/recipientHelpers';
-
-export interface RecipientsProps {
-  /** Optional client ID filter */
-  clientId?: string;
-  /** Default recipient type */
-  initialRecipientType?: RecipientType;
-  /** Show/hide create functionality */
-  showCreateButton?: boolean;
-  /** Configuration for payment methods and validation rules */
-  config?: RecipientsConfig;
-  /** Optional MakePayment component to render in each recipient card/row */
-  makePaymentComponent?: React.ReactNode;
-  /** Callback when recipient is created */
-  onRecipientCreated?: (recipient: Recipient) => void;
-  /** Callback when recipient is updated */
-  onRecipientUpdated?: (recipient: Recipient) => void;
-  /** Callback when recipient is deactivated */
-  onRecipientDeactivated?: (recipient: Recipient) => void;
-  /** List of user events to track */
-  userEventsToTrack?: string[];
-  /** Handler for user events */
-  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
-  /** Force widget layout with minimal columns and no filters */
-  isWidget?: boolean;
-}
+import { renderTableCell } from './utils/renderTableCell';
 
 // Status badge component
 const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
@@ -231,10 +227,54 @@ export const Recipients: React.FC<RecipientsProps> = ({
   onRecipientDeactivated,
   userEventsHandler,
   isWidget = false,
+  columnConfig,
 }) => {
   const { interceptorReady } = useInterceptorStatus();
   // Merge user config with defaults
   const resolvedConfig = createRecipientsConfig(config);
+
+  // Determine column configuration based on widget mode and user config
+  const [localColumnConfig, setLocalColumnConfig] =
+    useState<RecipientsColumnConfiguration | null>(null);
+
+  const finalColumnConfig = useMemo(() => {
+    const baseConfig = isWidget
+      ? widgetRecipientsColumnConfig
+      : defaultRecipientsColumnConfig;
+    // Merge user config over base config (deep merge for nested properties)
+    const merged = mergeColumnConfig(columnConfig, baseConfig);
+    // Apply local visibility changes if any
+    if (localColumnConfig) {
+      return localColumnConfig;
+    }
+    return merged;
+  }, [columnConfig, isWidget, localColumnConfig]);
+
+  // Get visible columns in order
+  const visibleColumns = useMemo(
+    () => getVisibleColumns(finalColumnConfig),
+    [finalColumnConfig]
+  );
+
+  // Handle column visibility change
+  const handleColumnVisibilityChange = useCallback(
+    (columnKey: RecipientColumnKey, visible: boolean) => {
+      setLocalColumnConfig((prev) => {
+        const baseConfig = isWidget
+          ? widgetRecipientsColumnConfig
+          : defaultRecipientsColumnConfig;
+        const current = prev || mergeColumnConfig(columnConfig, baseConfig);
+        return {
+          ...current,
+          [columnKey]: {
+            ...current[columnKey],
+            visible,
+          },
+        };
+      });
+    },
+    [columnConfig, isWidget]
+  );
 
   // State
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -245,7 +285,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<RecipientColumnKey | null>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
@@ -279,6 +321,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
       },
     }
   );
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filters.status, filters.type]);
 
   const createRecipientMutation = useCreateRecipient({
     mutation: {
@@ -377,11 +424,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   // Check if any deactivate operation is in progress
   const isDeactivating = deactivateRecipientMutation.isPending;
 
-  // Filtered recipients
+  // Filtered and sorted recipients
   const filteredRecipients = useMemo(() => {
     if (!recipientsData?.recipients) return [];
 
-    return recipientsData.recipients.filter((recipient) => {
+    let filtered = recipientsData.recipients.filter((recipient) => {
       // Only show RECIPIENT type
       if (recipient.type !== 'RECIPIENT') return false;
 
@@ -397,7 +444,109 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
       return matchesSearch && matchesStatus;
     });
-  }, [recipientsData?.recipients, searchTerm, filters.status]);
+
+    // Apply sorting
+    if (sortBy) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: string | number | undefined;
+        let bValue: string | number | undefined;
+
+        switch (sortBy) {
+          case 'name':
+            aValue = formatRecipientName(a).toLowerCase();
+            bValue = formatRecipientName(b).toLowerCase();
+            break;
+          case 'type':
+            aValue = a.type || '';
+            bValue = b.type || '';
+            break;
+          case 'status':
+            aValue = a.status || '';
+            bValue = b.status || '';
+            break;
+          case 'accountNumber':
+            aValue = a.account?.number || '';
+            bValue = b.account?.number || '';
+            break;
+          case 'accountType':
+            aValue = a.account?.type || '';
+            bValue = b.account?.type || '';
+            break;
+          case 'routingNumber':
+            // Routing number is in routingInformation array
+            aValue = a.account?.routingInformation?.[0]?.routingNumber || '';
+            bValue = b.account?.routingInformation?.[0]?.routingNumber || '';
+            break;
+          case 'createdAt':
+            aValue = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            bValue = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            break;
+          case 'updatedAt':
+            aValue = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+            bValue = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+            break;
+          case 'partyId':
+            aValue = a.partyId || '';
+            bValue = b.partyId || '';
+            break;
+          case 'clientId':
+            aValue = a.clientId || '';
+            bValue = b.clientId || '';
+            break;
+          default:
+            return 0;
+        }
+
+        // Handle undefined values
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return sortOrder === 'asc' ? 1 : -1;
+        if (bValue === undefined) return sortOrder === 'asc' ? -1 : 1;
+
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [
+    recipientsData?.recipients,
+    searchTerm,
+    filters.status,
+    sortBy,
+    sortOrder,
+  ]);
+
+  // Paginated recipients
+  const paginatedRecipients = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredRecipients.slice(startIndex, endIndex);
+  }, [filteredRecipients, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredRecipients.length / pageSize);
+
+  // Handle sort column click
+  const handleSort = useCallback(
+    (column: RecipientColumnKey) => {
+      // Only allow sorting if column is sortable
+      if (!finalColumnConfig[column]?.sortable) {
+        return;
+      }
+
+      if (sortBy === column) {
+        // Toggle sort order if same column
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      } else {
+        // Set new column and default to ascending
+        setSortBy(column);
+        setSortOrder('asc');
+      }
+      // Reset to first page when sorting changes
+      setCurrentPage(1);
+    },
+    [sortBy, sortOrder, finalColumnConfig]
+  );
 
   // Loading state
   if (isLoading) {
@@ -485,17 +634,28 @@ export const Recipients: React.FC<RecipientsProps> = ({
       <CardContent>
         {/* Filters and Search */}
         <div className="eb-mb-6 eb-space-y-4">
-          {/* Search Input */}
-          <div className="eb-flex eb-w-full eb-items-center sm:eb-max-w-xs">
-            <div className="eb-relative eb-w-full">
-              <Search className="eb-absolute eb-left-2 eb-top-1/2 eb-h-4 eb-w-4 eb--translate-y-1/2 eb-transform eb-text-gray-400" />
-              <Input
-                placeholder="Search recipients..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="eb-h-8 eb-rounded eb-border eb-border-gray-300 eb-pl-8 eb-text-sm focus:eb-border-primary"
-              />
+          {/* Search and View Controls */}
+          <div className="eb-flex eb-items-center eb-justify-between eb-gap-4">
+            {/* Search Input */}
+            <div className="eb-flex eb-w-full eb-items-center sm:eb-max-w-xs">
+              <div className="eb-relative eb-w-full">
+                <Search className="eb-absolute eb-left-2 eb-top-1/2 eb-h-4 eb-w-4 eb--translate-y-1/2 eb-transform eb-text-gray-400" />
+                <Input
+                  placeholder="Search recipients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="eb-h-8 eb-rounded eb-border eb-border-gray-300 eb-pl-8 eb-text-sm focus:eb-border-primary"
+                />
+              </div>
             </div>
+
+            {/* Column Visibility Toggle - Only show when not in widget mode */}
+            {!shouldUseWidgetLayout && (
+              <RecipientsColumnVisibility
+                columnConfig={finalColumnConfig}
+                onColumnVisibilityChange={handleColumnVisibilityChange}
+              />
+            )}
           </div>
 
           {/* Filters - Only show when not in widget mode */}
@@ -567,60 +727,60 @@ export const Recipients: React.FC<RecipientsProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Account</TableHead>
-                    <TableHead className="eb-text-right">Actions</TableHead>
+                    {visibleColumns.map((columnKey) => {
+                      const colConfig = finalColumnConfig[columnKey];
+                      if (!colConfig.visible) return null;
+
+                      return (
+                        <TableHead
+                          key={columnKey}
+                          className={
+                            columnKey === 'actions'
+                              ? 'eb-text-right'
+                              : undefined
+                          }
+                        >
+                          {colConfig.sortable ? (
+                            <SortableColumnHeader
+                              title={colConfig.label}
+                              sortKey={columnKey}
+                              currentSortBy={sortBy}
+                              sortOrder={sortOrder}
+                              onSort={handleSort}
+                              sortable={colConfig.sortable}
+                            />
+                          ) : (
+                            <div className="eb-font-semibold">
+                              {colConfig.label}
+                            </div>
+                          )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRecipients.length === 0 ? (
+                  {paginatedRecipients.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={visibleColumns.length}
                         className="eb-py-8 eb-text-center eb-text-gray-500"
                       >
                         No recipients found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredRecipients.map((recipient) => (
+                    paginatedRecipients.map((recipient) => (
                       <TableRow key={recipient.id}>
-                        <TableCell className="eb-truncate eb-font-medium">
-                          <Button
-                            variant="link"
-                            className="eb-h-auto eb-p-0 eb-text-left eb-font-medium hover:eb-underline"
-                            onClick={() => handleViewDetails(recipient)}
-                            title="View recipient details"
-                          >
-                            {formatRecipientName(recipient)}
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge status={recipient.status!} />
-                        </TableCell>
-                        <TableCell>
-                          <span className="eb-text-sm eb-text-gray-600">
-                            {recipient.account?.number
-                              ? `****${recipient.account.number.slice(-4)}`
-                              : 'N/A'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="eb-text-right">
-                          <div className="eb-flex eb-justify-end">
-                            {makePaymentComponent &&
-                              recipient.status === 'ACTIVE' && (
-                                <div>
-                                  {React.cloneElement(
-                                    makePaymentComponent as React.ReactElement,
-                                    {
-                                      recipientId: recipient.id,
-                                    }
-                                  )}
-                                </div>
-                              )}
-                          </div>
-                        </TableCell>
+                        {visibleColumns.map((columnKey) =>
+                          renderTableCell(columnKey, recipient, {
+                            onViewDetails: handleViewDetails,
+                            onEdit: handleEditRecipient,
+                            onDeactivate: handleDeactivateRecipient,
+                            makePaymentComponent,
+                            isDeactivating,
+                          })
+                        )}
                       </TableRow>
                     ))
                   )}
@@ -630,12 +790,12 @@ export const Recipients: React.FC<RecipientsProps> = ({
           </div>
         ) : shouldUseMobileLayout ? (
           <div>
-            {filteredRecipients.length === 0 ? (
+            {paginatedRecipients.length === 0 ? (
               <div className="eb-py-8 eb-text-center eb-text-gray-500">
                 No recipients found
               </div>
             ) : (
-              filteredRecipients.map((recipient) => (
+              paginatedRecipients.map((recipient) => (
                 <RecipientCard
                   key={recipient.id}
                   recipient={recipient}
@@ -656,87 +816,58 @@ export const Recipients: React.FC<RecipientsProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Account</TableHead>
-                    <TableHead>Actions</TableHead>
+                    {visibleColumns.map((columnKey) => {
+                      const colConfig = finalColumnConfig[columnKey];
+                      if (!colConfig || !colConfig.visible) return null;
+
+                      return (
+                        <TableHead
+                          key={columnKey}
+                          className={
+                            columnKey === 'actions' ? undefined : undefined
+                          }
+                        >
+                          {colConfig.sortable ? (
+                            <SortableColumnHeader
+                              title={colConfig.label}
+                              sortKey={columnKey}
+                              currentSortBy={sortBy}
+                              sortOrder={sortOrder}
+                              onSort={handleSort}
+                              sortable={colConfig.sortable}
+                            />
+                          ) : (
+                            <div className="eb-font-semibold">
+                              {colConfig.label}
+                            </div>
+                          )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRecipients.length === 0 ? (
+                  {paginatedRecipients.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={visibleColumns.length}
                         className="eb-py-8 eb-text-center eb-text-gray-500"
                       >
                         No recipients found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredRecipients.map((recipient) => (
+                    paginatedRecipients.map((recipient) => (
                       <TableRow key={recipient.id}>
-                        <TableCell className="eb-truncate eb-font-medium">
-                          {formatRecipientName(recipient)}
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge status={recipient.status!} />
-                        </TableCell>
-                        <TableCell>
-                          <span className="eb-text-sm eb-text-gray-600">
-                            {recipient.account?.number
-                              ? `****${recipient.account.number.slice(-4)}`
-                              : 'N/A'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="eb-flex eb-gap-3">
-                            {makePaymentComponent &&
-                              recipient.status === 'ACTIVE' && (
-                                <div className="eb-mr-auto">
-                                  {React.cloneElement(
-                                    makePaymentComponent as React.ReactElement,
-                                    {
-                                      recipientId: recipient.id,
-                                    }
-                                  )}
-                                </div>
-                              )}
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-                              onClick={() => handleViewDetails(recipient)}
-                              title="View details"
-                            >
-                              Details
-                            </Button>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-                              onClick={() => handleEditRecipient(recipient)}
-                              title="Edit recipient"
-                            >
-                              Edit
-                            </Button>
-                            {recipient.status === 'ACTIVE' && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
-                                onClick={() =>
-                                  handleDeactivateRecipient(recipient)
-                                }
-                                disabled={isDeactivating}
-                                title="Deactivate recipient"
-                              >
-                                {isDeactivating
-                                  ? 'Deactivating...'
-                                  : 'Deactivate'}
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
+                        {visibleColumns.map((columnKey) =>
+                          renderTableCell(columnKey, recipient, {
+                            onViewDetails: handleViewDetails,
+                            onEdit: handleEditRecipient,
+                            onDeactivate: handleDeactivateRecipient,
+                            makePaymentComponent,
+                            isDeactivating,
+                          })
+                        )}
                       </TableRow>
                     ))
                   )}
@@ -888,36 +1019,89 @@ export const Recipients: React.FC<RecipientsProps> = ({
             </div>
           </div>
         )}
-        {/* Pagination */}
-        {recipientsData &&
-          recipientsData.total_items &&
-          recipientsData.total_items > pageSize && (
-            <div className="eb-mt-4 eb-flex eb-items-center eb-justify-between">
+        {/* Enhanced Pagination */}
+        {filteredRecipients.length > 0 && (
+          <div className="eb-mt-4 eb-flex eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between">
+            <div className="eb-flex eb-items-center eb-gap-4">
               <div className="eb-text-sm eb-text-gray-600">
                 Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, recipientsData.total_items)}{' '}
-                of {recipientsData.total_items} recipients
+                {Math.min(currentPage * pageSize, filteredRecipients.length)} of{' '}
+                {filteredRecipients.length} recipient
+                {filteredRecipients.length !== 1 ? 's' : ''}
               </div>
-              <div className="eb-flex eb-gap-2">
-                <Button
-                  variant="outline"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
+              <div className="eb-flex eb-items-center eb-gap-2">
+                <span className="eb-text-sm eb-font-medium">Rows per page</span>
+                <Select
+                  value={`${pageSize}`}
+                  onValueChange={(value) => {
+                    setPageSize(Number(value));
+                    setCurrentPage(1);
+                  }}
                 >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={
-                    currentPage * pageSize >= recipientsData.total_items
-                  }
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  Next
-                </Button>
+                  <SelectTrigger className="eb-h-8 eb-w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[10, 20, 25, 30, 40, 50].map((size) => (
+                      <SelectItem key={size} value={`${size}`}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          )}
+            {totalPages > 1 && (
+              <div className="eb-flex eb-items-center eb-gap-2">
+                <div className="eb-text-sm eb-font-medium">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="eb-flex eb-gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="eb-h-8 eb-w-8"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(1)}
+                    title="First page"
+                  >
+                    <ChevronsLeft className="eb-h-4 eb-w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="eb-h-8 eb-w-8"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    title="Previous page"
+                  >
+                    <ChevronLeft className="eb-h-4 eb-w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="eb-h-8 eb-w-8"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    title="Next page"
+                  >
+                    <ChevronRight className="eb-h-4 eb-w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="eb-h-8 eb-w-8"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    title="Last page"
+                  >
+                    <ChevronsRight className="eb-h-4 eb-w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
 
       {/* Details Dialog */}
@@ -925,7 +1109,10 @@ export const Recipients: React.FC<RecipientsProps> = ({
         <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
           <DialogHeader className="eb-pb-4">
             <DialogTitle>
-              Recipient: {formatRecipientName(selectedRecipient!)}
+              Recipient:{' '}
+              {selectedRecipient
+                ? formatRecipientName(selectedRecipient)
+                : 'Unknown'}
             </DialogTitle>
           </DialogHeader>
           <div className="eb-scrollable-content">
