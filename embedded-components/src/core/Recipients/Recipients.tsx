@@ -1,21 +1,9 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useElementWidth } from '@/utils/useElementWidth';
 // Icons
-import {
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Plus,
-  Search,
-} from 'lucide-react';
+import { AlertCircle, Plus, Search } from 'lucide-react';
 
-import {
-  useAmendRecipient,
-  useCreateRecipient,
-  useGetAllRecipients,
-} from '@/api/generated/ep-recipients';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type {
   Recipient,
   RecipientRequest,
@@ -24,7 +12,6 @@ import type {
   UpdateRecipientRequest,
 } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,23 +31,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
+import { RecipientCard } from './components/RecipientCard/RecipientCard';
 import { RecipientDetails } from './components/RecipientDetails/RecipientDetails';
-// Sub-components
 import { RecipientForm } from './components/RecipientForm/RecipientForm';
 import { RecipientsColumnVisibility } from './components/RecipientsColumnVisibility/RecipientsColumnVisibility';
-import { SortableColumnHeader } from './components/SortableColumnHeader/SortableColumnHeader';
+import { RecipientsPagination } from './components/RecipientsPagination/RecipientsPagination';
+import { RecipientsTable } from './components/RecipientsTable/RecipientsTable';
 // Hooks
-import { useRecipientsFilters } from './hooks/useRecipientsFilters';
+import {
+  useRecipientsData,
+  useRecipientsDialogs,
+  useRecipientsFilters,
+  useRecipientsMutations,
+  useRecipientsPagination,
+  useRecipientsSorting,
+} from './hooks';
 // Column Configuration
 import {
   defaultRecipientsColumnConfig,
@@ -75,146 +62,6 @@ import type { RecipientsProps } from './Recipients.types';
 import { createRecipientsConfig } from './types/paymentConfig';
 // Utils
 import { formatRecipientName } from './utils/recipientHelpers';
-import { renderTableCell } from './utils/renderTableCell';
-
-// Status badge component
-const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
-  return (
-    <Badge variant="secondary" className="eb-text-xs">
-      {status.replace(/_/g, ' ')}
-    </Badge>
-  );
-};
-
-// Helper to get supported payment methods as a string array
-function getSupportedPaymentMethods(recipient: Recipient): string[] {
-  if (!recipient.account?.routingInformation) return [];
-  return recipient.account.routingInformation
-    .map((ri) => ri.transactionType)
-    .filter(Boolean);
-}
-
-// Mobile card for a single recipient
-const RecipientCard: React.FC<{
-  recipient: Recipient;
-  onView: () => void;
-  onEdit: () => void;
-  onDeactivate: () => void;
-  canDeactivate: boolean;
-  isDeactivating: boolean;
-  makePaymentComponent?: React.ReactNode;
-  isWidget?: boolean;
-}> = ({
-  recipient,
-  onView,
-  onEdit,
-  onDeactivate,
-  canDeactivate,
-  isDeactivating,
-  makePaymentComponent,
-  isWidget = false,
-}) => (
-  <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
-    <div className="eb-flex eb-items-center eb-justify-between">
-      <div className="eb-truncate eb-text-base eb-font-semibold">
-        {isWidget ? (
-          <Button
-            variant="link"
-            className="eb-h-auto eb-p-0 eb-text-left eb-font-semibold hover:eb-underline"
-            onClick={onView}
-            title="View recipient details"
-          >
-            {formatRecipientName(recipient)}
-          </Button>
-        ) : (
-          formatRecipientName(recipient)
-        )}
-      </div>
-      <Badge variant="outline" className="eb-text-sm">
-        {recipient.partyDetails?.type === 'INDIVIDUAL'
-          ? 'Individual'
-          : 'Business'}
-      </Badge>
-    </div>
-    <div className="eb-flex eb-items-center eb-gap-2">
-      <StatusBadge status={recipient.status!} />
-      <span className="eb-text-xs eb-text-gray-500">
-        {recipient.createdAt
-          ? new Date(recipient.createdAt).toLocaleDateString(undefined, {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })
-          : 'N/A'}
-      </span>
-    </div>
-    <div className="eb-text-xs eb-text-gray-600">
-      <span className="eb-font-medium">Account:</span>{' '}
-      {recipient.account?.number
-        ? `****${recipient.account.number.slice(-4)}`
-        : 'N/A'}
-    </div>
-    {/* Supported Payment Methods */}
-    <div className="eb-mt-1 eb-flex eb-flex-wrap eb-gap-1">
-      {getSupportedPaymentMethods(recipient).length > 0 ? (
-        getSupportedPaymentMethods(recipient).map((method) => (
-          <Badge key={method} variant="secondary" className="eb-text-xs">
-            {method}
-          </Badge>
-        ))
-      ) : (
-        <span className="eb-text-xs eb-text-gray-400">No payment methods</span>
-      )}
-    </div>
-    <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-4">
-      {makePaymentComponent && recipient.status === 'ACTIVE' && (
-        <div className={isWidget ? 'eb-ml-auto' : 'eb-mr-auto'}>
-          {React.cloneElement(makePaymentComponent as React.ReactElement, {
-            recipientId: recipient.id,
-          })}
-        </div>
-      )}
-      {!isWidget && (
-        <>
-          <Button
-            variant="link"
-            size="sm"
-            className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-            onClick={onView}
-            title="View details"
-          >
-            Details
-          </Button>
-          <Button
-            variant="link"
-            size="sm"
-            className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-            onClick={onEdit}
-            title="Edit recipient"
-          >
-            Edit
-          </Button>
-          {canDeactivate && (
-            <Button
-              variant="link"
-              size="sm"
-              className={`eb-h-auto eb-px-2 eb-py-0 eb-text-xs ${
-                isDeactivating
-                  ? 'eb-cursor-not-allowed eb-text-gray-400'
-                  : 'eb-text-red-600 hover:eb-text-red-700'
-              }`}
-              onClick={onDeactivate}
-              disabled={isDeactivating}
-              title="Deactivate recipient"
-            >
-              {isDeactivating ? 'Deactivating...' : 'Deactivate'}
-            </Button>
-          )}
-        </>
-      )}
-    </div>
-  </Card>
-);
 
 export const Recipients: React.FC<RecipientsProps> = ({
   clientId,
@@ -277,25 +124,15 @@ export const Recipients: React.FC<RecipientsProps> = ({
   );
 
   // State
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
-    null
-  );
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [sortBy, setSortBy] = useState<RecipientColumnKey | null>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
+
   // Use element width instead
   const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
   const isMobile = containerWidth > 0 && containerWidth < 640;
   const isTablet = containerWidth >= 640 && containerWidth < 1024;
-  // const isDesktop = containerWidth >= 1024; // Not used directly
 
   // Determine layout based on isWidget prop and screen size
   const shouldUseWidgetLayout = isWidget;
@@ -312,8 +149,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
     {
       clientId,
       type: filters.type,
-      page: currentPage,
-      limit: pageSize,
+      page: 1,
+      limit: 1000, // Get all for client-side filtering
     },
     {
       query: {
@@ -322,86 +159,101 @@ export const Recipients: React.FC<RecipientsProps> = ({
     }
   );
 
+  // Sorting hook
+  const { sortBy, sortOrder, handleSort, sortRecipients } =
+    useRecipientsSorting((column) => {
+      return finalColumnConfig[column]?.sortable ?? false;
+    });
+
+  // Filtered and sorted recipients
+  const { filteredRecipients } = useRecipientsData({
+    recipients: recipientsData?.recipients,
+    searchTerm,
+    statusFilter: filters.status,
+    sortRecipients,
+  });
+
+  // Pagination hook
+  const {
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    totalPages,
+    paginatedItems,
+    paginationInfo,
+  } = useRecipientsPagination(filteredRecipients.length);
+
   // Reset to first page when filters change
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filters.status, filters.type]);
+  }, [searchTerm, filters.status, filters.type, setCurrentPage]);
 
-  const createRecipientMutation = useCreateRecipient({
-    mutation: {
-      onSuccess: (data) => {
-        setIsCreateDialogOpen(false);
-        refetch();
-        onRecipientCreated?.(data);
-        userEventsHandler?.({ actionName: 'recipient_created' });
-      },
-      onError: (error) => {
-        console.error('Failed to create recipient:', error);
-      },
-    },
-  });
+  // Dialog management
+  const {
+    isCreateDialogOpen,
+    isEditDialogOpen,
+    isDetailsDialogOpen,
+    selectedRecipient,
+    openCreateDialog,
+    closeCreateDialog,
+    openEditDialog,
+    closeEditDialog,
+    openDetailsDialog,
+    closeDetailsDialog,
+  } = useRecipientsDialogs();
 
-  const updateRecipientMutation = useAmendRecipient({
-    mutation: {
-      onSuccess: (data) => {
-        setIsEditDialogOpen(false);
-        setSelectedRecipient(null);
-        refetch();
-        onRecipientUpdated?.(data);
-        userEventsHandler?.({ actionName: 'recipient_updated' });
-      },
-      onError: (error) => {
-        console.error('Failed to update recipient:', error);
-      },
-    },
-  });
-
-  const deactivateRecipientMutation = useAmendRecipient({
-    mutation: {
-      onSuccess: (data) => {
-        refetch();
-        onRecipientDeactivated?.(data);
-        userEventsHandler?.({ actionName: 'recipient_deactivated' });
-      },
-      onError: (error) => {
-        console.error('Failed to deactivate recipient:', error);
-      },
+  // Mutations
+  const {
+    createRecipient,
+    updateRecipient,
+    deactivateRecipient,
+    isCreating,
+    isUpdating,
+    isDeactivating,
+  } = useRecipientsMutations({
+    onRecipientCreated,
+    onRecipientUpdated,
+    onRecipientDeactivated,
+    userEventsHandler,
+    refetch,
+    onSuccess: () => {
+      closeCreateDialog();
+      closeEditDialog();
     },
   });
 
   // Handlers
   const handleCreateRecipient = useCallback(
     (data: RecipientRequest) => {
-      createRecipientMutation.mutate({ data });
+      createRecipient(data);
     },
-    [createRecipientMutation]
+    [createRecipient]
   );
 
   const handleUpdateRecipient = useCallback(
     (data: UpdateRecipientRequest) => {
       if (selectedRecipient) {
-        updateRecipientMutation.mutate({ id: selectedRecipient.id, data });
+        updateRecipient(selectedRecipient.id, data);
       }
     },
-    [selectedRecipient, updateRecipientMutation]
+    [selectedRecipient, updateRecipient]
   );
 
   const handleViewDetails = useCallback(
     (recipient: Recipient) => {
-      setSelectedRecipient(recipient);
-      setIsDetailsDialogOpen(true);
+      openDetailsDialog(recipient);
       userEventsHandler?.({ actionName: 'recipient_details_viewed' });
     },
-    [userEventsHandler]
+    [openDetailsDialog, userEventsHandler]
   );
 
   const handleEditRecipient = useCallback(
     (recipient: Recipient) => {
-      setSelectedRecipient(recipient);
-      setIsEditDialogOpen(true);
+      openEditDialog(recipient);
       userEventsHandler?.({ actionName: 'recipient_edit_started' });
     },
-    [userEventsHandler]
+    [openEditDialog, userEventsHandler]
   );
 
   const handleDeactivateRecipient = useCallback(
@@ -411,142 +263,15 @@ export const Recipients: React.FC<RecipientsProps> = ({
           `Are you sure you want to deactivate ${formatRecipientName(recipient)}?`
         )
       ) {
-        deactivateRecipientMutation.mutate({
-          id: recipient.id,
-          data: { status: 'INACTIVE' },
-        });
+        deactivateRecipient(recipient.id);
         userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
       }
     },
-    [deactivateRecipientMutation, userEventsHandler]
+    [deactivateRecipient, userEventsHandler]
   );
-
-  // Check if any deactivate operation is in progress
-  const isDeactivating = deactivateRecipientMutation.isPending;
-
-  // Filtered and sorted recipients
-  const filteredRecipients = useMemo(() => {
-    if (!recipientsData?.recipients) return [];
-
-    let filtered = recipientsData.recipients.filter((recipient) => {
-      // Only show RECIPIENT type
-      if (recipient.type !== 'RECIPIENT') return false;
-
-      const matchesSearch =
-        searchTerm === '' ||
-        formatRecipientName(recipient)
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        recipient.account?.number?.includes(searchTerm);
-
-      const matchesStatus =
-        !filters.status || recipient.status === filters.status;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    // Apply sorting
-    if (sortBy) {
-      filtered = [...filtered].sort((a, b) => {
-        let aValue: string | number | undefined;
-        let bValue: string | number | undefined;
-
-        switch (sortBy) {
-          case 'name':
-            aValue = formatRecipientName(a).toLowerCase();
-            bValue = formatRecipientName(b).toLowerCase();
-            break;
-          case 'type':
-            aValue = a.type || '';
-            bValue = b.type || '';
-            break;
-          case 'status':
-            aValue = a.status || '';
-            bValue = b.status || '';
-            break;
-          case 'accountNumber':
-            aValue = a.account?.number || '';
-            bValue = b.account?.number || '';
-            break;
-          case 'accountType':
-            aValue = a.account?.type || '';
-            bValue = b.account?.type || '';
-            break;
-          case 'routingNumber':
-            // Routing number is in routingInformation array
-            aValue = a.account?.routingInformation?.[0]?.routingNumber || '';
-            bValue = b.account?.routingInformation?.[0]?.routingNumber || '';
-            break;
-          case 'createdAt':
-            aValue = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            bValue = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            break;
-          case 'updatedAt':
-            aValue = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-            bValue = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-            break;
-          case 'partyId':
-            aValue = a.partyId || '';
-            bValue = b.partyId || '';
-            break;
-          case 'clientId':
-            aValue = a.clientId || '';
-            bValue = b.clientId || '';
-            break;
-          default:
-            return 0;
-        }
-
-        // Handle undefined values
-        if (aValue === undefined && bValue === undefined) return 0;
-        if (aValue === undefined) return sortOrder === 'asc' ? 1 : -1;
-        if (bValue === undefined) return sortOrder === 'asc' ? -1 : 1;
-
-        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [
-    recipientsData?.recipients,
-    searchTerm,
-    filters.status,
-    sortBy,
-    sortOrder,
-  ]);
 
   // Paginated recipients
-  const paginatedRecipients = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredRecipients.slice(startIndex, endIndex);
-  }, [filteredRecipients, currentPage, pageSize]);
-
-  const totalPages = Math.ceil(filteredRecipients.length / pageSize);
-
-  // Handle sort column click
-  const handleSort = useCallback(
-    (column: RecipientColumnKey) => {
-      // Only allow sorting if column is sortable
-      if (!finalColumnConfig[column]?.sortable) {
-        return;
-      }
-
-      if (sortBy === column) {
-        // Toggle sort order if same column
-        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-      } else {
-        // Set new column and default to ascending
-        setSortBy(column);
-        setSortOrder('asc');
-      }
-      // Reset to first page when sorting changes
-      setCurrentPage(1);
-    },
-    [sortBy, sortOrder, finalColumnConfig]
-  );
+  const paginatedRecipients = paginatedItems(filteredRecipients);
 
   // Loading state
   if (isLoading) {
@@ -600,12 +325,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
             Recipients
           </CardTitle>
           {showCreateButton && (
-            <Dialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-            >
+            <Dialog open={isCreateDialogOpen} onOpenChange={closeCreateDialog}>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={openCreateDialog}>
                   <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
                   Add Recipient
                 </Button>
@@ -618,8 +340,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   <RecipientForm
                     mode="create"
                     onSubmit={handleCreateRecipient}
-                    onCancel={() => setIsCreateDialogOpen(false)}
-                    isLoading={createRecipientMutation.isPending}
+                    onCancel={closeCreateDialog}
+                    isLoading={isCreating}
                     config={resolvedConfig}
                     showCardWrapper={false}
                     recipientType={initialRecipientType}
@@ -721,74 +443,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
         </div>
 
         {/* Recipients List/Table */}
-        {shouldUseWidgetLayout ? (
-          <div className="eb-overflow-hidden eb-rounded-md eb-border">
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {visibleColumns.map((columnKey) => {
-                      const colConfig = finalColumnConfig[columnKey];
-                      if (!colConfig.visible) return null;
-
-                      return (
-                        <TableHead
-                          key={columnKey}
-                          className={
-                            columnKey === 'actions'
-                              ? 'eb-text-right'
-                              : undefined
-                          }
-                        >
-                          {colConfig.sortable ? (
-                            <SortableColumnHeader
-                              title={colConfig.label}
-                              sortKey={columnKey}
-                              currentSortBy={sortBy}
-                              sortOrder={sortOrder}
-                              onSort={handleSort}
-                              sortable={colConfig.sortable}
-                            />
-                          ) : (
-                            <div className="eb-font-semibold">
-                              {colConfig.label}
-                            </div>
-                          )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedRecipients.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={visibleColumns.length}
-                        className="eb-py-8 eb-text-center eb-text-gray-500"
-                      >
-                        No recipients found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedRecipients.map((recipient) => (
-                      <TableRow key={recipient.id}>
-                        {visibleColumns.map((columnKey) =>
-                          renderTableCell(columnKey, recipient, {
-                            onViewDetails: handleViewDetails,
-                            onEdit: handleEditRecipient,
-                            onDeactivate: handleDeactivateRecipient,
-                            makePaymentComponent,
-                            isDeactivating,
-                          })
-                        )}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        ) : shouldUseMobileLayout ? (
+        {shouldUseMobileLayout ? (
           <div>
             {paginatedRecipients.length === 0 ? (
               <div className="eb-py-8 eb-text-center eb-text-gray-500">
@@ -810,302 +465,47 @@ export const Recipients: React.FC<RecipientsProps> = ({
               ))
             )}
           </div>
-        ) : shouldUseTabletLayout ? (
-          <div className="eb-overflow-hidden eb-rounded-md eb-border">
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {visibleColumns.map((columnKey) => {
-                      const colConfig = finalColumnConfig[columnKey];
-                      if (!colConfig || !colConfig.visible) return null;
-
-                      return (
-                        <TableHead
-                          key={columnKey}
-                          className={
-                            columnKey === 'actions' ? undefined : undefined
-                          }
-                        >
-                          {colConfig.sortable ? (
-                            <SortableColumnHeader
-                              title={colConfig.label}
-                              sortKey={columnKey}
-                              currentSortBy={sortBy}
-                              sortOrder={sortOrder}
-                              onSort={handleSort}
-                              sortable={colConfig.sortable}
-                            />
-                          ) : (
-                            <div className="eb-font-semibold">
-                              {colConfig.label}
-                            </div>
-                          )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedRecipients.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={visibleColumns.length}
-                        className="eb-py-8 eb-text-center eb-text-gray-500"
-                      >
-                        No recipients found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedRecipients.map((recipient) => (
-                      <TableRow key={recipient.id}>
-                        {visibleColumns.map((columnKey) =>
-                          renderTableCell(columnKey, recipient, {
-                            onViewDetails: handleViewDetails,
-                            onEdit: handleEditRecipient,
-                            onDeactivate: handleDeactivateRecipient,
-                            makePaymentComponent,
-                            isDeactivating,
-                          })
-                        )}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
         ) : (
-          <div className="eb-overflow-hidden eb-rounded-md eb-border">
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Person/Business</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment Methods</TableHead>
-                    <TableHead className="eb-hidden sm:eb-table-cell">
-                      Account
-                    </TableHead>
-                    <TableHead className="eb-hidden md:eb-table-cell">
-                      Created
-                    </TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredRecipients.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="eb-py-8 eb-text-center eb-text-gray-500"
-                      >
-                        No recipients found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredRecipients.map((recipient) => (
-                      <TableRow key={recipient.id}>
-                        <TableCell className="eb-truncate eb-font-medium">
-                          {formatRecipientName(recipient)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="eb-text-xs">
-                            {recipient.partyDetails?.type === 'INDIVIDUAL'
-                              ? 'Individual'
-                              : 'Business'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge status={recipient.status!} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="eb-flex eb-flex-wrap eb-gap-1">
-                            {getSupportedPaymentMethods(recipient).length >
-                            0 ? (
-                              getSupportedPaymentMethods(recipient).map(
-                                (method) => (
-                                  <Badge
-                                    key={method}
-                                    variant="secondary"
-                                    className="eb-text-xs"
-                                  >
-                                    {method}
-                                  </Badge>
-                                )
-                              )
-                            ) : (
-                              <span className="eb-text-xs eb-text-gray-400">
-                                None
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="eb-hidden sm:eb-table-cell">
-                          <span className="eb-text-sm eb-text-gray-600">
-                            {recipient.account?.number
-                              ? `****${recipient.account.number.slice(-4)}`
-                              : 'N/A'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="eb-hidden md:eb-table-cell">
-                          <span className="eb-text-sm eb-text-gray-600">
-                            {recipient.createdAt
-                              ? new Date(
-                                  recipient.createdAt
-                                ).toLocaleDateString(undefined, {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })
-                              : 'N/A'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="eb-flex eb-gap-3">
-                            {makePaymentComponent &&
-                              recipient.status === 'ACTIVE' && (
-                                <div className="eb-mr-auto">
-                                  {React.cloneElement(
-                                    makePaymentComponent as React.ReactElement,
-                                    {
-                                      recipientId: recipient.id,
-                                    }
-                                  )}
-                                </div>
-                              )}
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-                              onClick={() => handleViewDetails(recipient)}
-                              title="View details"
-                            >
-                              Details
-                            </Button>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
-                              onClick={() => handleEditRecipient(recipient)}
-                              title="Edit recipient"
-                            >
-                              Edit
-                            </Button>
-                            {recipient.status === 'ACTIVE' && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
-                                onClick={() =>
-                                  handleDeactivateRecipient(recipient)
-                                }
-                                disabled={isDeactivating}
-                                title="Deactivate recipient"
-                              >
-                                {isDeactivating
-                                  ? 'Deactivating...'
-                                  : 'Deactivate'}
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
-        {/* Enhanced Pagination */}
-        {filteredRecipients.length > 0 && (
-          <div className="eb-mt-4 eb-flex eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between">
-            <div className="eb-flex eb-items-center eb-gap-4">
-              <div className="eb-text-sm eb-text-gray-600">
-                Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, filteredRecipients.length)} of{' '}
-                {filteredRecipients.length} recipient
-                {filteredRecipients.length !== 1 ? 's' : ''}
-              </div>
-              <div className="eb-flex eb-items-center eb-gap-2">
-                <span className="eb-text-sm eb-font-medium">Rows per page</span>
-                <Select
-                  value={`${pageSize}`}
-                  onValueChange={(value) => {
-                    setPageSize(Number(value));
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="eb-h-8 eb-w-[70px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[10, 20, 25, 30, 40, 50].map((size) => (
-                      <SelectItem key={size} value={`${size}`}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {totalPages > 1 && (
-              <div className="eb-flex eb-items-center eb-gap-2">
-                <div className="eb-text-sm eb-font-medium">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="eb-flex eb-gap-1">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="eb-h-8 eb-w-8"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(1)}
-                    title="First page"
-                  >
-                    <ChevronsLeft className="eb-h-4 eb-w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="eb-h-8 eb-w-8"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    title="Previous page"
-                  >
-                    <ChevronLeft className="eb-h-4 eb-w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="eb-h-8 eb-w-8"
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    title="Next page"
-                  >
-                    <ChevronRight className="eb-h-4 eb-w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="eb-h-8 eb-w-8"
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setCurrentPage(totalPages)}
-                    title="Last page"
-                  >
-                    <ChevronsRight className="eb-h-4 eb-w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+          <>
+            <RecipientsTable
+              recipients={paginatedRecipients}
+              visibleColumns={visibleColumns}
+              columnConfig={finalColumnConfig}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+              onViewDetails={handleViewDetails}
+              onEdit={handleEditRecipient}
+              onDeactivate={handleDeactivateRecipient}
+              makePaymentComponent={makePaymentComponent}
+              isDeactivating={isDeactivating}
+              layout={
+                shouldUseWidgetLayout
+                  ? 'widget'
+                  : shouldUseTabletLayout
+                    ? 'tablet'
+                    : 'desktop'
+              }
+            />
+            <RecipientsPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={filteredRecipients.length}
+              startIndex={paginationInfo.startIndex}
+              endIndex={paginationInfo.endIndex}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          </>
         )}
       </CardContent>
 
       {/* Details Dialog */}
-      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+      <Dialog open={isDetailsDialogOpen} onOpenChange={closeDetailsDialog}>
         <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
           <DialogHeader className="eb-pb-4">
             <DialogTitle>
@@ -1132,7 +532,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
         <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Recipient</DialogTitle>
@@ -1143,11 +543,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
                 mode="edit"
                 recipient={selectedRecipient}
                 onSubmit={handleUpdateRecipient}
-                onCancel={() => {
-                  setIsEditDialogOpen(false);
-                  setSelectedRecipient(null);
-                }}
-                isLoading={updateRecipientMutation.isPending}
+                onCancel={closeEditDialog}
+                isLoading={isUpdating}
                 config={resolvedConfig}
                 showCardWrapper={false}
                 recipientType={selectedRecipient.type ?? 'RECIPIENT'}
