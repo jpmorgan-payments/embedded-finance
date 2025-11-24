@@ -96,7 +96,7 @@ const AddLinkedAccountForm = () => {
             {
               routingCodeType: 'USABA',
               routingNumber: data.routingNumber,
-              transactionType: 'ACH'
+              transactionType: 'ACH',
             },
           ],
           countryCode: 'US',
@@ -145,9 +145,14 @@ const VerificationStatus = ({ recipientId }) => {
   if (recipient.status === 'MICRODEPOSITS_INITIATED') {
     return (
       <div>
-        <p>We've initiated two small deposits to your account for verification.</p>
+        <p>
+          We've initiated two small deposits to your account for verification.
+        </p>
         <p>These should appear in your account within 1-3 business days.</p>
-        <p>Once you see them, please return here to complete the verification process.</p>
+        <p>
+          Once you see them, please return here to complete the verification
+          process.
+        </p>
       </div>
     );
   }
@@ -194,7 +199,7 @@ const VerifyMicrodepositsForm = ({ recipientId }) => {
       id: recipientId,
       data: {
         amounts: [parseFloat(data.amount1), parseFloat(data.amount2)],
-      }
+      },
     });
   };
 
