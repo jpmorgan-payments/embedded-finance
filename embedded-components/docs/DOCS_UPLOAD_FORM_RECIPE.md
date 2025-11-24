@@ -84,7 +84,6 @@ interface DocumentRequest {
 ### UI Behavior
 
 1. **Required Documents** (minRequired ≥ 1):
-
    - Sequential activation of requirements
    - Asterisk (\*) indicator
    - Must be satisfied for form submission

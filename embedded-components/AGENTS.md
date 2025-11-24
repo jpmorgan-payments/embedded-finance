@@ -24,17 +24,20 @@ New components must be placed in `src/core/` following the architecture pattern.
 ## Architecture Principles
 
 ### 1. Individual Hook/Util Files
+
 - Each hook/util in its own file: `useHookName.ts`, `utilName.ts`
 - Always use `hooks/` and `utils/` directories, even for single files
 - Tests colocated: `useHookName.test.tsx` next to `useHookName.ts`
 
 ### 2. Type Colocation
+
 - **Central `.types.ts`**: ONLY public API (exported component props)
 - **Component files**: Internal component props/interfaces
 - **Hook files**: Hook options, return types
 - **Util files**: Inline parameter types
 
 ### 3. No Aggregation Barrels
+
 - ❌ No `components/index.ts` exporting all components
 - ✅ Direct imports for tree-shaking
 - ✅ Barrel exports only for: `hooks/index.ts`, `utils/index.ts`, component root `index.ts`
@@ -61,19 +64,24 @@ export type { ComponentNameProps } from './ComponentName.types';
 ## Code Organization
 
 ### Component-Specific Code
+
 **Location:** `ComponentName/hooks/`, `ComponentName/utils/`, `ComponentName/components/`
+
 - Individual files: `useHookName.ts`, `utilName.ts`
 - Tests colocated: `useHookName.test.tsx`
 - Used by THIS component only
 - Move to workspace level if used by 2+ components
 
 ### Workspace-Shared Code
+
 **Location:** `src/lib/`
+
 - Pure functions, no component-specific logic
 - Used by 2+ components
 - Framework-agnostic (utils), or shared React hooks
 
 ### Forms vs Components
+
 - **Has `.schema.ts`?** → `forms/FormName/`
 - **No schema (dialog/confirmation)?** → `components/DialogName/`
 
@@ -90,6 +98,7 @@ export type { ComponentNameProps } from './ComponentName.types';
 ## Component Implementation
 
 ### TypeScript
+
 - Use strict mode
 - Define explicit interfaces for props
 - Use proper type imports
@@ -98,15 +107,17 @@ export type { ComponentNameProps } from './ComponentName.types';
 ### React Patterns
 
 ```typescript
-import { FC } from "react";
+import { FC } from 'react';
 
 export interface ComponentNameProps {
   // Clear prop definitions with JSDoc comments
 }
 
-export const ComponentName: FC<ComponentNameProps> = ({
-  // Destructured props
-}) => {
+export const ComponentName: FC<ComponentNameProps> = (
+  {
+    // Destructured props
+  }
+) => {
   // Implementation
 };
 ```
@@ -116,52 +127,52 @@ export const ComponentName: FC<ComponentNameProps> = ({
 ```typescript
 // ✅ CORRECT - Individual hook files
 // File: hooks/useComponentData.ts
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
+// File: hooks/useComponentData.test.tsx
+import { renderHook, waitFor } from '@testing-library/react';
+
+import { useComponentData } from './useComponentData';
 
 export function useComponentData() {
   return useQuery({
-    queryKey: ["component-data"],
-    queryFn: () => fetch("/api/data"),
+    queryKey: ['component-data'],
+    queryFn: () => fetch('/api/data'),
   });
 }
 
-// File: hooks/useComponentData.test.tsx
-import { renderHook, waitFor } from "@testing-library/react";
-import { useComponentData } from "./useComponentData";
-
-describe("useComponentData", () => {
-  test("fetches data", async () => {
+describe('useComponentData', () => {
+  test('fetches data', async () => {
     const { result } = renderHook(() => useComponentData());
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
 });
 
 // File: hooks/index.ts
-export { useComponentData } from "./useComponentData";
-export { useComponentForm } from "./useComponentForm";
+export { useComponentData } from './useComponentData';
+export { useComponentForm } from './useComponentForm';
 ```
 
 ### Utility Patterns (Modern 2025)
 
 ```typescript
+// File: utils/formatValue.test.ts
+import { formatValue } from './formatValue';
+
 // ✅ CORRECT - Individual util files
 // File: utils/formatValue.ts
 export function formatValue(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
+  return new Intl.NumberFormat('en-US').format(value);
 }
 
-// File: utils/formatValue.test.ts
-import { formatValue } from "./formatValue";
-
-describe("formatValue", () => {
-  test("formats numbers correctly", () => {
-    expect(formatValue(1000)).toBe("1,000");
+describe('formatValue', () => {
+  test('formats numbers correctly', () => {
+    expect(formatValue(1000)).toBe('1,000');
   });
 });
 
 // File: utils/index.ts
-export { formatValue } from "./formatValue";
-export { validateInput } from "./validateInput";
+export { formatValue } from './formatValue';
+export { validateInput } from './validateInput';
 ```
 
 ## Styling
@@ -199,7 +210,7 @@ const queryClient = new QueryClient({
 
 const renderComponent = () => {
   server.resetHandlers();
-  
+
   server.use(
     http.get("/api/endpoint", () => {
       return HttpResponse.json(mockData);
@@ -219,11 +230,11 @@ const renderComponent = () => {
 ## Storybook Stories
 
 ```typescript
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof ComponentName> = {
   component: ComponentName,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   // Configuration
 };
 
@@ -258,6 +269,7 @@ Always wrap components with EBComponentsProvider:
 ## Anti-Patterns to Avoid
 
 ❌ **Aggregation barrel exports**
+
 ```typescript
 // components/index.ts - DON'T DO THIS
 export { Card } from './Card';
@@ -265,12 +277,14 @@ export { Skeleton } from './Skeleton';
 ```
 
 ❌ **Generic names in specific places**
+
 ```typescript
 // LinkedAccountWidget/components/RecipientCard.tsx - TOO GENERIC
 // Should be: LinkedAccountCard.tsx
 ```
 
 ❌ **All types in central file**
+
 ```typescript
 // ComponentName.types.ts - DON'T DO THIS
 export interface ComponentNameProps {} // ✅ OK - public API
@@ -279,6 +293,7 @@ export interface UseHookOptions {} // ❌ Should be in hook
 ```
 
 ❌ **Forms without schemas**
+
 ```typescript
 // forms/ConfirmDialog/ - WRONG
 // Should be: components/ConfirmDialog/
@@ -287,8 +302,8 @@ export interface UseHookOptions {} // ❌ Should be in hook
 ## Before Committing
 
 Always run these checks:
+
 1. `yarn typecheck` - TypeScript validation
 2. `yarn lint` - Linting
 3. `yarn test` - All tests passing
 4. `yarn prettier` - Code formatting
-

@@ -1833,7 +1833,7 @@ const contentTokens = useContext(ContentTokensContext);
 | **Error with Retry**       | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | ✅             | ✅                  |
 | **Empty States**           | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | -              | ✅                  |
 | **Responsive Table/Cards** | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
-| **Enhanced Data Grid**      | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
+| **Enhanced Data Grid**     | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 | **Dialog Forms**           | -        | ✅         | ✅          | -                   | ⚠️ Partial     | ✅                  |
 | **Compact Details**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | ⚠️ Needs            |
 | **Filter & Search**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |

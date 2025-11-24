@@ -16,7 +16,7 @@ graph LR;
 
     %% Core Components
     C --> CORE[src/core/]
-    
+
     %% OnboardingWizardBasic Structure
     CORE --> OWB[OnboardingWizardBasic/]
     OWB --> OWB1[OnboardingContextProvider/]
@@ -33,7 +33,7 @@ graph LR;
     OWB2 --> SF2[InitialStepForm.schema.ts]
     OWB2 --> SF3[InitialStepForm.test.tsx]
     OWB2 --> SF4[InitialStepForm.story.tsx]
-    
+
     %% EBComponentsProvider Structure
     CORE --> ECP[EBComponentsProvider/]
     ECP --> ECP1[config.types.ts]
@@ -58,6 +58,7 @@ graph LR;
 ## Component Architecture Explanation
 
 ### 1. OnboardingWizardBasic
+
 Key component for handling digital onboarding flows with the following structure:
 
 - **OnboardingContextProvider/**
@@ -78,6 +79,7 @@ Key component for handling digital onboarding flows with the following structure
   - Manages loading and disabled states
 
 ### 2. EBComponentsProvider
+
 Core provider component that configures the application environment:
 
 - **config.types.ts**

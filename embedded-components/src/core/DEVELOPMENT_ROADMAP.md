@@ -59,7 +59,7 @@ gantt
   - Review/confirmation UX
   - Cross-currency payment support
 - TransactionsDisplay
-  - Pagination; 
+  - Pagination;
   - Review details attribute mapping
   - Review PAYIN/PAYOUT derivation and counterpart display
 - Accounts
@@ -119,7 +119,6 @@ gantt
   - Consider bumping TypeScript and all related type utilities and tooling (tsc, @types/\*, vitest, tsconfig libs) to latest compatible versions.
   - Validate build output and generated d.ts after bump; fix any strictness regressions.
 - Build/test infrastructure
-
   - Verify Vite/Storybook compatibility after bumps; adjust configs if needed.
   - Rebaseline CI (typecheck/lint/test/storybook build) performance and caching.
 
