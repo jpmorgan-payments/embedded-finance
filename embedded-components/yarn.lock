@@ -1918,6 +1918,7 @@ __metadata:
     react-window: "npm:^1.8.11"
     replace: "npm:^1.2.2"
     rimraf: "npm:^6.0.1"
+    rollup-plugin-visualizer: "npm:^6.0.5"
     sonner: "npm:^1.5.0"
     storybook: "npm:^9.1.13"
     tailwind-merge: "npm:^2.6.0"
@@ -11373,7 +11374,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"open@npm:^8.0.4":
+"open@npm:^8.0.0, open@npm:^8.0.4":
   version: 8.4.2
   resolution: "open@npm:8.4.2"
   dependencies:
@@ -12783,6 +12784,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-visualizer@npm:^6.0.5":
+  version: 6.0.5
+  resolution: "rollup-plugin-visualizer@npm:6.0.5"
+  dependencies:
+    open: "npm:^8.0.0"
+    picomatch: "npm:^4.0.2"
+    source-map: "npm:^0.7.4"
+    yargs: "npm:^17.5.1"
+  peerDependencies:
+    rolldown: 1.x || ^1.0.0-beta
+    rollup: 2.x || 3.x || 4.x
+  peerDependenciesMeta:
+    rolldown:
+      optional: true
+    rollup:
+      optional: true
+  bin:
+    rollup-plugin-visualizer: dist/bin/cli.js
+  checksum: 10c0/3824626e97d5033fbb3aa1bbe93c8c17a8569bc47e33c941bde6b90404f2cae70b26fec1b623bd393c3e076338014196c91726ed2c96218edc67e1f21676f7ef
+  languageName: node
+  linkType: hard
+
 "rollup@npm:^4.20.0":
   version: 4.22.4
   resolution: "rollup@npm:4.22.4"
@@ -13293,6 +13316,13 @@ __metadata:
   version: 1.2.1
   resolution: "source-map-js@npm:1.2.1"
   checksum: 10c0/7bda1fc4c197e3c6ff17de1b8b2c20e60af81b63a52cb32ec5a5d67a20a7d42651e2cb34ebe93833c5a2a084377e17455854fee3e21e7925c64a51b6a52b0faf
+  languageName: node
+  linkType: hard
+
+"source-map@npm:^0.7.4":
+  version: 0.7.6
+  resolution: "source-map@npm:0.7.6"
+  checksum: 10c0/59f6f05538539b274ba771d2e9e32f6c65451982510564438e048bc1352f019c6efcdc6dd07909b1968144941c14015c2c7d4369fb7c4d7d53ae769716dcc16c
   languageName: node
   linkType: hard
 
@@ -15222,7 +15252,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.0.1, yargs@npm:^17.7.2":
+"yargs@npm:^17.0.1, yargs@npm:^17.5.1, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:
