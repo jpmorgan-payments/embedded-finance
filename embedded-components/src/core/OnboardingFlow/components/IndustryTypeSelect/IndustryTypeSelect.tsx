@@ -200,6 +200,12 @@ export const IndustryTypeSelect = ({
                 'eb-w-full eb-justify-between eb-font-normal',
                 !field.value && 'eb-text-muted-foreground'
               )}
+              onKeyDown={(e) => {
+                if (e.key === 'Down' || e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setOpen(true);
+                }
+              }}
               {...fieldWithoutBlur}
             >
               {field.value ? (
