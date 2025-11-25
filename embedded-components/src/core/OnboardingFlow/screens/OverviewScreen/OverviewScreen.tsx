@@ -278,6 +278,7 @@ export const OverviewScreen = () => {
                             className={cn('eb-size-4', {
                               'eb-text-muted-foreground': sectionDisabled,
                             })}
+                            aria-hidden
                           />
                           <h3
                             className={cn(
