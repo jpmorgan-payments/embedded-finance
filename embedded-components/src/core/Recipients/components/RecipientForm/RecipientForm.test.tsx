@@ -50,7 +50,6 @@ const defaultProps: RecipientFormProps = {
   onCancel: vi.fn(),
   isLoading: false,
   showCardWrapper: false, // Easier to test without card wrapper
-  recipientType: 'RECIPIENT',
 };
 
 // Helper function to render component
