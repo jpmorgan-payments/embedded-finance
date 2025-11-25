@@ -416,6 +416,25 @@ Always wrap components with EBComponentsProvider:
 
 1. **Error Handling**:
 
+   **Always use ServerErrorAlert for API errors:**
+
+   ```typescript
+   import { ServerErrorAlert } from "@/core/OnboardingFlow/components/ServerErrorAlert";
+
+   <ServerErrorAlert
+     error={apiError}
+     customErrorMessage={{
+       "400": "Please check the information you entered and try again.",
+       "401": "Please log in and try again.",
+       "500": "An unexpected error occurred. Please try again later.",
+       default: "An unexpected error occurred. Please try again later.",
+     }}
+     tryAgainAction={() => refetch()}
+   />;
+   ```
+
+   **For try-catch blocks:**
+
    ```typescript
    try {
      // Operation
@@ -460,24 +479,71 @@ Always wrap components with EBComponentsProvider:
 
 1. **Form Handling**:
 
+   **Basic form setup:**
+
    ```typescript
    import { useForm } from "react-hook-form";
    import { zodResolver } from "@hookform/resolvers/zod";
 
    const form = useForm({
      resolver: zodResolver(schema),
+     mode: "onBlur", // Validates on blur for better UX
+     reValidateMode: "onBlur",
    });
+   ```
+
+   **Discriminated Union Schemas (for conditional validation):**
+
+   ```typescript
+   import { z } from "zod";
+
+   const baseSchema = z.object({
+     commonField: z.string(),
+   });
+
+   export const formSchema = z.discriminatedUnion("type", [
+     z
+       .object({
+         type: z.literal("INDIVIDUAL"),
+         firstName: z.string().min(1, "First name is required"),
+         lastName: z.string().min(1, "Last name is required"),
+       })
+       .merge(baseSchema),
+     z
+       .object({
+         type: z.literal("ORGANIZATION"),
+         businessName: z.string().min(1, "Business name is required"),
+       })
+       .merge(baseSchema),
+   ]);
    ```
 
 2. **API Integration**:
 
-   ```typescript
-   import { useMutation } from "@tanstack/react-query";
+   **Using React Query mutations:**
 
+   ```typescript
+   import { useMutation, useQueryClient } from "@tanstack/react-query";
+   import { getSmbdoGetClientQueryKey } from "@/api/generated/smbdo";
+
+   const queryClient = useQueryClient();
    const mutation = useMutation({
      mutationFn: (data) => api.post("/endpoint", data),
+     onSuccess: (response) => {
+       // Invalidate related queries
+       queryClient.invalidateQueries({
+         queryKey: getSmbdoGetClientQueryKey(clientId),
+       });
+     },
    });
    ```
+
+   **Query Key Management:**
+
+   - Always use generated query keys from Orval
+   - Invalidate queries after mutations
+   - Use optimistic updates when appropriate
+   - Structure query keys for related data
 
 3. **Theme Usage**:
 
@@ -485,6 +551,87 @@ Always wrap components with EBComponentsProvider:
    import { useTheme } from "@/hooks/useTheme";
 
    const { theme } = useTheme();
+   ```
+
+4. **Loading States**:
+
+   **Always use skeleton components instead of "Loading..." text:**
+
+   ```typescript
+   import { Skeleton } from '@/components/ui/skeleton';
+
+   {isLoading && (
+     <div className="eb-space-y-3">
+       {Array.from({ length: 5 }).map((_, i) => (
+         <Skeleton key={i} className="eb-h-12 eb-w-full" />
+       ))}
+     </div>
+   )}
+
+   // For headers
+   <Skeleton className="eb-h-6 eb-w-32" />
+   <Skeleton className="eb-h-10 eb-w-28" />
+   ```
+
+5. **Status Message Management**:
+
+   **Centralize status messages in a single object:**
+
+   ```typescript
+   const STATUS_MESSAGES: Record<Status, string> = {
+     ACTIVE: "Your account is active.",
+     PENDING: "We are processing your request.",
+     INACTIVE: "The account is currently inactive.",
+     REJECTED: "We could not process this request.",
+   };
+
+   // Usage
+   {
+     STATUS_MESSAGES[status] ?? "Unknown status";
+   }
+   ```
+
+6. **Component Composition**:
+
+   **Use props to control visibility and enable composition:**
+
+   ```typescript
+   type ComponentProps = {
+     hideActions?: boolean;
+     customComponent?: React.ReactNode;
+     variant?: "default" | "compact";
+   };
+
+   export const Component: FC<ComponentProps> = ({
+     hideActions = false,
+     customComponent,
+     variant = "default",
+   }) => {
+     return (
+       <div>
+         {/* Content */}
+         {!hideActions && <ActionButtons />}
+         {customComponent}
+       </div>
+     );
+   };
+   ```
+
+7. **Dialog and Popover Patterns**:
+
+   **When using popovers inside dialogs, use explicit portals:**
+
+   ```typescript
+   <Dialog>
+     <DialogContent>
+       <Popover>
+         <PopoverTrigger>...</PopoverTrigger>
+         <PopoverContent portal={true}>
+           {/* Content - won't be clipped by dialog */}
+         </PopoverContent>
+       </Popover>
+     </DialogContent>
+   </Dialog>
    ```
 
 Remember to maintain consistency with existing codebase patterns and follow the established project structure.

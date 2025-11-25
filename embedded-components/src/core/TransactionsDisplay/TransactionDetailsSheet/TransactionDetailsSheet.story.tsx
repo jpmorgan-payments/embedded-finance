@@ -13,7 +13,7 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet';
 
-const TransactionDetailsWithProvider = ({
+export const TransactionDetailsWithProvider = ({
   transactionId,
   apiBaseUrl,
   headers,
@@ -151,22 +151,4 @@ export const LoadingState: Story = {
   },
 };
 
-export const ErrorState: Story = {
-  args: {
-    transactionId: 'txn-api-error-001',
-    apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/transactions/:id', () => {
-          return HttpResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-          );
-        }),
-      ],
-    },
-  },
-};
+// Error stories are organized in stories/TransactionDetailsSheet.errors.story.tsx

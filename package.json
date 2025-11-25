@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "@tanstack/react-table": "^8.20.5"
-  },
+  "dependencies": {},
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^15.3.0"

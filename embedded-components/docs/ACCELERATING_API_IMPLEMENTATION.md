@@ -15,6 +15,7 @@ For the quickest path to value, API providers can offer fully hosted UI solution
 ## 2. Runtime UI Injection
 
 For more flexibility, providers can offer runtime UI injection methods:
+
 - iframes for easy embedding
 - Server-side composition for seamless integration
 - Client-side composition (e.g., module federation) for dynamic, performant experiences
@@ -30,6 +31,7 @@ Publishing UI components as npm packages allows for build-time integration. This
 ## 4. UI/UX Cookbooks
 
 Detailed, human-readable guidelines for implementing web applications can significantly speed up development. These cookbooks should include:
+
 - Flow diagrams
 - Sequence diagrams
 - Best practices and code samples

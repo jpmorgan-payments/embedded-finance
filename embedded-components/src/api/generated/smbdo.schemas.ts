@@ -3,8 +3,21 @@
  * Do not edit manually.
  * Digital Onboarding API
  * Digital Onboarding APIs from J.P. Morgan.
- * OpenAPI spec version: 1.0.17
+ * OpenAPI spec version: 1.0.18
  */
+export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
+
+export type SmbdoUploadDocumentBody = {
+  /** The document metadata. */
+  documentData: string;
+  file: Blob;
+};
+
+/**
+ * Number of records per page.
+ */
+export type PageSizeParameter = number;
+
 export type SmbdoListSessionsParams = {
   /**
    * Number of records per page.
@@ -20,28 +33,21 @@ export type SmbdoListSessionsParams = {
   targetId: string;
 };
 
-export type GetAllPartiesParams = {
-  /**
-   * Unique party identifier.
-   */
-  parentPartyId?: ParentPartyIdInQueryParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
+export type SmbdoListClientsParams = {
   /**
    * Number of records per page.
    */
   limit?: PageSizeParameter;
+  /**
+   * Page number.
+   */
+  page?: PageNumberParameter;
 };
 
-export type SmbdoDownloadDocument200Six = { [key: string]: unknown };
-
-export type SmbdoUploadDocumentBody = {
-  /** The document metadata. */
-  documentData: string;
-  file: Blob;
-};
+/**
+ * Comma-separated list of Question IDs.
+ */
+export type QuestionIdListInQueryParameter = string;
 
 export type SmbdoListQuestionsParams = {
   /**
@@ -49,68 +55,6 @@ export type SmbdoListQuestionsParams = {
    */
   questionIds?: QuestionIdListInQueryParameter;
 };
-
-/**
- * The type of resource for which recommendations were requested.
- */
-export type SmbdoGetRecommendations200ResourceType =
-  (typeof SmbdoGetRecommendations200ResourceType)[keyof typeof SmbdoGetRecommendations200ResourceType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SmbdoGetRecommendations200ResourceType = {
-  NAICS_CODE: 'NAICS_CODE',
-} as const;
-
-export type SmbdoGetRecommendations200ResourceItem = {
-  /** The NAICS code identifier. */
-  naicsCode: string;
-  /** The description of the NAICS code. */
-  naicsDescription: string;
-};
-
-export type SmbdoGetRecommendations200 = {
-  /** Optional message with additional information about the recommendations. */
-  message?: string;
-  /** List of recommended resources based on the input. */
-  resource: SmbdoGetRecommendations200ResourceItem[];
-  /** The type of resource for which recommendations were requested. */
-  resourceType: SmbdoGetRecommendations200ResourceType;
-};
-
-export type SmbdoGetRecommendationsBodyValuesItem = {
-  /** The key identifier for the information. */
-  key: string;
-  /** The value associated with the key. */
-  value: string;
-};
-
-/**
- * The type of resource for which recommendations are requested.
- */
-export type SmbdoGetRecommendationsBodyResourceType =
-  (typeof SmbdoGetRecommendationsBodyResourceType)[keyof typeof SmbdoGetRecommendationsBodyResourceType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const SmbdoGetRecommendationsBodyResourceType = {
-  NAICS_CODE: 'NAICS_CODE',
-} as const;
-
-export type SmbdoGetRecommendationsBody = {
-  /** The type of resource for which recommendations are requested. */
-  resourceType: SmbdoGetRecommendationsBodyResourceType;
-  /** List of key-value pairs containing information about the organization. */
-  values: SmbdoGetRecommendationsBodyValuesItem[];
-};
-
-/**
- * Number of records per page.
- */
-export type PageSizeParameter = number;
-
-/**
- * Comma-separated list of Question IDs.
- */
-export type QuestionIdListInQueryParameter = string;
 
 /**
  * Unique Party identifier.
@@ -157,21 +101,25 @@ export type SmbdoGetAllDocumentDetailsParams = {
   limit?: PageSizeParameter;
 };
 
-export type SmbdoListClientsParams = {
-  /**
-   * Number of records per page.
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page number.
-   */
-  page?: PageNumberParameter;
-};
-
 /**
  * Unique party identifier.
  */
 export type ParentPartyIdInQueryParameter = string;
+
+export type GetAllPartiesParams = {
+  /**
+   * Unique party identifier.
+   */
+  parentPartyId?: ParentPartyIdInQueryParameter;
+  /**
+   * Page number.
+   */
+  page?: PageNumberParameter;
+  /**
+   * Number of records per page.
+   */
+  limit?: PageSizeParameter;
+};
 
 /**
  * Bad Request
@@ -228,9 +176,104 @@ export type N401Response = SchemasApiError;
  */
 export type N400Response = SchemasApiError;
 
+/**
+ * Request was accepted
+ */
 export type N202Response = {
   acceptedAt: string;
 };
+
+/**
+ * Represents an ENUM value that helps determine which recommendation needs to be performed.
+ */
+export type ResourceType = (typeof ResourceType)[keyof typeof ResourceType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ResourceType = {
+  NAICS_CODE: 'NAICS_CODE',
+} as const;
+
+export interface RecommendationDocumentResponse {
+  /** Unique identifier for the document. */
+  documentId?: string;
+  /** Name of the document. */
+  documentName?: string;
+}
+
+export interface NaicsCodeResponse {
+  /** NAICS code for the recommendation. */
+  naicsCode?: string;
+  /** Description of the NAICS code. */
+  naicsDescription?: string;
+}
+
+/**
+ * @minItems 0
+ */
+export type Resource = NaicsCodeResponse[];
+
+export interface RecommendationsResponse {
+  /**
+   * Optional message providing additional information.
+   * @nullable
+   */
+  message?: string | null;
+  resource?: Resource;
+  resourceType?: ResourceType;
+}
+
+export type ValuesItem = {
+  /** Field names which help generate recommendations. */
+  key?: string;
+  /** Represents the value associated with the key. */
+  value?: string;
+};
+
+/**
+ * Contains key-value pairs providing additional context.
+ * @minItems 0
+ */
+export type Values = ValuesItem[];
+
+export interface RecommendationsRequest {
+  resourceType: ResourceType;
+  values: Values;
+}
+
+/**
+ * Provide details for stock exchange and ticker symbol if your organization is a publicly traded company.
+If your organization is a subsidiary use these fields to provide details of the parent organization. If
+your organization is listed on multiple stock exchanges provide the highest priority listing by order:
+- "XNYS" for the New York Stock Exchange or "XNAS" for NASDAQ.
+- One of the exchanges listed in [Publicly Traded Companies](https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/publicly-traded-companies)
+- Other
+
+ */
+export interface PubliclyTraded {
+  /**
+   * Supported options are "XNYS", "XNAS", one of the symbols listed on [Publicly Traded Companies](https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/publicly-traded-companies) or "Other". The stock exchange symbol used by the organization which is registered with the provided "tickerSymbol". This field is case-sensitive.
+
+   * @minLength 1
+   * @maxLength 10
+   * @pattern ^[A-Za-z]*$
+   */
+  stockExchange: string;
+  /**
+   * If "stockExchange" is "Other", use this field to provide the name of the stock exchange.
+
+   * @minLength 1
+   * @maxLength 100
+   * @pattern ^.*$
+   */
+  stockExchangeName?: string;
+  /**
+   * The official ticker symbol assigned to the organization for the provided "stockExchange" field. This typically consists of 3 to 6 uppercase letters.
+   * @minLength 1
+   * @maxLength 10
+   * @pattern ^[A-Z0-9]*$
+   */
+  tickerSymbol: string;
+}
 
 export type SessionsType = (typeof SessionsType)[keyof typeof SessionsType];
 
@@ -753,6 +796,9 @@ export interface ClientVerificationRequest {
   consumerDevice?: ConsumerDevice;
 }
 
+export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
+  UpdatePartyRequestInline;
+
 /**
  * Describes which attestation to remove. An existing attestation with a matching `documentId` will be removed.
  */
@@ -811,9 +857,6 @@ export interface UpdatePartyRequestInline {
   roles?: PartyRoleList;
 }
 
-export type UpdateClientRequestSmbdoAddPartiesItem = CreatePartyRequestInline &
-  UpdatePartyRequestInline;
-
 export type ClientUpdatedResponse = ClientResponse & {
   consumerDevice?: ConsumerDevice;
 };
@@ -863,31 +906,6 @@ export interface ClientQuestionResponse {
   values?: ResponseValueList;
 }
 
-export interface ClientResponse {
-  /**
-   * @deprecated
-   * @minItems 0
-   * @maxItems 10
-   */
-  attestations?: Attestation[];
-  consumerDevice?: ConsumerDevice;
-  /** Date and time when the client was created */
-  createdAt?: string;
-  id: ClientId;
-  outstanding: ClientResponseOutstanding;
-  /** @minItems 0 */
-  parties?: PartyResponse[];
-  partyId: PartyId;
-  products: ClientProductList;
-  /**
-   * @minItems 0
-   * @maxItems 200
-   */
-  questionResponses?: ClientQuestionResponse[];
-  results?: ClientResults;
-  status: ClientStatus;
-}
-
 /**
  * The preferences of the party.
  */
@@ -914,6 +932,31 @@ export interface PartyResponse {
   roles?: PartyRoleList;
   status?: PartyStatus;
   validationResponse?: ValidationResponse;
+}
+
+export interface ClientResponse {
+  /**
+   * @deprecated
+   * @minItems 0
+   * @maxItems 10
+   */
+  attestations?: Attestation[];
+  consumerDevice?: ConsumerDevice;
+  /** Date and time when the client was created */
+  createdAt?: string;
+  id: ClientId;
+  outstanding: ClientResponseOutstanding;
+  /** @minItems 0 */
+  parties?: PartyResponse[];
+  partyId: PartyId;
+  products: ClientProductList;
+  /**
+   * @minItems 0
+   * @maxItems 200
+   */
+  questionResponses?: ClientQuestionResponse[];
+  results?: ClientResults;
+  status: ClientStatus;
 }
 
 /**
@@ -1286,6 +1329,10 @@ export interface OrganizationIdentityDto {
   value: string;
 }
 
+/**
+ * This field specifies the legal structure or classification of the organization and identifies whether the entity is a Corporation, Sole Proprietorship, Non-Profit, or Government Body. Note: The values `PARTNERSHIP` and `PUBLICLY_TRADED_COMPANY` are deprecated and should not be used.
+
+ */
 export type OrganizationType =
   (typeof OrganizationType)[keyof typeof OrganizationType];
 
@@ -1346,14 +1393,14 @@ export interface OrganizationIndustry {
 }
 
 /**
- * The industry type of the business connected to the client. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/industry-descriptor-reference) to get a list of acceptable values.
+ * The industry type of the business connected to the client. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/industry-descriptor-reference) to get a list of acceptable values.
 
  * @minLength 0
  */
 export type OrganizationIndustryType = string;
 
 /**
- * The industry category of the business connected to the client. For example, `Accommodation and Food Services`. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/how-to/onboard-a-client/industry-descriptor-reference) to get a list of acceptable values.
+ * The industry category of the business connected to the client. For example, `Accommodation and Food Services`. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/industry-descriptor-reference) to get a list of acceptable values.
 
  * @minLength 0
  */
@@ -1393,6 +1440,9 @@ export interface OrganizationDetails {
   industry?: OrganizationIndustry;
   industryCategory?: OrganizationIndustryCategory;
   industryType?: OrganizationIndustryType;
+  /** Is your organization a subsidiary of a publicly traded company or not. This field is required when "publiclyTraded" block is provided in organization details. If this field is given in payload (true | false),  then the "publiclyTraded" will be required as well.
+   */
+  isSubsidiary?: boolean;
   /** @deprecated */
   jurisdiction?: CountryCodeIsoAlpha2;
   mcc?: MerchantCategoryCode;
@@ -1405,6 +1455,7 @@ export interface OrganizationDetails {
   organizationName?: OrganizationName;
   organizationType?: OrganizationType;
   phone?: PhoneSmbdo;
+  publiclyTraded?: PubliclyTraded;
   /**
    * The list of additional merchant category codes describing  industries that the business is in.
 
@@ -1418,8 +1469,6 @@ export interface OrganizationDetails {
   yearOfFormation?: YearOfFormation;
 }
 
-export type IndividualDetailsRequired = IndividualDetails;
-
 export type SoleOwner = boolean;
 
 /**
@@ -1429,6 +1478,39 @@ export type SoleOwner = boolean;
  * @pattern ^[A-Za-z0-9-_:.,;!?~*'()/=+&%@#]+$
  */
 export type SocialMediaUrl = string;
+
+/**
+ * Details of an individual.
+ */
+export interface IndividualDetails {
+  /**
+   * @minItems 1
+   * @maxItems 5
+   */
+  addresses?: AddressDto[];
+  birthDate?: BirthDate;
+  countryOfResidence?: CountryCodeIsoAlpha2;
+  firstName?: FirstName;
+  /**
+   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
+   * @minItems 0
+   * @maxItems 16
+   */
+  individualIds?: IndividualIdentity[];
+  jobTitle?: IndividualJobTitle;
+  jobTitleDescription?: IndividualJobTitleDescription;
+  lastName?: LastName;
+  middleName?: MiddleName;
+  nameSuffix?: NameSuffix;
+  natureOfOwnership?: NatureOfOwnership;
+  phone?: PhoneSmbdo;
+  socialMedia?: SocialMediaList;
+  socialMediaUrl?: SocialMediaUrl;
+  /** @deprecated */
+  soleOwner?: SoleOwner;
+}
+
+export type IndividualDetailsRequired = IndividualDetails;
 
 /**
  * The platform of the social media profile.
@@ -1479,37 +1561,6 @@ export type SocialMediaList = SocialMedia[];
 
  */
 export type NatureOfOwnership = string;
-
-/**
- * Details of an individual.
- */
-export interface IndividualDetails {
-  /**
-   * @minItems 1
-   * @maxItems 5
-   */
-  addresses?: AddressDto[];
-  birthDate?: BirthDate;
-  countryOfResidence?: CountryCodeIsoAlpha2;
-  firstName?: FirstName;
-  /**
-   * An individual's identification. For Merchant_Services product in Canada, individual party ID is optional.
-   * @minItems 0
-   * @maxItems 16
-   */
-  individualIds?: IndividualIdentity[];
-  jobTitle?: IndividualJobTitle;
-  jobTitleDescription?: IndividualJobTitleDescription;
-  lastName?: LastName;
-  middleName?: MiddleName;
-  nameSuffix?: NameSuffix;
-  natureOfOwnership?: NatureOfOwnership;
-  phone?: PhoneSmbdo;
-  socialMedia?: SocialMediaList;
-  socialMediaUrl?: SocialMediaUrl;
-  /** @deprecated */
-  soleOwner?: SoleOwner;
-}
 
 export type PhoneSmbdoPhoneType =
   (typeof PhoneSmbdoPhoneType)[keyof typeof PhoneSmbdoPhoneType];
@@ -1669,7 +1720,7 @@ export const AddressDtoAddressType = {
  */
 export interface AddressDto {
   /**
-   * The address lines. Post-office boxes (PO Box) and private mail boxes (PMB) addresses are not allowed. Each line has a maximum of 60 characters.  The line format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&\_\'\ \#]*$`.
+   * The address lines. Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address has to be the be principal place of business. Each line has a maximum of 60 characters. The line format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&\_\'\ \#]*$`.
 
    * @minItems 1
    * @maxItems 5
@@ -1678,8 +1729,8 @@ export interface AddressDto {
   /** Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`. */
   addressType?: AddressDtoAddressType;
   /**
-   * City has a maximum of 34 characters. City would serve as County in countries where applicable.
-   * @maxLength 34
+   * City has a maximum of 40 characters. City would serve as County in countries where applicable.
+   * @maxLength 40
    */
   city: string;
   /**

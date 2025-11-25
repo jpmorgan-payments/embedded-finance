@@ -28,13 +28,13 @@ import { PersonalDetailsSection } from './PersonalDetailsSection';
 import { createDynamicRecipientFormSchema } from './RecipientForm.schema';
 import type { FormData, RecipientFormProps } from './RecipientForm.types';
 import { RoutingNumbersSection } from './RoutingNumbersSection';
+import { mapContactsToFormData } from './utils/contactUtils';
 // Utils
+import { buildRecipientRequest } from './utils/formSubmissionUtils';
 import {
-  buildRecipientRequest,
   extractPaymentMethods,
   extractRoutingNumbers,
-  mapContactsToFormData,
-} from './utils';
+} from './utils/paymentUtils';
 
 // Helper function to get required contact types from payment methods
 function getRequiredContactTypes(

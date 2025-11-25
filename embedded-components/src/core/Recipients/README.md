@@ -11,7 +11,6 @@ The Recipients embedded component provides a comprehensive interface for managin
 The Recipients component is designed around the following key capabilities:
 
 1. **Recipients Management**
-
    - List all recipients with pagination and filtering
    - Create new recipients (individuals and organizations)
    - Edit existing recipient details
@@ -19,7 +18,6 @@ The Recipients component is designed around the following key capabilities:
    - Handle recipient status transitions
 
 2. **Account Verification**
-
    - Microdeposit verification workflow
    - Account validation responses
    - Status tracking for verification processes
@@ -59,7 +57,6 @@ Recipients/
 #### 1.2 API Integration Strategy
 
 - **Primary Hooks**: Leverage generated hooks from `ep-recipients.ts`
-
   - `useGetAllRecipients` - List recipients with pagination
   - `useCreateRecipient` - Create new recipients
   - `useGetRecipient` - Fetch single recipient details

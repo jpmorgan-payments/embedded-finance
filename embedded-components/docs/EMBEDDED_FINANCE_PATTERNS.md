@@ -359,6 +359,296 @@ const isTablet = containerWidth >= 640 && containerWidth < 1024;
 
 ---
 
+### Enhanced Data Grid Pattern (TanStack Table)
+
+**Description**: Powerful data tables built with TanStack Table (formerly React Table) following shadcn/ui patterns, providing sorting, filtering, pagination, column visibility, and advanced interactions.
+
+**Implementation**:
+
+- **Primary**: `TransactionsDisplay/components/TransactionsTable/`
+- **Secondary**: `app/client/src/features/Recipients/RecipientsTable.tsx`
+- **Status**: ✅ Well-implemented with full feature set
+
+**Pattern Details**:
+
+```typescript
+// Table setup with TanStack Table
+const table = useReactTable({
+  data,
+  columns,
+  onSortingChange: setSorting,
+  onColumnFiltersChange: setColumnFilters,
+  getCoreRowModel: getCoreRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  onColumnVisibilityChange: setColumnVisibility,
+  state: {
+    sorting,
+    columnFilters,
+    columnVisibility,
+  },
+  initialState: {
+    pagination: { pageSize: 25 },
+    sorting: [{ id: 'createdAt', desc: true }],
+  },
+});
+
+// Column definitions with sorting, filtering, formatting
+export const columns: ColumnDef<DataType>[] = [
+  {
+    accessorKey: 'name',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Name" />
+    ),
+    cell: ({ row }) => <div>{formatName(row.original)}</div>,
+    filterFn: (row, id, value) => {
+      return row.getValue(id).toLowerCase().includes(value.toLowerCase());
+    },
+  },
+  // ... more columns
+];
+```
+
+**Features**:
+
+- **Sorting**: All columns sortable with visual indicators (asc/desc/unsorted)
+- **Filtering**: Multiple filter types (dropdown selects, text inputs, custom filter functions)
+- **Column Visibility**: Toggle columns on/off via dropdown menu
+- **Pagination**: Client-side pagination with page size controls (10, 20, 25, 30, 40, 50)
+- **Column Headers**: Reusable `DataTableColumnHeader` component with sort/hide controls
+- **Actions Column**: Dropdown menu for row actions (view, edit, delete, etc.)
+- **Empty States**: Proper handling of no results
+- **Loading States**: Skeleton loading during data fetch
+- **Responsive**: Works across device sizes
+
+**Component Structure**:
+
+```
+ComponentTable/
+├── ComponentTable.tsx              # Main table component
+├── ComponentTable.columns.tsx       # Column definitions
+├── ComponentTableToolbar.tsx       # Filter controls
+├── DataTablePagination.tsx         # Pagination controls
+├── DataTableColumnHeader.tsx       # Sortable column header
+└── DataTableViewOptions.tsx        # Column visibility toggle
+```
+
+**Column Definition Pattern**:
+
+```typescript
+// Default visible columns
+{
+  accessorKey: 'status',
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Status" />
+  ),
+  cell: ({ row }) => (
+    <Badge variant={getStatusVariant(row.getValue('status'))}>
+      {row.getValue('status')}
+    </Badge>
+  ),
+  filterFn: (row, id, value) => {
+    return value.includes(row.getValue(id));
+  },
+}
+
+// Hidden by default (toggleable)
+{
+  accessorKey: 'createdAt',
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="Created" />
+  ),
+  cell: ({ row }) => formatDate(row.original.createdAt),
+}
+
+// Actions column (always visible)
+{
+  id: 'actions',
+  enableHiding: false,
+  cell: ({ row }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => onView(row.original)}>
+          View Details
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(row.original)}>
+          Edit
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+}
+```
+
+**Toolbar Pattern**:
+
+```typescript
+// Filter controls in toolbar
+<div className="flex items-center gap-2">
+  {/* Status Filter */}
+  <Select
+    value={statusFilter || 'all'}
+    onValueChange={(value) => {
+      table.getColumn('status')?.setFilterValue(
+        value === 'all' ? undefined : [value]
+      );
+    }}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder="All statuses" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">All statuses</SelectItem>
+      {statusOptions.map((status) => (
+        <SelectItem key={status} value={status}>
+          {status}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+
+  {/* Text Filter */}
+  <Input
+    placeholder="Filter name..."
+    value={nameFilter ?? ''}
+    onChange={(event) =>
+      table.getColumn('name')?.setFilterValue(event.target.value)
+    }
+  />
+
+  {/* Reset Filters */}
+  {isFiltered && (
+    <Button
+      variant="ghost"
+      onClick={() => table.resetColumnFilters()}
+    >
+      Reset <X />
+    </Button>
+  )}
+</div>
+```
+
+**Pagination Pattern**:
+
+```typescript
+// Pagination controls
+<div className="flex items-center justify-between">
+  <div className="text-sm text-muted-foreground">
+    {table.getFilteredRowModel().rows.length} row(s) total
+  </div>
+  <div className="flex items-center gap-6">
+    <div className="flex items-center gap-2">
+      <p className="text-sm font-medium">Rows per page</p>
+      <Select
+        value={`${table.getState().pagination.pageSize}`}
+        onValueChange={(value) => table.setPageSize(Number(value))}
+      >
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {[10, 20, 25, 30, 40, 50].map((size) => (
+            <SelectItem key={size} value={`${size}`}>
+              {size}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+    <div className="text-sm font-medium">
+      Page {table.getState().pagination.pageIndex + 1} of{' '}
+      {table.getPageCount()}
+    </div>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.setPageIndex(0)}
+        disabled={!table.getCanPreviousPage()}
+      >
+        <ChevronsLeft />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.previousPage()}
+        disabled={!table.getCanPreviousPage()}
+      >
+        <ChevronLeft />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.nextPage()}
+        disabled={!table.getCanNextPage()}
+      >
+        <ChevronRight />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+        disabled={!table.getCanNextPage()}
+      >
+        <ChevronsRight />
+      </Button>
+    </div>
+  </div>
+</div>
+```
+
+**Best Practices**:
+
+1. **Column Organization**:
+   - Most important columns visible by default
+   - Less frequently used columns hidden by default (toggleable)
+   - Actions column always visible, non-hideable
+
+2. **Filtering**:
+   - Use dropdown selects for enum values (status, type)
+   - Use text inputs for searchable fields (name, ID, account number)
+   - Provide "Reset" button when filters are active
+   - Show filter count or active filter indicators
+
+3. **Sorting**:
+   - Default sort by most recent/important column (descending)
+   - All data columns should be sortable
+   - Use `DataTableColumnHeader` for consistent sorting UI
+
+4. **Actions**:
+   - Use dropdown menu for row actions (3+ actions)
+   - Use icon buttons for single primary action
+   - Group related actions together
+   - Destructive actions (delete, deactivate) at bottom with red styling
+
+5. **Performance**:
+   - Use client-side filtering/sorting for < 1000 rows
+   - Consider server-side pagination for large datasets
+   - Memoize column definitions if using dynamic columns
+   - Use `enableHiding: false` for critical columns
+
+**Refinement Needed**:
+
+- ⚠️ **Accounts**: Could benefit from enhanced data grid pattern
+- ⚠️ **Recipients (embedded-components)**: Could migrate to this pattern
+- ⚠️ **Server-side pagination**: Some tables may need server-side implementation
+
+**Usability Alignment**:
+
+- ✅ **Flexibility & Efficiency**: Powerful filtering and sorting capabilities
+- ✅ **User Control**: Column visibility, filter reset, pagination controls
+- ✅ **Recognition Rather Than Recall**: Visible filter state, sort indicators
+- ✅ **Visibility of System Status**: Loading states, empty states, row counts
+- ✅ **Error Prevention**: Filter validation, disabled states for pagination
+
+---
+
 ### Dialog/Modal Form Pattern
 
 **Description**: Forms presented in modal dialogs with scrollable content, proper focus management, and state preservation.
@@ -405,6 +695,235 @@ const isTablet = containerWidth >= 640 && containerWidth < 1024;
 - ✅ **User Control**: Easy to open/close
 - ✅ **Error Prevention**: Form validation before submission
 - ✅ **Flexibility & Efficiency**: Quick access without navigation
+
+---
+
+### Compact Resource Details Pattern
+
+**Description**: Single-column, minimal-gap layout for displaying complex resource details in dialogs or panels. Optimized for space efficiency while maintaining readability.
+
+**Implementation**:
+
+- **Primary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx`
+- **Secondary**: `Recipients/components/RecipientDetails/RecipientDetails.tsx`
+- **Status**: ✅ Well-implemented with consistent field rendering
+
+**Pattern Details**:
+
+```typescript
+// Helper function for consistent field rendering
+const renderField = (label: string, value: any, formatter?: (val: any) => string) => {
+  if (!value) return null;
+  const displayValue = formatter ? formatter(value) : value || 'N/A';
+  return (
+    <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
+      <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
+        {label}
+      </Label>
+      <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+        {displayValue}
+      </div>
+    </div>
+  );
+};
+
+// Section structure
+<div className="eb-space-y-1.5">
+  <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+    Section Name
+  </h3>
+  <div className="eb-space-y-1">
+    {renderField('Field Label', fieldValue)}
+    {renderField('Another Field', anotherValue)}
+  </div>
+</div>
+```
+
+**Features**:
+
+- Single-column layout (no grid columns)
+- Minimal spacing (`eb-space-y-2` for sections, `eb-space-y-1` for fields)
+- Label/value pairs with flex layout (label left, value right-aligned)
+- Uppercase section headers with muted styling
+- Compact font sizes (`eb-text-sm` for labels/values)
+- No Card components for sections (spacing-only separation)
+- Conditional field rendering (hide empty values)
+- Prominent display for key values (amount, name)
+- Subtle separators between sections (`eb-border-t-2 eb-border-border/40`)
+
+**Status and State Display**:
+
+Use Badge components for status and important state attributes:
+
+```typescript
+// Status with semantic variants
+<Badge variant={getStatusVariant(status)} className="eb-text-sm">
+  {status}
+</Badge>
+
+// Status variant mapping
+const getStatusVariant = (status?: string) => {
+  switch (status) {
+    case 'COMPLETED': return 'default';
+    case 'PENDING': return 'secondary';
+    case 'REJECTED':
+    case 'RETURNED':
+    case 'FAILED': return 'destructive';
+    default: return 'outline';
+  }
+};
+```
+
+**When to Use Badges/Chips**:
+
+- ✅ **Status values**: Transaction status, recipient status, account state
+- ✅ **Type indicators**: Transaction type, payment method type
+- ✅ **State attributes**: Active/Inactive, Verified/Unverified
+- ❌ **Regular data fields**: Names, IDs, dates, amounts (use plain text)
+
+**Dialog Header Structure**:
+
+The resource name/identifier should be displayed in the DialogHeader (sticky area), not in the content. Include a resource type prefix for clarity:
+
+```typescript
+// Dialog wrapper (in parent component)
+<Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
+    <DialogHeader className="eb-pb-4">
+      <DialogTitle>
+        {resourceType}: {resourceName}
+      </DialogTitle>
+    </DialogHeader>
+    <div className="eb-scrollable-content">
+      <ResourceDetails {...props} />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+**Examples**:
+
+- `Transaction: {transactionId}`
+- `Recipient: {recipientName}`
+- `Account: {accountNumber}`
+
+**Optimal Element Order** (Based on Nielsen's Heuristics):
+
+The recommended order for detail views follows UX best practices:
+
+```typescript
+// 1. Status Tags/Badges - Quick visual status indicators (first in content)
+<div className="eb-flex eb-items-center eb-gap-2">
+  <Badge variant={getStatusVariant(status)}>{status}</Badge>
+  <Badge variant="outline">{type}</Badge>
+</div>
+
+// 3. Critical Alerts - Blocking issues (validation errors, critical warnings)
+{!validation.isValid && (
+  <Alert variant="destructive">
+    <AlertDescription>
+      {/* Error details */}
+    </AlertDescription>
+  </Alert>
+)}
+
+// 4. Informational Alerts - Contextual information (status descriptions, helpful tips)
+<Alert>
+  <Info className="eb-h-4 eb-w-4" />
+  <AlertDescription>{statusDescription}</AlertDescription>
+</Alert>
+
+// 5. Actions - Available after user understands the state
+{(showEditButton || showDeactivateButton) && (
+  <div className="eb-flex eb-gap-2">
+    {showEditButton && (
+      <Button onClick={onEdit} variant="secondary" size="sm">
+        Edit Resource
+      </Button>
+    )}
+    {showDeactivateButton && (
+      <Button onClick={onDeactivate} variant="secondary" size="sm">
+        Deactivate
+      </Button>
+    )}
+  </div>
+)}
+
+// 6. Details Sections - The actual resource data
+<div className="eb-space-y-1.5">
+  {/* Resource details */}
+</div>
+
+// 7. Close Button - Always at bottom, full width
+<div className="eb-pt-3">
+  <Button onClick={onClose} variant="outline" className="eb-w-full">
+    Close
+  </Button>
+</div>
+```
+
+**Order Rationale** (Nielsen's 10 Heuristics):
+
+1. **Title** → Visibility of System Status (users know what they're viewing)
+2. **Tags/Badges** → Visibility of System Status (immediate status recognition)
+3. **Critical Alerts** → Help Users Recognize Errors (blocking issues first)
+4. **Informational Alerts** → Help & Documentation (contextual guidance)
+5. **Actions** → User Control (actions available after understanding state)
+6. **Details** → Recognition Rather Than Recall (information visible)
+7. **Close** → User Control (easy exit)
+
+**Action Placement Guidelines**:
+
+- **Actions placement**: After alerts, before details (allows informed decisions)
+- **Primary actions** (Edit): Inline with other actions, use `variant="secondary" size="sm"`
+- **Destructive actions** (Deactivate, Delete): Same section, use red styling (`eb-text-red-600 hover:eb-bg-red-50`)
+- **Close button**: Always full-width at bottom (`eb-w-full`)
+- **Action buttons**: Use `size="sm"` for compact display
+- **Action grouping**: Group related actions together in a flex container
+
+**History and Timeline Details**:
+
+For resources with history or timeline information, display in a dedicated section:
+
+```typescript
+// Timeline/History section
+{resource.createdAt && (
+  <>
+    <div className="eb-border-t-2 eb-border-border/40" />
+    <div className="eb-space-y-1.5">
+      <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+        Timeline
+      </h3>
+      <div className="eb-space-y-1">
+        {renderField('Created', formatDateTime(resource.createdAt))}
+        {renderField('Updated', formatDateTime(resource.updatedAt))}
+        {renderField('Last Modified', formatDateTime(resource.lastModifiedAt))}
+      </div>
+    </div>
+  </>
+)}
+```
+
+**History Display Guidelines**:
+
+- Use "Timeline" or "History" as section header
+- Include: Created date, Updated date, Last modified date
+- Format dates consistently using `toLocaleString()` or custom formatters
+- Show most recent events first (if displaying event history)
+- Use conditional rendering (only show if dates exist)
+
+**Refinement Needed**:
+
+- ⚠️ **Accounts**: Account details could use this pattern
+- ⚠️ **LinkedAccountWidget**: Account details view could adopt this pattern
+
+**Usability Alignment**:
+
+- ✅ **Aesthetic & Minimalist Design**: Clean, space-efficient layout
+- ✅ **Recognition Rather Than Recall**: Consistent field structure
+- ✅ **Flexibility & Efficiency**: Quick scanning of information
+- ✅ **Visibility of System Status**: Clear section organization with status badges
+- ✅ **User Control**: Accessible actions for resource management
 
 ---
 
@@ -1308,14 +1827,16 @@ const contentTokens = useContext(ContentTokensContext);
 | Pattern                    | Accounts | Recipients | MakePayment | TransactionsDisplay | OnboardingFlow | LinkedAccountWidget |
 | -------------------------- | -------- | ---------- | ----------- | ------------------- | -------------- | ------------------- |
 | **Sensitive Data Masking** | ✅       | ⚠️ Needs   | -           | ⚠️ Needs            | -              | -                   |
-| **Status Badges**          | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | ✅                  |
+| **Status Badges**          | ⚠️ Needs | ✅         | -           | ✅                  | -              | ✅                  |
 | **Progressive Validation** | -        | ✅         | ✅          | -                   | ⚠️ Partial     | -                   |
 | **Loading Skeletons**      | ✅       | ✅         | -           | ⚠️ Needs            | ⚠️ Partial     | ✅                  |
 | **Error with Retry**       | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | ✅             | ✅                  |
 | **Empty States**           | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | -              | ✅                  |
 | **Responsive Table/Cards** | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
+| **Enhanced Data Grid**     | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 | **Dialog Forms**           | -        | ✅         | ✅          | -                   | ⚠️ Partial     | ✅                  |
-| **Filter & Search**        | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | -                   |
+| **Compact Details**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | ⚠️ Needs            |
+| **Filter & Search**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 | **Review Panel**           | -        | ⚠️ Needs   | ✅          | -                   | ⚠️ Needs       | -                   |
 | **Wizard/Stepper**         | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |
 | **Timeline/Progress**      | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |
@@ -1324,7 +1845,7 @@ const contentTokens = useContext(ContentTokensContext);
 | **Config-Driven Forms**    | -        | ✅         | ⚠️ Needs    | -                   | ⚠️ Partial     | -                   |
 | **Multi-Mode Forms**       | -        | ⚠️ Needs   | ✅          | -                   | -              | ⚠️ Needs            |
 | **Success States**         | -        | ⚠️ Needs   | ✅          | -                   | -              | ⚠️ Needs            |
-| **Pagination**             | ⚠️ Needs | ✅         | -           | ⚠️ Needs            | -              | -                   |
+| **Pagination**             | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
 
 **Legend**:
 
@@ -1368,7 +1889,7 @@ const contentTokens = useContext(ContentTokensContext);
 1. **Standardize Status Badge System**: Create shared status badge component with consistent variants
 2. **Implement Sensitive Data Masking**: Add masking pattern to Recipients and TransactionsDisplay
 3. **Enhance Error States**: Improve error handling consistency across all components
-4. **Add Pagination**: Implement pagination for TransactionsDisplay and Accounts when needed
+4. **Migrate to Enhanced Data Grid**: Migrate Accounts and Recipients (embedded-components) to Enhanced Data Grid pattern
 
 ### Medium Priority
 
@@ -1380,7 +1901,7 @@ const contentTokens = useContext(ContentTokensContext);
 ### Low Priority
 
 1. **Wizard Pattern Extraction**: Extract wizard pattern for reuse in MakePayment and LinkedAccountWidget
-2. **Filter & Search Enhancement**: Add search/filter to TransactionsDisplay and Accounts
+2. **Filter & Search Enhancement**: Add search/filter to Accounts (TransactionsDisplay and Recipients now have it)
 3. **Multi-Mode Form Pattern**: Extend multi-mode pattern to Recipients and LinkedAccountWidget
 4. **Configuration-Driven Forms**: Enhance MakePayment and OnboardingFlow with more configuration options
 

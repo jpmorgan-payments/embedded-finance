@@ -4,33 +4,84 @@ description: Component creation workflow and structure for embedded-components
 
 # Component Creation Workflow
 
+## ⚠️ CRITICAL: Follow ARCHITECTURE.md
+
+**All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
+
+**Before generating any component code, review `embedded-components/ARCHITECTURE.md` for the complete pattern.**
+
 ## Repository Structure
 
 Active development is in the `embedded-components/` package. Other packages (`app/`, `embedded-finance-sdk/`) are not currently active.
 
 ## Component Location and Structure
 
-New components must be placed in `embedded-components/src/core/` with this structure:
+New components must be placed in `embedded-components/src/core/` following the architecture pattern:
 
 ```
 ComponentName/
-├── ComponentName.tsx          # Main component
-├── ComponentName.test.tsx     # Tests with MSW integration
-├── ComponentName.story.tsx    # Storybook stories
-├── ComponentName.schema.ts    # Zod validation schema (if needed)
-├── components/                # Sub-components (if needed)
-│   └── SubComponent/
-├── hooks/                     # Custom hooks (if needed)
-├── utils/                     # Helper functions (if needed)
-└── index.ts                   # Exports
+├── index.ts                          # Public API exports only
+├── ComponentName.tsx                 # Main component
+├── ComponentName.test.tsx            # Colocated test
+├── ComponentName.types.ts            # Public types ONLY
+├── ComponentName.constants.ts        # Constants
+│
+├── hooks/                            # Individual files (flat)
+│   ├── useData.ts
+│   ├── useData.test.tsx
+│   ├── useForm.ts
+│   ├── useForm.test.tsx
+│   └── index.ts                      # Barrel export
+│
+├── utils/                            # Individual files (flat)
+│   ├── helper.ts
+│   ├── helper.test.ts
+│   └── index.ts                      # Barrel export
+│
+├── components/                       # NO index files
+│   ├── SubCard/
+│   │   ├── SubCard.tsx
+│   │   └── SubCard.test.tsx
+│   └── SubSkeleton/
+│       ├── SubSkeleton.tsx
+│       └── SubSkeleton.test.tsx
+│
+├── forms/                            # Only if .schema.ts exists
+│   └── CreateForm/
+│       ├── CreateForm.tsx
+│       ├── CreateForm.test.tsx
+│       └── CreateForm.schema.ts      # Zod schema
+│
+└── stories/
+    └── ComponentName.story.tsx
 ```
 
 ## Required Files for Every Component
 
 1. **Main Component** (`ComponentName.tsx`)
-2. **Tests** (`ComponentName.test.tsx`) with MSW integration
+2. **Tests** (`ComponentName.test.tsx`) with MSW integration - colocated with implementation
 3. **Storybook** (`ComponentName.story.tsx`) with comprehensive stories
-4. **Index exports** (`index.ts`)
+4. **Public Types** (`ComponentName.types.ts`) - ONLY public API types
+5. **Index exports** (`index.ts`) - Minimal public API only
+
+## Public API Pattern
+
+Component root `index.ts` - Minimal, explicit exports:
+
+```typescript
+/**
+ * ComponentName - Public API
+ */
+
+// Main component
+export { ComponentName } from './ComponentName';
+
+// Public types only
+export type { ComponentNameProps } from './ComponentName.types';
+
+// ❌ DON'T export internals:
+// - Hooks, sub-components, utils, constants
+```
 
 ## Export Requirements
 
@@ -38,6 +89,18 @@ After creating a component, update these files:
 
 - `embedded-components/src/index.tsx` - Main library exports
 - `embedded-components/src/vanilla/componentRegistry.ts` - Component registry
+
+## Import Patterns
+
+```typescript
+// ✅ CORRECT - Direct imports (tree-shakeable)
+import { ComponentCard } from "./components/ComponentCard";
+import { ComponentSkeleton } from "./components/ComponentSkeleton";
+import { useComponentData } from "./hooks"; // Can use barrel for convenience
+
+// ❌ WRONG - Aggregation barrel (prevents tree-shaking)
+import { ComponentCard, ComponentSkeleton } from "./components"; // No index.ts!
+```
 
 ## Technology Stack Requirements
 
@@ -54,17 +117,88 @@ After creating a component, update these files:
 ```typescript
 // ComponentName.tsx
 import { FC } from "react";
-import { z } from "zod";
 
+// Internal types stay in component file
+interface InternalState {
+  // Internal state types
+}
+
+// ComponentName.types.ts - Public API only
 export interface ComponentNameProps {
   // Props definition with JSDoc
 }
 
-export const ComponentName: FC<ComponentNameProps> = (
-  {
-    // Props destructuring
-  }
-) => {
+export const ComponentName: FC<ComponentNameProps> = ({
+  // Props destructuring
+}) => {
   return <div className="eb-custom-classes">{/* Component JSX */}</div>;
 };
+```
+
+## Hook Pattern (Individual Files)
+
+```typescript
+// hooks/useComponentData.ts
+import { useQuery } from "@tanstack/react-query";
+
+interface UseComponentDataOptions {
+  // Hook options
+}
+
+export function useComponentData(options: UseComponentDataOptions) {
+  return useQuery({
+    queryKey: ["component-data"],
+    queryFn: () => fetch("/api/data"),
+  });
+}
+
+// hooks/useComponentData.test.tsx - Colocated test
+import { renderHook, waitFor } from "@testing-library/react";
+import { useComponentData } from "./useComponentData";
+
+describe("useComponentData", () => {
+  test("fetches data", async () => {
+    const { result } = renderHook(() => useComponentData({}));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+});
+```
+
+## Utility Pattern (Individual Files)
+
+```typescript
+// utils/formatValue.ts
+export function formatValue(value: number): string {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+// utils/formatValue.test.ts - Colocated test
+import { formatValue } from "./formatValue";
+
+describe("formatValue", () => {
+  test("formats numbers correctly", () => {
+    expect(formatValue(1000)).toBe("1,000");
+  });
+});
+```
+
+## Code Organization Decision Tree
+
+```
+New Code?
+  ├─→ Hook?
+  │   ├─→ Used by 2+ components? → src/lib/hooks/useHookName.ts
+  │   └─→ Used by 1 component? → ComponentName/hooks/useHookName.ts
+  │
+  ├─→ Utility?
+  │   ├─→ Used by 2+ components? → src/lib/utils/utilName.ts
+  │   └─→ Used by 1 component? → ComponentName/utils/utilName.ts
+  │
+  ├─→ Component?
+  │   ├─→ Used by 2+ features? → src/components/ComponentName/
+  │   └─→ Used by 1 feature? → ComponentName/components/SubComponent/
+  │
+  ├─→ Form?
+  │   ├─→ Has .schema.ts? → ComponentName/forms/FormName/
+  │   └─→ No schema? → ComponentName/components/DialogName/
 ```

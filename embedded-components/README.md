@@ -49,13 +49,11 @@ graph LR
 #### Integration Flexibility
 
 1. **Runtime Customization**
-
    - Inject design tokens to match parent app's theme or use the default ones
    - Override content tokens from parent app's CMS systems or any other source
    - Connect to parent app's monitoring via `userEventsHandler`
 
 2. **Component Configuration**
-
    - Configure API endpoints via provider
    - Customize component behavior through props
 
@@ -66,7 +64,6 @@ graph LR
 #### Future Extensibility
 
 1. **Field Configuration**
-
    - Externalization of field mapping logic
    - Custom field validation rules
    - Dynamic form layout configuration
@@ -116,14 +113,12 @@ graph TB
 ### Key Principles
 
 1. **OpenAPI Specification (OAS) & Future Arazzo Flows**
-
    - OAS defines API contracts and types
    - Serves as source of truth for API interfaces
    - Generates TypeScript types and React Query hooks
    - Future: Arazzo Flows will enable automated flow generation (not currently available)
 
 2. **Automated Code Generation**
-
    - Currently, Orval generates from OAS:
      - TypeScript interfaces
      - Type-safe React Query hooks
@@ -133,7 +128,6 @@ graph TB
 3. **Other utility functions**
 
    Built using generated types and hooks with an opinionated layer providing:
-
    - Enhanced client validations based on API specifications
    - Smart payload formation
    - Error mapping & recovery
@@ -704,8 +698,8 @@ The design token system works through a multi-stage process:
 Design tokens are applied as Tailwind CSS classes with the `eb-` prefix:
 
 ```tsx
-<div className="eb-bg-background eb-text-foreground eb-font-sans">
-  <button className="eb-bg-primary eb-text-primary-foreground eb-rounded">
+<div className="eb-bg-background eb-font-sans eb-text-foreground">
+  <button className="eb-rounded eb-bg-primary eb-text-primary-foreground">
     Submit
   </button>
 </div>
@@ -990,7 +984,6 @@ The `tailwind.config.js` file uses Tailwind's configuration system to map CSS cu
 1. **Theme Extension**: The `theme.extend` object adds new values to existing Tailwind categories without overriding defaults
 2. **CSS Variable Integration**: Design tokens are converted to CSS variables (e.g., `--eb-custom-spacing`) and referenced in the config
 3. **Utility Class Generation**: Tailwind automatically generates utility classes based on the configuration:
-
    - `spacing` → `eb-p-{value}`, `eb-m-{value}`, `eb-gap-{value}`, etc.
    - `colors` → `eb-bg-{color}`, `eb-text-{color}`, `eb-border-{color}`, etc.
    - `borderRadius` → `eb-rounded-{value}`, `eb-rounded-t-{value}`, etc.
