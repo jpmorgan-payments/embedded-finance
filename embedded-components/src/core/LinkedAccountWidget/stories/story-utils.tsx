@@ -60,6 +60,9 @@ export const LinkedAccountWidgetStory: React.FC<
   return (
     <EBComponentsProvider
       apiBaseUrl={apiBaseUrl}
+      apiBaseUrls={{
+        clients: `${apiBaseUrl.split('/v1')[0]}/do/v1`,
+      }}
       headers={headers}
       theme={selectedTheme}
       contentTokens={selectedContentTokens}

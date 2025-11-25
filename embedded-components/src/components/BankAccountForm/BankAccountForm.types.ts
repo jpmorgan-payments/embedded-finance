@@ -9,6 +9,7 @@ import type {
   RecipientContactContactType,
   RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
+import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
  * Configuration for a single payment method
@@ -161,6 +162,8 @@ export interface BankAccountFormProps {
   config: BankAccountFormConfig;
   /** Existing recipient data (for edit mode) */
   recipient?: Recipient;
+  /** Client data fetched from API */
+  client?: ClientResponse;
   /** Callback when form is submitted - handle success/error in parent */
   onSubmit: (data: BankAccountFormData) => void;
   /** Callback when form is cancelled */
