@@ -59,15 +59,14 @@ import {
 } from './Recipients.columns';
 // Types
 import type { RecipientsProps } from './Recipients.types';
-import { createRecipientsConfig } from './types/paymentConfig';
 // Utils
 import { formatRecipientName } from './utils/recipientHelpers';
 
 export const Recipients: React.FC<RecipientsProps> = ({
   clientId,
-  initialRecipientType = 'RECIPIENT',
+  initialRecipientType = 'RECIPIENT', // eslint-disable-line @typescript-eslint/no-unused-vars -- deprecated, kept for backward compatibility
   showCreateButton = true,
-  config,
+  // config is deprecated and no longer used
   makePaymentComponent,
   onRecipientCreated,
   onRecipientUpdated,
@@ -77,8 +76,6 @@ export const Recipients: React.FC<RecipientsProps> = ({
   columnConfig,
 }) => {
   const { interceptorReady } = useInterceptorStatus();
-  // Merge user config with defaults
-  const resolvedConfig = createRecipientsConfig(config);
 
   // Determine column configuration based on widget mode and user config
   const [localColumnConfig, setLocalColumnConfig] =
@@ -195,7 +192,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
     isEditDialogOpen,
     isDetailsDialogOpen,
     selectedRecipient,
-    openCreateDialog,
+    setIsCreateDialogOpen,
     closeCreateDialog,
     openEditDialog,
     closeEditDialog,
@@ -325,28 +322,29 @@ export const Recipients: React.FC<RecipientsProps> = ({
             Recipients
           </CardTitle>
           {showCreateButton && (
-            <Dialog open={isCreateDialogOpen} onOpenChange={closeCreateDialog}>
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
               <DialogTrigger asChild>
-                <Button onClick={openCreateDialog}>
+                <Button>
                   <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
                   Add Recipient
                 </Button>
               </DialogTrigger>
-              <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Recipient</DialogTitle>
+              <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[95vh]">
+                <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
+                  <DialogTitle className="eb-font-header eb-text-xl">
+                    Create New Recipient
+                  </DialogTitle>
                 </DialogHeader>
-                <div className="eb-scrollable-content">
-                  <RecipientForm
-                    mode="create"
-                    onSubmit={handleCreateRecipient}
-                    onCancel={closeCreateDialog}
-                    isLoading={isCreating}
-                    config={resolvedConfig}
-                    showCardWrapper={false}
-                    recipientType={initialRecipientType}
-                  />
-                </div>
+                <RecipientForm
+                  mode="create"
+                  onSubmit={handleCreateRecipient}
+                  onCancel={closeCreateDialog}
+                  isLoading={isCreating}
+                  showCardWrapper={false}
+                />
               </DialogContent>
             </Dialog>
           )}
@@ -533,24 +531,22 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
-        <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Recipient</DialogTitle>
+        <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[95vh]">
+          <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
+            <DialogTitle className="eb-font-header eb-text-xl">
+              Edit Recipient
+            </DialogTitle>
           </DialogHeader>
-          <div className="eb-scrollable-content">
-            {selectedRecipient && (
-              <RecipientForm
-                mode="edit"
-                recipient={selectedRecipient}
-                onSubmit={handleUpdateRecipient}
-                onCancel={closeEditDialog}
-                isLoading={isUpdating}
-                config={resolvedConfig}
-                showCardWrapper={false}
-                recipientType={selectedRecipient.type ?? 'RECIPIENT'}
-              />
-            )}
-          </div>
+          {selectedRecipient && (
+            <RecipientForm
+              mode="edit"
+              recipient={selectedRecipient}
+              onSubmit={handleUpdateRecipient}
+              onCancel={closeEditDialog}
+              isLoading={isUpdating}
+              showCardWrapper={false}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </Card>

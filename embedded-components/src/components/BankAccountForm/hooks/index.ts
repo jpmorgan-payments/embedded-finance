@@ -9,3 +9,4 @@ export { useDefaultPaymentMethodConfigs } from './useDefaultPaymentMethodConfigs
 export { useLinkedAccountConfig } from './useLinkedAccountConfig';
 export { useLinkedAccountEditConfig } from './useLinkedAccountEditConfig';
 export { useRecipientConfig } from './useRecipientConfig';
+export { useRecipientEditConfig } from './useRecipientEditConfig';

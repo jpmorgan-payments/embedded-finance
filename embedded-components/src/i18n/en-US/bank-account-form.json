@@ -61,5 +61,18 @@
       "accountHolderType": "Recipient Type",
       "accountHolderInfo": "Recipient Information"
     }
+  },
+  "recipientEdit": {
+    "title": "Edit Recipient",
+    "description": "Update recipient information and payment methods",
+    "successTitle": "Recipient Updated Successfully",
+    "successDescription": "The recipient has been updated.",
+    "submitButton": "Save Changes",
+    "cancelButton": "Cancel",
+    "loadingMessage": "Updating recipient...",
+    "sections": {
+      "accountHolderType": "Recipient Type",
+      "accountHolderInfo": "Recipient Information"
+    }
   }
 }

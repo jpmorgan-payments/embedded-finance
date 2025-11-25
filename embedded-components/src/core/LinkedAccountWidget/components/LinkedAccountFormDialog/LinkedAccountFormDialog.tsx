@@ -87,8 +87,6 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   // Fetch client data using the client ID
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
-  console.log(clientData);
-
   // Get appropriate config based on mode
   const createConfig = useLinkedAccountConfig();
   const editConfig = useLinkedAccountEditConfig();
@@ -149,16 +147,14 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
 
         {/* Success State */}
         {status === 'success' && responseData && (
-          <div className="eb-p-6">
-            <div className="eb-space-y-6">
-              <RecipientAccountDisplayCard recipient={responseData} />
+          <div className="eb-space-y-6 eb-p-6">
+            <RecipientAccountDisplayCard recipient={responseData} />
 
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button className="eb-w-full">Done</Button>
-                </DialogClose>
-              </DialogFooter>
-            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button className="eb-w-full">Done</Button>
+              </DialogClose>
+            </DialogFooter>
           </div>
         )}
 
