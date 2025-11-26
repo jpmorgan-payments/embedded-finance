@@ -325,9 +325,18 @@ export const Recipients: React.FC<RecipientsProps> = ({
             Recipients
           </CardTitle>
           {showCreateButton && (
-            <Dialog open={isCreateDialogOpen} onOpenChange={closeCreateDialog}>
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={(open) => {
+                if (open) {
+                  openCreateDialog();
+                } else {
+                  closeCreateDialog();
+                }
+              }}
+            >
               <DialogTrigger asChild>
-                <Button onClick={openCreateDialog}>
+                <Button>
                   <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
                   Add Recipient
                 </Button>
@@ -505,7 +514,14 @@ export const Recipients: React.FC<RecipientsProps> = ({
       </CardContent>
 
       {/* Details Dialog */}
-      <Dialog open={isDetailsDialogOpen} onOpenChange={closeDetailsDialog}>
+      <Dialog
+        open={isDetailsDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDetailsDialog();
+          }
+        }}
+      >
         <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
           <DialogHeader className="eb-pb-4">
             <DialogTitle>
@@ -532,7 +548,14 @@ export const Recipients: React.FC<RecipientsProps> = ({
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
+      <Dialog
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeEditDialog();
+          }
+        }}
+      >
         <DialogContent className="eb-scrollable-dialog eb-max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Recipient</DialogTitle>
