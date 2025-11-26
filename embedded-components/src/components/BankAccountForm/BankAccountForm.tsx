@@ -23,7 +23,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DialogFooter } from '@/components/ui/dialog';
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -1348,14 +1348,16 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
           {currentStep === 1 && (
             <>
               {onCancel && (
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={onCancel}
-                  className="eb-w-full sm:eb-w-auto"
-                >
-                  {effectiveConfig.content.cancelButtonText || 'Cancel'}
-                </Button>
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={onCancel}
+                    className="eb-w-full sm:eb-w-auto"
+                  >
+                    {effectiveConfig.content.cancelButtonText || 'Cancel'}
+                  </Button>
+                </DialogClose>
               )}
               <Button
                 type="button"
