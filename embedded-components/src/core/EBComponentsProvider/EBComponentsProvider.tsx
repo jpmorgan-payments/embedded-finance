@@ -267,9 +267,5 @@ export const useInterceptorStatus = () => {
 export const useClientId = () => {
   const context = useContext(ClientIdContext);
 
-  if (context === undefined) {
-    throw new Error('useClientId must be used within a ClientIdProvider');
-  }
-
   return context;
 };
