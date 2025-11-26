@@ -503,7 +503,14 @@ export const Recipients: React.FC<RecipientsProps> = ({
       </CardContent>
 
       {/* Details Dialog */}
-      <Dialog open={isDetailsDialogOpen} onOpenChange={closeDetailsDialog}>
+      <Dialog
+        open={isDetailsDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDetailsDialog();
+          }
+        }}
+      >
         <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
           <DialogHeader className="eb-pb-4">
             <DialogTitle>

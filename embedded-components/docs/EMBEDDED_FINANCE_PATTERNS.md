@@ -53,7 +53,7 @@ const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Should implement similar masking for account numbers in recipient cards
+- ✅ **Recipients**: Masking is implemented (`****1234` format) in RecipientDetails, RecipientCard, RecipientsTable. Missing: reveal toggle functionality like Accounts component.
 - ⚠️ **TransactionsDisplay**: Could benefit from masked account references
 
 **Usability Alignment**:
@@ -1185,7 +1185,7 @@ export const CONTAINER_BREAKPOINTS = {
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Could benefit from container queries for widget mode
+- ✅ **Recipients**: Implements container-based responsive detection via `useElementWidth` hook with `isMobile` and `isTablet` breakpoints
 - ⚠️ **Accounts**: Could use container queries for card layouts
 
 **Usability Alignment**:
@@ -1245,7 +1245,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Could expose refresh and filter methods via ref
+- ⚠️ **Recipients**: Could expose `refresh()`, `clearFilters()`, `getRecipientsData()` via ref (currently no ref interface)
 - ⚠️ **LinkedAccountWidget**: Could expose refresh method
 
 **Usability Alignment**:
@@ -1395,7 +1395,7 @@ const requiredContactTypes = getRequiredContactTypes(
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Create/edit success could be more prominent
+- ⚠️ **Recipients**: Currently dialog closes silently on success - could show success toast/confirmation message before closing
 - ⚠️ **LinkedAccountWidget**: Success state for account linking
 
 **Usability Alignment**:
@@ -1734,6 +1734,368 @@ const paymentData = usePaymentData(paymentMethods, form);
 
 ---
 
+### Clipboard Copy Pattern
+
+**Description**: Copy-to-clipboard functionality for sensitive data fields, IDs, and account numbers with visual feedback.
+
+**Implementation**:
+
+- **Primary**: `Accounts/Accounts.tsx` (lines 347-375)
+- **Secondary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx` (lines 113-122)
+- **Status**: ✅ Well-implemented with accessible buttons
+
+**Pattern Details**:
+
+```typescript
+// Copy button with visual feedback
+<Button
+  size="icon"
+  variant="outline"
+  className="eb-h-6 eb-w-6 eb-opacity-0 eb-transition-opacity group-hover:eb-opacity-100"
+  onClick={() => navigator.clipboard.writeText(value)}
+>
+  <CopyIcon className="eb-h-3 eb-w-3" />
+  <span className="eb-sr-only">Copy {label}</span>
+</Button>
+```
+
+**Features**:
+
+- Hover-to-reveal copy buttons
+- Accessible screen reader labels
+- Visual feedback on hover
+- Grouped with reveal toggle for sensitive data
+
+**Refinement Needed**:
+
+- ⚠️ **Recipients**: Could add copy for account numbers
+- ⚠️ **MakePayment**: Could add copy for transaction reference IDs
+
+**Usability Alignment**:
+
+- ✅ **Flexibility & Efficiency**: Quick data copying
+- ✅ **Error Prevention**: Avoids manual typing errors
+
+---
+
+### Confirmation Dialog Pattern
+
+**Description**: Confirmation dialogs for destructive actions with clear explanation of consequences and cancel option.
+
+**Implementation**:
+
+- **Primary**: `IndirectOwnership/IndirectOwnership.tsx` (lines 1664-1793)
+- **Secondary**: `LinkedAccountWidget/components/RemoveAccountDialog/RemoveAccountDialog.tsx`
+- **Tertiary**: `Recipients/Recipients.tsx` (deactivate confirmation)
+- **Status**: ✅ Well-implemented with consequence explanation
+
+**Pattern Details**:
+
+```typescript
+// Confirmation dialog with consequences
+<Dialog open={isDeleteConfirmDialogOpen} onOpenChange={setIsDeleteConfirmDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle className="eb-flex eb-items-center eb-gap-2">
+        <Trash2 className="eb-h-5 eb-w-5 eb-text-red-600" />
+        Confirm Deletion
+      </DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete this entity and all its ownership relationships?
+      </DialogDescription>
+    </DialogHeader>
+
+    {/* Warning about cascading effects */}
+    {hasChildren && (
+      <div className="eb-rounded eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-2">
+        <AlertCircle className="eb-mr-1 eb-inline eb-h-4 eb-w-4" />
+        This will also remove all children of this item.
+      </div>
+    )}
+
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+      <Button variant="destructive" onClick={confirmDelete}>
+        <Trash2 className="eb-mr-2 eb-h-4 eb-w-4" />
+        Delete
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+**Features**:
+
+- Clear action description
+- Warning icon for destructive actions
+- Explanation of consequences (cascading effects)
+- Cancel as primary option
+- Destructive button styling
+
+**Refinement Needed**:
+
+- ⚠️ **Accounts**: Could add confirmation for account-related actions
+- ⚠️ **MakePayment**: Could add confirmation for large payments
+
+**Usability Alignment**:
+
+- ✅ **Error Prevention**: Prevents accidental destructive actions
+- ✅ **User Control**: Easy to cancel
+- ✅ **Help Users Recognize Errors**: Clear consequence explanation
+
+---
+
+### Hierarchical/Tree Data Pattern
+
+**Description**: Pattern for rendering hierarchical data structures with expandable/collapsible tree nodes using accordions.
+
+**Implementation**:
+
+- **Primary**: `IndirectOwnership/IndirectOwnership.tsx` (lines 506-827)
+- **Status**: ✅ Well-implemented with recursive rendering
+
+**Pattern Details**:
+
+```typescript
+// Recursive tree building
+const buildOwnershipTree = () => {
+  const getChildren = (parentId: string, currentDepth = 0): any[] => {
+    if (currentDepth >= maxDepth) return [];
+    return parties
+      .filter((p) => p.parentPartyId === parentId)
+      .map((party) => ({
+        ...party,
+        children: getChildren(party.id, currentDepth + 1),
+      }));
+  };
+
+  return [{ ...rootParty, children: getChildren(rootParty.id) }];
+};
+
+// Recursive rendering with accordions
+const renderParty = (party, depth = 0) => {
+  if (party.children?.length > 0) {
+    return (
+      <Accordion type="single" collapsible defaultValue={depth === 0 ? 'open' : undefined}>
+        <AccordionItem value="open">
+          <AccordionTrigger>{/* Party header */}</AccordionTrigger>
+          <AccordionContent>
+            {party.children.map((child) => renderParty(child, depth + 1))}
+            {/* Action buttons */}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    );
+  }
+  return <Card>{/* Leaf node content */}</Card>;
+};
+```
+
+**Features**:
+
+- Recursive data structure building
+- Depth limiting for performance
+- Auto-expand root level
+- Leaf nodes as cards
+- Branch nodes as accordions
+- Action buttons at each level
+- Mobile-responsive layouts
+
+**Refinement Needed**:
+
+- ⚠️ This pattern could be extracted as a reusable TreeView component
+
+**Usability Alignment**:
+
+- ✅ **Recognition Rather Than Recall**: Visual hierarchy representation
+- ✅ **Flexibility & Efficiency**: Expand/collapse for focus
+- ✅ **Aesthetic & Minimalist Design**: Progressive disclosure
+
+---
+
+### Staggered Animation Pattern
+
+**Description**: Staggered fade-in animations for list items to create a polished, sequential appearance.
+
+**Implementation**:
+
+- **Primary**: `LinkedAccountWidget/LinkedAccountWidget.tsx` (lines 136-155)
+- **Status**: ✅ Well-implemented with CSS animations
+
+**Pattern Details**:
+
+```typescript
+// Staggered animation on list items
+{linkedAccounts.map((recipient, index) => (
+  <div
+    key={recipient.id}
+    className="eb-animate-fade-in"
+    style={{
+      animationDelay: `${index * 50}ms`,
+      animationFillMode: 'backwards',
+    }}
+  >
+    <LinkedAccountCard recipient={recipient} />
+  </div>
+))}
+```
+
+**CSS Animation**:
+
+```css
+/* In tailwind.config.js or CSS */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.eb-animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+```
+
+**Features**:
+
+- Subtle 50ms delay between items
+- Fade + slide up effect
+- `backwards` fill mode for proper initial state
+- Works with dynamic lists
+
+**Refinement Needed**:
+
+- ⚠️ **Recipients**: Could add staggered animation to recipient cards
+- ⚠️ **TransactionsDisplay**: Could add staggered animation to mobile cards
+
+**Usability Alignment**:
+
+- ✅ **Aesthetic & Minimalist Design**: Polished visual experience
+- ✅ **Visibility of System Status**: Content appearing sequentially
+
+---
+
+### Field Toggle Pattern
+
+**Description**: Toggle control for showing/hiding optional or empty fields in detail views.
+
+**Implementation**:
+
+- **Primary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx` (lines 126-138)
+- **Secondary**: `Accounts/Accounts.tsx` (sensitive info toggle)
+- **Status**: ✅ Well-implemented with Switch component
+
+**Pattern Details**:
+
+```typescript
+// Toggle for empty fields
+const [hideEmpty, setHideEmpty] = useState(true);
+
+// Toggle UI
+<div className="eb-flex eb-items-center eb-gap-2">
+  <Switch
+    id="show-all"
+    checked={!hideEmpty}
+    onCheckedChange={(checked) => setHideEmpty(!checked)}
+  />
+  <Label htmlFor="show-all" className="eb-text-xs eb-text-muted-foreground">
+    Show all fields
+  </Label>
+</div>
+
+// Conditional rendering helper
+const renderField = (label: string, value: any) => {
+  if (hideEmpty && !hasValue(value)) return null;
+  return (
+    <div className="eb-flex eb-justify-between">
+      <Label>{label}</Label>
+      <span>{value || 'N/A'}</span>
+    </div>
+  );
+};
+```
+
+**Features**:
+
+- Default to hiding empty fields
+- Easy toggle for "show all"
+- Conditional rendering based on state
+- Clean N/A fallback when showing empty
+
+**Refinement Needed**:
+
+- ⚠️ **Recipients**: RecipientDetails could use this pattern
+- ⚠️ **IndirectOwnership**: Could add toggle for optional party details
+
+**Usability Alignment**:
+
+- ✅ **Aesthetic & Minimalist Design**: Reduces visual clutter
+- ✅ **User Control**: Users choose detail level
+- ✅ **Flexibility & Efficiency**: Quick toggle between views
+
+---
+
+### Internationalization (i18n) Pattern
+
+**Description**: Pattern for integrating react-i18next for multi-language support with namespace organization and translation hooks.
+
+**Implementation**:
+
+- **Primary**: All components using `useTranslation` hook
+- **Status**: ✅ Well-implemented in MakePayment, LinkedAccountWidget, OnboardingFlow, IndirectOwnership
+
+**Pattern Details**:
+
+```typescript
+// Hook usage with namespace
+const { t } = useTranslation(['make-payment']);
+
+// Translation with default value
+{
+  t('buttons.makePayment', { defaultValue: 'Make Payment' });
+}
+
+// Translation with variables
+{
+  t('success.processedDate', {
+    defaultValue: `Processed on ${date.toLocaleDateString()}`,
+  });
+}
+
+// Nested translations
+{
+  t([
+    `status.paymentDisabledTooltip.${status}`,
+    'status.paymentDisabledTooltip.unavailable',
+  ]);
+}
+```
+
+**Features**:
+
+- Namespace-based organization
+- Default values for development
+- Variable interpolation
+- Fallback translation keys
+- Per-component namespaces
+
+**Refinement Needed**:
+
+- ⚠️ **Accounts**: Missing i18n integration
+- ⚠️ **Recipients**: Partial i18n (some hardcoded strings)
+- ⚠️ **TransactionsDisplay**: Partial i18n
+
+**Usability Alignment**:
+
+- ✅ **Match Between System and Real World**: User's language preference
+- ✅ **Flexibility & Efficiency**: Multi-language support
+
+---
+
 ### Context Provider Pattern for Shared State
 
 **Description**: Pattern for managing shared application state and configuration through React Context providers, enabling component composition and prop drilling avoidance.
@@ -1824,35 +2186,42 @@ const contentTokens = useContext(ContentTokensContext);
 
 ## Pattern Refinement Matrix
 
-| Pattern                    | Accounts | Recipients | MakePayment | TransactionsDisplay | OnboardingFlow | LinkedAccountWidget |
-| -------------------------- | -------- | ---------- | ----------- | ------------------- | -------------- | ------------------- |
-| **Sensitive Data Masking** | ✅       | ⚠️ Needs   | -           | ⚠️ Needs            | -              | -                   |
-| **Status Badges**          | ⚠️ Needs | ✅         | -           | ✅                  | -              | ✅                  |
-| **Progressive Validation** | -        | ✅         | ✅          | -                   | ⚠️ Partial     | -                   |
-| **Loading Skeletons**      | ✅       | ✅         | -           | ⚠️ Needs            | ⚠️ Partial     | ✅                  |
-| **Error with Retry**       | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | ✅             | ✅                  |
-| **Empty States**           | ⚠️ Basic | ✅         | -           | ⚠️ Basic            | -              | ✅                  |
-| **Responsive Table/Cards** | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
-| **Enhanced Data Grid**     | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
-| **Dialog Forms**           | -        | ✅         | ✅          | -                   | ⚠️ Partial     | ✅                  |
-| **Compact Details**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | ⚠️ Needs            |
-| **Filter & Search**        | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
-| **Review Panel**           | -        | ⚠️ Needs   | ✅          | -                   | ⚠️ Needs       | -                   |
-| **Wizard/Stepper**         | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |
-| **Timeline/Progress**      | -        | -          | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            |
-| **Container Queries**      | ⚠️ Needs | ⚠️ Needs   | -           | -                   | -              | ✅                  |
-| **Ref Control**            | ✅       | ⚠️ Needs   | -           | ✅                  | -              | ⚠️ Needs            |
-| **Config-Driven Forms**    | -        | ✅         | ⚠️ Needs    | -                   | ⚠️ Partial     | -                   |
-| **Multi-Mode Forms**       | -        | ⚠️ Needs   | ✅          | -                   | -              | ⚠️ Needs            |
-| **Success States**         | -        | ⚠️ Needs   | ✅          | -                   | -              | ⚠️ Needs            |
-| **Pagination**             | ⚠️ Needs | ✅         | -           | ✅                  | -              | -                   |
+| Pattern                    | Accounts | Recipients  | MakePayment | TransactionsDisplay | OnboardingFlow | LinkedAccountWidget | IndirectOwnership |
+| -------------------------- | -------- | ----------- | ----------- | ------------------- | -------------- | ------------------- | ----------------- |
+| **Sensitive Data Masking** | ✅       | ⚠️ Partial  | -           | ⚠️ Needs            | -              | -                   | -                 |
+| **Status Badges**          | ⚠️ Needs | ✅          | -           | ✅                  | -              | ✅                  | ✅                |
+| **Progressive Validation** | -        | ✅          | ✅          | -                   | ⚠️ Partial     | -                   | -                 |
+| **Loading Skeletons**      | ✅       | ✅          | -           | ⚠️ Needs            | ⚠️ Partial     | ✅                  | ✅                |
+| **Error with Retry**       | ⚠️ Basic | ✅          | -           | ✅                  | ✅             | ✅                  | ⚠️ Basic          |
+| **Empty States**           | ⚠️ Basic | ✅          | -           | ⚠️ Basic            | -              | ✅                  | ⚠️ Basic          |
+| **Responsive Table/Cards** | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | ✅                |
+| **Enhanced Data Grid**     | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | -                 |
+| **Dialog Forms**           | -        | ✅          | ✅          | -                   | ⚠️ Partial     | ✅                  | ✅                |
+| **Compact Details**        | ⚠️ Needs | ✅          | -           | ✅                  | -              | ⚠️ Needs            | -                 |
+| **Filter & Search**        | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | -                 |
+| **Review Panel**           | -        | ⚠️ Low Prio | ✅          | -                   | ⚠️ Needs       | -                   | -                 |
+| **Wizard/Stepper**         | -        | -           | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            | ⚠️ Needs          |
+| **Timeline/Progress**      | -        | -           | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            | -                 |
+| **Container Queries**      | ⚠️ Needs | ✅          | -           | -                   | -              | ✅                  | -                 |
+| **Ref Control**            | ✅       | ⚠️ Needs    | -           | ✅                  | -              | ⚠️ Needs            | ⚠️ Needs          |
+| **Config-Driven Forms**    | -        | ✅          | ⚠️ Needs    | -                   | ⚠️ Partial     | -                   | ⚠️ Needs          |
+| **Multi-Mode Forms**       | -        | ⚠️ Low Prio | ✅          | -                   | -              | ⚠️ Needs            | -                 |
+| **Success States**         | -        | ⚠️ Needs    | ✅          | -                   | -              | ⚠️ Needs            | -                 |
+| **Pagination**             | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | -                 |
+| **Clipboard Copy**         | ✅       | -           | -           | ✅                  | -              | -                   | -                 |
+| **Confirmation Dialog**    | -        | ✅          | -           | -                   | -              | ✅                  | ✅                |
+| **Hierarchical Data**      | -        | -           | -           | -                   | -              | -                   | ✅                |
+| **Staggered Animation**    | -        | -           | -           | -                   | -              | ✅                  | -                 |
+| **Field Toggle**           | ✅       | -           | -           | ✅                  | -              | -                   | ⚠️ Needs          |
+| **i18n Integration**       | ⚠️ Needs | ⚠️ Needs    | ✅          | ⚠️ Needs            | ✅             | ✅                  | ✅                |
 
 **Legend**:
 
 - ✅ = Well-implemented
 - ⚠️ Needs = Pattern exists but needs refinement/implementation
-- ⚠️ Partial = Partially implemented
+- ⚠️ Partial = Partially implemented (some aspects done, others missing)
 - ⚠️ Basic = Basic implementation, could be enhanced
+- ⚠️ Low Prio = Pattern would be nice-to-have but lower priority for this component
 - - = Not applicable
 
 ---
@@ -1886,24 +2255,37 @@ const contentTokens = useContext(ContentTokensContext);
 
 ### High Priority
 
-1. **Standardize Status Badge System**: Create shared status badge component with consistent variants
-2. **Implement Sensitive Data Masking**: Add masking pattern to Recipients and TransactionsDisplay
-3. **Enhance Error States**: Improve error handling consistency across all components
-4. **Migrate to Enhanced Data Grid**: Migrate Accounts and Recipients (embedded-components) to Enhanced Data Grid pattern
+1. **Standardize Status Badge System**: Create shared status badge component with consistent variants (Accounts needs it)
+2. **Enhance Sensitive Data Masking**: Add reveal toggle to Recipients (masking implemented, toggle missing), add masking to TransactionsDisplay
+3. **Enhance Error States**: Improve error handling in Accounts and IndirectOwnership (both have basic error states)
+4. **Loading Skeletons for TransactionsDisplay**: Replace "Loading transactions..." text with proper skeleton structure
+5. **i18n Standardization**: Add internationalization to Accounts, Recipients, and TransactionsDisplay (currently missing or partial)
 
 ### Medium Priority
 
-1. **Container Query Migration**: Migrate Recipients and Accounts to container queries
-2. **Review Panel Pattern**: Add review panels to OnboardingFlow and Recipients edit forms
-3. **Success State Standardization**: Create consistent success state pattern across all forms
-4. **Ref Control Enhancement**: Add ref-based control to Recipients and LinkedAccountWidget
+1. **Container Query Migration**: Migrate Accounts to container queries (Recipients uses `useElementWidth`, LinkedAccountWidget uses `@container`)
+2. **Success State Standardization**: Add success toast/confirmation to Recipients and LinkedAccountWidget after create/edit
+3. **Ref Control Enhancement**: Add ref-based control to Recipients, LinkedAccountWidget, and IndirectOwnership
+4. **Clipboard Copy Pattern**: Add copy-to-clipboard to Recipients (account numbers) and MakePayment (reference IDs)
+5. **Staggered Animation Pattern**: Apply to Recipients cards and TransactionsDisplay mobile cards for polish
 
 ### Low Priority
 
-1. **Wizard Pattern Extraction**: Extract wizard pattern for reuse in MakePayment and LinkedAccountWidget
-2. **Filter & Search Enhancement**: Add search/filter to Accounts (TransactionsDisplay and Recipients now have it)
-3. **Multi-Mode Form Pattern**: Extend multi-mode pattern to Recipients and LinkedAccountWidget
-4. **Configuration-Driven Forms**: Enhance MakePayment and OnboardingFlow with more configuration options
+1. **Wizard Pattern Extraction**: Extract wizard pattern from OnboardingFlow for reuse in MakePayment and LinkedAccountWidget
+2. **Filter & Search Enhancement**: Add search/filter to Accounts
+3. **Multi-Mode Form Pattern**: Extend to LinkedAccountWidget (manual account entry option)
+4. **Configuration-Driven Forms**: Enhance MakePayment, OnboardingFlow, and IndirectOwnership with more configuration options
+5. **Field Toggle Pattern**: Add show/hide empty fields toggle to Recipients details and IndirectOwnership
+6. **Hierarchical Data Component**: Extract IndirectOwnership's tree pattern into reusable TreeView component
+
+### New Component Considerations (IndirectOwnership)
+
+The IndirectOwnership component introduces several patterns that could be shared:
+
+1. **Hierarchical Data Pattern**: Tree-based data rendering with recursive accordions
+2. **Tab Navigation Pattern**: Simple tab-based view switching without routing
+3. **Validation Summary Pattern**: Real-time validation with error aggregation
+4. **Inline Action Buttons**: Add/delete actions directly in tree nodes
 
 ---
 
@@ -1915,4 +2297,4 @@ const contentTokens = useContext(ContentTokensContext);
 
 ---
 
-_Last Updated: Based on codebase analysis of embedded-components v1.0_
+_Last Updated: Comprehensive analysis of all core components including Accounts, Recipients, MakePayment, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget, and IndirectOwnership. Added 6 new patterns: Clipboard Copy, Confirmation Dialog, Hierarchical Data, Staggered Animation, Field Toggle, and i18n Integration._
