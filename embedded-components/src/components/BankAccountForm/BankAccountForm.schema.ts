@@ -182,19 +182,25 @@ export function createBankAccountFormSchema(
     // 3. Validate routing numbers for each selected payment method
     const selectedMethods = paymentTypes as RoutingInformationTransactionType[];
 
-    selectedMethods.forEach((method) => {
+    selectedMethods.forEach((method, methodIndex) => {
       const methodConfig = config.paymentMethods.configs[method];
 
       if (methodConfig?.enabled && methodConfig.requiredFields.routingNumber) {
-        const routingEntry = data.routingNumbers?.find(
-          (r) => r.paymentType === method
-        );
+        const routingEntryIndex =
+          data.routingNumbers?.findIndex((r) => r.paymentType === method) ?? -1;
+        const routingEntry =
+          routingEntryIndex >= 0
+            ? data.routingNumbers?.[routingEntryIndex]
+            : undefined;
 
         if (!routingEntry || !routingEntry.routingNumber.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `Routing number is required for ${methodConfig.label}`,
-            path: ['routingNumbers'],
+            path:
+              routingEntryIndex >= 0
+                ? ['routingNumbers', routingEntryIndex, 'routingNumber']
+                : ['routingNumbers', methodIndex, 'routingNumber'],
           });
         } else {
           // Validate routing number format (always 9 digits)
@@ -202,7 +208,7 @@ export function createBankAccountFormSchema(
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: 'Routing number must be 9 digits',
-              path: ['routingNumbers'],
+              path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
             });
           }
 
@@ -213,7 +219,7 @@ export function createBankAccountFormSchema(
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: errorMessage,
-                path: ['routingNumbers'],
+                path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
               });
             }
           }

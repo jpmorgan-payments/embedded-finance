@@ -9,6 +9,7 @@ export interface UseRecipientsDialogsReturn {
   selectedRecipient: Recipient | null;
   openCreateDialog: () => void;
   closeCreateDialog: () => void;
+  setIsCreateDialogOpen: (open: boolean) => void;
   openEditDialog: (recipient: Recipient) => void;
   closeEditDialog: () => void;
   openDetailsDialog: (recipient: Recipient) => void;
@@ -62,6 +63,7 @@ export function useRecipientsDialogs(): UseRecipientsDialogsReturn {
     selectedRecipient,
     openCreateDialog,
     closeCreateDialog,
+    setIsCreateDialogOpen,
     openEditDialog,
     closeEditDialog,
     openDetailsDialog,

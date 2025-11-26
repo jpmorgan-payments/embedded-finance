@@ -18,11 +18,17 @@ import type { RecipientsConfig } from './types/paymentConfig';
 export interface RecipientsProps {
   /** Optional client ID filter */
   clientId?: string;
-  /** Default recipient type */
+  /**
+   * @deprecated RecipientForm now always uses 'RECIPIENT' type internally.
+   * This prop is no longer used and will be removed in a future version.
+   */
   initialRecipientType?: RecipientType;
   /** Show/hide create functionality */
   showCreateButton?: boolean;
-  /** Configuration for payment methods and validation rules */
+  /**
+   * @deprecated Configuration is now handled internally by BankAccountForm.
+   * This prop is no longer used and will be removed in a future version.
+   */
   config?: RecipientsConfig;
   /** Optional MakePayment component to render in each recipient card/row */
   makePaymentComponent?: React.ReactNode;

@@ -2,7 +2,8 @@ import { FC } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
 type StepLayoutProps = {
-  title: string | JSX.Element;
+  title: string;
+  headerElement?: JSX.Element;
   showSpinner?: boolean;
   subTitle?: string | JSX.Element;
   description?: string;
@@ -11,6 +12,7 @@ type StepLayoutProps = {
 
 export const StepLayout: FC<StepLayoutProps> = ({
   title,
+  headerElement,
   showSpinner,
   subTitle,
   description,
@@ -27,9 +29,12 @@ export const StepLayout: FC<StepLayoutProps> = ({
       )}
 
       <div className="eb-flex eb-items-center eb-gap-3">
-        <h1 className="eb-w-full eb-font-header eb-text-3xl eb-font-medium">
-          {title}
-        </h1>
+        <div className="eb-flex eb-items-center eb-justify-between eb-gap-2">
+          <h1 className="eb-w-full eb-font-header eb-text-3xl eb-font-medium">
+            {title}
+          </h1>
+          {headerElement || null}
+        </div>
         {showSpinner && (
           <Loader2Icon className="eb-animate-spin eb-stroke-primary" />
         )}

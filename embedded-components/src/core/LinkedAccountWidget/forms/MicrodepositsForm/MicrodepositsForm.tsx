@@ -1,7 +1,7 @@
 import { FC, ReactNode, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
+import { AlertCircle, Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import {
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -230,7 +231,7 @@ export const MicrodepositsFormDialogTrigger: FC<
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(handleSubmit)}
-                      className="eb-space-y-6 eb-p-6"
+                      className="eb-space-y-4 eb-p-6"
                     >
                       {/* API Error Alerts */}
                       {verifyStatus === 'error' && verifyError && (
@@ -252,28 +253,36 @@ export const MicrodepositsFormDialogTrigger: FC<
                       )}
 
                       {verifyResponse?.status === 'FAILED' && (
-                        <ServerErrorAlert
-                          error={null}
-                          customTitle={t(
-                            'forms.microdeposits.errors.verificationFailed.title'
-                          )}
-                          customErrorMessage={t(
-                            'forms.microdeposits.errors.verificationFailed.400'
-                          )}
-                        />
+                        <Alert variant="destructive">
+                          <AlertCircle className="eb-h-4 eb-w-4" />
+                          <AlertTitle>
+                            {t(
+                              'forms.microdeposits.errors.verificationFailed.title'
+                            )}
+                          </AlertTitle>
+                          <AlertDescription>
+                            {t(
+                              'forms.microdeposits.errors.verificationFailed.400'
+                            )}
+                          </AlertDescription>
+                        </Alert>
                       )}
 
                       {verifyResponse?.status ===
                         'FAILED_MAX_ATTEMPTS_EXCEEDED' && (
-                        <ServerErrorAlert
-                          error={null}
-                          customTitle={t(
-                            'forms.microdeposits.errors.maxAttemptsExceeded.title'
-                          )}
-                          customErrorMessage={t(
-                            'forms.microdeposits.errors.maxAttemptsExceeded.message'
-                          )}
-                        />
+                        <Alert variant="destructive">
+                          <AlertCircle className="eb-h-4 eb-w-4" />
+                          <AlertTitle>
+                            {t(
+                              'forms.microdeposits.errors.maxAttemptsExceeded.title'
+                            )}
+                          </AlertTitle>
+                          <AlertDescription>
+                            {t(
+                              'forms.microdeposits.errors.maxAttemptsExceeded.message'
+                            )}
+                          </AlertDescription>
+                        </Alert>
                       )}
 
                       {/* Microdeposit Amounts Section */}
@@ -313,7 +322,7 @@ export const MicrodepositsFormDialogTrigger: FC<
                         </div>
                       </div>
 
-                      <DialogFooter className="eb-gap-2">
+                      <DialogFooter className="eb-gap-2 eb-pt-8">
                         <DialogClose asChild>
                           <Button
                             variant="outline"

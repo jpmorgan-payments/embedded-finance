@@ -2,6 +2,7 @@ import { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
+import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,6 +22,7 @@ import {
 } from '@/components/BankAccountForm';
 import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { useLinkedAccountForm, type LinkedAccountFormMode } from '../../hooks';
 
@@ -80,6 +82,10 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   onLinkedAccountSettled,
 }) => {
   const { t } = useTranslation('linked-accounts');
+  const clientId = useClientId();
+
+  // Fetch client data using the client ID
+  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
   // Get appropriate config based on mode
   const createConfig = useLinkedAccountConfig();
@@ -123,8 +129,8 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-max-h-[90vh] eb-max-w-2xl eb-overflow-hidden eb-p-0">
-        <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
+      <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[90vh]">
+        <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-font-header eb-text-xl">
             {status === 'success'
               ? t(`forms.${translationKey}.titleSuccess`)
@@ -141,16 +147,14 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
 
         {/* Success State */}
         {status === 'success' && responseData && (
-          <div className="eb-p-6">
-            <div className="eb-space-y-6">
-              <RecipientAccountDisplayCard recipient={responseData} />
+          <div className="eb-space-y-6 eb-p-6">
+            <RecipientAccountDisplayCard recipient={responseData} />
 
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button className="eb-w-full">Done</Button>
-                </DialogClose>
-              </DialogFooter>
-            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button className="eb-w-full">Done</Button>
+              </DialogClose>
+            </DialogFooter>
           </div>
         )}
 
@@ -158,7 +162,8 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
         {(status === 'idle' || status === 'error' || status === 'pending') && (
           <BankAccountForm
             config={config}
-            recipient={mode === 'edit' ? recipient : undefined}
+            recipient={recipient}
+            client={clientData}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isLoading={status === 'pending'}

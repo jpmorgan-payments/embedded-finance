@@ -285,14 +285,12 @@ export const OwnersSectionScreen = () => {
 
   return (
     <StepLayout
-      title={
-        <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-gap-4">
-          <span>{t('screens.owners.title')}</span>
-          <Button variant="outline" size="sm" onClick={() => goTo('overview')}>
-            {t('screens.owners.overviewButtonLabel')}
-            <MenuIcon />
-          </Button>
-        </div>
+      title={t('screens.owners.title')}
+      headerElement={
+        <Button variant="outline" size="sm" onClick={() => goTo('overview')}>
+          {t('screens.owners.overviewButtonLabel')}
+          <MenuIcon />
+        </Button>
       }
       description="Provide information for owners and senior managers for your company. Keep in mind that individual people may have multiple roles."
     >

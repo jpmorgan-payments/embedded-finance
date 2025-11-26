@@ -305,6 +305,15 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               role="combobox"
                               aria-expanded={open}
                               className="eb-justify-between"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === 'ArrowDown' ||
+                                  e.key === 'ArrowUp'
+                                ) {
+                                  e.preventDefault();
+                                  setOpen(true);
+                                }
+                              }}
                               {...fieldWithoutBlur}
                             >
                               {field.value

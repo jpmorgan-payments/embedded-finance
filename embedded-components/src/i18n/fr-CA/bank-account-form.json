@@ -61,5 +61,18 @@
       "accountHolderType": "Type de destinataire",
       "accountHolderInfo": "Informations sur le destinataire"
     }
+  },
+  "recipientEdit": {
+    "title": "Modifier le destinataire",
+    "description": "Mettre à jour les informations du destinataire et les méthodes de paiement",
+    "successTitle": "Destinataire mis à jour avec succès",
+    "successDescription": "Le destinataire a été mis à jour.",
+    "submitButton": "Enregistrer les modifications",
+    "cancelButton": "Annuler",
+    "loadingMessage": "Mise à jour du destinataire...",
+    "sections": {
+      "accountHolderType": "Type de destinataire",
+      "accountHolderInfo": "Informations sur le destinataire"
+    }
   }
 }

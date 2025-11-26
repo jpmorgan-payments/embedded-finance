@@ -182,7 +182,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
           </Button>
 
           {isDetailsExpanded && (
-            <div className="eb-mt-2 eb-space-y-2 eb-rounded eb-border eb-border-red-300 eb-bg-red-50 eb-p-3 eb-text-xs">
+            <div className="eb-mt-2 eb-space-y-2 eb-overflow-x-auto eb-rounded eb-border eb-border-red-300 eb-bg-red-50 eb-p-3 eb-text-xs">
               {error.response.data.httpStatus && (
                 <div className="eb-grid eb-grid-cols-[auto_1fr] eb-gap-x-3 eb-gap-y-0.5">
                   <div className="eb-font-semibold eb-text-red-900">

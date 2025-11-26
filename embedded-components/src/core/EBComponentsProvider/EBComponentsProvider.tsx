@@ -33,6 +33,8 @@ const InterceptorContext = createContext<{
   interceptorReady: false,
 });
 
+const ClientIdContext = createContext<string | undefined>(undefined);
+
 // Only import devtools in development
 const ReactQueryDevtoolsProduction =
   process.env.NODE_ENV === 'development'
@@ -153,7 +155,12 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
       setInterceptorReady(false);
     };
-  }, [apiBaseUrl, JSON.stringify(headers), JSON.stringify(queryParams)]);
+  }, [
+    apiBaseUrl,
+    JSON.stringify(headers),
+    JSON.stringify(queryParams),
+    clientId,
+  ]);
 
   // Reset all queries when the interceptor changes
   useEffect(() => {
@@ -215,16 +222,18 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
         <QueryClientProvider client={queryClient}>
-          <I18nextProvider i18n={i18nInstance}>
-            <ContentTokensContext.Provider value={contentTokens}>
-              <InterceptorContext.Provider value={{ interceptorReady }}>
-                {children}
-              </InterceptorContext.Provider>
-            </ContentTokensContext.Provider>
+          <ClientIdContext.Provider value={clientId}>
+            <InterceptorContext.Provider value={{ interceptorReady }}>
+              <I18nextProvider i18n={i18nInstance}>
+                <ContentTokensContext.Provider value={contentTokens}>
+                  {children}
+                </ContentTokensContext.Provider>
+              </I18nextProvider>
+            </InterceptorContext.Provider>
             <Toaster closeButton expand position="bottom-left" />
             {process.env.NODE_ENV === 'development' &&
               ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
-          </I18nextProvider>
+          </ClientIdContext.Provider>
         </QueryClientProvider>
       </ErrorBoundary>
     </>
@@ -251,6 +260,12 @@ export const useInterceptorStatus = () => {
       'useInterceptorStatus must be used within an EBComponentsProvider'
     );
   }
+
+  return context;
+};
+
+export const useClientId = () => {
+  const context = useContext(ClientIdContext);
 
   return context;
 };

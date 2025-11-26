@@ -24,8 +24,6 @@ import { ThemeName, THEMES } from './themes';
 export interface BaseStoryProps {
   /** Base URL for API requests */
   apiBaseUrl: string;
-  /** Platform ID for API requests (added to headers) */
-  platformId?: string;
   /** Additional headers to pass to API requests */
   headers?: Record<string, string>;
   /** Theme preset name (from THEMES) or 'custom' to use the theme object */
@@ -36,6 +34,8 @@ export interface BaseStoryProps {
   contentTokensPreset?: keyof typeof defaultResources;
   /** Custom content tokens object (only used when contentTokensPreset is 'custom') */
   contentTokens?: Record<string, any>;
+  /** Client ID for API requests */
+  clientId?: string;
 }
 
 /**
@@ -45,9 +45,29 @@ export const baseStoryDefaults: BaseStoryProps = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/',
   headers: {
     platform_id: import.meta.env.VITE_API_PLATFORM_ID ?? '',
+    client_id: import.meta.env.VITE_API_CLIENT_ID ?? '',
   },
+  clientId: import.meta.env.VITE_API_CLIENT_ID ?? '',
   themePreset: 'Salt',
   contentTokensPreset: 'enUS',
+  theme: THEMES['Default'],
+};
+
+/**
+ * Helper function to resolve the theme based on themePreset selection
+ * Use this in your story render functions to automatically select the correct theme
+ */
+export const resolveTheme = (
+  themePreset?: ThemeName | 'custom',
+  customTheme?: EBTheme
+): EBTheme | undefined => {
+  if (themePreset === 'custom') {
+    return customTheme;
+  }
+  if (themePreset === undefined) {
+    return undefined;
+  }
+  return THEMES[themePreset as ThemeName];
 };
 
 /**

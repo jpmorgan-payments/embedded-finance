@@ -12,6 +12,7 @@ export {
   useLinkedAccountConfig,
   useLinkedAccountEditConfig,
   useRecipientConfig,
+  useRecipientEditConfig,
   usePaymentMethodConfig,
   useDefaultPaymentMethodConfigs,
 } from './hooks';

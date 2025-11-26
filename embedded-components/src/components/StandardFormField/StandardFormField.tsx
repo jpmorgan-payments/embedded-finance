@@ -143,6 +143,12 @@ const ComboboxField = ({
               aria-expanded={open}
               disabled={disabled}
               className={cn('eb-justify-between', inputClassName)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setOpen(true);
+                }
+              }}
               {...fieldWithoutBlur}
             >
               {field.value
