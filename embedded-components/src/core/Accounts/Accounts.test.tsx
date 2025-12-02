@@ -1,19 +1,10 @@
 import { server } from '@/msw/server';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '../EBComponentsProvider';
 import { Accounts } from './Accounts';
 import type { AccountsProps } from './Accounts.types';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
 
 const renderComponent = (props: Partial<AccountsProps> = {}) => {
   server.resetHandlers();
@@ -28,12 +19,15 @@ const renderComponent = (props: Partial<AccountsProps> = {}) => {
       apiBaseUrl="/"
       headers={{}}
       contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{
+        queries: {
+          retry: false,
+        },
+      }}
     >
-      <QueryClientProvider client={queryClient}>
-        <div className="eb-mx-auto eb-max-w-2xl eb-p-6">
-          <Accounts {...defaultProps} />
-        </div>
-      </QueryClientProvider>
+      <div className="eb-mx-auto eb-max-w-2xl eb-p-6">
+        <Accounts {...defaultProps} />
+      </div>
     </EBComponentsProvider>
   );
 };
@@ -41,7 +35,6 @@ const renderComponent = (props: Partial<AccountsProps> = {}) => {
 describe('Accounts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    queryClient.clear();
     server.resetHandlers();
   });
 

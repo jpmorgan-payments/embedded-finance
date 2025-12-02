@@ -71,7 +71,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     // Show loading if query is loading or if interceptor is not ready yet
     if (isLoading || !interceptorReady) {
       return (
-        <Card className="eb-component eb-w-full" ref={containerRef}>
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
@@ -139,7 +139,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (isError) {
       return (
-        <Card className="eb-component eb-w-full" ref={containerRef}>
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
@@ -168,7 +168,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     if (!filteredAccounts.length) {
       return (
-        <Card className="eb-component eb-w-full" ref={containerRef}>
+        <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {title}
