@@ -56,8 +56,12 @@ describe('Accounts', () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(screen.getByText('No accounts found.')).toBeInTheDocument();
+        expect(
+          screen.getByText(/No accounts found/i)
+        ).toBeInTheDocument();
       });
+      // Check for empty state icon
+      expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
     });
 
     test('renders with default title', () => {
@@ -134,6 +138,70 @@ describe('Accounts', () => {
       renderComponent();
 
       expect(screen.getByText('Accounts')).toBeInTheDocument();
+    });
+  });
+
+  describe('Error State', () => {
+    test('renders error state with retry button', async () => {
+      server.use(
+        http.get('*/accounts', () =>
+          HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        )
+      );
+
+      renderComponent();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Failed to load accounts/i)
+        ).toBeInTheDocument();
+      });
+
+      const retryButton = screen.getByRole('button', { name: /retry/i });
+      expect(retryButton).toBeInTheDocument();
+    });
+  });
+
+  describe('Status Badges', () => {
+    test('displays status badge for account state', async () => {
+      const mockAccount = {
+        id: 'account1',
+        clientId: '0085199987',
+        label: 'MAIN3919',
+        state: 'OPEN',
+        paymentRoutingInformation: {
+          accountNumber: '20000057603919',
+          country: 'US',
+          routingInformation: [
+            {
+              type: 'ABA',
+              value: '028000024',
+            },
+          ],
+        },
+        createdAt: '2025-04-14T08:57:21.792272Z',
+        category: 'LIMITED_DDA',
+      };
+
+      server.use(
+        http.get('*/accounts', () =>
+          HttpResponse.json({ items: [mockAccount] })
+        ),
+        http.get('*/accounts/:id/balances', () =>
+          HttpResponse.json({
+            id: 'account1',
+            date: '2023-10-28',
+            currency: 'USD',
+            balanceTypes: [{ typeCode: 'ITAV', amount: 5558.42 }],
+          })
+        )
+      );
+
+      renderComponent();
+
+      await waitFor(() => {
+        expect(screen.getByText('OPEN')).toBeInTheDocument();
+      });
     });
   });
 });
