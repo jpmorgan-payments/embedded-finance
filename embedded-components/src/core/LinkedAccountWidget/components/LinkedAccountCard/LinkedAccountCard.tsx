@@ -14,7 +14,11 @@ import {
   getMissingPaymentMethods,
   getRecipientDisplayName,
 } from '@/lib/recipientHelpers';
-import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import {
+  ApiError,
+  MicrodepositVerificationResponse,
+  Recipient,
+} from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -49,6 +53,12 @@ export interface LinkedAccountCardProps {
   /** Callback when account is edited or removed */
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 
+  /** Callback when microdeposit verification is completed */
+  onMicrodepositVerifySettled?: (
+    response: MicrodepositVerificationResponse,
+    recipient?: any
+  ) => void;
+
   /** Hide action buttons and status alerts (useful for confirmation views) */
   hideActions?: boolean;
 }
@@ -62,6 +72,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   recipient,
   makePaymentComponent,
   onLinkedAccountSettled,
+  onMicrodepositVerifySettled,
   hideActions = false,
 }) => {
   const { t } = useTranslation('linked-accounts');
@@ -120,7 +131,10 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
         status={recipient.status}
         action={
           showVerifyButton ? (
-            <MicrodepositsFormDialogTrigger recipientId={recipient.id}>
+            <MicrodepositsFormDialogTrigger
+              recipientId={recipient.id}
+              onVerificationSettled={onMicrodepositVerifySettled}
+            >
               <Button
                 variant="default"
                 size="sm"

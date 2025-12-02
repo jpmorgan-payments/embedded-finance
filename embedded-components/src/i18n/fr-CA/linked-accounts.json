@@ -208,9 +208,9 @@
     },
     "microdeposits": {
       "title": "Vérifier le compte",
-      "titleSuccess": "Compte vérifié avec succès",
       "description": "Entrez les deux petits montants de dépôt que nous avons envoyés à <strong>{{name}}</strong> dans n'importe quel ordre. Vous avez <strong>3 tentatives au total</strong> pour entrer ces montants.",
-      "descriptionSuccess": "Votre compte a été vérifié et est prêt pour les transactions.",
+      "cancel": "Annuler",
+      "confirm": "Soumettre",
       "amount1": {
         "label": "Premier montant de dépôt",
         "placeholder": "0,00",
@@ -245,9 +245,20 @@
         },
         "maxAttemptsExceeded": {
           "title": "Nombre maximum de tentatives dépassé",
+          "description": "Le processus de vérification n'a pas pu être complété en raison de plusieurs tentatives incorrectes.",
           "message": "Vous avez dépassé le nombre maximum de tentatives pour vérifier les microdépôts. Veuillez contacter le support."
         }
       }
     }
+  },
+  "maxAttemptsExceeded": {
+    "title": "Échec de la vérification du compte",
+    "description": "La liaison de <strong>{{name}}</strong> a échoué car la vérification n'a pas pu être complétée en raison de plusieurs tentatives incorrectes. Pour utiliser ce compte, vous devrez le lier à nouveau pour recommencer le processus de vérification.",
+    "close": "Fermer"
+  },
+  "verificationSuccess": {
+    "title": "Compte vérifié avec succès",
+    "description": "La liaison de <strong>{{name}}</strong> a été complétée avec succès et le compte est maintenant prêt pour les transactions.",
+    "close": "Fermer"
   }
 }

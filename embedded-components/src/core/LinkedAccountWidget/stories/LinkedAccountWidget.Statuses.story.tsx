@@ -14,7 +14,6 @@ import {
   linkedAccountRejectedMock,
 } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, within } from '@storybook/testing-library';
 
 import {
   commonArgs,
@@ -77,15 +76,6 @@ export const ReadyToVerify: Story = {
     msw: {
       handlers: createRecipientHandlers(linkedAccountReadyForValidationMock),
     },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-
-    // Wait for the verify button to appear
-    const verifyButton = await canvas.findByRole('button', { name: /verify/i });
-
-    // Click to open verification dialog
-    await userEvent.click(verifyButton);
   },
 };
 

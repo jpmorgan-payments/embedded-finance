@@ -38,16 +38,19 @@ export interface BaseStoryProps {
   clientId?: string;
 }
 
-/**
- * Common default values for base story props
- */
-export const baseStoryDefaults: BaseStoryProps = {
+export const apiStoryProps: BaseStoryProps = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/',
   headers: {
     platform_id: import.meta.env.VITE_API_PLATFORM_ID ?? '',
     client_id: import.meta.env.VITE_API_CLIENT_ID ?? '',
   },
   clientId: import.meta.env.VITE_API_CLIENT_ID ?? '',
+};
+/**
+ * Common default values for base story props
+ */
+export const baseStoryDefaults: BaseStoryProps = {
+  apiBaseUrl: '/',
   themePreset: 'Salt',
   contentTokensPreset: 'enUS',
   theme: THEMES['Default'],
@@ -87,6 +90,13 @@ export const baseStoryArgTypes = {
     description: 'Additional headers for API requests',
     table: {
       category: 'Provider',
+    },
+  },
+  clientId: {
+    control: { type: 'text' as const },
+    description: 'Client ID for API requests',
+    table: {
+      category: 'Component',
     },
   },
   themePreset: {

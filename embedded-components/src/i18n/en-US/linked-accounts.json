@@ -92,9 +92,9 @@
     },
     "microdeposits": {
       "title": "Verify Account",
-      "titleSuccess": "Account Verified Successfully",
       "description": "Enter the two small deposit amounts we sent to <strong>{{name}}</strong> in any order. You have <strong>3 total attempts</strong> to enter these amounts.",
-      "descriptionSuccess": "Your account has been verified and is ready for transactions.",
+      "cancel": "Cancel",
+      "confirm": "Submit",
       "amount1": {
         "label": "First Deposit Amount",
         "placeholder": "0.00",
@@ -129,9 +129,20 @@
         },
         "maxAttemptsExceeded": {
           "title": "Max number of attempts exceeded",
+          "description": "The verification process could not be completed due to multiple incorrect attempts.",
           "message": "You have exceeded the maximum number of attempts to verify microdeposits. Please contact support."
         }
       }
     }
+  },
+  "maxAttemptsExceeded": {
+    "title": "Account Verification Failed",
+    "description": "Linking <strong>{{name}}</strong> has failed as verification could not be completed due to multiple incorrect attempts. To use this account, you'll need to link it again to restart the verification process.",
+    "close": "Close"
+  },
+  "verificationSuccess": {
+    "title": "Account Verified Successfully",
+    "description": "Linking <strong>{{name}}</strong> has been successfully completed and the account is now ready for transactions.",
+    "close": "Close"
   }
 }

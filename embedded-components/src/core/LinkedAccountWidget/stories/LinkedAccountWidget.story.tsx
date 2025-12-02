@@ -12,6 +12,7 @@
 
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { apiStoryProps } from '@storybook/shared-story-types';
 
 import {
   commonArgs,
@@ -48,6 +49,7 @@ type Story = StoryObj<typeof LinkedAccountWidgetStory>;
  */
 export const Default: Story = {
   args: {
+    ...apiStoryProps,
     variant: 'default',
   },
 };
