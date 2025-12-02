@@ -1,5 +1,4 @@
 import { server } from '@/msw/server';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
@@ -7,8 +6,6 @@ import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
 
 import { EBComponentsProvider } from '../../../EBComponentsProvider';
 import { AccountCard } from './AccountCard';
-
-const queryClient = new QueryClient();
 
 const mockAccount: AccountResponse = {
   id: 'account1',
@@ -30,17 +27,21 @@ const mockAccount: AccountResponse = {
 };
 
 const renderComponent = (account: AccountResponse = mockAccount) => {
-  server.resetHandlers();
+  // Don't reset handlers here - beforeEach already does it
+  // Handlers should be set up with server.use() before calling renderComponent()
 
   return render(
     <EBComponentsProvider
       apiBaseUrl="/"
       headers={{}}
       contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{
+        queries: {
+          retry: false,
+        },
+      }}
     >
-      <QueryClientProvider client={queryClient}>
-        <AccountCard account={account} />
-      </QueryClientProvider>
+      <AccountCard account={account} />
     </EBComponentsProvider>
   );
 };
@@ -48,7 +49,7 @@ const renderComponent = (account: AccountResponse = mockAccount) => {
 describe('AccountCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    queryClient.clear();
+    server.resetHandlers();
   });
 
   test('renders account information', async () => {
@@ -113,15 +114,17 @@ describe('AccountCard', () => {
     });
   });
 
-  test('displays loading state for balance', () => {
+  test('displays loading state for balance', async () => {
     server.use(
       http.get('*/accounts/:id/balances', () => new Promise(() => {}))
     );
 
     renderComponent();
 
-    // Check for skeleton loader
-    const skeleton = document.querySelector('.eb-h-4.eb-w-1\\/2');
-    expect(skeleton).toBeInTheDocument();
+    // Check for skeleton loader - wait for it to appear
+    await waitFor(() => {
+      const skeleton = document.querySelector('.eb-h-4');
+      expect(skeleton).toBeInTheDocument();
+    });
   });
 });

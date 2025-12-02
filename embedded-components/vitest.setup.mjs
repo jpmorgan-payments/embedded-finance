@@ -25,10 +25,30 @@ Element.prototype.scrollIntoView = vi.fn();
 Element.prototype.hasPointerCapture = vi.fn();
 Element.prototype.releasePointerCapture = vi.fn();
 
+// ResizeObserver mock that properly handles cleanup to prevent memory leaks
+// in parallel test runs. Tracks observed elements for proper cleanup.
 class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  constructor(callback) {
+    this.callback = callback;
+    this.observedElements = new WeakSet();
+  }
+
+  observe(element) {
+    if (element) {
+      this.observedElements.add(element);
+    }
+  }
+
+  unobserve(element) {
+    // WeakSet automatically handles cleanup when element is garbage collected
+    // No explicit delete needed
+  }
+
+  disconnect() {
+    // Clear reference to callback to prevent memory leaks
+    this.callback = null;
+    // WeakSet will automatically clean up when elements are removed
+  }
 }
 
 window.ResizeObserver = ResizeObserver;
