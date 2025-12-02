@@ -46,6 +46,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Removed tabs import due to missing dependency - using button-based toggle instead
 
 import type { IndirectOwnershipComponentProps } from './types/types';
+import { AlternateIndirectOwnership } from './components/AlternateIndirectOwnership';
 
 /**
  * IndirectOwnership component for managing complex ownership structures
@@ -58,6 +59,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
   showVisualization = true,
   maxDepth = 10,
   readOnly = false,
+  mode = 'DEFAULT',
 }) => {
   const { t } = useTranslation();
 
@@ -116,6 +118,29 @@ export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
       enabled: !!clientId,
     },
   });
+
+  // Render alternate mode if specified (after client data is available)
+  if (mode === 'ALTERNATE') {
+    // Get company name from client data
+    const getCompanyName = () => {
+      if (!clientData?.parties) return 'Central Perk Coffee & Cookies';
+      const rootParty = clientData.parties.find((p: any) => p.roles?.includes('CLIENT'));
+      return rootParty?.organizationDetails?.organizationName || 'Central Perk Coffee & Cookies';
+    };
+
+    return (
+      <AlternateIndirectOwnership
+        kycCompanyName={getCompanyName()}
+        onOwnershipComplete={(ownershipStructure) => {
+          if (onOwnershipStructureUpdate) {
+            onOwnershipStructureUpdate(ownershipStructure as any);
+          }
+        }}
+        maxHierarchyLevels={maxDepth}
+        readOnly={readOnly}
+      />
+    );
+  }
 
   // Use local ownership data if available, otherwise use API data
   const currentOwnershipData = localOwnershipData || clientData;

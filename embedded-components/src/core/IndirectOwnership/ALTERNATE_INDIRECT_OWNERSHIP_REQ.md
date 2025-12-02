@@ -2,7 +2,14 @@
 
 ## Overview
 
-This document outlines the requirements for an alternate approach to the IndirectOwnership component that prioritizes beneficial owner identification first, then hierarchy construction. This approach is designed for scenarios where users know their beneficial owners but need guidance building the corporate hierarchy.
+This document outlines the requirements for an alternate approach to the IndirectOinterface AlternateBeneficialOwner {
+  id: string;
+  firstName: string;
+  lastName: string;
+  ownershipType: 'DIRECT' | 'INDIRECT' | 'PENDING_CLASSIFICATION';
+  hierarchyChain?: AlternateOwnershipHierarchyStep[];
+  owns25PercentOfKycCompany: true; // Always true - qualifies as beneficial owner of the KYC company
+}component that prioritizes beneficial owner identification first, then hierarchy construction. This approach is designed for scenarios where users know their beneficial owners but need guidance building the corporate hierarchy.
 
 ## Current vs Alternate Approach
 
@@ -40,7 +47,6 @@ The intermediate ownership percentages (51%, 100% in the example above) can be a
 │ ┌─────────────────────────────────────┐ │
 │ │ First Name: [John        ]          │ │
 │ │ Last Name:  [Smith       ]          │ │
-│ │ Email:      [j.smith@... ]          │ │
 │ │                                     │ │
 │ │ [Add Owner] [Remove] [Next Step]    │ │
 │ └─────────────────────────────────────┘ │
@@ -319,7 +325,6 @@ export const Alternate: Story = {
 
 ### Owner Validation
 - Required: firstName, lastName
-- Optional: email (with format validation)
 - Duplicate detection (same name combinations)
 - Minimum 1 owner, maximum reasonable limit
 

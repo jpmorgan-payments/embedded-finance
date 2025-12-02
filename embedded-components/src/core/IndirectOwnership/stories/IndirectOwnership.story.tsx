@@ -23,6 +23,7 @@ interface IndirectOwnershipWithProviderProps {
   showVisualization?: boolean;
   maxDepth?: number;
   readOnly?: boolean;
+  mode?: 'DEFAULT' | 'ALTERNATE';
 }
 
 const IndirectOwnershipWithProvider = ({
@@ -33,6 +34,7 @@ const IndirectOwnershipWithProvider = ({
   showVisualization,
   maxDepth,
   readOnly,
+  mode,
 }: IndirectOwnershipWithProviderProps) => {
   return (
     <EBComponentsProvider
@@ -45,6 +47,7 @@ const IndirectOwnershipWithProvider = ({
         showVisualization={showVisualization}
         maxDepth={maxDepth}
         readOnly={readOnly}
+        mode={mode}
       />
     </EBComponentsProvider>
   );
@@ -73,6 +76,11 @@ const meta: Meta<typeof IndirectOwnershipWithProvider> = {
     readOnly: {
       control: 'boolean',
       description: 'Whether the component is in read-only mode',
+    },
+    mode: {
+      control: 'select',
+      options: ['DEFAULT', 'ALTERNATE'],
+      description: 'Component mode - DEFAULT (existing) or ALTERNATE (beneficial owner first)',
     },
   },
 };
@@ -479,6 +487,60 @@ export const NodeRemovalTesting: Story = {
               limit: 50,
             },
           });
+        }),
+      ],
+    },
+  },
+};
+
+/**
+ * Alternate - Beneficial Owner First
+ *
+ * Alternative approach to indirect ownership where users:
+ * 1. First identify all beneficial owners (25%+ of KYC company)
+ * 2. Classify each as direct or indirect
+ * 3. Build hierarchy chains for indirect owners
+ * 4. Review complete ownership structure
+ *
+ * This approach is ideal when users know their beneficial owners
+ * but need guidance constructing the corporate hierarchy.
+ *
+ * **Key principle**: The 25% threshold applies only to the final
+ * ownership in the KYC company, not at intermediate levels.
+ */
+export const Alternate: Story = {
+  name: 'Alternate - Beneficial Owner First',
+  args: {
+    apiBaseUrl: 'https://api.example.com',
+    headers: { Authorization: 'Bearer demo-token' },
+    theme: SELLSENSE_THEME,
+    clientId: 'centralperk-alternate-client-001',
+    mode: 'ALTERNATE',
+    showVisualization: true,
+    readOnly: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          Alternative approach to indirect ownership where users:
+          1. First identify all beneficial owners (25%+ of KYC company)
+          2. Classify each as direct or indirect
+          3. Build hierarchy chains for indirect owners
+          4. Review complete ownership structure
+          
+          This approach is ideal when users know their beneficial owners
+          but need guidance constructing the corporate hierarchy.
+          
+          **Key principle**: The 25% threshold applies only to the final 
+          ownership in the KYC company, not at intermediate levels.
+        `,
+      },
+    },
+    msw: {
+      handlers: [
+        http.get('*/clients/centralperk-alternate-client-001', () => {
+          return HttpResponse.json(efClientEmptyOwnership);
         }),
       ],
     },
