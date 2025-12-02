@@ -1,11 +1,11 @@
 import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { Meta, StoryObj } from '@storybook/react-vite';
 
 import { SELLSENSE_THEME } from '../../../.storybook/themes';
 import { EBComponentsProvider } from '../EBComponentsProvider';
-import { Accounts, AccountsProps } from './Accounts';
+import { Accounts } from './Accounts';
+import type { AccountsProps } from './Accounts.types';
 
 // --- Mock Data (aligned with JPMorgan API docs) ---
 const mockAccountsResponse = {
@@ -63,18 +63,20 @@ const mockBalanceResponse = {
 
 // --- Provider Wrapper ---
 const AccountsWithProvider = (props: AccountsProps) => {
-  const queryClient = new QueryClient();
   return (
     <EBComponentsProvider
       apiBaseUrl="/"
       headers={{}}
       contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{
+        queries: {
+          retry: false,
+        },
+      }}
     >
-      <QueryClientProvider client={queryClient}>
-        <div className="eb-mx-auto eb-max-w-2xl eb-p-6">
-          <Accounts {...props} />
-        </div>
-      </QueryClientProvider>
+      <div className="eb-mx-auto eb-w-full eb-max-w-6xl eb-p-6">
+        <Accounts {...props} />
+      </div>
     </EBComponentsProvider>
   );
 };
@@ -247,11 +249,9 @@ export const SellSenseTheme: Story = {
       theme={SELLSENSE_THEME}
       contentTokens={{ name: 'enUS' }}
     >
-      <QueryClientProvider client={new QueryClient()}>
-        <div className="eb-mx-auto eb-max-w-2xl eb-p-6">
-          <Accounts {...args} />
-        </div>
-      </QueryClientProvider>
+      <div className="eb-mx-auto eb-w-full eb-max-w-6xl eb-p-6">
+        <Accounts {...args} />
+      </div>
     </EBComponentsProvider>
   ),
   parameters: {
