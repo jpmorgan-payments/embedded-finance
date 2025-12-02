@@ -22,7 +22,7 @@ import { WalletOverview } from './wallet-overview';
 import { TransactionHistory } from './transaction-history';
 import { PayoutSettings } from './payout-settings';
 import { LoadingSkeleton } from './loading-skeleton';
-import type { ThemeOption } from './use-sellsense-themes';
+import { useSellSenseThemes, type ThemeOption } from './use-sellsense-themes';
 import {
   getScenarioKeyByDisplayName,
   getScenarioByKey,
@@ -409,17 +409,8 @@ export function DashboardLayout() {
     // Use theme from URL params for fullscreen mode, fallback to current theme
     const fullscreenTheme = searchParams.theme || theme;
 
-    // Create theme object for EBComponentsProvider
-    const themeObject = {
-      colorScheme: 'light' as const,
-      variables: {
-        primaryColor: '#6366f1', // Default blue color
-        backgroundColor: '#ffffff',
-        foregroundColor: '#1e293b',
-        borderColor: '#e2e8f0',
-        borderRadius: '8px',
-      },
-    };
+    const { mapThemeOption } = useSellSenseThemes();
+    const themeObject = mapThemeOption(fullscreenTheme);
 
     switch (searchParams.component) {
       case 'onboarding':
@@ -467,7 +458,7 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <TransactionsDisplay accountIds={["0030000131"]} />
+                  <TransactionsDisplay accountIds={['0030000131']} />
                 </EBComponentsProvider>
               </div>
             </div>
