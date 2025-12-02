@@ -1,0 +1,93 @@
+{
+  "component": "linked-accounts",
+  "date": "2025-12-02",
+  "summary": {
+    "totalRequests": 22,
+    "successful": 22,
+    "failed": 0,
+    "apiEndpoints": 4
+  },
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty",
+      "type": "document"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/index-CMJO76HE.js",
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/index-D14GH2dP.css",
+      "type": "stylesheet"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/browser-DyXViSwR.js",
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/constants-Cze8xwV8.js",
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/manifest.json",
+      "type": "manifest"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/sellsense-demo-DHwOlM2K.js",
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ping",
+      "type": "fetch",
+      "status": 200,
+      "response": {
+        "status": "ok",
+        "message": "MSW service worker is alive"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients?type=LINKED_ACCOUNT",
+      "type": "xmlhttprequest",
+      "status": 200,
+      "note": "Called 2 times (duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients",
+      "type": "xmlhttprequest",
+      "status": 200,
+      "note": "Called 2 times (duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts",
+      "type": "xmlhttprequest",
+      "status": 200,
+      "note": "Called 2 times (duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts/acc-002/balances",
+      "type": "xmlhttprequest",
+      "status": 200,
+      "note": "Called 2 times (duplicate)"
+    }
+  ],
+  "patterns": {
+    "duplicateCalls": true,
+    "allMocked": true,
+    "mswIntercepted": true
+  },
+  "issues": [
+    "API calls are duplicated (called twice) - likely due to React Query refetching or tab switch emulation"
+  ]
+}

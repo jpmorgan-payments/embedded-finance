@@ -1,0 +1,42 @@
+{
+  "component": "transactions",
+  "date": "2025-12-02",
+  "summary": {
+    "totalRequests": 18,
+    "successful": 18,
+    "failed": 0,
+    "apiEndpoints": 2
+  },
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ping",
+      "type": "fetch",
+      "status": 200,
+      "note": "Called 2 times (duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts",
+      "type": "xmlhttprequest",
+      "status": 200,
+      "note": "Called 2 times (duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/transactions",
+      "type": "xmlhttprequest",
+      "status": 200,
+      "note": "Called 2 times (duplicate), returns 4 transactions"
+    }
+  ],
+  "patterns": {
+    "duplicateCalls": true,
+    "allMocked": true,
+    "mswIntercepted": true
+  },
+  "issues": [
+    "API calls are duplicated (called twice) - likely due to React Query refetching or tab switch emulation"
+  ]
+}
+
