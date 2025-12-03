@@ -24,7 +24,6 @@ import { http, HttpResponse } from 'msw';
 import type {
   ApiError,
   ListRecipientsResponse,
-  ListRecipientsResponseAllOf,
   MicrodepositAmounts,
   MicrodepositVerificationResponse,
   Recipient,
@@ -189,7 +188,7 @@ export const createRecipientHandlers = (
         statuses: activeRecipients.map((r) => ({ id: r.id, status: r.status })),
       });
 
-      const response: ListRecipientsResponseAllOf = {
+      const response: ListRecipientsResponse = {
         recipients: activeRecipients as Recipient[],
         metadata: {
           total_items: activeRecipients.length,

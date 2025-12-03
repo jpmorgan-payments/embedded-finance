@@ -6,7 +6,7 @@ import {
   RecipientContactContactType,
   RecipientStatus,
   RecipientType,
-} from '@/api/generated/ef-v1.schemas';
+} from '@/api/generated/ep-recipients.schemas';
 
 export const linkedAccountListMock: ListRecipientsResponse = {
   page: 0,
