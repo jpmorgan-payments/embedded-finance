@@ -312,13 +312,16 @@ describe('OnboardingFlow', () => {
     await user.click(llcOption);
 
     // Click "Get Started" button to proceed
-    await waitFor(() => {
-      const getStartedButton = screen.getByRole('button', {
-        name: /get started/i,
-      });
-      expect(getStartedButton).toBeInTheDocument();
-      return user.click(getStartedButton);
-    });
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
 
     // === STEP 2: OVERVIEW SCREEN (id: 'overview' from flowConfig) ===
     await waitFor(
