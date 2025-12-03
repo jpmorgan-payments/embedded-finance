@@ -16,6 +16,7 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 - **Status Badges**: Consistent status indicators using badge components with semantic colors
 - **Compact Details**: Single-column, minimal-gap layout for displaying complex resource details in dialogs
 - **Field Toggle**: Toggle control for showing/hiding optional or empty fields in detail views
+- **Detail Navigation**: Pattern for navigating from data grids/tables/cards to detailed views (Dialog/Modal, Sheet, Drawer options)
 
 **Forms & Validation**
 
@@ -70,6 +71,7 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 | Status Badges               | -              | ✅       | ✅                  | -           | ✅                  | ✅          |
 | Compact Details             | -              | ⚠️ Needs | ⚠️ Needs            | -           | ✅                  | ✅          |
 | Field Toggle                | -              | ✅       | -                   | -           | ✅                  | ⚠️ Needs    |
+| Detail Navigation           | -              | ⚠️ Needs | ⚠️ Needs            | -           | ✅ (Dialog)         | ✅ (Dialog) |
 | **Forms & Validation**      |
 | Progressive Validation      | ⚠️ Partial     | -        | -                   | ✅          | -                   | ✅          |
 | Dialog Forms                | ⚠️ Partial     | -        | ✅                  | ✅          | -                   | ✅          |
@@ -1046,6 +1048,346 @@ For resources with history or timeline information, display in a dedicated secti
 - ✅ **Flexibility & Efficiency**: Quick scanning of information
 - ✅ **Visibility of System Status**: Clear section organization with status badges
 - ✅ **User Control**: Accessible actions for resource management
+
+---
+
+### Detail Navigation Pattern
+
+**Description**: Pattern for navigating from data grids, tables, or cards to detailed resource views. Defines when to use Dialog (Modal), Sheet (Side Panel), or Drawer (Full Screen) for displaying detail information.
+
+**Current Implementation**:
+
+- **Primary**: `Recipients/Recipients.tsx` (Dialog for RecipientDetails)
+- **Secondary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx` (Dialog for TransactionDetails)
+- **Status**: ✅ Currently using Dialog (Modal) pattern consistently
+
+**Pattern Details**:
+
+```typescript
+// Current Dialog (Modal) implementation
+<Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+  <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
+    <DialogHeader>
+      <DialogTitle>Recipient: {recipientName}</DialogTitle>
+    </DialogHeader>
+    <div className="eb-scrollable-content">
+      <RecipientDetails recipient={selectedRecipient} />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+**Navigation Triggers**:
+
+Detail views are typically opened from:
+
+1. **Data Grid/Table Actions**:
+   - "Details" button in actions column
+   - "View transaction details" button
+   - Click on row (if enabled)
+
+2. **Card Actions**:
+   - "Details" button on card
+   - "View" button
+   - Click on card (if enabled)
+
+3. **Menu Actions**:
+   - "View Details" from dropdown menu
+   - "More Info" from context menu
+
+**Available Options**:
+
+#### Option 1: Dialog (Modal) - Current Implementation
+
+**Description**: Centered modal dialog that overlays the entire viewport.
+
+**Implementation**:
+
+```typescript
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+<Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
+    <DialogHeader>
+      <DialogTitle>Resource: {resourceName}</DialogTitle>
+    </DialogHeader>
+    <div className="eb-scrollable-content">
+      <ResourceDetails {...props} />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+**Pros**:
+
+- ✅ Focuses user attention on detail view
+- ✅ Works well for embedded contexts (doesn't require full viewport)
+- ✅ Familiar pattern (widely used)
+- ✅ Good for medium-length content
+- ✅ Easy to implement (shadcn/ui Dialog component)
+- ✅ Maintains context of parent view (visible behind overlay)
+
+**Cons**:
+
+- ❌ Limited width (max-width constraints)
+- ❌ Can feel cramped for very long content
+- ❌ Blocks entire viewport (even with backdrop)
+- ❌ May not feel native on mobile devices
+
+**Best For**:
+
+- Medium-length detail views (5-15 fields)
+- Quick reference/details
+- Embedded component contexts
+- When parent context should remain visible
+
+**Current Usage**:
+
+- ✅ Recipients: RecipientDetails in Dialog
+- ✅ TransactionsDisplay: TransactionDetails in Dialog
+
+---
+
+#### Option 2: Sheet (Side Panel)
+
+**Description**: Side panel that slides in from right/left, overlaying part of the viewport while keeping parent view partially visible.
+
+**Implementation**:
+
+```typescript
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+
+<Sheet open={isOpen} onOpenChange={setIsOpen}>
+  <SheetContent side="right" className="eb-w-full sm:eb-w-[540px] lg:eb-w-[640px]">
+    <SheetHeader>
+      <SheetTitle>Resource: {resourceName}</SheetTitle>
+    </SheetHeader>
+    <div className="eb-scrollable-content">
+      <ResourceDetails {...props} />
+    </div>
+  </SheetContent>
+</Sheet>
+```
+
+**Pros**:
+
+- ✅ More horizontal space than modal
+- ✅ Parent view remains partially visible (better context)
+- ✅ Feels more native on desktop
+- ✅ Good for longer content
+- ✅ Smooth slide-in animation
+- ✅ Better for comparison workflows
+
+**Cons**:
+
+- ❌ Requires more viewport width
+- ❌ May not work well in narrow embedded contexts
+- ❌ Parent view partially obscured
+- ❌ Less focus than modal
+
+**Best For**:
+
+- Longer detail views (15+ fields)
+- When parent context is important
+- Desktop-focused applications
+- Comparison workflows (viewing multiple resources)
+
+**Available Components**:
+
+- ✅ `@/components/ui/sheet` (shadcn/ui Sheet component available)
+
+---
+
+#### Option 3: Drawer (Full Screen)
+
+**Description**: Full-screen drawer that slides in from bottom (mobile) or side (desktop), taking over the entire viewport within the component container.
+
+**Implementation**:
+
+```typescript
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+
+<Drawer open={isOpen} onOpenChange={setIsOpen}>
+  <DrawerContent className="eb-max-h-[96vh]">
+    <DrawerHeader>
+      <DrawerTitle>Resource: {resourceName}</DrawerTitle>
+    </DrawerHeader>
+    <div className="eb-scrollable-content eb-px-4 eb-pb-4">
+      <ResourceDetails {...props} />
+    </div>
+  </DrawerContent>
+</Drawer>
+```
+
+**Pros**:
+
+- ✅ Maximum space for content
+- ✅ Excellent for very long detail views
+- ✅ Mobile-first approach (slides from bottom)
+- ✅ Full focus on detail content
+- ✅ Good for complex forms within details
+
+**Cons**:
+
+- ❌ Completely hides parent view
+- ❌ May feel overwhelming for simple details
+- ❌ Less context preservation
+- ❌ Requires more scrolling for navigation
+
+**Best For**:
+
+- Very long detail views (20+ fields)
+- Mobile-first applications
+- Complex detail views with nested information
+- When full focus is required
+
+**Available Components**:
+
+- ✅ `@/components/ui/drawer` (shadcn/ui Drawer component available)
+
+---
+
+#### Option 4: Inline Expansion (Alternative)
+
+**Description**: Expand detail view inline within the table/card, pushing other content down.
+
+**Implementation**:
+
+```typescript
+// Inline expansion in table row
+{expandedRowId === recipient.id ? (
+  <TableRow>
+    <TableCell colSpan={columns.length}>
+      <RecipientDetails recipient={recipient} />
+    </TableCell>
+  </TableRow>
+) : null}
+```
+
+**Pros**:
+
+- ✅ No overlay/blocking
+- ✅ All context remains visible
+- ✅ Good for quick details
+- ✅ No navigation required
+
+**Cons**:
+
+- ❌ Limited space
+- ❌ Can push content off-screen
+- ❌ Not ideal for long content
+- ❌ Can disrupt table layout
+
+**Best For**:
+
+- Quick reference details (3-5 fields)
+- Expandable rows in tables
+- When space is not a concern
+
+---
+
+### Decision Criteria
+
+**Use Dialog (Modal) when**:
+
+- ✅ Detail view has 5-15 fields
+- ✅ Quick reference/details needed
+- ✅ Embedded component context
+- ✅ Parent context should remain visible
+- ✅ Standard detail view pattern
+
+**Use Sheet (Side Panel) when**:
+
+- ✅ Detail view has 15+ fields
+- ✅ Desktop-focused application
+- ✅ Parent context is important
+- ✅ Comparison workflows needed
+- ✅ More horizontal space required
+
+**Use Drawer (Full Screen) when**:
+
+- ✅ Detail view has 20+ fields
+- ✅ Mobile-first application
+- ✅ Complex nested information
+- ✅ Full focus required
+- ✅ Maximum space needed
+
+**Use Inline Expansion when**:
+
+- ✅ Quick reference (3-5 fields)
+- ✅ No overlay desired
+- ✅ Space is not a concern
+- ✅ Expandable row pattern
+
+---
+
+### Recommended Standardization
+
+**Current State**: All components use Dialog (Modal) pattern
+
+**Recommendation**: **Standardize on Dialog (Modal) for consistency** with option to use Sheet for specific use cases:
+
+1. **Default**: Dialog (Modal) for all detail views
+   - Consistent user experience
+   - Works well in embedded contexts
+   - Familiar pattern
+
+2. **Exception**: Sheet (Side Panel) for very long detail views
+   - Use when detail view exceeds 20 fields
+   - Use when comparison workflows are needed
+   - Document exception in component
+
+3. **Mobile Consideration**:
+   - Dialog can be full-width on mobile (`eb-max-w-full` on small screens)
+   - Drawer can be used for mobile-specific flows if needed
+
+**Implementation Pattern**:
+
+```typescript
+// Standardized detail navigation hook
+export function useDetailNavigation<T>(resource: T | null) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [useSheet, setUseSheet] = useState(false); // For long content
+
+  const openDetails = useCallback(
+    (resource: T, options?: { useSheet?: boolean }) => {
+      setSelectedResource(resource);
+      setUseSheet(options?.useSheet ?? false);
+      setIsOpen(true);
+    },
+    []
+  );
+
+  const closeDetails = useCallback(() => {
+    setIsOpen(false);
+    setSelectedResource(null);
+  }, []);
+
+  return {
+    isOpen,
+    useSheet,
+    selectedResource,
+    openDetails,
+    closeDetails,
+  };
+}
+```
+
+**Refinement Needed**:
+
+- ⚠️ **Decision Pending**: Standardize on Dialog vs. allow Sheet/Drawer options
+- ⚠️ **Accounts**: Could add detail view navigation
+- ⚠️ **LinkedAccountWidget**: Could add detail view navigation
+- ⚠️ **Consistency**: Ensure all detail views use same pattern
+- ⚠️ **Mobile Optimization**: Consider mobile-specific patterns
+
+**Usability Alignment**:
+
+- ✅ **User Control**: Easy to open/close detail views
+- ✅ **Recognition Rather Than Recall**: Consistent navigation pattern
+- ✅ **Flexibility & Efficiency**: Quick access to details
+- ✅ **Visibility of System Status**: Clear indication of detail view state
+- ✅ **Aesthetic & Minimalist Design**: Appropriate use of space
 
 ---
 
