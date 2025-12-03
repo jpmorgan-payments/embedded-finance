@@ -68,7 +68,7 @@
   "forms": {
     "linkAccount": {
       "title": "Lier un nouveau compte",
-      "titleSuccess": "Compte lié avec succès",
+      "titleSuccess": "Processus de liaison de compte commencé",
       "description": "Connectez votre compte bancaire externe pour effectuer des paiements.",
       "descriptionSuccess": "Votre compte a été lié et est prêt à être utilisé.",
       "error": {

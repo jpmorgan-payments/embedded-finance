@@ -6,6 +6,7 @@
  */
 
 import {
+  linkedAccountActiveMock,
   linkedAccountBusinessMock,
   linkedAccountInactiveMock,
   linkedAccountListMock,
@@ -45,12 +46,9 @@ type Story = StoryObj<typeof meta>;
  * This is the goal state after successful microdeposit verification.
  */
 export const Active: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
-      await seedRecipientData(linkedAccountListMock);
+      await seedRecipientData(linkedAccountActiveMock);
     },
   ],
 };
@@ -60,9 +58,6 @@ export const Active: Story = {
  * User cannot take action yet - just needs to wait for JPMorgan deposits.
  */
 export const PendingMicrodeposits: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
       await seedRecipientData(linkedAccountMicrodepositListMock);
@@ -75,9 +70,6 @@ export const PendingMicrodeposits: Story = {
  * Click the verify button to see the verification dialog.
  */
 export const ReadyToVerify: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
       await seedRecipientData(linkedAccountReadyForValidationMock);
@@ -90,9 +82,6 @@ export const ReadyToVerify: Story = {
  * User entered wrong amounts or exceeded max attempts.
  */
 export const Rejected: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
       await seedRecipientData(linkedAccountRejectedMock);
@@ -105,9 +94,6 @@ export const Rejected: Story = {
  * Can be reactivated if needed.
  */
 export const Inactive: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
       await seedRecipientData(linkedAccountInactiveMock);
@@ -120,9 +106,6 @@ export const Inactive: Story = {
  * Displays business name instead of individual names.
  */
 export const Business: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
       await seedRecipientData(linkedAccountBusinessMock);
@@ -135,9 +118,6 @@ export const Business: Story = {
  * Demonstrates visual hierarchy and status differentiation.
  */
 export const MixedStatuses: Story = {
-  args: {
-    variant: 'default',
-  },
   loaders: [
     async () => {
       const mixedData = {

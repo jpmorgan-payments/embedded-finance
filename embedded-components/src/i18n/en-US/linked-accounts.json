@@ -55,7 +55,7 @@
   "forms": {
     "linkAccount": {
       "title": "Link A New Account",
-      "titleSuccess": "Account Linked Successfully",
+      "titleSuccess": "Account Linking Process Started",
       "description": "Connect your external bank account to make payments.",
       "descriptionSuccess": "Your account has been linked and is ready to use.",
       "error": {

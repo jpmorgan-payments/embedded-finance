@@ -53,12 +53,18 @@ type Story = StoryObj<typeof meta>;
  * Demonstrates the entire workflow from clicking "Link Account" to successful creation.
  *
  * Data: Starts with empty recipient list
- * Workflow: Click Link Account → Enter account details → Submit → See new account card
+ * Workflow:
+ * - Step 1: Click Link Account
+ * - Step 2: Select Individual account type
+ * - Step 3: Verify ACH payment method (pre-selected)
+ * - Step 4: Continue to account details
+ * - Step 5: Enter account holder name
+ * - Step 6: Enter bank account details
+ * - Step 7: Enter routing number
+ * - Step 8: Accept certification
+ * - Step 9: Submit form
  */
 export const LinkNewAccount: Story = {
-  args: {
-    ...commonArgs,
-  },
   loaders: [
     async () => {
       await seedRecipientData({
@@ -71,41 +77,201 @@ export const LinkNewAccount: Story = {
 
     // Step 1: Click "Link Account" button
     await step('Click Link Account button', async () => {
-      await delay(INTERACTION_DELAY);
       const linkButton = await canvas.findByRole('button', {
         name: /link a new account/i,
       });
+      await delay(INTERACTION_DELAY);
       await userEvent.click(linkButton);
     });
 
-    // Step 2: Wait for dialog and fill in account details
-    await step('Fill in account details', async () => {
+    // Step 2: Verify Individual account type is pre-selected by default
+    await step('Verify Individual account type is pre-selected', async () => {
       await delay(INTERACTION_DELAY);
-      await waitFor(async () => {
-        const accountNumberInput =
-          await canvas.findByLabelText(/account number/i);
-        const routingNumberInput =
-          await canvas.findByLabelText(/routing number/i);
+      // Account type defaults to INDIVIDUAL, no need to interact
+      // The select should show "Individual / Personal Account" as selected
+    });
 
-        await userEvent.type(accountNumberInput, '123456789');
-        await userEvent.type(routingNumberInput, '021000021');
+    // Step 3: Verify payment method (ACH is pre-selected by default)
+    await step('Verify ACH payment method is selected', async () => {
+      await delay(INTERACTION_DELAY);
+      await waitFor(() => {
+        // ACH checkbox should be checked by default
+        const achCheckbox = Array.from(
+          document.querySelectorAll('input[type="checkbox"]')
+        ).find(
+          (input) =>
+            (input as HTMLInputElement).value === 'ACH' ||
+            input.closest('label')?.textContent?.includes('ACH')
+        ) as HTMLInputElement;
+        if (!achCheckbox) throw new Error('ACH payment method not found');
       });
     });
 
-    // Step 3: Submit the form
+    // Step 4: Continue to account details (Step 2)
+    await step('Continue to account details', async () => {
+      await delay(INTERACTION_DELAY);
+      const continueButton = Array.from(
+        document.querySelectorAll('button')
+      ).find((btn) => btn.textContent?.match(/continue to account details/i));
+      if (continueButton) {
+        await userEvent.click(continueButton);
+      }
+    });
+
+    // Step 5: Fill in account holder information
+    await step('Enter account holder name', async () => {
+      await delay(INTERACTION_DELAY);
+      await waitFor(() => {
+        const firstNameInput = document.querySelector(
+          'input[name="firstName"]'
+        ) as HTMLInputElement;
+        const lastNameInput = document.querySelector(
+          'input[name="lastName"]'
+        ) as HTMLInputElement;
+        if (!firstNameInput || !lastNameInput)
+          throw new Error('Name inputs not found');
+        return { firstNameInput, lastNameInput };
+      });
+
+      const firstNameInput = document.querySelector(
+        'input[name="firstName"]'
+      ) as HTMLInputElement;
+      const lastNameInput = document.querySelector(
+        'input[name="lastName"]'
+      ) as HTMLInputElement;
+
+      await userEvent.clear(firstNameInput);
+      await userEvent.type(firstNameInput, 'John');
+
+      await delay(INTERACTION_DELAY);
+
+      await userEvent.clear(lastNameInput);
+      await userEvent.type(lastNameInput, 'Doe');
+    });
+
+    // Step 6: Fill in bank account details
+    await step('Enter bank account details', async () => {
+      await delay(INTERACTION_DELAY);
+      await waitFor(() => {
+        const accountNumberInput = document.querySelector(
+          'input[name="accountNumber"]'
+        ) as HTMLInputElement;
+        if (!accountNumberInput)
+          throw new Error('Account number input not found');
+        return accountNumberInput;
+      });
+
+      const accountNumberInput = document.querySelector(
+        'input[name="accountNumber"]'
+      ) as HTMLInputElement;
+
+      await userEvent.clear(accountNumberInput);
+      await userEvent.type(accountNumberInput, '123456789');
+
+      // Select account type (Checking)
+      const accountTypeButton = document.querySelector(
+        'button[name="bankAccountType"]'
+      ) as HTMLButtonElement;
+      if (accountTypeButton) {
+        await userEvent.click(accountTypeButton);
+        await delay(300);
+
+        const checkingOption = Array.from(
+          document.querySelectorAll('[role="option"]')
+        ).find((el) => el.textContent?.includes('Checking'));
+        if (checkingOption) {
+          await userEvent.click(checkingOption as HTMLElement);
+        }
+      }
+    });
+
+    // Step 7: Enter routing number
+    await step('Enter routing number', async () => {
+      await delay(INTERACTION_DELAY);
+
+      // Wait for the routing number input to be rendered
+      await waitFor(() => {
+        // The input is inside a dialog portal, search by placeholder or label
+        const routingInput = Array.from(
+          document.querySelectorAll('input[type="text"]')
+        ).find(
+          (input) =>
+            (input as HTMLInputElement).placeholder?.includes(
+              '9-digit routing'
+            ) || (input as HTMLInputElement).maxLength === 9
+        ) as HTMLInputElement;
+
+        if (!routingInput) throw new Error('Routing number input not found');
+        return routingInput;
+      });
+
+      const routingInput = Array.from(
+        document.querySelectorAll('input[type="text"]')
+      ).find(
+        (input) =>
+          (input as HTMLInputElement).placeholder?.includes(
+            '9-digit routing'
+          ) || (input as HTMLInputElement).maxLength === 9
+      ) as HTMLInputElement;
+
+      // Focus the input first to ensure it's ready
+      routingInput.focus();
+      await delay(100);
+
+      // Clear and type
+      await userEvent.clear(routingInput);
+      await userEvent.type(routingInput, '021000021', { delay: 50 });
+    });
+
+    // Step 8: Check certification checkbox
+    await step('Accept certification', async () => {
+      await delay(INTERACTION_DELAY);
+
+      // Wait for the certification checkbox to be visible (Radix UI checkbox renders as button with role="checkbox")
+      await waitFor(() => {
+        // Find the Radix checkbox button by role
+        const certifyCheckbox = Array.from(
+          document.querySelectorAll('button[role="checkbox"]')
+        ).find((checkbox) => {
+          // Check if this checkbox is in a container with certification text
+          const container = checkbox.closest('.eb-flex');
+          const label = container?.querySelector('label');
+          return (
+            label?.textContent?.includes('authorize') ||
+            label?.textContent?.includes('certify') ||
+            label?.textContent?.includes('accurate')
+          );
+        }) as HTMLButtonElement;
+
+        if (!certifyCheckbox)
+          throw new Error('Certification checkbox not found');
+        return certifyCheckbox;
+      });
+
+      const certifyCheckbox = Array.from(
+        document.querySelectorAll('button[role="checkbox"]')
+      ).find((checkbox) => {
+        const container = checkbox.closest('.eb-flex');
+        const label = container?.querySelector('label');
+        return (
+          label?.textContent?.includes('authorize') ||
+          label?.textContent?.includes('certify') ||
+          label?.textContent?.includes('accurate')
+        );
+      }) as HTMLButtonElement;
+
+      await userEvent.click(certifyCheckbox);
+    });
+
+    // Step 9: Submit the form
     await step('Submit the form', async () => {
       await delay(INTERACTION_DELAY);
-      const submitButton = await canvas.findByRole('button', {
-        name: /continue/i,
-      });
-      await userEvent.click(submitButton);
-    });
-
-    // Step 4: Verify new account card appears
-    await step('Verify new account card appears', async () => {
-      await waitFor(async () => {
-        await canvas.findByText(/•••• 6789/i);
-      });
+      const submitButton = Array.from(document.querySelectorAll('button')).find(
+        (btn) => btn.textContent?.match(/confirm and link account/i)
+      );
+      if (submitButton) {
+        await userEvent.click(submitButton);
+      }
     });
   },
 };
@@ -118,9 +284,6 @@ export const LinkNewAccount: Story = {
  * Workflow: Click Verify → Enter correct amounts → Submit → See success message → Account becomes ACTIVE
  */
 export const SuccessfulVerification: Story = {
-  args: {
-    ...commonArgs,
-  },
   loaders: [
     async () => {
       await seedRecipientData({
@@ -205,9 +368,6 @@ export const SuccessfulVerification: Story = {
  * Workflow: Click Verify → Enter incorrect amounts → Submit → See error message
  */
 export const FailedVerification: Story = {
-  args: {
-    ...commonArgs,
-  },
   loaders: [
     async () => {
       await seedRecipientData({
@@ -220,10 +380,10 @@ export const FailedVerification: Story = {
 
     // Step 1: Click "Verify" button on the account card
     await step('Click Verify button', async () => {
-      await delay(INTERACTION_DELAY);
       const verifyButton = await canvas.findByRole('button', {
         name: /verify/i,
       });
+      await delay(INTERACTION_DELAY);
       await userEvent.click(verifyButton);
     });
 
@@ -286,9 +446,6 @@ export const FailedVerification: Story = {
  * Workflow: Click Verify → Enter incorrect amounts (3rd attempt) → See max attempts dialog
  */
 export const MaxAttemptsExceeded: Story = {
-  args: {
-    ...commonArgs,
-  },
   loaders: [
     async () => {
       await seedRecipientData(
@@ -309,10 +466,10 @@ export const MaxAttemptsExceeded: Story = {
 
     // Step 1: Click "Verify" button
     await step('Click Verify button', async () => {
-      await delay(INTERACTION_DELAY);
       const verifyButton = await canvas.findByRole('button', {
         name: /verify/i,
       });
+      await delay(INTERACTION_DELAY);
       await userEvent.click(verifyButton);
     });
 

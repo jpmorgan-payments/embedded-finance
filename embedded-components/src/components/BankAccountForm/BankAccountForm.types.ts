@@ -47,15 +47,6 @@ export interface PaymentMethodConfig {
  * Content/text configuration for customizing labels and messages
  */
 export interface BankAccountFormContent {
-  /** Dialog/form title */
-  title: string;
-  /** Dialog/form description */
-  description: string;
-  /** Success state title */
-  successTitle?: string;
-  /** Success state description */
-  successDescription?: string;
-  /** Submit button text */
   submitButtonText: string;
   /** Cancel button text */
   cancelButtonText?: string;
