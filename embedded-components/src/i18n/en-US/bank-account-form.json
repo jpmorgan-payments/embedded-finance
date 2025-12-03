@@ -31,29 +31,18 @@
     "contactInfo": "Contact Information"
   },
   "linkedAccount": {
-    "title": "Link A Bank Account",
-    "description": "Connect your external bank account to enable payments",
-    "successTitle": "Account Linked Successfully",
-    "successDescription": "Your external account has been linked.",
     "submitButton": "Confirm and Link Account",
     "cancelButton": "Cancel",
     "loadingMessage": "Linking your account...",
     "certificationText": "I authorize verification of this external bank account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details."
   },
   "linkedAccountEdit": {
-    "title": "Edit Linked Account",
-    "description": "Update your bank account information and payment methods",
-    "successTitle": "Account Updated Successfully",
     "successDescription": "Your linked account has been updated.",
     "submitButton": "Save Changes",
     "cancelButton": "Cancel",
     "loadingMessage": "Updating your account..."
   },
   "recipient": {
-    "title": "Create New Recipient",
-    "description": "Add a new payment recipient",
-    "successTitle": "Recipient Created Successfully",
-    "successDescription": "The recipient has been added.",
     "submitButton": "Create Recipient",
     "cancelButton": "Cancel",
     "loadingMessage": "Creating recipient...",
@@ -63,10 +52,6 @@
     }
   },
   "recipientEdit": {
-    "title": "Edit Recipient",
-    "description": "Update recipient information and payment methods",
-    "successTitle": "Recipient Updated Successfully",
-    "successDescription": "The recipient has been updated.",
     "submitButton": "Save Changes",
     "cancelButton": "Cancel",
     "loadingMessage": "Updating recipient...",

@@ -1,4 +1,8 @@
-import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import {
+  ApiError,
+  MicrodepositVerificationResponse,
+  Recipient,
+} from '@/api/generated/ep-recipients.schemas';
 
 /**
  * Props for the LinkedAccountWidget component (Public API)
@@ -13,26 +17,39 @@ export interface LinkedAccountWidgetProps {
   variant?: 'default' | 'singleAccount';
 
   /**
-   * Whether to show the "Link A New Account" button
+   * Controls whether the create button is shown
    * @default true
    */
   showCreateButton?: boolean;
 
   /**
-   * Optional MakePayment component to render in each card when account is active
-   * The component will receive recipientId as a prop
+   * Optional custom component to render for making payments
    */
   makePaymentComponent?: React.ReactNode;
 
   /**
-   * Callback fired when a linked account creation or verification is settled
-   * @param recipient - The recipient data if successful
-   * @param error - The error if failed
+   * Callback when a linked account operation is settled (create, update, delete)
+   * @param recipient - The recipient object (if operation succeeded)
+   * @param error - The API error (if operation failed)
    */
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 
   /**
-   * Optional CSS class name for custom styling
+   * Callback when microdeposit verification is completed
+   * @param response - The verification response containing status
+   */
+  /**
+   * Callback when microdeposit verification is completed
+   * @param response - The verification response containing status
+   * @param recipient - The recipient that was being verified
+   */
+  onMicrodepositVerifySettled?: (
+    response: MicrodepositVerificationResponse,
+    recipient?: any
+  ) => void;
+
+  /**
+   * Optional custom CSS class for the root element
    */
   className?: string;
 }

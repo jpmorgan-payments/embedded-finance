@@ -1,5 +1,5 @@
 import { Meta } from '@storybook/react-vite';
-import { SELLSENSE_THEME } from '@storybook/themes';
+import { SELLSENSE_THEME } from '@storybook-themes';
 
 import defaultMeta, {
   Default,

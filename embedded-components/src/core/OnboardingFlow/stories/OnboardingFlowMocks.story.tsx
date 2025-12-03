@@ -1,6 +1,6 @@
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
-import { http, HttpResponse } from 'msw';
 import { Meta } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
 
 import defaultMeta, {
   Default,

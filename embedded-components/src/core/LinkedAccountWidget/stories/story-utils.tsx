@@ -1,195 +1,358 @@
 /**
  * Shared utilities for LinkedAccountWidget stories
+ *
+ * This module provides:
+ * - MSW database seeding and reset utilities
+ * - MSW handler factories for recipient endpoints
+ * - Common story configuration (args, argTypes)
+ * - Type definitions for stories
+ *
+ * Stories can render the LinkedAccountWidget component directly:
+ * @example
+ * ```tsx
+ * export const Default: Story = {
+ *   args: { variant: 'default' }
+ * };
+ * ```
+ *
+ * The EBComponentsProvider is applied globally via a decorator in preview.tsx.
  */
 
-import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
+import { db, resetDb, verifyMicrodeposit } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
-import {
-  baseStoryArgTypes,
-  baseStoryDefaults,
-  BaseStoryProps,
-  resolveTheme,
-} from '@storybook/shared-story-types';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-
-import { LinkedAccountWidget } from '../LinkedAccountWidget';
+import type {
+  ApiError,
+  ListRecipientsResponse,
+  MicrodepositAmounts,
+  MicrodepositVerificationResponse,
+  Recipient,
+  RecipientRequest,
+  RecipientStatus,
+  UpdateRecipientRequest,
+} from '@/api/generated/ep-recipients.schemas';
 
 // ============================================================================
-// Story Wrapper Component
+// Type Definitions
 // ============================================================================
 
 /**
- * Props for LinkedAccountWidget stories.
- * Extends BaseStoryProps for common provider/theme configuration.
+ * Configuration options for MSW handler creation and database seeding
  */
-export interface LinkedAccountWidgetStoryProps extends BaseStoryProps {
-  /** Display variant for the widget */
-  variant?: 'default' | 'singleAccount';
-  /** Whether to show the "Link New Account" button */
-  showCreateButton?: boolean;
-  /** Custom component to render for making payments */
-  makePaymentComponent?: React.ReactNode;
-  /** Callback when a linked account is settled */
-  onLinkedAccountSettled?: (recipient?: any, error?: any) => void;
-  /** Additional CSS class names */
-  className?: string;
-}
+export interface RecipientHandlerOptions {
+  /** Initial verification attempt counts per recipient ID */
+  initialVerificationAttempts?: Record<string, number>;
+  /** Network delay in milliseconds (default: 800ms) */
+  delayMs?: number;
+  /** Override the default status returned when creating a recipient (default: 'MICRODEPOSITS_INITIATED') */
+  overrideCreateStatus?: RecipientStatus;
+} // ============================================================================
+// Database Management
+// ============================================================================
 
-export const LinkedAccountWidgetStory: React.FC<
-  LinkedAccountWidgetStoryProps
-> = ({
-  apiBaseUrl,
-  clientId,
-  headers,
-  themePreset = 'Default',
-  theme: customTheme,
-  contentTokensPreset = 'enUS',
-  contentTokens,
-  variant,
-  showCreateButton,
-  makePaymentComponent,
-  onLinkedAccountSettled,
-  className,
-}) => {
-  // Resolve theme: use custom theme if themePreset is 'custom', otherwise use preset
-  const selectedTheme = resolveTheme(themePreset, customTheme);
+/**
+ * Resets MSW database to a clean state and seeds with recipient data.
+ * Use this in Storybook loaders to ensure each story has isolated test data.
+ *
+ * Includes a brief delay to ensure pending requests from previous stories complete.
+ *
+ * @param seedData - Recipient data to seed after reset
+ * @param options - Configuration options for seeding
+ *
+ * @example
+ * ```tsx
+ * export const MyStory: Story = {
+ *   loaders: [async () => await seedRecipientData(mockData)]
+ * };
+ * ```
+ */
+export const seedRecipientData = async (
+  seedData?: ListRecipientsResponse,
+  options?: Pick<RecipientHandlerOptions, 'initialVerificationAttempts'>
+): Promise<void> => {
+  // Brief delay to ensure clean state between stories
+  await sleep(100);
 
-  const selectedContentTokens = contentTokens ?? { name: contentTokensPreset };
+  // Reset global MSW database
+  resetDb();
 
-  return (
-    <EBComponentsProvider
-      apiBaseUrl={apiBaseUrl}
-      apiBaseUrls={{
-        clients: `${apiBaseUrl.split('/v1')[0]}/do/v1`,
-      }}
-      headers={headers}
-      theme={selectedTheme}
-      contentTokens={selectedContentTokens}
-      clientId={clientId ?? ''}
-    >
-      <LinkedAccountWidget
-        variant={variant}
-        showCreateButton={showCreateButton}
-        makePaymentComponent={makePaymentComponent}
-        onLinkedAccountSettled={onLinkedAccountSettled}
-        className={className}
-      />
-    </EBComponentsProvider>
-  );
+  // Seed if data provided
+  if (seedData) {
+    const recipients = seedData.recipients ?? [];
+    recipients.forEach((recipient) => {
+      // Check if recipient already exists (safety check)
+      const existing = db.recipient.findFirst({
+        where: { id: { equals: recipient.id } },
+      });
+
+      if (!existing) {
+        db.recipient.create({
+          ...recipient,
+          verificationAttempts:
+            options?.initialVerificationAttempts?.[recipient.id] ?? 0,
+        });
+      } else {
+        // Update existing recipient instead
+        db.recipient.update({
+          where: { id: { equals: recipient.id } },
+          data: {
+            ...recipient,
+            verificationAttempts:
+              options?.initialVerificationAttempts?.[recipient.id] ?? 0,
+          },
+        });
+      }
+    });
+
+    debugLog('Database seeded', {
+      count: recipients.length,
+      recipients: recipients.map((r) => ({ id: r.id, status: r.status })),
+    });
+  }
 };
 
 // ============================================================================
 // MSW Handler Utilities
 // ============================================================================
 
-export const createRecipientHandlers = (responseData: any) => [
-  http.get('/recipients', () => {
-    return HttpResponse.json(responseData);
-  }),
-  http.get('/recipients/:id', ({ params }) => {
-    const { id } = params;
-    // Try to find the recipient in the mock data
-    const recipient = linkedAccountListMock.recipients?.find(
-      (r) => r.id === id
-    );
+// ============================================================================
+// Utility Functions
+// ============================================================================
 
-    if (recipient) {
-      return HttpResponse.json(recipient);
-    }
+/**
+ * Simulates network delay for realistic MSW responses
+ * @param ms - Delay duration in milliseconds
+ */
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
-    // If not found in mock data, return a default recipient with the requested ID
-    return HttpResponse.json({
-      id,
-      type: 'LINKED_ACCOUNT',
-      status: 'ACTIVE',
-      clientId: '3002024303',
-      partyDetails: {
-        type: 'INDIVIDUAL',
-        firstName: 'John',
-        lastName: 'Doe',
-      },
-      account: {
-        type: 'CHECKING',
-        number: '1234567890',
-        routingInformation: [
-          {
-            routingCodeType: 'USABA',
-            routingNumber: '123456789',
-            transactionType: 'ACH',
+/**
+ * Logs debug information in development mode only
+ * @param message - Log message
+ * @param data - Optional data to log
+ */
+const debugLog = (message: string, data?: unknown): void => {
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log(`[MSW LinkedAccount] ${message}`, data);
+  }
+};
+
+// ============================================================================
+// MSW Handler Factories
+// ============================================================================
+
+/**
+ * Creates MSW handlers for recipient API endpoints.
+ * Uses the global MSW database for state management and persistence.
+ *
+ * Note: Handlers do NOT seed the database. Use loaders to seed data before rendering:
+ * ```tsx
+ * loaders: [async () => await seedRecipientData(mockData)]
+ * ```
+ *
+ * @param options - Configuration for delays (optional)
+ * @returns Array of MSW request handlers
+ *
+ * @example
+ * ```tsx
+ * export const MyStory: Story = {
+ *   loaders: [async () => await seedRecipientData(mockData)],
+ *   parameters: {
+ *     msw: { handlers: createRecipientHandlers({ delayMs: 500 }) }
+ *   }
+ * };
+ * ```
+ */
+export const createRecipientHandlers = (
+  options?: Pick<RecipientHandlerOptions, 'delayMs' | 'overrideCreateStatus'>
+) => {
+  const delay = options?.delayMs ?? 800;
+  const createStatus =
+    options?.overrideCreateStatus ?? 'MICRODEPOSITS_INITIATED';
+
+  return [
+    // GET /recipients - List all active recipients
+    http.get('/recipients', async (): Promise<Response> => {
+      await sleep(delay);
+
+      const allRecipients = db.recipient.getAll();
+      const activeRecipients = allRecipients.filter(
+        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+      );
+
+      debugLog('GET /recipients', {
+        total: activeRecipients.length,
+        statuses: activeRecipients.map((r) => ({ id: r.id, status: r.status })),
+      });
+
+      const response: ListRecipientsResponse = {
+        recipients: activeRecipients as Recipient[],
+        metadata: {
+          total_items: activeRecipients.length,
+        },
+      };
+
+      return HttpResponse.json(response);
+    }),
+
+    // GET /recipients/:id - Get single recipient
+    http.get('/recipients/:id', async ({ params }): Promise<Response> => {
+      await sleep(delay);
+
+      const { id } = params;
+      const recipient = db.recipient.findFirst({
+        where: { id: { equals: id as string } },
+      });
+
+      if (!recipient) {
+        const error: ApiError = {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        };
+        return HttpResponse.json(error, { status: 404 });
+      }
+
+      debugLog('GET /recipients/:id', { id, status: recipient.status });
+
+      return HttpResponse.json(recipient as Recipient);
+    }),
+
+    // POST /recipients/:id - Update recipient
+    http.post(
+      '/recipients/:id',
+      async ({ params, request }): Promise<Response> => {
+        await sleep(delay);
+
+        const { id } = params;
+        const body = (await request.json()) as UpdateRecipientRequest;
+
+        const recipient = db.recipient.findFirst({
+          where: { id: { equals: id as string } },
+        });
+
+        if (!recipient) {
+          const error: ApiError = {
+            httpStatus: 404,
+            title: 'Recipient not found',
+          };
+          return HttpResponse.json(error, { status: 404 });
+        }
+
+        const updatedRecipient = db.recipient.update({
+          where: { id: { equals: id as string } },
+          data: {
+            ...body,
+            updatedAt: new Date().toISOString(),
           },
-        ],
-        countryCode: 'US',
-      },
-      createdAt: new Date().toISOString(),
-    });
-  }),
-  http.post('/recipients', async ({ request }) => {
-    const body = (await request.json()) as any;
-    const created = {
-      id: `recipient-${Date.now()}`,
-      type: 'LINKED_ACCOUNT',
-      status: 'MICRODEPOSITS_INITIATED',
-      clientId: body?.clientId ?? '3002024303',
-      partyDetails: {
-        type: body?.partyDetails?.type ?? 'INDIVIDUAL',
-        firstName: body?.partyDetails?.firstName,
-        lastName: body?.partyDetails?.lastName,
-        businessName: body?.partyDetails?.businessName,
-        address: body?.partyDetails?.address,
-        contacts: body?.partyDetails?.contacts,
-      },
-      account: {
-        type: body?.account?.type ?? 'CHECKING',
-        number: body?.account?.number ?? '1234567890',
-        routingInformation:
-          body?.account?.routingInformation &&
-          Array.isArray(body.account.routingInformation) &&
-          body.account.routingInformation.length > 0
-            ? body.account.routingInformation
-            : [
-                {
-                  routingCodeType: 'USABA',
-                  routingNumber:
-                    body?.account?.routingInformation?.[0]?.routingNumber ??
-                    '123456789',
-                  transactionType:
-                    body?.account?.routingInformation?.[0]?.transactionType ??
-                    'ACH',
-                },
-              ],
-        countryCode: body?.account?.countryCode ?? 'US',
-      },
-      createdAt: new Date().toISOString(),
-    };
+        });
 
-    return HttpResponse.json(created, { status: 201 });
-  }),
-  http.post('/recipients/:id/verify-microdeposit', ({ params }) => {
-    const { id } = params;
-    const firstRecipient = linkedAccountListMock.recipients?.[0];
-    return HttpResponse.json({
-      ...firstRecipient,
-      id,
-      status: 'ACTIVE',
-      recipientId: id,
-    });
-  }),
-];
+        return HttpResponse.json(updatedRecipient as Recipient);
+      }
+    ),
+
+    // POST /recipients - Create new recipient
+    http.post('/recipients', async ({ request }): Promise<Response> => {
+      await sleep(delay);
+
+      const body = (await request.json()) as RecipientRequest;
+
+      const newRecipient = db.recipient.create({
+        id: `recipient-${Date.now()}`,
+        type: 'LINKED_ACCOUNT',
+        status: createStatus,
+        clientId: body?.clientId ?? '3002024303',
+        partyDetails: {
+          type: body?.partyDetails?.type ?? 'INDIVIDUAL',
+          firstName: body?.partyDetails?.firstName,
+          lastName: body?.partyDetails?.lastName,
+          businessName: body?.partyDetails?.businessName,
+          address: body?.partyDetails?.address,
+          contacts: body?.partyDetails?.contacts,
+        },
+        account: {
+          type: body?.account?.type ?? 'CHECKING',
+          number: body?.account?.number ?? '1234567890',
+          routingInformation:
+            body?.account?.routingInformation &&
+            Array.isArray(body.account.routingInformation) &&
+            body.account.routingInformation.length > 0
+              ? body.account.routingInformation
+              : [
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber:
+                      body?.account?.routingInformation?.[0]?.routingNumber ??
+                      '123456789',
+                    transactionType:
+                      body?.account?.routingInformation?.[0]?.transactionType ??
+                      'ACH',
+                  },
+                ],
+          countryCode: body?.account?.countryCode ?? 'US',
+        },
+        createdAt: new Date().toISOString(),
+        verificationAttempts: 0,
+      });
+
+      return HttpResponse.json(newRecipient as Recipient, { status: 201 });
+    }),
+
+    // POST /recipients/:id/verify-microdeposit - Verify microdeposits
+    http.post(
+      '/recipients/:id/verify-microdeposit',
+      async ({ params, request }): Promise<Response> => {
+        await sleep(delay);
+
+        const { id } = params;
+        const body = (await request.json()) as MicrodepositAmounts;
+        const amounts = body.amounts ?? [];
+
+        const result = verifyMicrodeposit(id as string, amounts);
+
+        debugLog('Verification attempt', {
+          recipientId: id,
+          status: result.status,
+          amounts,
+        });
+
+        if (result.error) {
+          return HttpResponse.json(result.error as ApiError, {
+            status: result.error.httpStatus ?? 400,
+          });
+        }
+
+        const response: MicrodepositVerificationResponse = {
+          status: result.status as MicrodepositVerificationResponse['status'],
+        };
+
+        return HttpResponse.json(response);
+      }
+    ),
+  ];
+};
 
 // ============================================================================
 // Common Story Configuration
 // ============================================================================
 
+/**
+ * Default argument values for LinkedAccountWidget stories.
+ * Component-specific defaults (global defaults are in preview.tsx)
+ */
 export const commonArgs = {
-  ...baseStoryDefaults,
-  clientId: import.meta.env.VITE_API_CLIENT_ID ?? '',
   variant: 'default' as const,
   showCreateButton: true,
 };
 
+/**
+ * Storybook controls and documentation for LinkedAccountWidget stories.
+ * Component-specific argTypes (global argTypes are in preview.tsx)
+ */
 export const commonArgTypes = {
-  ...baseStoryArgTypes,
   variant: {
     control: { type: 'select' as const },
     options: ['default', 'singleAccount'],
@@ -205,13 +368,6 @@ export const commonArgTypes = {
     table: {
       category: 'Component',
       defaultValue: { summary: 'true' },
-    },
-  },
-  clientId: {
-    control: { type: 'text' as const },
-    description: 'Client ID for API requests',
-    table: {
-      category: 'Component',
     },
   },
 };

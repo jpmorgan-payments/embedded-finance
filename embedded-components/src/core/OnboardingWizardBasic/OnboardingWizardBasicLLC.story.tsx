@@ -9,8 +9,8 @@ import {
 } from '@/mocks/efDocumentRequestDetails.mock';
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { http, HttpResponse } from 'msw';
 import type { Meta, StoryFn } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';

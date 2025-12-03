@@ -79,6 +79,17 @@ export const db = factory({
     createdAt: String,
     validForDays: Number,
   },
+  recipient: {
+    id: primaryKey(String),
+    type: String,
+    status: String,
+    clientId: String,
+    partyDetails: Object,
+    account: Object,
+    createdAt: String,
+    updatedAt: String,
+    verificationAttempts: Number,
+  },
 });
 
 // Helper function to handle document request upsert
@@ -132,6 +143,7 @@ export function logDbState(operation = 'Current State') {
   const clients = db.client.getAll();
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
+  const recipients = db.recipient.getAll();
 
   dbLogger('=== Database State After:', operation, '===');
   dbLogger(
@@ -146,7 +158,116 @@ export function logDbState(operation = 'Current State') {
     'Document Requests:',
     documentRequests.map((dr) => dr.id)
   );
+  dbLogger(
+    'Recipients:',
+    recipients.map((r) => `${r.id} (${r.status})`)
+  );
   dbLogger('=====================================');
+}
+
+// Helper function to get active recipients (filter out INACTIVE and REJECTED)
+export function getActiveRecipients(clientId?: string) {
+  const allRecipients = db.recipient.getAll();
+
+  let filteredRecipients = allRecipients.filter(
+    (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+  );
+
+  if (clientId) {
+    filteredRecipients = filteredRecipients.filter(
+      (r) => r.clientId === clientId
+    );
+  }
+
+  return filteredRecipients;
+}
+
+// Helper function to handle microdeposit verification
+export function verifyMicrodeposit(recipientId: string, amounts: number[]) {
+  const recipient = db.recipient.findFirst({
+    where: { id: { equals: recipientId } },
+  });
+
+  if (!recipient) {
+    return {
+      error: {
+        httpStatus: 404,
+        title: 'Recipient not found',
+      },
+    };
+  }
+
+  // Track verification attempts
+  const currentAttempts = recipient.verificationAttempts || 0;
+  const newAttempts = currentAttempts + 1;
+  const maxAttempts = 3;
+
+  // Check if max attempts already exceeded
+  if (currentAttempts >= maxAttempts) {
+    return {
+      status: 'FAILED_MAX_ATTEMPTS_EXCEEDED',
+      recipientId,
+    };
+  }
+
+  // Simulate verification logic
+  // For testing: amounts [0.23, 0.47] are correct
+  const correctAmounts = [0.23, 0.47];
+  const isCorrect =
+    (amounts[0] === correctAmounts[0] && amounts[1] === correctAmounts[1]) ||
+    (amounts[0] === correctAmounts[1] && amounts[1] === correctAmounts[0]);
+
+  if (isCorrect) {
+    // Success - update to VERIFIED/ACTIVE
+    db.recipient.update({
+      where: { id: { equals: recipientId } },
+      data: {
+        status: 'ACTIVE',
+        verificationAttempts: newAttempts,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    logDbState('Microdeposit Verification Success');
+
+    return {
+      status: 'VERIFIED',
+    };
+  }
+
+  // Failed verification
+  if (newAttempts >= maxAttempts) {
+    // Max attempts exceeded - mark as REJECTED
+    db.recipient.update({
+      where: { id: { equals: recipientId } },
+      data: {
+        status: 'REJECTED',
+        verificationAttempts: newAttempts,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    logDbState('Microdeposit Verification - Max Attempts Exceeded');
+
+    return {
+      status: 'FAILED_MAX_ATTEMPTS_EXCEEDED',
+    };
+  }
+
+  // Failed but can retry
+  db.recipient.update({
+    where: { id: { equals: recipientId } },
+    data: {
+      verificationAttempts: newAttempts,
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  logDbState('Microdeposit Verification Failed');
+
+  return {
+    status: 'FAILED',
+  };
 }
 
 // Initialize with predefined mocks
@@ -170,6 +291,9 @@ export function initializeDb(force = false) {
           where: {},
         });
         db.documentRequest.deleteMany({
+          where: {},
+        });
+        db.recipient.deleteMany({
           where: {},
         });
       } catch (err) {
@@ -534,12 +658,15 @@ export function getDbStatus() {
   const clients = db.client.getAll();
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
+  const recipients = db.recipient.getAll();
 
   logDbState('Status Check');
   return {
     clientCount: clients.length,
     partyCount: parties.length,
     documentRequestCount: documentRequests.length,
+    recipientCount: recipients.length,
     clients: clients.map((c) => c.id),
+    recipients: recipients.map((r) => ({ id: r.id, status: r.status })),
   };
 }

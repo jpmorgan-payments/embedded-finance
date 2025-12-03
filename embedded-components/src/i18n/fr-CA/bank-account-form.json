@@ -31,29 +31,17 @@
     "contactInfo": "Informations de contact"
   },
   "linkedAccount": {
-    "title": "Lier un compte bancaire",
-    "description": "Connectez votre compte bancaire externe pour activer les paiements",
-    "successTitle": "Compte lié avec succès",
-    "successDescription": "Votre compte externe a été lié.",
     "submitButton": "Confirmer et lier le compte",
     "cancelButton": "Annuler",
     "loadingMessage": "Liaison de votre compte...",
     "certificationText": "J'autorise la vérification de ce compte bancaire externe, y compris la vérification par microdépôts si nécessaire. Je certifie que les informations fournies sont exactes et correspondent aux détails de mon compte bancaire."
   },
   "linkedAccountEdit": {
-    "title": "Modifier le compte lié",
-    "description": "Mettre à jour les informations de votre compte bancaire et les méthodes de paiement",
-    "successTitle": "Compte mis à jour avec succès",
-    "successDescription": "Votre compte lié a été mis à jour.",
     "submitButton": "Enregistrer les modifications",
     "cancelButton": "Annuler",
     "loadingMessage": "Mise à jour de votre compte..."
   },
   "recipient": {
-    "title": "Créer un nouveau destinataire",
-    "description": "Ajouter un nouveau destinataire de paiement",
-    "successTitle": "Destinataire créé avec succès",
-    "successDescription": "Le destinataire a été ajouté.",
     "submitButton": "Créer le destinataire",
     "cancelButton": "Annuler",
     "loadingMessage": "Création du destinataire...",
@@ -63,10 +51,6 @@
     }
   },
   "recipientEdit": {
-    "title": "Modifier le destinataire",
-    "description": "Mettre à jour les informations du destinataire et les méthodes de paiement",
-    "successTitle": "Destinataire mis à jour avec succès",
-    "successDescription": "Le destinataire a été mis à jour.",
     "submitButton": "Enregistrer les modifications",
     "cancelButton": "Annuler",
     "loadingMessage": "Mise à jour du destinataire...",

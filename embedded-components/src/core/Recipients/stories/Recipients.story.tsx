@@ -5,9 +5,9 @@ import {
   mockEmptyRecipientsResponse,
   mockRecipientsResponse,
 } from '@/mocks/recipients.mock';
-import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SELLSENSE_THEME } from '@storybook/themes';
+import { SELLSENSE_THEME } from '@storybook-themes';
+import { http, HttpResponse } from 'msw';
 import { userEvent, within } from '@test-utils';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';

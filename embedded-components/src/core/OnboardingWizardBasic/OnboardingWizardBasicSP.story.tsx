@@ -5,8 +5,8 @@ import { efClientSolPropAnsweredQuestions } from '@/mocks/efClientSolPropAnswere
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
-import { http, HttpResponse } from 'msw';
 import type { Meta, StoryFn } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { EBConfig } from '@/core/EBComponentsProvider/config.types';
