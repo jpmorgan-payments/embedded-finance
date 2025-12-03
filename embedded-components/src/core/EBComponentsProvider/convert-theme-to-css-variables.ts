@@ -21,112 +21,470 @@ function colorToHsl(colorString?: string, alphaModifier?: number) {
   }
 }
 
+/**
+ * Resolves a token value with fallback to legacy name for backward compatibility.
+ * New Salt-aligned names take precedence over legacy names.
+ */
+const resolve = <T>(
+  newValue: T | undefined,
+  legacyValue: T | undefined
+): T | undefined => newValue ?? legacyValue;
+
 const convertThemeVariablesToCssVariables = (
   variables: EBThemeVariables
 ): CSSVariables => {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Typography (Content Characteristic)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const fontFamily = resolve(variables.contentFontFamily, variables.fontFamily);
+  const headerFontFamily = resolve(
+    variables.contentHeaderFontFamily,
+    variables.headerFontFamily
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Container Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const containerBg = resolve(
+    variables.containerBackground,
+    variables.backgroundColor
+  );
+  const contentFg = resolve(
+    variables.contentPrimaryForeground,
+    variables.foregroundColor
+  );
+  const containerPrimaryBg = resolve(
+    variables.containerPrimaryBackground,
+    variables.cardColor
+  );
+  const containerPrimaryFg = resolve(
+    variables.containerPrimaryForeground,
+    variables.cardForegroundColor
+  );
+  const containerSecondaryBg = resolve(
+    variables.containerSecondaryBackground,
+    variables.mutedColor
+  );
+  const containerSecondaryFg = resolve(
+    variables.containerSecondaryForeground,
+    variables.mutedForegroundColor
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Actionable Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const actionableFontFamily = resolve(
+    variables.actionableFontFamily,
+    variables.buttonFontFamily
+  );
+  const actionableFontWeight = resolve(
+    variables.actionableFontWeight,
+    variables.buttonFontWeight
+  );
+  const actionableFontSize = resolve(
+    variables.actionableFontSize,
+    variables.buttonFontSize
+  );
+  const actionableLineHeight = resolve(
+    variables.actionableLineHeight,
+    variables.buttonLineHeight
+  );
+  const actionableTextTransform = resolve(
+    variables.actionableTextTransform,
+    variables.buttonTextTransform
+  );
+  const actionableLetterSpacing = resolve(
+    variables.actionableLetterSpacing,
+    variables.buttonLetterSpacing
+  );
+  const actionableBorderRadius = resolve(
+    variables.actionableBorderRadius,
+    variables.buttonBorderRadius
+  );
+  const actionableShiftOnActive = resolve(
+    variables.actionableShiftOnActive,
+    variables.shiftButtonOnActive
+  );
+
+  // Primary variant
+  const actionablePrimaryBg = resolve(
+    variables.actionablePrimaryBackground,
+    variables.primaryColor
+  );
+  const actionablePrimaryBgHover = resolve(
+    variables.actionablePrimaryBackgroundHover,
+    variables.primaryHoverColor
+  );
+  const actionablePrimaryBgActive = resolve(
+    variables.actionablePrimaryBackgroundActive,
+    variables.primaryActiveColor
+  );
+  const actionablePrimaryFg = resolve(
+    variables.actionablePrimaryForeground,
+    variables.primaryForegroundColor
+  );
+  const actionablePrimaryFgHover = resolve(
+    variables.actionablePrimaryForegroundHover,
+    variables.primaryForegroundHoverColor
+  );
+  const actionablePrimaryFgActive = resolve(
+    variables.actionablePrimaryForegroundActive,
+    variables.primaryForegroundActiveColor
+  );
+  const actionablePrimaryBorderWidth = resolve(
+    variables.actionablePrimaryBorderWidth,
+    variables.primaryBorderWidth
+  );
+  const actionablePrimaryFontWeight = resolve(
+    variables.actionablePrimaryFontWeight,
+    variables.primaryButtonFontWeight
+  );
+
+  // Secondary variant
+  const actionableSecondaryBg = resolve(
+    variables.actionableSecondaryBackground,
+    variables.secondaryColor
+  );
+  const actionableSecondaryBgHover = resolve(
+    variables.actionableSecondaryBackgroundHover,
+    variables.secondaryHoverColor
+  );
+  const actionableSecondaryBgActive = resolve(
+    variables.actionableSecondaryBackgroundActive,
+    variables.secondaryActiveColor
+  );
+  const actionableSecondaryFg = resolve(
+    variables.actionableSecondaryForeground,
+    variables.secondaryForegroundColor
+  );
+  const actionableSecondaryFgHover = resolve(
+    variables.actionableSecondaryForegroundHover,
+    variables.secondaryForegroundHoverColor
+  );
+  const actionableSecondaryFgActive = resolve(
+    variables.actionableSecondaryForegroundActive,
+    variables.secondaryForegroundActiveColor
+  );
+  const actionableSecondaryBorderWidth = resolve(
+    variables.actionableSecondaryBorderWidth,
+    variables.secondaryBorderWidth
+  );
+  const actionableSecondaryFontWeight = resolve(
+    variables.actionableSecondaryFontWeight,
+    variables.secondaryButtonFontWeight
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Editable Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const editableBg = resolve(
+    variables.editableBackground,
+    variables.inputColor
+  );
+  const editableBorderColor = resolve(
+    variables.editableBorderColor,
+    variables.inputBorderColor
+  );
+  const editableBorderRadius = resolve(
+    variables.editableBorderRadius,
+    variables.inputBorderRadius
+  );
+  const editableLabelFontSize = resolve(
+    variables.editableLabelFontSize,
+    variables.formLabelFontSize
+  );
+  const editableLabelLineHeight = resolve(
+    variables.editableLabelLineHeight,
+    variables.formLabelLineHeight
+  );
+  const editableLabelFontWeight = resolve(
+    variables.editableLabelFontWeight,
+    variables.formLabelFontWeight
+  );
+  const editableLabelFg = resolve(
+    variables.editableLabelForeground,
+    variables.formLabelForegroundColor
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Overlayable Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const overlayableBg = resolve(
+    variables.overlayableBackground,
+    variables.popoverColor
+  );
+  const overlayableFg = resolve(
+    variables.overlayableForeground,
+    variables.popoverForegroundColor
+  );
+  const overlayableZIndex = resolve(
+    variables.overlayableZIndex,
+    variables.zIndexOverlay
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Navigable Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const navigableBg = resolve(
+    variables.navigableBackground,
+    variables.sidebarBackgroundColor
+  );
+  const navigableFg = resolve(
+    variables.navigableForeground,
+    variables.sidebarForegroundColor
+  );
+  const navigableAccentBg = resolve(
+    variables.navigableAccentBackground,
+    variables.sidebarAccentColor
+  );
+  const navigableAccentFg = resolve(
+    variables.navigableAccentForeground,
+    variables.sidebarAccentForegroundColor
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Separable Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const separableBorderColor = resolve(
+    variables.separableBorderColor,
+    variables.borderColor
+  );
+  const separableBorderRadius = resolve(
+    variables.separableBorderRadius,
+    variables.borderRadius
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Focused Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const focusedRingColor = resolve(
+    variables.focusedRingColor,
+    variables.ringColor
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Sentiment Characteristic (Negative/Positive/Caution)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Negative (destructive)
+  const sentimentNegativeBg = resolve(
+    variables.sentimentNegativeBackground,
+    variables.destructiveColor
+  );
+  const sentimentNegativeBgHover = resolve(
+    variables.sentimentNegativeBackgroundHover,
+    variables.destructiveHoverColor
+  );
+  const sentimentNegativeBgActive = resolve(
+    variables.sentimentNegativeBackgroundActive,
+    variables.destructiveActiveColor
+  );
+  const sentimentNegativeFg = resolve(
+    variables.sentimentNegativeForeground,
+    variables.destructiveForegroundColor
+  );
+  const sentimentNegativeFgHover = resolve(
+    variables.sentimentNegativeForegroundHover,
+    variables.destructiveForegroundHoverColor
+  );
+  const sentimentNegativeFgActive = resolve(
+    variables.sentimentNegativeForegroundActive,
+    variables.destructiveForegroundActiveColor
+  );
+  const sentimentNegativeAccentBg = resolve(
+    variables.sentimentNegativeAccentBackground,
+    variables.destructiveAccentColor
+  );
+  const sentimentNegativeBorderWidth = resolve(
+    variables.sentimentNegativeBorderWidth,
+    variables.destructiveBorderWidth
+  );
+  const sentimentNegativeFontWeight = resolve(
+    variables.sentimentNegativeFontWeight,
+    variables.destructiveButtonFontWeight
+  );
+
+  // Positive (success)
+  const sentimentPositiveFg = resolve(
+    variables.sentimentPositiveForeground,
+    variables.successColor
+  );
+  const sentimentPositiveAccentBg = resolve(
+    variables.sentimentPositiveAccentBackground,
+    variables.successAccentColor
+  );
+
+  // Caution (warning)
+  const sentimentCautionFg = resolve(
+    variables.sentimentCautionForeground,
+    variables.warningColor
+  );
+  const sentimentCautionAccentBg = resolve(
+    variables.sentimentCautionAccentBackground,
+    variables.warningAccentColor
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Status Characteristic (Info/Error/Success/Warning)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const statusInfoFg = resolve(
+    variables.statusInfoForeground,
+    variables.informativeColor
+  );
+  const statusInfoAccentBg = resolve(
+    variables.statusInfoAccentBackground,
+    variables.informativeAccentColor
+  );
+  // Success and Warning fallback to sentiment values (Error maps directly to sentiment negative)
+  const statusSuccessFg = resolve(
+    variables.statusSuccessForeground,
+    sentimentPositiveFg
+  );
+  const statusSuccessAccentBg = resolve(
+    variables.statusSuccessAccentBackground,
+    sentimentPositiveAccentBg
+  );
+  const statusWarningFg = resolve(
+    variables.statusWarningForeground,
+    sentimentCautionFg
+  );
+  const statusWarningAccentBg = resolve(
+    variables.statusWarningAccentBackground,
+    sentimentCautionAccentBg
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Accent Characteristic
+  // ═══════════════════════════════════════════════════════════════════════════
+  const accentBg = resolve(variables.accentBackground, variables.accentColor);
+  const accentFg = resolve(
+    variables.accentForeground,
+    variables.accentForegroundColor
+  );
+  const accentMetricBg = resolve(
+    variables.accentMetricBackground,
+    variables.metricAccentColor
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Alert (maps to container secondary for backward compatibility)
+  // ═══════════════════════════════════════════════════════════════════════════
+  const alertFg = variables.alertForegroundColor;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Build CSS Variables Object
+  // ═══════════════════════════════════════════════════════════════════════════
   const cssVariablesObject: CSSVariables = {
-    '--eb-font-family': variables.fontFamily,
-    '--eb-header-font-family': variables.headerFontFamily,
-    '--eb-button-font-family': variables.buttonFontFamily,
-    '--eb-background': colorToHsl(variables.backgroundColor),
-    '--eb-foreground': colorToHsl(variables.foregroundColor),
-    '--eb-card': colorToHsl(variables.cardColor),
-    '--eb-card-foreground': colorToHsl(variables.cardForegroundColor),
-    '--eb-popover': colorToHsl(variables.popoverColor),
-    '--eb-popover-foreground': colorToHsl(variables.popoverForegroundColor),
-    '--eb-primary': colorToHsl(variables.primaryColor),
-    '--eb-primary-hover': variables.primaryHoverColor
-      ? colorToHsl(variables.primaryHoverColor)
-      : colorToHsl(variables.primaryColor, 0.9),
-    '--eb-primary-active': colorToHsl(variables.primaryActiveColor),
-    '--eb-primary-foreground': colorToHsl(variables.primaryForegroundColor),
-    '--eb-primary-foreground-hover': colorToHsl(
-      variables.primaryForegroundHoverColor
-    ),
-    '--eb-primary-foreground-active': colorToHsl(
-      variables.primaryForegroundActiveColor
-    ),
-    '--eb-secondary': colorToHsl(variables.secondaryColor),
-    '--eb-secondary-hover': variables.secondaryHoverColor
-      ? colorToHsl(variables.secondaryHoverColor)
-      : colorToHsl(variables.secondaryColor, 0.9),
-    '--eb-secondary-active': colorToHsl(variables.secondaryActiveColor),
-    '--eb-secondary-foreground': colorToHsl(variables.secondaryForegroundColor),
-    '--eb-secondary-foreground-hover': colorToHsl(
-      variables.secondaryForegroundHoverColor
-    ),
-    '--eb-secondary-foreground-active': colorToHsl(
-      variables.secondaryForegroundActiveColor
-    ),
-    '--eb-muted': colorToHsl(variables.mutedColor),
-    '--eb-muted-foreground': colorToHsl(variables.mutedForegroundColor),
-    '--eb-accent': colorToHsl(variables.accentColor),
-    '--eb-accent-foreground': colorToHsl(variables.accentForegroundColor),
-    '--eb-destructive': colorToHsl(variables.destructiveColor),
-    '--eb-destructive-hover': variables.destructiveHoverColor
-      ? colorToHsl(variables.destructiveHoverColor)
-      : colorToHsl(variables.destructiveColor, 0.9),
-    '--eb-destructive-active': colorToHsl(variables.destructiveActiveColor),
-    '--eb-destructive-foreground': colorToHsl(
-      variables.destructiveForegroundColor
-    ),
-    '--eb-destructive-foreground-hover': colorToHsl(
-      variables.destructiveForegroundHoverColor
-    ),
-    '--eb-destructive-foreground-active': colorToHsl(
-      variables.destructiveForegroundActiveColor
-    ),
-    '--eb-destructive-accent': colorToHsl(variables.destructiveAccentColor),
-    '--eb-informative': colorToHsl(variables.informativeColor),
-    '--eb-informative-accent': colorToHsl(variables.informativeAccentColor),
-    '--eb-warning': colorToHsl(variables.warningColor),
-    '--eb-warning-accent': colorToHsl(variables.warningAccentColor),
-    '--eb-success': colorToHsl(variables.successColor),
-    '--eb-success-accent': colorToHsl(variables.successAccentColor),
-    '--eb-metric-accent': colorToHsl(variables.metricAccentColor),
-    '--eb-alert-foreground': colorToHsl(variables.alertForegroundColor),
-    '--eb-radius': variables.borderRadius,
-    '--eb-button-radius':
-      variables.buttonBorderRadius ?? variables.borderRadius,
-    '--eb-input-radius': variables.inputBorderRadius ?? variables.borderRadius,
-    '--eb-spacing-unit': variables.spacingUnit,
-    '--eb-border': colorToHsl(variables.borderColor),
-    '--eb-input': colorToHsl(variables.inputColor),
-    '--eb-input-border': colorToHsl(variables.inputBorderColor),
-    '--eb-ring': colorToHsl(variables.ringColor),
-    '--eb-z-overlay': variables.zIndexOverlay
-      ? String(variables.zIndexOverlay)
-      : undefined,
+    // Typography
+    '--eb-font-family': fontFamily,
+    '--eb-header-font-family': headerFontFamily,
+    '--eb-button-font-family': actionableFontFamily,
+
+    // Container
+    '--eb-background': colorToHsl(containerBg),
+    '--eb-foreground': colorToHsl(contentFg),
+    '--eb-card': colorToHsl(containerPrimaryBg),
+    '--eb-card-foreground': colorToHsl(containerPrimaryFg),
+    '--eb-muted': colorToHsl(containerSecondaryBg),
+    '--eb-muted-foreground': colorToHsl(containerSecondaryFg),
+
+    // Actionable - Primary
+    '--eb-primary': colorToHsl(actionablePrimaryBg),
+    '--eb-primary-hover': actionablePrimaryBgHover
+      ? colorToHsl(actionablePrimaryBgHover)
+      : colorToHsl(actionablePrimaryBg, 0.9),
+    '--eb-primary-active': colorToHsl(actionablePrimaryBgActive),
+    '--eb-primary-foreground': colorToHsl(actionablePrimaryFg),
+    '--eb-primary-foreground-hover': colorToHsl(actionablePrimaryFgHover),
+    '--eb-primary-foreground-active': colorToHsl(actionablePrimaryFgActive),
+    '--eb-primary-border-width': actionablePrimaryBorderWidth,
     '--eb-button-primary-font-weight':
-      variables.primaryButtonFontWeight ?? variables.buttonFontWeight,
+      actionablePrimaryFontWeight ?? actionableFontWeight,
+
+    // Actionable - Secondary
+    '--eb-secondary': colorToHsl(actionableSecondaryBg),
+    '--eb-secondary-hover': actionableSecondaryBgHover
+      ? colorToHsl(actionableSecondaryBgHover)
+      : colorToHsl(actionableSecondaryBg, 0.9),
+    '--eb-secondary-active': colorToHsl(actionableSecondaryBgActive),
+    '--eb-secondary-foreground': colorToHsl(actionableSecondaryFg),
+    '--eb-secondary-foreground-hover': colorToHsl(actionableSecondaryFgHover),
+    '--eb-secondary-foreground-active': colorToHsl(actionableSecondaryFgActive),
+    '--eb-secondary-border-width': actionableSecondaryBorderWidth,
     '--eb-button-secondary-font-weight':
-      variables.secondaryButtonFontWeight ?? variables.buttonFontWeight,
-    '--eb-button-destructive-font-weight':
-      variables.destructiveButtonFontWeight ?? variables.buttonFontWeight,
-    '--eb-button-font-size': variables.buttonFontSize,
-    '--eb-button-line-height': variables.buttonLineHeight,
-    '--eb-primary-border-width': variables.primaryBorderWidth,
-    '--eb-secondary-border-width': variables.secondaryBorderWidth,
-    '--eb-destructive-border-width': variables.destructiveBorderWidth,
-    '--eb-button-translate-y-active': variables.shiftButtonOnActive
+      actionableSecondaryFontWeight ?? actionableFontWeight,
+
+    // Actionable - Common
+    '--eb-button-font-size': actionableFontSize,
+    '--eb-button-line-height': actionableLineHeight,
+    '--eb-button-text-transform': actionableTextTransform,
+    '--eb-button-letter-spacing': actionableLetterSpacing,
+    '--eb-button-radius': actionableBorderRadius ?? separableBorderRadius,
+    '--eb-button-translate-y-active': actionableShiftOnActive
       ? '1px'
       : undefined,
-    '--eb-button-text-transform': variables.buttonTextTransform,
-    '--eb-button-letter-spacing': variables.buttonLetterSpacing,
-    '--eb-form-label-font-size': variables.formLabelFontSize,
-    '--eb-form-label-line-height': variables.formLabelLineHeight,
-    '--eb-form-label-font-weight': variables.formLabelFontWeight,
-    '--eb-form-label-foreground': colorToHsl(
-      variables.formLabelForegroundColor
-    ),
-    '--eb-sidebar-background': colorToHsl(variables.sidebarBackgroundColor),
-    '--eb-sidebar-foreground': colorToHsl(variables.sidebarForegroundColor),
-    '--eb-sidebar-accent': colorToHsl(variables.sidebarAccentColor),
-    '--eb-sidebar-accent-foreground': colorToHsl(
-      variables.sidebarAccentForegroundColor
-    ),
+
+    // Sentiment - Negative (Destructive)
+    '--eb-destructive': colorToHsl(sentimentNegativeBg),
+    '--eb-destructive-hover': sentimentNegativeBgHover
+      ? colorToHsl(sentimentNegativeBgHover)
+      : colorToHsl(sentimentNegativeBg, 0.9),
+    '--eb-destructive-active': colorToHsl(sentimentNegativeBgActive),
+    '--eb-destructive-foreground': colorToHsl(sentimentNegativeFg),
+    '--eb-destructive-foreground-hover': colorToHsl(sentimentNegativeFgHover),
+    '--eb-destructive-foreground-active': colorToHsl(sentimentNegativeFgActive),
+    '--eb-destructive-accent': colorToHsl(sentimentNegativeAccentBg),
+    '--eb-destructive-border-width': sentimentNegativeBorderWidth,
+    '--eb-button-destructive-font-weight':
+      sentimentNegativeFontWeight ?? actionableFontWeight,
+
+    // Status
+    '--eb-informative': colorToHsl(statusInfoFg),
+    '--eb-informative-accent': colorToHsl(statusInfoAccentBg),
+    '--eb-warning': colorToHsl(statusWarningFg),
+    '--eb-warning-accent': colorToHsl(statusWarningAccentBg),
+    '--eb-success': colorToHsl(statusSuccessFg),
+    '--eb-success-accent': colorToHsl(statusSuccessAccentBg),
+
+    // Accent
+    '--eb-accent': colorToHsl(accentBg),
+    '--eb-accent-foreground': colorToHsl(accentFg),
+    '--eb-metric-accent': colorToHsl(accentMetricBg),
+
+    // Alert (backward compatibility)
+    '--eb-alert-foreground': colorToHsl(alertFg),
+
+    // Editable
+    '--eb-input': colorToHsl(editableBg),
+    '--eb-input-border': colorToHsl(editableBorderColor),
+    '--eb-input-radius': editableBorderRadius ?? separableBorderRadius,
+    '--eb-form-label-font-size': editableLabelFontSize,
+    '--eb-form-label-line-height': editableLabelLineHeight,
+    '--eb-form-label-font-weight': editableLabelFontWeight,
+    '--eb-form-label-foreground': colorToHsl(editableLabelFg),
+
+    // Overlayable
+    '--eb-popover': colorToHsl(overlayableBg),
+    '--eb-popover-foreground': colorToHsl(overlayableFg),
+    '--eb-z-overlay': overlayableZIndex ? String(overlayableZIndex) : undefined,
+
+    // Navigable
+    '--eb-sidebar-background': colorToHsl(navigableBg),
+    '--eb-sidebar-foreground': colorToHsl(navigableFg),
+    '--eb-sidebar-accent': colorToHsl(navigableAccentBg),
+    '--eb-sidebar-accent-foreground': colorToHsl(navigableAccentFg),
+
+    // Separable
+    '--eb-border': colorToHsl(separableBorderColor),
+    '--eb-radius': separableBorderRadius,
+
+    // Focused
+    '--eb-ring': colorToHsl(focusedRingColor),
+
+    // Spacing
+    '--eb-spacing-unit': variables.spacingUnit,
   };
 
+  // Remove undefined values
   Object.keys(cssVariablesObject).forEach(
     (key) =>
       cssVariablesObject[key as CSSVariable] === undefined &&
