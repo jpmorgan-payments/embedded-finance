@@ -8,12 +8,12 @@ import {
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SELLSENSE_THEME } from '@storybook-themes';
 import { http, HttpResponse } from 'msw';
-import { userEvent, within } from '@test-utils';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
 import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
+import { userEvent, within } from '@storybook/testing-library';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay
 const RecipientsWithProvider = ({
