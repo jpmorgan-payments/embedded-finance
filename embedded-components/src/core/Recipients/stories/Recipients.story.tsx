@@ -6,8 +6,8 @@ import {
   mockRecipientsResponse,
 } from '@/mocks/recipients.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SELLSENSE_THEME } from '@storybook-themes';
 import { http, HttpResponse } from 'msw';
+import { SELLSENSE_THEME } from '@storybook-themes';
 
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
