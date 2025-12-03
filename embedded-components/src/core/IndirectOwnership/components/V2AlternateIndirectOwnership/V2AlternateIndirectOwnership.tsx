@@ -409,12 +409,12 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="eb-max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add Beneficial Owner</DialogTitle>
+      <DialogContent className="eb-max-w-md eb-p-6">
+        <DialogHeader className="eb-pb-4">
+          <DialogTitle className="eb-text-lg eb-font-semibold">Add Beneficial Owner</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="eb-space-y-4">
+        <div className="eb-space-y-6">
           {errors.length > 0 && (
             <Alert className="eb-border-red-200 eb-bg-red-50">
               <AlertTriangle className="eb-h-4 eb-w-4 eb-text-red-600" />
@@ -428,67 +428,71 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
             </Alert>
           )}
           
-          <div>
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="John"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Smith"
-            />
-          </div>
-          
-          <div>
-            <Label>Ownership Type</Label>
-            <RadioGroup
-              value={ownershipType}
-              onValueChange={(value: 'DIRECT' | 'INDIRECT') => setOwnershipType(value)}
-              className="eb-mt-2"
-            >
-              <div className="eb-flex eb-items-start eb-space-x-2">
-                <RadioGroupItem value="DIRECT" id="direct" />
-                <div className="eb-grid eb-gap-1.5 eb-leading-none">
-                  <Label htmlFor="direct" className="eb-font-medium">
-                    Direct Owner
-                  </Label>
-                  <p className="eb-text-sm eb-text-muted-foreground">
-                    Has 25% or more ownership directly
-                  </p>
+          <form onSubmit={handleSubmit} className="eb-space-y-5">
+            <div className="eb-space-y-2">
+              <Label htmlFor="firstName" className="eb-text-sm eb-font-medium">First Name</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                className="eb-h-10"
+              />
+            </div>
+            
+            <div className="eb-space-y-2">
+              <Label htmlFor="lastName" className="eb-text-sm eb-font-medium">Last Name</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Smith"
+                className="eb-h-10"
+              />
+            </div>
+            
+            <div className="eb-space-y-3">
+              <Label className="eb-text-sm eb-font-medium">Ownership Type</Label>
+              <RadioGroup
+                value={ownershipType}
+                onValueChange={(value: 'DIRECT' | 'INDIRECT') => setOwnershipType(value)}
+                className="eb-space-y-3"
+              >
+                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-gray-50 eb-cursor-pointer">
+                  <RadioGroupItem value="DIRECT" id="direct" className="eb-mt-0.5" />
+                  <div className="eb-flex-1 eb-space-y-1">
+                    <Label htmlFor="direct" className="eb-font-medium eb-cursor-pointer">
+                      Direct Owner
+                    </Label>
+                    <p className="eb-text-sm eb-text-gray-600">
+                      Has 25% or more ownership directly
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="eb-flex eb-items-start eb-space-x-2">
-                <RadioGroupItem value="INDIRECT" id="indirect" />
-                <div className="eb-grid eb-gap-1.5 eb-leading-none">
-                  <Label htmlFor="indirect" className="eb-font-medium">
-                    Indirect Owner
-                  </Label>
-                  <p className="eb-text-sm eb-text-muted-foreground">
-                    Has 25% or more ownership through other companies
-                  </p>
+                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-gray-50 eb-cursor-pointer">
+                  <RadioGroupItem value="INDIRECT" id="indirect" className="eb-mt-0.5" />
+                  <div className="eb-flex-1 eb-space-y-1">
+                    <Label htmlFor="indirect" className="eb-font-medium eb-cursor-pointer">
+                      Indirect Owner
+                    </Label>
+                    <p className="eb-text-sm eb-text-gray-600">
+                      Has 25% or more ownership through other companies
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              Add Owner
-            </Button>
-          </DialogFooter>
-        </form>
+              </RadioGroup>
+            </div>
+          </form>
+        </div>
+        
+        <DialogFooter className="eb-pt-6 eb-space-x-2">
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button type="submit" onClick={handleSubmit}>
+            Add Owner
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -569,31 +573,31 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     if (hierarchySteps.length === 0) return null;
 
     return (
-      <div className="eb-mt-4 eb-p-3 eb-bg-gray-50 eb-border eb-rounded">
-        <div className="eb-text-sm eb-font-medium eb-text-gray-700 eb-mb-2">Current Chain:</div>
+      <div className="eb-p-4 eb-bg-gray-50 eb-border eb-rounded-lg eb-border-gray-200">
+        <div className="eb-text-sm eb-font-semibold eb-text-gray-800 eb-mb-3">Current Chain:</div>
         <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-flex-wrap">
           {/* Owner at start */}
-          <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded">
-            <User className="eb-h-3 eb-w-3 eb-text-blue-600" />
-            <span className="eb-font-medium eb-text-blue-900">{ownerName}</span>
+          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded-lg eb-shadow-sm">
+            <User className="eb-h-4 eb-w-4 eb-text-blue-600" />
+            <span className="eb-font-semibold eb-text-blue-900">{ownerName}</span>
           </div>
           
           {/* Company chain */}
           {hierarchySteps.map((step) => (
             <React.Fragment key={step.id}>
-              <span className="eb-text-gray-400">→</span>
-              <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-white eb-border eb-border-gray-200 eb-rounded">
-                <Building className="eb-h-3 eb-w-3 eb-text-gray-600" />
-                <span className="eb-font-medium eb-text-gray-700">{step.entityName}</span>
+              <span className="eb-text-gray-400 eb-text-lg eb-font-bold">→</span>
+              <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-white eb-border eb-border-gray-200 eb-rounded-lg eb-shadow-sm">
+                <Building className="eb-h-4 eb-w-4 eb-text-gray-600" />
+                <span className="eb-font-semibold eb-text-gray-700">{step.entityName}</span>
               </div>
             </React.Fragment>
           ))}
           
           {/* Next step indicator */}
-          <span className="eb-text-gray-400">→</span>
-          <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-green-50 eb-border eb-border-green-200 eb-rounded eb-border-dashed">
-            <Building className="eb-h-3 eb-w-3 eb-text-green-600" />
-            <span className="eb-font-medium eb-text-green-900">{rootCompanyName}</span>
+          <span className="eb-text-gray-400 eb-text-lg eb-font-bold">→</span>
+          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-green-50 eb-border eb-border-green-200 eb-rounded-lg eb-border-dashed eb-shadow-sm">
+            <Building className="eb-h-4 eb-w-4 eb-text-green-600" />
+            <span className="eb-font-semibold eb-text-green-900">{rootCompanyName}</span>
           </div>
         </div>
       </div>
@@ -609,34 +613,36 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="eb-max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Build Ownership Chain for {ownerName}</DialogTitle>
+      <DialogContent className="eb-max-w-2xl eb-p-6">
+        <DialogHeader className="eb-pb-4">
+          <DialogTitle className="eb-text-lg eb-font-semibold">Build Ownership Chain for {ownerName}</DialogTitle>
         </DialogHeader>
 
         <div className="eb-space-y-6">
-          <div className="eb-text-sm eb-text-gray-600">
-            We'll build the chain step by step from <span className="eb-font-medium">{ownerName}</span> to{' '}
-            <span className="eb-font-medium">{rootCompanyName}</span>.
+          <div className="eb-text-sm eb-text-gray-600 eb-leading-relaxed">
+            We'll build the chain step by step from <span className="eb-font-medium eb-text-gray-900">{ownerName}</span> to{' '}
+            <span className="eb-font-medium eb-text-gray-900">{rootCompanyName}</span>.
           </div>
 
           {/* Chain Preview */}
           {renderChainPreview()}
 
           {/* Company Input Form */}
-          <div className="eb-space-y-4 eb-p-4 eb-border eb-rounded eb-bg-blue-50">
-            <div className="eb-text-sm eb-font-medium eb-text-gray-700">
+          <div className="eb-space-y-5 eb-p-5 eb-border eb-rounded-lg eb-bg-blue-50 eb-border-blue-200">
+            <div className="eb-text-sm eb-font-medium eb-text-gray-800">
               {getInstructionText()}
             </div>
             
-            <div>
-              <label className="eb-block eb-text-sm eb-font-medium eb-text-gray-700 eb-mb-1">
+            <div className="eb-space-y-2">
+              <Label htmlFor="companyName" className="eb-text-sm eb-font-medium eb-text-gray-700">
                 Company Name
-              </label>
+              </Label>
               <Input
+                id="companyName"
                 value={currentCompanyName}
                 onChange={(e) => setCurrentCompanyName(e.target.value)}
                 placeholder="Enter company name"
+                className="eb-h-10 eb-bg-white eb-border-blue-300 eb-focus:border-blue-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && currentCompanyName.trim()) {
                     e.preventDefault();
@@ -646,44 +652,49 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
               />
             </div>
 
-            <div className="eb-text-sm eb-font-medium eb-text-gray-700 eb-mb-2">
-              Does <span className="eb-font-bold">{currentCompanyName || '[Company Name]'}</span> own{' '}
-              <span className="eb-font-bold">{rootCompanyName}</span> directly?
-            </div>
+            <div className="eb-space-y-3">
+              <div className="eb-text-sm eb-font-medium eb-text-gray-800">
+                Does <span className="eb-font-bold eb-text-blue-900">{currentCompanyName || '[Company Name]'}</span> own{' '}
+                <span className="eb-font-bold eb-text-blue-900">{rootCompanyName}</span> directly?
+              </div>
 
-            <div className="eb-flex eb-gap-3">
-              <Button 
-                onClick={() => handleAddCompany(true)}
-                disabled={!currentCompanyName.trim()}
-                className="eb-flex-1 eb-bg-green-600 hover:eb-bg-green-700"
-              >
-                Yes - Complete Chain
-              </Button>
-              <Button 
-                onClick={() => handleAddCompany(false)}
-                disabled={!currentCompanyName.trim()}
-                variant="outline"
-                className="eb-flex-1"
-              >
-                No - Add to Chain
-              </Button>
+              <div className="eb-flex eb-gap-3">
+                <Button 
+                  onClick={() => handleAddCompany(true)}
+                  disabled={!currentCompanyName.trim()}
+                  className="eb-flex-1 eb-bg-green-600 hover:eb-bg-green-700 eb-font-medium eb-h-10"
+                >
+                  Yes - Complete Chain
+                </Button>
+                <Button 
+                  onClick={() => handleAddCompany(false)}
+                  disabled={!currentCompanyName.trim()}
+                  variant="outline"
+                  className="eb-flex-1 eb-border-blue-300 eb-text-blue-700 hover:eb-bg-blue-50 eb-font-medium eb-h-10"
+                >
+                  No - Add to Chain
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Error Messages */}
           {errors.length > 0 && (
-            <div className="eb-p-3 eb-bg-red-50 eb-border eb-border-red-200 eb-rounded">
+            <div className="eb-p-4 eb-bg-red-50 eb-border eb-border-red-200 eb-rounded-lg">
               <div className="eb-text-red-800 eb-text-sm eb-space-y-1">
                 {errors.map((error, index) => (
-                  <div key={index}>• {error}</div>
+                  <div key={index} className="eb-flex eb-items-center eb-gap-2">
+                    <AlertTriangle className="eb-h-3 eb-w-3 eb-text-red-600 eb-shrink-0" />
+                    <span>{error}</span>
+                  </div>
                 ))}
               </div>
             </div>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+        <DialogFooter className="eb-pt-6">
+          <Button variant="outline" onClick={handleClose} className="eb-font-medium">
             Cancel
           </Button>
         </DialogFooter>

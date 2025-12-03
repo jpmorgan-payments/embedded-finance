@@ -191,12 +191,12 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
 
       {/* Add Owner Dialog */}
       <Dialog open={isAddOwnerDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="eb-max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Beneficial Owner</DialogTitle>
+        <DialogContent className="eb-max-w-md eb-p-6">
+          <DialogHeader className="eb-pb-4">
+            <DialogTitle className="eb-text-lg eb-font-semibold">Add Beneficial Owner</DialogTitle>
           </DialogHeader>
           
-          <div className="eb-space-y-4">
+          <div className="eb-space-y-6">
             {errors.length > 0 && (
               <Alert variant="destructive">
                 <AlertDescription>
@@ -209,28 +209,32 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
               </Alert>
             )}
             
-            <div>
-              <Label htmlFor="dialogFirstName">First Name</Label>
-              <Input
-                id="dialogFirstName"
-                value={newOwner.firstName}
-                onChange={(e) => setNewOwner(prev => ({ ...prev, firstName: e.target.value }))}
-                placeholder="John"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="dialogLastName">Last Name</Label>
-              <Input
-                id="dialogLastName"
-                value={newOwner.lastName}
-                onChange={(e) => setNewOwner(prev => ({ ...prev, lastName: e.target.value }))}
-                placeholder="Smith"
-              />
+            <div className="eb-space-y-5">
+              <div className="eb-space-y-2">
+                <Label htmlFor="dialogFirstName" className="eb-text-sm eb-font-medium">First Name</Label>
+                <Input
+                  id="dialogFirstName"
+                  value={newOwner.firstName}
+                  onChange={(e) => setNewOwner(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="John"
+                  className="eb-h-10"
+                />
+              </div>
+              
+              <div className="eb-space-y-2">
+                <Label htmlFor="dialogLastName" className="eb-text-sm eb-font-medium">Last Name</Label>
+                <Input
+                  id="dialogLastName"
+                  value={newOwner.lastName}
+                  onChange={(e) => setNewOwner(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="Smith"
+                  className="eb-h-10"
+                />
+              </div>
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="eb-pt-6 eb-space-x-2">
             <Button type="button" variant="outline" onClick={handleCloseDialog}>
               Cancel
             </Button>
