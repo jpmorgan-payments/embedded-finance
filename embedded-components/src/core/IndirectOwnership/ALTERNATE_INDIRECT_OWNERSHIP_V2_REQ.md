@@ -67,7 +67,9 @@ This document outlines the requirements for Version 2 of the Alternate Indirect 
 └─────────────────────────────────────────┘
 ```
 
-### Step 2: Hierarchy Building Dialog (If Indirect)
+### Step 2: Hierarchy Building Interface (If Indirect)
+*Note: Implementation approach is flexible - can be dialog, inline, or integrated flow*
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Build Ownership Hierarchy for John Smith                │
@@ -84,13 +86,13 @@ This document outlines the requirements for Version 2 of the Alternate Indirect 
 │ │ Ownership: Has 25% or more ownership                │ │
 │ │ ✓ This is the Business Being Onboarded             │ │
 │ │                                                     │ │
-│ │ [Reuses existing hierarchy builder components]      │ │
+│ │ [Leverages existing hierarchy building logic]       │ │
 │ │ - Dynamic company chain building                    │ │
 │ │ - Business Being Onboarded identification           │ │
 │ │ - Add/remove hierarchy levels                       │ │
 │ └─────────────────────────────────────────────────────┘ │
 │                                                         │
-│ [Reuses AlternateOwnershipReview.renderOwnershipChain()]: │
+│ [Uses AlternateOwnershipReview.renderOwnershipChain()]:  │
 │ ┌─────────────────────────────────────────────────────┐ │
 │ │ [User] John Smith → [Building] Smith Holdings LLC   │ │
 │ │        → [Building] Central Perk Coffee & Cookies   │ │
@@ -101,14 +103,14 @@ This document outlines the requirements for Version 2 of the Alternate Indirect 
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Step 3: Hierarchy Confirmation Dialog
+### Step 3: Hierarchy Confirmation Interface
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Confirm Ownership Hierarchy                             │
 │                                                         │
 │ Owner: John Smith                                       │
 │                                                         │
-│ [Reuses AlternateOwnershipReview.renderOwnershipChain()]: │
+│ [Uses AlternateOwnershipReview.renderOwnershipChain()]:  │
 │ ┌─────────────────────────────────────────────────────┐ │
 │ │ [User] John Smith → [Building] Smith Holdings LLC   │ │
 │ │        → [Building] Central Perk Coffee & Cookies   │ │
@@ -138,18 +140,20 @@ This document outlines the requirements for Version 2 of the Alternate Indirect 
 - Direct owners: Add immediately to list with COMPLETE status
 - Indirect owners: Add to list with PENDING_HIERARCHY status, show "Build Ownership Hierarchy" button
 
-#### 3. `HierarchyBuildingDialog` (Wrapper for Existing Flow)
-- **Reuses existing IndirectOwnership hierarchy builder components**
-- Wraps existing company-to-company relationship building logic
+#### 3. Hierarchy Building Interface
+- **Flexible implementation approach** - can be dialog-based, inline, or integrated within existing flow
+- **Must reuse existing hierarchy validation logic and business rules**
+- **Must integrate existing `AlternateOwnershipReview.renderOwnershipChain()` method for visual hierarchy representation**
 - Leverages existing Business Being Onboarded identification and validation
-- **Integrates existing `AlternateOwnershipReview.renderOwnershipChain()` method for real-time hierarchy preview**
 - Maintains all existing validation rules and business logic
+- Provides real-time hierarchy preview during building process
 
-#### 4. `HierarchyConfirmationDialog`
-- **Reuses existing `AlternateOwnershipReview.renderOwnershipChain()` method for visual hierarchy representation**
+#### 4. Hierarchy Confirmation Interface
+- **Must reuse existing `AlternateOwnershipReview.renderOwnershipChain()` method for visual hierarchy representation**
 - Beneficial ownership threshold confirmation
 - Validation status display
 - Edit/Confirm actions
+- Can be integrated into main interface or separate confirmation step
 
 #### 5. `OwnershipStructureList`
 - Real-time display of all added owners
@@ -210,25 +214,27 @@ interface ValidationSummary {
 }
 ```
 
-### Dialog State Management
+### Interface State Management
 
 ```typescript
-interface DialogState {
+interface InterfaceState {
   addOwner: {
-    isOpen: boolean;
+    isActive: boolean;
     editingOwnerId?: string;
     initialData?: Partial<V2BeneficialOwner>;
   };
   buildHierarchy: {
-    isOpen: boolean;
+    isActive: boolean;
     ownerId: string;
     ownerName: string;
     currentHierarchy?: OwnershipHierarchy;
+    mode: 'dialog' | 'inline' | 'integrated'; // Implementation flexible
   };
   confirmHierarchy: {
-    isOpen: boolean;
+    isActive: boolean;
     ownerId: string;
     completedHierarchy: OwnershipHierarchy;
+    mode: 'dialog' | 'inline' | 'integrated'; // Implementation flexible
   };
 }
 ```
@@ -242,15 +248,16 @@ interface DialogState {
 4. **Select "Indirect Owner"** → Click "Add Owner" → Owner added with PENDING_HIERARCHY status → Dialog closes → Shows "Build Ownership Hierarchy" button
 
 ### Hierarchy Building Flow (For Indirect Owners)
-1. **Click "Build Ownership Hierarchy" button** → Opens `HierarchyBuildingDialog`
-2. **Dialog wraps existing IndirectOwnership hierarchy builder flow**:
-   - Reuses existing company chain building components
+1. **Click "Build Ownership Hierarchy" button** → Opens hierarchy building interface (implementation flexible)
+2. **Hierarchy building leverages existing IndirectOwnership infrastructure**:
+   - Reuses existing company chain building logic and components
    - Maintains existing validation logic and business rules
    - Uses existing "Add another company level" and "This is the Business Being Onboarded" functionality
+   - **Must integrate existing `AlternateOwnershipReview.renderOwnershipChain()` method for real-time visual hierarchy preview**
 3. **Real-time validation** using existing validation components
-4. **Complete hierarchy** → Opens `HierarchyConfirmationDialog`
-5. **Confirm hierarchy** → Owner status updated to COMPLETE → Hierarchy displayed in main list
-6. **Edit hierarchy** → Return to existing `HierarchyBuildingDialog` flow
+4. **Complete hierarchy** → Shows hierarchy confirmation (can be inline or separate interface)
+5. **Confirm hierarchy** → Owner status updated to COMPLETE → Hierarchy displayed in main list using `renderOwnershipChain()`
+6. **Edit hierarchy** → Return to hierarchy building interface
 
 ### Main Interface Updates
 - **Real-time list updates** as owners are added/modified
@@ -366,10 +373,10 @@ interface V2AlternateIndirectOwnershipProps {
 
 ### Phase 2: Hierarchy Building Integration (Week 1-2)
 1. **Integrate existing IndirectOwnership hierarchy builder components**
-2. Create `HierarchyBuildingDialog` wrapper around existing flow
+2. Create flexible hierarchy building interface (approach to be determined during implementation)
 3. **Reuse existing hierarchy validation logic** (no reimplementation needed)
-4. Add `HierarchyConfirmationDialog`
-5. **Integrate existing `AlternateOwnershipReview.renderOwnershipChain()` method** for visual hierarchy display
+4. Add hierarchy confirmation interface (can be separate or integrated)
+5. **Integrate existing `AlternateOwnershipReview.renderOwnershipChain()` method** for visual hierarchy display throughout the flow
 6. Ensure seamless integration with existing component architecture
 
 ### Phase 3: Real-Time Features (Week 2)
@@ -401,15 +408,15 @@ embedded-components/src/core/IndirectOwnership/
 │   │   ├── AddOwnerDialog.tsx
 │   │   ├── AddOwnerDialog.test.tsx
 │   │   └── types.ts
-│   ├── HierarchyBuildingDialog/             # New wrapper for existing components
-│   │   ├── index.ts
-│   │   ├── HierarchyBuildingDialog.tsx
-│   │   ├── HierarchyBuildingDialog.test.tsx
+│   ├── HierarchyBuilding/                   # Flexible hierarchy building components
+│   │   ├── index.ts                         # (implementation approach flexible)
+│   │   ├── HierarchyBuildingInterface.tsx
+│   │   ├── HierarchyBuildingInterface.test.tsx
 │   │   └── types.ts
-│   ├── HierarchyConfirmationDialog/         # New confirmation dialog
-│   │   ├── index.ts
-│   │   ├── HierarchyConfirmationDialog.tsx
-│   │   ├── HierarchyConfirmationDialog.test.tsx
+│   ├── HierarchyConfirmation/               # Hierarchy confirmation components
+│   │   ├── index.ts                         # (can be dialog or inline)
+│   │   ├── HierarchyConfirmationInterface.tsx
+│   │   ├── HierarchyConfirmationInterface.test.tsx
 │   │   └── types.ts
 │   └── OwnershipStructureList/              # New real-time list component
 │       ├── index.ts
@@ -419,8 +426,8 @@ embedded-components/src/core/IndirectOwnership/
 ├── hooks/
 │   ├── useV2OwnershipState.ts               # New state management hook
 │   ├── useV2OwnershipState.test.tsx
-│   ├── useDialogOrchestration.ts            # New dialog management hook
-│   ├── useDialogOrchestration.test.tsx
+│   ├── useInterfaceOrchestration.ts         # New interface orchestration hook
+│   ├── useInterfaceOrchestration.test.tsx   # (flexible implementation)
 │   ├── useRealTimeValidation.ts             # New validation hook
 │   └── useRealTimeValidation.test.tsx
 ├── utils/
