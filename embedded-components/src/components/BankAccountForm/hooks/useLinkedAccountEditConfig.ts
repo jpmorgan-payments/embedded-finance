@@ -48,10 +48,6 @@ export const useLinkedAccountEditConfig = (): BankAccountFormConfig => {
       bankAccountType: true,
     },
     content: {
-      title: t('linkedAccountEdit.title'),
-      description: t('linkedAccountEdit.description'),
-      successTitle: t('linkedAccountEdit.successTitle'),
-      successDescription: t('linkedAccountEdit.successDescription'),
       submitButtonText: t('linkedAccountEdit.submitButton'),
       cancelButtonText: t('linkedAccountEdit.cancelButton'),
       loadingMessage: t('linkedAccountEdit.loadingMessage'),

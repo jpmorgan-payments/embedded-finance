@@ -39,10 +39,6 @@ export const useRecipientConfig = (): BankAccountFormConfig => {
       certification: false,
     },
     content: {
-      title: t('recipient.title'),
-      description: t('recipient.description'),
-      successTitle: t('recipient.successTitle'),
-      successDescription: t('recipient.successDescription'),
       submitButtonText: t('recipient.submitButton'),
       cancelButtonText: t('recipient.cancelButton'),
       loadingMessage: t('recipient.loadingMessage'),
