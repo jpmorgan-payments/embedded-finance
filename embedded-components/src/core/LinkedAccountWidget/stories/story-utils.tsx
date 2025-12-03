@@ -23,6 +23,7 @@ import { http, HttpResponse } from 'msw';
 
 import type {
   ApiError,
+  ListRecipientsResponse,
   ListRecipientsResponseAllOf,
   MicrodepositAmounts,
   MicrodepositVerificationResponse,
@@ -118,7 +119,7 @@ export const seedRecipientDatabase = (
  * ```
  */
 export const seedRecipientData = async (
-  seedData?: { recipients?: Recipient[] },
+  seedData?: ListRecipientsResponse,
   options?: Pick<RecipientHandlerOptions, 'initialVerificationAttempts'>
 ): Promise<void> => {
   // Brief delay to ensure clean state between stories
