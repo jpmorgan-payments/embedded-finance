@@ -8,6 +8,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SELLSENSE_THEME } from '@storybook/themes';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 import { TransactionsDisplay } from './TransactionsDisplay';
 
@@ -106,7 +107,7 @@ const TransactionsDisplayWithProvider = ({
   apiBaseUrl: string;
   apiBaseUrls?: Record<string, string>;
   headers: Record<string, string>;
-  theme?: Record<string, unknown>;
+  theme?: EBTheme;
   accountIds?: string[];
   contentTokens?: Record<string, string>;
 }) => {
@@ -330,7 +331,7 @@ export const SellSenseTheme: Story = {
     apiBaseUrl: '/',
     headers: {},
     accountIds: ['account1', 'account2'],
-    theme: SELLSENSE_THEME as unknown as Record<string, unknown>,
+    theme: SELLSENSE_THEME,
   },
   tags: ['@sellsense', '@theme'],
   parameters: {

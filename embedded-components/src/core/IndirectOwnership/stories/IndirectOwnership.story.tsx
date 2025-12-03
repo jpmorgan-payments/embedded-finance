@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SELLSENSE_THEME } from '@storybook/themes';
+import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -18,7 +19,7 @@ import {
 interface IndirectOwnershipWithProviderProps {
   apiBaseUrl: string;
   headers?: Record<string, string>;
-  theme?: any;
+  theme?: EBTheme;
   clientId?: string;
   showVisualization?: boolean;
   maxDepth?: number;

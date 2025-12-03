@@ -2,7 +2,7 @@ import React from 'react';
 import { http, HttpResponse } from 'msw';
 import { Meta, StoryObj } from '@storybook/react-vite';
 
-import { SELLSENSE_THEME } from '../../../.storybook/themes';
+import { SELLSENSE_THEME } from '@storybook/themes';
 import { EBComponentsProvider } from '../EBComponentsProvider';
 import { Accounts } from './Accounts';
 import type { AccountsProps } from './Accounts.types';
