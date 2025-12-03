@@ -48,10 +48,6 @@ export const useRecipientEditConfig = (): BankAccountFormConfig => {
       bankAccountType: false,
     },
     content: {
-      title: t('recipientEdit.title'),
-      description: t('recipientEdit.description'),
-      successTitle: t('recipientEdit.successTitle'),
-      successDescription: t('recipientEdit.successDescription'),
       submitButtonText: t('recipientEdit.submitButton'),
       cancelButtonText: t('recipientEdit.cancelButton'),
       loadingMessage: t('recipientEdit.loadingMessage'),

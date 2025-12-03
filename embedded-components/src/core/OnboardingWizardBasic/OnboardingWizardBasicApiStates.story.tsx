@@ -2,8 +2,8 @@ import { efClientCorpAnsweredQuestions } from '@/mocks/efClientCorpAnsweredQuest
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
-import { delay, http, HttpResponse } from 'msw';
 import type { Meta } from '@storybook/react-vite';
+import { delay, http, HttpResponse } from 'msw';
 
 import OnboardingWizardBasicMeta, {
   Default,

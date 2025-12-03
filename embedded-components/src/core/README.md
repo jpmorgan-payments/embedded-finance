@@ -88,7 +88,7 @@ Core/OnboardingFlow/DocumentUpload
 All core components support SellSense theming through the centralized `themes.ts` file:
 
 ```typescript
-import { SELLSENSE_THEME } from '@storybook/themes';
+import { SELLSENSE_THEME } from '@storybook-themes';
 
 // In story args
 theme: SELLSENSE_THEME;

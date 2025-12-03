@@ -11,7 +11,7 @@ import {
   useGetRecipient,
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
-import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import { MicrodepositVerificationResponse } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +25,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { StandardFormField } from '@/components/StandardFormField';
 
@@ -39,7 +38,10 @@ type MicrodepositsFormDialogTriggerProps = {
   recipientId: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
+  onVerificationSettled?: (
+    response: MicrodepositVerificationResponse,
+    recipient?: any
+  ) => void;
 };
 
 /**
@@ -52,7 +54,7 @@ export const MicrodepositsFormDialogTrigger: FC<
   recipientId,
   open: controlledOpen,
   onOpenChange,
-  onLinkedAccountSettled,
+  onVerificationSettled,
 }) => {
   const { t } = useTranslation('linked-accounts');
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
@@ -86,19 +88,24 @@ export const MicrodepositsFormDialogTrigger: FC<
     isPending: isVerifyPending,
   } = useRecipientsVerification({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        // Close dialog if verification succeeded or max attempts exceeded
+        if (
+          data.status === 'VERIFIED' ||
+          data.status === 'FAILED_MAX_ATTEMPTS_EXCEEDED'
+        ) {
+          handleDialogChange(false);
+        }
+
         queryClient.invalidateQueries({
           queryKey: getGetAllRecipientsQueryKey({}),
         });
         queryClient.invalidateQueries({
           queryKey: ['getRecipient', recipientId],
         });
-        // Pass the updated recipient after refetch
-        onLinkedAccountSettled?.(recipient);
-      },
-      onError: (error) => {
-        const apiError = error.response?.data as ApiError;
-        onLinkedAccountSettled?.(undefined, apiError);
+
+        // Pass the response and recipient to parent - they can check the status
+        onVerificationSettled?.(data, recipient);
       },
     },
   });
@@ -132,31 +139,28 @@ export const MicrodepositsFormDialogTrigger: FC<
     }
   };
 
+  const isDone =
+    (verifyStatus === 'success' && verifyResponse?.status === 'VERIFIED') ||
+    verifyResponse?.status === 'FAILED_MAX_ATTEMPTS_EXCEEDED';
+
   return (
-    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+    <Dialog open={isDialogOpen && !isDone} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="eb-max-h-[90vh] eb-max-w-lg eb-overflow-hidden eb-p-0">
         <DialogHeader className="eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-text-xl">
-            {verifyStatus === 'success' && verifyResponse?.status === 'VERIFIED'
-              ? t('forms.microdeposits.titleSuccess')
-              : t('forms.microdeposits.title')}
+            {t('forms.microdeposits.title')}
           </DialogTitle>
           <DialogDescription>
-            {verifyStatus === 'success' &&
-            verifyResponse?.status === 'VERIFIED' ? (
-              t('forms.microdeposits.descriptionSuccess')
-            ) : (
-              <Trans
-                i18nKey="forms.microdeposits.description"
-                ns="linked-accounts"
-                values={{
-                  name: recipient
-                    ? getRecipientDisplayName(recipient)
-                    : undefined,
-                }}
-              />
-            )}
+            <Trans
+              i18nKey="forms.microdeposits.description"
+              ns="linked-accounts"
+              values={{
+                name: recipient
+                  ? getRecipientDisplayName(recipient)
+                  : undefined,
+              }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -170,7 +174,7 @@ export const MicrodepositsFormDialogTrigger: FC<
           </div>
         )}
 
-        {/* Error state if recipient fetch failed */}
+        {/* Error state if recipient fetch failed (but not due to max attempts) */}
         {!isRecipientLoading && recipientError && (
           <div className="eb-space-y-6 eb-p-6">
             <ServerErrorAlert
@@ -191,157 +195,102 @@ export const MicrodepositsFormDialogTrigger: FC<
           </div>
         )}
 
-        {/* Success State */}
-        {!isRecipientLoading &&
-          !recipientError &&
-          verifyStatus === 'success' &&
-          verifyResponse?.status === 'VERIFIED' &&
-          recipient && (
-            <div className="eb-p-6">
-              <div className="eb-space-y-6">
-                <RecipientAccountDisplayCard recipient={recipient} />
-
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button className="eb-w-full">Done</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </div>
-            </div>
-          )}
-
         {/* Form State */}
-        {!isRecipientLoading &&
-          !recipientError &&
-          (verifyStatus === 'idle' ||
-            verifyStatus === 'error' ||
-            verifyStatus === 'pending' ||
-            (verifyStatus === 'success' &&
-              verifyResponse?.status !== 'VERIFIED')) && (
-            <>
-              {verifyStatus === 'pending' ? (
-                <div className="eb-flex eb-h-[25rem] eb-items-center eb-justify-center">
-                  <Loader2Icon
-                    className="eb-animate-spin eb-stroke-primary"
-                    size={48}
+        {!isRecipientLoading && !recipientError && (
+          <div className="eb-overflow-y-auto">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="eb-space-y-4 eb-p-6"
+              >
+                {/* API Error Alerts */}
+                {verifyStatus === 'error' && verifyError && (
+                  <ServerErrorAlert
+                    error={verifyError}
+                    showDetails
+                    customTitle={t(
+                      'forms.microdeposits.errors.verificationFailed.title'
+                    )}
+                    customErrorMessage={{
+                      400: t(
+                        'forms.microdeposits.errors.verificationFailed.400'
+                      ),
+                      default: t(
+                        'forms.microdeposits.errors.verificationFailed.default'
+                      ),
+                    }}
                   />
+                )}
+
+                {verifyResponse?.status === 'FAILED' && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="eb-h-4 eb-w-4" />
+                    <AlertTitle>
+                      {t('forms.microdeposits.errors.verificationFailed.title')}
+                    </AlertTitle>
+                    <AlertDescription>
+                      {t('forms.microdeposits.errors.verificationFailed.400')}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Microdeposit Amounts Section */}
+                <div className="eb-space-y-4">
+                  <div className="eb-grid eb-grid-cols-2 eb-gap-4">
+                    <StandardFormField
+                      control={form.control}
+                      name="amount1"
+                      type="number"
+                      label={t('forms.microdeposits.amount1.label')}
+                      placeholder={t('forms.microdeposits.amount1.placeholder')}
+                      prefix="$"
+                      required
+                      disabled={isVerifyPending}
+                      inputProps={{
+                        step: 0.01,
+                        min: 0,
+                      }}
+                    />
+
+                    <StandardFormField
+                      control={form.control}
+                      name="amount2"
+                      type="number"
+                      label={t('forms.microdeposits.amount2.label')}
+                      placeholder={t('forms.microdeposits.amount2.placeholder')}
+                      prefix="$"
+                      required
+                      disabled={isVerifyPending}
+                      inputProps={{
+                        step: 0.01,
+                        min: 0,
+                      }}
+                    />
+                  </div>
                 </div>
-              ) : (
-                <div className="eb-overflow-y-auto">
-                  <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(handleSubmit)}
-                      className="eb-space-y-4 eb-p-6"
+
+                <DialogFooter className="eb-gap-2 eb-pt-8">
+                  <DialogClose asChild>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={handleCancel}
+                      disabled={isVerifyPending}
                     >
-                      {/* API Error Alerts */}
-                      {verifyStatus === 'error' && verifyError && (
-                        <ServerErrorAlert
-                          error={verifyError}
-                          showDetails
-                          customTitle={t(
-                            'forms.microdeposits.errors.verificationFailed.title'
-                          )}
-                          customErrorMessage={{
-                            400: t(
-                              'forms.microdeposits.errors.verificationFailed.400'
-                            ),
-                            default: t(
-                              'forms.microdeposits.errors.verificationFailed.default'
-                            ),
-                          }}
-                        />
-                      )}
-
-                      {verifyResponse?.status === 'FAILED' && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="eb-h-4 eb-w-4" />
-                          <AlertTitle>
-                            {t(
-                              'forms.microdeposits.errors.verificationFailed.title'
-                            )}
-                          </AlertTitle>
-                          <AlertDescription>
-                            {t(
-                              'forms.microdeposits.errors.verificationFailed.400'
-                            )}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
-                      {verifyResponse?.status ===
-                        'FAILED_MAX_ATTEMPTS_EXCEEDED' && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="eb-h-4 eb-w-4" />
-                          <AlertTitle>
-                            {t(
-                              'forms.microdeposits.errors.maxAttemptsExceeded.title'
-                            )}
-                          </AlertTitle>
-                          <AlertDescription>
-                            {t(
-                              'forms.microdeposits.errors.maxAttemptsExceeded.message'
-                            )}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
-                      {/* Microdeposit Amounts Section */}
-                      <div className="eb-space-y-4">
-                        <div className="eb-grid eb-grid-cols-2 eb-gap-4">
-                          <StandardFormField
-                            control={form.control}
-                            name="amount1"
-                            type="number"
-                            label={t('forms.microdeposits.amount1.label')}
-                            placeholder={t(
-                              'forms.microdeposits.amount1.placeholder'
-                            )}
-                            prefix="$"
-                            required
-                            inputProps={{
-                              step: 0.01,
-                              min: 0,
-                            }}
-                          />
-
-                          <StandardFormField
-                            control={form.control}
-                            name="amount2"
-                            type="number"
-                            label={t('forms.microdeposits.amount2.label')}
-                            placeholder={t(
-                              'forms.microdeposits.amount2.placeholder'
-                            )}
-                            prefix="$"
-                            required
-                            inputProps={{
-                              step: 0.01,
-                              min: 0,
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <DialogFooter className="eb-gap-2 eb-pt-8">
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            type="button"
-                            onClick={handleCancel}
-                          >
-                            {t('forms.removeAccount.cancel')}
-                          </Button>
-                        </DialogClose>
-                        <Button type="submit" disabled={isVerifyPending}>
-                          {t('actions.verifyAccount')}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </div>
-              )}
-            </>
-          )}
+                      {t('forms.microdeposits.cancel')}
+                    </Button>
+                  </DialogClose>
+                  <Button type="submit" disabled={isVerifyPending}>
+                    {isVerifyPending && (
+                      <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+                    )}
+                    {t('forms.microdeposits.confirm')}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

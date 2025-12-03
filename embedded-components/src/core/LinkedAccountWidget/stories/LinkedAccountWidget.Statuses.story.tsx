@@ -6,6 +6,7 @@
  */
 
 import {
+  linkedAccountActiveMock,
   linkedAccountBusinessMock,
   linkedAccountInactiveMock,
   linkedAccountListMock,
@@ -14,40 +15,42 @@ import {
   linkedAccountRejectedMock,
 } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, within } from '@storybook/testing-library';
 
+import { LinkedAccountWidget } from '../LinkedAccountWidget';
 import {
   commonArgs,
   commonArgTypes,
   createRecipientHandlers,
-  LinkedAccountWidgetStory,
+  seedRecipientData,
 } from './story-utils';
 
 const meta = {
   title: 'Core/LinkedAccountWidget/Account Statuses',
-  component: LinkedAccountWidgetStory,
+  component: LinkedAccountWidget,
   tags: ['@core', '@linked-accounts'],
   parameters: {
     layout: 'padded',
     msw: {
-      handlers: createRecipientHandlers(linkedAccountListMock),
+      handlers: createRecipientHandlers(),
     },
   },
   args: commonArgs,
   argTypes: commonArgTypes,
-} satisfies Meta<typeof LinkedAccountWidgetStory>;
+} satisfies Meta<typeof LinkedAccountWidget>;
 
 export default meta;
-type Story = StoryObj<typeof LinkedAccountWidgetStory>;
+type Story = StoryObj<typeof meta>;
 
 /**
  * Active account - fully verified and ready for transactions.
  * This is the goal state after successful microdeposit verification.
  */
 export const Active: Story = {
-  args: {
-    variant: 'default',
-  },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountActiveMock);
+    },
+  ],
 };
 
 /**
@@ -55,14 +58,11 @@ export const Active: Story = {
  * User cannot take action yet - just needs to wait for JPMorgan deposits.
  */
 export const PendingMicrodeposits: Story = {
-  args: {
-    variant: 'default',
-  },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountMicrodepositListMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountMicrodepositListMock);
     },
-  },
+  ],
 };
 
 /**
@@ -70,23 +70,11 @@ export const PendingMicrodeposits: Story = {
  * Click the verify button to see the verification dialog.
  */
 export const ReadyToVerify: Story = {
-  args: {
-    variant: 'default',
-  },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountReadyForValidationMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountReadyForValidationMock);
     },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-
-    // Wait for the verify button to appear
-    const verifyButton = await canvas.findByRole('button', { name: /verify/i });
-
-    // Click to open verification dialog
-    await userEvent.click(verifyButton);
-  },
+  ],
 };
 
 /**
@@ -94,14 +82,11 @@ export const ReadyToVerify: Story = {
  * User entered wrong amounts or exceeded max attempts.
  */
 export const Rejected: Story = {
-  args: {
-    variant: 'default',
-  },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountRejectedMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountRejectedMock);
     },
-  },
+  ],
 };
 
 /**
@@ -109,14 +94,11 @@ export const Rejected: Story = {
  * Can be reactivated if needed.
  */
 export const Inactive: Story = {
-  args: {
-    variant: 'default',
-  },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountInactiveMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountInactiveMock);
     },
-  },
+  ],
 };
 
 /**
@@ -124,14 +106,11 @@ export const Inactive: Story = {
  * Displays business name instead of individual names.
  */
 export const Business: Story = {
-  args: {
-    variant: 'default',
-  },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountBusinessMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountBusinessMock);
     },
-  },
+  ],
 };
 
 /**
@@ -139,12 +118,9 @@ export const Business: Story = {
  * Demonstrates visual hierarchy and status differentiation.
  */
 export const MixedStatuses: Story = {
-  args: {
-    variant: 'default',
-  },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers({
+  loaders: [
+    async () => {
+      const mixedData = {
         ...linkedAccountListMock,
         recipients: [
           ...(linkedAccountListMock.recipients || []),
@@ -153,7 +129,8 @@ export const MixedStatuses: Story = {
           ...(linkedAccountRejectedMock.recipients || []),
           ...(linkedAccountInactiveMock.recipients || []),
         ],
-      }),
+      };
+      await seedRecipientData(mixedData);
     },
-  },
+  ],
 };

@@ -41,10 +41,6 @@ export const useLinkedAccountConfig = (): BankAccountFormConfig => {
       certification: true,
     },
     content: {
-      title: t('linkedAccount.title'),
-      description: t('linkedAccount.description'),
-      successTitle: t('linkedAccount.successTitle'),
-      successDescription: t('linkedAccount.successDescription'),
       submitButtonText: t('linkedAccount.submitButton'),
       cancelButtonText: t('linkedAccount.cancelButton'),
       loadingMessage: t('linkedAccount.loadingMessage'),
