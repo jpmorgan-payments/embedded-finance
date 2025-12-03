@@ -68,7 +68,13 @@
   "forms": {
     "linkAccount": {
       "title": "Lier un nouveau compte",
-      "titleSuccess": "Processus de liaison de compte commencé",
+      "titleSuccessByStatus": {
+        "MICRODEPOSITS_INITIATED": "Processus de vérification commencé",
+        "ACTIVE": "Compte lié avec succès",
+        "PENDING": "Liaison de compte en cours",
+        "REJECTED": "Échec de la liaison du compte",
+        "INACTIVE": "Lien de compte désactivé"
+      },
       "description": "Connectez votre compte bancaire externe pour effectuer des paiements.",
       "descriptionSuccess": "Votre compte a été lié et est prêt à être utilisé.",
       "error": {
@@ -186,7 +192,13 @@
     },
     "editAccount": {
       "title": "Modifier le compte lié",
-      "titleSuccess": "Compte mis à jour avec succès",
+      "titleSuccessByStatus": {
+        "MICRODEPOSITS_INITIATED": "Compte mis à jour - Vérification en attente",
+        "ACTIVE": "Compte mis à jour avec succès",
+        "PENDING": "Traitement de la mise à jour du compte",
+        "REJECTED": "Échec de la mise à jour du compte",
+        "INACTIVE": "Lien de compte désactivé"
+      },
       "description": "Mettre à jour les informations du compte bancaire et les méthodes de paiement.",
       "descriptionSuccess": "Votre compte lié a été mis à jour avec succès.",
       "error": {

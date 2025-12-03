@@ -49,162 +49,122 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * Complete flow of linking a new bank account via microdeposits.
- * Demonstrates the entire workflow from clicking "Link Account" to successful creation.
- *
- * Data: Starts with empty recipient list
- * Workflow:
- * - Step 1: Click Link Account
- * - Step 2: Select Individual account type
- * - Step 3: Verify ACH payment method (pre-selected)
- * - Step 4: Continue to account details
- * - Step 5: Enter account holder name
- * - Step 6: Enter bank account details
- * - Step 7: Enter routing number
- * - Step 8: Accept certification
- * - Step 9: Submit form
+ * Helper function to fill out the link account form
+ * This is shared across multiple stories to avoid duplication
  */
-export const LinkNewAccount: Story = {
-  loaders: [
-    async () => {
-      await seedRecipientData({
-        recipients: [], // Start with empty list
-      });
-    },
-  ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
-    // Step 1: Click "Link Account" button
-    await step('Click Link Account button', async () => {
-      const linkButton = await canvas.findByRole('button', {
-        name: /link a new account/i,
-      });
-      await delay(INTERACTION_DELAY);
-      await userEvent.click(linkButton);
+const fillLinkAccountForm = async (
+  canvas: ReturnType<typeof within>,
+  step: any
+) => {
+  // Step 1: Click "Link Account" button
+  await step('Click Link Account button', async () => {
+    const linkButton = await canvas.findByRole('button', {
+      name: /link a new account/i,
     });
+    await delay(INTERACTION_DELAY);
+    await userEvent.click(linkButton);
+  });
 
-    // Step 2: Verify Individual account type is pre-selected by default
-    await step('Verify Individual account type is pre-selected', async () => {
-      await delay(INTERACTION_DELAY);
-      // Account type defaults to INDIVIDUAL, no need to interact
-      // The select should show "Individual / Personal Account" as selected
+  // Step 2: Verify Individual account type is pre-selected by default
+  await step('Verify Individual account type is pre-selected', async () => {
+    await delay(INTERACTION_DELAY);
+  });
+
+  // Step 3: Verify payment method (ACH is pre-selected by default)
+  await step('Verify ACH payment method is selected', async () => {
+    await delay(INTERACTION_DELAY);
+    await waitFor(() => {
+      const achCheckbox = Array.from(
+        document.querySelectorAll('input[type="checkbox"]')
+      ).find(
+        (input) =>
+          (input as HTMLInputElement).value === 'ACH' ||
+          input.closest('label')?.textContent?.includes('ACH')
+      ) as HTMLInputElement;
+      if (!achCheckbox) throw new Error('ACH payment method not found');
     });
+  });
 
-    // Step 3: Verify payment method (ACH is pre-selected by default)
-    await step('Verify ACH payment method is selected', async () => {
-      await delay(INTERACTION_DELAY);
-      await waitFor(() => {
-        // ACH checkbox should be checked by default
-        const achCheckbox = Array.from(
-          document.querySelectorAll('input[type="checkbox"]')
-        ).find(
-          (input) =>
-            (input as HTMLInputElement).value === 'ACH' ||
-            input.closest('label')?.textContent?.includes('ACH')
-        ) as HTMLInputElement;
-        if (!achCheckbox) throw new Error('ACH payment method not found');
-      });
-    });
+  // Step 4: Continue to account details (Step 2)
+  await step('Continue to account details', async () => {
+    await delay(INTERACTION_DELAY);
+    const continueButton = Array.from(document.querySelectorAll('button')).find(
+      (btn) => btn.textContent?.match(/continue to account details/i)
+    );
+    if (continueButton) {
+      await userEvent.click(continueButton);
+    }
+  });
 
-    // Step 4: Continue to account details (Step 2)
-    await step('Continue to account details', async () => {
-      await delay(INTERACTION_DELAY);
-      const continueButton = Array.from(
-        document.querySelectorAll('button')
-      ).find((btn) => btn.textContent?.match(/continue to account details/i));
-      if (continueButton) {
-        await userEvent.click(continueButton);
-      }
-    });
-
-    // Step 5: Fill in account holder information
-    await step('Enter account holder name', async () => {
-      await delay(INTERACTION_DELAY);
-      await waitFor(() => {
-        const firstNameInput = document.querySelector(
-          'input[name="firstName"]'
-        ) as HTMLInputElement;
-        const lastNameInput = document.querySelector(
-          'input[name="lastName"]'
-        ) as HTMLInputElement;
-        if (!firstNameInput || !lastNameInput)
-          throw new Error('Name inputs not found');
-        return { firstNameInput, lastNameInput };
-      });
-
+  // Step 5: Fill in account holder information
+  await step('Enter account holder name', async () => {
+    await delay(INTERACTION_DELAY);
+    await waitFor(() => {
       const firstNameInput = document.querySelector(
         'input[name="firstName"]'
       ) as HTMLInputElement;
       const lastNameInput = document.querySelector(
         'input[name="lastName"]'
       ) as HTMLInputElement;
-
-      await userEvent.clear(firstNameInput);
-      await userEvent.type(firstNameInput, 'John');
-
-      await delay(INTERACTION_DELAY);
-
-      await userEvent.clear(lastNameInput);
-      await userEvent.type(lastNameInput, 'Doe');
+      if (!firstNameInput || !lastNameInput)
+        throw new Error('Name inputs not found');
+      return { firstNameInput, lastNameInput };
     });
 
-    // Step 6: Fill in bank account details
-    await step('Enter bank account details', async () => {
-      await delay(INTERACTION_DELAY);
-      await waitFor(() => {
-        const accountNumberInput = document.querySelector(
-          'input[name="accountNumber"]'
-        ) as HTMLInputElement;
-        if (!accountNumberInput)
-          throw new Error('Account number input not found');
-        return accountNumberInput;
-      });
+    const firstNameInput = document.querySelector(
+      'input[name="firstName"]'
+    ) as HTMLInputElement;
+    const lastNameInput = document.querySelector(
+      'input[name="lastName"]'
+    ) as HTMLInputElement;
 
+    await userEvent.clear(firstNameInput);
+    await userEvent.type(firstNameInput, 'John');
+    await delay(INTERACTION_DELAY);
+    await userEvent.clear(lastNameInput);
+    await userEvent.type(lastNameInput, 'Doe');
+  });
+
+  // Step 6: Fill in bank account details
+  await step('Enter bank account details', async () => {
+    await delay(INTERACTION_DELAY);
+    await waitFor(() => {
       const accountNumberInput = document.querySelector(
         'input[name="accountNumber"]'
       ) as HTMLInputElement;
-
-      await userEvent.clear(accountNumberInput);
-      await userEvent.type(accountNumberInput, '123456789');
-
-      // Select account type (Checking)
-      const accountTypeButton = document.querySelector(
-        'button[name="bankAccountType"]'
-      ) as HTMLButtonElement;
-      if (accountTypeButton) {
-        await userEvent.click(accountTypeButton);
-        await delay(300);
-
-        const checkingOption = Array.from(
-          document.querySelectorAll('[role="option"]')
-        ).find((el) => el.textContent?.includes('Checking'));
-        if (checkingOption) {
-          await userEvent.click(checkingOption as HTMLElement);
-        }
-      }
+      if (!accountNumberInput)
+        throw new Error('Account number input not found');
+      return accountNumberInput;
     });
 
-    // Step 7: Enter routing number
-    await step('Enter routing number', async () => {
-      await delay(INTERACTION_DELAY);
+    const accountNumberInput = document.querySelector(
+      'input[name="accountNumber"]'
+    ) as HTMLInputElement;
 
-      // Wait for the routing number input to be rendered
-      await waitFor(() => {
-        // The input is inside a dialog portal, search by placeholder or label
-        const routingInput = Array.from(
-          document.querySelectorAll('input[type="text"]')
-        ).find(
-          (input) =>
-            (input as HTMLInputElement).placeholder?.includes(
-              '9-digit routing'
-            ) || (input as HTMLInputElement).maxLength === 9
-        ) as HTMLInputElement;
+    await userEvent.clear(accountNumberInput);
+    await userEvent.type(accountNumberInput, '123456789');
 
-        if (!routingInput) throw new Error('Routing number input not found');
-        return routingInput;
-      });
+    const accountTypeButton = document.querySelector(
+      'button[name="bankAccountType"]'
+    ) as HTMLButtonElement;
+    if (accountTypeButton) {
+      await userEvent.click(accountTypeButton);
+      await delay(300);
 
+      const checkingOption = Array.from(
+        document.querySelectorAll('[role="option"]')
+      ).find((el) => el.textContent?.includes('Checking'));
+      if (checkingOption) {
+        await userEvent.click(checkingOption as HTMLElement);
+      }
+    }
+  });
+
+  // Step 7: Enter routing number
+  await step('Enter routing number', async () => {
+    await delay(INTERACTION_DELAY);
+
+    await waitFor(() => {
       const routingInput = Array.from(
         document.querySelectorAll('input[type="text"]')
       ).find(
@@ -214,40 +174,30 @@ export const LinkNewAccount: Story = {
           ) || (input as HTMLInputElement).maxLength === 9
       ) as HTMLInputElement;
 
-      // Focus the input first to ensure it's ready
-      routingInput.focus();
-      await delay(100);
-
-      // Clear and type
-      await userEvent.clear(routingInput);
-      await userEvent.type(routingInput, '021000021', { delay: 50 });
+      if (!routingInput) throw new Error('Routing number input not found');
+      return routingInput;
     });
 
-    // Step 8: Check certification checkbox
-    await step('Accept certification', async () => {
-      await delay(INTERACTION_DELAY);
+    const routingInput = Array.from(
+      document.querySelectorAll('input[type="text"]')
+    ).find(
+      (input) =>
+        (input as HTMLInputElement).placeholder?.includes('9-digit routing') ||
+        (input as HTMLInputElement).maxLength === 9
+    ) as HTMLInputElement;
 
-      // Wait for the certification checkbox to be visible (Radix UI checkbox renders as button with role="checkbox")
-      await waitFor(() => {
-        // Find the Radix checkbox button by role
-        const certifyCheckbox = Array.from(
-          document.querySelectorAll('button[role="checkbox"]')
-        ).find((checkbox) => {
-          // Check if this checkbox is in a container with certification text
-          const container = checkbox.closest('.eb-flex');
-          const label = container?.querySelector('label');
-          return (
-            label?.textContent?.includes('authorize') ||
-            label?.textContent?.includes('certify') ||
-            label?.textContent?.includes('accurate')
-          );
-        }) as HTMLButtonElement;
+    routingInput.focus();
+    await delay(100);
 
-        if (!certifyCheckbox)
-          throw new Error('Certification checkbox not found');
-        return certifyCheckbox;
-      });
+    await userEvent.clear(routingInput);
+    await userEvent.type(routingInput, '021000021', { delay: 50 });
+  });
 
+  // Step 8: Check certification checkbox
+  await step('Accept certification', async () => {
+    await delay(INTERACTION_DELAY);
+
+    await waitFor(() => {
       const certifyCheckbox = Array.from(
         document.querySelectorAll('button[role="checkbox"]')
       ).find((checkbox) => {
@@ -260,19 +210,236 @@ export const LinkNewAccount: Story = {
         );
       }) as HTMLButtonElement;
 
-      await userEvent.click(certifyCheckbox);
+      if (!certifyCheckbox) throw new Error('Certification checkbox not found');
+      return certifyCheckbox;
     });
 
-    // Step 9: Submit the form
-    await step('Submit the form', async () => {
-      await delay(INTERACTION_DELAY);
-      const submitButton = Array.from(document.querySelectorAll('button')).find(
-        (btn) => btn.textContent?.match(/confirm and link account/i)
+    const certifyCheckbox = Array.from(
+      document.querySelectorAll('button[role="checkbox"]')
+    ).find((checkbox) => {
+      const container = checkbox.closest('.eb-flex');
+      const label = container?.querySelector('label');
+      return (
+        label?.textContent?.includes('authorize') ||
+        label?.textContent?.includes('certify') ||
+        label?.textContent?.includes('accurate')
       );
-      if (submitButton) {
-        await userEvent.click(submitButton);
+    }) as HTMLButtonElement;
+
+    await userEvent.click(certifyCheckbox);
+  });
+
+  // Step 9: Submit the form
+  await step('Submit the form', async () => {
+    await delay(INTERACTION_DELAY);
+    const submitButton = Array.from(document.querySelectorAll('button')).find(
+      (btn) => btn.textContent?.match(/confirm and link account/i)
+    );
+    if (submitButton) {
+      await userEvent.click(submitButton);
+    }
+  });
+};
+
+/**
+ * Complete flow of linking a new bank account via microdeposits.
+ * Demonstrates the entire workflow from clicking "Link Account" to successful creation.
+ * Response status: MICRODEPOSITS_INITIATED (default)
+ *
+ * Data: Starts with empty recipient list
+ * Expected Result: Shows "Verification Process Started" title
+ */
+export const LinkNewAccount: Story = {
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        recipients: [], // Start with empty list
+      });
+    },
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await fillLinkAccountForm(canvas, step);
+
+    // Verify the success state shows "Verification Process Started"
+    await step(
+      'Verify success dialog shows "Verification Process Started"',
+      async () => {
+        await waitFor(
+          () => {
+            const titleText = Array.from(document.querySelectorAll('*')).find(
+              (el) => el.textContent?.match(/verification process started/i)
+            );
+            if (!titleText) throw new Error('Success title not found');
+          },
+          { timeout: 3000 }
+        );
       }
-    });
+    );
+  },
+};
+
+/**
+ * Link account workflow with ACTIVE status response.
+ * This is a rare case where the account is immediately verified without microdeposits.
+ *
+ * Expected Result: Shows "Account Successfully Linked" title
+ */
+export const LinkNewAccountActive: Story = {
+  parameters: {
+    msw: {
+      handlers: createRecipientHandlers({ overrideCreateStatus: 'ACTIVE' }),
+    },
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        recipients: [],
+      });
+    },
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await fillLinkAccountForm(canvas, step);
+
+    // Verify the success state shows "Account Successfully Linked"
+    await step(
+      'Verify success dialog shows "Account Successfully Linked"',
+      async () => {
+        await waitFor(
+          () => {
+            const titleText = Array.from(document.querySelectorAll('*')).find(
+              (el) => el.textContent?.match(/account successfully linked/i)
+            );
+            if (!titleText) throw new Error('Success title not found');
+          },
+          { timeout: 3000 }
+        );
+      }
+    );
+  },
+};
+
+/**
+ * Link account workflow with PENDING status response.
+ * Account information is being processed by the system.
+ *
+ * Expected Result: Shows "Account Linking In Progress" title
+ */
+export const LinkNewAccountPending: Story = {
+  parameters: {
+    msw: {
+      handlers: createRecipientHandlers({ overrideCreateStatus: 'PENDING' }),
+    },
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        recipients: [],
+      });
+    },
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await fillLinkAccountForm(canvas, step);
+
+    // Verify the success state shows "Account Linking In Progress"
+    await step(
+      'Verify success dialog shows "Account Linking In Progress"',
+      async () => {
+        await waitFor(
+          () => {
+            const titleText = Array.from(document.querySelectorAll('*')).find(
+              (el) => el.textContent?.match(/account linking in progress/i)
+            );
+            if (!titleText) throw new Error('Success title not found');
+          },
+          { timeout: 3000 }
+        );
+      }
+    );
+  },
+};
+
+/**
+ * Link account workflow with REJECTED status response.
+ * Account verification was rejected by the system.
+ *
+ * Expected Result: Shows "Account Linking Failed" title
+ */
+export const LinkNewAccountRejected: Story = {
+  parameters: {
+    msw: {
+      handlers: createRecipientHandlers({ overrideCreateStatus: 'REJECTED' }),
+    },
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        recipients: [],
+      });
+    },
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await fillLinkAccountForm(canvas, step);
+
+    // Verify the success state shows "Account Linking Failed"
+    await step(
+      'Verify success dialog shows "Account Linking Failed"',
+      async () => {
+        await waitFor(
+          () => {
+            const titleText = Array.from(document.querySelectorAll('*')).find(
+              (el) => el.textContent?.match(/account linking failed/i)
+            );
+            if (!titleText) throw new Error('Success title not found');
+          },
+          { timeout: 3000 }
+        );
+      }
+    );
+  },
+};
+
+/**
+ * Link account workflow with INACTIVE status response.
+ * This is a very rare edge case where the account link is deactivated.
+ *
+ * Expected Result: Shows "Account Link Deactivated" title
+ */
+export const LinkNewAccountInactive: Story = {
+  parameters: {
+    msw: {
+      handlers: createRecipientHandlers({ overrideCreateStatus: 'INACTIVE' }),
+    },
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        recipients: [],
+      });
+    },
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await fillLinkAccountForm(canvas, step);
+
+    // Verify the success state shows "Account Link Deactivated"
+    await step(
+      'Verify success dialog shows "Account Link Deactivated"',
+      async () => {
+        await waitFor(
+          () => {
+            const titleText = Array.from(document.querySelectorAll('*')).find(
+              (el) => el.textContent?.match(/account link deactivated/i)
+            );
+            if (!titleText) throw new Error('Success title not found');
+          },
+          { timeout: 3000 }
+        );
+      }
+    );
   },
 };
 

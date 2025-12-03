@@ -55,7 +55,13 @@
   "forms": {
     "linkAccount": {
       "title": "Link A New Account",
-      "titleSuccess": "Account Linking Process Started",
+      "titleSuccessByStatus": {
+        "MICRODEPOSITS_INITIATED": "Verification Process Started",
+        "ACTIVE": "Account Successfully Linked",
+        "PENDING": "Account Linking In Progress",
+        "REJECTED": "Account Linking Failed",
+        "INACTIVE": "Account Link Deactivated"
+      },
       "description": "Connect your external bank account to make payments.",
       "descriptionSuccess": "Your account has been linked and is ready to use.",
       "error": {
@@ -70,7 +76,13 @@
     },
     "editAccount": {
       "title": "Edit Linked Account",
-      "titleSuccess": "Account Updated Successfully",
+      "titleSuccessByStatus": {
+        "MICRODEPOSITS_INITIATED": "Account Updated - Verification Pending",
+        "ACTIVE": "Account Updated Successfully",
+        "PENDING": "Account Update Processing",
+        "REJECTED": "Account Update Failed",
+        "INACTIVE": "Account Link Deactivated"
+      },
       "description": "Update the bank account information and payment methods.",
       "descriptionSuccess": "Your linked account has been updated successfully.",
       "error": {

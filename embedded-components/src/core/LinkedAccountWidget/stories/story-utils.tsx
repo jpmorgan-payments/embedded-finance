@@ -29,6 +29,7 @@ import type {
   MicrodepositVerificationResponse,
   Recipient,
   RecipientRequest,
+  RecipientStatus,
   UpdateRecipientRequest,
 } from '@/api/generated/ep-recipients.schemas';
 
@@ -44,63 +45,11 @@ export interface RecipientHandlerOptions {
   initialVerificationAttempts?: Record<string, number>;
   /** Network delay in milliseconds (default: 800ms) */
   delayMs?: number;
+  /** Override the default status returned when creating a recipient (default: 'MICRODEPOSITS_INITIATED') */
+  overrideCreateStatus?: RecipientStatus;
 } // ============================================================================
 // Database Management
 // ============================================================================
-
-/**
- * Seeds the MSW database with recipient data.
- * Clears existing recipients before adding new ones.
- *
- * @param responseData - Initial recipient data with a `recipients` array
- * @param options - Configuration options for seeding
- *
- * @example
- * ```tsx
- * seedRecipientDatabase(mockData, {
- *   initialVerificationAttempts: { 'recipient-1': 2 }
- * });
- * ```
- */
-export const seedRecipientDatabase = (
-  responseData: { recipients?: Recipient[] },
-  options?: Pick<RecipientHandlerOptions, 'initialVerificationAttempts'>
-): void => {
-  // Clear ALL existing recipients using deleteMany
-  db.recipient.deleteMany({ where: { id: { notIn: [] } } });
-
-  // Seed with new recipients
-  const recipients = responseData.recipients ?? [];
-  recipients.forEach((recipient) => {
-    // Check if recipient already exists (safety check)
-    const existing = db.recipient.findFirst({
-      where: { id: { equals: recipient.id } },
-    });
-
-    if (!existing) {
-      db.recipient.create({
-        ...recipient,
-        verificationAttempts:
-          options?.initialVerificationAttempts?.[recipient.id] ?? 0,
-      });
-    } else {
-      // Update existing recipient instead
-      db.recipient.update({
-        where: { id: { equals: recipient.id } },
-        data: {
-          ...recipient,
-          verificationAttempts:
-            options?.initialVerificationAttempts?.[recipient.id] ?? 0,
-        },
-      });
-    }
-  });
-
-  debugLog('Database seeded', {
-    count: recipients.length,
-    recipients: recipients.map((r) => ({ id: r.id, status: r.status })),
-  });
-};
 
 /**
  * Resets MSW database to a clean state and seeds with recipient data.
@@ -128,9 +77,38 @@ export const seedRecipientData = async (
   // Reset global MSW database
   resetDb();
 
-  // Re-seed if data provided
+  // Seed if data provided
   if (seedData) {
-    seedRecipientDatabase(seedData, options);
+    const recipients = seedData.recipients ?? [];
+    recipients.forEach((recipient) => {
+      // Check if recipient already exists (safety check)
+      const existing = db.recipient.findFirst({
+        where: { id: { equals: recipient.id } },
+      });
+
+      if (!existing) {
+        db.recipient.create({
+          ...recipient,
+          verificationAttempts:
+            options?.initialVerificationAttempts?.[recipient.id] ?? 0,
+        });
+      } else {
+        // Update existing recipient instead
+        db.recipient.update({
+          where: { id: { equals: recipient.id } },
+          data: {
+            ...recipient,
+            verificationAttempts:
+              options?.initialVerificationAttempts?.[recipient.id] ?? 0,
+          },
+        });
+      }
+    });
+
+    debugLog('Database seeded', {
+      count: recipients.length,
+      recipients: recipients.map((r) => ({ id: r.id, status: r.status })),
+    });
   }
 };
 
@@ -190,9 +168,11 @@ const debugLog = (message: string, data?: unknown): void => {
  * ```
  */
 export const createRecipientHandlers = (
-  options?: Pick<RecipientHandlerOptions, 'delayMs'>
+  options?: Pick<RecipientHandlerOptions, 'delayMs' | 'overrideCreateStatus'>
 ) => {
   const delay = options?.delayMs ?? 800;
+  const createStatus =
+    options?.overrideCreateStatus ?? 'MICRODEPOSITS_INITIATED';
 
   return [
     // GET /recipients - List all active recipients
@@ -284,7 +264,7 @@ export const createRecipientHandlers = (
       const newRecipient = db.recipient.create({
         id: `recipient-${Date.now()}`,
         type: 'LINKED_ACCOUNT',
-        status: 'MICRODEPOSITS_INITIATED',
+        status: createStatus,
         clientId: body?.clientId ?? '3002024303',
         partyDetails: {
           type: body?.partyDetails?.type ?? 'INDIVIDUAL',
