@@ -1,6 +1,7 @@
 version: 1
 applications:
-  - appRoot: app/client-next-ts
+  - name: Showcase
+    appRoot: app/client-next-ts
     frontend:
       phases:
         preBuild:
@@ -20,7 +21,8 @@ applications:
       cache:
         paths:
           - node_modules/**/*
-  - appRoot: embedded-components
+  - name: Storybook
+    appRoot: embedded-components
     frontend:
       phases:
         preBuild:
