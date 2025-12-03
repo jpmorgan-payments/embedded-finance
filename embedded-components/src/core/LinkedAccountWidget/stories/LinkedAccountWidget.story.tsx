@@ -12,31 +12,31 @@
 
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { apiStoryProps } from '@storybook/shared-story-types';
 
+import { LinkedAccountWidget } from '../LinkedAccountWidget';
 import {
   commonArgs,
   commonArgTypes,
   createRecipientHandlers,
-  LinkedAccountWidgetStory,
+  seedRecipientData,
 } from './story-utils';
 
 const meta = {
   title: 'Core/LinkedAccountWidget',
-  component: LinkedAccountWidgetStory,
+  component: LinkedAccountWidget,
   tags: ['@core', '@linked-accounts'],
   parameters: {
     layout: 'padded',
     msw: {
-      handlers: createRecipientHandlers(linkedAccountListMock),
+      handlers: createRecipientHandlers(),
     },
   },
   args: commonArgs,
   argTypes: commonArgTypes,
-} satisfies Meta<typeof LinkedAccountWidgetStory>;
+} satisfies Meta<typeof LinkedAccountWidget>;
 
 export default meta;
-type Story = StoryObj<typeof LinkedAccountWidgetStory>;
+type Story = StoryObj<typeof meta>;
 
 /**
  * Default view showing multiple linked accounts in a responsive grid.
@@ -49,9 +49,13 @@ type Story = StoryObj<typeof LinkedAccountWidgetStory>;
  */
 export const Default: Story = {
   args: {
-    ...apiStoryProps,
     variant: 'default',
   },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
+    },
+  ],
 };
 
 /**
@@ -66,6 +70,11 @@ export const SingleAccountVariant: Story = {
   args: {
     variant: 'singleAccount',
   },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
+    },
+  ],
 };
 
 /**
@@ -81,12 +90,12 @@ export const EmptyState: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers({
+  loaders: [
+    async () => {
+      await seedRecipientData({
         ...linkedAccountListMock,
         recipients: [],
-      }),
+      });
     },
-  },
+  ],
 };

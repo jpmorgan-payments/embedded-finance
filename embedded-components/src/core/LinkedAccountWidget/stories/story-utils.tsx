@@ -1,291 +1,286 @@
 /**
  * Shared utilities for LinkedAccountWidget stories
+ *
+ * This module provides:
+ * - MSW database seeding and reset utilities
+ * - MSW handler factories for recipient endpoints
+ * - Common story configuration (args, argTypes)
+ * - Type definitions for stories
+ *
+ * Stories can render the LinkedAccountWidget component directly:
+ * @example
+ * ```tsx
+ * export const Default: Story = {
+ *   args: { variant: 'default' }
+ * };
+ * ```
+ *
+ * The EBComponentsProvider is applied globally via a decorator in preview.tsx.
  */
 
 import { db, resetDb, verifyMicrodeposit } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
-import {
-  baseStoryArgTypes,
-  baseStoryDefaults,
-  BaseStoryProps,
-  resolveTheme,
-} from '@storybook/shared-story-types';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-
-import { LinkedAccountWidget } from '../LinkedAccountWidget';
+import type {
+  ApiError,
+  ListRecipientsResponseAllOf,
+  MicrodepositAmounts,
+  MicrodepositVerificationResponse,
+  Recipient,
+  RecipientRequest,
+  UpdateRecipientRequest,
+} from '@/api/generated/ep-recipients.schemas';
 
 // ============================================================================
-// MSW Reset Utilities
+// Type Definitions
+// ============================================================================
+
+/**
+ * Configuration options for MSW handler creation and database seeding
+ */
+export interface RecipientHandlerOptions {
+  /** Initial verification attempt counts per recipient ID */
+  initialVerificationAttempts?: Record<string, number>;
+  /** Network delay in milliseconds (default: 800ms) */
+  delayMs?: number;
+} // ============================================================================
+// Database Management
 // ============================================================================
 
 /**
  * Seeds the MSW database with recipient data.
+ * Clears existing recipients before adding new ones.
  *
- * @param responseData - Initial recipient data to seed the database
- * @param options - Configuration options
- */
-export const seedRecipientDatabase = (
-  responseData: any,
-  options?: {
-    initialVerificationAttempts?: Record<string, number>;
-  }
-) => {
-  // Clear existing recipients first
-  const existingRecipients = db.recipient.getAll();
-  existingRecipients.forEach((r) => {
-    db.recipient.delete({ where: { id: { equals: r.id } } });
-  });
-
-  // Add new recipients from responseData
-  if (responseData.recipients && Array.isArray(responseData.recipients)) {
-    responseData.recipients.forEach((recipient: any) => {
-      db.recipient.create({
-        ...recipient,
-        verificationAttempts:
-          options?.initialVerificationAttempts?.[recipient.id] || 0,
-      });
-    });
-  }
-
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[MSW] Database seeded:', {
-      recipientCount: responseData.recipients?.length || 0,
-      recipients: responseData.recipients?.map((r: any) => ({
-        id: r.id,
-        status: r.status,
-      })),
-    });
-  }
-};
-
-/**
- * Resets MSW database to a clean state and optionally re-seeds with data.
- * This uses the global MSW db to ensure proper state management.
- *
- * @param seedData - Optional data to seed the database after reset
+ * @param responseData - Initial recipient data with a `recipients` array
  * @param options - Configuration options for seeding
  *
  * @example
  * ```tsx
- * play: async ({ step }) => {
- *   await resetMSWHandlers(mockLinkedAccountData);
- *   // ... rest of play function
- * }
+ * seedRecipientDatabase(mockData, {
+ *   initialVerificationAttempts: { 'recipient-1': 2 }
+ * });
  * ```
  */
-export const resetMSWHandlers = async (
-  seedData?: any,
-  options?: {
-    initialVerificationAttempts?: Record<string, number>;
-  }
-) => {
-  // Wait a brief moment to ensure any pending requests from previous story are completed
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 100);
+export const seedRecipientDatabase = (
+  responseData: { recipients?: Recipient[] },
+  options?: Pick<RecipientHandlerOptions, 'initialVerificationAttempts'>
+): void => {
+  // Clear ALL existing recipients using deleteMany
+  db.recipient.deleteMany({ where: { id: { notIn: [] } } });
+
+  // Seed with new recipients
+  const recipients = responseData.recipients ?? [];
+  recipients.forEach((recipient) => {
+    // Check if recipient already exists (safety check)
+    const existing = db.recipient.findFirst({
+      where: { id: { equals: recipient.id } },
+    });
+
+    if (!existing) {
+      db.recipient.create({
+        ...recipient,
+        verificationAttempts:
+          options?.initialVerificationAttempts?.[recipient.id] ?? 0,
+      });
+    } else {
+      // Update existing recipient instead
+      db.recipient.update({
+        where: { id: { equals: recipient.id } },
+        data: {
+          ...recipient,
+          verificationAttempts:
+            options?.initialVerificationAttempts?.[recipient.id] ?? 0,
+        },
+      });
+    }
   });
 
-  // Reset the global MSW database
+  debugLog('Database seeded', {
+    count: recipients.length,
+    recipients: recipients.map((r) => ({ id: r.id, status: r.status })),
+  });
+};
+
+/**
+ * Resets MSW database to a clean state and seeds with recipient data.
+ * Use this in Storybook loaders to ensure each story has isolated test data.
+ *
+ * Includes a brief delay to ensure pending requests from previous stories complete.
+ *
+ * @param seedData - Recipient data to seed after reset
+ * @param options - Configuration options for seeding
+ *
+ * @example
+ * ```tsx
+ * export const MyStory: Story = {
+ *   loaders: [async () => await seedRecipientData(mockData)]
+ * };
+ * ```
+ */
+export const seedRecipientData = async (
+  seedData?: { recipients?: Recipient[] },
+  options?: Pick<RecipientHandlerOptions, 'initialVerificationAttempts'>
+): Promise<void> => {
+  // Brief delay to ensure clean state between stories
+  await sleep(100);
+
+  // Reset global MSW database
   resetDb();
 
-  // Re-seed with data if provided
+  // Re-seed if data provided
   if (seedData) {
     seedRecipientDatabase(seedData, options);
   }
 };
 
 // ============================================================================
-// Story Wrapper Component
-// ============================================================================
-
-/**
- * Props for LinkedAccountWidget stories.
- * Extends BaseStoryProps for common provider/theme configuration.
- */
-export interface LinkedAccountWidgetStoryProps extends BaseStoryProps {
-  /** Display variant for the widget */
-  variant?: 'default' | 'singleAccount';
-  /** Whether to show the "Link New Account" button */
-  showCreateButton?: boolean;
-  /** Custom component to render for making payments */
-  makePaymentComponent?: React.ReactNode;
-  /** Callback when a linked account is settled */
-  onLinkedAccountSettled?: (recipient?: any, error?: any) => void;
-  /** Additional CSS class names */
-  className?: string;
-}
-
-export const LinkedAccountWidgetStory: React.FC<
-  LinkedAccountWidgetStoryProps
-> = ({
-  apiBaseUrl,
-  clientId,
-  headers,
-  themePreset = 'Default',
-  theme: customTheme,
-  contentTokensPreset = 'enUS',
-  contentTokens,
-  variant,
-  showCreateButton,
-  makePaymentComponent,
-  onLinkedAccountSettled,
-  className,
-}) => {
-  // Resolve theme: use custom theme if themePreset is 'custom', otherwise use preset
-  const selectedTheme = resolveTheme(themePreset, customTheme);
-
-  const selectedContentTokens = contentTokens ?? { name: contentTokensPreset };
-
-  return (
-    <EBComponentsProvider
-      apiBaseUrl={apiBaseUrl}
-      apiBaseUrls={{
-        clients: `${apiBaseUrl.split('/v1')[0]}/do/v1`,
-      }}
-      headers={headers}
-      theme={selectedTheme}
-      contentTokens={selectedContentTokens}
-      clientId={clientId ?? ''}
-    >
-      <LinkedAccountWidget
-        variant={variant}
-        showCreateButton={showCreateButton}
-        makePaymentComponent={makePaymentComponent}
-        onLinkedAccountSettled={onLinkedAccountSettled}
-        className={className}
-      />
-    </EBComponentsProvider>
-  );
-};
-
-// ============================================================================
 // MSW Handler Utilities
 // ============================================================================
 
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
 /**
- * Creates MSW handlers for recipient API endpoints using the global MSW db.
- * This ensures proper state management and persistence within stories.
+ * Simulates network delay for realistic MSW responses
+ * @param ms - Delay duration in milliseconds
+ */
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+/**
+ * Logs debug information in development mode only
+ * @param message - Log message
+ * @param data - Optional data to log
+ */
+const debugLog = (message: string, data?: unknown): void => {
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log(`[MSW LinkedAccount] ${message}`, data);
+  }
+};
+
+// ============================================================================
+// MSW Handler Factories
+// ============================================================================
+
+/**
+ * Creates MSW handlers for recipient API endpoints.
+ * Uses the global MSW database for state management and persistence.
  *
- * @param responseData - Initial recipient data to seed the database
- * @param options - Configuration options
+ * Note: Handlers do NOT seed the database. Use loaders to seed data before rendering:
+ * ```tsx
+ * loaders: [async () => await seedRecipientData(mockData)]
+ * ```
+ *
+ * @param options - Configuration for delays (optional)
+ * @returns Array of MSW request handlers
+ *
+ * @example
+ * ```tsx
+ * export const MyStory: Story = {
+ *   loaders: [async () => await seedRecipientData(mockData)],
+ *   parameters: {
+ *     msw: { handlers: createRecipientHandlers({ delayMs: 500 }) }
+ *   }
+ * };
+ * ```
  */
 export const createRecipientHandlers = (
-  responseData: any,
-  options?: {
-    initialVerificationAttempts?: Record<string, number>;
-    delayMs?: number;
-  }
+  options?: Pick<RecipientHandlerOptions, 'delayMs'>
 ) => {
-  const delay = options?.delayMs ?? 800; // Default 800ms delay
-
-  const sleep = (ms: number) =>
-    new Promise<void>((resolve) => {
-      setTimeout(resolve, ms);
-    });
-
-  // Seed the database immediately when handlers are created
-  seedRecipientDatabase(responseData, options);
+  const delay = options?.delayMs ?? 800;
 
   return [
-    http.get('/recipients', async () => {
+    // GET /recipients - List all active recipients
+    http.get('/recipients', async (): Promise<Response> => {
       await sleep(delay);
 
-      // Get all recipients from db, filtering out INACTIVE and REJECTED
       const allRecipients = db.recipient.getAll();
-      const filteredRecipients = allRecipients.filter(
-        (r: any) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+      const activeRecipients = allRecipients.filter(
+        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
       );
 
-      // Debug logging
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[MSW] GET /recipients:', {
-          total: filteredRecipients.length,
-          statuses: filteredRecipients.map((r: any) => ({
-            id: r.id,
-            status: r.status,
-          })),
-        });
-      }
-
-      return HttpResponse.json({
-        recipients: filteredRecipients,
-        total_items: filteredRecipients.length,
-      });
-    }),
-
-    http.get('/recipients/:id', async ({ params }) => {
-      await sleep(delay);
-
-      const { id } = params;
-      const recipient = db.recipient.findFirst({
-        where: { id: { equals: id as string } },
+      debugLog('GET /recipients', {
+        total: activeRecipients.length,
+        statuses: activeRecipients.map((r) => ({ id: r.id, status: r.status })),
       });
 
-      // Debug logging
-      if (process.env.NODE_ENV === 'development' && recipient) {
-        // eslint-disable-next-line no-console
-        console.log('[MSW] GET /recipients/:id:', {
-          id,
-          status: recipient.status,
-        });
-      }
-
-      if (recipient) {
-        return HttpResponse.json(recipient);
-      }
-
-      return HttpResponse.json(
-        {
-          httpStatus: 404,
-          title: 'Recipient not found',
-          context: [],
+      const response: ListRecipientsResponseAllOf = {
+        recipients: activeRecipients as Recipient[],
+        metadata: {
+          total_items: activeRecipients.length,
         },
-        { status: 404 }
-      );
+      };
+
+      return HttpResponse.json(response);
     }),
 
-    http.post('/recipients/:id', async ({ params, request }) => {
+    // GET /recipients/:id - Get single recipient
+    http.get('/recipients/:id', async ({ params }): Promise<Response> => {
       await sleep(delay);
 
       const { id } = params;
-      const body = (await request.json()) as any;
-
       const recipient = db.recipient.findFirst({
         where: { id: { equals: id as string } },
       });
 
       if (!recipient) {
-        return HttpResponse.json(
-          {
-            httpStatus: 404,
-            title: 'Recipient not found',
-          },
-          { status: 404 }
-        );
+        const error: ApiError = {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        };
+        return HttpResponse.json(error, { status: 404 });
       }
 
-      // Update the recipient in the database
-      const updatedRecipient = db.recipient.update({
-        where: { id: { equals: id as string } },
-        data: {
-          ...body,
-          updatedAt: new Date().toISOString(),
-        },
-      });
+      debugLog('GET /recipients/:id', { id, status: recipient.status });
 
-      return HttpResponse.json(updatedRecipient);
+      return HttpResponse.json(recipient as Recipient);
     }),
 
-    http.post('/recipients', async ({ request }) => {
+    // POST /recipients/:id - Update recipient
+    http.post(
+      '/recipients/:id',
+      async ({ params, request }): Promise<Response> => {
+        await sleep(delay);
+
+        const { id } = params;
+        const body = (await request.json()) as UpdateRecipientRequest;
+
+        const recipient = db.recipient.findFirst({
+          where: { id: { equals: id as string } },
+        });
+
+        if (!recipient) {
+          const error: ApiError = {
+            httpStatus: 404,
+            title: 'Recipient not found',
+          };
+          return HttpResponse.json(error, { status: 404 });
+        }
+
+        const updatedRecipient = db.recipient.update({
+          where: { id: { equals: id as string } },
+          data: {
+            ...body,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+        return HttpResponse.json(updatedRecipient as Recipient);
+      }
+    ),
+
+    // POST /recipients - Create new recipient
+    http.post('/recipients', async ({ request }): Promise<Response> => {
       await sleep(delay);
 
-      const body = (await request.json()) as any;
+      const body = (await request.json()) as RecipientRequest;
 
-      // Create new recipient in the database
-      const created = db.recipient.create({
+      const newRecipient = db.recipient.create({
         id: `recipient-${Date.now()}`,
         type: 'LINKED_ACCOUNT',
         status: 'MICRODEPOSITS_INITIATED',
@@ -323,40 +318,38 @@ export const createRecipientHandlers = (
         verificationAttempts: 0,
       });
 
-      return HttpResponse.json(created, { status: 201 });
+      return HttpResponse.json(newRecipient as Recipient, { status: 201 });
     }),
 
+    // POST /recipients/:id/verify-microdeposit - Verify microdeposits
     http.post(
       '/recipients/:id/verify-microdeposit',
-      async ({ params, request }) => {
+      async ({ params, request }): Promise<Response> => {
         await sleep(delay);
 
         const { id } = params;
-        const body = (await request.json()) as any;
-        const amounts = body.amounts || [];
+        const body = (await request.json()) as MicrodepositAmounts;
+        const amounts = body.amounts ?? [];
 
-        // Use the global db verifyMicrodeposit function
         const result = verifyMicrodeposit(id as string, amounts);
 
-        // Debug logging
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[MSW] Verification result:', {
-            recipientId: id,
-            status: result.status,
-            amounts,
-          });
-        }
+        debugLog('Verification attempt', {
+          recipientId: id,
+          status: result.status,
+          amounts,
+        });
 
         if (result.error) {
-          return HttpResponse.json(result.error, {
-            status: result.error.httpStatus || 400,
+          return HttpResponse.json(result.error as ApiError, {
+            status: result.error.httpStatus ?? 400,
           });
         }
 
-        return HttpResponse.json({
-          status: result.status,
-        });
+        const response: MicrodepositVerificationResponse = {
+          status: result.status as MicrodepositVerificationResponse['status'],
+        };
+
+        return HttpResponse.json(response);
       }
     ),
   ];
@@ -366,14 +359,20 @@ export const createRecipientHandlers = (
 // Common Story Configuration
 // ============================================================================
 
+/**
+ * Default argument values for LinkedAccountWidget stories.
+ * Component-specific defaults (global defaults are in preview.tsx)
+ */
 export const commonArgs = {
-  ...baseStoryDefaults,
   variant: 'default' as const,
   showCreateButton: true,
 };
 
+/**
+ * Storybook controls and documentation for LinkedAccountWidget stories.
+ * Component-specific argTypes (global argTypes are in preview.tsx)
+ */
 export const commonArgTypes = {
-  ...baseStoryArgTypes,
   variant: {
     control: { type: 'select' as const },
     options: ['default', 'singleAccount'],

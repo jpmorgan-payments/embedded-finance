@@ -15,29 +15,30 @@ import {
 } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { LinkedAccountWidget } from '../LinkedAccountWidget';
 import {
   commonArgs,
   commonArgTypes,
   createRecipientHandlers,
-  LinkedAccountWidgetStory,
+  seedRecipientData,
 } from './story-utils';
 
 const meta = {
   title: 'Core/LinkedAccountWidget/Account Statuses',
-  component: LinkedAccountWidgetStory,
+  component: LinkedAccountWidget,
   tags: ['@core', '@linked-accounts'],
   parameters: {
     layout: 'padded',
     msw: {
-      handlers: createRecipientHandlers(linkedAccountListMock),
+      handlers: createRecipientHandlers(),
     },
   },
   args: commonArgs,
   argTypes: commonArgTypes,
-} satisfies Meta<typeof LinkedAccountWidgetStory>;
+} satisfies Meta<typeof LinkedAccountWidget>;
 
 export default meta;
-type Story = StoryObj<typeof LinkedAccountWidgetStory>;
+type Story = StoryObj<typeof meta>;
 
 /**
  * Active account - fully verified and ready for transactions.
@@ -47,6 +48,11 @@ export const Active: Story = {
   args: {
     variant: 'default',
   },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
+    },
+  ],
 };
 
 /**
@@ -57,11 +63,11 @@ export const PendingMicrodeposits: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountMicrodepositListMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountMicrodepositListMock);
     },
-  },
+  ],
 };
 
 /**
@@ -72,11 +78,11 @@ export const ReadyToVerify: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountReadyForValidationMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountReadyForValidationMock);
     },
-  },
+  ],
 };
 
 /**
@@ -87,11 +93,11 @@ export const Rejected: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountRejectedMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountRejectedMock);
     },
-  },
+  ],
 };
 
 /**
@@ -102,11 +108,11 @@ export const Inactive: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountInactiveMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountInactiveMock);
     },
-  },
+  ],
 };
 
 /**
@@ -117,11 +123,11 @@ export const Business: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(linkedAccountBusinessMock),
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountBusinessMock);
     },
-  },
+  ],
 };
 
 /**
@@ -132,9 +138,9 @@ export const MixedStatuses: Story = {
   args: {
     variant: 'default',
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers({
+  loaders: [
+    async () => {
+      const mixedData = {
         ...linkedAccountListMock,
         recipients: [
           ...(linkedAccountListMock.recipients || []),
@@ -143,7 +149,8 @@ export const MixedStatuses: Story = {
           ...(linkedAccountRejectedMock.recipients || []),
           ...(linkedAccountInactiveMock.recipients || []),
         ],
-      }),
+      };
+      await seedRecipientData(mixedData);
     },
-  },
+  ],
 };

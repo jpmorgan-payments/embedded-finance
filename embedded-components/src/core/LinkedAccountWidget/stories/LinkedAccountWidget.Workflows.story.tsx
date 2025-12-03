@@ -10,12 +10,12 @@ import { linkedAccountReadyForValidationMock } from '@/mocks/efLinkedAccounts.mo
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { userEvent, waitFor, within } from '@storybook/testing-library';
 
+import { LinkedAccountWidget } from '../LinkedAccountWidget';
 import {
   commonArgs,
   commonArgTypes,
   createRecipientHandlers,
-  LinkedAccountWidgetStory,
-  resetMSWHandlers,
+  seedRecipientData,
 } from './story-utils';
 
 // Helper to add delays between interactions for better visualization
@@ -26,49 +26,47 @@ const delay = (ms: number): Promise<void> =>
 const INTERACTION_DELAY = 800; // Delay between steps in milliseconds
 
 const meta = {
-  title: 'Core/LinkedAccountWidget/Workflows',
-  component: LinkedAccountWidgetStory,
+  title: 'Core/LinkedAccountWidget/Interactive Workflows',
+  component: LinkedAccountWidget,
   tags: ['@core', '@linked-accounts'],
   parameters: {
     layout: 'padded',
+    msw: {
+      handlers: createRecipientHandlers(),
+    },
     docs: {
       description: {
         component:
-          'Interactive workflows that demonstrate complete user flows. Each story sets up its own test data using MSW handlers.',
+          'Interactive workflows that demonstrate complete user flows. Each story sets up its own test data using loaders.',
       },
     },
   },
   args: commonArgs,
   argTypes: commonArgTypes,
-} satisfies Meta<typeof LinkedAccountWidgetStory>;
+} satisfies Meta<typeof LinkedAccountWidget>;
 
 export default meta;
-type Story = StoryObj<typeof LinkedAccountWidgetStory>;
+type Story = StoryObj<typeof meta>;
 
 /**
  * Complete flow of linking a new bank account via microdeposits.
  * Demonstrates the entire workflow from clicking "Link Account" to successful creation.
  *
- * MSW Handlers: Uses createRecipientHandlers with empty recipient list
+ * Data: Starts with empty recipient list
  * Workflow: Click Link Account → Enter account details → Submit → See new account card
  */
 export const LinkNewAccount: Story = {
   args: {
     ...commonArgs,
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers({
+  loaders: [
+    async () => {
+      await seedRecipientData({
         recipients: [], // Start with empty list
-      }),
+      });
     },
-  },
+  ],
   play: async ({ canvasElement, step }) => {
-    // Reset MSW handlers to ensure clean state and seed with empty recipients
-    await resetMSWHandlers({
-      recipients: [], // Start with empty list
-    });
-
     const canvas = within(canvasElement);
 
     // Step 1: Click "Link Account" button
@@ -116,26 +114,21 @@ export const LinkNewAccount: Story = {
  * Demonstrates successful microdeposit verification on first attempt.
  * Shows a clean flow where the user enters the correct amounts immediately.
  *
- * MSW Handlers: Uses createRecipientHandlers with account pending validation
+ * Data: Account with READY_FOR_VALIDATION status
  * Workflow: Click Verify → Enter correct amounts → Submit → See success message → Account becomes ACTIVE
  */
 export const SuccessfulVerification: Story = {
   args: {
     ...commonArgs,
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers({
+  loaders: [
+    async () => {
+      await seedRecipientData({
         recipients: linkedAccountReadyForValidationMock.recipients,
-      }),
+      });
     },
-  },
+  ],
   play: async ({ canvasElement, step }) => {
-    // Reset MSW handlers to ensure clean state and seed with pending validation account
-    await resetMSWHandlers({
-      recipients: linkedAccountReadyForValidationMock.recipients,
-    });
-
     const canvas = within(canvasElement);
 
     // Step 1: Verify initial state shows "Action Required"
@@ -208,26 +201,21 @@ export const SuccessfulVerification: Story = {
  * Demonstrates a failed microdeposit verification attempt.
  * Shows how the system responds when incorrect amounts are entered.
  *
- * MSW Handlers: Uses createRecipientHandlers with account pending validation
+ * Data: Account with READY_FOR_VALIDATION status
  * Workflow: Click Verify → Enter incorrect amounts → Submit → See error message
  */
 export const FailedVerification: Story = {
   args: {
     ...commonArgs,
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers({
+  loaders: [
+    async () => {
+      await seedRecipientData({
         recipients: linkedAccountReadyForValidationMock.recipients,
-      }),
+      });
     },
-  },
+  ],
   play: async ({ canvasElement, step }) => {
-    // Reset MSW handlers to ensure clean state and seed with pending validation account
-    await resetMSWHandlers({
-      recipients: linkedAccountReadyForValidationMock.recipients,
-    });
-
     const canvas = within(canvasElement);
 
     // Step 1: Click "Verify" button on the account card
@@ -294,16 +282,16 @@ export const FailedVerification: Story = {
  * Demonstrates the max attempts exceeded error scenario.
  * Shows what happens when a user exhausts their microdeposit verification attempts.
  *
- * MSW Handlers: Uses createRecipientHandlers with initial verification attempts
+ * Data: Account with 2 previous failed attempts
  * Workflow: Click Verify → Enter incorrect amounts (3rd attempt) → See max attempts dialog
  */
 export const MaxAttemptsExceeded: Story = {
   args: {
     ...commonArgs,
   },
-  parameters: {
-    msw: {
-      handlers: createRecipientHandlers(
+  loaders: [
+    async () => {
+      await seedRecipientData(
         {
           recipients: linkedAccountReadyForValidationMock.recipients,
         },
@@ -313,22 +301,10 @@ export const MaxAttemptsExceeded: Story = {
             'c0712fc9-b7d5-4ee2-81bb-21ba80d56b4b': 2,
           },
         }
-      ),
+      );
     },
-  },
+  ],
   play: async ({ canvasElement, step }) => {
-    // Reset MSW handlers and seed with 2 previous failed attempts
-    await resetMSWHandlers(
-      {
-        recipients: linkedAccountReadyForValidationMock.recipients,
-      },
-      {
-        initialVerificationAttempts: {
-          'c0712fc9-b7d5-4ee2-81bb-21ba80d56b4b': 2,
-        },
-      }
-    );
-
     const canvas = within(canvasElement);
 
     // Step 1: Click "Verify" button
