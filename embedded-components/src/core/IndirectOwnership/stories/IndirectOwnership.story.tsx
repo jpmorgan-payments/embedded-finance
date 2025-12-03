@@ -1,9 +1,9 @@
 import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SELLSENSE_THEME } from '@storybook/themes';
-import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 import { IndirectOwnership } from '../IndirectOwnership';
 import {
