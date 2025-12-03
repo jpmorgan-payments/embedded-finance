@@ -1,6 +1,8 @@
 import { Meta } from '@storybook/blocks';
 
-<Meta title="Core/LinkedAccountWidget/State Machine" />
+import { Mermaid } from '../../../../.storybook/Mermaid';
+
+<Meta title="Core/LinkedAccountWidget/Interactive Workflows/State Machine" />
 
 # Linked Account State Machine
 
@@ -19,47 +21,44 @@ The following statuses are defined for linked accounts:
 
 ## State Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                  LINKED ACCOUNT STATE MACHINE                    │
-└─────────────────────────────────────────────────────────────────┘
-
-                           START (Creation)
-                                  │
-                                  ▼
-                        [Automated Verification]
-                                  │
-                ┌─────────────────┼─────────────────┐
-                │                 │                 │
-          [Instant          [Microdeposit       [Failed]
-           Success]           Required]             │
-                │                 │                 ▼
-                ▼                 ▼             REJECTED
-             ACTIVE         MICRODEPOSITS
-                              _INITIATED
-                                  │
-                ┌─────────────────┼─────────────────┐
-                │                 │                 │
-           [MD Sent]         [MD Failed]       [Expired]
-                │                 │                 │
-                ▼                 ▼                 ▼
-       READY_FOR_VALIDATION   REJECTED          INACTIVE
-                │
-    ┌───────────┼───────────┐
-    │           │           │
-[Verified] [Max Attempts] [Expired]
-    │           │           │
-    ▼           ▼           ▼
- ACTIVE     REJECTED    INACTIVE
-
-
-Note: PENDING status exists for split profile scenarios where initial
-automated verification requires a second attempt.
-```
+<Mermaid>
+  {`
+stateDiagram-v2
+    [*] --> AutomatedVerification: Account Creation
+    
+    AutomatedVerification --> ACTIVE: Instant Success
+    AutomatedVerification --> MICRODEPOSITS_INITIATED: Microdeposit Required
+    AutomatedVerification --> REJECTED: Failed
+    AutomatedVerification --> PENDING: Split Profile
+    
+    PENDING --> ACTIVE: Second Attempt Success
+    PENDING --> MICRODEPOSITS_INITIATED: Second Attempt Requires MD
+    PENDING --> REJECTED: Second Attempt Failed
+    
+    MICRODEPOSITS_INITIATED --> READY_FOR_VALIDATION: MD Sent
+    MICRODEPOSITS_INITIATED --> REJECTED: MD Send Failed
+    MICRODEPOSITS_INITIATED --> INACTIVE: Expired (21 days)
+    
+    READY_FOR_VALIDATION --> ACTIVE: Verified
+    READY_FOR_VALIDATION --> REJECTED: Max Attempts (3)
+    READY_FOR_VALIDATION --> INACTIVE: Expired (20 business days)
+    
+    ACTIVE --> [*]
+    REJECTED --> [*]
+    INACTIVE --> [*]
+    
+    note right of PENDING
+        Used in split profile scenarios where
+        initial automated verification requires
+        a second attempt
+    end note
+`}
+</Mermaid>
 
 ## Status Transition Chains
 
 ### 1. Instant Verification (Happy Path)
+
 **Chain:** `START → ACTIVE`
 
 **Description:** Account verification succeeds immediately through automated verification. Both account verification and authentication pass on first attempt.
@@ -69,11 +68,13 @@ automated verification requires a second attempt.
 ---
 
 ### 2. Microdeposit Verification Success
+
 **Chain:** `START → MICRODEPOSITS_INITIATED → READY_FOR_VALIDATION → ACTIVE`
 
 **Description:** Standard microdeposit verification flow. Two small deposits are sent to the user's bank account. User verifies ownership by entering the exact amounts.
 
-**User Experience:** 
+**User Experience:**
+
 1. Account link initiated
 2. User waits 3-5 business days for deposits to arrive
 3. User enters the two deposit amounts
@@ -82,6 +83,7 @@ automated verification requires a second attempt.
 ---
 
 ### 3. Microdeposit Verification Failed
+
 **Chain:** `START → MICRODEPOSITS_INITIATED → READY_FOR_VALIDATION → REJECTED`
 
 **Description:** User exhausts all verification attempts (typically 3) by entering incorrect microdeposit amounts.
@@ -91,6 +93,7 @@ automated verification requires a second attempt.
 ---
 
 ### 4. Microdeposit Send Failure
+
 **Chain:** `START → MICRODEPOSITS_INITIATED → REJECTED`
 
 **Description:** System unable to send microdeposits to the bank account (e.g., invalid account, bank rejection).
@@ -100,6 +103,7 @@ automated verification requires a second attempt.
 ---
 
 ### 5. Microdeposit Expiration (Initiated Phase)
+
 **Chain:** `START → MICRODEPOSITS_INITIATED → INACTIVE`
 
 **Description:** Microdeposit process expires before deposits are successfully sent (21-day timeout).
@@ -109,6 +113,7 @@ automated verification requires a second attempt.
 ---
 
 ### 6. Microdeposit Expiration (Validation Phase)
+
 **Chain:** `START → MICRODEPOSITS_INITIATED → READY_FOR_VALIDATION → INACTIVE`
 
 **Description:** User doesn't verify microdeposits within 20 business days of deposits being sent.
@@ -118,6 +123,7 @@ automated verification requires a second attempt.
 ---
 
 ### 7. Split Profile Pending Flow (Success)
+
 **Chain:** `START → PENDING → ACTIVE`
 
 **Description:** Special case where automated verification returns pending status codes. A second verification attempt resolves to active status.
@@ -127,6 +133,7 @@ automated verification requires a second attempt.
 ---
 
 ### 8. Split Profile Pending to Microdeposits
+
 **Chain:** `START → PENDING → MICRODEPOSITS_INITIATED → READY_FOR_VALIDATION → ACTIVE`
 
 **Description:** Initial automated verification returns pending, second attempt requires microdeposit verification.
@@ -136,6 +143,7 @@ automated verification requires a second attempt.
 ---
 
 ### 9. Split Profile Pending to Rejection
+
 **Chain:** `START → PENDING → REJECTED`
 
 **Description:** Initial automated verification returns pending, second attempt fails verification.
@@ -145,6 +153,7 @@ automated verification requires a second attempt.
 ---
 
 ### 10. Immediate Verification Rejection
+
 **Chain:** `START → REJECTED`
 
 **Description:** Automated verification immediately rejects account due to validation failures (invalid account number, routing number, etc.).
@@ -154,18 +163,20 @@ automated verification requires a second attempt.
 ---
 
 ### 11. Verification Retry Flow (Success)
+
 **Chain:** `START → REJECTED → ACTIVE`
 
-**Description:** Specific error code (9003) allows retry of automated verification, which succeeds on second attempt.
+**Description:** Automated verification retry allows retry of verification, which succeeds on second attempt.
 
 **User Experience:** Initial failure, automatic retry succeeds.
 
 ---
 
 ### 12. Verification Retry to Microdeposits
+
 **Chain:** `START → REJECTED → MICRODEPOSITS_INITIATED → READY_FOR_VALIDATION → ACTIVE`
 
-**Description:** Automated verification retry (error 9003) falls back to microdeposit verification.
+**Description:** Automated verification retry falls back to microdeposit verification.
 
 **User Experience:** Initial failure, then automatic fallback to microdeposit flow.
 
@@ -174,9 +185,11 @@ automated verification requires a second attempt.
 ## Terminal States
 
 **Final Success States:**
+
 - **ACTIVE** - Account fully verified and operational
 
 **Final Failure States:**
+
 - **REJECTED** - Verification failed, cannot be recovered
 - **INACTIVE** - Expired or deactivated, requires re-linking
 
@@ -184,7 +197,7 @@ automated verification requires a second attempt.
 
 - **Expiration Window:** Microdeposit verification must be completed within 20 business days from when deposits are sent
 - **Max Attempts:** Users have 3 total attempts to verify microdeposit amounts
-- **Retry Logic:** Only error code 9003 allows automatic verification retry
+- **Retry Logic:** Some error conditions allow automatic verification retry
 - **PENDING Status:** Used in split profile scenarios where automated verification returns pending codes, requiring a second verification attempt
 
 ## Testing These Flows
