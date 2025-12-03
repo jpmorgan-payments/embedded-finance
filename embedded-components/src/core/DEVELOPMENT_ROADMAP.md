@@ -2,6 +2,12 @@
 
 Target: Align all core components with API docs, i18n, private labeling (design/content tokens), security (OWASP), performance (Core Web Vitals), a11y (WCAG 2.1 AA), UX-tested flows, and OAS-superset client validation.
 
+**Last Updated:** December 3, 2025  
+**Related Documents:**
+
+- `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings
+- `docs/ux-testing/2025-12-02/UX_TESTING_REPORT.md` - Comprehensive UX testing results
+
 ## Components (scope)
 
 - OnboardingFlow
@@ -17,28 +23,31 @@ Each theme applies to all components. Within every theme, we will review and enh
 
 Baseline readiness: Basic functionality across all themes for all components is ready and verified. This roadmap captures the next iteration of enhancements and evolution.
 
+**Last Updated:** December 3, 2025  
+**Related Documents:** See `BACKLOG.md` for detailed task breakdown and UX testing findings.
+
 ```mermaid
 gantt
     title Core Components Roadmap (Themes)
     dateFormat  YYYY-MM-DD
 
     section Foundation
-    Theme 0 - Functional Enhancements    :active, t0, 2025-10-15, 2025-11-14
-    Theme 1 - Security & Validation      :active, t1, 2025-10-20, 2025-11-07
-    Theme 2 - i18n & Design Tokens       :active, t2, 2025-11-03, 2025-11-21
+    Theme 0 - Functional Enhancements    :active, t0, 2025-10-15, 2025-12-15
+    Theme 1 - Security & Validation      :active, t1, 2025-10-20, 2025-12-20
+    Theme 2 - i18n & Design Tokens       :active, t2, 2025-11-03, 2025-12-20
 
     section Early Quality Gates
-    Theme 3 - Functional Testing (CAT)   :active, t3, 2025-10-10, 2025-12-01
-    Theme 4 - React 19 Readiness         :t4, 2025-11-17, 2025-12-05
+    Theme 3 - Functional Testing (CAT)   :active, t3, 2025-10-10, 2025-12-15
+    Theme 4 - React 19 Readiness         :t4, 2025-12-15, 2026-01-15
 
     section Experience & Perf
-    Theme 5 - RUM & Analytics            :t5, 2025-12-01, 2025-12-10
-    Theme 6 - Atomic Design & Perf       :t6, 2025-12-08, 2025-12-24
+    Theme 5 - RUM & Analytics            :t5, 2025-12-15, 2026-01-15
+    Theme 6 - Atomic Design & Perf       :t6, 2025-12-15, 2026-01-31
 
     section Compliance & Wrap-up
-    Theme 7 - A11y & UX Testing          :t7, 2025-12-22, 2026-01-07
-    Theme 8 - Comprehensive Testing      :t8, 2026-01-05, 2026-01-16
-    Theme 9 - Docs & AI Guides           :t9, 2026-01-12, 2026-01-23
+    Theme 7 - A11y & UX Testing          :active, t7, 2025-12-02, 2026-01-15
+    Theme 8 - Comprehensive Testing      :t8, 2026-01-05, 2026-01-31
+    Theme 9 - Docs & AI Guides           :t9, 2026-01-15, 2026-02-15
 ```
 
 ## Theme 0: Functional Enhancements (In Progress)
@@ -47,6 +56,8 @@ gantt
   - Add support for new entity types (with focus on publicly traded companies, government entities, and other non-profit entities)
   - Refine owner/controller flows
 - LinkedAccountWidget
+  - ✅ Handle verification responses (PR #583 - Dec 2, 2025)
+  - ✅ Add interaction stories (PR #583 - Dec 2, 2025)
   - Parity with Recipients payment methods; better status messaging
   - Robust microdeposit flows (retry/lockout messaging)
 - Recipients
@@ -97,15 +108,24 @@ gantt
 - Extract shared atoms/molecules/organisms and utilities.
 - Core Web Vitals targets TBD; apply memoization, virtualization, code-splitting.
 
-## Theme 7: A11y & UX Testing
+## Theme 7: A11y & UX Testing (In Progress)
 
+- ✅ UX scenarios per component (completed Dec 2, 2025 - see UX_TESTING_REPORT.md)
+- 🚧 Mitigate found issues (see BACKLOG.md Priority 1-3 for detailed items)
 - WCAG 2.1 AA; axe automated tests; keyboard/focus management, ARIA correctness.
-- UX scenarios per component; mitigate found issues.
+- **Key Findings from UX Testing:**
+  - Design system inconsistencies (button styles, colors, labels)
+  - Make Payment form discoverability issues
+  - Missing tooltips and accessibility features
+  - Responsive design issues
+  - Data quality and display issues
 
 ## Theme 8: Comprehensive Testing
 
 - 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths.
 - Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y.
+- ✅ Enhanced test setup with ResizeObserver mock (PR #582 - Dec 3, 2025)
+- ✅ Improved test reliability and structure (PR #582 - Dec 3, 2025)
 
 ## Theme 9: Documentation & AI Guides
 
