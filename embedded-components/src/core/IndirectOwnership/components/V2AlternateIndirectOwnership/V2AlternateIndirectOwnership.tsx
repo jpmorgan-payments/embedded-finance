@@ -40,7 +40,7 @@ export const V2AlternateIndirectOwnership: React.FC<V2AlternateIndirectOwnership
 }) => {
   // State management
   const [beneficialOwners, setBeneficialOwners] = useState<V2BeneficialOwner[]>(initialOwners);
-  const [currentDialog, setCurrentDialog] = useState<'NONE' | 'ADD_OWNER' | 'BUILD_CHAIN' | 'CONFIRM_CHAIN'>('NONE');
+  const [currentDialog, setCurrentDialog] = useState<'NONE' | 'ADD_OWNER' | 'BUILD_CHAIN' | 'EDIT_CHAIN' | 'CONFIRM_CHAIN'>('NONE');
   const [currentOwnerBeingEdited, setCurrentOwnerBeingEdited] = useState<string | undefined>();
 
   // Calculate validation summary
@@ -93,7 +93,7 @@ export const V2AlternateIndirectOwnership: React.FC<V2AlternateIndirectOwnership
 
   const handleEditHierarchy = useCallback((ownerId: string) => {
     setCurrentOwnerBeingEdited(ownerId);
-    setCurrentDialog('BUILD_CHAIN');
+    setCurrentDialog('EDIT_CHAIN');
   }, []);
 
   const handleComplete = useCallback(() => {
@@ -338,6 +338,23 @@ export const V2AlternateIndirectOwnership: React.FC<V2AlternateIndirectOwnership
         rootCompanyName={rootCompanyName}
         onSave={handleHierarchySaved}
       />
+
+      {/* Edit Hierarchy Dialog */}
+      <HierarchyBuildingDialog
+        isOpen={currentDialog === 'EDIT_CHAIN'}
+        onClose={handleCloseDialog}
+        ownerId={currentOwnerBeingEdited || ''}
+        ownerName={currentOwnerBeingEdited ? 
+          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.firstName + ' ' +
+          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.lastName : ''
+        }
+        rootCompanyName={rootCompanyName}
+        onSave={handleHierarchySaved}
+        existingHierarchy={currentOwnerBeingEdited ? 
+          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.ownershipHierarchy : undefined
+        }
+        isEditMode={true}
+      />
     </div>
   );
 };
@@ -506,6 +523,8 @@ interface HierarchyBuildingDialogProps {
   ownerName: string;
   rootCompanyName: string;
   onSave: (ownerId: string, hierarchy: any) => void;
+  existingHierarchy?: any;
+  isEditMode?: boolean;
 }
 
 const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({ 
@@ -514,7 +533,9 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   ownerId, 
   ownerName, 
   rootCompanyName, 
-  onSave 
+  onSave,
+  existingHierarchy,
+  isEditMode = false 
 }) => {
   const [hierarchySteps, setHierarchySteps] = useState<Array<{
     id: string;
@@ -526,7 +547,16 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   const [currentCompanyName, setCurrentCompanyName] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
 
-  const handleAddCompany = (ownsBusinessDirectly: boolean) => {
+  // Pre-populate existing hierarchy data in edit mode
+  React.useEffect(() => {
+    if (isOpen && isEditMode && existingHierarchy) {
+      setHierarchySteps(existingHierarchy.steps || []);
+    } else if (isOpen && !isEditMode) {
+      setHierarchySteps([]);
+    }
+  }, [isOpen, isEditMode, existingHierarchy]);
+
+  const handleAddCompany = (ownsBusinessBeingOnboarded: boolean) => {
     if (!currentCompanyName.trim()) {
       setErrors(['Company name is required']);
       return;
@@ -536,13 +566,13 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       id: `step-${Date.now()}`,
       entityName: currentCompanyName.trim(),
       hasOwnership: true,
-      isBusinessBeingOnboarded: ownsBusinessDirectly,
+      isBusinessBeingOnboarded: ownsBusinessBeingOnboarded,
       level: hierarchySteps.length + 1
     };
 
     const updatedSteps = [...hierarchySteps, newStep];
 
-    if (ownsBusinessDirectly) {
+    if (ownsBusinessBeingOnboarded) {
       // Complete the hierarchy
       const hierarchy = {
         id: `hierarchy-${ownerId}`,
@@ -615,17 +645,68 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="eb-max-w-2xl eb-p-6">
         <DialogHeader className="eb-pb-4">
-          <DialogTitle className="eb-text-lg eb-font-semibold">Build Ownership Chain for {ownerName}</DialogTitle>
+          <DialogTitle className="eb-text-lg eb-font-semibold">
+            {isEditMode ? 'Edit' : 'Build'} Ownership Chain for {ownerName}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="eb-space-y-6">
           <div className="eb-text-sm eb-text-gray-600 eb-leading-relaxed">
-            We'll build the chain step by step from <span className="eb-font-medium eb-text-gray-900">{ownerName}</span> to{' '}
-            <span className="eb-font-medium eb-text-gray-900">{rootCompanyName}</span>.
+            {isEditMode ? (
+              <>
+                Edit the ownership chain from <span className="eb-font-medium eb-text-gray-900">{ownerName}</span> to{' '}
+                <span className="eb-font-medium eb-text-gray-900">{rootCompanyName}</span>.
+              </>
+            ) : (
+              <>
+                We'll build the chain step by step from <span className="eb-font-medium eb-text-gray-900">{ownerName}</span> to{' '}
+                <span className="eb-font-medium eb-text-gray-900">{rootCompanyName}</span>.
+              </>
+            )}
           </div>
 
           {/* Chain Preview */}
           {renderChainPreview()}
+
+          {/* Edit Mode: Existing Steps Management */}
+          {isEditMode && hierarchySteps.length > 0 && (
+            <div className="eb-space-y-4">
+              <div className="eb-text-sm eb-font-medium eb-text-gray-800">
+                Current Steps (click to remove):
+              </div>
+              <div className="eb-space-y-2">
+                {hierarchySteps.map((step, index) => (
+                  <div key={step.id} className="eb-flex eb-items-center eb-justify-between eb-p-3 eb-bg-white eb-border eb-rounded-lg eb-shadow-sm">
+                    <div className="eb-flex eb-items-center eb-gap-3">
+                      <span className="eb-text-sm eb-font-medium eb-text-gray-600">
+                        Step {index + 1}:
+                      </span>
+                      <div className="eb-flex eb-items-center eb-gap-2">
+                        <Building className="eb-h-4 eb-w-4 eb-text-gray-600" />
+                        <span className="eb-font-medium">{step.entityName}</span>
+                        {index === hierarchySteps.length - 1 && step.isBusinessBeingOnboarded && (
+                          <Badge className="eb-bg-green-100 eb-text-green-800 eb-text-xs">
+                            Final Step
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const newSteps = hierarchySteps.filter((_, i) => i !== index);
+                        setHierarchySteps(newSteps);
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="eb-text-red-600 eb-hover:bg-red-50"
+                    >
+                      <Trash2 className="eb-h-3 eb-w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Company Input Form */}
           <div className="eb-space-y-5 eb-p-5 eb-border eb-rounded-lg eb-bg-blue-50 eb-border-blue-200">
@@ -693,10 +774,28 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
           )}
         </div>
 
-        <DialogFooter className="eb-pt-6">
+        <DialogFooter className="eb-pt-6 eb-space-x-2">
           <Button variant="outline" onClick={handleClose} className="eb-font-medium">
             Cancel
           </Button>
+          {isEditMode && hierarchySteps.length > 0 && (
+            <Button 
+              onClick={() => {
+                const hierarchy = {
+                  id: `hierarchy-${ownerId}`,
+                  steps: hierarchySteps,
+                  isValid: true,
+                  meets25PercentThreshold: true,
+                  validationErrors: []
+                };
+                onSave(ownerId, hierarchy);
+                handleClose();
+              }}
+              className="eb-font-medium"
+            >
+              Save Changes
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
