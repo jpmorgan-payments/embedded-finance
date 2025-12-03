@@ -233,32 +233,36 @@ export const V2AlternateIndirectOwnership: React.FC<V2AlternateIndirectOwnership
                           </div>
                           
                           {/* Company chain */}
-                          {owner.ownershipHierarchy.steps.map((step) => (
-                            <React.Fragment key={step.id}>
-                              <span className="eb-text-gray-400 eb-shrink-0">→</span>
-                              <div className={`eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-border eb-rounded eb-shrink-0 ${
-                                step.isBusinessBeingOnboarded 
-                                  ? 'eb-bg-green-50 eb-border-green-200' 
-                                  : 'eb-bg-white eb-border-gray-200'
-                              }`}>
-                                <Building className={`eb-h-3 eb-w-3 ${
-                                  step.isBusinessBeingOnboarded ? 'eb-text-green-600' : 'eb-text-gray-600'
-                                }`} />
-                                <span className={`eb-font-medium ${
-                                  step.isBusinessBeingOnboarded ? 'eb-text-green-900' : 'eb-text-gray-700'
+                          {owner.ownershipHierarchy.steps.map((step, stepIndex) => {
+                            const isDirectOwner = step.ownsRootBusinessDirectly;
+                            
+                            return (
+                              <React.Fragment key={step.id}>
+                                <span className="eb-text-gray-400 eb-shrink-0">→</span>
+                                <div className={`eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-border eb-rounded eb-shrink-0 ${
+                                  isDirectOwner 
+                                    ? 'eb-bg-green-50 eb-border-green-200' 
+                                    : 'eb-bg-white eb-border-gray-200'
                                 }`}>
-                                  {step.entityName}
-                                </span>
-                                <span className={`eb-text-xs eb-px-1 eb-py-0.5 eb-rounded ${
-                                  step.isBusinessBeingOnboarded 
-                                    ? 'eb-bg-green-200 eb-text-green-800' 
-                                    : 'eb-bg-gray-100 eb-text-gray-700'
-                                }`}>
-                                  {step.isBusinessBeingOnboarded ? 'Business' : 'Intermediary'}
-                                </span>
-                              </div>
-                            </React.Fragment>
-                          ))}
+                                  <Building className={`eb-h-3 eb-w-3 ${
+                                    isDirectOwner ? 'eb-text-green-600' : 'eb-text-gray-600'
+                                  }`} />
+                                  <span className={`eb-font-medium ${
+                                    isDirectOwner ? 'eb-text-green-900' : 'eb-text-gray-700'
+                                  }`}>
+                                    {step.entityName}
+                                  </span>
+                                  <span className={`eb-text-xs eb-px-1 eb-py-0.5 eb-rounded ${
+                                    isDirectOwner 
+                                      ? 'eb-bg-primary eb-text-primary-foreground' 
+                                      : 'eb-bg-gray-100 eb-text-gray-700'
+                                  }`}>
+                                    {isDirectOwner ? 'Direct' : 'Intermediary'}
+                                  </span>
+                                </div>
+                              </React.Fragment>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -541,7 +545,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     id: string;
     entityName: string;
     hasOwnership: boolean;
-    isBusinessBeingOnboarded: boolean;
+    ownsRootBusinessDirectly: boolean;
     level: number;
   }>>([]);
   const [currentCompanyName, setCurrentCompanyName] = useState('');
@@ -556,7 +560,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     }
   }, [isOpen, isEditMode, existingHierarchy]);
 
-  const handleAddCompany = (ownsBusinessBeingOnboarded: boolean) => {
+  const handleAddCompany = (ownsRootBusinessDirectly: boolean) => {
     if (!currentCompanyName.trim()) {
       setErrors(['Company name is required']);
       return;
@@ -566,13 +570,13 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       id: `step-${Date.now()}`,
       entityName: currentCompanyName.trim(),
       hasOwnership: true,
-      isBusinessBeingOnboarded: ownsBusinessBeingOnboarded,
+      ownsRootBusinessDirectly: ownsRootBusinessDirectly,
       level: hierarchySteps.length + 1
     };
 
     const updatedSteps = [...hierarchySteps, newStep];
 
-    if (ownsBusinessBeingOnboarded) {
+    if (ownsRootBusinessDirectly) {
       // Complete the hierarchy
       const hierarchy = {
         id: `hierarchy-${ownerId}`,
@@ -684,7 +688,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                       <div className="eb-flex eb-items-center eb-gap-2">
                         <Building className="eb-h-4 eb-w-4 eb-text-gray-600" />
                         <span className="eb-font-medium">{step.entityName}</span>
-                        {index === hierarchySteps.length - 1 && step.isBusinessBeingOnboarded && (
+                        {index === hierarchySteps.length - 1 && step.ownsRootBusinessDirectly && (
                           <Badge className="eb-bg-green-100 eb-text-green-800 eb-text-xs">
                             Final Step
                           </Badge>
@@ -735,8 +739,8 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
             <div className="eb-space-y-3">
               <div className="eb-text-sm eb-font-medium eb-text-gray-800">
-                Does <span className="eb-font-bold eb-text-blue-900">{currentCompanyName || '[Company Name]'}</span> own{' '}
-                <span className="eb-font-bold eb-text-blue-900">{rootCompanyName}</span> directly?
+                Does <span className="eb-font-bold eb-text-blue-900">{currentCompanyName || '[Company Name]'}</span> directly own{' '}
+                <span className="eb-font-bold eb-text-blue-900">{rootCompanyName}</span>?
               </div>
 
               <div className="eb-flex eb-gap-3">
@@ -753,7 +757,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                   variant="outline"
                   className="eb-flex-1 eb-border-blue-300 eb-text-blue-700 hover:eb-bg-blue-50 eb-font-medium eb-h-10"
                 >
-                  No - Add to Chain
+                  No - Continue Chain
                 </Button>
               </div>
             </div>

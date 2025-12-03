@@ -80,8 +80,8 @@ export interface HierarchyStep {
   /** Whether this entity has ownership in the next level */
   hasOwnership: boolean;
   
-  /** Whether this is the business being onboarded */
-  isBusinessBeingOnboarded: boolean;
+  /** Whether this entity directly owns the root business */
+  ownsRootBusinessDirectly: boolean;
   
   /** Level in the hierarchy (0 = beneficial owner, 1+ = intermediate entities) */
   level: number;
