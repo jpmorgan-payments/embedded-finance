@@ -6,6 +6,7 @@ import {
   mockRecipientsResponse,
 } from '@/mocks/recipients.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { userEvent, within } from '@storybook/testing-library';
 import { http, HttpResponse } from 'msw';
 import { SELLSENSE_THEME } from '@storybook-themes';
 
@@ -13,7 +14,6 @@ import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
 import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
-import { userEvent, within } from '@storybook/testing-library';
 
 // Wrapper component that follows the same pattern as TransactionsDisplay
 const RecipientsWithProvider = ({
