@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 import type { AlternateBeneficialOwnerFormProps } from './types';
 
@@ -23,6 +24,9 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
   kycCompanyName = 'your company',
 }) => {
   const { t } = useTranslation();
+  
+  // Dialog state
+  const [isAddOwnerDialogOpen, setIsAddOwnerDialogOpen] = React.useState(false);
   
   // Form state for new owner
   const [newOwner, setNewOwner] = React.useState({
@@ -67,6 +71,13 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
     onOwnersChange([...owners, owner]);
     setNewOwner({ firstName: '', lastName: '' });
     setErrors([]);
+    setIsAddOwnerDialogOpen(false);
+  };
+
+  const handleCloseDialog = () => {
+    setNewOwner({ firstName: '', lastName: '' });
+    setErrors([]);
+    setIsAddOwnerDialogOpen(false);
   };
 
   const handleRemoveOwner = (ownerId: string) => {
@@ -89,52 +100,21 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
             <User className="eb-h-5 eb-w-5" />
             Who are the beneficial owners?
           </CardTitle>
+          <p className="eb-text-sm eb-text-gray-600 eb-mt-2">
+            A beneficial owner is an individual who owns 25% or more of your business, either directly or through other companies.
+          </p>
         </CardHeader>
         <CardContent className="eb-space-y-6">
-          <Alert>
-            <AlertDescription>
-              A beneficial owner is any individual who owns 25% or more of {kycCompanyName}, 
-              either directly or through other companies.
-            </AlertDescription>
-          </Alert>
 
-          {/* Add new owner form */}
+          {/* Add owner button */}
           {!readOnly && (
-            <div className="eb-space-y-4 eb-p-4 eb-border eb-rounded-lg eb-bg-gray-50">
-              <h3 className="eb-text-sm eb-font-medium eb-text-foreground">Add Individual Owner</h3>
-              
-              {/* First Name and Last Name on same line - following MakePayment pattern */}
-              <div className="eb-flex eb-gap-4">
-                <div className="">
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    value={newOwner.firstName}
-                    onChange={(e) => setNewOwner(prev => ({ ...prev, firstName: e.target.value }))}
-                    placeholder="John"
-                    className="eb-h-10"
-                  />
-                </div>
-                
-                <div className="">
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    value={newOwner.lastName}
-                    onChange={(e) => setNewOwner(prev => ({ ...prev, lastName: e.target.value }))}
-                    placeholder="Smith"
-                    className="eb-h-10"
-                  />
-                </div>
-              </div>
-
+            <div className="eb-flex eb-justify-between eb-items-center">
               <Button 
-                onClick={handleAddOwner}
-                className="eb-w-full"
-                variant="outline"
+                onClick={() => setIsAddOwnerDialogOpen(true)}
+                className="eb-flex eb-items-center eb-gap-2"
               >
-                <Plus className="eb-h-4 eb-w-4 eb-mr-2" />
-                Add Owner
+                <Plus className="eb-h-4 eb-w-4" />
+                Add Beneficial Owner
               </Button>
             </div>
           )}
@@ -157,8 +137,12 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
             <h3 className="eb-text-lg eb-font-medium">Current Owners ({owners.length})</h3>
             
             {owners.length === 0 ? (
-              <div className="eb-text-center eb-text-gray-500 eb-py-8">
-                No beneficial owners added yet
+              <div className="eb-p-6 eb-border eb-rounded eb-bg-gray-50 eb-text-center">
+                <User className="eb-h-12 eb-w-12 eb-mx-auto eb-text-gray-400 eb-mb-3" />
+                <p className="eb-text-gray-600 eb-mb-2">No beneficial owners added yet</p>
+                <p className="eb-text-sm eb-text-gray-500">
+                  Click "Add Beneficial Owner" to get started
+                </p>
               </div>
             ) : (
               <div className="eb-space-y-2">
@@ -204,6 +188,58 @@ export const AlternateBeneficialOwnerForm: React.FC<AlternateBeneficialOwnerForm
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Owner Dialog */}
+      <Dialog open={isAddOwnerDialogOpen} onOpenChange={handleCloseDialog}>
+        <DialogContent className="eb-max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Beneficial Owner</DialogTitle>
+          </DialogHeader>
+          
+          <div className="eb-space-y-4">
+            {errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  <ul className="eb-list-disc eb-list-inside">
+                    {errors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <div>
+              <Label htmlFor="dialogFirstName">First Name</Label>
+              <Input
+                id="dialogFirstName"
+                value={newOwner.firstName}
+                onChange={(e) => setNewOwner(prev => ({ ...prev, firstName: e.target.value }))}
+                placeholder="John"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="dialogLastName">Last Name</Label>
+              <Input
+                id="dialogLastName"
+                value={newOwner.lastName}
+                onChange={(e) => setNewOwner(prev => ({ ...prev, lastName: e.target.value }))}
+                placeholder="Smith"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleAddOwner}>
+              Add Owner
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
