@@ -5,6 +5,7 @@ import { SELLSENSE_THEME } from '@storybook/themes';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { IndirectOwnership } from '../IndirectOwnership';
+import { V2AlternateIndirectOwnership } from '../components/V2AlternateIndirectOwnership';
 import {
   efClientComplexOwnership,
   efClientEmptyOwnership,
@@ -24,6 +25,14 @@ interface IndirectOwnershipWithProviderProps {
   maxDepth?: number;
   readOnly?: boolean;
   mode?: 'DEFAULT' | 'ALTERNATE';
+}
+
+interface V2AlternateIndirectOwnershipWithProviderProps {
+  apiBaseUrl: string;
+  headers?: Record<string, string>;
+  theme?: any;
+  rootCompanyName: string;
+  readOnly?: boolean;
 }
 
 const IndirectOwnershipWithProvider = ({
@@ -48,6 +57,33 @@ const IndirectOwnershipWithProvider = ({
         maxDepth={maxDepth}
         readOnly={readOnly}
         mode={mode}
+      />
+    </EBComponentsProvider>
+  );
+};
+
+const V2AlternateIndirectOwnershipWithProvider = ({
+  apiBaseUrl,
+  headers,
+  theme,
+  rootCompanyName,
+  readOnly,
+}: V2AlternateIndirectOwnershipWithProviderProps) => {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl={apiBaseUrl}
+      headers={headers || {}}
+      theme={theme || SELLSENSE_THEME}
+    >
+      <V2AlternateIndirectOwnership
+        rootCompanyName={rootCompanyName}
+        readOnly={readOnly}
+        onOwnershipComplete={(owners) => {
+          console.log('Ownership completed with owners:', owners);
+        }}
+        onValidationChange={(summary) => {
+          console.log('Validation summary updated:', summary);
+        }}
       />
     </EBComponentsProvider>
   );
@@ -88,6 +124,7 @@ const meta: Meta<typeof IndirectOwnershipWithProvider> = {
 export default meta;
 
 type Story = StoryObj<typeof IndirectOwnershipWithProvider>;
+type V2Story = StoryObj<typeof V2AlternateIndirectOwnershipWithProvider>;
 
 export const Default: Story = {
   args: {
@@ -544,5 +581,91 @@ export const Alternate: Story = {
         }),
       ],
     },
+  },
+};
+
+/**
+ * Alternate V2 - Streamlined Flow
+ *
+ * Version 2 of the alternate indirect ownership flow featuring:
+ * - Single interface with real-time updates
+ * - Dialog-based owner addition with immediate feedback  
+ * - On-demand hierarchy building for indirect owners
+ * - Live validation and progress tracking
+ * - Reuses existing AlternateOwnershipReview.renderOwnershipChain() for visualization
+ *
+ * This streamlined approach consolidates the ownership chain building
+ * and preview into a single interface with real-time validation.
+ *
+ * **Key improvements from V1:**
+ * - Add owners one-by-one with immediate status updates
+ * - Build ownership hierarchies on-demand with "Build Ownership Hierarchy" button
+ * - Real-time ownership structure preview using existing visualization components
+ * - Validate each hierarchy as it's completed
+ * - Complete button with comprehensive validation
+ */
+export const AlternateV2 = {
+  name: 'Alternate V2 - Streamlined Flow',
+  render: (args: V2AlternateIndirectOwnershipWithProviderProps) => {
+    return (
+      <EBComponentsProvider
+        apiBaseUrl={args.apiBaseUrl}
+        headers={args.headers || {}}
+        theme={args.theme || SELLSENSE_THEME}
+      >
+        <V2AlternateIndirectOwnership
+          rootCompanyName={args.rootCompanyName}
+          readOnly={args.readOnly}
+          onOwnershipComplete={(owners) => {
+            console.log('V2 Ownership completed with owners:', owners);
+          }}
+          onValidationChange={(summary) => {
+            console.log('V2 Validation summary updated:', summary);
+          }}
+        />
+      </EBComponentsProvider>
+    );
+  },
+  args: {
+    apiBaseUrl: 'https://api.example.com',
+    headers: { Authorization: 'Bearer demo-token' },
+    theme: SELLSENSE_THEME,
+    rootCompanyName: 'Central Perk Coffee & Cookies',
+    readOnly: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          Version 2 of the alternate indirect ownership flow featuring:
+          
+          **Streamlined Experience:**
+          - Single interface with real-time updates
+          - Dialog-based owner addition with immediate feedback
+          - On-demand hierarchy building for indirect owners  
+          - Live validation and progress tracking
+          
+          **Key Features:**
+          - Add owners one-by-one with immediate feedback
+          - Build ownership hierarchies on-demand with "Build Ownership Hierarchy" button
+          - Real-time ownership structure preview using existing renderOwnershipChain() visualization
+          - Validate each hierarchy as it's completed
+          - Complete button with comprehensive validation
+          
+          **Ideal for scenarios where users prefer:**
+          - Step-by-step guidance with immediate feedback
+          - Visual confirmation of ownership structure as it's built
+          - Real-time validation and error prevention
+          - Streamlined, consolidated workflow
+          
+          **Visual Hierarchy Display:**
+          - Reuses existing AlternateOwnershipReview.renderOwnershipChain() method
+          - Shows ownership chain: [User] Owner → [Building] Company → [Building] Business
+          - Icons, badges, and responsive styling maintained from original implementation
+        `,
+      },
+    },
+    // No MSW handlers needed since V2 component doesn't use API calls directly
+    // It manages state internally and calls parent callbacks
   },
 };
