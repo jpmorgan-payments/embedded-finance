@@ -19,7 +19,7 @@ import {
 } from './story-utils';
 
 // Helper to add delays between interactions for better visualization
-const delay = (ms: number): Promise<void> => 
+const delay = (ms: number): Promise<void> =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
@@ -75,7 +75,7 @@ export const LinkNewAccount: Story = {
     await step('Click Link Account button', async () => {
       await delay(INTERACTION_DELAY);
       const linkButton = await canvas.findByRole('button', {
-        name: /link account/i,
+        name: /link a new account/i,
       });
       await userEvent.click(linkButton);
     });
