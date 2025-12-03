@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { SELLSENSE_THEME } from '@storybook-themes';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 import { IndirectOwnership } from '../IndirectOwnership';
 import {
@@ -18,7 +19,7 @@ import {
 interface IndirectOwnershipWithProviderProps {
   apiBaseUrl: string;
   headers?: Record<string, string>;
-  theme?: any;
+  theme?: EBTheme;
   clientId?: string;
   showVisualization?: boolean;
   maxDepth?: number;

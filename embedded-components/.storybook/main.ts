@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import { withoutVitePlugins } from '@storybook/builder-vite';
 import type { StorybookConfig } from '@storybook/react-vite';
 import { mergeConfig } from 'vite';
@@ -20,6 +21,12 @@ const config: StorybookConfig = {
   viteFinal: async (config, { configType }) => {
     config.plugins = await withoutVitePlugins(config.plugins, ['vite:dts']);
     return mergeConfig(config, {
+      resolve: {
+        alias: {
+          '@': resolve(__dirname, '../src'),
+          '@storybook-themes': resolve(__dirname, './themes'),
+        },
+      },
       build: {
         sourcemap: 'inline',
       },
