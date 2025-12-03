@@ -1,6 +1,7 @@
+import { resolve } from 'path';
+import { mergeConfig } from 'vite';
 import { withoutVitePlugins } from '@storybook/builder-vite';
 import type { StorybookConfig } from '@storybook/react-vite';
-import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
   stories: [
@@ -26,6 +27,11 @@ const config: StorybookConfig = {
       server: {
         fs: {
           allow: ['../'],
+        },
+      },
+      resolve: {
+        alias: {
+          '@': resolve(__dirname, '../src'),
         },
       },
     });
