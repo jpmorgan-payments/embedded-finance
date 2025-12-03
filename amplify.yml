@@ -1,26 +1,7 @@
 version: 1
 applications:
-  - appRoot: app/client
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            - nvm install 20
-            - nvm use 20
-            - node --version
-        build:
-          commands:
-            - yarn install
-            - yarn run build
-      artifacts:
-        # IMPORTANT - Please verify your build output directory
-        baseDirectory: dist
-        files:
-          - "**/*"
-      cache:
-        paths:
-          - node_modules/**/*
-  - appRoot: app/client-next-ts
+  - name: Showcase
+    appRoot: app/client-next-ts
     frontend:
       phases:
         preBuild:
@@ -40,7 +21,8 @@ applications:
       cache:
         paths:
           - node_modules/**/*
-  - appRoot: embedded-components
+  - name: Storybook
+    appRoot: embedded-components
     frontend:
       phases:
         preBuild:
