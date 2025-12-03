@@ -144,24 +144,30 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 ---
 
-### 1.3 Account Number Masking Standardization 🟠
+### 1.3 Account Number Masking Standardization ✅
 
 **Source:** UX Testing Report - Accounts Component Analysis  
 **Theme Alignment:** Theme 1 (Security & Validation)  
-**Components Affected:** Accounts, LinkedAccountWidget
+**Components Affected:** Accounts, LinkedAccountWidget  
+**Status:** ✅ Code updated (Dec 3, 2025) - Browser verification needed
 
-- [ ] Standardize account number masking pattern
-  - [ ] Always show last 4 digits
-  - [ ] Use consistent number of asterisks (recommend 4: `****1098`)
-  - [ ] Document masking rules in design system
-- [ ] Update Accounts component (currently shows 8 asterisks: `********1098`)
-- [ ] Verify LinkedAccountWidget uses consistent pattern (currently `****6677`)
+- [x] Standardize account number masking pattern
+  - [x] Always show last 4 digits
+  - [x] Use consistent number of asterisks (4: `****1098`)
+  - [x] Code updated in AccountCard.tsx (line 61-64) to use `****${accountNumber.slice(-4)}`
+  - [x] Code updated in RecipientAccountDisplayCard uses `getMaskedAccountNumber()` which returns `****${number.slice(-4)}`
+  - [x] Code updated in Recipients components to use `****${number.slice(-4)}`
+- [ ] **VERIFY:** Test in browser to confirm Accounts component displays `****1098` (4 asterisks) not `********1098` (8 asterisks)
+  - [ ] If browser still shows 8 asterisks, investigate data source or rendering issue
+  - [ ] Verify all components display consistent 4 asterisk pattern
+- [ ] Document masking rules in design system
 
 **Current State:**
 
-- Linked Accounts: `****6677` (4 asterisks)
-- Accounts: `********1098` (8 asterisks)
-- **Issue:** Inconsistent masking pattern
+- **Code:** All components use `****${number.slice(-4)}` pattern (4 asterisks) ✅
+- **Linked Accounts:** `****6677` (4 asterisks) ✅ Verified in browser
+- **Accounts:** Code shows 4 asterisks, but browser may show 8 - needs verification
+- **Recipients:** Uses `****${number.slice(-4)}` pattern ✅
 
 ---
 
@@ -171,10 +177,18 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 **Theme Alignment:** Theme 0 (Functional Enhancements), Theme 8 (Comprehensive Testing)  
 **Components Affected:** TransactionsDisplay
 
+**Note:** Some issues may be related to mock data (MSW) rather than actual API responses. However, these should be fixed regardless to ensure proper handling of real data.
+
 #### Transaction Details Modal
 
 - [ ] Fix "$NaN" display for Ledger Balance (data formatting bug)
+  - [ ] Check if this is mock data issue or actual formatting bug
+  - [ ] Add proper number formatting/validation
+  - [ ] Handle null/undefined values gracefully
 - [ ] Replace "N/A" values with meaningful data or hide fields
+  - [ ] Determine if "N/A" values are due to mock data or missing API fields
+  - [ ] If mock data: update MSW handlers to provide realistic data
+  - [ ] If API data: hide fields that consistently show "N/A" or add proper empty state handling
 - [ ] Only show "Show all fields" toggle if there are meaningful additional fields
 - [ ] Populate additional fields with actual data if available
 
@@ -182,12 +196,14 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 - [ ] Populate Reference ID data, OR
 - [ ] Hide column when data is not available
+- [ ] Check if this is mock data limitation or actual API response
 
 #### Missing Data Handling
 
 - [ ] Add loading states for data fetching
 - [ ] Add empty states for no data scenarios
 - [ ] Standardize "N/A" vs hiding fields approach
+- [ ] Ensure proper handling of both mock and real API data
 
 ---
 
@@ -290,9 +306,20 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 #### UI Improvements
 
 - [ ] Remove redundant "Accounts" heading (appears as both page title and card title)
-- [ ] Make card title more specific (e.g., "My Checking Account")
+  - [ ] Review Accounts.tsx to see if card title can be made more specific
+  - [ ] Consider using account category or account name instead of generic "Accounts"
+- [ ] Make card title more specific (e.g., "My Checking Account" or use account category)
 - [ ] Add tooltip for info icon next to "Account Details" heading, OR
 - [ ] Remove info icon if decorative
+  - [ ] Current tooltip exists: "Account can be funded from external sources and is externally addressable via routing/account numbers here"
+  - [ ] Verify tooltip is visible/accessible
+
+#### Component Review Needed
+
+- [ ] Review Accounts component structure and compare with other components
+- [ ] Check if Accounts component follows same patterns as LinkedAccountWidget and Recipients
+- [ ] Verify responsive design works correctly
+- [ ] Review Accounts.tsx implementation for consistency with other components
 
 ---
 
@@ -418,7 +445,94 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 ## 🎯 Priority 5: Design System Foundation
 
-### 5.1 Component Library Creation 🟡
+### 5.0 Collection Display Patterns 🔴
+
+**Source:** User Feedback - Missing Consistent Pattern  
+**Theme Alignment:** Theme 6 (Atomic Design & Performance)  
+**Components Affected:** All components displaying collections
+
+#### Collection Display Rules
+
+- [ ] Define consistent pattern for displaying collections:
+  - [ ] **3+ items:** Use data grid/table layout
+  - [ ] **1-3 items:** Use card layout
+    - [ ] **TBD:** Decide on card layout for 1-3 items:
+      - [ ] Option A: Stacked cards (vertical layout)
+      - [ ] Option B: Grid layout (2\*n for large viewports, stacked on mobile)
+      - [ ] Option C: Single column on mobile, 2 columns on tablet, 3+ on desktop
+- [ ] Document collection display rules in design system
+- [ ] Apply pattern consistently across:
+  - [ ] LinkedAccountWidget (currently uses cards)
+  - [ ] Recipients (currently uses table)
+  - [ ] TransactionsDisplay (currently uses table)
+  - [ ] Accounts (currently uses cards)
+  - [ ] Any future collection components
+
+#### Implementation
+
+- [ ] Create reusable `CollectionDisplay` component or utility
+- [ ] Add responsive breakpoints for card/grid transitions
+- [ ] Ensure accessibility for both grid and card layouts
+- [ ] Update Storybook stories to showcase collection patterns
+
+**Current State:**
+
+- Recipients: Always uses table (even for 1-3 items)
+- TransactionsDisplay: Always uses table
+- LinkedAccountWidget: Uses cards
+- Accounts: Uses cards
+- **Issue:** No consistent rule for when to use table vs cards
+
+---
+
+### 5.1 Component Header/Title Format Standardization 🔴
+
+**Source:** User Feedback - Different Header/Title Formats  
+**Theme Alignment:** Theme 6 (Atomic Design)  
+**Components Affected:** All components
+
+#### Header/Title Pattern Analysis
+
+- [ ] Audit all component header/title formats:
+  - [ ] Accounts: "Accounts" (H1) + "Accounts" (card title) - redundant
+  - [ ] LinkedAccountWidget: "Linked Accounts" (H1) + "Linked Accounts (1)" (section header)
+  - [ ] Recipients: "Recipients" (H1) + table with no card title
+  - [ ] TransactionsDisplay: "Transactions" (H1) + table with no card title
+  - [ ] MakePayment: "Make Payment" (H1) + modal title
+  - [ ] OnboardingFlow: Uses StepLayout with title, subtitle, description pattern
+- [ ] Document current header/title patterns
+- [ ] Define standard header/title format:
+  - [ ] Page title (H1) format
+  - [ ] Section header format
+  - [ ] Card title format
+  - [ ] Modal/dialog title format
+  - [ ] Subtitle/description format
+- [ ] Create Header/Title component library:
+  - [ ] `PageHeader` - Main page title with optional description
+  - [ ] `SectionHeader` - Section title with optional count/badge
+  - [ ] `CardTitle` - Card title format
+  - [ ] `ModalTitle` - Modal/dialog title format
+
+#### Implementation
+
+- [ ] Standardize all component headers to use consistent format
+- [ ] Remove redundant titles (e.g., Accounts component)
+- [ ] Ensure proper heading hierarchy (H1 → H2 → H3)
+- [ ] Add consistent spacing and typography
+- [ ] Update all components to use standardized header components
+
+**Current State:**
+
+- **Inconsistent patterns:**
+  - Some use H1 + card title
+  - Some use H1 + section header with count
+  - Some use H1 only
+  - OnboardingFlow uses different StepLayout pattern
+- **Issue:** No consistent header/title format across components
+
+---
+
+### 5.2 Component Library Creation 🟡
 
 **Source:** UX Testing Report - Design System Recommendations  
 **Theme Alignment:** Theme 6 (Atomic Design & Performance)  
@@ -713,8 +827,8 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 ## 📊 Backlog Statistics
 
-**Total Items:** ~150+  
-**Critical Priority:** 4 major areas  
+**Total Items:** ~160+  
+**Critical Priority:** 6 major areas (including new collection patterns and header standardization)  
 **High Priority:** 5 major areas  
 **Medium Priority:** 4 major areas  
 **Low Priority:** 3 major areas
