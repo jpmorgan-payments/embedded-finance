@@ -14,6 +14,7 @@ module.exports = {
     '<BUILTIN_MODULES',
     '<THIRD_PARTY_MODULES>',
     '^@test-utils$',
+    '^@storybook-themes$',
     '',
     '^types$',
     '^@/types/(.*)$',

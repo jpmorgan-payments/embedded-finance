@@ -5,8 +5,8 @@ import { efClientCorpWithMissingAttrsMock } from '@/mocks/efClientCorpWithMissin
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
-import { http, HttpResponse } from 'msw';
 import type { Meta } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
 
 import OnboardingWizardBasicMeta, {
   Default,

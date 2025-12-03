@@ -19,7 +19,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@test-utils": ["./test-utils"]
+      "@test-utils": ["./test-utils"],
+      "@storybook-themes": ["./.storybook/themes"]
     }
   },
   "include": ["src", "test-utils", ".storybook/*"]
