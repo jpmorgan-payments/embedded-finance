@@ -1,46 +1,30 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { IndirectOwnership } from '../IndirectOwnership';
 import { BeneficialOwner } from '../IndirectOwnership.types';
+import {
+  commonArgs,
+  commonArgTypes,
+  IndirectOwnershipStory,
+} from './story-utils';
 
 const meta = {
   title: 'Core/IndirectOwnership',
-  component: IndirectOwnership,
+  component: IndirectOwnershipStory,
   parameters: {
     layout: 'padded',
     docs: {
       description: {
         component: 'Streamlined beneficial ownership structure building with real-time validation and interactive ownership management.'
       }
-    },
-    // Use Salt theme to match LinkedAccountWidget
-    themes: {
-      default: 'salt'
     }
   },
   tags: ['autodocs'],
-  argTypes: {
-    rootCompanyName: {
-      control: 'text',
-      description: 'Name of the company being onboarded'
-    },
-    readOnly: {
-      control: 'boolean',
-      description: 'Whether the component is in read-only mode'
-    },
-    initialOwners: {
-      control: 'object',
-      description: 'Pre-populated beneficial owners for editing scenarios'
-    }
-  },
-  args: {
-    onOwnershipComplete: (structure) => console.log('Ownership completed:', structure),
-    onValidationChange: (summary) => console.log('Validation changed:', summary),
-  },
-} satisfies Meta<typeof IndirectOwnership>;
+  args: commonArgs,
+  argTypes: commonArgTypes,
+} satisfies Meta<typeof IndirectOwnershipStory>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof IndirectOwnershipStory>;
 
 // Sample owners for stories matching the requested character examples
 const monicaGeller: BeneficialOwner = {
