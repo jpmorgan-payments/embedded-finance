@@ -26,21 +26,4 @@ export interface AddOwnerDialogProps {
   testId?: string;
 }
 
-/**
- * Form data for adding/editing an owner
- */
-export interface OwnerFormData {
-  firstName: string;
-  lastName: string;
-  ownershipType: 'DIRECT' | 'INDIRECT';
-}
-
-/**
- * Validation errors for owner form
- */
-export interface OwnerFormErrors {
-  firstName?: string;
-  lastName?: string;
-  ownershipType?: string;
-  general?: string;
-}
+// Form data and validation types are now handled by Zod schema in AddOwnerDialog.schema.ts

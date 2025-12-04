@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { User, Building } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -18,8 +20,9 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-import type { AddOwnerDialogProps, OwnerFormData, OwnerFormErrors } from './types';
+import type { AddOwnerDialogProps } from './types';
 import { VALIDATION_MESSAGES } from '../../IndirectOwnership.internal.types';
+import { useAddOwnerFormSchema, type AddOwnerFormData } from './AddOwnerDialog.schema';
 
 /**
  * AddOwnerDialog - Dialog for adding/editing beneficial owners
@@ -40,116 +43,102 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   testId = 'add-owner-dialog',
 }) => {
   const { t } = useTranslation();
+  const schema = useAddOwnerFormSchema();
 
-  // Form state
-  const [formData, setFormData] = useState<OwnerFormData>({
-    firstName: '',
-    lastName: '',
-    ownershipType: 'DIRECT',
+  // React Hook Form setup with Zod validation
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+    watch,
+    setError
+  } = useForm<AddOwnerFormData>({
+    resolver: zodResolver(schema),
+    mode: 'onBlur',
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      ownershipType: 'DIRECT',
+    }
   });
 
-  // Validation state
-  const [errors, setErrors] = useState<OwnerFormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const watchedValues = watch();
 
   // Initialize form data when dialog opens or editing
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        setFormData({
-          firstName: initialData.firstName || '',
-          lastName: initialData.lastName || '',
+      if (initialData?.individualDetails) {
+        reset({
+          firstName: initialData.individualDetails.firstName || '',
+          lastName: initialData.individualDetails.lastName || '',
           ownershipType: initialData.ownershipType || 'DIRECT',
         });
       } else {
-        setFormData({
+        reset({
           firstName: '',
           lastName: '',
           ownershipType: 'DIRECT',
         });
       }
-      setErrors({});
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, reset]);
 
-  // Validate form data
-  const validateForm = useCallback((data: OwnerFormData): OwnerFormErrors => {
-    const newErrors: OwnerFormErrors = {};
+  // Custom duplicate validation
+  const checkForDuplicates = (data: AddOwnerFormData) => {
+    if (!data.firstName.trim() || !data.lastName.trim()) return;
 
-    // Required field validation
-    if (!data.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    const isDuplicate = existingOwners.some(owner => 
+      owner.id !== editingOwnerId &&
+      owner.individualDetails &&
+      owner.individualDetails.firstName?.toLowerCase() === data.firstName.trim().toLowerCase() &&
+      owner.individualDetails.lastName?.toLowerCase() === data.lastName.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      setError('root.general', {
+        type: 'duplicate',
+        message: VALIDATION_MESSAGES.duplicateName
+      });
+      return false;
     }
-
-    if (!data.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-
-    // Duplicate name validation (exclude current owner if editing)
-    if (data.firstName.trim() && data.lastName.trim()) {
-      const isDuplicate = existingOwners.some(owner => 
-        owner.id !== editingOwnerId &&
-        owner.firstName.toLowerCase() === data.firstName.trim().toLowerCase() &&
-        owner.lastName.toLowerCase() === data.lastName.trim().toLowerCase()
-      );
-
-      if (isDuplicate) {
-        newErrors.general = VALIDATION_MESSAGES.duplicateName;
-      }
-    }
-
-    return newErrors;
-  }, [existingOwners, editingOwnerId]);
-
-  // Handle form field changes
-  const handleFieldChange = (field: keyof OwnerFormData, value: string) => {
-    const newFormData = { ...formData, [field]: value };
-    setFormData(newFormData);
-
-    // Real-time validation
-    const newErrors = validateForm(newFormData);
-    setErrors(newErrors);
+    return true;
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const validationErrors = validateForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+  // Form submission handler
+  const onFormSubmit = async (data: AddOwnerFormData) => {
+    // Check for duplicates before submission
+    if (!checkForDuplicates(data)) {
       return;
     }
 
-    setIsSubmitting(true);
     try {
       await onSubmit({
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        ownershipType: formData.ownershipType,
-        status: formData.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
+        ownershipType: data.ownershipType,
+        status: data.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
         meets25PercentThreshold: true, // Always true for beneficial owners
         validationErrors: [],
-      });
+        individualDetails: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+        },
+      } as any); // Type assertion needed due to interface differences
     } catch (error) {
-      setErrors({ 
-        general: error instanceof Error ? error.message : 'Failed to add owner' 
+      setError('root.general', {
+        type: 'submission',
+        message: error instanceof Error ? error.message : 'Failed to add owner'
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   // Handle dialog close
   const handleClose = () => {
     if (!isSubmitting) {
+      reset();
       onClose();
     }
   };
-
-  const isFormValid = Object.keys(errors).length === 0 && 
-                     formData.firstName.trim() && 
-                     formData.lastName.trim();
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -163,12 +152,12 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="eb-space-y-4">
+        <form onSubmit={handleSubmit(onFormSubmit)} className="eb-space-y-4">
           {/* General Error */}
-          {errors.general && (
+          {errors.root?.general && (
             <Alert className="eb-border-red-200 eb-bg-red-50">
               <AlertDescription className="eb-text-red-700">
-                {errors.general}
+                {errors.root.general.message}
               </AlertDescription>
             </Alert>
           )}
@@ -178,13 +167,12 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             <Label htmlFor="firstName">First Name *</Label>
             <Input
               id="firstName"
-              value={formData.firstName}
-              onChange={(e) => handleFieldChange('firstName', e.target.value)}
+              {...register('firstName')}
               placeholder="John"
               className={errors.firstName ? 'eb-border-red-300' : ''}
             />
             {errors.firstName && (
-              <p className="eb-text-sm eb-text-red-600">{errors.firstName}</p>
+              <p className="eb-text-sm eb-text-red-600">{errors.firstName.message}</p>
             )}
           </div>
 
@@ -193,13 +181,12 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             <Label htmlFor="lastName">Last Name *</Label>
             <Input
               id="lastName"
-              value={formData.lastName}
-              onChange={(e) => handleFieldChange('lastName', e.target.value)}
+              {...register('lastName')}
               placeholder="Smith"
               className={errors.lastName ? 'eb-border-red-300' : ''}
             />
             {errors.lastName && (
-              <p className="eb-text-sm eb-text-red-600">{errors.lastName}</p>
+              <p className="eb-text-sm eb-text-red-600">{errors.lastName.message}</p>
             )}
           </div>
 
@@ -207,9 +194,9 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           <div className="eb-space-y-3">
             <Label>Ownership Type *</Label>
             <RadioGroup
-              value={formData.ownershipType}
+              value={watchedValues.ownershipType}
               onValueChange={(value: 'DIRECT' | 'INDIRECT') => 
-                handleFieldChange('ownershipType', value)
+                setValue('ownershipType', value)
               }
               className="eb-space-y-3"
             >
@@ -242,12 +229,12 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               </div>
             </RadioGroup>
             {errors.ownershipType && (
-              <p className="eb-text-sm eb-text-red-600">{errors.ownershipType}</p>
+              <p className="eb-text-sm eb-text-red-600">{errors.ownershipType.message}</p>
             )}
           </div>
 
           {/* Information about next steps */}
-          {formData.ownershipType === 'INDIRECT' && (
+          {watchedValues.ownershipType === 'INDIRECT' && (
             <Alert className="eb-border-orange-200 eb-bg-orange-50">
               <Building className="eb-h-4 eb-w-4 eb-text-orange-600" />
               <AlertDescription className="eb-text-orange-700">
@@ -268,7 +255,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={!isFormValid || isSubmitting}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Adding...' : editingOwnerId ? 'Update Owner' : 'Add Owner'}
             </Button>
