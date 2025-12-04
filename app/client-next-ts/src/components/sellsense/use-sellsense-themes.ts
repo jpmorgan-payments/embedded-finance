@@ -23,6 +23,15 @@ type LegacyThemeVariables = EBThemeVariables & {
 const mapLegacyToRefinedTokens = (
   legacy: LegacyThemeVariables,
 ): EBThemeVariables => {
+  // If semantic tokens already present, return as-is to avoid stripping values
+  const hasSemanticTokens =
+    'actionablePrimaryBackground' in legacy ||
+    'containerBackground' in legacy ||
+    'contentFontFamily' in legacy;
+  if (hasSemanticTokens) {
+    return legacy;
+  }
+
   const refined: EBThemeVariables = {
     ...legacy,
     // Typography
@@ -125,8 +134,8 @@ export const useSellSenseThemes = () => {
     ): EBThemeVariables => {
       switch (themeOption) {
         case 'Custom':
-          // Custom theme - use provided custom variables or return empty
-          return customVariables || {};
+          // Custom theme - map provided variables to refined tokens for consistency
+          return mapLegacyToRefinedTokens(customVariables || {});
 
         case 'Empty':
           // Empty theme - no design tokens to show component defaults
@@ -643,7 +652,7 @@ export const useSellSenseThemes = () => {
   const mapCustomTheme = useCallback((customVariables: EBThemeVariables) => {
     return {
       colorScheme: 'light' as const,
-      variables: customVariables,
+      variables: mapLegacyToRefinedTokens(customVariables),
     };
   }, []);
 
