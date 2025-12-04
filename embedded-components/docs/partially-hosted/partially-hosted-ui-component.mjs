@@ -124,7 +124,7 @@ function buildIframeUrl(config) {
   if (theme) {
     const encodedTheme = encodeJsonParam(theme);
     if (encodedTheme) {
-      params.append('theme', encodedTheme);
+      params.append('themeTokens', encodedTheme);
     }
   }
 

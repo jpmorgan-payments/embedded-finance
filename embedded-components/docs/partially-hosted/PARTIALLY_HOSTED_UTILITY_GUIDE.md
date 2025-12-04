@@ -67,7 +67,7 @@ const ui = new PartiallyHostedUIComponent({ /* config */ });
     const ui = new PartiallyHostedUIComponent({
       sessionToken: 'your-jwt-token-from-backend',
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      theme: {
+      themeTokens: {
         colorScheme: 'light',
         variables: {
           primaryColor: '#0070f3',
@@ -354,7 +354,7 @@ function OnboardingComponent({ sessionToken }) {
     const ui = new PartiallyHostedUIComponent({
       sessionToken,
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      theme: { colorScheme: 'light' },
+      themeTokens: { colorScheme: 'light' },
       debug: true
     });
 
@@ -406,7 +406,7 @@ export default {
       ui = new PartiallyHostedUIComponent({
         sessionToken: props.sessionToken,
         experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-        theme: { colorScheme: 'light' }
+        themeTokens: { colorScheme: 'light' }
       });
 
       ui.subscribe((event) => {
@@ -453,7 +453,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     this.ui = new PartiallyHostedUIComponent({
       sessionToken: 'your-token',
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      theme: { colorScheme: 'light' }
+      themeTokens: { colorScheme: 'light' }
     });
 
     this.ui.subscribe((event: any) => {

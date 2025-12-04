@@ -87,7 +87,7 @@
 
     if (theme) {
       const encodedTheme = encodeJsonParam(theme);
-      if (encodedTheme) params.append('theme', encodedTheme);
+      if (encodedTheme) params.append('themeTokens', encodedTheme);
     }
 
     if (contentTokens) {
