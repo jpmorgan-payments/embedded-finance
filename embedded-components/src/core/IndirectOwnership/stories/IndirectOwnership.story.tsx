@@ -145,27 +145,27 @@ export const EmptyState: Story = {
 };
 
 /**
- * Error state story showing validation issues with incomplete ownership structure.
- * Demonstrates validation feedback when ownership doesn't total 100%.
+ * Pending state story showing an indirect owner waiting for ownership hierarchy.
+ * Demonstrates the workflow to build ownership chain with "Build Ownership Hierarchy" button.
  */
 export const ErrorState: Story = {
   args: {
     rootCompanyName: 'Central Perk Coffee & Cookies',
     initialOwners: [
       {
-        id: 'incomplete-001',
-        firstName: 'Monica',
+        id: 'pending-001',
+        firstName: 'Ross',
         lastName: 'Geller',
-        ownershipType: 'DIRECT',
-        status: 'ERROR',
-        meets25PercentThreshold: true,
-        validationErrors: ['Incomplete ownership information'],
+        ownershipType: 'INDIRECT',
+        status: 'PENDING_HIERARCHY',
+        meets25PercentThreshold: undefined, // Will be determined after hierarchy is built
         createdAt: new Date(),
         updatedAt: new Date()
+        // Note: No ownershipHierarchy property - user needs to build it
       }
     ],
     readOnly: false,
-    testId: 'indirect-ownership-error'
+    testId: 'indirect-ownership-pending'
   },
 };
 

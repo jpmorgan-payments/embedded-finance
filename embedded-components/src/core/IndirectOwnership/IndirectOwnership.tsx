@@ -154,14 +154,16 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                   Add Beneficial Owner
                 </Button>
               )}
-              <Button
-                onClick={handleComplete}
-                disabled={!validationSummary.canComplete || readOnly}
-                variant={validationSummary.canComplete ? 'default' : 'outline'}
-                size="sm"
-              >
-                Complete
-              </Button>
+              {!readOnly && (
+                <Button
+                  onClick={handleComplete}
+                  disabled={!validationSummary.canComplete}
+                  variant={validationSummary.canComplete ? 'default' : 'outline'}
+                  size="sm"
+                >
+                  Complete
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -239,7 +241,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                         )}
                       </div>
                       <div className="eb-flex eb-items-center eb-gap-2">
-                        {owner.status === 'PENDING_HIERARCHY' && (
+                        {!readOnly && owner.status === 'PENDING_HIERARCHY' && (
                           <Button
                             onClick={() => handleBuildHierarchy(owner.id)}
                             size="sm"
@@ -249,7 +251,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             Build Ownership Hierarchy
                           </Button>
                         )}
-                        {owner.ownershipHierarchy && (
+                        {!readOnly && owner.ownershipHierarchy && (
                           <Button
                             onClick={() => handleEditHierarchy(owner.id)}
                             size="sm"
