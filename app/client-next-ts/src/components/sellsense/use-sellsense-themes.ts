@@ -11,6 +11,112 @@ export type ThemeOption =
   | 'Empty'
   | 'Custom';
 
+type LegacyThemeVariables = EBThemeVariables & {
+  formLabelForegroundColor?: string;
+};
+
+/**
+ * Maps legacy token names to refined semantic tokens while preserving the original values.
+ * This keeps compatibility with the new design token naming from embedded-components/README.md
+ * without changing the actual visual output.
+ */
+const mapLegacyToRefinedTokens = (
+  legacy: LegacyThemeVariables,
+): EBThemeVariables => {
+  const refined: EBThemeVariables = {
+    ...legacy,
+    // Typography
+    contentFontFamily: legacy.fontFamily,
+    contentHeaderFontFamily: legacy.headerFontFamily,
+    actionableFontFamily: legacy.buttonFontFamily ?? legacy.fontFamily,
+    actionableFontWeight: legacy.buttonFontWeight,
+    actionableFontSize: legacy.buttonFontSize,
+    actionableLineHeight: legacy.buttonLineHeight,
+    actionableTextTransform: legacy.buttonTextTransform,
+    actionableLetterSpacing: legacy.buttonLetterSpacing,
+    actionableShiftOnActive: legacy.shiftButtonOnActive,
+
+    // Surfaces
+    containerBackground: legacy.backgroundColor,
+    containerPrimaryBackground: legacy.cardColor,
+    containerPrimaryForeground: legacy.cardForegroundColor,
+    containerSecondaryBackground: legacy.mutedColor,
+    containerSecondaryForeground: legacy.mutedForegroundColor,
+    contentPrimaryForeground: legacy.foregroundColor,
+    overlayableBackground: legacy.popoverColor,
+    overlayableForeground: legacy.popoverForegroundColor,
+    overlayableZIndex: legacy.zIndexOverlay,
+
+    // Actionable (buttons)
+    actionablePrimaryBackground: legacy.primaryColor,
+    actionablePrimaryBackgroundHover: legacy.primaryHoverColor,
+    actionablePrimaryBackgroundActive: legacy.primaryActiveColor,
+    actionablePrimaryForeground: legacy.primaryForegroundColor,
+    actionablePrimaryForegroundHover: legacy.primaryForegroundHoverColor,
+    actionablePrimaryForegroundActive: legacy.primaryForegroundActiveColor,
+    actionablePrimaryBorderWidth: legacy.primaryBorderWidth,
+
+    actionableSecondaryBackground: legacy.secondaryColor,
+    actionableSecondaryBackgroundHover: legacy.secondaryHoverColor,
+    actionableSecondaryBackgroundActive: legacy.secondaryActiveColor,
+    actionableSecondaryForeground: legacy.secondaryForegroundColor,
+    actionableSecondaryForegroundHover: legacy.secondaryForegroundHoverColor,
+    actionableSecondaryForegroundActive: legacy.secondaryForegroundActiveColor,
+    actionableSecondaryBorderWidth: legacy.secondaryBorderWidth,
+
+    actionableBorderRadius: legacy.buttonBorderRadius,
+    separableBorderRadius: legacy.borderRadius,
+    editableBorderRadius: legacy.inputBorderRadius,
+
+    // Inputs
+    editableBackground: legacy.inputColor,
+    editableBorderColor: legacy.inputBorderColor,
+    editableLabelFontSize: legacy.formLabelFontSize,
+    editableLabelFontWeight: legacy.formLabelFontWeight,
+    editableLabelLineHeight: legacy.formLabelLineHeight,
+    editableLabelForeground: legacy.formLabelForegroundColor,
+
+    // Borders / focus
+    separableBorderColor: legacy.borderColor,
+    focusedRingColor: legacy.ringColor,
+
+    // Alerts and status
+    statusInfoForeground: legacy.informativeColor,
+    statusInfoAccentBackground: legacy.informativeAccentColor,
+    sentimentCautionForeground: legacy.warningColor,
+    sentimentCautionAccentBackground: legacy.warningAccentColor,
+    sentimentPositiveForeground: legacy.successColor,
+    sentimentPositiveAccentBackground: legacy.successAccentColor,
+
+    // Destructive sentiment
+    sentimentNegativeBackground: legacy.destructiveColor,
+    sentimentNegativeBackgroundHover: legacy.destructiveHoverColor,
+    sentimentNegativeBackgroundActive: legacy.destructiveActiveColor,
+    sentimentNegativeForeground: legacy.destructiveForegroundColor,
+    sentimentNegativeForegroundHover: legacy.destructiveForegroundHoverColor,
+    sentimentNegativeForegroundActive: legacy.destructiveForegroundActiveColor,
+
+    // Accent & misc
+    accentBackground: legacy.accentColor,
+    accentForeground: legacy.accentForegroundColor,
+    spacingUnit: legacy.spacingUnit,
+  };
+
+  // Preserve legacy typography fallbacks
+  if (!refined.contentHeaderFontFamily && legacy.headerFontFamily) {
+    refined.contentHeaderFontFamily = legacy.headerFontFamily;
+  }
+
+  // Ensure actionable font weight overrides per variant
+  if (legacy.primaryButtonFontWeight) {
+    refined.actionablePrimaryFontWeight = legacy.primaryButtonFontWeight;
+  }
+  if (legacy.secondaryButtonFontWeight) {
+    refined.actionableSecondaryFontWeight = legacy.secondaryButtonFontWeight;
+  }
+  return refined;
+};
+
 export const useSellSenseThemes = () => {
   const getThemeVariables = useCallback(
     (
@@ -28,7 +134,7 @@ export const useSellSenseThemes = () => {
 
         case 'Default Blue':
           // Default Blue theme with v0.6.15 design tokens
-          return {
+          return mapLegacyToRefinedTokens({
             // Typography - modern font stack
             fontFamily:
               'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
@@ -120,11 +226,11 @@ export const useSellSenseThemes = () => {
             spacingUnit: '0.25rem',
             shiftButtonOnActive: true, // Matching useThemes.ts
             zIndexOverlay: 1000,
-          };
+          });
 
         case 'Salt Theme':
           // Salt Theme with v0.6.15 design tokens (matching useThemes.ts)
-          return {
+          return mapLegacyToRefinedTokens({
             fontFamily: 'Open Sans',
             headerFontFamily: 'Amplitude',
             buttonFontFamily: 'Amplitude',
@@ -209,11 +315,11 @@ export const useSellSenseThemes = () => {
             spacingUnit: '0.25rem',
             shiftButtonOnActive: false,
             zIndexOverlay: 1000,
-          };
+          });
 
         case 'Create Commerce':
           // Create Commerce theme with aligned color palette
-          return {
+          return mapLegacyToRefinedTokens({
             // Typography
             fontFamily: 'Open Sans',
             headerFontFamily: 'Open Sans',
@@ -263,7 +369,6 @@ export const useSellSenseThemes = () => {
             successAccentColor: '#38474E', // Using accent color for backgrounds
 
             // Form and input styling
-            formLabelForegroundColor: '#EDEFF7', // Added from spec
             inputColor: '#38474E', // Updated to match spec
             inputBorderColor: '#0000004D', // Using borderColor from spec
             borderColor: '#0000004D', // Updated to match spec
@@ -297,6 +402,7 @@ export const useSellSenseThemes = () => {
             formLabelFontSize: '0.875rem',
             formLabelFontWeight: '500',
             formLabelLineHeight: '1.25rem',
+            formLabelForegroundColor: '#EDEFF7',
 
             // Border widths
             primaryBorderWidth: '0px',
@@ -306,11 +412,11 @@ export const useSellSenseThemes = () => {
             spacingUnit: '0.25rem',
             shiftButtonOnActive: false,
             zIndexOverlay: 1000,
-          };
+          });
 
         case 'SellSense':
           // SellSense theme with v0.6.15 design tokens (matching useThemes.ts)
-          return {
+          return mapLegacyToRefinedTokens({
             fontFamily: 'Inter', // Matching useThemes.ts
             headerFontFamily: 'Inter',
             buttonFontFamily: 'Inter',
@@ -395,11 +501,11 @@ export const useSellSenseThemes = () => {
             spacingUnit: '0.25rem',
             shiftButtonOnActive: false,
             zIndexOverlay: 1000,
-          };
+          });
 
         case 'PayFicient':
           // PayFicient theme with v0.6.15 design tokens (matching useThemes.ts)
-          return {
+          return mapLegacyToRefinedTokens({
             fontFamily: 'Manrope',
             headerFontFamily: 'Manrope',
             buttonFontFamily: 'Manrope',
@@ -484,11 +590,11 @@ export const useSellSenseThemes = () => {
             spacingUnit: '0.25rem',
             shiftButtonOnActive: false,
             zIndexOverlay: 1000,
-          };
+          });
 
         default:
           // Enhanced default fallback with v0.6.15 design tokens
-          return {
+          return mapLegacyToRefinedTokens({
             fontFamily:
               'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
             primaryColor: '#0060f0',
@@ -517,7 +623,7 @@ export const useSellSenseThemes = () => {
             warningAccentColor: '#fef3c7',
             successColor: '#10b981',
             successAccentColor: '#d1fae5',
-          };
+          });
       }
     },
     [],
