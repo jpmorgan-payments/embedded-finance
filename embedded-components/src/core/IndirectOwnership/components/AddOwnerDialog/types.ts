@@ -1,4 +1,4 @@
-import type { V2BeneficialOwner } from '../V2AlternateIndirectOwnership/types';
+import type { BeneficialOwner } from '../../IndirectOwnership.types';
 
 /**
  * Props for AddOwnerDialog component
@@ -11,13 +11,13 @@ export interface AddOwnerDialogProps {
   onClose: () => void;
   
   /** Callback when form is submitted */
-  onSubmit: (ownerData: Omit<V2BeneficialOwner, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSubmit: (ownerData: Omit<BeneficialOwner, 'id' | 'createdAt' | 'updatedAt'>) => void;
   
   /** Existing owners for duplicate validation */
-  existingOwners: V2BeneficialOwner[];
+  existingOwners: BeneficialOwner[];
   
   /** Initial data for editing */
-  initialData?: Partial<V2BeneficialOwner>;
+  initialData?: Partial<BeneficialOwner>;
   
   /** ID of owner being edited */
   editingOwnerId?: string;

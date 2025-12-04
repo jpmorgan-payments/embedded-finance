@@ -7,9 +7,4 @@ export { efClientTooManyOwners } from './efClientTooManyOwners.mock';
 export { efClientMultipleValidationErrors } from './efClientMultipleValidationErrors.mock';
 export { efClientRemovalTest } from './efClientRemovalTest.mock';
 
-// Alternate ownership flow mocks
-export {
-  alternateOwnershipEmpty,
-  alternateOwnershipWithSampleOwners,
-  alternateOwnershipComplexHierarchy,
-} from './alternateOwnershipMocks';
+// Legacy alternate mocks removed - using OpenAPI mocks above

@@ -3,14 +3,14 @@
 import React from 'react';
 import { User, Building } from 'lucide-react';
 
-import type { V2BeneficialOwner } from '../V2AlternateIndirectOwnership/types';
+import type { BeneficialOwner } from '../../IndirectOwnership.types';
 
 /**
  * Reusable ownership chain renderer - extracted from AlternateOwnershipReview
  * This maintains the exact same visual styling and behavior as the original
  */
 export const renderOwnershipChain = (
-  owner: V2BeneficialOwner, 
+  owner: BeneficialOwner, 
   kycCompanyName: string
 ) => {
   if (owner.ownershipType === 'DIRECT') {

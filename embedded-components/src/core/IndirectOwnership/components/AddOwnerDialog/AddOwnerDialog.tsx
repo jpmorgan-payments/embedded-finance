@@ -19,7 +19,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import type { AddOwnerDialogProps, OwnerFormData, OwnerFormErrors } from './types';
-import { VALIDATION_MESSAGES } from '../V2AlternateIndirectOwnership/types';
+import { VALIDATION_MESSAGES } from '../../IndirectOwnership.types';
 
 /**
  * AddOwnerDialog - Dialog for adding/editing beneficial owners
