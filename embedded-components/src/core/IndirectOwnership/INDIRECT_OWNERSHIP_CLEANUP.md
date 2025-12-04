@@ -177,8 +177,21 @@ export const Default: Story = {
     readOnly: false,
     themePreset: 'Salt', // Match LinkedAccountWidget theme
   },
-  // Shows component with 2-3 sample beneficial owners already added
-  // Demonstrates complete ownership chains with visualization
+  // Shows component with 3 beneficial owners demonstrating different ownership types:
+  // 
+  // 1. Monica Geller (Direct Owner)
+  //    └── Central Perk Coffee & Cookies (direct beneficial owner)
+  //
+  // 2. Ross Geller (Indirect Owner)  
+  //    └── Central Perk Coffee
+  //        └── Central Perk Coffee & Cookies (indirect beneficial owner)
+  //
+  // 3. Rachel Green (Indirect Owner)
+  //    └── Cookie Co.
+  //        └── Central Perk Cookie 
+  //            └── Central Perk Coffee & Cookies (indirect beneficial owner)
+  //
+  // Demonstrates mixed direct/indirect ownership with complete ownership chains and visualization
 }
 ```
 
