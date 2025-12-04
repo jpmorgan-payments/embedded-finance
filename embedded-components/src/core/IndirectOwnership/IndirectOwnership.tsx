@@ -119,21 +119,38 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
     handleCloseDialog();
   }, [handleCloseDialog]);
   return (
-    <div className={`eb-space-y-6 ${className}`} data-testid={testId}>
+    <div 
+      className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-space-y-6 ${className}`} 
+      data-testid={testId}
+    >
 
       
-      {/* Main Header */}
+      {/* Main Header - Aligned with LinkedAccountWidget pattern */}
       <Card>
-        <CardHeader>
-          <CardTitle className="eb-flex eb-items-center eb-justify-between">
-            <span>Who are your beneficial owners?</span>
-            <div className="eb-flex eb-gap-2">
+        <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+          <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
+            <div>
+              <CardTitle className="eb-font-header eb-text-lg eb-font-semibold @md:eb-text-xl">
+                Who are your beneficial owners?{' '}
+                {beneficialOwners.length > 0 && (
+                  <span className="eb-animate-fade-in">
+                    ({beneficialOwners.length} added)
+                  </span>
+                )}
+              </CardTitle>
+              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+                A beneficial owner is an individual who owns 25% or more of your business, either directly or through other companies.
+              </p>
+            </div>
+            <div className="eb-flex eb-items-center eb-gap-2">
               {!readOnly && (
                 <Button
                   onClick={handleAddOwner}
-                  className="eb-flex eb-items-center eb-gap-2"
+                  variant="outline"
+                  size="sm"
+                  className="eb-shrink-0 eb-bg-background"
                 >
-                  <Plus className="eb-h-4 eb-w-4" />
+                  <Plus className="eb-mr-1.5 eb-h-4 eb-w-4" />
                   Add Beneficial Owner
                 </Button>
               )}
@@ -141,31 +158,48 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                 onClick={handleComplete}
                 disabled={!validationSummary.canComplete || readOnly}
                 variant={validationSummary.canComplete ? 'default' : 'outline'}
+                size="sm"
               >
                 Complete
               </Button>
             </div>
-          </CardTitle>
-          <p className="eb-text-sm eb-text-muted-foreground eb-mt-2">
-            A beneficial owner is an individual who owns 25% or more of your business, either directly or through other companies.
-          </p>
+          </div>
         </CardHeader>
-        <CardContent className="eb-space-y-4">
+        <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
           {/* Current Ownership Structure */}
           <div>
             <h3 className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3">Current Ownership Structure:</h3>
             {beneficialOwners.length === 0 ? (
-              <div className="eb-p-6 eb-border eb-rounded eb-bg-muted eb-text-center">
-                <User className="eb-h-12 eb-w-12 eb-mx-auto eb-text-muted-foreground eb-mb-3" />
-                <p className="eb-text-muted-foreground eb-mb-2">No beneficial owners added yet</p>
-                <p className="eb-text-sm eb-text-muted-foreground">
-                  Click "Add Beneficial Owner" to get started
-                </p>
+              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12 eb-text-center eb-animate-fade-in">
+                <div className="eb-relative">
+                  <div className="eb-rounded-full eb-bg-muted eb-p-4">
+                    <User className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
+                  </div>
+                  <div className="eb-absolute -eb-bottom-1 -eb-right-1 eb-rounded-full eb-bg-background eb-p-0.5">
+                    <Plus className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="eb-space-y-1">
+                  <h3 className="eb-text-base eb-font-semibold eb-text-foreground">
+                    No beneficial owners added yet
+                  </h3>
+                  <p className="eb-max-w-sm eb-text-sm eb-text-muted-foreground">
+                    Click "Add Beneficial Owner" to get started building your ownership structure
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="eb-space-y-3">
-                {beneficialOwners.map((owner) => (
-                  <div key={owner.id} className="eb-p-4 eb-border eb-rounded eb-bg-white eb-shadow-sm">
+              <div className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-3">
+                {beneficialOwners.map((owner, index) => (
+                  <div 
+                    key={owner.id} 
+                    className="eb-animate-fade-in eb-overflow-hidden eb-rounded-lg eb-border eb-bg-card eb-text-card-foreground eb-shadow-sm eb-transition-shadow"
+                    style={{
+                      animationDelay: `${index * 50}ms`,
+                      animationFillMode: 'backwards',
+                    }}
+                  >
+                    <div className="eb-p-4">
                     <div className="eb-flex eb-items-center eb-justify-between">
                       <div className="eb-flex eb-items-center eb-gap-3">
                         <div className="eb-flex eb-items-center eb-gap-2">
@@ -193,6 +227,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             onClick={() => handleBuildHierarchy(owner.id)}
                             size="sm"
                             variant="outline"
+                            className="eb-shrink-0 eb-bg-background"
                           >
                             Build Ownership Hierarchy
                           </Button>
@@ -202,8 +237,9 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             onClick={() => handleEditHierarchy(owner.id)}
                             size="sm"
                             variant="outline"
+                            className="eb-shrink-0 eb-bg-background"
                           >
-                            <Edit className="eb-h-4 eb-w-4" />
+                            <Edit className="eb-mr-1.5 eb-h-4 eb-w-4" />
                             Edit Chain
                           </Button>
                         )}
@@ -212,9 +248,9 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             onClick={() => handleRemoveOwner(owner.id)}
                             size="sm"
                             variant="outline"
-                            className="eb-text-destructive eb-hover:bg-destructive/5"
+                            className="eb-shrink-0 eb-bg-background eb-text-destructive eb-hover:bg-destructive/5"
                           >
-                            <Trash2 className="eb-h-4 eb-w-4" />
+                            <Trash2 className="eb-mr-1.5 eb-h-4 eb-w-4" />
                             Remove
                           </Button>
                         )}
@@ -266,6 +302,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                         </div>
                       </div>
                     )}
+                    </div>
                   </div>
                 ))}
               </div>
