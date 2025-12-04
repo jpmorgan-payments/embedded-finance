@@ -45,89 +45,32 @@ type Story = StoryObj<typeof meta>;
 // Sample owners for stories matching the requested character examples
 const monicaGeller: BeneficialOwner = {
   id: 'monica-001',
+  name: 'Monica Geller',
+  type: 'individual',
+  ownershipPercentage: 55,
+  isDirectOwner: true,
   firstName: 'Monica',
-  lastName: 'Geller',
-  ownershipType: 'DIRECT',
-  status: 'COMPLETE',
-  meets25PercentThreshold: true,
-  createdAt: new Date(),
-  updatedAt: new Date()
+  lastName: 'Geller'
 };
 
 const rossGeller: BeneficialOwner = {
   id: 'ross-001', 
+  name: 'Ross Geller',
+  type: 'individual',
+  ownershipPercentage: 25,
+  isDirectOwner: false,
   firstName: 'Ross',
-  lastName: 'Geller',
-  ownershipType: 'INDIRECT',
-  status: 'COMPLETE',
-  meets25PercentThreshold: true,
-  ownershipHierarchy: {
-    id: 'hierarchy-ross-001',
-    steps: [
-      {
-        id: 'step-1',
-        entityName: 'Central Perk Coffee',
-        entityType: 'COMPANY' as const,
-        hasOwnership: true,
-        ownsRootBusinessDirectly: true,
-        level: 1,
-        metadata: {
-          ownershipPercentage: 25,
-          verificationStatus: 'VERIFIED' as const
-        }
-      }
-    ],
-    isValid: true,
-    meets25PercentThreshold: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  createdAt: new Date(),
-  updatedAt: new Date()
+  lastName: 'Geller'
 };
 
 const rachelGreen: BeneficialOwner = {
   id: 'rachel-001',
+  name: 'Rachel Green', 
+  type: 'individual',
+  ownershipPercentage: 20,
+  isDirectOwner: false,
   firstName: 'Rachel',
-  lastName: 'Green',
-  ownershipType: 'INDIRECT',
-  status: 'COMPLETE',
-  meets25PercentThreshold: false,
-  ownershipHierarchy: {
-    id: 'hierarchy-rachel-001',
-    steps: [
-      {
-        id: 'step-1',
-        entityName: 'Cookie Co.',
-        entityType: 'COMPANY' as const,
-        hasOwnership: true,
-        ownsRootBusinessDirectly: false,
-        level: 1,
-        metadata: {
-          ownershipPercentage: 20,
-          verificationStatus: 'VERIFIED' as const
-        }
-      },
-      {
-        id: 'step-2',
-        entityName: 'Central Perk Cookie',
-        entityType: 'COMPANY' as const,
-        hasOwnership: true,
-        ownsRootBusinessDirectly: true,
-        level: 2,
-        metadata: {
-          ownershipPercentage: 20,
-          verificationStatus: 'VERIFIED' as const
-        }
-      }
-    ],
-    isValid: true,
-    meets25PercentThreshold: false,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  createdAt: new Date(),
-  updatedAt: new Date()
+  lastName: 'Green'
 };
 
 /**
@@ -170,14 +113,12 @@ export const ErrorState: Story = {
     initialOwners: [
       {
         id: 'incomplete-001',
-        firstName: 'Monica',
-        lastName: 'Geller',
-        ownershipType: 'DIRECT',
-        status: 'ERROR',
-        meets25PercentThreshold: true,
-        validationErrors: ['Incomplete ownership information'],
-        createdAt: new Date(),
-        updatedAt: new Date()
+        name: 'Monica Geller',
+        type: 'individual',
+        ownershipPercentage: 75, // Not 100%, creating validation error
+        isDirectOwner: true,
+        firstName: 'Monica', 
+        lastName: 'Geller'
       }
     ],
     readOnly: false,
