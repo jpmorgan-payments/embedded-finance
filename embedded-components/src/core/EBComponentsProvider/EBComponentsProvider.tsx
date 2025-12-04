@@ -122,6 +122,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
             headers: {
               ...config.headers,
               ...headers,
+              ...(clientId ? { client_id: clientId } : {}),
             },
             params: {
               ...config.params,
