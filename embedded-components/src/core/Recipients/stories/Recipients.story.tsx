@@ -5,11 +5,11 @@ import {
   mockEmptyRecipientsResponse,
   mockRecipientsResponse,
 } from '@/mocks/recipients.mock';
-import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, within } from '@test-utils';
+import { userEvent, within } from '@storybook/testing-library';
+import { http, HttpResponse } from 'msw';
+import { SELLSENSE_THEME } from '@storybook-themes';
 
-import { SELLSENSE_THEME } from '../../../../.storybook/themes';
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { MakePayment } from '../../MakePayment';
 import { Recipients } from '../Recipients';
@@ -687,7 +687,7 @@ export const SellSenseTheme: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: { ...SELLSENSE_THEME, colorScheme: 'light' },
+    theme: SELLSENSE_THEME,
     contentTokens: { name: 'enUS' },
   },
   tags: ['@sellsense', '@theme'],
@@ -709,7 +709,7 @@ export const DarkSellSenseTheme: Story = {
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: { ...SELLSENSE_THEME, colorScheme: 'dark' },
+    theme: { ...SELLSENSE_THEME, colorScheme: 'dark' }, // Explicitly override for dark mode demo
     contentTokens: { name: 'enUS' },
   },
   tags: ['@sellsense', '@theme'],

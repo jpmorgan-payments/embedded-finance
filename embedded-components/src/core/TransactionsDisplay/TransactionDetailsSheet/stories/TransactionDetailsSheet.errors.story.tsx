@@ -1,5 +1,5 @@
-import { http, HttpResponse } from 'msw';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
 
 import { Button } from '@/components/ui/button';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';

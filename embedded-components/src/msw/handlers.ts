@@ -13,7 +13,16 @@ import { http, HttpResponse } from 'msw';
 
 import { CreateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 
-import { db, getDbStatus, handleMagicValues, logDbState, resetDb } from './db';
+import {
+  db,
+  dbLogger,
+  getActiveRecipients,
+  getDbStatus,
+  handleMagicValues,
+  logDbState,
+  resetDb,
+  verifyMicrodeposit,
+} from './db';
 
 export const handlers = [
   http.get(`/clients/:clientId`, (req) => {
@@ -519,22 +528,179 @@ export const handlers = [
     return HttpResponse.json(verificationResponse);
   }),
 
-  // Add missing handlers for unhandled requests
-  http.get('/recipients', () => {
+  // Recipient endpoints
+  http.get('/recipients', ({ request }) => {
+    const url = new URL(request.url);
+    const clientId = url.searchParams.get('clientId');
+
+    // Get active recipients (filter out INACTIVE and REJECTED)
+    const recipients = getActiveRecipients(clientId || undefined);
+
     return HttpResponse.json({
-      recipients: [],
-      metadata: { total: 0 },
+      recipients,
+      page: 0,
+      limit: 100,
+      total_items: recipients.length,
     });
   }),
 
   http.get('/recipients/:id', ({ params }) => {
     const { id } = params;
-    return HttpResponse.json({
-      id,
-      name: `Recipient ${id}`,
-      accountNumber: '****1234',
-      routingNumber: '123456789',
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: id } },
     });
+
+    if (!recipient) {
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        },
+        { status: 404 }
+      );
+    }
+
+    // Don't return INACTIVE or REJECTED recipients
+    if (recipient.status === 'INACTIVE' || recipient.status === 'REJECTED') {
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        },
+        { status: 404 }
+      );
+    }
+
+    return HttpResponse.json(recipient);
+  }),
+
+  http.post(
+    '/recipients/:id/verify-microdeposit',
+    async ({ params, request }) => {
+      const { id } = params;
+      const body = await request.json();
+      const amounts = body?.amounts || [];
+
+      if (!Array.isArray(amounts) || amounts.length !== 2) {
+        return HttpResponse.json(
+          {
+            httpStatus: 400,
+            title: 'Invalid amounts provided',
+            context: [
+              {
+                field: 'amounts',
+                reason: 'Must provide exactly 2 amounts',
+              },
+            ],
+          },
+          { status: 400 }
+        );
+      }
+
+      const result = verifyMicrodeposit(id as string, amounts);
+
+      if (result.error) {
+        return HttpResponse.json(result.error, {
+          status: result.error.httpStatus,
+        });
+      }
+
+      return HttpResponse.json(result);
+    }
+  ),
+
+  http.post('/recipients', async ({ request }) => {
+    const body = await request.json();
+    const timestamp = new Date().toISOString();
+    const newRecipientId = `recipient-${Date.now()}`;
+
+    const newRecipient = {
+      id: newRecipientId,
+      type: body?.type || 'LINKED_ACCOUNT',
+      status: 'MICRODEPOSITS_INITIATED',
+      clientId: body?.clientId,
+      partyDetails: body?.partyDetails || {},
+      account: body?.account || {},
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      verificationAttempts: 0,
+    };
+
+    db.recipient.create(newRecipient);
+    logDbState('Recipient Created');
+
+    return HttpResponse.json(newRecipient, { status: 201 });
+  }),
+
+  http.post('/recipients/:id', async ({ params, request }) => {
+    const { id } = params;
+    const body = await request.json();
+
+    dbLogger('[MSW] POST /recipients/:id called with:', { id, body });
+
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: id } },
+    });
+
+    if (!recipient) {
+      dbLogger('[MSW] Recipient not found with ID:', id);
+      const allRecipients = db.recipient.getAll();
+      dbLogger(
+        '[MSW] Available recipients:',
+        allRecipients.map((r) => ({ id: r.id, status: r.status }))
+      );
+
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+        },
+        { status: 404 }
+      );
+    }
+
+    dbLogger('[MSW] Found recipient before update:', recipient);
+
+    const updatedRecipient = db.recipient.update({
+      where: { id: { equals: id } },
+      data: {
+        ...recipient,
+        ...body,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    dbLogger('[MSW] Updated recipient:', updatedRecipient);
+    logDbState('Recipient Updated');
+
+    return HttpResponse.json(updatedRecipient);
+  }),
+
+  http.delete('/recipients/:id', ({ params }) => {
+    const { id } = params;
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: id } },
+    });
+
+    if (!recipient) {
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+        },
+        { status: 404 }
+      );
+    }
+
+    db.recipient.delete({
+      where: { id: { equals: id } },
+    });
+
+    logDbState('Recipient Deleted');
+
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.get('/accounts', () => {

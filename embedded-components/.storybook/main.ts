@@ -1,6 +1,7 @@
-import { mergeConfig } from 'vite';
+import { resolve } from 'path';
 import { withoutVitePlugins } from '@storybook/builder-vite';
 import type { StorybookConfig } from '@storybook/react-vite';
+import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
   stories: [
@@ -20,6 +21,12 @@ const config: StorybookConfig = {
   viteFinal: async (config, { configType }) => {
     config.plugins = await withoutVitePlugins(config.plugins, ['vite:dts']);
     return mergeConfig(config, {
+      resolve: {
+        alias: {
+          '@': resolve(__dirname, '../src'),
+          '@storybook-themes': resolve(__dirname, './themes'),
+        },
+      },
       build: {
         sourcemap: 'inline',
       },
@@ -27,6 +34,34 @@ const config: StorybookConfig = {
         fs: {
           allow: ['../'],
         },
+      },
+      optimizeDeps: {
+        include: [
+          '@storybook/testing-library',
+          'msw',
+          '@radix-ui/react-slot',
+          'class-variance-authority',
+          '@mswjs/data',
+          'clsx',
+          'dompurify',
+          'tailwind-merge',
+          'react-day-picker',
+          '@radix-ui/react-alert-dialog',
+          '@radix-ui/react-dialog',
+          '@radix-ui/react-checkbox',
+          'react-hook-form',
+          '@radix-ui/react-select',
+          'cmdk',
+          '@radix-ui/react-separator',
+          '@radix-ui/react-popover',
+          '@radix-ui/react-radio-group',
+          '@radix-ui/react-label',
+          '@radix-ui/react-scroll-area',
+          '@radix-ui/react-tooltip',
+          '@radix-ui/react-dropdown-menu',
+          '@hookform/resolvers/zod',
+          '@radix-ui/react-collapsible',
+        ],
       },
     });
   },

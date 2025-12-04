@@ -2,6 +2,130 @@
 
 This document catalogues the most prominent UI/UX patterns extracted from the embedded-components codebase. These patterns complement the [Salt Design System patterns](https://www.saltdesignsystem.com/salt/patterns) and follow [Atomic Design principles](https://atomicdesign.bradfrost.com/chapter-2/) and [Nielsen's Usability Heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/).
 
+---
+
+## Pattern Refinement Matrix
+
+This matrix tracks the implementation status of UI/UX patterns across all embedded finance components. Each pattern is grouped by functional area, with a brief description and current implementation status per component.
+
+### Pattern Descriptions
+
+**Data Display & Security**
+
+- **Sensitive Data Masking**: Display sensitive information (account numbers, routing numbers) with masking and reveal toggle functionality
+- **Status Badges**: Consistent status indicators using badge components with semantic colors
+- **Compact Details**: Single-column, minimal-gap layout for displaying complex resource details in dialogs
+- **Field Toggle**: Toggle control for showing/hiding optional or empty fields in detail views
+- **Detail Navigation**: Pattern for navigating from data grids/tables/cards to detailed views (Dialog/Modal, Sheet, Drawer options)
+
+**Forms & Validation**
+
+- **Progressive Validation**: Multi-stage form validation with real-time feedback and schema-driven validation
+- **Dialog Forms**: Forms presented in modal dialogs with scrollable content and proper focus management
+- **Multi-Mode Forms**: Forms that support multiple input modes (existing selection vs. manual entry)
+- **Config-Driven Forms**: Forms that adapt their fields, validation, and behavior based on configuration objects
+- **Wizard/Stepper**: Multi-step wizard with progress tracking, step validation, and state persistence
+- **Review Panel**: Side-by-side review panel that shows form summary and updates in real-time
+
+**Data Tables & Lists**
+
+- **Responsive Table/Cards**: Data tables that adapt to mobile screens by transforming into card layouts
+- **Enhanced Data Grid**: Powerful data tables with TanStack Table providing sorting, filtering, pagination, and column visibility
+- **Filter & Search**: Combined search and filter controls with real-time filtering and clear filters action
+- **Pagination**: Server-side pagination with page size controls, navigation buttons, and result count display
+
+**User Feedback & States**
+
+- **Loading Skeletons**: Skeleton loading states that match the final content structure
+- **Error with Retry**: Consistent error handling with actionable retry mechanisms
+- **Empty States**: Helpful empty states that guide users on next actions when no data is available
+- **Success States**: Dedicated success screens after form submission with next action options
+
+**Navigation & Flow**
+
+- **Timeline/Progress**: Visual timeline showing progress with clickable sections and completion tracking
+- **Container Queries**: Responsive layouts using container queries instead of viewport queries
+
+**Component Control**
+
+- **Ref Control**: Exposing component methods to parent components via refs for programmatic control
+- **Clipboard Copy**: Copy-to-clipboard functionality for sensitive data fields with visual feedback
+- **Confirmation Dialog**: Confirmation dialogs for destructive actions with clear explanation of consequences
+- **Staggered Animation**: Staggered fade-in animations for list items to create a polished appearance
+
+**Technical Patterns** (see Technical Patterns section below)
+
+- **i18n Integration**: Multi-language support with namespace organization and translation hooks
+- **OAS-Driven API Integration**: Type-safe React Query hooks generated from OpenAPI Specifications
+- **API Error Mapping**: Mapping API error responses to form field errors and user-friendly messages
+- **Custom Hooks Pattern**: Extracting complex business logic into reusable custom hooks
+- **Context Provider Pattern**: Managing shared application state through React Context providers
+- **Interceptor Status Pattern**: Waiting until API interceptors are ready before making requests
+
+### Implementation Status Matrix
+
+| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | MakePayment | TransactionsDisplay | Recipients  |
+| --------------------------- | -------------- | -------- | ------------------- | ----------- | ------------------- | ----------- |
+| **Data Display & Security** |
+| Sensitive Data Masking      | -              | ✅       | -                   | -           | ⚠️ Needs            | ⚠️ Partial  |
+| Status Badges               | -              | ✅       | ✅                  | -           | ✅                  | ✅          |
+| Compact Details             | -              | ⚠️ Needs | ⚠️ Needs            | -           | ✅                  | ✅          |
+| Field Toggle                | -              | ✅       | -                   | -           | ✅                  | ⚠️ Needs    |
+| Detail Navigation           | -              | ⚠️ Needs | ⚠️ Needs            | -           | ✅ (Dialog)         | ✅ (Dialog) |
+| **Forms & Validation**      |
+| Progressive Validation      | ⚠️ Partial     | -        | -                   | ✅          | -                   | ✅          |
+| Dialog Forms                | ⚠️ Partial     | -        | ✅                  | ✅          | -                   | ✅          |
+| Multi-Mode Forms            | -              | -        | ⚠️ Needs            | ✅          | -                   | ⚠️ Low Prio |
+| Config-Driven Forms         | ⚠️ Partial     | -        | -                   | ⚠️ Needs    | -                   | ✅          |
+| Wizard/Stepper              | ✅             | -        | ⚠️ Needs            | ⚠️ Needs    | -                   | -           |
+| Review Panel                | ⚠️ Needs       | -        | -                   | ✅          | -                   | ⚠️ Low Prio |
+| **Data Tables & Lists**     |
+| Responsive Table/Cards      | -              | ✅       | -                   | -           | ✅                  | ✅          |
+| Enhanced Data Grid          | -              | -        | -                   | -           | ✅                  | ⚠️ Needs    |
+| Filter & Search             | -              | -        | -                   | -           | ✅                  | ✅          |
+| Pagination                  | -              | -        | -                   | -           | ✅                  | ✅          |
+| **User Feedback & States**  |
+| Loading Skeletons           | ⚠️ Partial     | ✅       | ✅                  | -           | ⚠️ Needs            | ✅          |
+| Error with Retry            | ✅             | ✅       | ✅                  | -           | ✅                  | ✅          |
+| Empty States                | -              | ✅       | ✅                  | -           | ⚠️ Basic            | ✅          |
+| Success States              | -              | -        | ⚠️ Needs            | ✅          | -                   | ⚠️ Needs    |
+| **Navigation & Flow**       |
+| Timeline/Progress           | ✅             | -        | ⚠️ Needs            | ⚠️ Needs    | -                   | -           |
+| Container Queries           | -              | ✅       | ✅                  | -           | -                   | ✅          |
+| **Component Control**       |
+| Ref Control                 | -              | ✅       | ⚠️ Needs            | -           | ✅                  | ⚠️ Needs    |
+| Clipboard Copy              | -              | ✅       | -                   | -           | ✅                  | ⚠️ Needs    |
+| Confirmation Dialog         | -              | -        | ✅                  | -           | -                   | ✅          |
+| Staggered Animation         | -              | ✅       | ✅                  | -           | ⚠️ Needs            | ⚠️ Needs    |
+| **Technical Patterns**      |
+| i18n Integration            | ✅             | ✅       | ✅                  | ✅          | ⚠️ Needs            | ⚠️ Needs    |
+
+**Legend**:
+
+- ✅ = Well-implemented
+- ⚠️ Needs = Pattern exists but needs refinement/implementation
+- ⚠️ Partial = Partially implemented (some aspects done, others missing)
+- ⚠️ Basic = Basic implementation, could be enhanced
+- ⚠️ Low Prio = Pattern would be nice-to-have but lower priority for this component
+- - = Not applicable
+
+### UX Testing Findings Integration
+
+Based on the UX Testing Report (December 2, 2025), the following issues have been identified and reflected in the matrix:
+
+**Critical Issues Identified:**
+
+- **Make Payment**: Form discoverability issue (hidden behind button) - Review Panel pattern needs improvement
+- **Button Style Inconsistency**: Status Badges pattern needs standardization across all components
+- **Account Number Masking**: Inconsistent masking patterns (4 vs 8 asterisks) - Sensitive Data Masking needs standardization
+- **Filter Labels**: Inconsistent capitalization ("All Status" vs "All statuses") - Filter & Search pattern needs standardization
+- **Pagination Format**: Inconsistent text formats - Pagination pattern needs standardization
+- **Missing Tooltips**: Icon-only buttons lack tooltips - Component Control patterns need enhancement
+- **Responsive Design**: Recipients table has horizontal scrollbar - Responsive Table/Cards needs improvement
+- **Data Quality**: Many "N/A" values and "$NaN" display issues - Compact Details and Field Toggle patterns need refinement
+
+---
+
 ## Pattern Organization
 
 Patterns are organized by Atomic Design hierarchy:
@@ -95,7 +219,7 @@ const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
 
 **Refinement Needed**:
 
-- ⚠️ **Accounts**: Could use status badges for account states
+- ✅ **Accounts**: Implements status badges for account states (OPEN, CLOSED, PENDING, SUSPENDED) with semantic color mapping
 - ⚠️ **TransactionsDisplay**: Status badges for transaction states need consistency
 
 **Usability Alignment**:
@@ -241,7 +365,7 @@ if (isError) {
 
 **Refinement Needed**:
 
-- ⚠️ **Accounts**: Error state could be more detailed
+- ✅ **Accounts**: Error state implemented with Alert component and retry button following Recipients pattern
 - ⚠️ **TransactionsDisplay**: Error handling could include more context
 
 **Usability Alignment**:
@@ -293,7 +417,7 @@ if (isError) {
 
 **Refinement Needed**:
 
-- ⚠️ **Accounts**: Empty state could suggest creating accounts
+- ✅ **Accounts**: Empty state implemented with icon, title, and actionable guidance following LinkedAccountWidget pattern
 - ⚠️ **TransactionsDisplay**: Empty state could be more informative
 
 **Usability Alignment**:
@@ -349,7 +473,7 @@ const isTablet = containerWidth >= 640 && containerWidth < 1024;
 **Refinement Needed**:
 
 - ⚠️ **TransactionsDisplay**: Mobile cards could include more transaction details
-- ⚠️ **Accounts**: Could benefit from responsive card/table pattern
+- ✅ **Accounts**: Implements responsive card layout with useElementWidth hook for mobile/desktop adaptation
 
 **Usability Alignment**:
 
@@ -927,6 +1051,346 @@ For resources with history or timeline information, display in a dedicated secti
 
 ---
 
+### Detail Navigation Pattern
+
+**Description**: Pattern for navigating from data grids, tables, or cards to detailed resource views. Defines when to use Dialog (Modal), Sheet (Side Panel), or Drawer (Full Screen) for displaying detail information.
+
+**Current Implementation**:
+
+- **Primary**: `Recipients/Recipients.tsx` (Dialog for RecipientDetails)
+- **Secondary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx` (Dialog for TransactionDetails)
+- **Status**: ✅ Currently using Dialog (Modal) pattern consistently
+
+**Pattern Details**:
+
+```typescript
+// Current Dialog (Modal) implementation
+<Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+  <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
+    <DialogHeader>
+      <DialogTitle>Recipient: {recipientName}</DialogTitle>
+    </DialogHeader>
+    <div className="eb-scrollable-content">
+      <RecipientDetails recipient={selectedRecipient} />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+**Navigation Triggers**:
+
+Detail views are typically opened from:
+
+1. **Data Grid/Table Actions**:
+   - "Details" button in actions column
+   - "View transaction details" button
+   - Click on row (if enabled)
+
+2. **Card Actions**:
+   - "Details" button on card
+   - "View" button
+   - Click on card (if enabled)
+
+3. **Menu Actions**:
+   - "View Details" from dropdown menu
+   - "More Info" from context menu
+
+**Available Options**:
+
+#### Option 1: Dialog (Modal) - Current Implementation
+
+**Description**: Centered modal dialog that overlays the entire viewport.
+
+**Implementation**:
+
+```typescript
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+<Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
+    <DialogHeader>
+      <DialogTitle>Resource: {resourceName}</DialogTitle>
+    </DialogHeader>
+    <div className="eb-scrollable-content">
+      <ResourceDetails {...props} />
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+**Pros**:
+
+- ✅ Focuses user attention on detail view
+- ✅ Works well for embedded contexts (doesn't require full viewport)
+- ✅ Familiar pattern (widely used)
+- ✅ Good for medium-length content
+- ✅ Easy to implement (shadcn/ui Dialog component)
+- ✅ Maintains context of parent view (visible behind overlay)
+
+**Cons**:
+
+- ❌ Limited width (max-width constraints)
+- ❌ Can feel cramped for very long content
+- ❌ Blocks entire viewport (even with backdrop)
+- ❌ May not feel native on mobile devices
+
+**Best For**:
+
+- Medium-length detail views (5-15 fields)
+- Quick reference/details
+- Embedded component contexts
+- When parent context should remain visible
+
+**Current Usage**:
+
+- ✅ Recipients: RecipientDetails in Dialog
+- ✅ TransactionsDisplay: TransactionDetails in Dialog
+
+---
+
+#### Option 2: Sheet (Side Panel)
+
+**Description**: Side panel that slides in from right/left, overlaying part of the viewport while keeping parent view partially visible.
+
+**Implementation**:
+
+```typescript
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+
+<Sheet open={isOpen} onOpenChange={setIsOpen}>
+  <SheetContent side="right" className="eb-w-full sm:eb-w-[540px] lg:eb-w-[640px]">
+    <SheetHeader>
+      <SheetTitle>Resource: {resourceName}</SheetTitle>
+    </SheetHeader>
+    <div className="eb-scrollable-content">
+      <ResourceDetails {...props} />
+    </div>
+  </SheetContent>
+</Sheet>
+```
+
+**Pros**:
+
+- ✅ More horizontal space than modal
+- ✅ Parent view remains partially visible (better context)
+- ✅ Feels more native on desktop
+- ✅ Good for longer content
+- ✅ Smooth slide-in animation
+- ✅ Better for comparison workflows
+
+**Cons**:
+
+- ❌ Requires more viewport width
+- ❌ May not work well in narrow embedded contexts
+- ❌ Parent view partially obscured
+- ❌ Less focus than modal
+
+**Best For**:
+
+- Longer detail views (15+ fields)
+- When parent context is important
+- Desktop-focused applications
+- Comparison workflows (viewing multiple resources)
+
+**Available Components**:
+
+- ✅ `@/components/ui/sheet` (shadcn/ui Sheet component available)
+
+---
+
+#### Option 3: Drawer (Full Screen)
+
+**Description**: Full-screen drawer that slides in from bottom (mobile) or side (desktop), taking over the entire viewport within the component container.
+
+**Implementation**:
+
+```typescript
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+
+<Drawer open={isOpen} onOpenChange={setIsOpen}>
+  <DrawerContent className="eb-max-h-[96vh]">
+    <DrawerHeader>
+      <DrawerTitle>Resource: {resourceName}</DrawerTitle>
+    </DrawerHeader>
+    <div className="eb-scrollable-content eb-px-4 eb-pb-4">
+      <ResourceDetails {...props} />
+    </div>
+  </DrawerContent>
+</Drawer>
+```
+
+**Pros**:
+
+- ✅ Maximum space for content
+- ✅ Excellent for very long detail views
+- ✅ Mobile-first approach (slides from bottom)
+- ✅ Full focus on detail content
+- ✅ Good for complex forms within details
+
+**Cons**:
+
+- ❌ Completely hides parent view
+- ❌ May feel overwhelming for simple details
+- ❌ Less context preservation
+- ❌ Requires more scrolling for navigation
+
+**Best For**:
+
+- Very long detail views (20+ fields)
+- Mobile-first applications
+- Complex detail views with nested information
+- When full focus is required
+
+**Available Components**:
+
+- ✅ `@/components/ui/drawer` (shadcn/ui Drawer component available)
+
+---
+
+#### Option 4: Inline Expansion (Alternative)
+
+**Description**: Expand detail view inline within the table/card, pushing other content down.
+
+**Implementation**:
+
+```typescript
+// Inline expansion in table row
+{expandedRowId === recipient.id ? (
+  <TableRow>
+    <TableCell colSpan={columns.length}>
+      <RecipientDetails recipient={recipient} />
+    </TableCell>
+  </TableRow>
+) : null}
+```
+
+**Pros**:
+
+- ✅ No overlay/blocking
+- ✅ All context remains visible
+- ✅ Good for quick details
+- ✅ No navigation required
+
+**Cons**:
+
+- ❌ Limited space
+- ❌ Can push content off-screen
+- ❌ Not ideal for long content
+- ❌ Can disrupt table layout
+
+**Best For**:
+
+- Quick reference details (3-5 fields)
+- Expandable rows in tables
+- When space is not a concern
+
+---
+
+### Decision Criteria
+
+**Use Dialog (Modal) when**:
+
+- ✅ Detail view has 5-15 fields
+- ✅ Quick reference/details needed
+- ✅ Embedded component context
+- ✅ Parent context should remain visible
+- ✅ Standard detail view pattern
+
+**Use Sheet (Side Panel) when**:
+
+- ✅ Detail view has 15+ fields
+- ✅ Desktop-focused application
+- ✅ Parent context is important
+- ✅ Comparison workflows needed
+- ✅ More horizontal space required
+
+**Use Drawer (Full Screen) when**:
+
+- ✅ Detail view has 20+ fields
+- ✅ Mobile-first application
+- ✅ Complex nested information
+- ✅ Full focus required
+- ✅ Maximum space needed
+
+**Use Inline Expansion when**:
+
+- ✅ Quick reference (3-5 fields)
+- ✅ No overlay desired
+- ✅ Space is not a concern
+- ✅ Expandable row pattern
+
+---
+
+### Recommended Standardization
+
+**Current State**: All components use Dialog (Modal) pattern
+
+**Recommendation**: **Standardize on Dialog (Modal) for consistency** with option to use Sheet for specific use cases:
+
+1. **Default**: Dialog (Modal) for all detail views
+   - Consistent user experience
+   - Works well in embedded contexts
+   - Familiar pattern
+
+2. **Exception**: Sheet (Side Panel) for very long detail views
+   - Use when detail view exceeds 20 fields
+   - Use when comparison workflows are needed
+   - Document exception in component
+
+3. **Mobile Consideration**:
+   - Dialog can be full-width on mobile (`eb-max-w-full` on small screens)
+   - Drawer can be used for mobile-specific flows if needed
+
+**Implementation Pattern**:
+
+```typescript
+// Standardized detail navigation hook
+export function useDetailNavigation<T>(resource: T | null) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [useSheet, setUseSheet] = useState(false); // For long content
+
+  const openDetails = useCallback(
+    (resource: T, options?: { useSheet?: boolean }) => {
+      setSelectedResource(resource);
+      setUseSheet(options?.useSheet ?? false);
+      setIsOpen(true);
+    },
+    []
+  );
+
+  const closeDetails = useCallback(() => {
+    setIsOpen(false);
+    setSelectedResource(null);
+  }, []);
+
+  return {
+    isOpen,
+    useSheet,
+    selectedResource,
+    openDetails,
+    closeDetails,
+  };
+}
+```
+
+**Refinement Needed**:
+
+- ⚠️ **Decision Pending**: Standardize on Dialog vs. allow Sheet/Drawer options
+- ⚠️ **Accounts**: Could add detail view navigation
+- ⚠️ **LinkedAccountWidget**: Could add detail view navigation
+- ⚠️ **Consistency**: Ensure all detail views use same pattern
+- ⚠️ **Mobile Optimization**: Consider mobile-specific patterns
+
+**Usability Alignment**:
+
+- ✅ **User Control**: Easy to open/close detail views
+- ✅ **Recognition Rather Than Recall**: Consistent navigation pattern
+- ✅ **Flexibility & Efficiency**: Quick access to details
+- ✅ **Visibility of System Status**: Clear indication of detail view state
+- ✅ **Aesthetic & Minimalist Design**: Appropriate use of space
+
+---
+
 ### Filter & Search Pattern
 
 **Description**: Combined search and filter controls with real-time filtering, clear filters action, and filter state persistence.
@@ -1186,7 +1650,7 @@ export const CONTAINER_BREAKPOINTS = {
 **Refinement Needed**:
 
 - ✅ **Recipients**: Implements container-based responsive detection via `useElementWidth` hook with `isMobile` and `isTablet` breakpoints
-- ⚠️ **Accounts**: Could use container queries for card layouts
+- ✅ **Accounts**: Implements container-based responsive detection via `useElementWidth` hook with `isMobile` breakpoint for card layout adaptation
 
 **Usability Alignment**:
 
@@ -1784,9 +2248,8 @@ const paymentData = usePaymentData(paymentMethods, form);
 
 **Implementation**:
 
-- **Primary**: `IndirectOwnership/IndirectOwnership.tsx` (lines 1664-1793)
-- **Secondary**: `LinkedAccountWidget/components/RemoveAccountDialog/RemoveAccountDialog.tsx`
-- **Tertiary**: `Recipients/Recipients.tsx` (deactivate confirmation)
+- **Primary**: `LinkedAccountWidget/components/RemoveAccountDialog/RemoveAccountDialog.tsx`
+- **Secondary**: `Recipients/Recipients.tsx` (deactivate confirmation)
 - **Status**: ✅ Well-implemented with consequence explanation
 
 **Pattern Details**:
@@ -1851,8 +2314,7 @@ const paymentData = usePaymentData(paymentMethods, form);
 
 **Implementation**:
 
-- **Primary**: `IndirectOwnership/IndirectOwnership.tsx` (lines 506-827)
-- **Status**: ✅ Well-implemented with recursive rendering
+- **Status**: ⚠️ Pattern exists but not currently implemented in active components
 
 **Pattern Details**:
 
@@ -1969,6 +2431,7 @@ const renderParty = (party, depth = 0) => {
 
 **Refinement Needed**:
 
+- ✅ **Accounts**: Implements staggered fade-in animation for account cards with 50ms delay
 - ⚠️ **Recipients**: Could add staggered animation to recipient cards
 - ⚠️ **TransactionsDisplay**: Could add staggered animation to mobile cards
 
@@ -2029,7 +2492,6 @@ const renderField = (label: string, value: any) => {
 **Refinement Needed**:
 
 - ⚠️ **Recipients**: RecipientDetails could use this pattern
-- ⚠️ **IndirectOwnership**: Could add toggle for optional party details
 
 **Usability Alignment**:
 
@@ -2046,7 +2508,7 @@ const renderField = (label: string, value: any) => {
 **Implementation**:
 
 - **Primary**: All components using `useTranslation` hook
-- **Status**: ✅ Well-implemented in MakePayment, LinkedAccountWidget, OnboardingFlow, IndirectOwnership
+- **Status**: ✅ Well-implemented in MakePayment, LinkedAccountWidget, OnboardingFlow
 
 **Pattern Details**:
 
@@ -2085,7 +2547,7 @@ const { t } = useTranslation(['make-payment']);
 
 **Refinement Needed**:
 
-- ⚠️ **Accounts**: Missing i18n integration
+- ✅ **Accounts**: i18n integration implemented with useTranslation hook and translation keys with default values
 - ⚠️ **Recipients**: Partial i18n (some hardcoded strings)
 - ⚠️ **TransactionsDisplay**: Partial i18n
 
@@ -2184,48 +2646,6 @@ const contentTokens = useContext(ContentTokensContext);
 
 ---
 
-## Pattern Refinement Matrix
-
-| Pattern                    | Accounts | Recipients  | MakePayment | TransactionsDisplay | OnboardingFlow | LinkedAccountWidget | IndirectOwnership |
-| -------------------------- | -------- | ----------- | ----------- | ------------------- | -------------- | ------------------- | ----------------- |
-| **Sensitive Data Masking** | ✅       | ⚠️ Partial  | -           | ⚠️ Needs            | -              | -                   | -                 |
-| **Status Badges**          | ⚠️ Needs | ✅          | -           | ✅                  | -              | ✅                  | ✅                |
-| **Progressive Validation** | -        | ✅          | ✅          | -                   | ⚠️ Partial     | -                   | -                 |
-| **Loading Skeletons**      | ✅       | ✅          | -           | ⚠️ Needs            | ⚠️ Partial     | ✅                  | ✅                |
-| **Error with Retry**       | ⚠️ Basic | ✅          | -           | ✅                  | ✅             | ✅                  | ⚠️ Basic          |
-| **Empty States**           | ⚠️ Basic | ✅          | -           | ⚠️ Basic            | -              | ✅                  | ⚠️ Basic          |
-| **Responsive Table/Cards** | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | ✅                |
-| **Enhanced Data Grid**     | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | -                 |
-| **Dialog Forms**           | -        | ✅          | ✅          | -                   | ⚠️ Partial     | ✅                  | ✅                |
-| **Compact Details**        | ⚠️ Needs | ✅          | -           | ✅                  | -              | ⚠️ Needs            | -                 |
-| **Filter & Search**        | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | -                 |
-| **Review Panel**           | -        | ⚠️ Low Prio | ✅          | -                   | ⚠️ Needs       | -                   | -                 |
-| **Wizard/Stepper**         | -        | -           | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            | ⚠️ Needs          |
-| **Timeline/Progress**      | -        | -           | ⚠️ Needs    | -                   | ✅             | ⚠️ Needs            | -                 |
-| **Container Queries**      | ⚠️ Needs | ✅          | -           | -                   | -              | ✅                  | -                 |
-| **Ref Control**            | ✅       | ⚠️ Needs    | -           | ✅                  | -              | ⚠️ Needs            | ⚠️ Needs          |
-| **Config-Driven Forms**    | -        | ✅          | ⚠️ Needs    | -                   | ⚠️ Partial     | -                   | ⚠️ Needs          |
-| **Multi-Mode Forms**       | -        | ⚠️ Low Prio | ✅          | -                   | -              | ⚠️ Needs            | -                 |
-| **Success States**         | -        | ⚠️ Needs    | ✅          | -                   | -              | ⚠️ Needs            | -                 |
-| **Pagination**             | ⚠️ Needs | ✅          | -           | ✅                  | -              | -                   | -                 |
-| **Clipboard Copy**         | ✅       | -           | -           | ✅                  | -              | -                   | -                 |
-| **Confirmation Dialog**    | -        | ✅          | -           | -                   | -              | ✅                  | ✅                |
-| **Hierarchical Data**      | -        | -           | -           | -                   | -              | -                   | ✅                |
-| **Staggered Animation**    | -        | -           | -           | -                   | -              | ✅                  | -                 |
-| **Field Toggle**           | ✅       | -           | -           | ✅                  | -              | -                   | ⚠️ Needs          |
-| **i18n Integration**       | ⚠️ Needs | ⚠️ Needs    | ✅          | ⚠️ Needs            | ✅             | ✅                  | ✅                |
-
-**Legend**:
-
-- ✅ = Well-implemented
-- ⚠️ Needs = Pattern exists but needs refinement/implementation
-- ⚠️ Partial = Partially implemented (some aspects done, others missing)
-- ⚠️ Basic = Basic implementation, could be enhanced
-- ⚠️ Low Prio = Pattern would be nice-to-have but lower priority for this component
-- - = Not applicable
-
----
-
 ## Best Practices Summary
 
 ### Atomic Design Alignment
@@ -2253,39 +2673,36 @@ const contentTokens = useContext(ContentTokensContext);
 
 ## Recommendations for Pattern Enhancement
 
-### High Priority
+### High Priority (Based on UX Testing Report)
 
-1. **Standardize Status Badge System**: Create shared status badge component with consistent variants (Accounts needs it)
-2. **Enhance Sensitive Data Masking**: Add reveal toggle to Recipients (masking implemented, toggle missing), add masking to TransactionsDisplay
-3. **Enhance Error States**: Improve error handling in Accounts and IndirectOwnership (both have basic error states)
-4. **Loading Skeletons for TransactionsDisplay**: Replace "Loading transactions..." text with proper skeleton structure
-5. **i18n Standardization**: Add internationalization to Accounts, Recipients, and TransactionsDisplay (currently missing or partial)
+1. **Standardize Status Badge System**: Create shared status badge component with consistent variants and colors across all components (UX Issue: Button style inconsistency)
+2. **Standardize Sensitive Data Masking**: Fix inconsistent masking patterns (4 vs 8 asterisks) - always show last 4 digits with 4 asterisks (UX Issue: Account number masking inconsistency)
+3. **Improve Make Payment Form Discoverability**: Add visual hints or preview that form opens on button click, improve field ordering consistency between tabs (UX Issue: Form discoverability)
+4. **Standardize Filter Labels**: Use consistent capitalization ("All Statuses", "All Types" - title case, plural) across Recipients and TransactionsDisplay (UX Issue: Filter label inconsistency)
+5. **Standardize Pagination Format**: Use consistent text format ("Showing 1-3 of 3" or "3 total") and default rows per page (10 or 25) across all components (UX Issue: Pagination format inconsistency)
+6. **Add Tooltips to Icon-Only Buttons**: Add tooltips and ARIA labels to all icon-only buttons (UX Issue: Missing tooltips)
+7. **Fix Data Quality Issues**: Fix "$NaN" display in Transaction Details, populate or hide "N/A" fields, improve Field Toggle pattern (UX Issue: Data quality)
 
 ### Medium Priority
 
-1. **Container Query Migration**: Migrate Accounts to container queries (Recipients uses `useElementWidth`, LinkedAccountWidget uses `@container`)
-2. **Success State Standardization**: Add success toast/confirmation to Recipients and LinkedAccountWidget after create/edit
-3. **Ref Control Enhancement**: Add ref-based control to Recipients, LinkedAccountWidget, and IndirectOwnership
-4. **Clipboard Copy Pattern**: Add copy-to-clipboard to Recipients (account numbers) and MakePayment (reference IDs)
-5. **Staggered Animation Pattern**: Apply to Recipients cards and TransactionsDisplay mobile cards for polish
+1. **Enhance Error States**: Improve error handling in Accounts (currently basic implementation)
+2. **Loading Skeletons for TransactionsDisplay**: Replace "Loading transactions..." text with proper skeleton structure
+3. **Container Query Migration**: Migrate Accounts to container queries (Recipients uses `useElementWidth`, LinkedAccountWidget uses `@container`)
+4. **Success State Standardization**: Add success toast/confirmation to Recipients and LinkedAccountWidget after create/edit
+5. **Ref Control Enhancement**: Add ref-based control to Recipients and LinkedAccountWidget
+6. **Clipboard Copy Pattern**: Add copy-to-clipboard to Recipients (account numbers) and MakePayment (reference IDs)
+7. **Responsive Design Fixes**: Fix horizontal scrollbar in Recipients table, implement responsive table design (UX Issue: Responsive design)
+8. **i18n Standardization**: Add internationalization to Accounts, Recipients, and TransactionsDisplay (currently missing or partial)
 
 ### Low Priority
 
 1. **Wizard Pattern Extraction**: Extract wizard pattern from OnboardingFlow for reuse in MakePayment and LinkedAccountWidget
 2. **Filter & Search Enhancement**: Add search/filter to Accounts
 3. **Multi-Mode Form Pattern**: Extend to LinkedAccountWidget (manual account entry option)
-4. **Configuration-Driven Forms**: Enhance MakePayment, OnboardingFlow, and IndirectOwnership with more configuration options
-5. **Field Toggle Pattern**: Add show/hide empty fields toggle to Recipients details and IndirectOwnership
-6. **Hierarchical Data Component**: Extract IndirectOwnership's tree pattern into reusable TreeView component
-
-### New Component Considerations (IndirectOwnership)
-
-The IndirectOwnership component introduces several patterns that could be shared:
-
-1. **Hierarchical Data Pattern**: Tree-based data rendering with recursive accordions
-2. **Tab Navigation Pattern**: Simple tab-based view switching without routing
-3. **Validation Summary Pattern**: Real-time validation with error aggregation
-4. **Inline Action Buttons**: Add/delete actions directly in tree nodes
+4. **Configuration-Driven Forms**: Enhance MakePayment and OnboardingFlow with more configuration options
+5. **Field Toggle Pattern**: Add show/hide empty fields toggle to Recipients details
+6. **Staggered Animation Pattern**: Apply to Recipients cards and TransactionsDisplay mobile cards for polish
+7. **Enhanced Data Grid Migration**: Migrate Recipients table to Enhanced Data Grid pattern (TanStack Table)
 
 ---
 
@@ -2297,4 +2714,4 @@ The IndirectOwnership component introduces several patterns that could be shared
 
 ---
 
-_Last Updated: Comprehensive analysis of all core components including Accounts, Recipients, MakePayment, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget, and IndirectOwnership. Added 6 new patterns: Clipboard Copy, Confirmation Dialog, Hierarchical Data, Staggered Animation, Field Toggle, and i18n Integration._
+_Last Updated: Refined pattern matrix with logical grouping, UX testing findings integration, and component reordering (OnboardingFlow, Accounts, LinkedAccountWidget, MakePayment, TransactionsDisplay, Recipients). Removed IndirectOwnership references. Matrix now includes pattern descriptions and reflects December 2025 UX testing findings._

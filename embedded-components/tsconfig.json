@@ -20,8 +20,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@test-utils": ["./test-utils"],
-      "@storybook/*": [".storybook/*"]
+      "@storybook-themes": ["./.storybook/themes"]
     }
   },
-  "include": ["src", "test-utils", ".storybook"]
+  "include": ["src", "test-utils", ".storybook/*"]
 }

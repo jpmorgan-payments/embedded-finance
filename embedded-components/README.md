@@ -595,505 +595,303 @@ const TransactionsSection = () => {
 
 ## Theming
 
-The library supports comprehensive theming through the EBComponentsProvider. Components can be styled to match your application's design system using theme tokens.
+The library supports comprehensive theming through the EBComponentsProvider. Components can be styled to match your application's design system using semantic design tokens.
 
-The `EBComponentsProvider` accepts a `theme` prop that allows for extensive customization of the components' appearance. The theme object can include the following properties:
+### Design Token System
 
-- `colorScheme`: 'dark' | 'light' | 'system'
-- `variables`: An object containing various theme variables
-- `light`: Light theme-specific variables
-- `dark`: Dark theme-specific variables
+The design token naming follows the [Salt Design System](https://www.saltdesignsystem.com/salt/themes/design-tokens/how-to-read-tokens) semantic nomenclature. Tokens are organized by **characteristics** that group tokens sharing the same purpose or intent.
 
-### Theme Design Tokens
+#### Token Format
 
-The design token system provides a comprehensive set of customization options that can be used in the `variables`, `light`, and `dark` properties of the theme configuration. Tokens are processed and converted to CSS variables with the `--eb-` prefix for use throughout the component library.
-
-#### Implementation Details
-
-The design token system works through a multi-stage process:
-
-1. **Definition**: Tokens are defined in the `EBThemeVariables` type
-2. **Processing**: Tokens are transformed into CSS variables via the `convertThemeToCssVariables` function
-3. **Color Handling**: All colors are normalized to HSL format for consistent manipulation
-4. **Inheritance**: Many tokens can inherit from parent tokens (e.g., `buttonBorderRadius` from `borderRadius`)
-5. **Default Values**: The system applies smart defaults when values are not explicitly provided
-6. **Dark/Light Mode**: Separate token sets can be defined for light and dark modes
-7. **Output**: Tokens become CSS variables with the `--eb-` prefix for use in components
-
-#### Typography Tokens
-
-| Token Name                 | Description                                       | Type   | Default                    | Usage Context                                             |
-| -------------------------- | ------------------------------------------------- | ------ | -------------------------- | --------------------------------------------------------- |
-| `fontFamily`               | Primary font stack for all text elements          | String | `"Geist"`                  | Applied globally to all text elements as base font        |
-| `headerFontFamily`         | Specialized font stack for headings               | String | Inherits from `fontFamily` | Used for h1-h6 elements to maintain visual hierarchy      |
-| `buttonFontFamily`         | Font stack for button elements                    | String | Inherits from `fontFamily` | Used for consistent typography across all action elements |
-| `formLabelFontSize`        | Text size for form field labels                   | String | `"0.875rem"` (14px)        | Provides appropriate visual weight for form labels        |
-| `formLabelLineHeight`      | Vertical spacing for form labels                  | String | `"1.25rem"` (20px)         | Ensures consistent spacing in dense form layouts          |
-| `formLabelFontWeight`      | Weight of form label text                         | String | `"500"` (medium)           | Balances readability with sufficient emphasis             |
-| `formLabelForegroundColor` | Color of form label text                          | String | `"hsl(240 10% 3.9%)"`      | Provides accessible contrast for form labels              |
-| `buttonFontWeight`         | Weight of button text                             | String | `"500"` (medium)           | Ensures button text is clearly visible and legible        |
-| `buttonFontSize`           | Size of button text                               | String | `"0.875rem"` (14px)        | Optimized for tap targets and readability                 |
-| `buttonLineHeight`         | Vertical spacing in buttons                       | String | `"1.25rem"` (20px)         | Creates proper vertical alignment for button content      |
-| `buttonTextTransform`      | Text capitalization for buttons                   | String | `"none"`                   | Controls case presentation of button text                 |
-| `buttonLetterSpacing`      | Horizontal spacing between letters in button text | String | `"0em"`                    | Fine-tunes readability of button labels                   |
-
-#### Color System Tokens
-
-| Token Name               | Description                               | Type   | Default                       | Color Role                                                          |
-| ------------------------ | ----------------------------------------- | ------ | ----------------------------- | ------------------------------------------------------------------- |
-| `backgroundColor`        | Base page background                      | String | `"hsl(0 0% 100%)"`            | Provides the foundation layer for all content                       |
-| `foregroundColor`        | Primary text color                        | String | `"hsl(240 10% 3.9%)"`         | Main content text with optimal contrast ratio                       |
-| `primaryColor`           | Main brand color                          | String | `"#155C93"`                   | Used for primary actions, brand representation, and key UI elements |
-| `primaryHoverColor`      | Hover state for primary elements          | String | Auto-calculated (90% opacity) | Visual feedback for interactive primary elements                    |
-| `primaryActiveColor`     | Active/pressed state for primary elements | String | Auto-calculated               | Confirms user interaction with primary elements                     |
-| `primaryForegroundColor` | Text on primary background                | String | `"hsl(0 0% 98%)"`             | Ensures readable text on primary-colored backgrounds                |
-| `secondaryColor`         | Supporting color                          | String | `"hsl(240 4.8% 95.9%)"`       | Used for secondary actions and supporting UI elements               |
-| `destructiveColor`       | Error/warning color                       | String | `"hsl(0 84.2% 60.2%)"`        | Signals destructive actions or error states                         |
-| `destructiveAccentColor` | Light variation of destructive color      | String | `"#FFECEA"`                   | Used as background for destructive alerts/notices                   |
-| `informativeColor`       | Information notification color            | String | `"#0078CF"`                   | Used for information alerts and notices                             |
-| `informativeAccentColor` | Light variation of informative color      | String | `"#EAF6FF"`                   | Background for informative message containers                       |
-| `warningColor`           | Alert/caution color                       | String | `"#C75300"`                   | Indicates caution states requiring attention                        |
-| `warningAccentColor`     | Light variation of warning color          | String | `"#FFECD9"`                   | Background for warning message containers                           |
-| `successColor`           | Positive confirmation color               | String | `"#00875D"`                   | Indicates successful operations                                     |
-| `successAccentColor`     | Light variation of success color          | String | `"#EAF5F2"`                   | Background for success message containers                           |
-| `mutedColor`             | Subtle background color                   | String | `"hsl(240 4.8% 95.9%)"`       | Used for secondary containers and disabled elements                 |
-| `mutedForegroundColor`   | Subtle text color                         | String | `"hsl(240 3.8% 46.1%)"`       | Used for helper text, placeholders, and disabled content            |
-| `cardColor`              | Background for card components            | String | `"hsl(0 0% 100%)"`            | Provides visual separation for card-based content                   |
-| `cardForegroundColor`    | Text color for card elements              | String | `"hsl(240 10% 3.9%)"`         | Ensures readable text on card backgrounds                           |
-| `popoverColor`           | Background for popover components         | String | `"hsl(0 0% 100%)"`            | Creates consistent background for popovers and tooltips             |
-| `popoverForegroundColor` | Text color for popovers                   | String | `"hsl(240 10% 3.9%)"`         | Maintains readable text in popover elements                         |
-| `alertColor`             | Background color for alerts               | String | `"hsl(0 0% 100%)"`            | Provides base for alert components                                  |
-| `alertForegroundColor`   | Text color for alerts                     | String | `"hsl(240 10% 3.9%)"`         | Ensures readable alert messages                                     |
-| `accentColor`            | Color for UI accents                      | String | `"hsl(240 4.8% 95.9%)"`       | Highlights specific UI elements                                     |
-| `accentForegroundColor`  | Text on accent background                 | String | `"hsl(240 5.9% 10%)"`         | Ensures readable text on accent backgrounds                         |
-| `borderColor`            | Color for UI boundaries                   | String | `"hsl(240 5.9% 90%)"`         | Creates subtle visual division between UI sections                  |
-| `inputColor`             | Background for input fields               | String | `"hsl(0 0% 100%)"`            | Establishes consistent background for form inputs                   |
-| `inputBorderColor`       | Border color for input fields             | String | `"hsl(240 5.9% 90%)"`         | Creates visual boundaries for form elements                         |
-| `ringColor`              | Color for focus indicators                | String | `"hsl(240 10% 3.9%)"`         | Provides accessible focus indication for keyboard navigation        |
-
-#### Spacing and Layout Tokens
-
-| Token Name           | Description                         | Type   | Default                      | Layout Impact                                                  |
-| -------------------- | ----------------------------------- | ------ | ---------------------------- | -------------------------------------------------------------- |
-| `spacingUnit`        | Base unit for spacing scale         | String | `"0.25rem"` (4px)            | Establishes consistent spacing rhythm throughout the interface |
-| `borderRadius`       | Default corner rounding             | String | `"0.375rem"` (6px)           | Defines the global corner style for UI elements                |
-| `inputBorderRadius`  | Corner rounding for form fields     | String | Inherits from `borderRadius` | Maintains consistent visual style for input elements           |
-| `buttonBorderRadius` | Corner rounding for buttons         | String | Inherits from `borderRadius` | Ensures visual consistency across interactive elements         |
-| `zIndexOverlay`      | Stacking order for overlay elements | Number | `100`                        | Controls layering of modal dialogs, tooltips, and popovers     |
-
-#### Component-Specific Tokens
-
-| Token Name                    | Description                           | Type    | Default                          | Component Usage                                                             |
-| ----------------------------- | ------------------------------------- | ------- | -------------------------------- | --------------------------------------------------------------------------- |
-| `primaryBorderWidth`          | Border width for primary elements     | String  | `"0rem"`                         | Controls border visibility on primary buttons and elements                  |
-| `secondaryBorderWidth`        | Border width for secondary elements   | String  | `"0rem"`                         | Controls border visibility on secondary buttons and elements                |
-| `destructiveBorderWidth`      | Border width for destructive elements | String  | `"0rem"`                         | Controls border visibility on destructive buttons and alerts                |
-| `primaryButtonFontWeight`     | Font weight for primary buttons       | String  | Inherits from `buttonFontWeight` | Can be used to emphasize primary actions                                    |
-| `secondaryButtonFontWeight`   | Font weight for secondary buttons     | String  | Inherits from `buttonFontWeight` | Provides consistent typography for secondary actions                        |
-| `destructiveButtonFontWeight` | Font weight for destructive buttons   | String  | Inherits from `buttonFontWeight` | Maintains consistent typography for destructive actions                     |
-| `shiftButtonOnActive`         | Controls button press animation       | Boolean | `true`                           | When true, provides 1px downward shift on button press for tactile feedback |
-
-#### Example Usage in Components
-
-Design tokens are applied as Tailwind CSS classes with the `eb-` prefix:
-
-```tsx
-<div className="eb-bg-background eb-font-sans eb-text-foreground">
-  <button className="eb-rounded eb-bg-primary eb-text-primary-foreground">
-    Submit
-  </button>
-</div>
+```
+[characteristic][Specifier][Variant][Property][State]
 ```
 
-The complete theme configuration is converted to CSS variables and applied to the document. For example, the `primaryColor` token becomes the `--eb-primary` CSS variable that can be used throughout the component library.
+- **Characteristic** (required): Groups tokens by purpose (e.g., `actionable`, `container`, `content`)
+- **Specifier**: Subset within a characteristic (e.g., `Primary`, `Secondary`)
+- **Variant**: Variation within a set (e.g., `Accent`)
+- **Property** (required): UI attribute (e.g., `Background`, `Foreground`, `BorderColor`)
+- **State**: Element condition (e.g., `Hover`, `Active`)
 
-### Theme Usage Example
+#### Characteristics
+
+| Characteristic | Purpose                                              |
+| -------------- | ---------------------------------------------------- |
+| `content`      | Typography and text properties                       |
+| `container`    | Surfaces, backgrounds, and layout areas              |
+| `actionable`   | Interactive elements (buttons, links)                |
+| `editable`     | Form inputs and text fields                          |
+| `overlayable`  | Popovers, dialogs, tooltips                          |
+| `navigable`    | Sidebars and navigation elements                     |
+| `separable`    | Borders and dividers                                 |
+| `focused`      | Focus ring indicators                                |
+| `sentiment`    | Emotional states (negative, positive, caution)       |
+| `status`       | Informational states (info, error, success, warning) |
+| `accent`       | Highlight and metric colors                          |
+
+### Theme Configuration
+
+The `EBComponentsProvider` accepts a `theme` prop with these properties:
+
+- `colorScheme`: `'dark'` | `'light'` | `'system'`
+- `variables`: Tokens applied to all color schemes
+- `light`: Light mode-specific tokens
+- `dark`: Dark mode-specific tokens
+
+```jsx
+<EBComponentsProvider
+  apiBaseUrl="https://api.example.com"
+  theme={{
+    colorScheme: 'light',
+    variables: {
+      contentFontFamily: 'Inter, system-ui, sans-serif',
+      separableBorderRadius: '0.5rem',
+    },
+    light: {
+      containerBackground: '#ffffff',
+      actionablePrimaryBackground: '#2563eb',
+    },
+    dark: {
+      containerBackground: '#1f2937',
+      actionablePrimaryBackground: '#3b82f6',
+    },
+  }}
+>
+  {/* Components */}
+</EBComponentsProvider>
+```
+
+### Design Token Reference
+
+#### Content Tokens (Typography)
+
+| Token                     | Description                | Default   |
+| ------------------------- | -------------------------- | --------- |
+| `contentFontFamily`       | Primary font for body text | `"Geist"` |
+| `contentHeaderFontFamily` | Font for headings (h1-h6)  | Inherits  |
+
+#### Container Tokens (Surfaces)
+
+| Token                          | Description             | Light Default         | Dark Default          |
+| ------------------------------ | ----------------------- | --------------------- | --------------------- |
+| `containerBackground`          | Base page background    | `hsl(0 0% 100%)`      | `hsl(240 10% 3.9%)`   |
+| `contentPrimaryForeground`     | Primary text color      | `hsl(240 10% 3.9%)`   | `hsl(0 0% 98%)`       |
+| `containerPrimaryBackground`   | Card/panel background   | `hsl(0 0% 100%)`      | `hsl(240 10% 3.9%)`   |
+| `containerPrimaryForeground`   | Text on cards/panels    | `hsl(240 10% 3.9%)`   | `hsl(0 0% 98%)`       |
+| `containerSecondaryBackground` | Muted/subtle background | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
+| `containerSecondaryForeground` | Subtle text color       | `hsl(240 3.8% 46.1%)` | `hsl(240 5% 64.9%)`   |
+
+#### Actionable Tokens (Buttons)
+
+| Token                     | Description                 | Default      |
+| ------------------------- | --------------------------- | ------------ |
+| `actionableFontFamily`    | Button font family          | Inherits     |
+| `actionableFontWeight`    | Button text weight          | `"500"`      |
+| `actionableFontSize`      | Button text size            | `"0.875rem"` |
+| `actionableLineHeight`    | Button line height          | `"1.25rem"`  |
+| `actionableTextTransform` | Text transform              | `"none"`     |
+| `actionableLetterSpacing` | Letter spacing              | `"0em"`      |
+| `actionableBorderRadius`  | Button corner radius        | Inherits     |
+| `actionableShiftOnActive` | Press animation (1px shift) | `true`       |
+
+**Primary Variant:**
+
+| Token                               | Description               | Light Default   | Dark Default    |
+| ----------------------------------- | ------------------------- | --------------- | --------------- |
+| `actionablePrimaryBackground`       | Primary button background | `#155C93`       | `#155C93`       |
+| `actionablePrimaryBackgroundHover`  | Hover background          | Auto (90%)      | Auto (90%)      |
+| `actionablePrimaryBackgroundActive` | Active background         | -               | -               |
+| `actionablePrimaryForeground`       | Primary button text       | `hsl(0 0% 98%)` | `hsl(0 0% 98%)` |
+| `actionablePrimaryBorderWidth`      | Border width              | `"0rem"`        | `"0rem"`        |
+| `actionablePrimaryFontWeight`       | Font weight override      | Inherits        | Inherits        |
+
+**Secondary Variant:**
+
+| Token                                | Description                 | Light Default         | Dark Default          |
+| ------------------------------------ | --------------------------- | --------------------- | --------------------- |
+| `actionableSecondaryBackground`      | Secondary button background | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
+| `actionableSecondaryBackgroundHover` | Hover background            | Auto (90%)            | Auto (90%)            |
+| `actionableSecondaryForeground`      | Secondary button text       | `hsl(240 5.9% 10%)`   | `hsl(0 0% 98%)`       |
+| `actionableSecondaryBorderWidth`     | Border width                | `"0rem"`              | `"0rem"`              |
+
+#### Editable Tokens (Form Inputs)
+
+| Token                     | Description         | Light Default       | Dark Default          |
+| ------------------------- | ------------------- | ------------------- | --------------------- |
+| `editableBackground`      | Input background    | `hsl(0 0% 100%)`    | `hsl(240 3.7% 15.9%)` |
+| `editableBorderColor`     | Input border color  | `hsl(240 5.9% 90%)` | `hsl(240 3.7% 15.9%)` |
+| `editableBorderRadius`    | Input corner radius | Inherits            | Inherits              |
+| `editableLabelFontSize`   | Label text size     | `"0.875rem"`        | `"0.875rem"`          |
+| `editableLabelLineHeight` | Label line height   | `"1.25rem"`         | `"1.25rem"`           |
+| `editableLabelFontWeight` | Label font weight   | `"500"`             | `"500"`               |
+| `editableLabelForeground` | Label text color    | `hsl(240 10% 3.9%)` | `hsl(0 0% 98%)`       |
+
+#### Overlayable Tokens (Dialogs, Popovers)
+
+| Token                   | Description               | Light Default       | Dark Default        |
+| ----------------------- | ------------------------- | ------------------- | ------------------- |
+| `overlayableBackground` | Dialog/popover background | `hsl(0 0% 100%)`    | `hsl(240 10% 3.9%)` |
+| `overlayableForeground` | Dialog/popover text       | `hsl(240 10% 3.9%)` | `hsl(0 0% 98%)`     |
+| `overlayableZIndex`     | Overlay stacking order    | `100`               | `100`               |
+
+#### Navigable Tokens (Sidebar, Navigation)
+
+| Token                       | Description          | Light Default         | Dark Default          |
+| --------------------------- | -------------------- | --------------------- | --------------------- |
+| `navigableBackground`       | Sidebar background   | `hsl(0 0% 98%)`       | `hsl(240 5.9% 10%)`   |
+| `navigableForeground`       | Sidebar text         | `hsl(240 5.3% 26.1%)` | `hsl(240 4.8% 95.9%)` |
+| `navigableAccentBackground` | Active nav item bg   | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
+| `navigableAccentForeground` | Active nav item text | `hsl(240 5.9% 10%)`   | `hsl(240 4.8% 95.9%)` |
+
+#### Separable Tokens (Borders)
+
+| Token                   | Description           | Light Default       | Dark Default          |
+| ----------------------- | --------------------- | ------------------- | --------------------- |
+| `separableBorderColor`  | Default border color  | `hsl(240 5.9% 90%)` | `hsl(240 3.7% 15.9%)` |
+| `separableBorderRadius` | Default corner radius | `"0.375rem"`        | `"0.375rem"`          |
+
+#### Focused Tokens (Focus Indicators)
+
+| Token              | Description      | Light Default       | Dark Default          |
+| ------------------ | ---------------- | ------------------- | --------------------- |
+| `focusedRingColor` | Focus ring color | `hsl(240 10% 3.9%)` | `hsl(240 4.9% 83.9%)` |
+
+#### Sentiment Tokens (Emotional States)
+
+**Negative** (Destructive actions):
+
+| Token                               | Description            | Light Default        | Dark Default     |
+| ----------------------------------- | ---------------------- | -------------------- | ---------------- |
+| `sentimentNegativeBackground`       | Destructive btn bg     | `hsl(0 84.2% 60.2%)` | `hsl(0 74% 54%)` |
+| `sentimentNegativeBackgroundHover`  | Hover background       | Auto (90%)           | Auto (90%)       |
+| `sentimentNegativeForeground`       | Destructive btn text   | `hsl(0 0% 98%)`      | `hsl(0 0% 98%)`  |
+| `sentimentNegativeAccentBackground` | Error alert background | `#FFECEA`            | `#FFECEA`        |
+| `sentimentNegativeBorderWidth`      | Border width           | `"0rem"`             | `"0rem"`         |
+
+**Positive** (Success states):
+
+| Token                               | Description              | Default   |
+| ----------------------------------- | ------------------------ | --------- |
+| `sentimentPositiveForeground`       | Success indicator color  | `#00875D` |
+| `sentimentPositiveAccentBackground` | Success alert background | `#EAF5F2` |
+
+**Caution** (Warning states):
+
+| Token                              | Description              | Default   |
+| ---------------------------------- | ------------------------ | --------- |
+| `sentimentCautionForeground`       | Warning indicator color  | `#C75300` |
+| `sentimentCautionAccentBackground` | Warning alert background | `#FFECD9` |
+
+#### Status Tokens (Informational States)
+
+| Token                        | Description           | Default   |
+| ---------------------------- | --------------------- | --------- |
+| `statusInfoForeground`       | Info indicator color  | `#0078CF` |
+| `statusInfoAccentBackground` | Info alert background | `#EAF6FF` |
+
+#### Accent Tokens (Highlights)
+
+| Token                    | Description        | Light Default         | Dark Default          |
+| ------------------------ | ------------------ | --------------------- | --------------------- |
+| `accentBackground`       | Accent background  | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
+| `accentForeground`       | Accent text        | `hsl(240 5.9% 10%)`   | `hsl(0 0% 98%)`       |
+| `accentMetricBackground` | Data visualization | -                     | -                     |
+
+#### Layout Tokens
+
+| Token         | Description             | Default     |
+| ------------- | ----------------------- | ----------- |
+| `spacingUnit` | Base spacing multiplier | `"0.25rem"` |
+
+### Backward Compatibility
+
+All legacy token names (e.g., `primaryColor`, `backgroundColor`, `fontFamily`) remain fully supported. The new semantic names are preferred for new implementations.
+
+| Legacy Token             | New Semantic Token              |
+| ------------------------ | ------------------------------- |
+| `fontFamily`             | `contentFontFamily`             |
+| `backgroundColor`        | `containerBackground`           |
+| `foregroundColor`        | `contentPrimaryForeground`      |
+| `primaryColor`           | `actionablePrimaryBackground`   |
+| `primaryForegroundColor` | `actionablePrimaryForeground`   |
+| `secondaryColor`         | `actionableSecondaryBackground` |
+| `destructiveColor`       | `sentimentNegativeBackground`   |
+| `successColor`           | `sentimentPositiveForeground`   |
+| `warningColor`           | `sentimentCautionForeground`    |
+| `informativeColor`       | `statusInfoForeground`          |
+| `cardColor`              | `containerPrimaryBackground`    |
+| `mutedColor`             | `containerSecondaryBackground`  |
+| `popoverColor`           | `overlayableBackground`         |
+| `borderColor`            | `separableBorderColor`          |
+| `borderRadius`           | `separableBorderRadius`         |
+| `inputColor`             | `editableBackground`            |
+| `inputBorderColor`       | `editableBorderColor`           |
+| `ringColor`              | `focusedRingColor`              |
+| `zIndexOverlay`          | `overlayableZIndex`             |
+| `buttonFontWeight`       | `actionableFontWeight`          |
+| `buttonFontSize`         | `actionableFontSize`            |
+| `formLabelFontSize`      | `editableLabelFontSize`         |
+
+### Theme Inheritance
+
+The theme system uses a layered inheritance approach:
+
+1. **Base Layer**: `defaultTheme.variables` (always applied)
+2. **Global Override**: `theme.variables` (overrides base for all modes)
+3. **Mode-Specific**: `theme.light` or `theme.dark` (overrides for specific color scheme)
+
+### Complete Theme Example
 
 ```jsx
 import { EBComponentsProvider } from '@jpmorgan-payments/embedded-finance-components';
 
-const ThemedApplication = () => {
+function App() {
   return (
     <EBComponentsProvider
       apiBaseUrl="https://api.example.com"
       theme={{
         colorScheme: 'light',
         variables: {
-          fontFamily: 'Inter, system-ui, sans-serif',
-          primaryColor: '#2563eb',
-          borderRadius: '0.5rem',
-          buttonFontWeight: '600',
+          // Typography
+          contentFontFamily: 'Inter, system-ui, sans-serif',
+
+          // Layout
+          separableBorderRadius: '0.5rem',
+          spacingUnit: '0.25rem',
+
+          // Buttons
+          actionableFontWeight: '600',
+          actionableShiftOnActive: true,
         },
         light: {
-          backgroundColor: '#ffffff',
-          foregroundColor: '#1f2937',
-          cardColor: '#f9fafb',
+          // Surfaces
+          containerBackground: '#ffffff',
+          contentPrimaryForeground: '#1f2937',
+          containerPrimaryBackground: '#f9fafb',
+
+          // Primary actions
+          actionablePrimaryBackground: '#2563eb',
+          actionablePrimaryForeground: '#ffffff',
+
+          // Sentiment colors
+          sentimentPositiveForeground: '#059669',
+          sentimentNegativeBackground: '#dc2626',
+          sentimentCautionForeground: '#d97706',
+          statusInfoForeground: '#0284c7',
         },
         dark: {
-          backgroundColor: '#1f2937',
-          foregroundColor: '#f9fafb',
-          cardColor: '#374151',
+          containerBackground: '#111827',
+          contentPrimaryForeground: '#f9fafb',
+          containerPrimaryBackground: '#1f2937',
+          actionablePrimaryBackground: '#3b82f6',
         },
       }}
     >
-      {/* Your components */}
+      {/* Components */}
     </EBComponentsProvider>
   );
-};
-```
-
-## Adding Custom Themes
-
-The theme system supports three types of theme variables with different purposes and inheritance patterns:
-
-### Theme Variable Classification
-
-#### 1. **Override Variables** (Tailwind Default Overrides)
-
-These variables override default Tailwind CSS theme values and provide consistent design tokens across the component library.
-
-**When to use:** For fundamental design tokens that should be consistent across all components.
-
-**Examples:**
-
-- `fontFamily` - Overrides Tailwind's default sans font stack
-- `borderRadius` - Overrides Tailwind's default border radius scale
-- `spacingUnit` - Overrides Tailwind's default spacing scale
-- `zIndexOverlay` - Controls stacking order for overlays
-
-**Usage in Tailwind config:**
-
-```javascript
-// Overrides default Tailwind values
-fontFamily: {
-  sans: ['var(--eb-font-family)', ...defaultTheme.fontFamily.sans],
-},
-borderRadius: {
-  md: 'var(--eb-radius)',
-  button: 'var(--eb-button-radius)',
-},
-spacing: {
-  1: 'calc(var(--eb-spacing-unit) * 1)',
-  2: 'calc(var(--eb-spacing-unit) * 2)',
 }
 ```
-
-#### 2. **Semantic Color Variables** (Component-Specific Colors)
-
-These variables define semantic color relationships and are used throughout components for consistent theming.
-
-**When to use:** For color tokens that have semantic meaning and should adapt to light/dark modes.
-
-**Examples:**
-
-- `primaryColor` / `primaryForegroundColor` - Brand colors and text on primary backgrounds
-- `destructiveColor` / `destructiveForegroundColor` - Error states and actions
-- `mutedColor` / `mutedForegroundColor` - Secondary content and disabled states
-- `cardColor` / `cardForegroundColor` - Card backgrounds and text
-
-**Usage in components:**
-
-```tsx
-<button className="eb-bg-primary eb-text-primary-foreground">
-  Primary Action
-</button>
-<div className="eb-bg-destructive eb-text-destructive-foreground">
-  Error Message
-</div>
-```
-
-#### 3. **Component-Specific Variables** (Custom Design Tokens)
-
-These variables provide fine-grained control over specific component behaviors and appearances.
-
-**When to use:** For component-specific styling that doesn't fit into semantic color patterns.
-
-**Examples:**
-
-- `buttonFontWeight` / `buttonFontSize` - Button typography control
-- `formLabelFontSize` / `formLabelFontWeight` - Form label styling
-- `shiftButtonOnActive` - Button press animation control
-- `buttonTextTransform` - Button text capitalization
-
-**Usage in components:**
-
-```tsx
-<button className="eb-font-button eb-text-button">
-  Custom Button
-</button>
-<label className="eb-text-label eb-font-label">
-  Form Label
-</label>
-```
-
-### Theme Inheritance Hierarchy
-
-The theme system uses a layered inheritance approach:
-
-1. **Base Layer:** `defaultTheme.variables` (always applied)
-2. **Global Override:** `theme.variables` (overrides base for all modes)
-3. **Mode-Specific:** `theme.light` or `theme.dark` (overrides for specific color schemes)
-
-```jsx
-const customTheme = {
-  variables: {
-    // Applied to all modes, overrides defaults
-    fontFamily: 'Inter, sans-serif',
-    primaryColor: '#2563eb',
-  },
-  light: {
-    // Applied only in light mode, overrides variables
-    backgroundColor: '#ffffff',
-    cardColor: '#f9fafb',
-  },
-  dark: {
-    // Applied only in dark mode, overrides variables
-    backgroundColor: '#1f2937',
-    cardColor: '#374151',
-  },
-};
-```
-
-### Creating a Complete Custom Theme
-
-```jsx
-const customTheme = {
-  colorScheme: 'light',
-  variables: {
-    // Override variables (affect all modes)
-    fontFamily: 'Inter, system-ui, sans-serif',
-    borderRadius: '0.5rem',
-    spacingUnit: '0.25rem',
-    buttonFontWeight: '600',
-    buttonFontSize: '0.875rem',
-
-    // Semantic colors (base for all modes)
-    primaryColor: '#2563eb',
-    destructiveColor: '#dc2626',
-    successColor: '#059669',
-  },
-  light: {
-    // Light mode specific overrides
-    backgroundColor: '#ffffff',
-    foregroundColor: '#1f2937',
-    cardColor: '#f9fafb',
-    borderColor: '#e5e7eb',
-  },
-  dark: {
-    // Dark mode specific overrides
-    backgroundColor: '#111827',
-    foregroundColor: '#f9fafb',
-    cardColor: '#1f2937',
-    borderColor: '#374151',
-  },
-};
-```
-
-### Best Practices
-
-1. **Use Override Variables** for fundamental design tokens that should be consistent across your application
-2. **Use Semantic Color Variables** for color relationships that need light/dark mode support
-3. **Use Component-Specific Variables** sparingly for fine-grained component control
-4. **Test in both light and dark modes** when creating custom themes
-5. **Follow the inheritance hierarchy** to avoid unexpected overrides
-6. **Use HSL color format** for better color manipulation and consistency
-
-## Adding New Design Tokens
-
-To add a new design token to the theme system, follow these steps:
-
-### 1. **Define the Token Type**
-
-First, determine which category your new token belongs to:
-
-- **Override Variable**: If it should override a default Tailwind value
-- **Semantic Color Variable**: If it's a color with semantic meaning
-- **Component-Specific Variable**: If it's for specific component behavior
-
-### 2. **Add to Type Definition**
-
-Add your new token to the `EBThemeVariables` type in `src/core/EBComponentsProvider/config.types.ts`:
-
-```typescript
-export type EBThemeVariables = {
-  // ... existing tokens ...
-
-  // New token examples
-  customSpacing?: string; // Override variable
-  customAccentColor?: string; // Semantic color variable
-  customComponentBehavior?: boolean; // Component-specific variable
-};
-```
-
-### 3. **Add to Theme Conversion**
-
-Add the token to the `convertThemeVariablesToCssVariables` function in `src/core/EBComponentsProvider/convert-theme-to-css-variables.ts`:
-
-```typescript
-const convertThemeVariablesToCssVariables = (
-  variables: EBThemeVariables
-): CSSVariables => {
-  const cssVariablesObject: CSSVariables = {
-    // ... existing variables ...
-
-    // New CSS variable mapping
-    '--eb-custom-spacing': variables.customSpacing,
-    '--eb-custom-accent': colorToHsl(variables.customAccentColor),
-    '--eb-custom-behavior': variables.customComponentBehavior
-      ? 'value'
-      : undefined,
-  };
-
-  return cssVariablesObject;
-};
-```
-
-### 4. **Add to Tailwind Config** (if needed)
-
-If your token should be available as a Tailwind class, add it to `tailwind.config.js`. The configuration uses Tailwind's `theme.extend` to add new design tokens without overriding existing defaults:
-
-```javascript
-module.exports = {
-  theme: {
-    extend: {
-      // For spacing tokens
-      spacing: {
-        custom: 'var(--eb-custom-spacing)',
-      },
-
-      // For color tokens
-      colors: {
-        custom: {
-          DEFAULT: 'hsl(var(--eb-custom-accent))',
-        },
-      },
-
-      // For component-specific tokens
-      customProperty: {
-        behavior: 'var(--eb-custom-behavior)',
-      },
-    },
-  },
-};
-```
-
-#### How Tailwind Applies Design Tokens
-
-The `tailwind.config.js` file uses Tailwind's configuration system to map CSS custom properties to utility classes:
-
-1. **Theme Extension**: The `theme.extend` object adds new values to existing Tailwind categories without overriding defaults
-2. **CSS Variable Integration**: Design tokens are converted to CSS variables (e.g., `--eb-custom-spacing`) and referenced in the config
-3. **Utility Class Generation**: Tailwind automatically generates utility classes based on the configuration:
-   - `spacing` → `eb-p-{value}`, `eb-m-{value}`, `eb-gap-{value}`, etc.
-   - `colors` → `eb-bg-{color}`, `eb-text-{color}`, `eb-border-{color}`, etc.
-   - `borderRadius` → `eb-rounded-{value}`, `eb-rounded-t-{value}`, etc.
-   - `fontSize` → `eb-text-{size}`, `eb-text-{size}/{lineHeight}`, etc.
-
-4. **Prefix Application**: The `prefix: 'eb-'` setting ensures all generated classes are prefixed to avoid conflicts
-
-> **📚 Learn More**: For detailed information about how Tailwind's `theme.extend` configuration works, see the [official Tailwind CSS documentation on theme customization](https://tailwindcss.com/docs/theme#extending-the-default-theme).
-
-**Example Token Flow:**
-
-```javascript
-// 1. Theme variable defined
-customSpacing: '2rem'
-
-// 2. Converted to CSS variable
-'--eb-custom-spacing': '2rem'
-
-// 3. Added to Tailwind config
-spacing: {
-  custom: 'var(--eb-custom-spacing)',
-}
-
-// 4. Available as utility classes
-<div className="eb-p-custom">Content</div>
-<div className="eb-m-custom">Margin</div>
-<div className="eb-gap-custom">Grid gap</div>
-```
-
-### 5. **Add Default Value**
-
-Add a default value to `src/core/EBComponentsProvider/defaultTheme.ts`:
-
-```typescript
-export const defaultTheme: EBTheme = {
-  variables: {
-    // ... existing defaults ...
-    customSpacing: '1rem',
-    customAccentColor: '#3b82f6',
-    customComponentBehavior: true,
-  },
-  // ... rest of theme
-};
-```
-
-### 6. **Usage in Components**
-
-Use your new token in components:
-
-```tsx
-// For spacing tokens
-<div className="eb-p-custom">Content</div>
-
-// For color tokens
-<button className="eb-bg-custom eb-text-white">Button</button>
-
-// For component-specific tokens
-<div className="eb-custom-behavior">Component</div>
-```
-
-### 7. **Documentation**
-
-Update the README token tables to include your new token:
-
-```markdown
-| Token Name      | Description          | Type   | Default  | Usage Context                 |
-| --------------- | -------------------- | ------ | -------- | ----------------------------- |
-| `customSpacing` | Custom spacing value | String | `"1rem"` | Used for custom spacing needs |
-```
-
-### Example: Adding a Custom Border Radius Token
-
-```typescript
-// 1. Add to EBThemeVariables
-export type EBThemeVariables = {
-  // ... existing tokens ...
-  customBorderRadius?: string;
-};
-
-// 2. Add to conversion function
-const cssVariablesObject: CSSVariables = {
-  // ... existing variables ...
-  '--eb-custom-radius': variables.customBorderRadius,
-};
-
-// 3. Add to Tailwind config
-borderRadius: {
-  custom: 'var(--eb-custom-radius)',
-},
-
-// 4. Add default value
-export const defaultTheme: EBTheme = {
-  variables: {
-    // ... existing defaults ...
-    customBorderRadius: '0.75rem',
-  },
-};
-
-// 5. Use in components
-<div className="eb-rounded-custom">Custom rounded element</div>
-```
-
-### Important Notes
-
-- **Color tokens** should use the `colorToHsl()` function for consistent processing
-- **Boolean tokens** should be converted to appropriate CSS values
-- **Numeric tokens** should include units (rem, px, etc.)
-- **Test your tokens** in both light and dark modes
-- **Follow naming conventions** (`--eb-` prefix for CSS variables)
-- **Update documentation** to reflect new tokens
 
 ## Internationalization
 

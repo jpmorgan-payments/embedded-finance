@@ -126,15 +126,27 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   // Get translation keys based on mode
   const translationKey = mode === 'create' ? 'linkAccount' : 'editAccount';
 
+  // Get title based on status
+  const getTitle = (): string => {
+    if (status === 'success') {
+      if (responseData?.status) {
+        const statusKey =
+          `forms.${translationKey}.titleSuccessByStatus.${responseData.status}` as any;
+        return t(statusKey);
+      }
+      // Fallback to descriptionSuccess if no status
+      return t(`forms.${translationKey}.descriptionSuccess`);
+    }
+    return t(`forms.${translationKey}.title`);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[90vh]">
         <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-font-header eb-text-xl">
-            {status === 'success'
-              ? t(`forms.${translationKey}.titleSuccess`)
-              : t(`forms.${translationKey}.title`)}
+            {getTitle()}
           </DialogTitle>
           <DialogDescription>
             {status === 'success'

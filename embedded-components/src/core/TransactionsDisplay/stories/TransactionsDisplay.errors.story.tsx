@@ -1,6 +1,6 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
-import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
