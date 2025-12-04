@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Plus, CheckCircle2, AlertTriangle, Clock, User, Building, Edit, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle2, AlertTriangle, Clock, User, Building, Edit, Trash2, UserCheck, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -212,11 +212,28 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                           )}
                           <span className="eb-font-medium">{owner.firstName} {owner.lastName}</span>
                         </div>
-                        <Badge variant={owner.ownershipType === 'DIRECT' ? 'default' : 'secondary'}>
-                          {owner.ownershipType === 'DIRECT' ? 'Direct Owner' : 'Indirect Owner'}
+                        <Badge 
+                          variant={owner.ownershipType === 'DIRECT' ? 'success' : 'secondary'}
+                          className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
+                        >
+                          {owner.ownershipType === 'DIRECT' ? (
+                            <>
+                              <UserCheck className="eb-h-3.5 eb-w-3.5" />
+                              Direct Owner
+                            </>
+                          ) : (
+                            <>
+                              <Users className="eb-h-3.5 eb-w-3.5" />
+                              Indirect Owner
+                            </>
+                          )}
                         </Badge>
                         {owner.status === 'PENDING_HIERARCHY' && (
-                          <Badge variant="outline" className="eb-text-warning eb-border-warning">
+                          <Badge 
+                            variant="warning"
+                            className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
+                          >
+                            <Clock className="eb-h-3.5 eb-w-3.5" />
                             Pending Hierarchy
                           </Badge>
                         )}
@@ -288,13 +305,19 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                                   }`}>
                                     {step.entityName}
                                   </span>
-                                  <span className={`eb-text-xs eb-px-1 eb-py-0.5 eb-rounded ${
-                                    isDirectOwner 
-                                      ? 'eb-bg-primary eb-text-primary-foreground' 
-                                      : 'eb-bg-muted eb-text-muted-foreground'
-                                  }`}>
-                                    {isDirectOwner ? 'Direct' : 'Intermediary'}
-                                  </span>
+                                  <Badge 
+                                    variant={isDirectOwner ? 'success' : 'secondary'}
+                                    className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs eb-px-1 eb-py-0.5"
+                                  >
+                                    {isDirectOwner ? (
+                                      <>
+                                        <Building className="eb-h-3.5 eb-w-3.5" />
+                                        Direct Owner
+                                      </>
+                                    ) : (
+                                      'Intermediary'
+                                    )}
+                                  </Badge>
                                 </div>
                               </React.Fragment>
                             );
