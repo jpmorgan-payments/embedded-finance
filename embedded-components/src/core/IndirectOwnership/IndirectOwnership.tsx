@@ -153,7 +153,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
         <CardContent className="eb-space-y-4">
           {/* Current Ownership Structure */}
           <div>
-            <h3 className="eb-font-medium eb-text-foreground eb-mb-3">Current Ownership Structure:</h3>
+            <h3 className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3">Current Ownership Structure:</h3>
             {beneficialOwners.length === 0 ? (
               <div className="eb-p-6 eb-border eb-rounded eb-bg-muted eb-text-center">
                 <User className="eb-h-12 eb-w-12 eb-mx-auto eb-text-muted-foreground eb-mb-3" />
@@ -275,7 +275,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
           
           {/* Validation Status */}
           <div>
-            <h3 className="eb-font-medium eb-text-foreground eb-mb-3">Validation Status:</h3>
+            <h3 className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3">Validation Status:</h3>
             <Alert className={
               validationSummary.hasErrors 
                 ? 'eb-border-destructive eb-bg-destructive-accent' 
@@ -432,7 +432,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="eb-max-w-md eb-p-6">
         <DialogHeader className="eb-pb-4">
-          <DialogTitle className="eb-text-lg eb-font-semibold">Add Beneficial Owner</DialogTitle>
+          <DialogTitle className="eb-font-header eb-text-lg eb-font-semibold">Add Beneficial Owner</DialogTitle>
         </DialogHeader>
         
         <div className="eb-space-y-6">
@@ -451,7 +451,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
           
           <form onSubmit={handleSubmit} className="eb-space-y-5">
             <div className="eb-space-y-2">
-              <Label htmlFor="firstName" className="eb-text-sm eb-font-medium">First Name</Label>
+              <Label htmlFor="firstName">First Name</Label>
               <Input
                 id="firstName"
                 value={firstName}
@@ -462,7 +462,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
             </div>
             
             <div className="eb-space-y-2">
-              <Label htmlFor="lastName" className="eb-text-sm eb-font-medium">Last Name</Label>
+              <Label htmlFor="lastName">Last Name</Label>
               <Input
                 id="lastName"
                 value={lastName}
@@ -473,7 +473,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
             </div>
             
             <div className="eb-space-y-3">
-              <Label className="eb-text-sm eb-font-medium">Ownership Type</Label>
+              <Label>Ownership Type</Label>
               <RadioGroup
                 value={ownershipType}
                 onValueChange={(value: 'DIRECT' | 'INDIRECT') => setOwnershipType(value)}
@@ -482,7 +482,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
                 <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-accent eb-cursor-pointer">
                   <RadioGroupItem value="DIRECT" id="direct" className="eb-mt-0.5" />
                   <div className="eb-flex-1 eb-space-y-1">
-                    <Label htmlFor="direct" className="eb-font-medium eb-cursor-pointer">
+                    <Label htmlFor="direct" className="eb-cursor-pointer">
                       Direct Owner
                     </Label>
                     <p className="eb-text-sm eb-text-muted-foreground">
@@ -493,7 +493,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
                 <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-accent eb-cursor-pointer">
                   <RadioGroupItem value="INDIRECT" id="indirect" className="eb-mt-0.5" />
                   <div className="eb-flex-1 eb-space-y-1">
-                    <Label htmlFor="indirect" className="eb-font-medium eb-cursor-pointer">
+                    <Label htmlFor="indirect" className="eb-cursor-pointer">
                       Indirect Owner
                     </Label>
                     <p className="eb-text-sm eb-text-muted-foreground">
@@ -649,7 +649,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="eb-max-w-2xl eb-p-6">
         <DialogHeader className="eb-pb-4">
-          <DialogTitle className="eb-text-lg eb-font-semibold">
+          <DialogTitle className="eb-font-header eb-text-lg eb-font-semibold">
             {isEditMode ? 'Edit' : 'Build'} Ownership Chain for {ownerName}
           </DialogTitle>
         </DialogHeader>
@@ -719,7 +719,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
             </div>
             
             <div className="eb-space-y-2">
-              <Label htmlFor="companyName" className="eb-text-sm eb-font-medium eb-text-foreground">
+              <Label htmlFor="companyName">
                 Company Name
               </Label>
               <Input
