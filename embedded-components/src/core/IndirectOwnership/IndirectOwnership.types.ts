@@ -3,24 +3,22 @@
  * Public API types for the IndirectOwnership component
  */
 
+import { PartyResponse, ClientResponse } from '@/api/generated/smbdo.schemas';
+
 /**
- * Beneficial Owner - Enhanced with real-time status tracking
+ * Beneficial Owner status based on OpenAPI Party data
  */
-export interface BeneficialOwner {
-  /** Unique identifier for the owner */
-  id: string;
-  
-  /** Owner's first name */
-  firstName: string;
-  
-  /** Owner's last name */
-  lastName: string;
-  
+export type BeneficialOwnerStatus = 'COMPLETE' | 'PENDING_HIERARCHY' | 'ERROR';
+
+/**
+ * Extended Party interface for beneficial ownership display
+ */
+export interface BeneficialOwner extends Pick<PartyResponse, 'id' | 'parentPartyId' | 'partyType' | 'profileStatus' | 'active' | 'individualDetails' | 'organizationDetails'> {
   /** Type of ownership relationship */
   ownershipType: 'DIRECT' | 'INDIRECT';
   
-  /** Current completion status */
-  status: 'COMPLETE' | 'PENDING_HIERARCHY' | 'ERROR';
+  /** Current completion status derived from profileStatus */
+  status: BeneficialOwnerStatus;
   
   /** Ownership hierarchy chain (for indirect owners) */
   ownershipHierarchy?: OwnershipHierarchy;
@@ -155,17 +153,14 @@ export interface OwnershipConfig {
  * Props for the IndirectOwnership component - Public API
  */
 export interface IndirectOwnershipProps {
-  /** Root company name for Business Being Onboarded */
-  rootCompanyName: string;
+  /** Client data from OpenAPI response */
+  client?: ClientResponse;
   
   /** Callback when ownership structure is completed */
   onOwnershipComplete?: (owners: BeneficialOwner[]) => void;
   
   /** Callback for real-time validation updates */
   onValidationChange?: (summary: ValidationSummary) => void;
-  
-  /** Initial beneficial owners (for editing scenarios) */
-  initialOwners?: BeneficialOwner[];
   
   /** Configuration options */
   config?: Partial<OwnershipConfig>;

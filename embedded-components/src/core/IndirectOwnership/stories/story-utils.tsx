@@ -32,10 +32,9 @@ export const IndirectOwnershipStory: React.FC<IndirectOwnershipStoryProps> = ({
   contentTokensPreset = 'enUS',
   contentTokens,
   // IndirectOwnership specific props
-  rootCompanyName,
+  client,
   onOwnershipComplete,
   onValidationChange,
-  initialOwners,
   config,
   readOnly,
   className,
@@ -55,10 +54,9 @@ export const IndirectOwnershipStory: React.FC<IndirectOwnershipStoryProps> = ({
       clientId={clientId ?? ''}
     >
       <IndirectOwnership
-        rootCompanyName={rootCompanyName}
+        client={client}
         onOwnershipComplete={onOwnershipComplete}
         onValidationChange={onValidationChange}
-        initialOwners={initialOwners}
         config={config}
         readOnly={readOnly}
         className={className}

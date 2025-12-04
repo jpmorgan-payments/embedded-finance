@@ -18,6 +18,14 @@ import type {
   ValidationSummary
 } from './IndirectOwnership.types';
 
+import { 
+  extractBeneficialOwners, 
+  getRootCompanyName, 
+  hasOutstandingOwnershipRequirements,
+  getBeneficialOwnerDisplayName,
+  getBeneficialOwnerFullName
+} from './utils/openapi-transforms';
+
 /**
  * IndirectOwnership - Streamlined ownership structure building
  * 
@@ -29,15 +37,18 @@ import type {
  * - Reuses existing AlternateOwnershipReview.renderOwnershipChain() for visualization
  */
 export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
-  rootCompanyName,
+  client,
   onOwnershipComplete,
   onValidationChange,
-  initialOwners = [],
   config = {},
   readOnly = false,
   className = '',
   testId = 'indirect-ownership',
 }) => {
+  // Extract data from OpenAPI client
+  const rootCompanyName = client ? getRootCompanyName(client) : 'Unknown Entity';
+  const initialOwners = client ? extractBeneficialOwners(client) : [];
+  
   // State management
   const [beneficialOwners, setBeneficialOwners] = useState<BeneficialOwner[]>(initialOwners);
   const [currentDialog, setCurrentDialog] = useState<'NONE' | 'ADD_OWNER' | 'BUILD_CHAIN' | 'EDIT_CHAIN' | 'CONFIRM_CHAIN'>('NONE');
@@ -69,8 +80,13 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
   const handleOwnerSubmit = useCallback((ownerData: { firstName: string; lastName: string; ownershipType: 'DIRECT' | 'INDIRECT' }) => {
     const newOwner: BeneficialOwner = {
       id: `owner-${Date.now()}`,
-      firstName: ownerData.firstName,
-      lastName: ownerData.lastName,
+      partyType: 'INDIVIDUAL',
+      profileStatus: ownerData.ownershipType === 'DIRECT' ? 'APPROVED' : 'INFORMATION_REQUESTED',
+      active: true,
+      individualDetails: {
+        firstName: ownerData.firstName,
+        lastName: ownerData.lastName,
+      },
       ownershipType: ownerData.ownershipType,
       status: ownerData.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
       meets25PercentThreshold: ownerData.ownershipType === 'DIRECT' ? true : undefined,
@@ -212,7 +228,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                           ) : (
                             <AlertTriangle className="eb-h-5 eb-w-5 eb-text-destructive" />
                           )}
-                          <span className="eb-font-medium">{owner.firstName} {owner.lastName}</span>
+                          <span className="eb-font-medium">{getBeneficialOwnerFullName(owner)}</span>
                         </div>
                         <Badge 
                           variant={owner.ownershipType === 'DIRECT' ? 'success' : 'secondary'}
@@ -243,7 +259,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                       <div className="eb-flex eb-items-center eb-gap-2">
                         {!readOnly && owner.status === 'PENDING_HIERARCHY' && (
                           <Button
-                            onClick={() => handleBuildHierarchy(owner.id)}
+                            onClick={() => owner.id && handleBuildHierarchy(owner.id)}
                             size="sm"
                             variant="outline"
                             className="eb-shrink-0 eb-bg-background"
@@ -253,7 +269,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                         )}
                         {!readOnly && owner.ownershipHierarchy && (
                           <Button
-                            onClick={() => handleEditHierarchy(owner.id)}
+                            onClick={() => owner.id && handleEditHierarchy(owner.id)}
                             size="sm"
                             variant="outline"
                             className="eb-shrink-0 eb-bg-background"
@@ -264,7 +280,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                         )}
                         {!readOnly && (
                           <Button
-                            onClick={() => handleRemoveOwner(owner.id)}
+                            onClick={() => owner.id && handleRemoveOwner(owner.id)}
                             size="sm"
                             variant="outline"
                             className="eb-shrink-0 eb-bg-background eb-text-destructive eb-hover:bg-destructive/5"
@@ -284,7 +300,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                           {/* Owner at the start */}
                           <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-primary/10 eb-border eb-border-primary/20 eb-rounded eb-shrink-0">
                             <User className="eb-h-3 eb-w-3 eb-text-primary" />
-                            <span className="eb-font-medium eb-text-foreground">{owner.firstName} {owner.lastName}</span>
+                            <span className="eb-font-medium eb-text-foreground">{getBeneficialOwnerFullName(owner)}</span>
                           </div>
                           
                           {/* Company chain */}
@@ -398,8 +414,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
         onClose={handleCloseDialog}
         ownerId={currentOwnerBeingEdited || ''}
         ownerName={currentOwnerBeingEdited ? 
-          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.firstName + ' ' +
-          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.lastName : ''
+          getBeneficialOwnerFullName(beneficialOwners.find(o => o.id === currentOwnerBeingEdited)!) : ''
         }
         rootCompanyName={rootCompanyName}
         onSave={handleHierarchySaved}
@@ -411,8 +426,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
         onClose={handleCloseDialog}
         ownerId={currentOwnerBeingEdited || ''}
         ownerName={currentOwnerBeingEdited ? 
-          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.firstName + ' ' +
-          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.lastName : ''
+          getBeneficialOwnerFullName(beneficialOwners.find(o => o.id === currentOwnerBeingEdited)!) : ''
         }
         rootCompanyName={rootCompanyName}
         onSave={handleHierarchySaved}
@@ -456,7 +470,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
     // Check for duplicates
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
     const isDuplicate = existingOwners.some(owner => 
-      `${owner.firstName} ${owner.lastName}`.toLowerCase() === fullName.toLowerCase()
+      getBeneficialOwnerFullName(owner).toLowerCase() === fullName.toLowerCase()
     );
     
     if (isDuplicate) {
