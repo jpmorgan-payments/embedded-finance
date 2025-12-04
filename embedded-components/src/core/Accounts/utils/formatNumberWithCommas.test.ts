@@ -39,3 +39,4 @@ describe('formatNumberWithCommas', () => {
     expect(result.decimal).toBe('56');
   });
 });
+
