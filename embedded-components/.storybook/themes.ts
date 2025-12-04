@@ -12,201 +12,247 @@ import { EBTheme } from '../src/core/EBComponentsProvider/config.types';
 /**
  * SellSense Theme Configuration
  *
- * Unified theme with light and dark mode support:
+ * Unified theme with light and dark mode support using Salt Design System semantic tokens:
  * - Common properties in `variables` (fonts, spacing, etc.)
  * - Light mode specific colors in `light`
  * - Dark mode specific colors in `dark`
  * - Maintains SellSense brand identity across modes
  */
 export const SELLSENSE_THEME: EBTheme = {
-  colorScheme: 'system',
+  colorScheme: 'light', // Force light mode to match SellSense demo
   variables: {
-    // Common properties that apply to both light and dark modes
-    fontFamily: 'Inter',
-    headerFontFamily: 'Inter',
-    buttonFontFamily: 'Inter',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTENT CHARACTERISTIC - Typography
+    // ═══════════════════════════════════════════════════════════════════════════
+    contentFontFamily: 'Inter',
+    contentHeaderFontFamily: 'Inter',
 
-    // SellSense brand colors
-    primaryColor: '#f55727',
-    primaryHoverColor: '#e14d1f',
-    primaryActiveColor: '#cc4319',
-    primaryForegroundColor: '#ffffff',
-
-    // Enhanced secondary button with outline support
-    secondaryColor: '#FDF7F0',
-    secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
-    secondaryActiveColor: '#2CB9AC',
-    secondaryForegroundColor: '#f55727',
-    secondaryForegroundHoverColor: '#e14d1f',
-    secondaryForegroundActiveColor: '#2CB9AC',
-    secondaryBorderWidth: '1px',
-
-    // Background and layout
-    backgroundColor: '#FAF9F7',
-    foregroundColor: '#1e293b',
-    cardColor: '#F7F3F0',
-    cardForegroundColor: '#1e293b',
-
-    // Enhanced muted and accent colors
-    mutedColor: '#f8fafc',
-    mutedForegroundColor: '#64748b',
-    accentColor: '#f1f5f9',
-    accentForegroundColor: '#475569',
-
-    // Enhanced alert system colors
-    alertColor: '#FDF7F0',
-    alertForegroundColor: '#1e293b',
-    informativeColor: '#2cb9ac',
-    informativeAccentColor: '#f0fffd',
-    warningColor: '#f59e0b',
-    warningAccentColor: '#fef3c7',
-    successColor: '#10b981',
-    successAccentColor: '#d1fae5',
-    metricAccentColor: '#2FB9A9', // Using blue for balance values in SellSense theme
-
-    // Destructive colors
-    destructiveColor: '#ef4444',
-    destructiveHoverColor: '#dc2626',
-    destructiveActiveColor: '#b91c1c',
-    destructiveForegroundColor: '#ffffff',
-    destructiveForegroundHoverColor: '#fef2f2',
-    destructiveForegroundActiveColor: '#fee2e2',
-
-    // Input styling
-    inputColor: '#FFFFFF',
-    inputBorderColor: '#0000004d',
-    borderColor: '#0000004d',
-
-    // Border radius
-    borderRadius: '8px',
-    inputBorderRadius: '4px',
-    buttonBorderRadius: '8px',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEPARABLE CHARACTERISTIC - Borders
+    // ═══════════════════════════════════════════════════════════════════════════
+    separableBorderRadius: '8px',
     spacingUnit: '0.25rem',
-    zIndexOverlay: 1000,
 
-    // Common button styling
-    buttonFontWeight: '600',
-    buttonFontSize: '0.875rem',
-    buttonLineHeight: '1.25rem',
-    buttonTextTransform: 'uppercase',
-    buttonLetterSpacing: '0.6px',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OVERLAYABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    overlayableZIndex: 1000,
 
-    // Common button weights
-    primaryButtonFontWeight: '600',
-    secondaryButtonFontWeight: '600',
-    destructiveButtonFontWeight: '600',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Buttons
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableFontFamily: 'Inter',
+    actionableFontWeight: '600',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'uppercase',
+    actionableLetterSpacing: '0.6px',
+    actionableBorderRadius: '8px',
+    actionableShiftOnActive: false,
+    actionablePrimaryFontWeight: '600',
+    actionableSecondaryFontWeight: '600',
+    actionablePrimaryBorderWidth: '0px',
 
-    // Common form styling
-    formLabelFontSize: '0.875rem',
-    formLabelFontWeight: '600',
-    formLabelLineHeight: '1.25rem',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative (Destructive)
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentNegativeFontWeight: '600',
+    sentimentNegativeBorderWidth: '0px',
 
-    // Common border widths
-    primaryBorderWidth: '0px',
-    destructiveBorderWidth: '0px',
-
-    // Common behavior
-    shiftButtonOnActive: false,
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EDITABLE CHARACTERISTIC - Form Inputs
+    // ═══════════════════════════════════════════════════════════════════════════
+    editableBorderRadius: '4px',
+    editableLabelFontSize: '0.875rem',
+    editableLabelFontWeight: '600',
+    editableLabelLineHeight: '1.25rem',
   },
   light: {
-    // SellSense brand colors (light mode)
-    primaryColor: 'hsl(14, 91%, 55%)',
-    primaryHoverColor: 'hsl(14, 91%, 50%)',
-    primaryActiveColor: 'hsl(14, 91%, 45%)',
-    primaryForegroundColor: 'hsl(0, 0%, 100%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTAINER CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    containerBackground: 'hsl(30, 20%, 97%)', // #FAF9F7
+    contentPrimaryForeground: 'hsl(215, 25%, 27%)', // #1e293b
+    containerPrimaryBackground: 'hsl(30, 25%, 95%)', // #F7F3F0
+    containerPrimaryForeground: 'hsl(215, 25%, 27%)', // #1e293b
+    containerSecondaryBackground: 'hsl(210, 40%, 98%)', // #f8fafc
+    containerSecondaryForeground: 'hsl(215, 16%, 47%)', // #64748b
 
-    // Enhanced secondary button with outline support
-    secondaryColor: 'hsl(30, 100%, 98%)',
-    secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
-    secondaryActiveColor: 'hsl(175, 62%, 41%)',
-    secondaryForegroundColor: 'hsl(14, 91%, 55%)',
-    secondaryForegroundHoverColor: 'hsl(14, 91%, 50%)',
-    secondaryForegroundActiveColor: 'hsl(175, 62%, 41%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EDITABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    editableBackground: 'hsl(0, 0%, 100%)', // #FFFFFF
+    editableBorderColor: 'hsla(0, 0%, 0%, 0.3)', // #0000004d
+    editableLabelForeground: 'hsl(215, 25%, 27%)', // #1e293b
 
-    // Background and layout
-    backgroundColor: 'hsl(30, 20%, 97%)',
-    foregroundColor: 'hsl(215, 25%, 27%)',
-    cardColor: 'hsl(30, 25%, 95%)',
-    cardForegroundColor: 'hsl(215, 25%, 27%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OVERLAYABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    overlayableBackground: 'hsl(0, 0%, 100%)',
+    overlayableForeground: 'hsl(215, 25%, 27%)',
 
-    // Enhanced muted and accent colors
-    mutedColor: 'hsl(210, 40%, 98%)',
-    mutedForegroundColor: 'hsl(215, 16%, 47%)',
-    accentColor: 'hsl(210, 40%, 96%)',
-    accentForegroundColor: 'hsl(215, 25%, 27%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Primary Variant (SellSense Orange)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionablePrimaryBackground: 'hsl(14, 91%, 55%)', // #f55727
+    actionablePrimaryBackgroundHover: 'hsl(14, 91%, 50%)', // #e14d1f
+    actionablePrimaryBackgroundActive: 'hsl(14, 91%, 45%)', // #cc4319
+    actionablePrimaryForeground: 'hsl(0, 0%, 100%)', // #ffffff
 
-    // Enhanced alert system colors
-    alertColor: 'hsl(30, 100%, 98%)',
-    alertForegroundColor: 'hsl(215, 25%, 27%)',
-    informativeColor: 'hsl(175, 62%, 41%)',
-    informativeAccentColor: 'hsl(175, 100%, 98%)',
-    warningColor: 'hsl(38, 92%, 50%)',
-    warningAccentColor: 'hsl(48, 96%, 89%)',
-    successColor: 'hsl(142, 76%, 36%)',
-    successAccentColor: 'hsl(142, 76%, 93%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Secondary Variant
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableSecondaryBackground: 'hsl(30, 100%, 98%)', // #FDF7F0
+    actionableSecondaryBackgroundHover: 'hsla(240, 4.8%, 95.9%, 0.5)',
+    actionableSecondaryBackgroundActive: 'hsl(175, 62%, 41%)', // #2CB9AC
+    actionableSecondaryForeground: 'hsl(14, 91%, 55%)', // #f55727
+    actionableSecondaryForegroundHover: 'hsl(14, 91%, 50%)', // #e14d1f
+    actionableSecondaryForegroundActive: 'hsl(175, 62%, 41%)', // #2CB9AC
+    actionableSecondaryBorderWidth: '1px',
 
-    // Destructive colors
-    destructiveColor: 'hsl(0, 84%, 60%)',
-    destructiveHoverColor: 'hsl(0, 84%, 56%)',
-    destructiveActiveColor: 'hsl(0, 84%, 52%)',
-    destructiveForegroundColor: 'hsl(0, 0%, 100%)',
-    destructiveForegroundHoverColor: 'hsl(0, 100%, 98%)',
-    destructiveForegroundActiveColor: 'hsl(0, 100%, 96%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACCENT CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    accentBackground: 'hsl(210, 40%, 96%)', // #f1f5f9
+    accentForeground: 'hsl(215, 25%, 27%)', // #475569
+    accentMetricBackground: 'hsl(175, 62%, 41%)', // #2FB9A9 - Teal for balance values
 
-    // Input styling
-    inputColor: 'hsl(0, 0%, 100%)',
-    inputBorderColor: 'hsla(0, 0%, 0%, 0.3)',
-    borderColor: 'hsla(0, 0%, 0%, 0.3)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative (Destructive)
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentNegativeBackground: 'hsl(0, 84%, 60%)', // #ef4444
+    sentimentNegativeBackgroundHover: 'hsl(0, 84%, 56%)', // #dc2626
+    sentimentNegativeBackgroundActive: 'hsl(0, 84%, 52%)', // #b91c1c
+    sentimentNegativeForeground: 'hsl(0, 0%, 100%)', // #ffffff
+    sentimentNegativeForegroundHover: 'hsl(0, 100%, 98%)', // #fef2f2
+    sentimentNegativeForegroundActive: 'hsl(0, 100%, 96%)', // #fee2e2
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Positive (Success)
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentPositiveForeground: 'hsl(142, 76%, 36%)', // #10b981
+    sentimentPositiveAccentBackground: 'hsl(142, 76%, 93%)', // #d1fae5
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Caution (Warning)
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentCautionForeground: 'hsl(38, 92%, 50%)', // #f59e0b
+    sentimentCautionAccentBackground: 'hsl(48, 96%, 89%)', // #fef3c7
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATUS CHARACTERISTIC - Info
+    // ═══════════════════════════════════════════════════════════════════════════
+    statusInfoForeground: 'hsl(175, 62%, 41%)', // #2cb9ac - SellSense teal
+    statusInfoAccentBackground: 'hsl(175, 100%, 98%)', // #f0fffd
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEPARABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    separableBorderColor: 'hsla(0, 0%, 0%, 0.3)', // #0000004d
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FOCUSED CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    focusedRingColor: 'hsl(215, 25%, 27%)', // #1e293b
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LEGACY ALERT TOKENS (for backward compatibility)
+    // ═══════════════════════════════════════════════════════════════════════════
+    alertColor: 'hsl(30, 100%, 98%)', // #FDF7F0
+    alertForegroundColor: 'hsl(215, 25%, 27%)', // #1e293b
   },
   dark: {
-    // SellSense brand colors (maintained for brand consistency)
-    primaryColor: 'hsl(14, 91%, 55%)',
-    primaryHoverColor: 'hsl(14, 91%, 60%)',
-    primaryActiveColor: 'hsl(14, 91%, 65%)',
-    primaryForegroundColor: 'hsl(0, 0%, 100%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTAINER CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    containerBackground: 'hsl(215, 25%, 10%)',
+    contentPrimaryForeground: 'hsl(210, 40%, 98%)',
+    containerPrimaryBackground: 'hsl(215, 25%, 12%)',
+    containerPrimaryForeground: 'hsl(210, 40%, 98%)',
+    containerSecondaryBackground: 'hsl(215, 25%, 15%)',
+    containerSecondaryForeground: 'hsl(215, 16%, 56%)',
 
-    // Enhanced secondary button with outline support
-    secondaryColor: 'hsl(215, 25%, 15%)',
-    secondaryHoverColor: 'hsl(215, 25%, 20%)',
-    secondaryActiveColor: 'hsl(175, 62%, 41%)',
-    secondaryForegroundColor: 'hsl(14, 91%, 55%)',
-    secondaryForegroundHoverColor: 'hsl(14, 91%, 60%)',
-    secondaryForegroundActiveColor: 'hsl(175, 62%, 41%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EDITABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    editableBackground: 'hsl(215, 25%, 12%)',
+    editableBorderColor: 'hsla(210, 40%, 98%, 0.3)',
+    editableLabelForeground: 'hsl(210, 40%, 98%)',
 
-    // Background and layout
-    backgroundColor: 'hsl(215, 25%, 10%)',
-    foregroundColor: 'hsl(210, 40%, 98%)',
-    cardColor: 'hsl(215, 25%, 12%)',
-    cardForegroundColor: 'hsl(210, 40%, 98%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OVERLAYABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    overlayableBackground: 'hsl(215, 25%, 12%)',
+    overlayableForeground: 'hsl(210, 40%, 98%)',
 
-    // Enhanced muted and accent colors
-    mutedColor: 'hsl(215, 25%, 15%)',
-    mutedForegroundColor: 'hsl(215, 16%, 56%)',
-    accentColor: 'hsl(215, 25%, 18%)',
-    accentForegroundColor: 'hsl(210, 40%, 96%)',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Primary Variant
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionablePrimaryBackground: 'hsl(14, 91%, 55%)', // Maintain brand color
+    actionablePrimaryBackgroundHover: 'hsl(14, 91%, 60%)',
+    actionablePrimaryBackgroundActive: 'hsl(14, 91%, 65%)',
+    actionablePrimaryForeground: 'hsl(0, 0%, 100%)',
 
-    // Enhanced alert system colors
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Secondary Variant
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableSecondaryBackground: 'hsl(215, 25%, 15%)',
+    actionableSecondaryBackgroundHover: 'hsl(215, 25%, 20%)',
+    actionableSecondaryBackgroundActive: 'hsl(175, 62%, 41%)',
+    actionableSecondaryForeground: 'hsl(14, 91%, 55%)',
+    actionableSecondaryForegroundHover: 'hsl(14, 91%, 60%)',
+    actionableSecondaryForegroundActive: 'hsl(175, 62%, 41%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACCENT CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    accentBackground: 'hsl(215, 25%, 18%)',
+    accentForeground: 'hsl(210, 40%, 96%)',
+    accentMetricBackground: 'hsl(175, 62%, 41%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentNegativeBackground: 'hsl(0, 84%, 60%)',
+    sentimentNegativeBackgroundHover: 'hsl(0, 84%, 65%)',
+    sentimentNegativeBackgroundActive: 'hsl(0, 84%, 70%)',
+    sentimentNegativeForeground: 'hsl(0, 0%, 100%)',
+    sentimentNegativeForegroundHover: 'hsl(0, 100%, 98%)',
+    sentimentNegativeForegroundActive: 'hsl(0, 100%, 96%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Positive
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentPositiveForeground: 'hsl(142, 76%, 36%)',
+    sentimentPositiveAccentBackground: 'hsl(142, 76%, 15%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Caution
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentCautionForeground: 'hsl(38, 92%, 50%)',
+    sentimentCautionAccentBackground: 'hsl(38, 92%, 15%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATUS CHARACTERISTIC - Info
+    // ═══════════════════════════════════════════════════════════════════════════
+    statusInfoForeground: 'hsl(175, 62%, 41%)',
+    statusInfoAccentBackground: 'hsl(175, 62%, 15%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEPARABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    separableBorderColor: 'hsla(210, 40%, 98%, 0.3)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FOCUSED CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    focusedRingColor: 'hsl(210, 40%, 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LEGACY ALERT TOKENS
+    // ═══════════════════════════════════════════════════════════════════════════
     alertColor: 'hsl(215, 25%, 15%)',
     alertForegroundColor: 'hsl(210, 40%, 98%)',
-    informativeColor: 'hsl(175, 62%, 41%)',
-    informativeAccentColor: 'hsl(175, 62%, 15%)',
-    warningColor: 'hsl(38, 92%, 50%)',
-    warningAccentColor: 'hsl(38, 92%, 15%)',
-    successColor: 'hsl(142, 76%, 36%)',
-    successAccentColor: 'hsl(142, 76%, 15%)',
-
-    // Destructive colors
-    destructiveColor: 'hsl(0, 84%, 60%)',
-    destructiveHoverColor: 'hsl(0, 84%, 65%)',
-    destructiveActiveColor: 'hsl(0, 84%, 70%)',
-    destructiveForegroundColor: 'hsl(0, 0%, 100%)',
-    destructiveForegroundHoverColor: 'hsl(0, 100%, 98%)',
-    destructiveForegroundActiveColor: 'hsl(0, 100%, 96%)',
-
-    // Input styling
-    inputColor: 'hsl(215, 25%, 12%)',
-    inputBorderColor: 'hsla(210, 40%, 98%, 0.3)',
-    borderColor: 'hsla(210, 40%, 98%, 0.3)',
   },
 };
 
