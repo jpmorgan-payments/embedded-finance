@@ -18,6 +18,8 @@ import type {
   ValidationSummary
 } from './IndirectOwnership.types';
 
+import { VALIDATION_MESSAGES } from './IndirectOwnership.internal.types';
+
 import { 
   extractBeneficialOwners, 
   getRootCompanyName, 
@@ -650,7 +652,14 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       level: hierarchySteps.length + 1
     };
 
-    const updatedSteps = [...hierarchySteps, newStep];
+    // When adding a company that directly owns the root business,
+    // ensure all previous steps are marked as intermediary (not direct owners)
+    const updatedPreviousSteps = hierarchySteps.map(step => ({
+      ...step,
+      ownsRootBusinessDirectly: false
+    }));
+
+    const updatedSteps = [...updatedPreviousSteps, newStep];
 
     if (ownsRootBusinessDirectly) {
       // Complete the hierarchy
@@ -669,6 +678,32 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       setHierarchySteps(updatedSteps);
       setCurrentCompanyName('');
       setErrors([]);
+    }
+  };
+
+  const handleRemoveCompany = (indexToRemove: number) => {
+    const stepToRemove = hierarchySteps[indexToRemove];
+    const newSteps = hierarchySteps.filter((_, i) => i !== indexToRemove);
+
+    // If removing the last step and it was the direct owner, 
+    // we need to handle the direct ownership assignment
+    if (stepToRemove.ownsRootBusinessDirectly && newSteps.length > 0) {
+      // Automatically make the new last company the direct owner
+      const updatedSteps = newSteps.map((step, index) => ({
+        ...step,
+        ownsRootBusinessDirectly: index === newSteps.length - 1,
+        // Recalculate levels after removal
+        level: index + 1
+      }));
+      setHierarchySteps(updatedSteps);
+    } else {
+      // For non-direct owners or when removing results in empty chain,
+      // just remove and recalculate levels
+      const updatedSteps = newSteps.map((step, index) => ({
+        ...step,
+        level: index + 1
+      }));
+      setHierarchySteps(updatedSteps);
     }
   };
 
@@ -764,18 +799,20 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                       <div className="eb-flex eb-items-center eb-gap-2">
                         <Building className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                         <span className="eb-font-medium">{step.entityName}</span>
-                        {index === hierarchySteps.length - 1 && step.ownsRootBusinessDirectly && (
+                        {step.ownsRootBusinessDirectly ? (
                           <Badge className="eb-bg-success-accent eb-text-success eb-text-xs">
-                            Final Step
+                            <Building className="eb-h-3 eb-w-3 eb-mr-1" />
+                            Direct Owner
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="eb-text-xs">
+                            Intermediary
                           </Badge>
                         )}
                       </div>
                     </div>
                     <Button
-                      onClick={() => {
-                        const newSteps = hierarchySteps.filter((_, i) => i !== index);
-                        setHierarchySteps(newSteps);
-                      }}
+                      onClick={() => handleRemoveCompany(index)}
                       size="sm"
                       variant="outline"
                       className="eb-text-destructive eb-hover:bg-destructive/5"

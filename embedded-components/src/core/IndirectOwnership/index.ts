@@ -9,6 +9,7 @@ export { IndirectOwnership } from './IndirectOwnership';
 export type { 
   IndirectOwnershipProps, 
   BeneficialOwner, 
+  BeneficialOwnerStatus,
   ValidationSummary,
   OwnershipHierarchy,
   HierarchyStep 
