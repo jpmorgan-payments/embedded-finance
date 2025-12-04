@@ -76,112 +76,248 @@ const FONT_FAMILIES = [
   { value: 'Comic Sans MS', label: 'Comic Sans MS', preview: 'Comic Sans MS' },
 ];
 
-// Group tokens logically for better organization
+// Semantic token labels (Salt-inspired) for display
+const TOKEN_LABELS: Record<string, string> = {
+  contentFontFamily: 'Content Font Family',
+  contentHeaderFontFamily: 'Header Font Family',
+  actionableFontFamily: 'Actionable Font Family',
+  actionableFontWeight: 'Actionable Font Weight',
+  actionableFontSize: 'Actionable Font Size',
+  actionableLineHeight: 'Actionable Line Height',
+  actionableTextTransform: 'Actionable Text Transform',
+  actionableLetterSpacing: 'Actionable Letter Spacing',
+  actionablePrimaryFontWeight: 'Primary Action Font Weight',
+  actionableSecondaryFontWeight: 'Secondary Action Font Weight',
+
+  containerBackground: 'Page Background',
+  containerPrimaryBackground: 'Card Background',
+  containerPrimaryForeground: 'Card Foreground',
+  containerSecondaryBackground: 'Muted Background',
+  containerSecondaryForeground: 'Muted Foreground',
+  overlayableBackground: 'Overlay Background',
+  overlayableForeground: 'Overlay Foreground',
+  overlayableZIndex: 'Overlay Z-Index',
+  accentBackground: 'Accent Background',
+  accentForeground: 'Accent Foreground',
+
+  actionablePrimaryBackground: 'Primary Background',
+  actionablePrimaryBackgroundHover: 'Primary Background Hover',
+  actionablePrimaryBackgroundActive: 'Primary Background Active',
+  actionablePrimaryForeground: 'Primary Foreground',
+  actionablePrimaryForegroundHover: 'Primary Foreground Hover',
+  actionablePrimaryForegroundActive: 'Primary Foreground Active',
+  actionablePrimaryBorderWidth: 'Primary Border Width',
+  actionableBorderRadius: 'Action Border Radius',
+  actionableShiftOnActive: 'Shift On Active',
+
+  actionableSecondaryBackground: 'Secondary Background',
+  actionableSecondaryBackgroundHover: 'Secondary Background Hover',
+  actionableSecondaryBackgroundActive: 'Secondary Background Active',
+  actionableSecondaryForeground: 'Secondary Foreground',
+  actionableSecondaryForegroundHover: 'Secondary Foreground Hover',
+  actionableSecondaryForegroundActive: 'Secondary Foreground Active',
+  actionableSecondaryBorderWidth: 'Secondary Border Width',
+
+  editableBackground: 'Input Background',
+  editableBorderColor: 'Input Border Color',
+  editableBorderRadius: 'Input Border Radius',
+  editableLabelFontSize: 'Label Font Size',
+  editableLabelFontWeight: 'Label Font Weight',
+  editableLabelLineHeight: 'Label Line Height',
+  editableLabelForeground: 'Label Foreground',
+
+  separableBorderColor: 'Border Color',
+  separableBorderRadius: 'Border Radius',
+  spacingUnit: 'Spacing Unit',
+
+  focusedRingColor: 'Focus Ring Color',
+
+  sentimentNegativeBackground: 'Negative Background',
+  sentimentNegativeBackgroundHover: 'Negative Background Hover',
+  sentimentNegativeBackgroundActive: 'Negative Background Active',
+  sentimentNegativeForeground: 'Negative Foreground',
+  sentimentNegativeForegroundHover: 'Negative Foreground Hover',
+  sentimentNegativeForegroundActive: 'Negative Foreground Active',
+
+  sentimentCautionForeground: 'Caution Foreground',
+  sentimentCautionAccentBackground: 'Caution Accent Background',
+  sentimentPositiveForeground: 'Positive Foreground',
+  sentimentPositiveAccentBackground: 'Positive Accent Background',
+  statusInfoForeground: 'Info Foreground',
+  statusInfoAccentBackground: 'Info Accent Background',
+};
+
+// Semantic token order (Salt-inspired characteristics)
+const SEMANTIC_TOKEN_ORDER = [
+  'contentFontFamily',
+  'contentHeaderFontFamily',
+  'actionableFontFamily',
+  'actionableFontWeight',
+  'actionableFontSize',
+  'actionableLineHeight',
+  'actionableTextTransform',
+  'actionableLetterSpacing',
+  'actionablePrimaryFontWeight',
+  'actionableSecondaryFontWeight',
+
+  'containerBackground',
+  'containerPrimaryBackground',
+  'containerPrimaryForeground',
+  'containerSecondaryBackground',
+  'containerSecondaryForeground',
+  'overlayableBackground',
+  'overlayableForeground',
+  'overlayableZIndex',
+  'accentBackground',
+  'accentForeground',
+
+  'actionablePrimaryBackground',
+  'actionablePrimaryBackgroundHover',
+  'actionablePrimaryBackgroundActive',
+  'actionablePrimaryForeground',
+  'actionablePrimaryForegroundHover',
+  'actionablePrimaryForegroundActive',
+  'actionablePrimaryBorderWidth',
+  'actionableBorderRadius',
+  'actionableShiftOnActive',
+
+  'actionableSecondaryBackground',
+  'actionableSecondaryBackgroundHover',
+  'actionableSecondaryBackgroundActive',
+  'actionableSecondaryForeground',
+  'actionableSecondaryForegroundHover',
+  'actionableSecondaryForegroundActive',
+  'actionableSecondaryBorderWidth',
+
+  'editableBackground',
+  'editableBorderColor',
+  'editableBorderRadius',
+  'editableLabelFontSize',
+  'editableLabelFontWeight',
+  'editableLabelLineHeight',
+  'editableLabelForeground',
+
+  'separableBorderColor',
+  'separableBorderRadius',
+  'spacingUnit',
+
+  'focusedRingColor',
+
+  'sentimentNegativeBackground',
+  'sentimentNegativeBackgroundHover',
+  'sentimentNegativeBackgroundActive',
+  'sentimentNegativeForeground',
+  'sentimentNegativeForegroundHover',
+  'sentimentNegativeForegroundActive',
+
+  'sentimentCautionForeground',
+  'sentimentCautionAccentBackground',
+  'sentimentPositiveForeground',
+  'sentimentPositiveAccentBackground',
+  'statusInfoForeground',
+  'statusInfoAccentBackground',
+] as const;
+
 const TOKEN_GROUPS = {
   typography: {
-    title: 'Typography',
+    title: 'Content & Action Typography',
     icon: Type,
     tokens: [
-      'fontFamily',
-      'headerFontFamily',
-      'buttonFontFamily',
-      'buttonFontWeight',
-      'buttonFontSize',
-      'buttonLineHeight',
-      'buttonTextTransform',
-      'buttonLetterSpacing',
-      'primaryButtonFontWeight',
-      'secondaryButtonFontWeight',
-      'destructiveButtonFontWeight',
-      'formLabelFontSize',
-      'formLabelFontWeight',
-      'formLabelLineHeight',
-      'formLabelForegroundColor',
+      'contentFontFamily',
+      'contentHeaderFontFamily',
+      'actionableFontFamily',
+      'actionableFontWeight',
+      'actionableFontSize',
+      'actionableLineHeight',
+      'actionableTextTransform',
+      'actionableLetterSpacing',
+      'actionablePrimaryFontWeight',
+      'actionableSecondaryFontWeight',
     ],
   },
-  colors: {
-    title: 'Colors',
+  surfaces: {
+    title: 'Surfaces & Overlay',
     icon: Palette,
     tokens: [
-      'backgroundColor',
-      'foregroundColor',
-      'cardColor',
-      'cardForegroundColor',
-      'popoverColor',
-      'popoverForegroundColor',
-      'mutedColor',
-      'mutedForegroundColor',
-      'accentColor',
-      'accentForegroundColor',
-      'borderColor',
-      'inputColor',
-      'inputBorderColor',
-      'ringColor',
+      'containerBackground',
+      'containerPrimaryBackground',
+      'containerPrimaryForeground',
+      'containerSecondaryBackground',
+      'containerSecondaryForeground',
+      'overlayableBackground',
+      'overlayableForeground',
+      'overlayableZIndex',
+      'accentBackground',
+      'accentForeground',
     ],
   },
-  primary: {
-    title: 'Primary Colors',
-    icon: Palette,
+  primaryActions: {
+    title: 'Primary Actionable',
+    icon: Brush,
     tokens: [
-      'primaryColor',
-      'primaryHoverColor',
-      'primaryActiveColor',
-      'primaryForegroundColor',
-      'primaryForegroundHoverColor',
-      'primaryForegroundActiveColor',
+      'actionablePrimaryBackground',
+      'actionablePrimaryBackgroundHover',
+      'actionablePrimaryBackgroundActive',
+      'actionablePrimaryForeground',
+      'actionablePrimaryForegroundHover',
+      'actionablePrimaryForegroundActive',
+      'actionablePrimaryBorderWidth',
+      'actionableBorderRadius',
+      'actionableShiftOnActive',
     ],
   },
-  secondary: {
-    title: 'Secondary Colors',
-    icon: Palette,
+  secondaryActions: {
+    title: 'Secondary Actionable',
+    icon: Brush,
     tokens: [
-      'secondaryColor',
-      'secondaryHoverColor',
-      'secondaryActiveColor',
-      'secondaryForegroundColor',
-      'secondaryForegroundHoverColor',
-      'secondaryForegroundActiveColor',
-      'secondaryBorderWidth',
+      'actionableSecondaryBackground',
+      'actionableSecondaryBackgroundHover',
+      'actionableSecondaryBackgroundActive',
+      'actionableSecondaryForeground',
+      'actionableSecondaryForegroundHover',
+      'actionableSecondaryForegroundActive',
+      'actionableSecondaryBorderWidth',
     ],
   },
-  destructive: {
-    title: 'Destructive Colors',
-    icon: Palette,
-    tokens: [
-      'destructiveColor',
-      'destructiveHoverColor',
-      'destructiveActiveColor',
-      'destructiveForegroundColor',
-      'destructiveForegroundHoverColor',
-      'destructiveForegroundActiveColor',
-      'destructiveBorderWidth',
-    ],
-  },
-  alerts: {
-    title: 'Alert Colors',
-    icon: Palette,
-    tokens: [
-      'alertColor',
-      'alertForegroundColor',
-      'informativeColor',
-      'informativeAccentColor',
-      'warningColor',
-      'warningAccentColor',
-      'successColor',
-      'successAccentColor',
-    ],
-  },
-  layout: {
-    title: 'Layout & Spacing',
+  editable: {
+    title: 'Editable / Inputs',
     icon: Layout,
     tokens: [
-      'borderRadius',
-      'inputBorderRadius',
-      'buttonBorderRadius',
-      'primaryBorderWidth',
-      'spacingUnit',
-      'zIndexOverlay',
-      'shiftButtonOnActive',
+      'editableBackground',
+      'editableBorderColor',
+      'editableBorderRadius',
+      'editableLabelFontSize',
+      'editableLabelFontWeight',
+      'editableLabelLineHeight',
+      'editableLabelForeground',
+    ],
+  },
+  separable: {
+    title: 'Borders & Spacing',
+    icon: Layout,
+    tokens: ['separableBorderColor', 'separableBorderRadius', 'spacingUnit'],
+  },
+  focused: {
+    title: 'Focus',
+    icon: Info,
+    tokens: ['focusedRingColor'],
+  },
+  sentiment: {
+    title: 'Sentiment & Status',
+    icon: Palette,
+    tokens: [
+      'sentimentNegativeBackground',
+      'sentimentNegativeBackgroundHover',
+      'sentimentNegativeBackgroundActive',
+      'sentimentNegativeForeground',
+      'sentimentNegativeForegroundHover',
+      'sentimentNegativeForegroundActive',
+      'sentimentCautionForeground',
+      'sentimentCautionAccentBackground',
+      'sentimentPositiveForeground',
+      'sentimentPositiveAccentBackground',
+      'statusInfoForeground',
+      'statusInfoAccentBackground',
     ],
   },
 };
@@ -195,6 +331,22 @@ const AVAILABLE_THEMES: ThemeOption[] = [
   'SellSense',
   'PayFicient',
 ];
+
+const SEMANTIC_KEYS = new Set<string>(
+  SEMANTIC_TOKEN_ORDER as readonly string[],
+);
+
+const pickSemanticTokens = (
+  variables: EBThemeVariables = {},
+): EBThemeVariables =>
+  Array.from(SEMANTIC_KEYS).reduce((acc, key) => {
+    const typedKey = key as keyof EBThemeVariables;
+    const value = variables[typedKey];
+    if (value !== undefined) {
+      (acc as any)[typedKey] = value;
+    }
+    return acc;
+  }, {} as EBThemeVariables);
 
 export function ThemeCustomizationDrawer({
   isOpen,
@@ -235,7 +387,9 @@ export function ThemeCustomizationDrawer({
 
   // State management - only customTheme, no selectedBaseTheme state
   const [customTheme, setCustomTheme] = useState<EBThemeVariables>(
-    initialCustomData.variables,
+    pickSemanticTokens(
+      getThemeVariables('Custom', initialCustomData.variables || {}),
+    ),
   );
   const [isCopied, setIsCopied] = useState(false);
   const [isUrlCopied, setIsUrlCopied] = useState(false);
@@ -292,25 +446,28 @@ export function ThemeCustomizationDrawer({
   useEffect(() => {
     if (isOpen) {
       const customData = getCustomThemeData();
-      setCustomTheme(customData.variables);
+      setCustomTheme(
+        pickSemanticTokens(
+          getThemeVariables('Custom', customData.variables || {}),
+        ),
+      );
     }
-  }, [isOpen, currentTheme, customThemeData]);
+  }, [isOpen, currentTheme, customThemeData, getThemeVariables]);
 
   // Handle base theme selection
   const handleBaseThemeChange = (theme: ThemeOption) => {
     console.log('handleBaseThemeChange called with theme:', theme);
 
-    const baseVariables = getThemeVariables(theme);
+    const baseVariables = pickSemanticTokens(getThemeVariables(theme));
 
     // Reset to the new base theme (don't merge with existing custom changes)
     setCustomTheme(baseVariables);
 
     // Check if we have any custom changes
-    const hasChanges = Object.keys(customTheme).some(
-      (key) =>
-        customTheme[key as keyof EBThemeVariables] !==
-        baseVariables[key as keyof EBThemeVariables],
-    );
+    const hasChanges = Object.keys(customTheme).some((key) => {
+      const typedKey = key as keyof EBThemeVariables;
+      return customTheme[typedKey] !== baseVariables[typedKey];
+    });
 
     if (hasChanges) {
       // We have custom changes, keep them in custom mode
@@ -332,7 +489,9 @@ export function ThemeCustomizationDrawer({
   ) => {
     // Get the current base theme variables
     const currentBaseTheme = getCurrentBaseTheme();
-    const baseVariables = getThemeVariables(currentBaseTheme);
+    const baseVariables = pickSemanticTokens(
+      getThemeVariables(currentBaseTheme),
+    );
 
     console.log('handleTokenChange called with:', {
       token,
@@ -342,20 +501,19 @@ export function ThemeCustomizationDrawer({
     });
 
     // Create updated theme by merging base variables with custom changes
-    const updatedTheme = {
+    const updatedTheme = pickSemanticTokens({
       ...baseVariables,
       ...customTheme,
-      [token]: value,
-    };
+      [token]: value as EBThemeVariables[keyof EBThemeVariables],
+    });
 
     setCustomTheme(updatedTheme);
 
     // Check if this change makes the theme different from base
-    const hasChanges = Object.keys(updatedTheme).some(
-      (key) =>
-        updatedTheme[key as keyof EBThemeVariables] !==
-        baseVariables[key as keyof EBThemeVariables],
-    );
+    const hasChanges = Object.keys(updatedTheme).some((key) => {
+      const typedKey = key as keyof EBThemeVariables;
+      return updatedTheme[typedKey] !== baseVariables[typedKey];
+    });
 
     if (hasChanges) {
       // Create custom theme data with base theme information
@@ -375,7 +533,11 @@ export function ThemeCustomizationDrawer({
   // Copy theme to clipboard
   const copyThemeToClipboard = useCallback(async () => {
     try {
-      const themeJson = JSON.stringify(customTheme, null, 2);
+      const themeJson = JSON.stringify(
+        pickSemanticTokens(customTheme),
+        null,
+        2,
+      );
       await navigator.clipboard.writeText(themeJson);
 
       // Show success feedback
@@ -452,8 +614,8 @@ export function ThemeCustomizationDrawer({
         throw new Error('No valid theme properties found in clipboard data');
       }
 
-      // Merge with existing custom theme
-      const mergedTheme = { ...customTheme, ...variables };
+      // Merge with existing custom theme and normalize to semantic tokens
+      const mergedTheme = pickSemanticTokens({ ...customTheme, ...variables });
       setCustomTheme(mergedTheme);
 
       // Update the theme with merged values
@@ -468,10 +630,12 @@ export function ThemeCustomizationDrawer({
       );
 
       if (hasChanges) {
-        // Call onThemeChange with the correct parameters: theme name and variables object
-        onThemeChange('Custom', mergedTheme);
+        const customThemeData: CustomThemeData = {
+          baseTheme: currentBaseTheme,
+          variables: mergedTheme,
+        };
+        onThemeChange('Custom', customThemeData as any);
       } else {
-        // If no changes from base, revert to base theme
         onThemeChange(currentBaseTheme, {});
       }
 
@@ -492,7 +656,9 @@ export function ThemeCustomizationDrawer({
 
   // Reset to base theme
   const resetToBaseTheme = () => {
-    const baseVariables = getThemeVariables(getCurrentBaseTheme());
+    const baseVariables = pickSemanticTokens(
+      getThemeVariables(getCurrentBaseTheme()),
+    );
     setCustomTheme(baseVariables);
 
     // Just change to the base theme, no custom mode
@@ -528,18 +694,29 @@ export function ThemeCustomizationDrawer({
     };
   }, [isOpen, onClose]);
 
+  const isColorToken = (token: string) => {
+    const normalized = token.toLowerCase();
+    return (
+      normalized.includes('color') ||
+      normalized.includes('background') ||
+      normalized.includes('foreground') ||
+      normalized.includes('accent')
+    );
+  };
+
   // Render form control based on token type
   const renderTokenControl = (token: keyof EBThemeVariables, value: any) => {
-    const isColor = token.toLowerCase().includes('color');
+    const isColor = isColorToken(token as string);
     const isBoolean = typeof value === 'boolean';
     const isNumber = typeof value === 'number';
     const isSpacing =
       token.includes('spacing') ||
       token.includes('radius') ||
       token.includes('width');
-    const isFontWeight = token.includes('fontweight');
+    const isFontWeight = token.toLowerCase().includes('fontweight');
     const isFontSize =
-      token.includes('fontsize') || token.includes('lineheight');
+      token.toLowerCase().includes('fontsize') ||
+      token.toLowerCase().includes('lineheight');
     const isFontFamily = token.toLowerCase().includes('fontfamily');
 
     if (isBoolean) {
@@ -870,8 +1047,8 @@ export function ThemeCustomizationDrawer({
                         <div className="space-y-4 pt-2">
                           {group.tokens.map((token) => {
                             // Get the current value from the merged theme (base + custom)
-                            const baseVariables = getThemeVariables(
-                              getCurrentBaseTheme(),
+                            const baseVariables = pickSemanticTokens(
+                              getThemeVariables(getCurrentBaseTheme()),
                             );
                             const value =
                               customTheme[token as keyof EBThemeVariables] !==
@@ -887,7 +1064,7 @@ export function ThemeCustomizationDrawer({
                                   htmlFor={token}
                                   className="text-xs text-gray-900 font-medium"
                                 >
-                                  {token}
+                                  {TOKEN_LABELS[token] || token}
                                 </Label>
                                 {renderTokenControl(
                                   token as keyof EBThemeVariables,

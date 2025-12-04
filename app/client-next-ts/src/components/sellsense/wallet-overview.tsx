@@ -215,7 +215,7 @@ export function WalletOverview({
         'Display transaction details and status',
         'Real-time transaction updates',
       ],
-      component: <TransactionsDisplay accountIds={["0030000131"]} />,
+      component: <TransactionsDisplay accountIds={['0030000131']} />,
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',
@@ -297,7 +297,11 @@ export function WalletOverview({
   const headerDescription = getHeaderDescriptionForScenario(currentScenario);
 
   // Helper function to render a component with its own provider
-  const renderComponentWithProvider = (componentConfig: any, key: string) => {
+  const renderComponentWithProvider = (
+    componentConfig: any,
+    key: string,
+    isFullWidth = false,
+  ) => {
     const { component, contentTokens: componentContentTokens = {} } =
       componentConfig;
 
@@ -312,7 +316,7 @@ export function WalletOverview({
     };
 
     return (
-      <div key={key}>
+      <div key={key} className={isFullWidth ? 'lg:col-span-2' : undefined}>
         <EBComponentsProvider
           apiBaseUrl="/ef/do/v1/"
           theme={themeObject}
@@ -339,6 +343,9 @@ export function WalletOverview({
     );
   };
 
+  const isFullWidthComponent = (componentName: string) =>
+    componentName === 'TransactionsDisplay' || componentName === 'Recipients';
+
   // Helper function to render components in grid layout
   const renderGridLayout = () => {
     // Create a 2D grid array based on maxRows and maxColumns
@@ -356,17 +363,18 @@ export function WalletOverview({
       }
     });
 
+    const flattenedComponents = grid.flat().filter(Boolean) as Array<
+      (typeof componentConfigsWithInfo)[0]
+    >;
+
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {grid.map((row, rowIndex) =>
-          row.map((componentConfig, colIndex) => {
-            if (!componentConfig) return null;
-
-            return renderComponentWithProvider(
-              componentConfig,
-              `grid-${rowIndex}-${colIndex}`,
-            );
-          }),
+        {flattenedComponents.map((componentConfig, index) =>
+          renderComponentWithProvider(
+            componentConfig,
+            `grid-${index}`,
+            isFullWidthComponent(componentConfig.componentName),
+          ),
         )}
       </div>
     );
@@ -384,23 +392,13 @@ export function WalletOverview({
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left column */}
-        <div className="space-y-6">
-          {sortedComponents
-            .filter((_, index) => index % 2 === 0)
-            .map((componentConfig, index) =>
-              renderComponentWithProvider(componentConfig, `left-${index}`),
-            )}
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-6">
-          {sortedComponents
-            .filter((_, index) => index % 2 === 1)
-            .map((componentConfig, index) =>
-              renderComponentWithProvider(componentConfig, `right-${index}`),
-            )}
-        </div>
+        {sortedComponents.map((componentConfig, index) =>
+          renderComponentWithProvider(
+            componentConfig,
+            `columns-${index}`,
+            isFullWidthComponent(componentConfig.componentName),
+          ),
+        )}
       </div>
     );
   };
