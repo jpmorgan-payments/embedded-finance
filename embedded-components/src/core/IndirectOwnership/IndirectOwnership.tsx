@@ -146,19 +146,19 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
               </Button>
             </div>
           </CardTitle>
-          <p className="eb-text-sm eb-text-gray-600 eb-mt-2">
+          <p className="eb-text-sm eb-text-muted-foreground eb-mt-2">
             A beneficial owner is an individual who owns 25% or more of your business, either directly or through other companies.
           </p>
         </CardHeader>
         <CardContent className="eb-space-y-4">
           {/* Current Ownership Structure */}
           <div>
-            <h3 className="eb-font-medium eb-text-gray-900 eb-mb-3">Current Ownership Structure:</h3>
+            <h3 className="eb-font-medium eb-text-foreground eb-mb-3">Current Ownership Structure:</h3>
             {beneficialOwners.length === 0 ? (
-              <div className="eb-p-6 eb-border eb-rounded eb-bg-gray-50 eb-text-center">
-                <User className="eb-h-12 eb-w-12 eb-mx-auto eb-text-gray-400 eb-mb-3" />
-                <p className="eb-text-gray-600 eb-mb-2">No beneficial owners added yet</p>
-                <p className="eb-text-sm eb-text-gray-500">
+              <div className="eb-p-6 eb-border eb-rounded eb-bg-muted eb-text-center">
+                <User className="eb-h-12 eb-w-12 eb-mx-auto eb-text-muted-foreground eb-mb-3" />
+                <p className="eb-text-muted-foreground eb-mb-2">No beneficial owners added yet</p>
+                <p className="eb-text-sm eb-text-muted-foreground">
                   Click "Add Beneficial Owner" to get started
                 </p>
               </div>
@@ -170,11 +170,11 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                       <div className="eb-flex eb-items-center eb-gap-3">
                         <div className="eb-flex eb-items-center eb-gap-2">
                           {owner.status === 'COMPLETE' ? (
-                            <CheckCircle2 className="eb-h-5 eb-w-5 eb-text-green-600" />
+                            <CheckCircle2 className="eb-h-5 eb-w-5 eb-text-success" />
                           ) : owner.status === 'PENDING_HIERARCHY' ? (
-                            <Clock className="eb-h-5 eb-w-5 eb-text-yellow-600" />
+                            <Clock className="eb-h-5 eb-w-5 eb-text-warning" />
                           ) : (
-                            <AlertTriangle className="eb-h-5 eb-w-5 eb-text-red-600" />
+                            <AlertTriangle className="eb-h-5 eb-w-5 eb-text-destructive" />
                           )}
                           <span className="eb-font-medium">{owner.firstName} {owner.lastName}</span>
                         </div>
@@ -182,7 +182,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                           {owner.ownershipType === 'DIRECT' ? 'Direct Owner' : 'Indirect Owner'}
                         </Badge>
                         {owner.status === 'PENDING_HIERARCHY' && (
-                          <Badge variant="outline" className="eb-text-yellow-600 eb-border-yellow-300">
+                          <Badge variant="outline" className="eb-text-warning eb-border-warning">
                             Pending Hierarchy
                           </Badge>
                         )}
@@ -212,7 +212,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             onClick={() => handleRemoveOwner(owner.id)}
                             size="sm"
                             variant="outline"
-                            className="eb-text-red-600 eb-hover:bg-red-50"
+                            className="eb-text-destructive eb-hover:bg-destructive/5"
                           >
                             <Trash2 className="eb-h-4 eb-w-4" />
                             Remove
@@ -224,12 +224,12 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                     {/* Hierarchy visualization for indirect owners with complete hierarchies */}
                     {owner.ownershipHierarchy && owner.status === 'COMPLETE' && (
                       <div className="eb-mt-3 eb-pt-3 eb-border-t">
-                        <div className="eb-text-xs eb-text-gray-500 eb-mb-2">Ownership Chain:</div>
-                        <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-flex-wrap eb-p-2 eb-bg-gray-50 eb-border eb-rounded">
+                        <div className="eb-text-xs eb-text-muted-foreground eb-mb-2">Ownership Chain:</div>
+                        <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-flex-wrap eb-p-2 eb-bg-muted eb-border eb-rounded">
                           {/* Owner at the start */}
-                          <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded eb-shrink-0">
-                            <User className="eb-h-3 eb-w-3 eb-text-blue-600" />
-                            <span className="eb-font-medium eb-text-blue-900">{owner.firstName} {owner.lastName}</span>
+                          <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-primary/10 eb-border eb-border-primary/20 eb-rounded eb-shrink-0">
+                            <User className="eb-h-3 eb-w-3 eb-text-primary" />
+                            <span className="eb-font-medium eb-text-foreground">{owner.firstName} {owner.lastName}</span>
                           </div>
                           
                           {/* Company chain */}
@@ -238,24 +238,24 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             
                             return (
                               <React.Fragment key={step.id}>
-                                <span className="eb-text-gray-400 eb-shrink-0">→</span>
+                                <span className="eb-text-muted-foreground eb-shrink-0">→</span>
                                 <div className={`eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-border eb-rounded eb-shrink-0 ${
                                   isDirectOwner 
-                                    ? 'eb-bg-green-50 eb-border-green-200' 
-                                    : 'eb-bg-white eb-border-gray-200'
+                                    ? 'eb-bg-success-accent eb-border-success' 
+                                    : 'eb-bg-card eb-border-border'
                                 }`}>
                                   <Building className={`eb-h-3 eb-w-3 ${
-                                    isDirectOwner ? 'eb-text-green-600' : 'eb-text-gray-600'
+                                    isDirectOwner ? 'eb-text-success' : 'eb-text-muted-foreground'
                                   }`} />
                                   <span className={`eb-font-medium ${
-                                    isDirectOwner ? 'eb-text-green-900' : 'eb-text-gray-700'
+                                    isDirectOwner ? 'eb-text-success' : 'eb-text-foreground'
                                   }`}>
                                     {step.entityName}
                                   </span>
                                   <span className={`eb-text-xs eb-px-1 eb-py-0.5 eb-rounded ${
                                     isDirectOwner 
                                       ? 'eb-bg-primary eb-text-primary-foreground' 
-                                      : 'eb-bg-gray-100 eb-text-gray-700'
+                                      : 'eb-bg-muted eb-text-muted-foreground'
                                   }`}>
                                     {isDirectOwner ? 'Direct' : 'Intermediary'}
                                   </span>
@@ -275,21 +275,21 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
           
           {/* Validation Status */}
           <div>
-            <h3 className="eb-font-medium eb-text-gray-900 eb-mb-3">Validation Status:</h3>
+            <h3 className="eb-font-medium eb-text-foreground eb-mb-3">Validation Status:</h3>
             <Alert className={
               validationSummary.hasErrors 
-                ? 'eb-border-red-200 eb-bg-red-50' 
+                ? 'eb-border-destructive eb-bg-destructive-accent' 
                 : validationSummary.canComplete 
-                ? 'eb-border-green-200 eb-bg-green-50' 
-                : 'eb-border-yellow-200 eb-bg-yellow-50'
+                ? 'eb-border-success eb-bg-success-accent' 
+                : 'eb-border-warning eb-bg-warning-accent'
             }>
               <div className="eb-flex eb-items-center eb-gap-2">
                 {validationSummary.hasErrors ? (
-                  <AlertTriangle className="eb-h-4 eb-w-4 eb-text-red-600" />
+                  <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
                 ) : validationSummary.canComplete ? (
-                  <CheckCircle2 className="eb-h-4 eb-w-4 eb-text-green-600" />
+                  <CheckCircle2 className="eb-h-4 eb-w-4 eb-text-success" />
                 ) : (
-                  <Clock className="eb-h-4 eb-w-4 eb-text-yellow-600" />
+                  <Clock className="eb-h-4 eb-w-4 eb-text-warning" />
                 )}
               </div>
               <AlertDescription>
@@ -437,12 +437,12 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
         
         <div className="eb-space-y-6">
           {errors.length > 0 && (
-            <Alert className="eb-border-red-200 eb-bg-red-50">
-              <AlertTriangle className="eb-h-4 eb-w-4 eb-text-red-600" />
+            <Alert className="eb-border-destructive eb-bg-destructive-accent">
+              <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
               <AlertDescription>
                 <div className="eb-space-y-1">
                   {errors.map((error, index) => (
-                    <div key={index} className="eb-text-red-700">{error}</div>
+                    <div key={index} className="eb-text-destructive">{error}</div>
                   ))}
                 </div>
               </AlertDescription>
@@ -479,24 +479,24 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubm
                 onValueChange={(value: 'DIRECT' | 'INDIRECT') => setOwnershipType(value)}
                 className="eb-space-y-3"
               >
-                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-gray-50 eb-cursor-pointer">
+                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-accent eb-cursor-pointer">
                   <RadioGroupItem value="DIRECT" id="direct" className="eb-mt-0.5" />
                   <div className="eb-flex-1 eb-space-y-1">
                     <Label htmlFor="direct" className="eb-font-medium eb-cursor-pointer">
                       Direct Owner
                     </Label>
-                    <p className="eb-text-sm eb-text-gray-600">
+                    <p className="eb-text-sm eb-text-muted-foreground">
                       Has 25% or more ownership directly
                     </p>
                   </div>
                 </div>
-                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-gray-50 eb-cursor-pointer">
+                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-accent eb-cursor-pointer">
                   <RadioGroupItem value="INDIRECT" id="indirect" className="eb-mt-0.5" />
                   <div className="eb-flex-1 eb-space-y-1">
                     <Label htmlFor="indirect" className="eb-font-medium eb-cursor-pointer">
                       Indirect Owner
                     </Label>
-                    <p className="eb-text-sm eb-text-gray-600">
+                    <p className="eb-text-sm eb-text-muted-foreground">
                       Has 25% or more ownership through other companies
                     </p>
                   </div>
@@ -607,31 +607,31 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     if (hierarchySteps.length === 0) return null;
 
     return (
-      <div className="eb-p-4 eb-bg-gray-50 eb-border eb-rounded-lg eb-border-gray-200">
-        <div className="eb-text-sm eb-font-semibold eb-text-gray-800 eb-mb-3">Current Chain:</div>
+      <div className="eb-p-4 eb-bg-muted eb-border eb-rounded-lg">
+        <div className="eb-text-sm eb-font-semibold eb-text-foreground eb-mb-3">Current Chain:</div>
         <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-flex-wrap">
           {/* Owner at start */}
-          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded-lg eb-shadow-sm">
-            <User className="eb-h-4 eb-w-4 eb-text-blue-600" />
-            <span className="eb-font-semibold eb-text-blue-900">{ownerName}</span>
+          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-primary/10 eb-border eb-border-primary/20 eb-rounded-lg eb-shadow-sm">
+            <User className="eb-h-4 eb-w-4 eb-text-primary" />
+            <span className="eb-font-semibold eb-text-foreground">{ownerName}</span>
           </div>
           
           {/* Company chain */}
           {hierarchySteps.map((step) => (
             <React.Fragment key={step.id}>
-              <span className="eb-text-gray-400 eb-text-lg eb-font-bold">→</span>
-              <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-white eb-border eb-border-gray-200 eb-rounded-lg eb-shadow-sm">
-                <Building className="eb-h-4 eb-w-4 eb-text-gray-600" />
-                <span className="eb-font-semibold eb-text-gray-700">{step.entityName}</span>
+              <span className="eb-text-muted-foreground eb-text-lg eb-font-bold">→</span>
+              <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-card eb-border eb-rounded-lg eb-shadow-sm">
+                <Building className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                <span className="eb-font-semibold eb-text-foreground">{step.entityName}</span>
               </div>
             </React.Fragment>
           ))}
           
           {/* Next step indicator */}
-          <span className="eb-text-gray-400 eb-text-lg eb-font-bold">→</span>
-          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-green-50 eb-border eb-border-green-200 eb-rounded-lg eb-border-dashed eb-shadow-sm">
-            <Building className="eb-h-4 eb-w-4 eb-text-green-600" />
-            <span className="eb-font-semibold eb-text-green-900">{rootCompanyName}</span>
+          <span className="eb-text-muted-foreground eb-text-lg eb-font-bold">→</span>
+          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-success-accent eb-border eb-border-success eb-rounded-lg eb-border-dashed eb-shadow-sm">
+            <Building className="eb-h-4 eb-w-4 eb-text-success" />
+            <span className="eb-font-semibold eb-text-success">{rootCompanyName}</span>
           </div>
         </div>
       </div>
@@ -655,16 +655,16 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
         </DialogHeader>
 
         <div className="eb-space-y-6">
-          <div className="eb-text-sm eb-text-gray-600 eb-leading-relaxed">
+          <div className="eb-text-sm eb-text-muted-foreground eb-leading-relaxed">
             {isEditMode ? (
               <>
-                Edit the ownership chain from <span className="eb-font-medium eb-text-gray-900">{ownerName}</span> to{' '}
-                <span className="eb-font-medium eb-text-gray-900">{rootCompanyName}</span>.
+                Edit the ownership chain from <span className="eb-font-medium eb-text-foreground">{ownerName}</span> to{' '}
+                <span className="eb-font-medium eb-text-foreground">{rootCompanyName}</span>.
               </>
             ) : (
               <>
-                We'll build the chain step by step from <span className="eb-font-medium eb-text-gray-900">{ownerName}</span> to{' '}
-                <span className="eb-font-medium eb-text-gray-900">{rootCompanyName}</span>.
+                We'll build the chain step by step from <span className="eb-font-medium eb-text-foreground">{ownerName}</span> to{' '}
+                <span className="eb-font-medium eb-text-foreground">{rootCompanyName}</span>.
               </>
             )}
           </div>
@@ -675,21 +675,21 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
           {/* Edit Mode: Existing Steps Management */}
           {isEditMode && hierarchySteps.length > 0 && (
             <div className="eb-space-y-4">
-              <div className="eb-text-sm eb-font-medium eb-text-gray-800">
+              <div className="eb-text-sm eb-font-medium eb-text-foreground">
                 Current Steps (click to remove):
               </div>
               <div className="eb-space-y-2">
                 {hierarchySteps.map((step, index) => (
-                  <div key={step.id} className="eb-flex eb-items-center eb-justify-between eb-p-3 eb-bg-white eb-border eb-rounded-lg eb-shadow-sm">
+                  <div key={step.id} className="eb-flex eb-items-center eb-justify-between eb-p-3 eb-bg-card eb-border eb-rounded-lg eb-shadow-sm">
                     <div className="eb-flex eb-items-center eb-gap-3">
-                      <span className="eb-text-sm eb-font-medium eb-text-gray-600">
+                      <span className="eb-text-sm eb-font-medium eb-text-muted-foreground">
                         Step {index + 1}:
                       </span>
                       <div className="eb-flex eb-items-center eb-gap-2">
-                        <Building className="eb-h-4 eb-w-4 eb-text-gray-600" />
+                        <Building className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                         <span className="eb-font-medium">{step.entityName}</span>
                         {index === hierarchySteps.length - 1 && step.ownsRootBusinessDirectly && (
-                          <Badge className="eb-bg-green-100 eb-text-green-800 eb-text-xs">
+                          <Badge className="eb-bg-success-accent eb-text-success eb-text-xs">
                             Final Step
                           </Badge>
                         )}
@@ -702,7 +702,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                       }}
                       size="sm"
                       variant="outline"
-                      className="eb-text-red-600 eb-hover:bg-red-50"
+                      className="eb-text-destructive eb-hover:bg-destructive/5"
                     >
                       <Trash2 className="eb-h-3 eb-w-3" />
                     </Button>
@@ -713,13 +713,13 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
           )}
 
           {/* Company Input Form */}
-          <div className="eb-space-y-5 eb-p-5 eb-border eb-rounded-lg eb-bg-blue-50 eb-border-blue-200">
-            <div className="eb-text-sm eb-font-medium eb-text-gray-800">
+          <div className="eb-space-y-5 eb-p-5 eb-border eb-rounded-lg eb-bg-primary/5 eb-border-primary/20">
+            <div className="eb-text-sm eb-font-medium eb-text-foreground">
               {getInstructionText()}
             </div>
             
             <div className="eb-space-y-2">
-              <Label htmlFor="companyName" className="eb-text-sm eb-font-medium eb-text-gray-700">
+              <Label htmlFor="companyName" className="eb-text-sm eb-font-medium eb-text-foreground">
                 Company Name
               </Label>
               <Input
@@ -727,7 +727,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                 value={currentCompanyName}
                 onChange={(e) => setCurrentCompanyName(e.target.value)}
                 placeholder="Enter company name"
-                className="eb-h-10 eb-bg-white eb-border-blue-300 eb-focus:border-blue-500"
+                className="eb-h-10 eb-bg-card"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && currentCompanyName.trim()) {
                     e.preventDefault();
@@ -738,16 +738,16 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
             </div>
 
             <div className="eb-space-y-3">
-              <div className="eb-text-sm eb-font-medium eb-text-gray-800">
-                Does <span className="eb-font-bold eb-text-blue-900">{currentCompanyName || '[Company Name]'}</span> directly own{' '}
-                <span className="eb-font-bold eb-text-blue-900">{rootCompanyName}</span>?
+              <div className="eb-text-sm eb-font-medium eb-text-foreground">
+                Does <span className="eb-font-bold eb-text-primary">{currentCompanyName || '[Company Name]'}</span> directly own{' '}
+                <span className="eb-font-bold eb-text-primary">{rootCompanyName}</span>?
               </div>
 
               <div className="eb-flex eb-gap-3">
                 <Button 
                   onClick={() => handleAddCompany(true)}
                   disabled={!currentCompanyName.trim()}
-                  className="eb-flex-1 eb-bg-green-600 hover:eb-bg-green-700 eb-font-medium eb-h-10"
+                  className="eb-flex-1 eb-bg-success hover:eb-bg-success/90 eb-font-medium eb-h-10 eb-text-white"
                 >
                   Yes - Complete Chain
                 </Button>
@@ -755,7 +755,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                   onClick={() => handleAddCompany(false)}
                   disabled={!currentCompanyName.trim()}
                   variant="outline"
-                  className="eb-flex-1 eb-border-blue-300 eb-text-blue-700 hover:eb-bg-blue-50 eb-font-medium eb-h-10"
+                  className="eb-flex-1 eb-border-primary eb-text-primary hover:eb-bg-primary/5 eb-font-medium eb-h-10"
                 >
                   No - Continue Chain
                 </Button>
@@ -765,11 +765,11 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
           {/* Error Messages */}
           {errors.length > 0 && (
-            <div className="eb-p-4 eb-bg-red-50 eb-border eb-border-red-200 eb-rounded-lg">
-              <div className="eb-text-red-800 eb-text-sm eb-space-y-1">
+            <div className="eb-p-4 eb-bg-destructive-accent eb-border eb-border-destructive eb-rounded-lg">
+              <div className="eb-text-destructive eb-text-sm eb-space-y-1">
                 {errors.map((error, index) => (
                   <div key={index} className="eb-flex eb-items-center eb-gap-2">
-                    <AlertTriangle className="eb-h-3 eb-w-3 eb-text-red-600 eb-shrink-0" />
+                    <AlertTriangle className="eb-h-3 eb-w-3 eb-text-destructive eb-shrink-0" />
                     <span>{error}</span>
                   </div>
                 ))}
