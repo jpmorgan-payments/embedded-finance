@@ -2,14 +2,9 @@
  * Shared utilities for IndirectOwnership stories
  */
 
-import {
-  baseStoryArgTypes,
-  baseStoryDefaults,
-  BaseStoryProps,
-  resolveTheme,
-} from '@storybook/shared-story-types';
-
+import { SELLSENSE_THEME } from '@storybook-themes';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 import { IndirectOwnership } from '../IndirectOwnership';
 import type { IndirectOwnershipProps } from '../IndirectOwnership.types';
 
@@ -17,20 +12,18 @@ import type { IndirectOwnershipProps } from '../IndirectOwnership.types';
 // Story Wrapper Component
 // ============================================================================
 
-/**
- * Props for IndirectOwnership stories.
- * Extends BaseStoryProps for common provider/theme configuration.
- */
-export interface IndirectOwnershipStoryProps extends BaseStoryProps, IndirectOwnershipProps {}
+interface IndirectOwnershipStoryProps extends IndirectOwnershipProps {
+  apiBaseUrl?: string;
+  headers?: Record<string, string>;
+  theme?: EBTheme;
+  contentTokens?: { name: 'enUS' | 'frCA' };
+}
 
 export const IndirectOwnershipStory: React.FC<IndirectOwnershipStoryProps> = ({
-  apiBaseUrl,
-  clientId,
-  headers,
-  themePreset = 'Salt',
-  theme: customTheme,
-  contentTokensPreset = 'enUS',
-  contentTokens,
+  apiBaseUrl = 'https://api.example.com',
+  headers = {},
+  theme = SELLSENSE_THEME,
+  contentTokens = { name: 'enUS' as const },
   // IndirectOwnership specific props
   client,
   onOwnershipComplete,
@@ -40,28 +33,24 @@ export const IndirectOwnershipStory: React.FC<IndirectOwnershipStoryProps> = ({
   className,
   testId,
 }) => {
-  // Resolve theme: use custom theme if themePreset is 'custom', otherwise use preset
-  const selectedTheme = resolveTheme(themePreset, customTheme);
-
-  const selectedContentTokens = contentTokens ?? { name: contentTokensPreset };
-
   return (
     <EBComponentsProvider
       apiBaseUrl={apiBaseUrl}
       headers={headers}
-      theme={selectedTheme}
-      contentTokens={selectedContentTokens}
-      clientId={clientId ?? ''}
+      theme={theme}
+      contentTokens={contentTokens}
     >
-      <IndirectOwnership
-        client={client}
-        onOwnershipComplete={onOwnershipComplete}
-        onValidationChange={onValidationChange}
-        config={config}
-        readOnly={readOnly}
-        className={className}
-        testId={testId}
-      />
+      <div className="eb-mx-auto eb-max-w-4xl eb-p-6">
+        <IndirectOwnership
+          client={client}
+          onOwnershipComplete={onOwnershipComplete}
+          onValidationChange={onValidationChange}
+          config={config}
+          readOnly={readOnly}
+          className={className}
+          testId={testId}
+        />
+      </div>
     </EBComponentsProvider>
   );
 };
@@ -74,7 +63,10 @@ export const IndirectOwnershipStory: React.FC<IndirectOwnershipStoryProps> = ({
  * Common args for IndirectOwnership stories
  */
 export const commonArgs = {
-  ...baseStoryDefaults,
+  apiBaseUrl: 'https://api.example.com',
+  headers: {},
+  theme: SELLSENSE_THEME,
+  contentTokens: { name: 'enUS' as const },
   onOwnershipComplete: (owners: any) => console.log('Ownership completed:', owners),
   onValidationChange: (summary: any) => console.log('Validation changed:', summary),
 };
@@ -83,12 +75,32 @@ export const commonArgs = {
  * Common argTypes for IndirectOwnership stories
  */
 export const commonArgTypes = {
-  ...baseStoryArgTypes,
-  rootCompanyName: {
+  apiBaseUrl: {
     control: { type: 'text' as const },
-    description: 'Name of the company being onboarded',
+    description: 'API base URL',
     table: {
-      category: 'Component',
+      category: 'Provider',
+    },
+  },
+  headers: {
+    control: { type: 'object' as const },
+    description: 'API headers',
+    table: {
+      category: 'Provider',
+    },
+  },
+  theme: {
+    control: { type: 'object' as const },
+    description: 'Theme configuration',
+    table: {
+      category: 'Provider',
+    },
+  },
+  contentTokens: {
+    control: { type: 'object' as const },
+    description: 'Content tokens configuration',
+    table: {
+      category: 'Provider',
     },
   },
   readOnly: {
@@ -99,9 +111,9 @@ export const commonArgTypes = {
       defaultValue: { summary: 'false' },
     },
   },
-  initialOwners: {
+  client: {
     control: { type: 'object' as const },
-    description: 'Pre-populated beneficial owners for editing scenarios',
+    description: 'Client data with ownership structure',
     table: {
       category: 'Component',
     },

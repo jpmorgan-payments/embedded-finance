@@ -1,19 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { BeneficialOwner } from '../IndirectOwnership.types';
-import {
-  commonArgs,
-  commonArgTypes,
-  IndirectOwnershipStory,
-} from './story-utils';
+import { IndirectOwnership } from '../IndirectOwnership';
 
 // Import OpenAPI-aligned mocks for proper integration
 import {
   efClientWithOwnershipStructure,
   efClientEmptyOwnership,
   efClientIncompleteOwnership,
-  alternateOwnershipWithSampleOwners,
-  alternateOwnershipEmpty,
 } from '../mocks';
 
 // Create mock clients with different states
@@ -29,7 +22,8 @@ const mockErrorClient = {
 
 const meta = {
   title: 'Core/IndirectOwnership',
-  component: IndirectOwnershipStory,
+  component: IndirectOwnership,
+  tags: ['@core', '@indirect-ownership'],
   parameters: {
     layout: 'padded',
     docs: {
@@ -38,13 +32,25 @@ const meta = {
       }
     }
   },
-  tags: ['autodocs'],
-  args: commonArgs,
-  argTypes: commonArgTypes,
-} satisfies Meta<typeof IndirectOwnershipStory>;
+  argTypes: {
+    client: {
+      control: { type: 'object' },
+      description: 'Client data with ownership structure',
+    },
+    readOnly: {
+      control: { type: 'boolean' },
+      description: 'Whether the component is in read-only mode',
+      table: {
+        defaultValue: { summary: 'false' },
+      },
+    },
+    onOwnershipComplete: { action: 'onOwnershipComplete' },
+    onValidationChange: { action: 'onValidationChange' },
+  },
+} satisfies Meta<typeof IndirectOwnership>;
 
 export default meta;
-type Story = StoryObj<typeof IndirectOwnershipStory>;
+type Story = StoryObj<typeof meta>;
 
 // Mock clients now provide proper OpenAPI-aligned sample data
 
