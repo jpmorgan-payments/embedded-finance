@@ -8,17 +8,21 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
+        // Actionable variants (for buttons/actions)
         default:
           'eb-border-transparent eb-bg-primary eb-text-primary-foreground hover:eb-bg-primary/90',
         secondary:
           'eb-border-transparent eb-bg-secondary eb-text-secondary-foreground hover:eb-bg-secondary/80',
         destructive:
           'eb-border-transparent eb-bg-destructive eb-text-destructive-foreground hover:eb-bg-destructive/80',
-        success:
-          'eb-border-transparent eb-bg-green-700 eb-text-primary-foreground hover:eb-bg-green-700/80',
-        warning:
-          'eb-border-transparent eb-bg-warning eb-text-primary-foreground hover:eb-bg-warning/80',
+        // Status variants (for status pills) - Salt Status tokens
+        success: 'eb-border-transparent eb-bg-success-accent eb-text-success',
+        warning: 'eb-border-transparent eb-bg-warning-accent eb-text-warning',
+        informative:
+          'eb-border-transparent eb-bg-informative-accent eb-text-informative',
+        // Neutral
         outline: 'eb-text-foreground',
+        // Legacy - consider removing in future
         subtle: 'eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]',
       },
       size: {

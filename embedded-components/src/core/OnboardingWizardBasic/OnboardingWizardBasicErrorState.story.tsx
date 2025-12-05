@@ -1,11 +1,14 @@
 import type { Meta, StoryFn } from '@storybook/react-vite';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import { OnboardingWizardBasicProps } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
 
-export type OnboardingWizardBasicWithProviderProps =
-  OnboardingWizardBasicProps & EBConfig;
+import type { BaseStoryArgs } from '../../../.storybook/preview';
+
+/**
+ * Story args interface extending base provider args
+ */
+export type OnboardingWizardBasicErrorStoryArgs = OnboardingWizardBasicProps &
+  BaseStoryArgs;
 
 // Test component that throws an error
 function BuggyComponent() {
@@ -13,43 +16,20 @@ function BuggyComponent() {
   return null;
 }
 
-const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
+const meta: Meta<OnboardingWizardBasicErrorStoryArgs> = {
   title: 'Legacy/OnboardingWizardBasic/ErrorStates',
   component: BuggyComponent,
   tags: ['@legacy', '@onboarding'],
-
-  decorators: [
-    (Story, context) => {
-      const {
-        apiBaseUrl,
-        headers,
-        theme,
-        reactQueryDefaultOptions,
-        contentTokens,
-      } = context.args;
-      return (
-        <EBComponentsProvider
-          apiBaseUrl={apiBaseUrl}
-          headers={headers}
-          theme={{
-            colorScheme: 'light',
-            ...theme,
-          }}
-          reactQueryDefaultOptions={reactQueryDefaultOptions}
-          contentTokens={contentTokens}
-        >
-          <Story />
-        </EBComponentsProvider>
-      );
-    },
-  ],
 };
 
 export default meta;
 
-const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = () => (
+const Template: StoryFn<OnboardingWizardBasicErrorStoryArgs> = () => (
   <BuggyComponent />
 );
 
 export const Default = Template.bind({});
 Default.storyName = 'Render Error';
+Default.args = {
+  apiBaseUrl: '/',
+};

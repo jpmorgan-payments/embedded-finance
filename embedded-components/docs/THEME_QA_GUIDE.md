@@ -37,12 +37,80 @@ Use this checklist when validating component theming and when adding or refining
 - Dark mode override: repeat with darker values and ensure text/background meet contrast.
 - Interaction: hover buttons/links, focus inputs to see `--eb-ring`, open popovers/dialogs to verify overlay tokens and z-index.
 
+## Comprehensive Testing Checklist
+
+After implementing or fixing tokens, verify:
+
+- [ ] Component renders correctly in light mode
+- [ ] Component renders correctly in dark mode
+- [ ] Component responds to theme overrides via `EBComponentsProvider`
+- [ ] All text remains readable with sufficient contrast
+- [ ] Interactive states (hover, focus) work correctly
+- [ ] Spacing scales correctly with `spacingUnit` override
+- [ ] Borders use semantic tokens and respond to theme
+- [ ] Status badges/pills use correct Status tokens (not Sentiment)
+- [ ] No hard-coded `gray-*` colors remain
+- [ ] All colors come from CSS variables (`var(--eb-...)`)
+
 ## Pitfalls to Avoid
 
 - Hard-coded `gray-*` for text, borders, or icons—always swap to semantic tokens (`foreground`, `muted-foreground`, `label-foreground`, `border`).
 - Inline styles with colors or spacing—prefer `eb-` utilities so theme overrides apply globally.
 - Adding a Tailwind color without first defining the backing `--eb-*` variable in the converter.
 - Forgetting hover/active/focus mappings when introducing a new token; wire state variants in Tailwind if needed.
+
+## Common Token Replacements
+
+### Gray Color Replacements
+
+| Current (Wrong)    | Should Be                  | Token                   | Purpose              |
+| ------------------ | -------------------------- | ----------------------- | -------------------- |
+| `eb-text-gray-500` | `eb-text-muted-foreground` | `--eb-muted-foreground` | Secondary/muted text |
+| `eb-text-gray-400` | `eb-text-muted-foreground` | `--eb-muted-foreground` | Very muted text      |
+| `eb-text-gray-600` | `eb-text-foreground`       | `--eb-foreground`       | Primary text         |
+| `eb-text-gray-700` | `eb-text-foreground`       | `--eb-foreground`       | Primary text         |
+| `eb-border-gray-*` | `eb-border`                | `--eb-border`           | Borders              |
+
+### Status vs Sentiment Tokens
+
+**Key Principle**: Status indicators (badges, pills) should use Salt's **Status** tokens, not Sentiment tokens.
+
+| Status Value | Badge Variant | Salt Token Used               | Purpose               |
+| ------------ | ------------- | ----------------------------- | --------------------- |
+| `COMPLETED`  | `success`     | `statusSuccessForeground`     | Transaction completed |
+| `PENDING`    | `warning`     | `statusWarningForeground`     | Transaction pending   |
+| `REJECTED`   | `destructive` | `sentimentNegativeForeground` | Transaction failed    |
+| `CANCELLED`  | `informative` | `statusInfoForeground`        | Transaction cancelled |
+
+**Implementation Pattern**:
+
+```typescript
+// ✅ CORRECT: Use semantic status variants
+const getStatusVariant = (status: string): 'success' | 'warning' | 'informative' | 'destructive' => {
+  switch (status) {
+    case 'COMPLETED':
+      return 'success'; // Uses statusSuccessForeground
+    case 'PENDING':
+      return 'warning'; // Uses statusWarningForeground
+    case 'CANCELLED':
+      return 'informative'; // Uses statusInfoForeground
+    case 'REJECTED':
+      return 'destructive'; // Uses sentimentNegativeForeground
+    default:
+      return 'informative';
+  }
+};
+
+// Badge component automatically maps variants to correct tokens
+<Badge variant={getStatusVariant(status)}>{status}</Badge>
+```
+
+The `Badge` component maps variants to Salt tokens:
+
+- `success` → `eb-bg-success-accent eb-text-success` (uses `statusSuccessAccentBackground` + `statusSuccessForeground`)
+- `warning` → `eb-bg-warning-accent eb-text-warning` (uses `statusWarningAccentBackground` + `statusWarningForeground`)
+- `informative` → `eb-bg-informative-accent eb-text-informative` (uses `statusInfoAccentBackground` + `statusInfoForeground`)
+- `destructive` → Uses sentiment tokens (appropriate for errors)
 
 ## If a Token Seems Missing
 
@@ -86,483 +154,138 @@ Not in our taxonomy (Salt-only today): `Category`, `Selectable`, `Target`, separ
 
 ## Token Coverage vs Salt (per token)
 
-> **Note**: Salt token names shown without `--salt-` prefix. Our tokens use camelCase; Salt uses kebab-case. This table shows all Salt tokens individually.
+| Token                               | Characteristic         | In EB?                       | Salt characteristic exists?                          | Notes                                      |
+| ----------------------------------- | ---------------------- | ---------------------------- | ---------------------------------------------------- | ------------------------------------------ |
+| contentFontFamily                   | Content                | Yes                          | Yes (Content/Text)                                   |                                            |
+| contentHeaderFontFamily             | Content                | Yes                          | Yes (Content/Text)                                   |                                            |
+| containerBackground                 | Container              | Yes                          | Yes                                                  |                                            |
+| contentPrimaryForeground            | Container              | Yes                          | Yes                                                  |                                            |
+| containerPrimaryBackground          | Container              | Yes                          | Yes                                                  |                                            |
+| containerPrimaryForeground          | Container              | Yes                          | Yes                                                  |                                            |
+| containerSecondaryBackground        | Container              | Yes                          | Yes                                                  |                                            |
+| containerSecondaryForeground        | Container              | Yes                          | Yes                                                  |                                            |
+| actionableFontFamily                | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableFontWeight                | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableFontSize                  | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableLineHeight                | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableTextTransform             | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableLetterSpacing             | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableBorderRadius              | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionableShiftOnActive             | Actionable             | Yes                          | Yes                                                  |                                            |
+| actionablePrimaryBackground         | Actionable (Primary)   | Yes                          | Yes                                                  |                                            |
+| actionablePrimaryBackgroundHover    | Actionable (Primary)   | Yes                          | Yes (state)                                          |                                            |
+| actionablePrimaryBackgroundActive   | Actionable (Primary)   | Yes                          | Yes (state)                                          |                                            |
+| actionablePrimaryForeground         | Actionable (Primary)   | Yes                          | Yes                                                  |                                            |
+| actionablePrimaryForegroundHover    | Actionable (Primary)   | Yes                          | Yes (state)                                          |                                            |
+| actionablePrimaryForegroundActive   | Actionable (Primary)   | Yes                          | Yes (state)                                          |                                            |
+| actionablePrimaryBorderWidth        | Actionable (Primary)   | Yes                          | Yes (border property)                                |                                            |
+| actionablePrimaryFontWeight         | Actionable (Primary)   | Yes                          | Yes                                                  |                                            |
+| actionableSecondaryBackground       | Actionable (Secondary) | Yes                          | Yes                                                  |                                            |
+| actionableSecondaryBackgroundHover  | Actionable (Secondary) | Yes                          | Yes (state)                                          |                                            |
+| actionableSecondaryBackgroundActive | Actionable (Secondary) | Yes                          | Yes (state)                                          |                                            |
+| actionableSecondaryForeground       | Actionable (Secondary) | Yes                          | Yes                                                  |                                            |
+| actionableSecondaryForegroundHover  | Actionable (Secondary) | Yes                          | Yes (state)                                          |                                            |
+| actionableSecondaryForegroundActive | Actionable (Secondary) | Yes                          | Yes (state)                                          |                                            |
+| actionableSecondaryBorderWidth      | Actionable (Secondary) | Yes                          | Yes (border property)                                |                                            |
+| actionableSecondaryFontWeight       | Actionable (Secondary) | Yes                          | Yes                                                  |                                            |
+| editableBackground                  | Editable               | Yes                          | Yes                                                  |                                            |
+| editableBorderColor                 | Editable               | Yes                          | Yes                                                  |                                            |
+| editableBorderRadius                | Editable               | Yes                          | Yes                                                  |                                            |
+| editableLabelFontSize               | Editable               | Yes                          | Yes                                                  |                                            |
+| editableLabelLineHeight             | Editable               | Yes                          | Yes                                                  |                                            |
+| editableLabelFontWeight             | Editable               | Yes                          | Yes                                                  |                                            |
+| editableLabelForeground             | Editable               | Yes                          | Yes                                                  |                                            |
+| overlayableBackground               | Overlayable            | Yes                          | Yes                                                  |                                            |
+| overlayableForeground               | Overlayable            | Yes                          | Yes                                                  |                                            |
+| overlayableZIndex                   | Overlayable            | Yes                          | Yes (property)                                       |                                            |
+| navigableBackground                 | Navigable              | Yes                          | Yes                                                  |                                            |
+| navigableForeground                 | Navigable              | Yes                          | Yes                                                  |                                            |
+| navigableAccentBackground           | Navigable              | Yes                          | Yes (accent variant)                                 |                                            |
+| navigableAccentForeground           | Navigable              | Yes                          | Yes (accent variant)                                 |                                            |
+| separableBorderColor                | Separable              | Yes                          | Yes                                                  |                                            |
+| separableBorderRadius               | Separable              | Yes                          | Yes                                                  |                                            |
+| focusedRingColor                    | Focused                | Yes                          | Yes                                                  |                                            |
+| sentimentNegativeBackground         | Sentiment (Negative)   | Yes                          | Yes                                                  |                                            |
+| sentimentNegativeBackgroundHover    | Sentiment (Negative)   | Yes                          | Yes (state)                                          |                                            |
+| sentimentNegativeBackgroundActive   | Sentiment (Negative)   | Yes                          | Yes (state)                                          |                                            |
+| sentimentNegativeForeground         | Sentiment (Negative)   | Yes                          | Yes                                                  |                                            |
+| sentimentNegativeForegroundHover    | Sentiment (Negative)   | Yes                          | Yes (state)                                          |                                            |
+| sentimentNegativeForegroundActive   | Sentiment (Negative)   | Yes                          | Yes (state)                                          |                                            |
+| sentimentNegativeAccentBackground   | Sentiment (Negative)   | Yes                          | Yes (accent)                                         |                                            |
+| sentimentNegativeBorderWidth        | Sentiment (Negative)   | Yes                          | Yes (border property)                                |                                            |
+| sentimentNegativeFontWeight         | Sentiment (Negative)   | Yes                          | Yes                                                  |                                            |
+| sentimentPositiveForeground         | Sentiment (Positive)   | Yes                          | Yes                                                  |                                            |
+| sentimentPositiveAccentBackground   | Sentiment (Positive)   | Yes                          | Yes (accent)                                         |                                            |
+| sentimentCautionForeground          | Sentiment (Caution)    | Yes                          | Yes                                                  |                                            |
+| sentimentCautionAccentBackground    | Sentiment (Caution)    | Yes                          | Yes (accent)                                         |                                            |
+| statusInfoForeground                | Status (Info)          | Yes                          | Yes                                                  |                                            |
+| statusInfoAccentBackground          | Status (Info)          | Yes                          | Yes (accent)                                         |                                            |
+| statusSuccessForeground             | Status (Success)       | Yes (fallback via sentiment) | Yes                                                  | Falls back to positive if unset            |
+| statusSuccessAccentBackground       | Status (Success)       | Yes (fallback via sentiment) | Yes                                                  | Falls back to positive if unset            |
+| statusWarningForeground             | Status (Warning)       | Yes (fallback via sentiment) | Yes                                                  | Falls back to caution if unset             |
+| statusWarningAccentBackground       | Status (Warning)       | Yes (fallback via sentiment) | Yes                                                  | Falls back to caution if unset             |
+| accentBackground                    | Accent                 | Yes                          | Salt has accent patterns                             |                                            |
+| accentForeground                    | Accent                 | Yes                          | Salt has accent patterns                             |                                            |
+| accentMetricBackground              | Accent/Metric          | Yes                          | Salt supports metric accents                         |                                            |
+| spacingUnit                         | Layout/Spacing         | Yes                          | Salt uses density/size scales (not a characteristic) | Our layout token                           |
+| alertForegroundColor                | Legacy/Compat          | Yes                          | Not a Salt characteristic                            | Back-compat only                           |
+| Category tokens (Salt)              | Category               | No                           | Yes                                                  | Salt-only; not implemented                 |
+| Selectable tokens (Salt)            | Selectable             | No                           | Yes                                                  | Salt-only; not implemented                 |
+| Target tokens (Salt)                | Target                 | No                           | Yes                                                  | Salt-only; not implemented                 |
+| Text characteristic (Salt separate) | Text                   | No (folded into Content)     | Yes                                                  | Salt separates Text; we keep under Content |
 
-### Accent Characteristic
+Salt characteristics not present in EB tokens: `Category`, `Selectable`, `Target`, separate `Text` characteristic (we fold into Content). Add only when needed.
 
-| Token                     | In EB? | Salt Token                  | Notes                                     |
-| ------------------------- | ------ | --------------------------- | ----------------------------------------- |
-| accentBackground          | Yes    | accent-background           |                                           |
-| accentBackgroundDisabled  | No     | accent-background-disabled  | Salt-only                                 |
-| accentBorderColor         | No     | accent-borderColor          | Salt-only                                 |
-| accentBorderColorDisabled | No     | accent-borderColor-disabled | Salt-only                                 |
-| accentForeground          | Yes    | (not in accent.css)         | We have this; Salt may handle via palette |
-| accentMetricBackground    | Yes    | (not in accent.css)         | Our metric accent token                   |
+## Design Token Utility Reference
 
-### Actionable Characteristic
+Quick reference for common Tailwind utilities and their underlying CSS variables:
 
-| Token                                     | In EB? | Salt Token                                    | Notes                                         |
-| ----------------------------------------- | ------ | --------------------------------------------- | --------------------------------------------- |
-| actionableFontFamily                      | Yes    | (typography handled separately)               |                                               |
-| actionableFontWeight                      | Yes    | (typography handled separately)               |                                               |
-| actionableFontSize                        | Yes    | (typography handled separately)               |                                               |
-| actionableLineHeight                      | Yes    | (typography handled separately)               |                                               |
-| actionableTextTransform                   | Yes    | (typography handled separately)               |                                               |
-| actionableLetterSpacing                   | Yes    | (typography handled separately)               |                                               |
-| actionableBorderRadius                    | Yes    | (typography handled separately)               |                                               |
-| actionableShiftOnActive                   | Yes    | (custom behavior)                             |                                               |
-| actionablePrimaryBackground               | Yes    | actionable-bold-background                    | Maps to Salt's "bold" (solid) variant         |
-| actionablePrimaryBackgroundHover          | Yes    | actionable-bold-background-hover              |                                               |
-| actionablePrimaryBackgroundActive         | Yes    | actionable-bold-background-active             |                                               |
-| actionablePrimaryForeground               | Yes    | actionable-bold-foreground                    |                                               |
-| actionablePrimaryForegroundHover          | Yes    | actionable-bold-foreground-hover              |                                               |
-| actionablePrimaryForegroundActive         | Yes    | actionable-bold-foreground-active             |                                               |
-| actionablePrimaryBorderWidth              | Yes    | actionable-bold-borderColor                   | We use borderWidth; Salt uses borderColor     |
-| actionablePrimaryFontWeight               | Yes    | (typography handled separately)               |                                               |
-| actionableSecondaryBackground             | Yes    | actionable-subtle-background                  | Maps to Salt's "subtle" (transparent) variant |
-| actionableSecondaryBackgroundHover        | Yes    | actionable-subtle-background-hover            |                                               |
-| actionableSecondaryBackgroundActive       | Yes    | actionable-subtle-background-active           |                                               |
-| actionableSecondaryForeground             | Yes    | actionable-subtle-foreground                  |                                               |
-| actionableSecondaryForegroundHover        | Yes    | actionable-subtle-foreground-hover            |                                               |
-| actionableSecondaryForegroundActive       | Yes    | actionable-subtle-foreground-active           |                                               |
-| actionableSecondaryBorderWidth            | Yes    | actionable-subtle-borderColor                 | We use borderWidth; Salt uses borderColor     |
-| actionableSecondaryFontWeight             | Yes    | (typography handled separately)               |                                               |
-| actionableAccentedBoldBackground          | No     | actionable-accented-bold-background           | Salt-only variant                             |
-| actionableAccentedBoldBackgroundActive    | No     | actionable-accented-bold-background-active    | Salt-only                                     |
-| actionableAccentedBoldBackgroundHover     | No     | actionable-accented-bold-background-hover     | Salt-only                                     |
-| actionableAccentedBoldBorderColor         | No     | actionable-accented-bold-borderColor          | Salt-only                                     |
-| actionableAccentedBoldBorderColorActive   | No     | actionable-accented-bold-borderColor-active   | Salt-only                                     |
-| actionableAccentedBoldBorderColorHover    | No     | actionable-accented-bold-borderColor-hover    | Salt-only                                     |
-| actionableAccentedBoldForeground          | No     | actionable-accented-bold-foreground           | Salt-only                                     |
-| actionableAccentedBoldForegroundActive    | No     | actionable-accented-bold-foreground-active    | Salt-only                                     |
-| actionableAccentedBoldForegroundHover     | No     | actionable-accented-bold-foreground-hover     | Salt-only                                     |
-| actionableAccentedBackground              | No     | actionable-accented-background                | Salt-only (bordered variant)                  |
-| actionableAccentedBackgroundActive        | No     | actionable-accented-background-active         | Salt-only                                     |
-| actionableAccentedBackgroundHover         | No     | actionable-accented-background-hover          | Salt-only                                     |
-| actionableAccentedBackgroundSelected      | No     | actionable-accented-background-selected       | Salt-only                                     |
-| actionableAccentedBorderColor             | No     | actionable-accented-borderColor               | Salt-only                                     |
-| actionableAccentedBorderColorActive       | No     | actionable-accented-borderColor-active        | Salt-only                                     |
-| actionableAccentedBorderColorHover        | No     | actionable-accented-borderColor-hover         | Salt-only                                     |
-| actionableAccentedBorderColorSelected     | No     | actionable-accented-borderColor-selected      | Salt-only                                     |
-| actionableAccentedForeground              | No     | actionable-accented-foreground                | Salt-only                                     |
-| actionableAccentedForegroundActive        | No     | actionable-accented-foreground-active         | Salt-only                                     |
-| actionableAccentedForegroundHover         | No     | actionable-accented-foreground-hover          | Salt-only                                     |
-| actionableAccentedForegroundSelected      | No     | actionable-accented-foreground-selected       | Salt-only                                     |
-| actionableAccentedSubtleBackground        | No     | actionable-accented-subtle-background         | Salt-only (transparent variant)               |
-| actionableAccentedSubtleBackgroundActive  | No     | actionable-accented-subtle-background-active  | Salt-only                                     |
-| actionableAccentedSubtleBackgroundHover   | No     | actionable-accented-subtle-background-hover   | Salt-only                                     |
-| actionableAccentedSubtleBorderColor       | No     | actionable-accented-subtle-borderColor        | Salt-only                                     |
-| actionableAccentedSubtleBorderColorActive | No     | actionable-accented-subtle-borderColor-active | Salt-only                                     |
-| actionableAccentedSubtleBorderColorHover  | No     | actionable-accented-subtle-borderColor-hover  | Salt-only                                     |
-| actionableAccentedSubtleForeground        | No     | actionable-accented-subtle-foreground         | Salt-only                                     |
-| actionableAccentedSubtleForegroundActive  | No     | actionable-accented-subtle-foreground-active  | Salt-only                                     |
-| actionableAccentedSubtleForegroundHover   | No     | actionable-accented-subtle-foreground-hover   | Salt-only                                     |
-| actionableBackground                      | No     | actionable-background                         | Salt-only (neutral bordered variant)          |
-| actionableBackgroundActive                | No     | actionable-background-active                  | Salt-only                                     |
-| actionableBackgroundHover                 | No     | actionable-background-hover                   | Salt-only                                     |
-| actionableBackgroundSelected              | No     | actionable-background-selected                | Salt-only                                     |
-| actionableBorderColor                     | No     | actionable-borderColor                        | Salt-only                                     |
-| actionableBorderColorActive               | No     | actionable-borderColor-active                 | Salt-only                                     |
-| actionableBorderColorHover                | No     | actionable-borderColor-hover                  | Salt-only                                     |
-| actionableBorderColorSelected             | No     | actionable-borderColor-selected               | Salt-only                                     |
-| actionableForeground                      | No     | actionable-foreground                         | Salt-only                                     |
-| actionableForegroundActive                | No     | actionable-foreground-active                  | Salt-only                                     |
-| actionableForegroundHover                 | No     | actionable-foreground-hover                   | Salt-only                                     |
-| actionableForegroundSelected              | No     | actionable-foreground-selected                | Salt-only                                     |
-| actionableNegativeBoldBackground          | No     | actionable-negative-bold-background           | Salt-only                                     |
-| actionableNegativeBoldBackgroundActive    | No     | actionable-negative-bold-background-active    | Salt-only                                     |
-| actionableNegativeBoldBackgroundHover     | No     | actionable-negative-bold-background-hover     | Salt-only                                     |
-| actionableNegativeBoldBorderColor         | No     | actionable-negative-bold-borderColor          | Salt-only                                     |
-| actionableNegativeBoldBorderColorActive   | No     | actionable-negative-bold-borderColor-active   | Salt-only                                     |
-| actionableNegativeBoldBorderColorHover    | No     | actionable-negative-bold-borderColor-hover    | Salt-only                                     |
-| actionableNegativeBoldForeground          | No     | actionable-negative-bold-foreground           | Salt-only                                     |
-| actionableNegativeBoldForegroundActive    | No     | actionable-negative-bold-foreground-active    | Salt-only                                     |
-| actionableNegativeBoldForegroundHover     | No     | actionable-negative-bold-foreground-hover     | Salt-only                                     |
-| actionableNegativeBackground              | No     | actionable-negative-background                | Salt-only                                     |
-| actionableNegativeBackgroundActive        | No     | actionable-negative-background-active         | Salt-only                                     |
-| actionableNegativeBackgroundHover         | No     | actionable-negative-background-hover          | Salt-only                                     |
-| actionableNegativeBackgroundSelected      | No     | actionable-negative-background-selected       | Salt-only                                     |
-| actionableNegativeBorderColor             | No     | actionable-negative-borderColor               | Salt-only                                     |
-| actionableNegativeBorderColorActive       | No     | actionable-negative-borderColor-active        | Salt-only                                     |
-| actionableNegativeBorderColorHover        | No     | actionable-negative-borderColor-hover         | Salt-only                                     |
-| actionableNegativeBorderColorSelected     | No     | actionable-negative-borderColor-selected      | Salt-only                                     |
-| actionableNegativeForeground              | No     | actionable-negative-foreground                | Salt-only                                     |
-| actionableNegativeForegroundActive        | No     | actionable-negative-foreground-active         | Salt-only                                     |
-| actionableNegativeForegroundHover         | No     | actionable-negative-foreground-hover          | Salt-only                                     |
-| actionableNegativeForegroundSelected      | No     | actionable-negative-foreground-selected       | Salt-only                                     |
-| actionableNegativeSubtleBackground        | No     | actionable-negative-subtle-background         | Salt-only                                     |
-| actionableNegativeSubtleBackgroundActive  | No     | actionable-negative-subtle-background-active  | Salt-only                                     |
-| actionableNegativeSubtleBackgroundHover   | No     | actionable-negative-subtle-background-hover   | Salt-only                                     |
-| actionableNegativeSubtleBorderColor       | No     | actionable-negative-subtle-borderColor        | Salt-only                                     |
-| actionableNegativeSubtleBorderColorActive | No     | actionable-negative-subtle-borderColor-active | Salt-only                                     |
-| actionableNegativeSubtleBorderColorHover  | No     | actionable-negative-subtle-borderColor-hover  | Salt-only                                     |
-| actionableNegativeSubtleForeground        | No     | actionable-negative-subtle-foreground         | Salt-only                                     |
-| actionableNegativeSubtleForegroundActive  | No     | actionable-negative-subtle-foreground-active  | Salt-only                                     |
-| actionableNegativeSubtleForegroundHover   | No     | actionable-negative-subtle-foreground-hover   | Salt-only                                     |
-| actionablePositiveBoldBackground          | No     | actionable-positive-bold-background           | Salt-only                                     |
-| actionablePositiveBoldBackgroundActive    | No     | actionable-positive-bold-background-active    | Salt-only                                     |
-| actionablePositiveBoldBackgroundHover     | No     | actionable-positive-bold-background-hover     | Salt-only                                     |
-| actionablePositiveBoldBorderColor         | No     | actionable-positive-bold-borderColor          | Salt-only                                     |
-| actionablePositiveBoldBorderColorActive   | No     | actionable-positive-bold-borderColor-active   | Salt-only                                     |
-| actionablePositiveBoldBorderColorHover    | No     | actionable-positive-bold-borderColor-hover    | Salt-only                                     |
-| actionablePositiveBoldForeground          | No     | actionable-positive-bold-foreground           | Salt-only                                     |
-| actionablePositiveBoldForegroundActive    | No     | actionable-positive-bold-foreground-active    | Salt-only                                     |
-| actionablePositiveBoldForegroundHover     | No     | actionable-positive-bold-foreground-hover     | Salt-only                                     |
-| actionablePositiveBackground              | No     | actionable-positive-background                | Salt-only                                     |
-| actionablePositiveBackgroundActive        | No     | actionable-positive-background-active         | Salt-only                                     |
-| actionablePositiveBackgroundHover         | No     | actionable-positive-background-hover          | Salt-only                                     |
-| actionablePositiveBackgroundSelected      | No     | actionable-positive-background-selected       | Salt-only                                     |
-| actionablePositiveBorderColor             | No     | actionable-positive-borderColor               | Salt-only                                     |
-| actionablePositiveBorderColorActive       | No     | actionable-positive-borderColor-active        | Salt-only                                     |
-| actionablePositiveBorderColorHover        | No     | actionable-positive-borderColor-hover         | Salt-only                                     |
-| actionablePositiveBorderColorSelected     | No     | actionable-positive-borderColor-selected      | Salt-only                                     |
-| actionablePositiveForeground              | No     | actionable-positive-foreground                | Salt-only                                     |
-| actionablePositiveForegroundActive        | No     | actionable-positive-foreground-active         | Salt-only                                     |
-| actionablePositiveForegroundHover         | No     | actionable-positive-foreground-hover          | Salt-only                                     |
-| actionablePositiveForegroundSelected      | No     | actionable-positive-foreground-selected       | Salt-only                                     |
-| actionablePositiveSubtleBackground        | No     | actionable-positive-subtle-background         | Salt-only                                     |
-| actionablePositiveSubtleBackgroundActive  | No     | actionable-positive-subtle-background-active  | Salt-only                                     |
-| actionablePositiveSubtleBackgroundHover   | No     | actionable-positive-subtle-background-hover   | Salt-only                                     |
-| actionablePositiveSubtleBorderColor       | No     | actionable-positive-subtle-borderColor        | Salt-only                                     |
-| actionablePositiveSubtleBorderColorActive | No     | actionable-positive-subtle-borderColor-active | Salt-only                                     |
-| actionablePositiveSubtleBorderColorHover  | No     | actionable-positive-subtle-borderColor-hover  | Salt-only                                     |
-| actionablePositiveSubtleForeground        | No     | actionable-positive-subtle-foreground         | Salt-only                                     |
-| actionablePositiveSubtleForegroundActive  | No     | actionable-positive-subtle-foreground-active  | Salt-only                                     |
-| actionablePositiveSubtleForegroundHover   | No     | actionable-positive-subtle-foreground-hover   | Salt-only                                     |
-| actionableCautionBoldBackground           | No     | actionable-caution-bold-background            | Salt-only                                     |
-| actionableCautionBoldBackgroundActive     | No     | actionable-caution-bold-background-active     | Salt-only                                     |
-| actionableCautionBoldBackgroundHover      | No     | actionable-caution-bold-background-hover      | Salt-only                                     |
-| actionableCautionBoldBorderColor          | No     | actionable-caution-bold-borderColor           | Salt-only                                     |
-| actionableCautionBoldBorderColorActive    | No     | actionable-caution-bold-borderColor-active    | Salt-only                                     |
-| actionableCautionBoldBorderColorHover     | No     | actionable-caution-bold-borderColor-hover     | Salt-only                                     |
-| actionableCautionBoldForeground           | No     | actionable-caution-bold-foreground            | Salt-only                                     |
-| actionableCautionBoldForegroundActive     | No     | actionable-caution-bold-foreground-active     | Salt-only                                     |
-| actionableCautionBoldForegroundHover      | No     | actionable-caution-bold-foreground-hover      | Salt-only                                     |
-| actionableCautionBackground               | No     | actionable-caution-background                 | Salt-only                                     |
-| actionableCautionBackgroundActive         | No     | actionable-caution-background-active          | Salt-only                                     |
-| actionableCautionBackgroundHover          | No     | actionable-caution-background-hover           | Salt-only                                     |
-| actionableCautionBackgroundSelected       | No     | actionable-caution-background-selected        | Salt-only                                     |
-| actionableCautionBorderColor              | No     | actionable-caution-borderColor                | Salt-only                                     |
-| actionableCautionBorderColorActive        | No     | actionable-caution-borderColor-active         | Salt-only                                     |
-| actionableCautionBorderColorHover         | No     | actionable-caution-borderColor-hover          | Salt-only                                     |
-| actionableCautionBorderColorSelected      | No     | actionable-caution-borderColor-selected       | Salt-only                                     |
-| actionableCautionForeground               | No     | actionable-caution-foreground                 | Salt-only                                     |
-| actionableCautionForegroundActive         | No     | actionable-caution-foreground-active          | Salt-only                                     |
-| actionableCautionForegroundHover          | No     | actionable-caution-foreground-hover           | Salt-only                                     |
-| actionableCautionForegroundSelected       | No     | actionable-caution-foreground-selected        | Salt-only                                     |
-| actionableCautionSubtleBackground         | No     | actionable-caution-subtle-background          | Salt-only                                     |
-| actionableCautionSubtleBackgroundActive   | No     | actionable-caution-subtle-background-active   | Salt-only                                     |
-| actionableCautionSubtleBackgroundHover    | No     | actionable-caution-subtle-background-hover    | Salt-only                                     |
-| actionableCautionSubtleBorderColor        | No     | actionable-caution-subtle-borderColor         | Salt-only                                     |
-| actionableCautionSubtleBorderColorActive  | No     | actionable-caution-subtle-borderColor-active  | Salt-only                                     |
-| actionableCautionSubtleBorderColorHover   | No     | actionable-caution-subtle-borderColor-hover   | Salt-only                                     |
-| actionableCautionSubtleForeground         | No     | actionable-caution-subtle-foreground          | Salt-only                                     |
-| actionableCautionSubtleForegroundActive   | No     | actionable-caution-subtle-foreground-active   | Salt-only                                     |
-| actionableCautionSubtleForegroundHover    | No     | actionable-caution-subtle-foreground-hover    | Salt-only                                     |
+### Text Color Tokens
 
-### Category Characteristic (Salt-only)
+| Token Utility              | CSS Variable                  | Purpose                |
+| -------------------------- | ----------------------------- | ---------------------- |
+| `eb-text-foreground`       | `--eb-foreground`             | Primary text color     |
+| `eb-text-muted-foreground` | `--eb-muted-foreground`       | Secondary/muted text   |
+| `eb-text-destructive`      | `--eb-destructive-foreground` | Error/destructive text |
+| `eb-text-success`          | `--eb-success`                | Success text           |
+| `eb-text-warning`          | `--eb-warning`                | Warning text           |
+| `eb-text-informative`      | `--eb-informative`            | Info text              |
 
-| Token                                     | In EB? | Salt Token                                                        | Notes                                                 |
-| ----------------------------------------- | ------ | ----------------------------------------------------------------- | ----------------------------------------------------- |
-| category1SubtleForeground                 | No     | category-1-subtle-foreground                                      | Salt-only (20 categories × 4 tokens each = 80 tokens) |
-| category1SubtleBackground                 | No     | category-1-subtle-background                                      | Salt-only                                             |
-| category1SubtleBorderColor                | No     | category-1-subtle-borderColor                                     | Salt-only                                             |
-| category1BoldBackground                   | No     | category-1-bold-background                                        | Salt-only                                             |
-| ... (categories 2-20 follow same pattern) | No     | category-{2-20}-{subtle/bold}-{foreground/background/borderColor} | Salt-only; 80 total tokens                            |
+### Background Color Tokens
 
-### Container Characteristic
+| Token Utility              | CSS Variable              | Purpose                     |
+| -------------------------- | ------------------------- | --------------------------- |
+| `eb-bg-background`         | `--eb-background`         | Main background             |
+| `eb-bg-card`               | `--eb-card`               | Card/container background   |
+| `eb-bg-muted`              | `--eb-muted`              | Muted/accent background     |
+| `eb-bg-primary`            | `--eb-primary`            | Primary action background   |
+| `eb-bg-secondary`          | `--eb-secondary`          | Secondary action background |
+| `eb-bg-success-accent`     | `--eb-success-accent`     | Success badge background    |
+| `eb-bg-warning-accent`     | `--eb-warning-accent`     | Warning badge background    |
+| `eb-bg-informative-accent` | `--eb-informative-accent` | Info badge background       |
+| `eb-bg-popover`            | `--eb-popover`            | Dialog/popover background   |
 
-| Token                                 | In EB? | Salt Token                               | Notes        |
-| ------------------------------------- | ------ | ---------------------------------------- | ------------ |
-| containerBackground                   | Yes    | (maps to base background)                |              |
-| containerPrimaryBackground            | Yes    | container-primary-background             |              |
-| containerPrimaryBackgroundDisabled    | No     | container-primary-background-disabled    | Salt-only    |
-| containerPrimaryBorderColor           | No     | container-primary-borderColor            | Salt-only    |
-| containerPrimaryBorderColorDisabled   | No     | container-primary-borderColor-disabled   | Salt-only    |
-| containerPrimaryForeground            | Yes    | (not in container.css)                   | We have this |
-| containerSecondaryBackground          | Yes    | container-secondary-background           |              |
-| containerSecondaryBackgroundDisabled  | No     | container-secondary-background-disabled  | Salt-only    |
-| containerSecondaryBorderColor         | No     | container-secondary-borderColor          | Salt-only    |
-| containerSecondaryBorderColorDisabled | No     | container-secondary-borderColor-disabled | Salt-only    |
-| containerSecondaryForeground          | Yes    | (not in container.css)                   | We have this |
-| containerTertiaryBackground           | No     | container-tertiary-background            | Salt-only    |
-| containerTertiaryBackgroundDisabled   | No     | container-tertiary-background-disabled   | Salt-only    |
-| containerTertiaryBorderColor          | No     | container-tertiary-borderColor           | Salt-only    |
-| containerTertiaryBorderColorDisabled  | No     | container-tertiary-borderColor-disabled  | Salt-only    |
-| containerGhostBackground              | No     | container-ghost-background               | Salt-only    |
-| containerGhostBorderColor             | No     | container-ghost-borderColor              | Salt-only    |
-| contentPrimaryForeground              | Yes    | content-primary-foreground               |              |
-| contentPrimaryForegroundDisabled      | No     | content-primary-foreground-disabled      | Salt-only    |
-| contentSecondaryForeground            | No     | content-secondary-foreground             | Salt-only    |
-| contentSecondaryForegroundDisabled    | No     | content-secondary-foreground-disabled    | Salt-only    |
-| contentAccentForeground               | No     | content-accent-foreground                | Salt-only    |
-| contentAttentionForeground            | No     | content-attention-foreground             | Salt-only    |
-| contentBoldForeground                 | No     | content-bold-foreground                  | Salt-only    |
-| contentBoldForegroundDisabled         | No     | content-bold-foreground-disabled         | Salt-only    |
-| contentForegroundVisited              | No     | content-foreground-visited               | Salt-only    |
+### Border Tokens
 
-### Content Characteristic
+| Token Utility       | CSS Variable         | Purpose                 |
+| ------------------- | -------------------- | ----------------------- |
+| `eb-border`         | `--eb-border`        | Default border color    |
+| `eb-border-border`  | `--eb-border`        | Border color (alias)    |
+| `eb-rounded-*`      | `--eb-radius`        | Border radius utilities |
+| `eb-rounded-button` | `--eb-button-radius` | Button border radius    |
+| `eb-rounded-input`  | `--eb-input-radius`  | Input border radius     |
 
-| Token                   | In EB? | Salt Token                        | Notes                |
-| ----------------------- | ------ | --------------------------------- | -------------------- |
-| contentFontFamily       | Yes    | (handled via Text characteristic) | We fold into Content |
-| contentHeaderFontFamily | Yes    | (handled via Text characteristic) | We fold into Content |
+### Spacing Tokens
 
-### Editable Characteristic
+| Token Utility      | CSS Variable        | Purpose                           |
+| ------------------ | ------------------- | --------------------------------- |
+| `eb-p-*`, `eb-m-*` | `--eb-spacing-unit` | Padding/margin (scales with unit) |
+| `eb-gap-*`         | `--eb-spacing-unit` | Gap spacing                       |
 
-| Token                               | In EB? | Salt Token                             | Notes                                                        |
-| ----------------------------------- | ------ | -------------------------------------- | ------------------------------------------------------------ |
-| editableBackground                  | Yes    | editable-primary-background            | We use single editableBackground; Salt has primary/secondary |
-| editableBackgroundActive            | No     | editable-primary-background-active     | Salt-only                                                    |
-| editableBackgroundDisabled          | No     | editable-primary-background-disabled   | Salt-only                                                    |
-| editableBackgroundHover             | No     | editable-primary-background-hover      | Salt-only                                                    |
-| editableBackgroundReadonly          | No     | editable-primary-background-readonly   | Salt-only                                                    |
-| editableSecondaryBackground         | No     | editable-secondary-background          | Salt-only                                                    |
-| editableSecondaryBackgroundActive   | No     | editable-secondary-background-active   | Salt-only                                                    |
-| editableSecondaryBackgroundDisabled | No     | editable-secondary-background-disabled | Salt-only                                                    |
-| editableSecondaryBackgroundHover    | No     | editable-secondary-background-hover    | Salt-only                                                    |
-| editableSecondaryBackgroundReadonly | No     | editable-secondary-background-readonly | Salt-only                                                    |
-| editableBorderColor                 | Yes    | editable-borderColor                   |                                                              |
-| editableBorderColorActive           | No     | editable-borderColor-active            | Salt-only                                                    |
-| editableBorderColorDisabled         | No     | editable-borderColor-disabled          | Salt-only                                                    |
-| editableBorderColorHover            | No     | editable-borderColor-hover             | Salt-only                                                    |
-| editableBorderColorReadonly         | No     | editable-borderColor-readonly          | Salt-only                                                    |
-| editableBorderRadius                | Yes    | (not in editable.css)                  | We have this                                                 |
-| editableLabelFontSize               | Yes    | (handled via Text characteristic)      |                                                              |
-| editableLabelLineHeight             | Yes    | (handled via Text characteristic)      |                                                              |
-| editableLabelFontWeight             | Yes    | (handled via Text characteristic)      |                                                              |
-| editableLabelForeground             | Yes    | (handled via Text characteristic)      |                                                              |
+### Typography Tokens
 
-### Focused Characteristic
-
-| Token                | In EB? | Salt Token            | Notes                                    |
-| -------------------- | ------ | --------------------- | ---------------------------------------- |
-| focusedRingColor     | Yes    | focused-outlineColor  | We use ringColor; Salt uses outlineColor |
-| focusedOutlineStyle  | No     | focused-outlineStyle  | Salt-only                                |
-| focusedOutlineWidth  | No     | focused-outlineWidth  | Salt-only                                |
-| focusedOutlineInset  | No     | focused-outlineInset  | Salt-only                                |
-| focusedOutlineOffset | No     | focused-outlineOffset | Salt-only                                |
-| focusedOutline       | No     | focused-outline       | Salt-only (CSS shortcut)                 |
-
-### Navigable Characteristic
-
-| Token                          | In EB? | Salt Token                          | Notes                  |
-| ------------------------------ | ------ | ----------------------------------- | ---------------------- |
-| navigableBackground            | Yes    | (not in navigable.css)              | We have this           |
-| navigableForeground            | Yes    | (not in navigable.css)              | We have this           |
-| navigableAccentBackground      | Yes    | navigable-accent-background-active  | Salt uses active state |
-| navigableAccentBorderColor     | No     | navigable-accent-borderColor-active | Salt-only              |
-| navigableAccentForeground      | Yes    | (not in navigable.css)              | We have this           |
-| navigableIndicatorHover        | No     | navigable-indicator-hover           | Salt-only              |
-| navigableAccentIndicatorActive | No     | navigable-accent-indicator-active   | Salt-only              |
-
-### Overlayable Characteristic
-
-| Token                               | In EB? | Salt Token                            | Notes        |
-| ----------------------------------- | ------ | ------------------------------------- | ------------ |
-| overlayableBackground               | Yes    | overlayable-background                |              |
-| overlayableBackgroundHover          | No     | overlayable-background-hover          | Salt-only    |
-| overlayableBackgroundHighlight      | No     | overlayable-background-highlight      | Salt-only    |
-| overlayableBackgroundRangeSelection | No     | overlayable-background-rangeSelection | Salt-only    |
-| overlayableForeground               | Yes    | (not in overlayable.css)              | We have this |
-| overlayableZIndex                   | Yes    | (not in overlayable.css)              | We have this |
-| overlayableShadow                   | No     | overlayable-shadow                    | Salt-only    |
-| overlayableShadowHover              | No     | overlayable-shadow-hover              | Salt-only    |
-| overlayableShadowScroll             | No     | overlayable-shadow-scroll             | Salt-only    |
-| overlayableShadowRegion             | No     | overlayable-shadow-region             | Salt-only    |
-| overlayableShadowPopout             | No     | overlayable-shadow-popout             | Salt-only    |
-| overlayableShadowDrag               | No     | overlayable-shadow-drag               | Salt-only    |
-| overlayableShadowModal              | No     | overlayable-shadow-modal              | Salt-only    |
-
-### Selectable Characteristic (Salt-only)
-
-| Token                                 | In EB? | Salt Token                              | Notes     |
-| ------------------------------------- | ------ | --------------------------------------- | --------- |
-| selectableBackground                  | No     | selectable-background                   | Salt-only |
-| selectableBackgroundHover             | No     | selectable-background-hover             | Salt-only |
-| selectableBackgroundSelected          | No     | selectable-background-selected          | Salt-only |
-| selectableBackgroundDisabled          | No     | selectable-background-disabled          | Salt-only |
-| selectableBackgroundSelectedDisabled  | No     | selectable-background-selectedDisabled  | Salt-only |
-| selectableForeground                  | No     | selectable-foreground                   | Salt-only |
-| selectableForegroundHover             | No     | selectable-foreground-hover             | Salt-only |
-| selectableForegroundSelected          | No     | selectable-foreground-selected          | Salt-only |
-| selectableForegroundDisabled          | No     | selectable-foreground-disabled          | Salt-only |
-| selectableForegroundSelectedDisabled  | No     | selectable-foreground-selectedDisabled  | Salt-only |
-| selectableBorderColor                 | No     | selectable-borderColor                  | Salt-only |
-| selectableBorderColorHover            | No     | selectable-borderColor-hover            | Salt-only |
-| selectableBorderColorSelected         | No     | selectable-borderColor-selected         | Salt-only |
-| selectableBorderColorDisabled         | No     | selectable-borderColor-disabled         | Salt-only |
-| selectableBorderColorSelectedDisabled | No     | selectable-borderColor-selectedDisabled | Salt-only |
-| selectableBorderColorReadonly         | No     | selectable-borderColor-readonly         | Salt-only |
-
-### Separable Characteristic
-
-| Token                         | In EB? | Salt Token                      | Notes                                                                   |
-| ----------------------------- | ------ | ------------------------------- | ----------------------------------------------------------------------- |
-| separableBorderColor          | Yes    | separable-primary-borderColor   | We use single separableBorderColor; Salt has primary/secondary/tertiary |
-| separableSecondaryBorderColor | No     | separable-secondary-borderColor | Salt-only                                                               |
-| separableTertiaryBorderColor  | No     | separable-tertiary-borderColor  | Salt-only                                                               |
-| separableBorderRadius         | Yes    | (not in separable.css)          | We have this                                                            |
-| separableForeground           | No     | separable-foreground            | Salt-only                                                               |
-| separableForegroundHover      | No     | separable-foreground-hover      | Salt-only                                                               |
-| separableForegroundActive     | No     | separable-foreground-active     | Salt-only                                                               |
-| separableBackgroundHover      | No     | separable-background-hover      | Salt-only                                                               |
-| separableBackgroundActive     | No     | separable-background-active     | Salt-only                                                               |
-
-### Sentiment Characteristic
-
-| Token                                  | In EB? | Salt Token                                | Notes        |
-| -------------------------------------- | ------ | ----------------------------------------- | ------------ |
-| sentimentNegativeBackground            | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeBackgroundHover       | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeBackgroundActive      | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeForeground            | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeForegroundHover       | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeForegroundActive      | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeAccentBackground      | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeBorderWidth           | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeFontWeight            | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNegativeForegroundInformative | No     | sentiment-negative-foreground-informative | Salt-only    |
-| sentimentNegativeForegroundDecorative  | No     | sentiment-negative-foreground-decorative  | Salt-only    |
-| sentimentPositiveForeground            | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentPositiveAccentBackground      | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentPositiveForegroundInformative | No     | sentiment-positive-foreground-informative | Salt-only    |
-| sentimentPositiveForegroundDecorative  | No     | sentiment-positive-foreground-decorative  | Salt-only    |
-| sentimentCautionForeground             | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentCautionAccentBackground       | Yes    | (not in sentiment.css)                    | We have this |
-| sentimentNeutralTrack                  | No     | sentiment-neutral-track                   | Salt-only    |
-| sentimentNeutralTrackDisabled          | No     | sentiment-neutral-track-disabled          | Salt-only    |
-
-### Status Characteristic
-
-| Token                             | In EB?         | Salt Token                            | Notes                                         |
-| --------------------------------- | -------------- | ------------------------------------- | --------------------------------------------- |
-| statusInfoForeground              | Yes            | status-info-foreground-informative    | Salt has informative/decorative variants      |
-| statusInfoForegroundDecorative    | No             | status-info-foreground-decorative     | Salt-only                                     |
-| statusInfoAccentBackground        | Yes            | status-info-background                | Salt uses "background" not "accentBackground" |
-| statusInfoBoldBackground          | No             | status-info-bold-background           | Salt-only                                     |
-| statusInfoBorderColor             | No             | status-info-borderColor               | Salt-only                                     |
-| statusSuccessForeground           | Yes (fallback) | status-success-foreground-informative | Falls back to positive                        |
-| statusSuccessForegroundDecorative | No             | status-success-foreground-decorative  | Salt-only                                     |
-| statusSuccessAccentBackground     | Yes (fallback) | status-success-background             | Falls back to positive                        |
-| statusSuccessBoldBackground       | No             | status-success-bold-background        | Salt-only                                     |
-| statusSuccessBackgroundSelected   | No             | status-success-background-selected    | Salt-only                                     |
-| statusSuccessBorderColor          | No             | status-success-borderColor            | Salt-only                                     |
-| statusWarningForeground           | Yes (fallback) | status-warning-foreground-informative | Falls back to caution                         |
-| statusWarningForegroundDecorative | No             | status-warning-foreground-decorative  | Salt-only                                     |
-| statusWarningAccentBackground     | Yes (fallback) | status-warning-background             | Falls back to caution                         |
-| statusWarningBoldBackground       | No             | status-warning-bold-background        | Salt-only                                     |
-| statusWarningBackgroundSelected   | No             | status-warning-background-selected    | Salt-only                                     |
-| statusWarningBorderColor          | No             | status-warning-borderColor            | Salt-only                                     |
-| statusErrorForeground             | No             | status-error-foreground-informative   | Salt-only (maps to negative)                  |
-| statusErrorForegroundDecorative   | No             | status-error-foreground-decorative    | Salt-only                                     |
-| statusErrorAccentBackground       | No             | status-error-background               | Salt-only                                     |
-| statusErrorBoldBackground         | No             | status-error-bold-background          | Salt-only                                     |
-| statusErrorBackgroundSelected     | No             | status-error-background-selected      | Salt-only                                     |
-| statusErrorBorderColor            | No             | status-error-borderColor              | Salt-only                                     |
-
-### Target Characteristic (Salt-only)
-
-| Token                  | In EB? | Salt Token               | Notes     |
-| ---------------------- | ------ | ------------------------ | --------- |
-| targetBackgroundHover  | No     | target-background-hover  | Salt-only |
-| targetBorderColorHover | No     | target-borderColor-hover | Salt-only |
-
-### Text Characteristic (Salt-only; we fold into Content)
-
-| Token                        | In EB?                           | Salt Token                      | Notes                         |
-| ---------------------------- | -------------------------------- | ------------------------------- | ----------------------------- |
-| textFontFamily               | Yes (as contentFontFamily)       | text-fontFamily                 | We fold into Content          |
-| textFontWeight               | No                               | text-fontWeight                 | Salt-only                     |
-| textFontWeightSmall          | No                               | text-fontWeight-small           | Salt-only                     |
-| textFontWeightStrong         | No                               | text-fontWeight-strong          | Salt-only                     |
-| textFontSize                 | No                               | text-fontSize                   | Salt-only (density-dependent) |
-| textLineHeight               | No                               | text-lineHeight                 | Salt-only (density-dependent) |
-| textMinHeight                | No                               | text-minHeight                  | Salt-only (density-dependent) |
-| textLetterSpacing            | No                               | text-letterSpacing              | Salt-only                     |
-| textTextAlign                | No                               | text-textAlign                  | Salt-only                     |
-| textTextAlignEmbedded        | No                               | text-textAlign-embedded         | Salt-only                     |
-| textActionFontFamily         | No                               | text-action-fontFamily          | Salt-only                     |
-| textActionLetterSpacing      | No                               | text-action-letterSpacing       | Salt-only                     |
-| textActionTextTransform      | No                               | text-action-textTransform       | Salt-only                     |
-| textActionTextAlign          | No                               | text-action-textAlign           | Salt-only                     |
-| textActionFontWeight         | No                               | text-action-fontWeight          | Salt-only                     |
-| textActionFontWeightSmall    | No                               | text-action-fontWeight-small    | Salt-only                     |
-| textActionFontWeightStrong   | No                               | text-action-fontWeight-strong   | Salt-only                     |
-| textLabelFontFamily          | No                               | text-label-fontFamily           | Salt-only                     |
-| textLabelFontWeight          | No                               | text-label-fontWeight           | Salt-only                     |
-| textLabelFontWeightSmall     | No                               | text-label-fontWeight-small     | Salt-only                     |
-| textLabelFontWeightStrong    | No                               | text-label-fontWeight-strong    | Salt-only                     |
-| textLabelFontSize            | Yes (as editableLabelFontSize)   | text-label-fontSize             | We have via editable          |
-| textLabelLineHeight          | Yes (as editableLabelLineHeight) | text-label-lineHeight           | We have via editable          |
-| textH1FontFamily             | Yes (as contentHeaderFontFamily) | text-h1-fontFamily              | We fold into Content          |
-| textH1FontWeight             | No                               | text-h1-fontWeight              | Salt-only                     |
-| textH1FontWeightSmall        | No                               | text-h1-fontWeight-small        | Salt-only                     |
-| textH1FontWeightStrong       | No                               | text-h1-fontWeight-strong       | Salt-only                     |
-| textH1FontSize               | No                               | text-h1-fontSize                | Salt-only (density-dependent) |
-| textH1LineHeight             | No                               | text-h1-lineHeight              | Salt-only (density-dependent) |
-| textH2FontFamily             | No                               | text-h2-fontFamily              | Salt-only                     |
-| textH2FontWeight             | No                               | text-h2-fontWeight              | Salt-only                     |
-| textH2FontWeightSmall        | No                               | text-h2-fontWeight-small        | Salt-only                     |
-| textH2FontWeightStrong       | No                               | text-h2-fontWeight-strong       | Salt-only                     |
-| textH2FontSize               | No                               | text-h2-fontSize                | Salt-only (density-dependent) |
-| textH2LineHeight             | No                               | text-h2-lineHeight              | Salt-only (density-dependent) |
-| textH3FontFamily             | No                               | text-h3-fontFamily              | Salt-only                     |
-| textH3FontWeight             | No                               | text-h3-fontWeight              | Salt-only                     |
-| textH3FontWeightSmall        | No                               | text-h3-fontWeight-small        | Salt-only                     |
-| textH3FontWeightStrong       | No                               | text-h3-fontWeight-strong       | Salt-only                     |
-| textH3FontSize               | No                               | text-h3-fontSize                | Salt-only (density-dependent) |
-| textH3LineHeight             | No                               | text-h3-lineHeight              | Salt-only (density-dependent) |
-| textH4FontFamily             | No                               | text-h4-fontFamily              | Salt-only                     |
-| textH4FontWeight             | No                               | text-h4-fontWeight              | Salt-only                     |
-| textH4FontWeightSmall        | No                               | text-h4-fontWeight-small        | Salt-only                     |
-| textH4FontWeightStrong       | No                               | text-h4-fontWeight-strong       | Salt-only                     |
-| textH4FontSize               | No                               | text-h4-fontSize                | Salt-only (density-dependent) |
-| textH4LineHeight             | No                               | text-h4-lineHeight              | Salt-only (density-dependent) |
-| textDisplay1FontFamily       | No                               | text-display1-fontFamily        | Salt-only                     |
-| textDisplay1FontWeight       | No                               | text-display1-fontWeight        | Salt-only                     |
-| textDisplay1FontWeightSmall  | No                               | text-display1-fontWeight-small  | Salt-only                     |
-| textDisplay1FontWeightStrong | No                               | text-display1-fontWeight-strong | Salt-only                     |
-| textDisplay1FontSize         | No                               | text-display1-fontSize          | Salt-only (density-dependent) |
-| textDisplay1LineHeight       | No                               | text-display1-lineHeight        | Salt-only (density-dependent) |
-| textDisplay2FontFamily       | No                               | text-display2-fontFamily        | Salt-only                     |
-| textDisplay2FontWeight       | No                               | text-display2-fontWeight        | Salt-only                     |
-| textDisplay2FontWeightSmall  | No                               | text-display2-fontWeight-small  | Salt-only                     |
-| textDisplay2FontWeightStrong | No                               | text-display2-fontWeight-strong | Salt-only                     |
-| textDisplay2FontSize         | No                               | text-display2-fontSize          | Salt-only (density-dependent) |
-| textDisplay2LineHeight       | No                               | text-display2-lineHeight        | Salt-only (density-dependent) |
-| textDisplay3FontFamily       | No                               | text-display3-fontFamily        | Salt-only                     |
-| textDisplay3FontWeight       | No                               | text-display3-fontWeight        | Salt-only                     |
-| textDisplay3FontWeightSmall  | No                               | text-display3-fontWeight-small  | Salt-only                     |
-| textDisplay3FontWeightStrong | No                               | text-display3-fontWeight-strong | Salt-only                     |
-| textDisplay3FontSize         | No                               | text-display3-fontSize          | Salt-only (density-dependent) |
-| textDisplay3LineHeight       | No                               | text-display3-lineHeight        | Salt-only (density-dependent) |
-| textDisplay4FontFamily       | No                               | text-display4-fontFamily        | Salt-only                     |
-| textDisplay4FontWeight       | No                               | text-display4-fontWeight        | Salt-only                     |
-| textDisplay4FontWeightSmall  | No                               | text-display4-fontWeight-small  | Salt-only                     |
-| textDisplay4FontWeightStrong | No                               | text-display4-fontWeight-strong | Salt-only                     |
-| textDisplay4FontSize         | No                               | text-display4-fontSize          | Salt-only (density-dependent) |
-| textDisplay4LineHeight       | No                               | text-display4-lineHeight        | Salt-only (density-dependent) |
-| textNotationFontFamily       | No                               | text-notation-fontFamily        | Salt-only                     |
-| textNotationFontWeight       | No                               | text-notation-fontWeight        | Salt-only                     |
-| textNotationFontWeightSmall  | No                               | text-notation-fontWeight-small  | Salt-only                     |
-| textNotationFontWeightStrong | No                               | text-notation-fontWeight-strong | Salt-only                     |
-| textNotationFontSize         | No                               | text-notation-fontSize          | Salt-only (density-dependent) |
-| textNotationLineHeight       | No                               | text-notation-lineHeight        | Salt-only (density-dependent) |
-| textCodeFontFamily           | No                               | text-code-fontFamily            | Salt-only                     |
-
-### Layout/Spacing (EB-specific)
-
-| Token       | In EB? | Salt Token                      | Notes                                      |
-| ----------- | ------ | ------------------------------- | ------------------------------------------ |
-| spacingUnit | Yes    | (Salt uses density/size scales) | Our layout token; Salt handles via density |
-
-### Legacy/Compat (EB-specific)
-
-| Token                | In EB? | Salt Token                  | Notes            |
-| -------------------- | ------ | --------------------------- | ---------------- |
-| alertForegroundColor | Yes    | (not a Salt characteristic) | Back-compat only |
-
----
-
-**Summary**: We implement the core Salt characteristics needed for our components (actionable primary/secondary, container, content, editable, overlayable, navigable, separable, focused, sentiment, status, accent). Salt has additional variants (accented, negative, positive, caution actionable variants; tertiary/ghost containers; Category 1-20; Selectable; Target; separate Text characteristic with density-dependent sizing). Add these only when use-cases emerge.
+| Token Utility                                                    | CSS Variable       | Purpose        |
+| ---------------------------------------------------------------- | ------------------ | -------------- |
+| `eb-font-mono`                                                   | `--eb-font-family` | Monospace font |
+| Font sizes use Tailwind scale (xs, sm, base, lg, etc.)           |                    |                |
+| Font weights use Tailwind scale (normal, medium, semibold, bold) |                    |                |

@@ -3,13 +3,9 @@ import {
   mockTransactionsResponse,
 } from '@/mocks/transactions.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
-import { SELLSENSE_THEME } from '@storybook-themes';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
-
+import type { BaseStoryArgs } from '../../../.storybook/preview';
 import { TransactionsDisplay } from './TransactionsDisplay';
 
 // Helper to get transaction by ID for details endpoint
@@ -96,42 +92,33 @@ const mockEmptyAccountsResponse = {
   },
 };
 
-const TransactionsDisplayWithProvider = ({
-  apiBaseUrl,
-  apiBaseUrls,
-  headers,
-  theme,
-  accountIds,
-  contentTokens,
-}: {
-  apiBaseUrl: string;
-  apiBaseUrls?: Record<string, string>;
-  headers: Record<string, string>;
-  theme?: EBTheme;
+/**
+ * Story args interface extending base provider args
+ */
+interface TransactionsDisplayStoryArgs extends BaseStoryArgs {
   accountIds?: string[];
-  contentTokens?: Record<string, string>;
+  apiBaseUrls?: Record<string, string>;
+}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const TransactionsDisplayStory = ({
+  accountIds,
+}: {
+  accountIds?: string[];
 }) => {
-  const queryClient = new QueryClient();
   return (
-    <EBComponentsProvider
-      apiBaseUrl={apiBaseUrl}
-      apiBaseUrls={apiBaseUrls}
-      headers={headers}
-      theme={theme}
-      contentTokens={contentTokens || { name: 'enUS' }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <div className="eb-mx-auto eb-max-w-4xl eb-p-6">
-          <TransactionsDisplay accountIds={accountIds} />
-        </div>
-      </QueryClientProvider>
-    </EBComponentsProvider>
+    <div className="eb-mx-auto eb-max-w-4xl eb-p-6">
+      <TransactionsDisplay accountIds={accountIds} />
+    </div>
   );
 };
 
-const meta: Meta<typeof TransactionsDisplayWithProvider> = {
+const meta: Meta<TransactionsDisplayStoryArgs> = {
   title: 'Core/TransactionsDisplay',
-  component: TransactionsDisplayWithProvider,
+  component: TransactionsDisplayStory,
   tags: ['@core', '@transactions'],
   parameters: {
     layout: 'fullscreen',
@@ -142,10 +129,11 @@ const meta: Meta<typeof TransactionsDisplayWithProvider> = {
       },
     },
   },
+  render: (args) => <TransactionsDisplayStory accountIds={args.accountIds} />,
 };
 export default meta;
 
-type Story = StoryObj<typeof TransactionsDisplayWithProvider>;
+type Story = StoryObj<TransactionsDisplayStoryArgs>;
 
 // --- Stories with Account Prop ---
 export const WithAccountIdsProp: Story = {
@@ -326,12 +314,18 @@ export const Loading: Story = {
 
 // Error stories are organized in stories/TransactionsDisplay.errors.story.tsx
 
+/**
+ * Story with SellSense theme preset.
+ * Theme is applied via themePreset arg which is handled by the global decorator.
+ */
 export const SellSenseTheme: Story = {
   args: {
     apiBaseUrl: '/',
-    headers: {},
+    apiBaseUrls: {
+      transactions: '/v2/',
+    },
     accountIds: ['account1', 'account2'],
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
   parameters: {

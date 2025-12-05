@@ -5,32 +5,32 @@ import {
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-import { EBComponentsProvider } from '../../EBComponentsProvider';
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
 
-// Wrapper component that follows the same pattern as the original Recipients.story.tsx
-const RecipientsWithProvider = ({
-  children,
-  ...recipientsProps
-}: RecipientsProps & { children?: React.ReactNode }) => {
+/**
+ * Story args interface extending base provider args
+ */
+interface RecipientsValidationStoryArgs
+  extends BaseStoryArgs,
+    RecipientsProps {}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const RecipientsStory = (props: RecipientsProps) => {
   return (
-    <EBComponentsProvider
-      apiBaseUrl="https://api.example.com"
-      headers={{}}
-      theme={{}}
-      contentTokens={{ name: 'enUS' }}
-    >
-      <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
-        <Recipients {...recipientsProps} />
-      </div>
-    </EBComponentsProvider>
+    <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
+      <Recipients {...props} />
+    </div>
   );
 };
 
-const meta: Meta<typeof Recipients> = {
+const meta: Meta<RecipientsValidationStoryArgs> = {
   title: 'Core/Recipients/Validation',
-  component: Recipients,
+  component: RecipientsStory,
   tags: ['@core', '@recipients'],
   parameters: {
     layout: 'fullscreen',
@@ -51,9 +51,17 @@ const meta: Meta<typeof Recipients> = {
       description: 'Show/hide create functionality',
     },
   },
+  render: (args) => (
+    <RecipientsStory
+      clientId={args.clientId}
+      showCreateButton={args.showCreateButton}
+      userEventsToTrack={args.userEventsToTrack}
+    />
+  ),
 };
 export default meta;
-type Story = StoryObj<typeof Recipients>;
+
+type Story = StoryObj<RecipientsValidationStoryArgs>;
 
 // Allowed: 'ACH', 'WIRE', 'RTP', 'EMAIL', 'ZELLE', 'VENMO', 'PAYPAL'
 
@@ -64,10 +72,10 @@ type Story = StoryObj<typeof Recipients>;
 export const ConditionalFieldRequirements: Story = {
   name: 'Conditional Field Requirements',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
     clientId: 'client-001',
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -95,9 +103,9 @@ export const ConditionalFieldRequirements: Story = {
 export const AddressValidation: Story = {
   name: 'Enhanced Address Validation',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -112,9 +120,9 @@ export const AddressValidation: Story = {
 export const ContactValidation: Story = {
   name: 'Complex Contact Validation',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -129,9 +137,9 @@ export const ContactValidation: Story = {
 export const BusinessVsIndividual: Story = {
   name: 'Business vs Individual Validation',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -146,9 +154,9 @@ export const BusinessVsIndividual: Story = {
 export const InternationalValidation: Story = {
   name: 'International Payment Validation',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -163,9 +171,9 @@ export const InternationalValidation: Story = {
 export const ErrorHandling: Story = {
   name: 'Error Handling & Edge Cases',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {

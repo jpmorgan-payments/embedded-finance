@@ -9,31 +9,36 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { Button } from '@/components/ui/button';
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet';
 
-export const TransactionDetailsWithProvider = ({
+/**
+ * Story args interface extending base provider args
+ */
+interface TransactionDetailsStoryArgs extends BaseStoryArgs {
+  transactionId: string;
+}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const TransactionDetailsStory = ({
   transactionId,
-  apiBaseUrl,
-  headers,
 }: {
   transactionId: string;
-  apiBaseUrl: string;
-  headers: Record<string, string>;
 }) => {
   return (
-    <EBComponentsProvider apiBaseUrl={apiBaseUrl} headers={headers}>
-      <TransactionDetailsDialogTrigger transactionId={transactionId}>
-        <Button>View Transaction Details</Button>
-      </TransactionDetailsDialogTrigger>
-    </EBComponentsProvider>
+    <TransactionDetailsDialogTrigger transactionId={transactionId}>
+      <Button>View Transaction Details</Button>
+    </TransactionDetailsDialogTrigger>
   );
 };
 
-const meta: Meta<typeof TransactionDetailsWithProvider> = {
+const meta: Meta<TransactionDetailsStoryArgs> = {
   title: 'Core/TransactionsDisplay/TransactionDetailsSheet',
-  component: TransactionDetailsWithProvider,
+  component: TransactionDetailsStory,
   tags: ['@core', '@transactions'],
   argTypes: {
     transactionId: {
@@ -41,17 +46,19 @@ const meta: Meta<typeof TransactionDetailsWithProvider> = {
       description: 'The transaction ID to fetch and display',
     },
   },
+  render: (args) => (
+    <TransactionDetailsStory transactionId={args.transactionId} />
+  ),
 };
 
 export default meta;
 
-type Story = StoryObj<typeof TransactionDetailsWithProvider>;
+type Story = StoryObj<TransactionDetailsStoryArgs>;
 
 export const CompleteTransaction: Story = {
   args: {
     transactionId: 'txn-complete-001',
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
   },
   parameters: {
     msw: {
@@ -68,7 +75,6 @@ export const MinimalTransaction: Story = {
   args: {
     transactionId: 'txn-minimal-001',
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
   },
   parameters: {
     msw: {
@@ -85,7 +91,6 @@ export const TransactionWithError: Story = {
   args: {
     transactionId: 'txn-error-001',
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
   },
   parameters: {
     msw: {
@@ -102,7 +107,6 @@ export const FeeTransaction: Story = {
   args: {
     transactionId: 'txn-fee-001',
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
   },
   parameters: {
     msw: {
@@ -119,7 +123,6 @@ export const FeeReversalTransaction: Story = {
   args: {
     transactionId: 'txn-fee-reversal-001',
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
   },
   parameters: {
     msw: {
@@ -136,7 +139,6 @@ export const LoadingState: Story = {
   args: {
     transactionId: 'txn-loading-001',
     apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-    headers: {},
   },
   parameters: {
     msw: {

@@ -12,21 +12,22 @@ import { DataTableColumnHeader } from './DataTableColumnHeader';
 
 /**
  * Get status badge variant based on transaction status
+ * Uses Salt Status tokens: success, warning, destructive (error), informative
  */
 const getStatusVariant = (
   status?: string
-): 'default' | 'secondary' | 'destructive' | 'outline' => {
+): 'success' | 'warning' | 'destructive' | 'informative' | 'outline' => {
   switch (status) {
     case 'COMPLETED':
-      return 'default';
+      return 'success'; // Uses statusSuccess tokens (statusSuccessAccentBackground + statusSuccessForeground)
     case 'PENDING':
-      return 'secondary';
+      return 'warning'; // Uses statusWarning tokens (statusWarningAccentBackground + statusWarningForeground)
     case 'REJECTED':
     case 'RETURNED':
     case 'FAILED':
-      return 'destructive';
+      return 'destructive'; // Uses sentimentNegative tokens (maps to statusError)
     default:
-      return 'outline';
+      return 'informative'; // Uses statusInfo tokens (statusInfoAccentBackground + statusInfoForeground)
   }
 };
 

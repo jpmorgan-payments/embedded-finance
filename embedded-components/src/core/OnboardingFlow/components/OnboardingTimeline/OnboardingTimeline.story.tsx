@@ -1,35 +1,57 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { ScreenId } from '@/core/OnboardingFlow/types';
 
+import type { BaseStoryArgs } from '../../../../../../.storybook/preview';
 import { OnboardingTimeline, TimelineSection } from './OnboardingTimeline';
 
-const meta: Meta<typeof OnboardingTimeline> = {
-  component: OnboardingTimeline,
+/**
+ * Story args interface extending base provider args
+ */
+interface OnboardingTimelineStoryArgs extends BaseStoryArgs {
+  sections: TimelineSection[];
+  currentSectionId?: string;
+  currentStepId?: string;
+  onSectionClick?: (sectionId: string) => void;
+  onStepClick?: (sectionId: string, stepId: string) => void;
+}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const OnboardingTimelineStory = (
+  props: Omit<OnboardingTimelineStoryArgs, keyof BaseStoryArgs>
+) => {
+  return (
+    <div className="eb-flex eb-flex-1">
+      <div className="eb-max-w-md eb-shrink-0 eb-border">
+        <OnboardingTimeline {...props} />
+      </div>
+    </div>
+  );
+};
+
+const meta: Meta<OnboardingTimelineStoryArgs> = {
+  component: OnboardingTimelineStory,
   title: 'Core/OnboardingFlow/Components/OnboardingTimeline',
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
   },
-  decorators: [
-    (Story) => (
-      <EBComponentsProvider
-        apiBaseUrl=""
-        theme={{ colorScheme: 'light', variables: {} }}
-      >
-        <div className="eb-flex eb-flex-1">
-          <div className="eb-max-w-md eb-shrink-0 eb-border">
-            <Story />
-          </div>
-        </div>
-      </EBComponentsProvider>
-    ),
-  ],
+  render: (args) => (
+    <OnboardingTimelineStory
+      sections={args.sections}
+      currentSectionId={args.currentSectionId}
+      currentStepId={args.currentStepId}
+      onSectionClick={args.onSectionClick}
+      onStepClick={args.onStepClick}
+    />
+  ),
 };
 
 export default meta;
-type Story = StoryObj<typeof OnboardingTimeline>;
+type Story = StoryObj<OnboardingTimelineStoryArgs>;
 
 const mockSections: TimelineSection[] = [
   {
@@ -152,6 +174,7 @@ const mockSections: TimelineSection[] = [
 
 export const Default: Story = {
   args: {
+    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'personal-section',
     currentStepId: 'identity-document',
@@ -160,6 +183,7 @@ export const Default: Story = {
 
 export const FirstSection: Story = {
   args: {
+    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'business-section',
     currentStepId: 'business-info',
@@ -168,6 +192,7 @@ export const FirstSection: Story = {
 
 export const AllCompleted: Story = {
   args: {
+    apiBaseUrl: '/',
     sections: mockSections.map((section) => ({
       ...section,
       status: 'completed' as const,
@@ -183,6 +208,7 @@ export const AllCompleted: Story = {
 
 export const LastSection: Story = {
   args: {
+    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'compliance-section',
     currentStepId: 'kyc-verification',
@@ -191,6 +217,7 @@ export const LastSection: Story = {
 
 export const WithCustomHandlers: Story = {
   args: {
+    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'personal-section',
     currentStepId: 'identity-document',
