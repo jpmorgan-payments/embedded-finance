@@ -79,18 +79,18 @@ const FONT_FAMILIES = [
 // Semantic token labels (Salt-inspired) for display
 const TOKEN_LABELS: Record<string, string> = {
   contentFontFamily: 'Content Font Family',
-  contentHeaderFontFamily: 'Header Font Family',
+  textHeadingFontFamily: 'Header Font Family',
   actionableFontFamily: 'Actionable Font Family',
   actionableFontWeight: 'Actionable Font Weight',
   actionableFontSize: 'Actionable Font Size',
   actionableLineHeight: 'Actionable Line Height',
   actionableTextTransform: 'Actionable Text Transform',
   actionableLetterSpacing: 'Actionable Letter Spacing',
-  actionablePrimaryFontWeight: 'Primary Action Font Weight',
-  actionableSecondaryFontWeight: 'Secondary Action Font Weight',
+  actionableAccentedBoldFontWeight: 'Accented Bold Font Weight',
+  actionableSubtleFontWeight: 'Subtle Font Weight',
 
-  containerBackground: 'Page Background',
-  containerPrimaryBackground: 'Card Background',
+  containerPrimaryBackground: 'Page Background',
+  containerCardBackground: 'Card Background',
   containerPrimaryForeground: 'Card Foreground',
   containerSecondaryBackground: 'Muted Background',
   containerSecondaryForeground: 'Muted Foreground',
@@ -98,25 +98,25 @@ const TOKEN_LABELS: Record<string, string> = {
   overlayableForeground: 'Overlay Foreground',
   overlayableZIndex: 'Overlay Z-Index',
   accentBackground: 'Accent Background',
-  accentForeground: 'Accent Foreground',
+  contentAccentForeground: 'Accent Foreground',
 
-  actionablePrimaryBackground: 'Primary Background',
-  actionablePrimaryBackgroundHover: 'Primary Background Hover',
-  actionablePrimaryBackgroundActive: 'Primary Background Active',
-  actionablePrimaryForeground: 'Primary Foreground',
-  actionablePrimaryForegroundHover: 'Primary Foreground Hover',
-  actionablePrimaryForegroundActive: 'Primary Foreground Active',
-  actionablePrimaryBorderWidth: 'Primary Border Width',
+  actionableAccentedBoldBackground: 'Accented Bold Background',
+  actionableAccentedBoldBackgroundHover: 'Accented Bold Background Hover',
+  actionableAccentedBoldBackgroundActive: 'Accented Bold Background Active',
+  actionableAccentedBoldForeground: 'Accented Bold Foreground',
+  actionableAccentedBoldForegroundHover: 'Accented Bold Foreground Hover',
+  actionableAccentedBoldForegroundActive: 'Accented Bold Foreground Active',
+  actionableAccentedBoldBorderWidth: 'Accented Bold Border Width',
   actionableBorderRadius: 'Action Border Radius',
   actionableShiftOnActive: 'Shift On Active',
 
-  actionableSecondaryBackground: 'Secondary Background',
-  actionableSecondaryBackgroundHover: 'Secondary Background Hover',
-  actionableSecondaryBackgroundActive: 'Secondary Background Active',
-  actionableSecondaryForeground: 'Secondary Foreground',
-  actionableSecondaryForegroundHover: 'Secondary Foreground Hover',
-  actionableSecondaryForegroundActive: 'Secondary Foreground Active',
-  actionableSecondaryBorderWidth: 'Secondary Border Width',
+  actionableSubtleBackground: 'Subtle Background',
+  actionableSubtleBackgroundHover: 'Subtle Background Hover',
+  actionableSubtleBackgroundActive: 'Subtle Background Active',
+  actionableSubtleForeground: 'Subtle Foreground',
+  actionableSubtleForegroundHover: 'Subtle Foreground Hover',
+  actionableSubtleForegroundActive: 'Subtle Foreground Active',
+  actionableSubtleBorderWidth: 'Subtle Border Width',
 
   editableBackground: 'Input Background',
   editableBorderColor: 'Input Border Color',
@@ -132,63 +132,85 @@ const TOKEN_LABELS: Record<string, string> = {
 
   focusedRingColor: 'Focus Ring Color',
 
-  sentimentNegativeBackground: 'Negative Background',
-  sentimentNegativeBackgroundHover: 'Negative Background Hover',
-  sentimentNegativeBackgroundActive: 'Negative Background Active',
-  sentimentNegativeForeground: 'Negative Foreground',
-  sentimentNegativeForegroundHover: 'Negative Foreground Hover',
-  sentimentNegativeForegroundActive: 'Negative Foreground Active',
+  actionableNegativeBoldBackground: 'Negative Bold Background',
+  actionableNegativeBoldBackgroundHover: 'Negative Bold Background Hover',
+  actionableNegativeBoldBackgroundActive: 'Negative Bold Background Active',
+  actionableNegativeBoldForeground: 'Negative Bold Foreground',
+  actionableNegativeBoldForegroundHover: 'Negative Bold Foreground Hover',
+  actionableNegativeBoldForegroundActive: 'Negative Bold Foreground Active',
 
+  sentimentNegativeAccentBackground: 'Negative Accent Background (Alerts)',
   sentimentCautionForeground: 'Caution Foreground',
   sentimentCautionAccentBackground: 'Caution Accent Background',
   sentimentPositiveForeground: 'Positive Foreground',
   sentimentPositiveAccentBackground: 'Positive Accent Background',
   statusInfoForeground: 'Info Foreground',
   statusInfoAccentBackground: 'Info Accent Background',
+  statusErrorForegroundInformative: 'Error Foreground (Informative)',
+  statusErrorBackground: 'Error Background',
+  statusSuccessForeground: 'Success Foreground',
+  statusSuccessAccentBackground: 'Success Accent Background',
+  statusWarningForeground: 'Warning Foreground',
+  statusWarningAccentBackground: 'Warning Accent Background',
+  navigableBackground: 'Navigable Background',
+  navigableForeground: 'Navigable Foreground',
+  navigableAccentBackground: 'Navigable Accent Background',
+  navigableAccentForeground: 'Navigable Accent Foreground',
+  actionableNegativeBoldBorderWidth: 'Negative Bold Border Width',
+  actionableNegativeBoldFontWeight: 'Negative Bold Font Weight',
+  accentMetricBackground: 'Metric Accent Background',
 };
 
-// Semantic token order (Salt-inspired characteristics)
+// Semantic token order following Salt Design System characteristics
+// Order: Actionable, Category, Container, Content, Editable, Focused, Navigable, Overlayable, Selectable, Sentiment, Separable, Status, Target, Text
 const SEMANTIC_TOKEN_ORDER = [
-  'contentFontFamily',
-  'contentHeaderFontFamily',
+  // 1. Actionable
   'actionableFontFamily',
   'actionableFontWeight',
   'actionableFontSize',
   'actionableLineHeight',
   'actionableTextTransform',
   'actionableLetterSpacing',
-  'actionablePrimaryFontWeight',
-  'actionableSecondaryFontWeight',
+  'actionableBorderRadius',
+  'actionableShiftOnActive',
+  'actionableAccentedBoldBackground',
+  'actionableAccentedBoldBackgroundHover',
+  'actionableAccentedBoldBackgroundActive',
+  'actionableAccentedBoldForeground',
+  'actionableAccentedBoldForegroundHover',
+  'actionableAccentedBoldForegroundActive',
+  'actionableAccentedBoldBorderWidth',
+  'actionableAccentedBoldFontWeight',
+  'actionableSubtleBackground',
+  'actionableSubtleBackgroundHover',
+  'actionableSubtleBackgroundActive',
+  'actionableSubtleForeground',
+  'actionableSubtleForegroundHover',
+  'actionableSubtleForegroundActive',
+  'actionableSubtleBorderWidth',
+  'actionableSubtleFontWeight',
+  'actionableNegativeBoldBackground',
+  'actionableNegativeBoldBackgroundHover',
+  'actionableNegativeBoldBackgroundActive',
+  'actionableNegativeBoldForeground',
+  'actionableNegativeBoldForegroundHover',
+  'actionableNegativeBoldForegroundActive',
+  'actionableNegativeBoldBorderWidth',
+  'actionableNegativeBoldFontWeight',
 
-  'containerBackground',
+  // 2. Container
   'containerPrimaryBackground',
+  'containerCardBackground',
   'containerPrimaryForeground',
   'containerSecondaryBackground',
   'containerSecondaryForeground',
-  'overlayableBackground',
-  'overlayableForeground',
-  'overlayableZIndex',
-  'accentBackground',
-  'accentForeground',
 
-  'actionablePrimaryBackground',
-  'actionablePrimaryBackgroundHover',
-  'actionablePrimaryBackgroundActive',
-  'actionablePrimaryForeground',
-  'actionablePrimaryForegroundHover',
-  'actionablePrimaryForegroundActive',
-  'actionablePrimaryBorderWidth',
-  'actionableBorderRadius',
-  'actionableShiftOnActive',
+  // 3. Content
+  'contentFontFamily',
+  'contentPrimaryForeground',
+  'contentAccentForeground',
 
-  'actionableSecondaryBackground',
-  'actionableSecondaryBackgroundHover',
-  'actionableSecondaryBackgroundActive',
-  'actionableSecondaryForeground',
-  'actionableSecondaryForegroundHover',
-  'actionableSecondaryForegroundActive',
-  'actionableSecondaryBorderWidth',
-
+  // 4. Editable
   'editableBackground',
   'editableBorderColor',
   'editableBorderRadius',
@@ -197,90 +219,119 @@ const SEMANTIC_TOKEN_ORDER = [
   'editableLabelLineHeight',
   'editableLabelForeground',
 
-  'separableBorderColor',
-  'separableBorderRadius',
-  'spacingUnit',
-
+  // 5. Focused
   'focusedRingColor',
 
-  'sentimentNegativeBackground',
-  'sentimentNegativeBackgroundHover',
-  'sentimentNegativeBackgroundActive',
-  'sentimentNegativeForeground',
-  'sentimentNegativeForegroundHover',
-  'sentimentNegativeForegroundActive',
+  // 6. Navigable
+  'navigableBackground',
+  'navigableForeground',
+  'navigableAccentBackground',
+  'navigableAccentForeground',
 
+  // 7. Overlayable
+  'overlayableBackground',
+  'overlayableForeground',
+  'overlayableZIndex',
+
+  // 8. Sentiment
+  'sentimentNegativeAccentBackground',
   'sentimentCautionForeground',
   'sentimentCautionAccentBackground',
   'sentimentPositiveForeground',
   'sentimentPositiveAccentBackground',
+
+  // 9. Separable
+  'separableBorderColor',
+  'separableBorderRadius',
+  'spacingUnit',
+
+  // 10. Status
   'statusInfoForeground',
   'statusInfoAccentBackground',
+  'statusErrorForegroundInformative',
+  'statusErrorBackground',
+  'statusSuccessForeground',
+  'statusSuccessAccentBackground',
+  'statusWarningForeground',
+  'statusWarningAccentBackground',
+
+  // 11. Text
+  'textHeadingFontFamily',
+
+  // Extension tokens (not in Salt)
+  'accentBackground',
+  'accentMetricBackground',
 ] as const;
 
 const TOKEN_GROUPS = {
-  typography: {
-    title: 'Content & Action Typography',
-    icon: Type,
+  // 1. Actionable - Interactive elements (buttons, links)
+  actionable: {
+    title: 'Actionable',
+    icon: Brush,
     tokens: [
-      'contentFontFamily',
-      'contentHeaderFontFamily',
+      // Common actionable properties
       'actionableFontFamily',
       'actionableFontWeight',
       'actionableFontSize',
       'actionableLineHeight',
       'actionableTextTransform',
       'actionableLetterSpacing',
-      'actionablePrimaryFontWeight',
-      'actionableSecondaryFontWeight',
+      'actionableBorderRadius',
+      'actionableShiftOnActive',
+      // Accented Bold variant
+      'actionableAccentedBoldBackground',
+      'actionableAccentedBoldBackgroundHover',
+      'actionableAccentedBoldBackgroundActive',
+      'actionableAccentedBoldForeground',
+      'actionableAccentedBoldForegroundHover',
+      'actionableAccentedBoldForegroundActive',
+      'actionableAccentedBoldBorderWidth',
+      'actionableAccentedBoldFontWeight',
+      // Subtle variant
+      'actionableSubtleBackground',
+      'actionableSubtleBackgroundHover',
+      'actionableSubtleBackgroundActive',
+      'actionableSubtleForeground',
+      'actionableSubtleForegroundHover',
+      'actionableSubtleForegroundActive',
+      'actionableSubtleBorderWidth',
+      'actionableSubtleFontWeight',
+      // Negative Bold variant
+      'actionableNegativeBoldBackground',
+      'actionableNegativeBoldBackgroundHover',
+      'actionableNegativeBoldBackgroundActive',
+      'actionableNegativeBoldForeground',
+      'actionableNegativeBoldForegroundHover',
+      'actionableNegativeBoldForegroundActive',
+      'actionableNegativeBoldBorderWidth',
+      'actionableNegativeBoldFontWeight',
     ],
   },
-  surfaces: {
-    title: 'Surfaces & Overlay',
-    icon: Palette,
+  // 2. Container - Surfaces and layout backgrounds
+  container: {
+    title: 'Container',
+    icon: Layout,
     tokens: [
-      'containerBackground',
       'containerPrimaryBackground',
+      'containerCardBackground',
       'containerPrimaryForeground',
       'containerSecondaryBackground',
       'containerSecondaryForeground',
-      'overlayableBackground',
-      'overlayableForeground',
-      'overlayableZIndex',
-      'accentBackground',
-      'accentForeground',
     ],
   },
-  primaryActions: {
-    title: 'Primary Actionable',
-    icon: Brush,
+  // 3. Content - Typography and text properties
+  content: {
+    title: 'Content',
+    icon: Type,
     tokens: [
-      'actionablePrimaryBackground',
-      'actionablePrimaryBackgroundHover',
-      'actionablePrimaryBackgroundActive',
-      'actionablePrimaryForeground',
-      'actionablePrimaryForegroundHover',
-      'actionablePrimaryForegroundActive',
-      'actionablePrimaryBorderWidth',
-      'actionableBorderRadius',
-      'actionableShiftOnActive',
+      'contentFontFamily',
+      'contentPrimaryForeground',
+      'contentAccentForeground',
     ],
   },
-  secondaryActions: {
-    title: 'Secondary Actionable',
-    icon: Brush,
-    tokens: [
-      'actionableSecondaryBackground',
-      'actionableSecondaryBackgroundHover',
-      'actionableSecondaryBackgroundActive',
-      'actionableSecondaryForeground',
-      'actionableSecondaryForegroundHover',
-      'actionableSecondaryForegroundActive',
-      'actionableSecondaryBorderWidth',
-    ],
-  },
+  // 4. Editable - Form inputs and text fields
   editable: {
-    title: 'Editable / Inputs',
+    title: 'Editable',
     icon: Layout,
     tokens: [
       'editableBackground',
@@ -292,33 +343,77 @@ const TOKEN_GROUPS = {
       'editableLabelForeground',
     ],
   },
-  separable: {
-    title: 'Borders & Spacing',
-    icon: Layout,
-    tokens: ['separableBorderColor', 'separableBorderRadius', 'spacingUnit'],
-  },
+  // 5. Focused - Focus indicators
   focused: {
-    title: 'Focus',
+    title: 'Focused',
     icon: Info,
     tokens: ['focusedRingColor'],
   },
-  sentiment: {
-    title: 'Sentiment & Status',
+  // 6. Navigable - Sidebars and navigation elements
+  navigable: {
+    title: 'Navigable',
+    icon: Layout,
+    tokens: [
+      'navigableBackground',
+      'navigableForeground',
+      'navigableAccentBackground',
+      'navigableAccentForeground',
+    ],
+  },
+  // 7. Overlayable - Popovers, dialogs, tooltips
+  overlayable: {
+    title: 'Overlayable',
     icon: Palette,
     tokens: [
-      'sentimentNegativeBackground',
-      'sentimentNegativeBackgroundHover',
-      'sentimentNegativeBackgroundActive',
-      'sentimentNegativeForeground',
-      'sentimentNegativeForegroundHover',
-      'sentimentNegativeForegroundActive',
+      'overlayableBackground',
+      'overlayableForeground',
+      'overlayableZIndex',
+    ],
+  },
+  // 8. Sentiment - Emotional states (negative, positive, caution)
+  sentiment: {
+    title: 'Sentiment',
+    icon: Palette,
+    tokens: [
+      'sentimentNegativeAccentBackground',
       'sentimentCautionForeground',
       'sentimentCautionAccentBackground',
       'sentimentPositiveForeground',
       'sentimentPositiveAccentBackground',
+    ],
+  },
+  // 9. Separable - Borders and dividers
+  separable: {
+    title: 'Separable',
+    icon: Layout,
+    tokens: ['separableBorderColor', 'separableBorderRadius', 'spacingUnit'],
+  },
+  // 10. Status - Informational states (info, error, success, warning)
+  status: {
+    title: 'Status',
+    icon: Info,
+    tokens: [
       'statusInfoForeground',
       'statusInfoAccentBackground',
+      'statusErrorForegroundInformative',
+      'statusErrorBackground',
+      'statusSuccessForeground',
+      'statusSuccessAccentBackground',
+      'statusWarningForeground',
+      'statusWarningAccentBackground',
     ],
+  },
+  // 11. Text - Typography (headings)
+  text: {
+    title: 'Text',
+    icon: Type,
+    tokens: ['textHeadingFontFamily'],
+  },
+  // Extension tokens (not in Salt)
+  accent: {
+    title: 'Accent (Extension)',
+    icon: Palette,
+    tokens: ['accentBackground', 'accentMetricBackground'],
   },
 };
 
