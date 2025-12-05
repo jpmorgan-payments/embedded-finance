@@ -40,21 +40,21 @@ export type EBThemeVariables = {
   /** Primary font family for body text and general content */
   contentFontFamily?: string;
 
-  /** Font family for headings (h1-h6) */
-  contentHeaderFontFamily?: string;
+  /** Font family for headings (h1-h6) - maps to Salt's text-h*-fontFamily pattern */
+  textHeadingFontFamily?: string;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CONTAINER CHARACTERISTIC - Surfaces and layout backgrounds
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /** Base page background color */
-  containerBackground?: string;
+  /** Base page background color - maps to Salt's container-primary-background */
+  containerPrimaryBackground?: string;
 
-  /** Primary text color on containers */
+  /** Primary text color on containers - maps to Salt's content-primary-foreground */
   contentPrimaryForeground?: string;
 
-  /** Primary surface background (cards, panels) */
-  containerPrimaryBackground?: string;
+  /** Primary surface background (cards, panels) - extension token (not in Salt) */
+  containerCardBackground?: string;
 
   /** Text color on primary surfaces */
   containerPrimaryForeground?: string;
@@ -93,55 +93,209 @@ export type EBThemeVariables = {
   /** Enable button press animation (1px shift) */
   actionableShiftOnActive?: boolean;
 
-  // Actionable Primary Variant (main CTA buttons)
-  /** Primary button background */
-  actionablePrimaryBackground?: string;
+  // Actionable Accented Bold Variant (solid CTA with accent/brand color)
+  /** Accented bold button background (solid CTA style) */
+  actionableAccentedBoldBackground?: string;
 
-  /** Primary button background on hover */
-  actionablePrimaryBackgroundHover?: string;
+  /** Accented bold button background on hover */
+  actionableAccentedBoldBackgroundHover?: string;
 
-  /** Primary button background when active/pressed */
-  actionablePrimaryBackgroundActive?: string;
+  /** Accented bold button background when active/pressed */
+  actionableAccentedBoldBackgroundActive?: string;
 
-  /** Primary button text color */
-  actionablePrimaryForeground?: string;
+  /** Accented bold button text color */
+  actionableAccentedBoldForeground?: string;
 
-  /** Primary button text on hover */
-  actionablePrimaryForegroundHover?: string;
+  /** Accented bold button text on hover */
+  actionableAccentedBoldForegroundHover?: string;
 
-  /** Primary button text when active */
-  actionablePrimaryForegroundActive?: string;
+  /** Accented bold button text when active */
+  actionableAccentedBoldForegroundActive?: string;
 
-  /** Primary button border width */
-  actionablePrimaryBorderWidth?: string;
+  /** Accented bold button border color */
+  actionableAccentedBoldBorderColor?: string;
 
-  /** Primary button font weight override */
-  actionablePrimaryFontWeight?: string;
+  /** Accented bold button border color on hover */
+  actionableAccentedBoldBorderColorHover?: string;
 
-  // Actionable Secondary Variant (secondary actions)
-  /** Secondary button background */
-  actionableSecondaryBackground?: string;
+  /** Accented bold button border color when active */
+  actionableAccentedBoldBorderColorActive?: string;
 
-  /** Secondary button background on hover */
-  actionableSecondaryBackgroundHover?: string;
+  /** Accented bold button border width */
+  actionableAccentedBoldBorderWidth?: string;
 
-  /** Secondary button background when active */
-  actionableSecondaryBackgroundActive?: string;
+  /** Accented bold button font weight override */
+  actionableAccentedBoldFontWeight?: string;
 
-  /** Secondary button text color */
-  actionableSecondaryForeground?: string;
+  // Actionable Accented Variant (bordered with accent color)
+  /** Accented button background (bordered style) */
+  actionableAccentedBackground?: string;
 
-  /** Secondary button text on hover */
-  actionableSecondaryForegroundHover?: string;
+  /** Accented button background on hover */
+  actionableAccentedBackgroundHover?: string;
 
-  /** Secondary button text when active */
-  actionableSecondaryForegroundActive?: string;
+  /** Accented button background when active */
+  actionableAccentedBackgroundActive?: string;
 
-  /** Secondary button border width */
-  actionableSecondaryBorderWidth?: string;
+  /** Accented button text color */
+  actionableAccentedForeground?: string;
 
-  /** Secondary button font weight override */
-  actionableSecondaryFontWeight?: string;
+  /** Accented button text on hover */
+  actionableAccentedForegroundHover?: string;
+
+  /** Accented button text when active */
+  actionableAccentedForegroundActive?: string;
+
+  /** Accented button border color */
+  actionableAccentedBorderColor?: string;
+
+  /** Accented button border color on hover */
+  actionableAccentedBorderColorHover?: string;
+
+  /** Accented button border color when active */
+  actionableAccentedBorderColorActive?: string;
+
+  /** Accented button background when selected */
+  actionableAccentedBackgroundSelected?: string;
+
+  /** Accented button border color when selected */
+  actionableAccentedBorderColorSelected?: string;
+
+  /** Accented button text color when selected */
+  actionableAccentedForegroundSelected?: string;
+
+  // Actionable Accented Subtle Variant (transparent with accent color)
+  /** Accented subtle button background (transparent style) */
+  actionableAccentedSubtleBackground?: string;
+
+  /** Accented subtle button background on hover */
+  actionableAccentedSubtleBackgroundHover?: string;
+
+  /** Accented subtle button background when active */
+  actionableAccentedSubtleBackgroundActive?: string;
+
+  /** Accented subtle button text color */
+  actionableAccentedSubtleForeground?: string;
+
+  /** Accented subtle button text on hover */
+  actionableAccentedSubtleForegroundHover?: string;
+
+  /** Accented subtle button text when active */
+  actionableAccentedSubtleForegroundActive?: string;
+
+  /** Accented subtle button border color */
+  actionableAccentedSubtleBorderColor?: string;
+
+  /** Accented subtle button border color on hover */
+  actionableAccentedSubtleBorderColorHover?: string;
+
+  /** Accented subtle button border color when active */
+  actionableAccentedSubtleBorderColorActive?: string;
+
+  // Actionable Bold Variant (solid neutral)
+  /** Bold button background (solid neutral style) */
+  actionableBoldBackground?: string;
+
+  /** Bold button background on hover */
+  actionableBoldBackgroundHover?: string;
+
+  /** Bold button background when active */
+  actionableBoldBackgroundActive?: string;
+
+  /** Bold button text color */
+  actionableBoldForeground?: string;
+
+  /** Bold button text on hover */
+  actionableBoldForegroundHover?: string;
+
+  /** Bold button text when active */
+  actionableBoldForegroundActive?: string;
+
+  /** Bold button border color */
+  actionableBoldBorderColor?: string;
+
+  /** Bold button border color on hover */
+  actionableBoldBorderColorHover?: string;
+
+  /** Bold button border color when active */
+  actionableBoldBorderColorActive?: string;
+
+  /** Bold button border width */
+  actionableBoldBorderWidth?: string;
+
+  /** Bold button font weight override */
+  actionableBoldFontWeight?: string;
+
+  // Actionable Variant (bordered neutral - base)
+  /** Actionable button background (bordered neutral style) */
+  actionableBackground?: string;
+
+  /** Actionable button background on hover */
+  actionableBackgroundHover?: string;
+
+  /** Actionable button background when active */
+  actionableBackgroundActive?: string;
+
+  /** Actionable button text color */
+  actionableForeground?: string;
+
+  /** Actionable button text on hover */
+  actionableForegroundHover?: string;
+
+  /** Actionable button text when active */
+  actionableForegroundActive?: string;
+
+  /** Actionable button border color */
+  actionableBorderColor?: string;
+
+  /** Actionable button border color on hover */
+  actionableBorderColorHover?: string;
+
+  /** Actionable button border color when active */
+  actionableBorderColorActive?: string;
+
+  /** Actionable button background when selected */
+  actionableBackgroundSelected?: string;
+
+  /** Actionable button border color when selected */
+  actionableBorderColorSelected?: string;
+
+  /** Actionable button text color when selected */
+  actionableForegroundSelected?: string;
+
+  // Actionable Subtle Variant (transparent neutral - previous Secondary)
+  /** Subtle button background (transparent neutral style) */
+  actionableSubtleBackground?: string;
+
+  /** Subtle button background on hover */
+  actionableSubtleBackgroundHover?: string;
+
+  /** Subtle button background when active */
+  actionableSubtleBackgroundActive?: string;
+
+  /** Subtle button text color */
+  actionableSubtleForeground?: string;
+
+  /** Subtle button text on hover */
+  actionableSubtleForegroundHover?: string;
+
+  /** Subtle button text when active */
+  actionableSubtleForegroundActive?: string;
+
+  /** Subtle button border color */
+  actionableSubtleBorderColor?: string;
+
+  /** Subtle button border color on hover */
+  actionableSubtleBorderColorHover?: string;
+
+  /** Subtle button border color when active */
+  actionableSubtleBorderColorActive?: string;
+
+  /** Subtle button border width */
+  actionableSubtleBorderWidth?: string;
+
+  /** Subtle button font weight override */
+  actionableSubtleFontWeight?: string;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // EDITABLE CHARACTERISTIC - Form inputs and text fields
@@ -215,45 +369,124 @@ export type EBThemeVariables = {
   focusedRingColor?: string;
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // ACTIONABLE NEGATIVE CHARACTERISTIC - Destructive actions
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Actionable Negative Bold Variant (solid destructive)
+  /** Negative bold button background (solid destructive style) */
+  actionableNegativeBoldBackground?: string;
+
+  /** Negative bold button background on hover */
+  actionableNegativeBoldBackgroundHover?: string;
+
+  /** Negative bold button background when active */
+  actionableNegativeBoldBackgroundActive?: string;
+
+  /** Negative bold button text color */
+  actionableNegativeBoldForeground?: string;
+
+  /** Negative bold button text on hover */
+  actionableNegativeBoldForegroundHover?: string;
+
+  /** Negative bold button text when active */
+  actionableNegativeBoldForegroundActive?: string;
+
+  /** Negative bold button border color */
+  actionableNegativeBoldBorderColor?: string;
+
+  /** Negative bold button border color on hover */
+  actionableNegativeBoldBorderColorHover?: string;
+
+  /** Negative bold button border color when active */
+  actionableNegativeBoldBorderColorActive?: string;
+
+  /** Negative bold button border width */
+  actionableNegativeBoldBorderWidth?: string;
+
+  /** Negative bold button font weight override */
+  actionableNegativeBoldFontWeight?: string;
+
+  // Actionable Negative Variant (bordered destructive)
+  /** Negative button background (bordered destructive style) */
+  actionableNegativeBackground?: string;
+
+  /** Negative button background on hover */
+  actionableNegativeBackgroundHover?: string;
+
+  /** Negative button background when active */
+  actionableNegativeBackgroundActive?: string;
+
+  /** Negative button text color */
+  actionableNegativeForeground?: string;
+
+  /** Negative button text on hover */
+  actionableNegativeForegroundHover?: string;
+
+  /** Negative button text when active */
+  actionableNegativeForegroundActive?: string;
+
+  /** Negative button border color */
+  actionableNegativeBorderColor?: string;
+
+  /** Negative button border color on hover */
+  actionableNegativeBorderColorHover?: string;
+
+  /** Negative button border color when active */
+  actionableNegativeBorderColorActive?: string;
+
+  /** Negative button background when selected */
+  actionableNegativeBackgroundSelected?: string;
+
+  /** Negative button border color when selected */
+  actionableNegativeBorderColorSelected?: string;
+
+  /** Negative button text color when selected */
+  actionableNegativeForegroundSelected?: string;
+
+  // Actionable Negative Subtle Variant (transparent destructive)
+  /** Negative subtle button background (transparent destructive style) */
+  actionableNegativeSubtleBackground?: string;
+
+  /** Negative subtle button background on hover */
+  actionableNegativeSubtleBackgroundHover?: string;
+
+  /** Negative subtle button background when active */
+  actionableNegativeSubtleBackgroundActive?: string;
+
+  /** Negative subtle button text color */
+  actionableNegativeSubtleForeground?: string;
+
+  /** Negative subtle button text on hover */
+  actionableNegativeSubtleForegroundHover?: string;
+
+  /** Negative subtle button text when active */
+  actionableNegativeSubtleForegroundActive?: string;
+
+  /** Negative subtle button border color */
+  actionableNegativeSubtleBorderColor?: string;
+
+  /** Negative subtle button border color on hover */
+  actionableNegativeSubtleBorderColorHover?: string;
+
+  /** Negative subtle button border color when active */
+  actionableNegativeSubtleBorderColorActive?: string;
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // SENTIMENT CHARACTERISTIC - Emotional states (negative, positive, caution)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // Sentiment Negative (destructive actions, errors in actionable context)
-  /** Negative/destructive button background */
-  sentimentNegativeBackground?: string;
-
-  /** Negative/destructive background on hover */
-  sentimentNegativeBackgroundHover?: string;
-
-  /** Negative/destructive background when active */
-  sentimentNegativeBackgroundActive?: string;
-
-  /** Negative/destructive text color */
-  sentimentNegativeForeground?: string;
-
-  /** Negative/destructive text on hover */
-  sentimentNegativeForegroundHover?: string;
-
-  /** Negative/destructive text when active */
-  sentimentNegativeForegroundActive?: string;
-
-  /** Negative/destructive subtle background (alerts) */
+  // Sentiment Negative (non-actionable contexts - alerts, error messages)
+  /** Negative/destructive subtle background (alerts, error messages) */
   sentimentNegativeAccentBackground?: string;
 
-  /** Negative/destructive border width */
-  sentimentNegativeBorderWidth?: string;
-
-  /** Negative/destructive button font weight */
-  sentimentNegativeFontWeight?: string;
-
-  // Sentiment Positive (success states)
+  // Sentiment Positive (success states - non-actionable)
   /** Positive/success indicator color */
   sentimentPositiveForeground?: string;
 
   /** Positive/success subtle background */
   sentimentPositiveAccentBackground?: string;
 
-  // Sentiment Caution (warnings)
+  // Sentiment Caution (warnings - non-actionable)
   /** Caution/warning indicator color */
   sentimentCautionForeground?: string;
 
@@ -270,11 +503,11 @@ export type EBThemeVariables = {
   /** Info status subtle background */
   statusInfoAccentBackground?: string;
 
-  /** Error status color (matches sentiment negative) */
-  statusErrorForeground?: string;
+  /** Error status color (matches sentiment negative) - maps to Salt's status-error-foreground-informative */
+  statusErrorForegroundInformative?: string;
 
-  /** Error status subtle background */
-  statusErrorAccentBackground?: string;
+  /** Error status subtle background - maps to Salt's status-error-background */
+  statusErrorBackground?: string;
 
   /** Success status color (matches sentiment positive) */
   statusSuccessForeground?: string;
@@ -302,8 +535,8 @@ export type EBThemeVariables = {
   /** Accent background for highlighted areas */
   accentBackground?: string;
 
-  /** Accent text color */
-  accentForeground?: string;
+  /** Accent text color - maps to Salt's content-accent-foreground */
+  contentAccentForeground?: string;
 
   /** Metric/data visualization accent color */
   accentMetricBackground?: string;
@@ -314,11 +547,13 @@ export type EBThemeVariables = {
 
   /** @deprecated Use `contentFontFamily` instead */
   fontFamily?: string;
-  /** @deprecated Use `contentHeaderFontFamily` instead */
+  /** @deprecated Use `textHeadingFontFamily` instead */
   headerFontFamily?: string;
+  /** @deprecated Use `textHeadingFontFamily` instead */
+  contentHeaderFontFamily?: string;
   /** @deprecated Use `actionableFontFamily` instead */
   buttonFontFamily?: string;
-  /** @deprecated Use `containerBackground` instead */
+  /** @deprecated Use `containerPrimaryBackground` instead */
   backgroundColor?: string;
   /** @deprecated Use `contentPrimaryForeground` instead */
   foregroundColor?: string;
@@ -336,55 +571,55 @@ export type EBThemeVariables = {
   buttonLineHeight?: string;
   /** @deprecated Use `actionableShiftOnActive` instead */
   shiftButtonOnActive?: boolean;
-  /** @deprecated Use `actionablePrimaryFontWeight` instead */
+  /** @deprecated Use `actionableAccentedBoldFontWeight` instead */
   primaryButtonFontWeight?: string;
-  /** @deprecated Use `actionableSecondaryFontWeight` instead */
+  /** @deprecated Use `actionableSubtleFontWeight` instead */
   secondaryButtonFontWeight?: string;
-  /** @deprecated Use `sentimentNegativeFontWeight` instead */
+  /** @deprecated Use `actionableNegativeBoldFontWeight` instead */
   destructiveButtonFontWeight?: string;
-  /** @deprecated Use `actionablePrimaryBorderWidth` instead */
+  /** @deprecated Use `actionableAccentedBoldBorderWidth` instead */
   primaryBorderWidth?: string;
-  /** @deprecated Use `actionableSecondaryBorderWidth` instead */
+  /** @deprecated Use `actionableSubtleBorderWidth` instead */
   secondaryBorderWidth?: string;
-  /** @deprecated Use `sentimentNegativeBorderWidth` instead */
+  /** @deprecated Use `actionableNegativeBoldBorderWidth` instead */
   destructiveBorderWidth?: string;
-  /** @deprecated Use `actionablePrimaryBackground` instead */
+  /** @deprecated Use `actionableAccentedBoldBackground` instead */
   primaryColor?: string;
-  /** @deprecated Use `actionablePrimaryBackgroundHover` instead */
+  /** @deprecated Use `actionableAccentedBoldBackgroundHover` instead */
   primaryHoverColor?: string;
-  /** @deprecated Use `actionablePrimaryBackgroundActive` instead */
+  /** @deprecated Use `actionableAccentedBoldBackgroundActive` instead */
   primaryActiveColor?: string;
-  /** @deprecated Use `actionablePrimaryForeground` instead */
+  /** @deprecated Use `actionableAccentedBoldForeground` instead */
   primaryForegroundColor?: string;
-  /** @deprecated Use `actionablePrimaryForegroundHover` instead */
+  /** @deprecated Use `actionableAccentedBoldForegroundHover` instead */
   primaryForegroundHoverColor?: string;
-  /** @deprecated Use `actionablePrimaryForegroundActive` instead */
+  /** @deprecated Use `actionableAccentedBoldForegroundActive` instead */
   primaryForegroundActiveColor?: string;
-  /** @deprecated Use `actionableSecondaryBackground` instead */
+  /** @deprecated Use `actionableSubtleBackground` instead */
   secondaryColor?: string;
-  /** @deprecated Use `actionableSecondaryBackgroundHover` instead */
+  /** @deprecated Use `actionableSubtleBackgroundHover` instead */
   secondaryHoverColor?: string;
-  /** @deprecated Use `actionableSecondaryBackgroundActive` instead */
+  /** @deprecated Use `actionableSubtleBackgroundActive` instead */
   secondaryActiveColor?: string;
-  /** @deprecated Use `actionableSecondaryForeground` instead */
+  /** @deprecated Use `actionableSubtleForeground` instead */
   secondaryForegroundColor?: string;
-  /** @deprecated Use `actionableSecondaryForegroundHover` instead */
+  /** @deprecated Use `actionableSubtleForegroundHover` instead */
   secondaryForegroundHoverColor?: string;
-  /** @deprecated Use `actionableSecondaryForegroundActive` instead */
+  /** @deprecated Use `actionableSubtleForegroundActive` instead */
   secondaryForegroundActiveColor?: string;
-  /** @deprecated Use `sentimentNegativeBackground` instead */
+  /** @deprecated Use `actionableNegativeBoldBackground` instead */
   destructiveColor?: string;
-  /** @deprecated Use `sentimentNegativeBackgroundHover` instead */
+  /** @deprecated Use `actionableNegativeBoldBackgroundHover` instead */
   destructiveHoverColor?: string;
-  /** @deprecated Use `sentimentNegativeBackgroundActive` instead */
+  /** @deprecated Use `actionableNegativeBoldBackgroundActive` instead */
   destructiveActiveColor?: string;
-  /** @deprecated Use `sentimentNegativeForeground` instead */
+  /** @deprecated Use `actionableNegativeBoldForeground` instead */
   destructiveForegroundColor?: string;
-  /** @deprecated Use `sentimentNegativeForegroundHover` instead */
+  /** @deprecated Use `actionableNegativeBoldForegroundHover` instead */
   destructiveForegroundHoverColor?: string;
-  /** @deprecated Use `sentimentNegativeForegroundActive` instead */
+  /** @deprecated Use `actionableNegativeBoldForegroundActive` instead */
   destructiveForegroundActiveColor?: string;
-  /** @deprecated Use `sentimentNegativeAccentBackground` instead */
+  /** @deprecated Use `sentimentNegativeAccentBackground` instead (for non-actionable contexts) */
   destructiveAccentColor?: string;
   /** @deprecated Use `statusInfoForeground` instead */
   informativeColor?: string;
@@ -410,9 +645,11 @@ export type EBThemeVariables = {
   mutedForegroundColor?: string;
   /** @deprecated Use `accentBackground` instead */
   accentColor?: string;
-  /** @deprecated Use `accentForeground` instead */
+  /** @deprecated Use `contentAccentForeground` instead */
   accentForegroundColor?: string;
-  /** @deprecated Use `containerPrimaryBackground` instead */
+  /** @deprecated Use `contentAccentForeground` instead */
+  accentForeground?: string;
+  /** @deprecated Use `containerCardBackground` instead */
   cardColor?: string;
   /** @deprecated Use `containerPrimaryForeground` instead */
   cardForegroundColor?: string;
