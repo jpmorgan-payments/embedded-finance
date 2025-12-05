@@ -5,22 +5,55 @@ import { PartyResponse, ClientResponse } from '@/api/generated/smbdo.schemas';
 import { BeneficialOwner, BeneficialOwnerStatus } from '../IndirectOwnership.types';
 
 /**
+ * Convert validation error codes to user-friendly messages
+ */
+function formatValidationError(validationType?: string, validationStatus?: string): string {
+  // Handle null/undefined values
+  if (!validationType || !validationStatus) {
+    return 'Additional information required';
+  }
+
+  // Map validation types to user-friendly contexts
+  const typeMessages: Record<string, string> = {
+    'ENTITY_VALIDATION': 'Entity information',
+    'DOCUMENT_VALIDATION': 'Document verification', 
+    'IDENTITY_VALIDATION': 'Identity verification',
+    'OWNERSHIP_VALIDATION': 'Ownership details',
+    'COMPLIANCE_VALIDATION': 'Compliance check',
+  };
+
+  // Map validation statuses to user-friendly actions  
+  const statusMessages: Record<string, string> = {
+    'NEEDS_INFO': 'requires additional information',
+    'PENDING': 'is pending review',
+    'FAILED': 'has validation errors', 
+    'REJECTED': 'was rejected',
+    'INCOMPLETE': 'is incomplete',
+  };
+
+  const typeMessage = typeMessages[validationType] || 'Information';
+  const statusMessage = statusMessages[validationStatus] || 'needs attention';
+  
+  return `${typeMessage} ${statusMessage}`;
+}
+
+/**
  * Transform a PartyResponse to BeneficialOwner format
  */
 export function transformPartyToBeneficialOwner(
   party: PartyResponse,
-  allParties: PartyResponse[] = []
+  allParties: PartyResponse[] = [],
+  existingHierarchy?: any
 ): BeneficialOwner {
   // Determine ownership type based on parentPartyId
   const ownershipType = party.parentPartyId ? 'INDIRECT' : 'DIRECT';
   
-  // Map profileStatus to our status
-  const status = mapProfileStatusToBeneficialOwnerStatus(party.profileStatus);
+  // Use existing hierarchy if provided, otherwise build for indirect owners
+  const ownershipHierarchy = existingHierarchy || 
+    (ownershipType === 'INDIRECT' ? buildOwnershipHierarchy(party, allParties) : undefined);
   
-  // Build ownership hierarchy for indirect owners
-  const ownershipHierarchy = ownershipType === 'INDIRECT' 
-    ? buildOwnershipHierarchy(party, allParties)
-    : undefined;
+  // Determine status based ONLY on hierarchy completion (not KYC status)
+  const status = determineOwnerStatus(ownershipType, !!ownershipHierarchy);
   
   // Calculate if meets 25% threshold based on requirements scenarios
   const meets25PercentThreshold = ownershipType === 'DIRECT' ? true : 
@@ -38,8 +71,11 @@ export function transformPartyToBeneficialOwner(
     status,
     ownershipHierarchy,
     meets25PercentThreshold,
+    // Convenience properties for display
+    firstName: party.individualDetails?.firstName,
+    lastName: party.individualDetails?.lastName,
     validationErrors: party.validationResponse?.map(vr => 
-      `${vr.validationType}: ${vr.validationStatus}`
+      formatValidationError(vr.validationType, vr.validationStatus)
     ),
     createdAt: new Date(party.createdAt || Date.now()),
     updatedAt: new Date(party.createdAt || Date.now())
@@ -121,25 +157,28 @@ function getOwnershipPercentage(beneficialOwner: PartyResponse, intermediateEnti
 }
 
 /**
- * Map OpenAPI profileStatus to our component status
+ * Determine owner completion status based ONLY on hierarchy requirements
+ * This component focuses on ownership structure completion, not KYC status
  */
-function mapProfileStatusToBeneficialOwnerStatus(
-  profileStatus?: PartyResponse['profileStatus']
+function determineOwnerStatus(
+  ownershipType?: 'DIRECT' | 'INDIRECT',
+  hasHierarchy?: boolean
 ): BeneficialOwnerStatus {
-  switch (profileStatus) {
-    case 'APPROVED':
-      return 'COMPLETE';
-    case 'INFORMATION_REQUESTED':
-    case 'REVIEW_IN_PROGRESS':
-    case 'NEW':
-      return 'PENDING_HIERARCHY';
-    case 'DECLINED':
-    case 'SUSPENDED':
-    case 'TERMINATED':
-    default:
-      return 'ERROR';
+  // For direct owners, they're always complete (no hierarchy needed)
+  if (ownershipType === 'DIRECT') {
+    return 'COMPLETE';
   }
+  
+  // For indirect owners, status depends only on whether hierarchy is built
+  if (ownershipType === 'INDIRECT') {
+    return hasHierarchy ? 'COMPLETE' : 'PENDING_HIERARCHY';
+  }
+  
+  // Fallback - assume complete if we can't determine
+  return 'COMPLETE';
 }
+
+
 
 /**
  * Extract beneficial owners from ClientResponse

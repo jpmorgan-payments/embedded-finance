@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Plus, CheckCircle2, AlertTriangle, Clock, User, Building, Edit, Trash2, UserCheck, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -18,10 +20,12 @@ import type {
   ValidationSummary
 } from './IndirectOwnership.types';
 
+import type { PartyResponse } from '@/api/generated/smbdo.schemas';
+
 import { VALIDATION_MESSAGES } from './IndirectOwnership.internal.types';
 
 import { 
-  extractBeneficialOwners, 
+  transformPartyToBeneficialOwner,
   getRootCompanyName, 
   hasOutstandingOwnershipRequirements,
   getBeneficialOwnerDisplayName,
@@ -52,10 +56,25 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
 }) => {
   // Extract data from OpenAPI client (established pattern)
   const rootCompanyName = client ? getRootCompanyName(client) : 'Unknown Entity';
-  const initialOwners = client ? extractBeneficialOwners(client) : [];
+  const initialParties = client?.parties?.filter(party => 
+    party.roles?.includes('BENEFICIAL_OWNER')
+  ) || [];
   
-  // State management
-  const [beneficialOwners, setBeneficialOwners] = useState<BeneficialOwner[]>(initialOwners);
+  // State management - Use PartyResponse as source of truth
+  const [beneficialOwnerParties, setBeneficialOwnerParties] = useState<PartyResponse[]>(initialParties);
+  // Store custom hierarchies for parties where user manually built/edited them
+  const [customOwnershipHierarchies, setCustomOwnershipHierarchies] = useState<Map<string, any>>(new Map());
+  
+  // Computed view - Transform PartyResponse[] to BeneficialOwner[] on demand
+  // For existing OpenAPI data, hierarchies are auto-derived from parentPartyId
+  // For new owners, use custom hierarchies from user interaction
+  const beneficialOwners = useMemo(() => 
+    beneficialOwnerParties.map(party => {
+      const customHierarchy = customOwnershipHierarchies.get(party.id || '');
+      return transformPartyToBeneficialOwner(party, client?.parties || [], customHierarchy);
+    }), 
+    [beneficialOwnerParties, client?.parties, customOwnershipHierarchies]
+  );
   const [currentDialog, setCurrentDialog] = useState<'NONE' | 'ADD_OWNER' | 'BUILD_CHAIN' | 'EDIT_CHAIN' | 'CONFIRM_CHAIN'>('NONE');
   const [currentOwnerBeingEdited, setCurrentOwnerBeingEdited] = useState<string | undefined>();
 
@@ -83,28 +102,26 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   }, []);
 
   const handleOwnerSubmit = useCallback((ownerData: { firstName: string; lastName: string; ownershipType: 'DIRECT' | 'INDIRECT' }) => {
-    const newOwner: BeneficialOwner = {
+    const newParty: PartyResponse = {
       id: `owner-${Date.now()}`,
       partyType: 'INDIVIDUAL',
-      profileStatus: ownerData.ownershipType === 'DIRECT' ? 'APPROVED' : 'INFORMATION_REQUESTED',
+      // Don't set profileStatus - that's managed by KYC systems
       active: true,
+      roles: ['BENEFICIAL_OWNER'],
+      parentPartyId: ownerData.ownershipType === 'INDIRECT' ? 'temp-parent' : undefined,
       individualDetails: {
         firstName: ownerData.firstName,
         lastName: ownerData.lastName,
       },
-      ownershipType: ownerData.ownershipType,
-      status: ownerData.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
-      meets25PercentThreshold: ownerData.ownershipType === 'DIRECT' ? true : undefined,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().toISOString(),
     };
 
-    setBeneficialOwners(prev => [...prev, newOwner]);
+    setBeneficialOwnerParties(prev => [...prev, newParty]);
     handleCloseDialog();
   }, [handleCloseDialog]);
 
   const handleRemoveOwner = useCallback((ownerId: string) => {
-    setBeneficialOwners(prev => prev.filter(owner => owner.id !== ownerId));
+    setBeneficialOwnerParties(prev => prev.filter(party => party.id !== ownerId));
   }, []);
 
   const handleBuildHierarchy = useCallback((ownerId: string) => {
@@ -124,19 +141,11 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   }, [validationSummary.canComplete, onOwnershipComplete, beneficialOwners]);
 
   const handleHierarchySaved = useCallback((ownerId: string, hierarchy: any) => {
-    setBeneficialOwners(prev => 
-      prev.map(owner => 
-        owner.id === ownerId 
-          ? { 
-              ...owner, 
-              ownershipHierarchy: hierarchy, 
-              status: 'COMPLETE' as const,
-              meets25PercentThreshold: true,
-              updatedAt: new Date()
-            }
-          : owner
-      )
-    );
+    // Store hierarchy data separately - this marks the hierarchy as complete
+    setCustomOwnershipHierarchies(prev => new Map(prev).set(ownerId, hierarchy));
+    
+    // Don't modify profileStatus - that's for KYC approval status
+    // The transform function will determine completion status based on hierarchy existence
     handleCloseDialog();
   }, [handleCloseDialog]);
   return (
@@ -319,59 +328,56 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                           <Badge 
                             id={`owner-${owner.id}-status`}
                             variant="warning"
-                            className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
-                            aria-label="Status: Pending hierarchy setup"
+                            className="eb-text-xs"
+                            aria-label="Status: Hierarchy required"
                           >
-                            <Clock className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
-                            Pending Hierarchy
+                            Hierarchy Required
                           </Badge>
                         )}
                       </div>
-                      <div 
-                        className="eb-flex eb-items-center eb-gap-2"
-                        role="group"
-                        aria-label={`Actions for ${getBeneficialOwnerFullName(owner)}`}
-                      >
-                        {!readOnly && owner.status === 'PENDING_HIERARCHY' && (
+
+                      {!readOnly && (
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          {owner.ownershipType === 'INDIRECT' && (
+                            <>
+                              {owner.status === 'PENDING_HIERARCHY' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="eb-h-8 eb-px-3 eb-text-xs"
+                                  onClick={() => owner.id && handleBuildHierarchy(owner.id)}
+                                  aria-label={`Build ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
+                                >
+                                  <Edit className="eb-mr-1 eb-h-3 eb-w-3" aria-hidden="true" />
+                                  Build Chain
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="eb-h-8 eb-px-3 eb-text-xs"
+                                  onClick={() => owner.id && handleEditHierarchy(owner.id)}
+                                  aria-label={`Edit ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
+                                >
+                                  <Edit className="eb-mr-1 eb-h-3 eb-w-3" aria-hidden="true" />
+                                  Edit Chain
+                                </Button>
+                              )}
+                            </>
+                          )}
                           <Button
-                            onClick={() => owner.id && handleBuildHierarchy(owner.id)}
+                            variant="ghost"
                             size="sm"
-                            variant="outline"
-                            className="eb-shrink-0 eb-bg-background"
-                            aria-label={`Build ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
-                            aria-describedby={`owner-${owner.id}-status`}
-                          >
-                            Build Ownership Hierarchy
-                          </Button>
-                        )}
-                        {!readOnly && owner.ownershipHierarchy && (
-                          <Button
-                            onClick={() => owner.id && handleEditHierarchy(owner.id)}
-                            size="sm"
-                            variant="outline"
-                            className="eb-shrink-0 eb-bg-background"
-                            aria-label={`Edit ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
-                          >
-                            <Edit className="eb-mr-1.5 eb-h-4 eb-w-4" aria-hidden="true" />
-                            Edit Chain
-                          </Button>
-                        )}
-                        {!readOnly && (
-                          <Button
+                            className="eb-h-8 eb-w-8 eb-p-0 eb-text-muted-foreground hover:eb-text-destructive"
                             onClick={() => owner.id && handleRemoveOwner(owner.id)}
-                            size="sm"
-                            variant="outline"
-                            className="eb-shrink-0 eb-bg-background eb-text-destructive eb-hover:bg-destructive/5"
-                            aria-label={`Remove ${getBeneficialOwnerFullName(owner)} from ownership structure`}
-                            title={`Remove ${getBeneficialOwnerFullName(owner)}`}
+                            aria-label={`Remove ${getBeneficialOwnerFullName(owner)} from ownership list`}
                           >
-                            <Trash2 className="eb-mr-1.5 eb-h-4 eb-w-4" aria-hidden="true" />
-                            Remove
+                            <Trash2 className="eb-h-4 eb-w-4" />
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
-                    
+
                     {/* Hierarchy visualization for indirect owners with complete hierarchies */}
                     {owner.ownershipHierarchy && owner.status === 'COMPLETE' && (
                       <div className="eb-mt-3 eb-pt-3 eb-border-t">
@@ -384,7 +390,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                           </div>
                           
                           {/* Company chain */}
-                          {owner.ownershipHierarchy.steps.map((step, stepIndex) => {
+                          {owner.ownershipHierarchy.steps.map((step) => {
                             const isDirectOwner = step.ownsRootBusinessDirectly;
                             
                             return (
@@ -421,6 +427,21 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                             );
                           })}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Validation Errors */}
+                    {owner.validationErrors && owner.validationErrors.length > 0 && (
+                      <div className="eb-mt-3 eb-space-y-1">
+                        {owner.validationErrors.map((error: string, errorIndex: number) => (
+                          <div 
+                            key={errorIndex}
+                            className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-destructive"
+                          >
+                            <AlertTriangle className="eb-h-3 eb-w-3 eb-flex-shrink-0" aria-hidden="true" />
+                            <span>{error}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                     </div>

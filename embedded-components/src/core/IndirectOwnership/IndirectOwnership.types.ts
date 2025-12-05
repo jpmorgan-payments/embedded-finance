@@ -21,6 +21,10 @@ export interface BeneficialOwner extends Pick<PartyResponse, 'id' | 'parentParty
   /** Current completion status derived from profileStatus */
   status: BeneficialOwnerStatus;
   
+  /** Convenience properties for display - derived from individualDetails */
+  firstName?: string;
+  lastName?: string;
+  
   /** Ownership hierarchy chain (for indirect owners) */
   ownershipHierarchy?: OwnershipHierarchy;
   

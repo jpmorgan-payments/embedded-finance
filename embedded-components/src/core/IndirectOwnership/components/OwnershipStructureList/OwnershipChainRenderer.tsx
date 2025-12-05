@@ -33,7 +33,7 @@ export const renderOwnershipChain = (
 
   // Convert V2 hierarchy steps to the format expected by the original renderer
   const hierarchyChain = owner.ownershipHierarchy.steps
-    .filter(step => step.entityType === 'COMPANY' && !step.isBusinessBeingOnboarded)
+    .filter(step => step.entityType === 'COMPANY')
     .sort((a, b) => a.level - b.level)
     .map(step => ({
       id: step.id,
