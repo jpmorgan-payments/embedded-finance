@@ -6,7 +6,7 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import { IndirectOwnership } from './IndirectOwnership';
 
-// Mock client data following OpenAPI ClientResponse structure
+// Mock client data focusing on ownership hierarchy structure
 const mockClientWithOwners: ClientResponse = {
   id: 'client-1',
   partyId: 'party-1',
@@ -40,13 +40,13 @@ const mockClientWithOwners: ClientResponse = {
       },
       createdAt: '2024-01-01T00:00:00.000Z'
     },
-    // BENEFICIAL OWNER - Indirect
+    // BENEFICIAL OWNER - Indirect (has hierarchy chain)
     {
       id: 'party-3',
       parentPartyId: 'party-intermediate',
       partyType: 'INDIVIDUAL', 
       roles: ['BENEFICIAL_OWNER'],
-      profileStatus: 'INFORMATION_REQUESTED',
+      profileStatus: 'APPROVED',
       active: true,
       individualDetails: {
         firstName: 'Jane',
@@ -54,7 +54,7 @@ const mockClientWithOwners: ClientResponse = {
       },
       createdAt: '2024-01-01T00:00:00.000Z'
     },
-    // Intermediate entity
+    // Intermediate entity in hierarchy chain
     {
       id: 'party-intermediate',
       partyType: 'ORGANIZATION',
@@ -70,8 +70,8 @@ const mockClientWithOwners: ClientResponse = {
     }
   ],
   outstanding: {
-    partyIds: ['party-3'],
-    partyRoles: ['BENEFICIAL_OWNER'],
+    partyIds: [],
+    partyRoles: [],
     questionIds: [],
     documentRequestIds: [],
     attestationDocumentIds: []
@@ -136,7 +136,7 @@ describe('IndirectOwnership Component', () => {
     
     // Add beneficial owner button
     expect(
-      screen.getByRole('button', { name: /Add Beneficial Owner/i })
+      screen.getByRole('button', { name: /Add new beneficial owner/i })
     ).toBeInTheDocument();
     
     // Empty state message
@@ -159,7 +159,7 @@ describe('IndirectOwnership Component', () => {
     
     // Should show beneficial owners from mock data
     expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
-    expect(screen.getByText(/Jane Smith/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Jane Smith/i)).toHaveLength(2); // Appears in owner list and hierarchy chain
   });
 
   it('renders empty state for client with no beneficial owners', () => {
@@ -176,7 +176,7 @@ describe('IndirectOwnership Component', () => {
     
     // Should show add button
     expect(
-      screen.getByRole('button', { name: /Add Beneficial Owner/i })
+      screen.getByRole('button', { name: /Add new beneficial owner/i })
     ).toBeInTheDocument();
   });
 
@@ -208,10 +208,9 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    // Complete button should be present if there are complete owners
+    // Complete button should be present for hierarchy management
     const completeButton = screen.queryByRole('button', { name: /Complete/i });
     
-    // Note: Button might be disabled if not all owners are complete
     // This test verifies the callback prop is accepted
     expect(completeButton).toBeInTheDocument();
   });

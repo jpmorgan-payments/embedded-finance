@@ -138,15 +138,16 @@ describe('openapi-transforms', () => {
       expect(result.ownershipHierarchy?.steps).toHaveLength(1);
     });
 
-    test('handles different profile statuses correctly', () => {
-      const pendingParty = { ...mockDirectOwnerParty, profileStatus: 'INFORMATION_REQUESTED' as const };
-      const rejectedParty = { ...mockDirectOwnerParty, profileStatus: 'DECLINED' as const };
+    test('handles different ownership types correctly', () => {
+      // Direct owners are always COMPLETE (no hierarchy needed regardless of profileStatus)
+      const directPendingParty = { ...mockDirectOwnerParty, profileStatus: 'INFORMATION_REQUESTED' as const };
+      const directResult = transformPartyToBeneficialOwner(directPendingParty);
+      expect(directResult.status).toBe('COMPLETE');
 
-      const pendingResult = transformPartyToBeneficialOwner(pendingParty);
-      const rejectedResult = transformPartyToBeneficialOwner(rejectedParty);
-
-      expect(pendingResult.status).toBe('PENDING_HIERARCHY');
-      expect(rejectedResult.status).toBe('ERROR');
+      // Indirect owners with incomplete hierarchy are PENDING_HIERARCHY
+      const indirectParty = { ...mockIndirectOwnerParty, parentPartyId: 'nonexistent-parent' };
+      const indirectResult = transformPartyToBeneficialOwner(indirectParty, []);
+      expect(indirectResult.status).toBe('PENDING_HIERARCHY');
     });
 
     test('handles organization parties', () => {

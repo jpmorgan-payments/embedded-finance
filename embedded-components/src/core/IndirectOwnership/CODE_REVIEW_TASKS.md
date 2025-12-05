@@ -57,16 +57,16 @@ This document tracks all code review findings for the IndirectOwnership componen
 ### B3. Component Testing Coverage
 - **Issue**: Missing tests for `openapi-transforms.ts` utility functions
 - **Finding**: "Critical utility functions lack test coverage"
-- **Status**: ✅ **COMPLETED**
+- **Status**: 🔧 **IN PROGRESS - Fixing Test Failures**
 - **Resolution**:
   - Created comprehensive test suite `openapi-transforms.test.ts` with 30 test cases
   - Covers all utility functions: transform, extract, getName, hasOutstanding, display names
   - Tests edge cases: malformed data, circular references, missing properties
   - Tests different party types, profile statuses, ownership scenarios
   - Proper mock data using valid OpenAPI schema enums and interfaces
-  - All tests passing after fixing expectations to match implementation behavior
-- **Commit**: ✅ **Completed during session** 
-- **Files**: `openapi-transforms.test.ts` (new), comprehensive test coverage
+  - **Current**: Fixing 4 test failures due to component changes during code review
+- **Commit**: ⚠️ **Fixing test alignment with new component logic**
+- **Files**: `openapi-transforms.test.ts`, `IndirectOwnership.test.tsx` - updating test expectations
 
 ---
 
