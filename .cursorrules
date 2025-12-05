@@ -133,6 +133,7 @@ New Code?
 - **Testing patterns**: `.cursor/rules/component-testing-patterns.mdc`
 - **Styling guidelines**: `.cursor/rules/styling-guidelines.mdc`
 - **React hooks**: `.cursor/rules/react-hooks-best-practices.mdc`
+- **Theme QA & tokens**: `embedded-components/docs/THEME_QA_GUIDE.md` for theme QA steps, token alignment, and how to add/refine design tokens
 
 > **Note**: For `embedded-components` package-specific architecture details, see `embedded-components/.cursorrules` and `embedded-components/ARCHITECTURE.md`
 
