@@ -55,13 +55,13 @@ export const TransactionsDisplay = forwardRef<
         >
           <span className="eb-sr-only">Refresh transactions</span>
           <RefreshCw
-            className={`eb-h-5 eb-w-5 eb-text-gray-500 ${isFetching ? 'eb-animate-spin' : ''}`}
+            className={`eb-h-5 eb-w-5 eb-text-muted-foreground ${isFetching ? 'eb-animate-spin' : ''}`}
           />
         </Button>
       </CardHeader>
       <CardContent className="eb-space-y-4">
         {status === 'pending' && (
-          <div className="eb-py-8 eb-text-center eb-text-gray-500">
+          <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
             Loading transactions...
           </div>
         )}
@@ -103,7 +103,7 @@ export const TransactionsDisplay = forwardRef<
             />
           ))}
         {status === 'success' && transactions.length === 0 && (
-          <div className="eb-py-8 eb-text-center eb-text-gray-500">
+          <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
             No transactions found
           </div>
         )}

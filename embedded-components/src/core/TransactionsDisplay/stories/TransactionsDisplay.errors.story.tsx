@@ -1,47 +1,36 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { TransactionsDisplay } from '../TransactionsDisplay';
 
-const TransactionsDisplayWithProvider = ({
-  apiBaseUrl,
-  apiBaseUrls,
-  headers,
-  theme,
-  accountIds,
-  contentTokens,
-}: {
-  apiBaseUrl: string;
-  apiBaseUrls?: Record<string, string>;
-  headers: Record<string, string>;
-  theme?: Record<string, unknown>;
+/**
+ * Story args interface extending base provider args
+ */
+interface TransactionsDisplayErrorStoryArgs extends BaseStoryArgs {
   accountIds?: string[];
-  contentTokens?: Record<string, string>;
+  apiBaseUrls?: Record<string, string>;
+}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const TransactionsDisplayStory = ({
+  accountIds,
+}: {
+  accountIds?: string[];
 }) => {
-  const queryClient = new QueryClient();
   return (
-    <EBComponentsProvider
-      apiBaseUrl={apiBaseUrl}
-      apiBaseUrls={apiBaseUrls}
-      headers={headers}
-      theme={theme}
-      contentTokens={contentTokens || { name: 'enUS' }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <div className="eb-mx-auto eb-max-w-4xl eb-p-6">
-          <TransactionsDisplay accountIds={accountIds} />
-        </div>
-      </QueryClientProvider>
-    </EBComponentsProvider>
+    <div className="eb-mx-auto eb-max-w-4xl eb-p-6">
+      <TransactionsDisplay accountIds={accountIds} />
+    </div>
   );
 };
 
-const meta: Meta<typeof TransactionsDisplayWithProvider> = {
+const meta: Meta<TransactionsDisplayErrorStoryArgs> = {
   title: 'Core/TransactionsDisplay/Errors',
-  component: TransactionsDisplayWithProvider,
+  component: TransactionsDisplayStory,
   tags: ['@core', '@transactions'],
   parameters: {
     layout: 'fullscreen',
@@ -51,15 +40,15 @@ const meta: Meta<typeof TransactionsDisplayWithProvider> = {
       },
     },
   },
+  render: (args) => <TransactionsDisplayStory accountIds={args.accountIds} />,
 };
 export default meta;
 
-type Story = StoryObj<typeof TransactionsDisplayWithProvider>;
+type Story = StoryObj<TransactionsDisplayErrorStoryArgs>;
 
 // Common args for error stories
 const errorStoryArgs = {
   apiBaseUrl: '/',
-  headers: {},
   accountIds: ['account1'],
 };
 

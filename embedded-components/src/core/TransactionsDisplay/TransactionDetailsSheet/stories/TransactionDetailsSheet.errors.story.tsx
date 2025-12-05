@@ -2,31 +2,36 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import { Button } from '@/components/ui/button';
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
+import type { BaseStoryArgs } from '../../../../../.storybook/preview';
 import { TransactionDetailsDialogTrigger } from '../TransactionDetailsSheet';
 
-const TransactionDetailsWithProvider = ({
+/**
+ * Story args interface extending base provider args
+ */
+interface TransactionDetailsErrorStoryArgs extends BaseStoryArgs {
+  transactionId: string;
+}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const TransactionDetailsStory = ({
   transactionId,
-  apiBaseUrl,
-  headers,
 }: {
   transactionId: string;
-  apiBaseUrl: string;
-  headers: Record<string, string>;
 }) => {
   return (
-    <EBComponentsProvider apiBaseUrl={apiBaseUrl} headers={headers}>
-      <TransactionDetailsDialogTrigger transactionId={transactionId}>
-        <Button>View Transaction Details</Button>
-      </TransactionDetailsDialogTrigger>
-    </EBComponentsProvider>
+    <TransactionDetailsDialogTrigger transactionId={transactionId}>
+      <Button>View Transaction Details</Button>
+    </TransactionDetailsDialogTrigger>
   );
 };
 
-const meta: Meta<typeof TransactionDetailsWithProvider> = {
+const meta: Meta<TransactionDetailsErrorStoryArgs> = {
   title: 'Core/TransactionsDisplay/TransactionDetailsSheet/Errors',
-  component: TransactionDetailsWithProvider,
+  component: TransactionDetailsStory,
   tags: ['@core', '@transactions'],
   argTypes: {
     transactionId: {
@@ -34,16 +39,18 @@ const meta: Meta<typeof TransactionDetailsWithProvider> = {
       description: 'The transaction ID to fetch and display',
     },
   },
+  render: (args) => (
+    <TransactionDetailsStory transactionId={args.transactionId} />
+  ),
 };
 export default meta;
 
-type Story = StoryObj<typeof TransactionDetailsWithProvider>;
+type Story = StoryObj<TransactionDetailsErrorStoryArgs>;
 
 // Common args for error stories
 const errorStoryArgs = {
   transactionId: 'txn-api-error-001',
   apiBaseUrl: 'https://api-mock.payments.jpmorgan.com/tsapi/ef/v2',
-  headers: {},
 };
 
 export const ErrorState500: Story = {

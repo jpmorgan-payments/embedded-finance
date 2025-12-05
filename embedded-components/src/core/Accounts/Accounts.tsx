@@ -82,7 +82,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
               {[...Array(2)].map((_, i) => (
                 <Card
                   key={i}
-                  className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4"
+                  className="eb-mb-4 eb-flex eb-flex-col eb-border eb-p-4"
                 >
                   {/* Title Section Skeleton */}
                   <div className="eb-mb-4 eb-flex eb-items-center eb-gap-3 eb-pl-4">

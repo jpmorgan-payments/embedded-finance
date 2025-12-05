@@ -12,19 +12,21 @@ import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocu
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
 
+import type { BaseStoryArgs } from '../../../.storybook/preview';
 import { ORGANIZATION_TYPE_LIST } from './utils/organizationTypeList';
 
-export type OnboardingWizardBasicWithProviderProps =
-  OnboardingWizardBasicProps & EBConfig;
+/**
+ * Story args interface extending base provider args
+ */
+export type OnboardingWizardBasicLLCStoryArgs = OnboardingWizardBasicProps &
+  BaseStoryArgs;
 
-const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
+const meta: Meta<OnboardingWizardBasicLLCStoryArgs> = {
   title: 'Legacy/OnboardingWizardBasic/StepsLLC',
   component: OnboardingWizardBasic,
   tags: ['@legacy', '@onboarding'],
@@ -81,36 +83,11 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
       options: ['prod', 'test'],
     },
   },
-  decorators: [
-    (Story, context) => {
-      const {
-        apiBaseUrl,
-        headers,
-        theme,
-        reactQueryDefaultOptions,
-        contentTokens,
-      } = context.args;
-      return (
-        <EBComponentsProvider
-          apiBaseUrl={apiBaseUrl}
-          headers={headers}
-          theme={{
-            colorScheme: 'light',
-            ...theme,
-          }}
-          reactQueryDefaultOptions={reactQueryDefaultOptions}
-          contentTokens={contentTokens}
-        >
-          <Story />
-        </EBComponentsProvider>
-      );
-    },
-  ],
 };
 
 export default meta;
 
-const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => (
+const Template: StoryFn<OnboardingWizardBasicLLCStoryArgs> = (args) => (
   <OnboardingWizardBasic {...args} />
 );
 

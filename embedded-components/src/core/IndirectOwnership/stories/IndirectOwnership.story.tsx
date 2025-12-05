@@ -1,10 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { SELLSENSE_THEME } from '@storybook-themes';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
-
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { IndirectOwnership } from '../IndirectOwnership';
 import {
   efClientComplexOwnership,
@@ -16,44 +13,44 @@ import {
   efClientTooManyOwners,
 } from '../mocks';
 
-interface IndirectOwnershipWithProviderProps {
-  apiBaseUrl: string;
-  headers?: Record<string, string>;
-  theme?: EBTheme;
+/**
+ * Story args interface extending base provider args
+ */
+interface IndirectOwnershipStoryArgs extends BaseStoryArgs {
   clientId?: string;
   showVisualization?: boolean;
   maxDepth?: number;
   readOnly?: boolean;
 }
 
-const IndirectOwnershipWithProvider = ({
-  apiBaseUrl,
-  headers,
-  theme,
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const IndirectOwnershipStory = ({
   clientId,
   showVisualization,
   maxDepth,
   readOnly,
-}: IndirectOwnershipWithProviderProps) => {
+}: {
+  clientId?: string;
+  showVisualization?: boolean;
+  maxDepth?: number;
+  readOnly?: boolean;
+}) => {
   return (
-    <EBComponentsProvider
-      apiBaseUrl={apiBaseUrl}
-      headers={headers || {}}
-      theme={theme || SELLSENSE_THEME}
-    >
-      <IndirectOwnership
-        clientId={clientId}
-        showVisualization={showVisualization}
-        maxDepth={maxDepth}
-        readOnly={readOnly}
-      />
-    </EBComponentsProvider>
+    <IndirectOwnership
+      clientId={clientId}
+      showVisualization={showVisualization}
+      maxDepth={maxDepth}
+      readOnly={readOnly}
+    />
   );
 };
 
-const meta: Meta<typeof IndirectOwnershipWithProvider> = {
+const meta: Meta<IndirectOwnershipStoryArgs> = {
   title: 'Core/IndirectOwnership',
-  component: IndirectOwnershipWithProvider,
+  component: IndirectOwnershipStory,
   parameters: {
     layout: 'fullscreen',
   },
@@ -76,17 +73,24 @@ const meta: Meta<typeof IndirectOwnershipWithProvider> = {
       description: 'Whether the component is in read-only mode',
     },
   },
+  render: (args) => (
+    <IndirectOwnershipStory
+      clientId={args.clientId}
+      showVisualization={args.showVisualization}
+      maxDepth={args.maxDepth}
+      readOnly={args.readOnly}
+    />
+  ),
 };
 
 export default meta;
 
-type Story = StoryObj<typeof IndirectOwnershipWithProvider>;
+type Story = StoryObj<IndirectOwnershipStoryArgs>;
 
 export const Default: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'complex-ownership-client-001',
     showVisualization: true,
     maxDepth: 10,
@@ -132,8 +136,7 @@ export const Default: Story = {
 export const EmptyState: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'empty-ownership-client-001',
     showVisualization: true,
     maxDepth: 10,
@@ -180,8 +183,7 @@ export const EmptyState: Story = {
 export const InformationRequested: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'needs-info-client-002',
     showVisualization: true,
     maxDepth: 10,
@@ -234,8 +236,7 @@ export const InformationRequested: Story = {
 export const ReadOnly: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'readonly-client-003',
     showVisualization: true,
     maxDepth: 10,
@@ -272,8 +273,7 @@ export const ReadOnly: Story = {
 export const ValidationErrorIncompleteOwnership: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'incomplete-ownership-client-001',
     showVisualization: true,
     maxDepth: 10,
@@ -328,8 +328,7 @@ export const ValidationErrorIncompleteOwnership: Story = {
 export const ValidationErrorTooManyOwners: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'too-many-owners-client-001',
     showVisualization: true,
     maxDepth: 10,
@@ -385,8 +384,7 @@ export const ValidationErrorTooManyOwners: Story = {
 export const ValidationErrorMultipleIssues: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'multiple-errors-client-001',
     showVisualization: true,
     maxDepth: 10,
@@ -452,8 +450,7 @@ export const ValidationErrorMultipleIssues: Story = {
 export const NodeRemovalTesting: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
-    headers: { Authorization: 'Bearer demo-token' },
-    theme: SELLSENSE_THEME,
+    themePreset: 'SellSense',
     clientId: 'removal-test-client-001',
     showVisualization: true,
     maxDepth: 10,

@@ -8,18 +8,25 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
+        // Actionable variants (for buttons/actions)
         default:
           'eb-border-transparent eb-bg-primary eb-text-primary-foreground hover:eb-bg-primary/90',
         secondary:
           'eb-border-transparent eb-bg-secondary eb-text-secondary-foreground hover:eb-bg-secondary/80',
         destructive:
           'eb-border-transparent eb-bg-destructive eb-text-destructive-foreground hover:eb-bg-destructive/80',
+        // Status variants (for status pills) - Salt Status tokens
         success:
-          'eb-border-transparent eb-bg-green-700 eb-text-primary-foreground hover:eb-bg-green-700/80',
+          'eb-border-transparent eb-bg-success-accent eb-text-success hover:eb-bg-success-accent/90',
         warning:
-          'eb-border-transparent eb-bg-warning eb-text-primary-foreground hover:eb-bg-warning/80',
+          'eb-border-transparent eb-bg-warning-accent eb-text-warning hover:eb-bg-warning-accent/90',
+        informative:
+          'eb-border-transparent eb-bg-informative-accent eb-text-informative hover:eb-bg-informative-accent/90',
+        // Neutral
         outline: 'eb-text-foreground',
-        subtle: 'eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]',
+        // Muted variant (replaces legacy subtle with hardcoded colors)
+        subtle:
+          'eb-border-transparent eb-bg-muted eb-text-muted-foreground hover:eb-bg-muted/80',
       },
       size: {
         default: 'eb-text-xs eb-font-semibold',
