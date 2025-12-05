@@ -93,6 +93,10 @@ function buildOwnershipHierarchy(
 
   const steps: any[] = [];
   let currentParty = allParties.find(p => p.id === party.parentPartyId);
+  
+  // If parentPartyId exists but no matching party found, hierarchy is incomplete
+  if (!currentParty) return undefined;
+  
   let level = 1;
 
   while (currentParty) {

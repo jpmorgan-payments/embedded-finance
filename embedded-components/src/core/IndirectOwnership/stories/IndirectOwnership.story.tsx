@@ -6,19 +6,12 @@ import { IndirectOwnership } from '../IndirectOwnership';
 import {
   efClientWithOwnershipStructure,
   efClientEmptyOwnership,
-  efClientIncompleteOwnership,
+  efClientPendingHierarchy,
 } from '../mocks';
 
 // Create mock clients with different states
 const mockClientWithOwners = efClientWithOwnershipStructure;
 const mockEmptyClient = efClientEmptyOwnership;
-const mockErrorClient = {
-  ...efClientIncompleteOwnership,
-  parties: efClientIncompleteOwnership.parties?.map(party => ({
-    ...party,
-    profileStatus: 'INFORMATION_REQUESTED' as const
-  }))
-};
 
 const meta = {
   title: 'Core/IndirectOwnership',
@@ -79,14 +72,14 @@ export const EmptyState: Story = {
 };
 
 /**
- * Error state story showing parties with validation issues or incomplete information.
- * Demonstrates the workflow with parties requiring additional documentation or validation.
+ * Pending hierarchy story showing indirect owners that need hierarchy building.
+ * Demonstrates the warning badge and PENDING_HIERARCHY status.
  */
-export const ErrorState: Story = {
+export const PendingHierarchy: Story = {
   args: {
-    client: mockErrorClient,
+    client: efClientPendingHierarchy,
     readOnly: false,
-    testId: 'indirect-ownership-error'
+    testId: 'indirect-ownership-pending'
   },
 };
 
