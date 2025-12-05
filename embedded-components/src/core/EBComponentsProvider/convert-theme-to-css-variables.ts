@@ -38,7 +38,7 @@ const convertThemeVariablesToCssVariables = (
   // ═══════════════════════════════════════════════════════════════════════════
   const fontFamily = resolve(variables.contentFontFamily, variables.fontFamily);
   const headerFontFamily = resolve(
-    variables.contentHeaderFontFamily,
+    variables.textHeadingFontFamily,
     variables.headerFontFamily
   );
 
@@ -46,15 +46,15 @@ const convertThemeVariablesToCssVariables = (
   // Container Characteristic
   // ═══════════════════════════════════════════════════════════════════════════
   const containerBg = resolve(
-    variables.containerBackground,
+    variables.containerPrimaryBackground,
     variables.backgroundColor
   );
   const contentFg = resolve(
     variables.contentPrimaryForeground,
     variables.foregroundColor
   );
-  const containerPrimaryBg = resolve(
-    variables.containerPrimaryBackground,
+  const containerCardBg = resolve(
+    variables.containerCardBackground,
     variables.cardColor
   );
   const containerPrimaryFg = resolve(
@@ -106,71 +106,71 @@ const convertThemeVariablesToCssVariables = (
     variables.shiftButtonOnActive
   );
 
-  // Primary variant
-  const actionablePrimaryBg = resolve(
-    variables.actionablePrimaryBackground,
+  // Accented Bold variant (maps to --eb-primary)
+  const actionableAccentedBoldBg = resolve(
+    variables.actionableAccentedBoldBackground,
     variables.primaryColor
   );
-  const actionablePrimaryBgHover = resolve(
-    variables.actionablePrimaryBackgroundHover,
+  const actionableAccentedBoldBgHover = resolve(
+    variables.actionableAccentedBoldBackgroundHover,
     variables.primaryHoverColor
   );
-  const actionablePrimaryBgActive = resolve(
-    variables.actionablePrimaryBackgroundActive,
+  const actionableAccentedBoldBgActive = resolve(
+    variables.actionableAccentedBoldBackgroundActive,
     variables.primaryActiveColor
   );
-  const actionablePrimaryFg = resolve(
-    variables.actionablePrimaryForeground,
+  const actionableAccentedBoldFg = resolve(
+    variables.actionableAccentedBoldForeground,
     variables.primaryForegroundColor
   );
-  const actionablePrimaryFgHover = resolve(
-    variables.actionablePrimaryForegroundHover,
+  const actionableAccentedBoldFgHover = resolve(
+    variables.actionableAccentedBoldForegroundHover,
     variables.primaryForegroundHoverColor
   );
-  const actionablePrimaryFgActive = resolve(
-    variables.actionablePrimaryForegroundActive,
+  const actionableAccentedBoldFgActive = resolve(
+    variables.actionableAccentedBoldForegroundActive,
     variables.primaryForegroundActiveColor
   );
-  const actionablePrimaryBorderWidth = resolve(
-    variables.actionablePrimaryBorderWidth,
+  const actionableAccentedBoldBorderWidth = resolve(
+    variables.actionableAccentedBoldBorderWidth,
     variables.primaryBorderWidth
   );
-  const actionablePrimaryFontWeight = resolve(
-    variables.actionablePrimaryFontWeight,
+  const actionableAccentedBoldFontWeight = resolve(
+    variables.actionableAccentedBoldFontWeight,
     variables.primaryButtonFontWeight
   );
 
-  // Secondary variant
-  const actionableSecondaryBg = resolve(
-    variables.actionableSecondaryBackground,
+  // Subtle variant (maps to --eb-secondary)
+  const actionableSubtleBg = resolve(
+    variables.actionableSubtleBackground,
     variables.secondaryColor
   );
-  const actionableSecondaryBgHover = resolve(
-    variables.actionableSecondaryBackgroundHover,
+  const actionableSubtleBgHover = resolve(
+    variables.actionableSubtleBackgroundHover,
     variables.secondaryHoverColor
   );
-  const actionableSecondaryBgActive = resolve(
-    variables.actionableSecondaryBackgroundActive,
+  const actionableSubtleBgActive = resolve(
+    variables.actionableSubtleBackgroundActive,
     variables.secondaryActiveColor
   );
-  const actionableSecondaryFg = resolve(
-    variables.actionableSecondaryForeground,
+  const actionableSubtleFg = resolve(
+    variables.actionableSubtleForeground,
     variables.secondaryForegroundColor
   );
-  const actionableSecondaryFgHover = resolve(
-    variables.actionableSecondaryForegroundHover,
+  const actionableSubtleFgHover = resolve(
+    variables.actionableSubtleForegroundHover,
     variables.secondaryForegroundHoverColor
   );
-  const actionableSecondaryFgActive = resolve(
-    variables.actionableSecondaryForegroundActive,
+  const actionableSubtleFgActive = resolve(
+    variables.actionableSubtleForegroundActive,
     variables.secondaryForegroundActiveColor
   );
-  const actionableSecondaryBorderWidth = resolve(
-    variables.actionableSecondaryBorderWidth,
+  const actionableSubtleBorderWidth = resolve(
+    variables.actionableSubtleBorderWidth,
     variables.secondaryBorderWidth
   );
-  const actionableSecondaryFontWeight = resolve(
-    variables.actionableSecondaryFontWeight,
+  const actionableSubtleFontWeight = resolve(
+    variables.actionableSubtleFontWeight,
     variables.secondaryButtonFontWeight
   );
 
@@ -263,44 +263,48 @@ const convertThemeVariablesToCssVariables = (
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Sentiment Characteristic (Negative/Positive/Caution)
+  // Actionable Negative Bold (destructive buttons - maps to --eb-destructive)
   // ═══════════════════════════════════════════════════════════════════════════
-  // Negative (destructive)
-  const sentimentNegativeBg = resolve(
-    variables.sentimentNegativeBackground,
+  const actionableNegativeBoldBg = resolve(
+    variables.actionableNegativeBoldBackground,
     variables.destructiveColor
   );
-  const sentimentNegativeBgHover = resolve(
-    variables.sentimentNegativeBackgroundHover,
+  const actionableNegativeBoldBgHover = resolve(
+    variables.actionableNegativeBoldBackgroundHover,
     variables.destructiveHoverColor
   );
-  const sentimentNegativeBgActive = resolve(
-    variables.sentimentNegativeBackgroundActive,
+  const actionableNegativeBoldBgActive = resolve(
+    variables.actionableNegativeBoldBackgroundActive,
     variables.destructiveActiveColor
   );
-  const sentimentNegativeFg = resolve(
-    variables.sentimentNegativeForeground,
+  const actionableNegativeBoldFg = resolve(
+    variables.actionableNegativeBoldForeground,
     variables.destructiveForegroundColor
   );
-  const sentimentNegativeFgHover = resolve(
-    variables.sentimentNegativeForegroundHover,
+  const actionableNegativeBoldFgHover = resolve(
+    variables.actionableNegativeBoldForegroundHover,
     variables.destructiveForegroundHoverColor
   );
-  const sentimentNegativeFgActive = resolve(
-    variables.sentimentNegativeForegroundActive,
+  const actionableNegativeBoldFgActive = resolve(
+    variables.actionableNegativeBoldForegroundActive,
     variables.destructiveForegroundActiveColor
   );
+  const actionableNegativeBoldBorderWidth = resolve(
+    variables.actionableNegativeBoldBorderWidth,
+    variables.destructiveBorderWidth
+  );
+  const actionableNegativeBoldFontWeight = resolve(
+    variables.actionableNegativeBoldFontWeight,
+    variables.destructiveButtonFontWeight
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Sentiment Characteristic (Negative/Positive/Caution - non-actionable)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Negative accent (for alerts, error messages - non-actionable)
   const sentimentNegativeAccentBg = resolve(
     variables.sentimentNegativeAccentBackground,
     variables.destructiveAccentColor
-  );
-  const sentimentNegativeBorderWidth = resolve(
-    variables.sentimentNegativeBorderWidth,
-    variables.destructiveBorderWidth
-  );
-  const sentimentNegativeFontWeight = resolve(
-    variables.sentimentNegativeFontWeight,
-    variables.destructiveButtonFontWeight
   );
 
   // Positive (success)
@@ -351,13 +355,14 @@ const convertThemeVariablesToCssVariables = (
     variables.statusWarningAccentBackground,
     sentimentCautionAccentBg
   );
+  // Error status (maps to sentiment negative)
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Accent Characteristic
   // ═══════════════════════════════════════════════════════════════════════════
   const accentBg = resolve(variables.accentBackground, variables.accentColor);
   const accentFg = resolve(
-    variables.accentForeground,
+    variables.contentAccentForeground,
     variables.accentForegroundColor
   );
   const accentMetricBg = resolve(
@@ -382,36 +387,38 @@ const convertThemeVariablesToCssVariables = (
     // Container
     '--eb-background': colorToHsl(containerBg),
     '--eb-foreground': colorToHsl(contentFg),
-    '--eb-card': colorToHsl(containerPrimaryBg),
+    '--eb-card': colorToHsl(containerCardBg),
     '--eb-card-foreground': colorToHsl(containerPrimaryFg),
     '--eb-muted': colorToHsl(containerSecondaryBg),
     '--eb-muted-foreground': colorToHsl(containerSecondaryFg),
 
-    // Actionable - Primary
-    '--eb-primary': colorToHsl(actionablePrimaryBg),
-    '--eb-primary-hover': actionablePrimaryBgHover
-      ? colorToHsl(actionablePrimaryBgHover)
-      : colorToHsl(actionablePrimaryBg, 0.9),
-    '--eb-primary-active': colorToHsl(actionablePrimaryBgActive),
-    '--eb-primary-foreground': colorToHsl(actionablePrimaryFg),
-    '--eb-primary-foreground-hover': colorToHsl(actionablePrimaryFgHover),
-    '--eb-primary-foreground-active': colorToHsl(actionablePrimaryFgActive),
-    '--eb-primary-border-width': actionablePrimaryBorderWidth,
+    // Actionable - Accented Bold (maps to primary)
+    '--eb-primary': colorToHsl(actionableAccentedBoldBg),
+    '--eb-primary-hover': actionableAccentedBoldBgHover
+      ? colorToHsl(actionableAccentedBoldBgHover)
+      : colorToHsl(actionableAccentedBoldBg, 0.9),
+    '--eb-primary-active': colorToHsl(actionableAccentedBoldBgActive),
+    '--eb-primary-foreground': colorToHsl(actionableAccentedBoldFg),
+    '--eb-primary-foreground-hover': colorToHsl(actionableAccentedBoldFgHover),
+    '--eb-primary-foreground-active': colorToHsl(
+      actionableAccentedBoldFgActive
+    ),
+    '--eb-primary-border-width': actionableAccentedBoldBorderWidth,
     '--eb-button-primary-font-weight':
-      actionablePrimaryFontWeight ?? actionableFontWeight,
+      actionableAccentedBoldFontWeight ?? actionableFontWeight,
 
-    // Actionable - Secondary
-    '--eb-secondary': colorToHsl(actionableSecondaryBg),
-    '--eb-secondary-hover': actionableSecondaryBgHover
-      ? colorToHsl(actionableSecondaryBgHover)
-      : colorToHsl(actionableSecondaryBg, 0.9),
-    '--eb-secondary-active': colorToHsl(actionableSecondaryBgActive),
-    '--eb-secondary-foreground': colorToHsl(actionableSecondaryFg),
-    '--eb-secondary-foreground-hover': colorToHsl(actionableSecondaryFgHover),
-    '--eb-secondary-foreground-active': colorToHsl(actionableSecondaryFgActive),
-    '--eb-secondary-border-width': actionableSecondaryBorderWidth,
+    // Actionable - Subtle (maps to secondary)
+    '--eb-secondary': colorToHsl(actionableSubtleBg),
+    '--eb-secondary-hover': actionableSubtleBgHover
+      ? colorToHsl(actionableSubtleBgHover)
+      : colorToHsl(actionableSubtleBg, 0.9),
+    '--eb-secondary-active': colorToHsl(actionableSubtleBgActive),
+    '--eb-secondary-foreground': colorToHsl(actionableSubtleFg),
+    '--eb-secondary-foreground-hover': colorToHsl(actionableSubtleFgHover),
+    '--eb-secondary-foreground-active': colorToHsl(actionableSubtleFgActive),
+    '--eb-secondary-border-width': actionableSubtleBorderWidth,
     '--eb-button-secondary-font-weight':
-      actionableSecondaryFontWeight ?? actionableFontWeight,
+      actionableSubtleFontWeight ?? actionableFontWeight,
 
     // Actionable - Common
     '--eb-button-font-size': actionableFontSize,
@@ -423,19 +430,23 @@ const convertThemeVariablesToCssVariables = (
       ? '1px'
       : undefined,
 
-    // Sentiment - Negative (Destructive)
-    '--eb-destructive': colorToHsl(sentimentNegativeBg),
-    '--eb-destructive-hover': sentimentNegativeBgHover
-      ? colorToHsl(sentimentNegativeBgHover)
-      : colorToHsl(sentimentNegativeBg, 0.9),
-    '--eb-destructive-active': colorToHsl(sentimentNegativeBgActive),
-    '--eb-destructive-foreground': colorToHsl(sentimentNegativeFg),
-    '--eb-destructive-foreground-hover': colorToHsl(sentimentNegativeFgHover),
-    '--eb-destructive-foreground-active': colorToHsl(sentimentNegativeFgActive),
+    // Actionable - Negative Bold (maps to destructive)
+    '--eb-destructive': colorToHsl(actionableNegativeBoldBg),
+    '--eb-destructive-hover': actionableNegativeBoldBgHover
+      ? colorToHsl(actionableNegativeBoldBgHover)
+      : colorToHsl(actionableNegativeBoldBg, 0.9),
+    '--eb-destructive-active': colorToHsl(actionableNegativeBoldBgActive),
+    '--eb-destructive-foreground': colorToHsl(actionableNegativeBoldFg),
+    '--eb-destructive-foreground-hover': colorToHsl(
+      actionableNegativeBoldFgHover
+    ),
+    '--eb-destructive-foreground-active': colorToHsl(
+      actionableNegativeBoldFgActive
+    ),
     '--eb-destructive-accent': colorToHsl(sentimentNegativeAccentBg),
-    '--eb-destructive-border-width': sentimentNegativeBorderWidth,
+    '--eb-destructive-border-width': actionableNegativeBoldBorderWidth,
     '--eb-button-destructive-font-weight':
-      sentimentNegativeFontWeight ?? actionableFontWeight,
+      actionableNegativeBoldFontWeight ?? actionableFontWeight,
 
     // Status
     '--eb-informative': colorToHsl(statusInfoFg),
