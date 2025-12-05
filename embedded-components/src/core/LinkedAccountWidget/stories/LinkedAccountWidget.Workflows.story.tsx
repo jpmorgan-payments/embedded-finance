@@ -23,7 +23,7 @@ const delay = (ms: number): Promise<void> =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
-const INTERACTION_DELAY = 800; // Delay between steps in milliseconds
+const INTERACTION_DELAY = 1000; // Delay between steps in milliseconds
 
 const meta = {
   title: 'Core/LinkedAccountWidget/Interactive Workflows',
@@ -96,33 +96,38 @@ const fillLinkAccountForm = async (
     }
   });
 
-  // Step 5: Fill in account holder information
-  await step('Enter account holder name', async () => {
+  // Step 5: Select account holder from dropdown
+  await step('Select account holder from dropdown', async () => {
     await delay(INTERACTION_DELAY);
+
+    // Wait for the dropdown to appear
     await waitFor(() => {
-      const firstNameInput = document.querySelector(
-        'input[name="firstName"]'
-      ) as HTMLInputElement;
-      const lastNameInput = document.querySelector(
-        'input[name="lastName"]'
-      ) as HTMLInputElement;
-      if (!firstNameInput || !lastNameInput)
-        throw new Error('Name inputs not found');
-      return { firstNameInput, lastNameInput };
+      const dropdown = document.querySelector(
+        'button[role="combobox"]'
+      ) as HTMLButtonElement;
+      if (!dropdown) throw new Error('Account holder dropdown not found');
+      return dropdown;
     });
 
-    const firstNameInput = document.querySelector(
-      'input[name="firstName"]'
-    ) as HTMLInputElement;
-    const lastNameInput = document.querySelector(
-      'input[name="lastName"]'
-    ) as HTMLInputElement;
+    // Click the dropdown to open it
+    const dropdown = document.querySelector(
+      'button[role="combobox"]'
+    ) as HTMLButtonElement;
+    await userEvent.click(dropdown);
 
-    await userEvent.clear(firstNameInput);
-    await userEvent.type(firstNameInput, 'John');
-    await delay(INTERACTION_DELAY);
-    await userEvent.clear(lastNameInput);
-    await userEvent.type(lastNameInput, 'Doe');
+    await delay(INTERACTION_DELAY); // Brief delay for dropdown to open
+
+    // Select the first option from the list
+    await waitFor(() => {
+      const firstOption = document.querySelector('[role="option"]');
+      if (!firstOption) throw new Error('No options found in dropdown');
+      return firstOption;
+    });
+
+    const firstOption = document.querySelector(
+      '[role="option"]'
+    ) as HTMLElement;
+    await userEvent.click(firstOption);
   });
 
   // Step 6: Fill in bank account details
