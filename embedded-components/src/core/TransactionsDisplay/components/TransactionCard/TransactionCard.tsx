@@ -26,12 +26,12 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
         <div className="eb-truncate eb-text-base eb-font-semibold">
           {transaction.type || 'Transaction'}
         </div>
-        <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+        <span className="eb-text-xs eb-font-medium eb-text-muted-foreground">
           {transaction.status}
         </span>
       </div>
       <div className="eb-flex eb-items-center eb-gap-2">
-        <span className="eb-text-xs eb-text-gray-500">
+        <span className="eb-text-xs eb-text-muted-foreground">
           {transaction.paymentDate
             ? new Date(transaction.paymentDate).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -40,8 +40,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
               })
             : 'N/A'}
         </span>
-        <span className="eb-text-xs eb-text-gray-400">•</span>
-        <span className="eb-font-mono eb-text-xs eb-text-gray-700">
+        <span className="eb-text-xs eb-text-muted-foreground">•</span>
+        <span className="eb-font-mono eb-text-xs eb-text-foreground">
           {transaction.transactionReferenceId || 'N/A'}
         </span>
       </div>
@@ -61,12 +61,12 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
           Details
         </TransactionDetailsDialogTrigger>
       </div>
-      <div className="eb-mt-2 eb-text-xs eb-text-gray-600">
+      <div className="eb-mt-2 eb-text-xs eb-text-foreground">
         <span className="eb-font-medium">Counterpart:</span>{' '}
         {transaction.counterpartName || 'N/A'}
       </div>
       {transaction.memo && (
-        <div className="eb-mt-1 eb-text-xs eb-text-gray-500">
+        <div className="eb-mt-1 eb-text-xs eb-text-muted-foreground">
           <span className="eb-font-medium">Memo:</span> {transaction.memo}
         </div>
       )}

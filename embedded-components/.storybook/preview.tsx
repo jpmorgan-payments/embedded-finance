@@ -147,7 +147,6 @@ const preview: Preview = {
           apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/',
           headers: {
             platform_id: import.meta.env.VITE_API_PLATFORM_ID ?? '',
-            client_id: import.meta.env.VITE_API_CLIENT_ID ?? '',
           },
           clientId: import.meta.env.VITE_API_CLIENT_ID ?? '',
         };

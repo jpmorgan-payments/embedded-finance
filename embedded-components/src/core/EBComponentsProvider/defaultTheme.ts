@@ -11,6 +11,7 @@ export const defaultTheme: EBTheme = {
     // CONTENT CHARACTERISTIC - Typography
     // ═══════════════════════════════════════════════════════════════════════════
     contentFontFamily: 'Geist',
+    textHeadingFontFamily: 'Geist',
 
     // ═══════════════════════════════════════════════════════════════════════════
     // SEPARABLE CHARACTERISTIC - Borders
@@ -36,13 +37,13 @@ export const defaultTheme: EBTheme = {
     actionableTextTransform: 'none',
     actionableLetterSpacing: '0em',
     actionableShiftOnActive: true,
-    actionablePrimaryBorderWidth: '0rem',
-    actionableSecondaryBorderWidth: '0rem',
+    actionableAccentedBoldBorderWidth: '0rem',
+    actionableSubtleBorderWidth: '0rem',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Negative (Destructive)
+    // ACTIONABLE NEGATIVE CHARACTERISTIC - Destructive
     // ═══════════════════════════════════════════════════════════════════════════
-    sentimentNegativeBorderWidth: '0rem',
+    actionableNegativeBoldBorderWidth: '0rem',
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EDITABLE CHARACTERISTIC - Form Labels
@@ -55,9 +56,9 @@ export const defaultTheme: EBTheme = {
     // ═══════════════════════════════════════════════════════════════════════════
     // CONTAINER CHARACTERISTIC
     // ═══════════════════════════════════════════════════════════════════════════
-    containerBackground: 'hsl(0 0% 100%)',
-    contentPrimaryForeground: 'hsl(240 10% 3.9%)',
     containerPrimaryBackground: 'hsl(0 0% 100%)',
+    contentPrimaryForeground: 'hsl(240 10% 3.9%)',
+    containerCardBackground: 'hsl(0 0% 100%)',
     containerPrimaryForeground: 'hsl(240 10% 3.9%)',
     containerSecondaryBackground: 'hsl(240 4.8% 95.9%)',
     containerSecondaryForeground: 'hsl(240 3.8% 46.1%)',
@@ -76,28 +77,32 @@ export const defaultTheme: EBTheme = {
     overlayableForeground: 'hsl(240 10% 3.9%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Primary Variant
+    // ACTIONABLE CHARACTERISTIC - Accented Bold Variant (solid CTA)
     // ═══════════════════════════════════════════════════════════════════════════
-    actionablePrimaryBackground: '#155C93',
-    actionablePrimaryForeground: 'hsl(0 0% 98%)',
+    actionableAccentedBoldBackground: '#155C93',
+    actionableAccentedBoldForeground: 'hsl(0 0% 98%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Secondary Variant
+    // ACTIONABLE CHARACTERISTIC - Subtle Variant (transparent neutral)
     // ═══════════════════════════════════════════════════════════════════════════
-    actionableSecondaryBackground: 'hsl(240 4.8% 95.9%)',
-    actionableSecondaryForeground: 'hsl(240 5.9% 10%)',
+    actionableSubtleBackground: 'hsl(240 4.8% 95.9%)',
+    actionableSubtleForeground: 'hsl(240 5.9% 10%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ACCENT CHARACTERISTIC
     // ═══════════════════════════════════════════════════════════════════════════
     accentBackground: 'hsl(240 4.8% 95.9%)',
-    accentForeground: 'hsl(240 5.9% 10%)',
+    contentAccentForeground: 'hsl(240 5.9% 10%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Negative
+    // ACTIONABLE CHARACTERISTIC - Negative Bold Variant (solid destructive)
     // ═══════════════════════════════════════════════════════════════════════════
-    sentimentNegativeBackground: 'hsl(0 84.2% 60.2%)',
-    sentimentNegativeForeground: 'hsl(0 0% 98%)',
+    actionableNegativeBoldBackground: 'hsl(0 84.2% 60.2%)',
+    actionableNegativeBoldForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative (non-actionable contexts)
+    // ═══════════════════════════════════════════════════════════════════════════
     sentimentNegativeAccentBackground: '#FFECEA',
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -144,9 +149,9 @@ export const defaultTheme: EBTheme = {
     // ═══════════════════════════════════════════════════════════════════════════
     // CONTAINER CHARACTERISTIC
     // ═══════════════════════════════════════════════════════════════════════════
-    containerBackground: 'hsl(240 10% 3.9%)',
-    contentPrimaryForeground: 'hsl(0 0% 98%)',
     containerPrimaryBackground: 'hsl(240 10% 3.9%)',
+    contentPrimaryForeground: 'hsl(0 0% 98%)',
+    containerCardBackground: 'hsl(240 10% 3.9%)',
     containerPrimaryForeground: 'hsl(0 0% 98%)',
     containerSecondaryBackground: 'hsl(240 3.7% 15.9%)',
     containerSecondaryForeground: 'hsl(240 5% 64.9%)',
@@ -165,28 +170,32 @@ export const defaultTheme: EBTheme = {
     overlayableForeground: 'hsl(0 0% 98%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Primary Variant
+    // ACTIONABLE CHARACTERISTIC - Accented Bold Variant (solid CTA)
     // ═══════════════════════════════════════════════════════════════════════════
-    actionablePrimaryBackground: '#155C93',
-    actionablePrimaryForeground: 'hsl(0 0% 98%)',
+    actionableAccentedBoldBackground: '#155C93',
+    actionableAccentedBoldForeground: 'hsl(0 0% 98%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Secondary Variant
+    // ACTIONABLE CHARACTERISTIC - Subtle Variant (transparent neutral)
     // ═══════════════════════════════════════════════════════════════════════════
-    actionableSecondaryBackground: 'hsl(240 3.7% 15.9%)',
-    actionableSecondaryForeground: 'hsl(0 0% 98%)',
+    actionableSubtleBackground: 'hsl(240 3.7% 15.9%)',
+    actionableSubtleForeground: 'hsl(0 0% 98%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ACCENT CHARACTERISTIC
     // ═══════════════════════════════════════════════════════════════════════════
     accentBackground: 'hsl(240 3.7% 15.9%)',
-    accentForeground: 'hsl(0 0% 98%)',
+    contentAccentForeground: 'hsl(0 0% 98%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Negative
+    // ACTIONABLE CHARACTERISTIC - Negative Bold Variant (solid destructive)
     // ═══════════════════════════════════════════════════════════════════════════
-    sentimentNegativeBackground: 'hsl(0 74% 54%)',
-    sentimentNegativeForeground: 'hsl(0 0% 98%)',
+    actionableNegativeBoldBackground: 'hsl(0 74% 54%)',
+    actionableNegativeBoldForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative (non-actionable contexts)
+    // ═══════════════════════════════════════════════════════════════════════════
     sentimentNegativeAccentBackground: '#FFECEA',
 
     // ═══════════════════════════════════════════════════════════════════════════

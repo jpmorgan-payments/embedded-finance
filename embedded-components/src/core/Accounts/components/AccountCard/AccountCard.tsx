@@ -64,7 +64,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       : 'N/A';
 
     return (
-      <Card className="eb-mb-4 eb-flex eb-w-full eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4 lg:eb-max-w-5xl">
+      <Card className="eb-mb-4 eb-flex eb-w-full eb-flex-col eb-border eb-p-4 lg:eb-max-w-5xl">
         {/* Title Section with Status Badge */}
         <div className="eb-mb-4 eb-flex eb-flex-wrap eb-items-center eb-gap-3 eb-pl-4">
           <div className="eb-break-words eb-text-lg eb-font-semibold md:eb-text-xl">
@@ -114,7 +114,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     key={b.typeCode}
                     className="eb-flex eb-w-full eb-min-w-0 eb-flex-col eb-items-start"
                   >
-                    <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                    <span className="eb-text-xs eb-font-medium eb-text-muted-foreground">
                       {t(`accounts:balanceTypes.${b.typeCode}`, {
                         defaultValue:
                           b.typeCode === 'ITAV'
@@ -161,7 +161,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
               </div>
               <div className="eb-flex eb-flex-col eb-gap-2">
                 <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                  <span className="eb-text-xs eb-font-medium eb-text-muted-foreground">
                     {t('accounts:card.accountNumber', {
                       defaultValue: 'Account Number:',
                     })}
@@ -176,7 +176,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <button
                       type="button"
                       onClick={toggleSensitiveInfo}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-muted-foreground hover:eb-text-foreground"
                       title={
                         showSensitiveInfo
                           ? t('accounts:card.hideDetails', {
@@ -209,7 +209,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                           account.paymentRoutingInformation?.accountNumber || ''
                         )
                       }
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-muted-foreground hover:eb-text-foreground"
                       title={t('accounts:card.copyAccountNumber', {
                         defaultValue: 'Copy account number',
                       })}
@@ -222,7 +222,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   </div>
                 </div>
                 <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                  <span className="eb-text-xs eb-font-medium eb-text-muted-foreground">
                     {t('accounts:card.achRouting', {
                       defaultValue: 'ACH Routing:',
                     })}
@@ -232,7 +232,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <button
                       type="button"
                       onClick={() => navigator.clipboard.writeText('028000024')}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-muted-foreground hover:eb-text-foreground"
                       title={t('accounts:card.copyAchRouting', {
                         defaultValue: 'Copy ACH Routing',
                       })}
@@ -245,7 +245,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   </div>
                 </div>
                 <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
+                  <span className="eb-text-xs eb-font-medium eb-text-muted-foreground">
                     {t('accounts:card.wireRtpRouting', {
                       defaultValue: 'Wire/RTP Routing:',
                     })}
@@ -255,7 +255,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <button
                       type="button"
                       onClick={() => navigator.clipboard.writeText('021000021')}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
+                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-muted-foreground hover:eb-text-foreground"
                       title={t('accounts:card.copyWireRtpRouting', {
                         defaultValue: 'Copy Wire/RTP Routing',
                       })}

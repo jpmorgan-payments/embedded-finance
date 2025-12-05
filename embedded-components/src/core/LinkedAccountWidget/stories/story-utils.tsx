@@ -31,6 +31,7 @@ import type {
   RecipientStatus,
   UpdateRecipientRequest,
 } from '@/api/generated/ep-recipients.schemas';
+import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 // ============================================================================
 // Type Definitions
@@ -46,9 +47,205 @@ export interface RecipientHandlerOptions {
   delayMs?: number;
   /** Override the default status returned when creating a recipient (default: 'MICRODEPOSITS_INITIATED') */
   overrideCreateStatus?: RecipientStatus;
+}
+
+/**
+ * Configuration options for client data seeding
+ */
+export interface ClientSeedOptions {
+  /** Client ID for the seeded client */
+  clientId?: string;
+  /** Client data to seed. If not provided, a default client with parties will be created */
+  clientData?: Partial<ClientResponse>;
 } // ============================================================================
 // Database Management
 // ============================================================================
+
+/**
+ * Seeds client data with parties into the MSW database.
+ * This ensures that when the form opens, it will have parties to select from.
+ *
+ * @param options - Configuration options for seeding client data
+ *
+ * @example
+ * ```tsx
+ * export const MyStory: Story = {
+ *   loaders: [
+ *     async () => {
+ *       await seedClientData({ clientId: '3002024303' });
+ *       await seedRecipientData(mockData);
+ *     }
+ *   ]
+ * };
+ * ```
+ */
+export const seedClientData = async (
+  options?: ClientSeedOptions
+): Promise<void> => {
+  const clientId = options?.clientId ?? 'mock-client-id';
+  const timestamp = new Date().toISOString();
+
+  // Create default parties if not provided
+  const defaultParties = options?.clientData?.parties ?? [
+    {
+      id: '2200000111',
+      partyType: 'ORGANIZATION',
+      externalId: 'ORG-001',
+      email: 'info@company.com',
+      roles: ['CLIENT'],
+      profileStatus: 'COMPLETE',
+      active: true,
+      createdAt: timestamp,
+      organizationDetails: {
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        organizationName: 'Demo Company LLC',
+        industry: {
+          code: '541511',
+          codeType: 'NAICS',
+        },
+        countryOfFormation: 'US',
+        yearOfFormation: '2020',
+        addresses: [
+          {
+            addressType: 'BUSINESS_ADDRESS',
+            addressLines: ['123 Main St'],
+            city: 'New York',
+            state: 'NY',
+            postalCode: '10001',
+            country: 'US',
+          },
+        ],
+      },
+    },
+    {
+      id: '2200000112',
+      partyType: 'INDIVIDUAL',
+      parentPartyId: '2200000111',
+      externalId: 'IND-001',
+      email: 'john.smith@company.com',
+      profileStatus: 'COMPLETE',
+      active: true,
+      createdAt: timestamp,
+      roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+      individualDetails: {
+        firstName: 'John',
+        lastName: 'Smith',
+        countryOfResidence: 'US',
+        jobTitle: 'CEO',
+        birthDate: '1980-05-15',
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['456 Park Ave'],
+            city: 'New York',
+            state: 'NY',
+            postalCode: '10022',
+            country: 'US',
+          },
+        ],
+      },
+    },
+    {
+      id: '2200000113',
+      partyType: 'INDIVIDUAL',
+      parentPartyId: '2200000111',
+      externalId: 'IND-002',
+      email: 'jane.doe@company.com',
+      profileStatus: 'COMPLETE',
+      active: true,
+      createdAt: timestamp,
+      roles: ['BENEFICIAL_OWNER'],
+      individualDetails: {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        countryOfResidence: 'US',
+        jobTitle: 'CFO',
+        birthDate: '1985-08-20',
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['789 Broadway'],
+            city: 'New York',
+            state: 'NY',
+            postalCode: '10003',
+            country: 'US',
+          },
+        ],
+      },
+    },
+  ];
+
+  // Create parties in database first
+  const partyIds: string[] = [];
+  defaultParties.forEach((party: any) => {
+    const existingParty = db.party.findFirst({
+      where: { id: { equals: party.id } },
+    });
+
+    if (existingParty) {
+      // Update existing party
+      db.party.update({
+        where: { id: { equals: party.id } },
+        data: {
+          ...party,
+          preferences: party.preferences || { defaultLanguage: 'en-US' },
+          access: party.access || [],
+          validationResponse: party.validationResponse || [],
+        },
+      });
+    } else {
+      // Create new party
+      db.party.create({
+        ...party,
+        preferences: party.preferences || { defaultLanguage: 'en-US' },
+        access: party.access || [],
+        validationResponse: party.validationResponse || [],
+      });
+    }
+    partyIds.push(party.id);
+  });
+
+  // Create or update client with party IDs (MSW handler will expand them)
+  const existingClient = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+
+  const clientData = {
+    id: clientId,
+    status: options?.clientData?.status ?? 'APPROVED',
+    partyId: partyIds[0], // First party (organization) is the primary
+    parties: partyIds, // Store party IDs - will be expanded by MSW handler
+    products: options?.clientData?.products ?? ['EMBEDDED_PAYMENTS'],
+    outstanding: {
+      documentRequestIds: [],
+      questionIds: [],
+      attestationDocumentIds: [],
+      partyIds: [],
+      partyRoles: [],
+    },
+    questionResponses: [],
+    attestations: [],
+    results: {
+      customerIdentityStatus: 'APPROVED',
+    },
+    createdAt: timestamp,
+    ...options?.clientData,
+  };
+
+  if (existingClient) {
+    db.client.update({
+      where: { id: { equals: clientId } },
+      data: clientData,
+    });
+  } else {
+    db.client.create(clientData);
+  }
+
+  debugLog('Client data seeded', {
+    clientId,
+    partyCount: partyIds.length,
+  });
+};
 
 /**
  * Resets MSW database to a clean state and seeds with recipient data.
@@ -75,6 +272,9 @@ export const seedRecipientData = async (
 
   // Reset global MSW database
   resetDb();
+
+  // Seed client data with parties so the form has individuals to select from
+  await seedClientData({ clientId: 'mock-client-id' });
 
   // Seed if data provided
   if (seedData) {
@@ -129,12 +329,13 @@ const sleep = (ms: number): Promise<void> =>
   });
 
 /**
- * Logs debug information in development mode only
+ * Logs debug information for story debugging
+ * Always logs in non-test environments to help debug Storybook issues
  * @param message - Log message
  * @param data - Optional data to log
  */
 const debugLog = (message: string, data?: unknown): void => {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'test') {
     // eslint-disable-next-line no-console
     console.log(`[MSW LinkedAccount] ${message}`, data);
   }
@@ -145,7 +346,7 @@ const debugLog = (message: string, data?: unknown): void => {
 // ============================================================================
 
 /**
- * Creates MSW handlers for recipient API endpoints.
+ * Creates MSW handlers for recipient and client API endpoints.
  * Uses the global MSW database for state management and persistence.
  *
  * Note: Handlers do NOT seed the database. Use loaders to seed data before rendering:
@@ -174,6 +375,48 @@ export const createRecipientHandlers = (
     options?.overrideCreateStatus ?? 'MICRODEPOSITS_INITIATED';
 
   return [
+    // GET /clients/:clientId - Get client with expanded parties
+    // Note: Uses wildcard to match different base URLs and any client ID
+    http.get('*/clients/:clientId', async ({ params }): Promise<Response> => {
+      const { clientId } = params;
+
+      // Try to find the specific client, or return the first available client
+      let client = db.client.findFirst({
+        where: { id: { equals: clientId as string } },
+      });
+
+      if (!client) {
+        // If specific client not found, return any available client (for flexibility)
+        const allClients = db.client.getAll();
+        [client] = allClients;
+      }
+
+      if (!client) {
+        return HttpResponse.json(
+          { httpStatus: 404, title: 'Client not found' },
+          { status: 404 }
+        );
+      }
+
+      // Expand party IDs to full party objects
+      const expandedClient = {
+        ...client,
+        parties: (client.parties as string[])
+          .map((partyId) =>
+            db.party.findFirst({ where: { id: { equals: partyId } } })
+          )
+          .filter(Boolean),
+      };
+
+      debugLog('GET /clients/:clientId', {
+        requestedId: clientId,
+        returnedId: client.id,
+        partyCount: expandedClient.parties.length,
+      });
+
+      return HttpResponse.json(expandedClient);
+    }),
+
     // GET /recipients - List all active recipients
     http.get('/recipients', async (): Promise<Response> => {
       await sleep(delay);
@@ -264,7 +507,7 @@ export const createRecipientHandlers = (
         id: `recipient-${Date.now()}`,
         type: 'LINKED_ACCOUNT',
         status: createStatus,
-        clientId: body?.clientId ?? '3002024303',
+        clientId: body?.clientId ?? 'mock-client-id',
         partyDetails: {
           type: body?.partyDetails?.type ?? 'INDIVIDUAL',
           firstName: body?.partyDetails?.firstName,
@@ -346,6 +589,7 @@ export const createRecipientHandlers = (
 export const commonArgs = {
   variant: 'default' as const,
   showCreateButton: true,
+  clientId: 'mock-client-id',
 };
 
 /**
@@ -368,6 +612,14 @@ export const commonArgTypes = {
     table: {
       category: 'Component',
       defaultValue: { summary: 'true' },
+    },
+  },
+  clientId: {
+    control: { type: 'text' as const },
+    description: 'Client ID for API requests',
+    table: {
+      category: 'Provider',
+      defaultValue: { summary: 'mock-client-id' },
     },
   },
 };

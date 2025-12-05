@@ -10,358 +10,474 @@ import { defaultTheme } from '@/core/EBComponentsProvider/defaultTheme';
 import { EBTheme } from '../src/core/EBComponentsProvider/config.types';
 
 /**
+ * Salt Theme Configuration
+ *
+ * Uses official Salt Design System colors from JPMorgan Chase.
+ * Status tokens use Salt's official color palette.
+ */
+export const SALT_THEME: EBTheme = {
+  colorScheme: 'light',
+  variables: {
+    contentFontFamily: 'Open Sans',
+    contentHeaderFontFamily: 'Amplitude',
+    actionableFontFamily: 'Amplitude',
+    actionableFontWeight: '600',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'uppercase',
+    actionableLetterSpacing: '0.6px',
+    actionableAccentedBoldFontWeight: '600',
+    actionableSubtleFontWeight: '600',
+    actionableShiftOnActive: false,
+    actionableBorderRadius: '8px',
+    editableBorderRadius: '4px',
+    editableLabelFontSize: '0.75rem',
+    editableLabelLineHeight: '1rem',
+    editableLabelFontWeight: '600',
+    separableBorderRadius: '6px',
+    spacingUnit: '0.25rem',
+  },
+  light: {
+    containerPrimaryBackground: '#f6f7f8',
+    containerCardBackground: '#FFFFFF',
+    containerPrimaryForeground: '#4C5157',
+    containerSecondaryBackground: '#f6f7f8',
+    containerSecondaryForeground: '#6B7280',
+    contentPrimaryForeground: '#4C5157',
+    overlayableBackground: '#FFFFFF',
+    overlayableForeground: '#1e293b',
+    accentBackground: '#f1f5f9',
+    accentForeground: '#475569',
+    editableBackground: '#FFFFFF',
+    editableBorderColor: '#0000004D',
+    editableLabelForeground: '#4C5157',
+    actionableAccentedBoldBackground: '#1B7F9E',
+    actionableAccentedBoldBackgroundHover: '#166b85',
+    actionableAccentedBoldBackgroundActive: '#145a71',
+    actionableAccentedBoldForeground: '#FFFFFF',
+    actionableAccentedBoldBorderWidth: '0px',
+    actionableSubtleBackground: 'white',
+    actionableSubtleBackgroundHover: '#f1f2f480',
+    actionableSubtleBackgroundActive: '#f1f2f4cc',
+    actionableSubtleForeground: '#1B7F9E',
+    actionableSubtleForegroundHover: '#166b85',
+    actionableSubtleForegroundActive: '#145a71',
+    actionableSubtleBorderWidth: '1px',
+    focusedRingColor: '#1B7F9E',
+    actionableNegativeBoldBackground: '#ef4444',
+    actionableNegativeBoldBackgroundHover: '#dc2626',
+    actionableNegativeBoldBackgroundActive: '#b91c1c',
+    actionableNegativeBoldForeground: '#FFFFFF',
+    sentimentNegativeAccentBackground: '#FFECEA',
+    sentimentPositiveForeground: '#00875D',
+    sentimentPositiveAccentBackground: '#EAF5F2',
+    sentimentCautionForeground: '#C75300',
+    sentimentCautionAccentBackground: '#FFECD9',
+    statusInfoForeground: '#1B7F9E',
+    statusInfoAccentBackground: '#e6f3f7',
+    statusSuccessForeground: '#00875D',
+    statusSuccessAccentBackground: '#EAF5F2',
+    statusWarningForeground: '#C75300',
+    statusWarningAccentBackground: '#FFECD9',
+    separableBorderColor: '#0000004D',
+  },
+};
+
+/**
  * SellSense Theme Configuration
  *
- * Unified theme with light and dark mode support using Salt Design System semantic tokens:
- * - Common properties in `variables` (fonts, spacing, etc.)
- * - Light mode specific colors in `light`
- * - Dark mode specific colors in `dark`
- * - Maintains SellSense brand identity across modes
+ * Aligned with the original SellSense theme from use-sellsense-themes.ts
+ * Features: Orange primary (#f55727), Inter font, warm teal accents
  */
 export const SELLSENSE_THEME: EBTheme = {
-  colorScheme: 'light', // Force light mode to match SellSense demo
+  colorScheme: 'light',
   variables: {
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CONTENT CHARACTERISTIC - Typography
-    // ═══════════════════════════════════════════════════════════════════════════
     contentFontFamily: 'Inter',
     contentHeaderFontFamily: 'Inter',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SEPARABLE CHARACTERISTIC - Borders
-    // ═══════════════════════════════════════════════════════════════════════════
-    separableBorderRadius: '8px',
-    spacingUnit: '0.25rem',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OVERLAYABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    overlayableZIndex: 1000,
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Buttons
-    // ═══════════════════════════════════════════════════════════════════════════
     actionableFontFamily: 'Inter',
     actionableFontWeight: '600',
     actionableFontSize: '0.875rem',
     actionableLineHeight: '1.25rem',
     actionableTextTransform: 'uppercase',
     actionableLetterSpacing: '0.6px',
-    actionableBorderRadius: '8px',
+    actionableAccentedBoldFontWeight: '600',
+    actionableSubtleFontWeight: '600',
     actionableShiftOnActive: false,
-    actionablePrimaryFontWeight: '600',
-    actionableSecondaryFontWeight: '600',
-    actionablePrimaryBorderWidth: '0px',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Negative (Destructive)
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentNegativeFontWeight: '600',
-    sentimentNegativeBorderWidth: '0px',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EDITABLE CHARACTERISTIC - Form Inputs
-    // ═══════════════════════════════════════════════════════════════════════════
+    actionableBorderRadius: '8px',
     editableBorderRadius: '4px',
     editableLabelFontSize: '0.875rem',
     editableLabelFontWeight: '600',
     editableLabelLineHeight: '1.25rem',
+    separableBorderRadius: '8px',
+    spacingUnit: '0.25rem',
+    overlayableZIndex: 1000,
   },
   light: {
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CONTAINER CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    containerBackground: 'hsl(30, 20%, 97%)', // #FAF9F7
-    contentPrimaryForeground: 'hsl(215, 25%, 27%)', // #1e293b
-    containerPrimaryBackground: 'hsl(30, 25%, 95%)', // #F7F3F0
-    containerPrimaryForeground: 'hsl(215, 25%, 27%)', // #1e293b
-    containerSecondaryBackground: 'hsl(210, 40%, 98%)', // #f8fafc
-    containerSecondaryForeground: 'hsl(215, 16%, 47%)', // #64748b
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EDITABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    editableBackground: 'hsl(0, 0%, 100%)', // #FFFFFF
-    editableBorderColor: 'hsla(0, 0%, 0%, 0.3)', // #0000004d
-    editableLabelForeground: 'hsl(215, 25%, 27%)', // #1e293b
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OVERLAYABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    overlayableBackground: 'hsl(0, 0%, 100%)',
-    overlayableForeground: 'hsl(215, 25%, 27%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Primary Variant (SellSense Orange)
-    // ═══════════════════════════════════════════════════════════════════════════
-    actionablePrimaryBackground: 'hsl(14, 91%, 55%)', // #f55727
-    actionablePrimaryBackgroundHover: 'hsl(14, 91%, 50%)', // #e14d1f
-    actionablePrimaryBackgroundActive: 'hsl(14, 91%, 45%)', // #cc4319
-    actionablePrimaryForeground: 'hsl(0, 0%, 100%)', // #ffffff
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Secondary Variant
-    // ═══════════════════════════════════════════════════════════════════════════
-    actionableSecondaryBackground: 'hsl(30, 100%, 98%)', // #FDF7F0
-    actionableSecondaryBackgroundHover: 'hsla(240, 4.8%, 95.9%, 0.5)',
-    actionableSecondaryBackgroundActive: 'hsl(175, 62%, 41%)', // #2CB9AC
-    actionableSecondaryForeground: 'hsl(14, 91%, 55%)', // #f55727
-    actionableSecondaryForegroundHover: 'hsl(14, 91%, 50%)', // #e14d1f
-    actionableSecondaryForegroundActive: 'hsl(175, 62%, 41%)', // #2CB9AC
-    actionableSecondaryBorderWidth: '1px',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACCENT CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    accentBackground: 'hsl(210, 40%, 96%)', // #f1f5f9
-    accentForeground: 'hsl(215, 25%, 27%)', // #475569
-    accentMetricBackground: 'hsl(175, 62%, 41%)', // #2FB9A9 - Teal for balance values
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Negative (Destructive)
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentNegativeBackground: 'hsl(0, 84%, 60%)', // #ef4444
-    sentimentNegativeBackgroundHover: 'hsl(0, 84%, 56%)', // #dc2626
-    sentimentNegativeBackgroundActive: 'hsl(0, 84%, 52%)', // #b91c1c
-    sentimentNegativeForeground: 'hsl(0, 0%, 100%)', // #ffffff
-    sentimentNegativeForegroundHover: 'hsl(0, 100%, 98%)', // #fef2f2
-    sentimentNegativeForegroundActive: 'hsl(0, 100%, 96%)', // #fee2e2
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Positive (Success)
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentPositiveForeground: 'hsl(142, 76%, 36%)', // #10b981
-    sentimentPositiveAccentBackground: 'hsl(142, 76%, 93%)', // #d1fae5
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Caution (Warning)
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentCautionForeground: 'hsl(38, 92%, 50%)', // #f59e0b
-    sentimentCautionAccentBackground: 'hsl(48, 96%, 89%)', // #fef3c7
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // STATUS CHARACTERISTIC - Info
-    // ═══════════════════════════════════════════════════════════════════════════
-    statusInfoForeground: 'hsl(175, 62%, 41%)', // #2cb9ac - SellSense teal
-    statusInfoAccentBackground: 'hsl(175, 100%, 98%)', // #f0fffd
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SEPARABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    separableBorderColor: 'hsla(0, 0%, 0%, 0.3)', // #0000004d
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // FOCUSED CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    focusedRingColor: 'hsl(215, 25%, 27%)', // #1e293b
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LEGACY ALERT TOKENS (for backward compatibility)
-    // ═══════════════════════════════════════════════════════════════════════════
-    alertColor: 'hsl(30, 100%, 98%)', // #FDF7F0
-    alertForegroundColor: 'hsl(215, 25%, 27%)', // #1e293b
-  },
-  dark: {
-    // ═══════════════════════════════════════════════════════════════════════════
-    // CONTAINER CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    containerBackground: 'hsl(215, 25%, 10%)',
-    contentPrimaryForeground: 'hsl(210, 40%, 98%)',
-    containerPrimaryBackground: 'hsl(215, 25%, 12%)',
-    containerPrimaryForeground: 'hsl(210, 40%, 98%)',
-    containerSecondaryBackground: 'hsl(215, 25%, 15%)',
-    containerSecondaryForeground: 'hsl(215, 16%, 56%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EDITABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    editableBackground: 'hsl(215, 25%, 12%)',
-    editableBorderColor: 'hsla(210, 40%, 98%, 0.3)',
-    editableLabelForeground: 'hsl(210, 40%, 98%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OVERLAYABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    overlayableBackground: 'hsl(215, 25%, 12%)',
-    overlayableForeground: 'hsl(210, 40%, 98%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Primary Variant
-    // ═══════════════════════════════════════════════════════════════════════════
-    actionablePrimaryBackground: 'hsl(14, 91%, 55%)', // Maintain brand color
-    actionablePrimaryBackgroundHover: 'hsl(14, 91%, 60%)',
-    actionablePrimaryBackgroundActive: 'hsl(14, 91%, 65%)',
-    actionablePrimaryForeground: 'hsl(0, 0%, 100%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACTIONABLE CHARACTERISTIC - Secondary Variant
-    // ═══════════════════════════════════════════════════════════════════════════
-    actionableSecondaryBackground: 'hsl(215, 25%, 15%)',
-    actionableSecondaryBackgroundHover: 'hsl(215, 25%, 20%)',
-    actionableSecondaryBackgroundActive: 'hsl(175, 62%, 41%)',
-    actionableSecondaryForeground: 'hsl(14, 91%, 55%)',
-    actionableSecondaryForegroundHover: 'hsl(14, 91%, 60%)',
-    actionableSecondaryForegroundActive: 'hsl(175, 62%, 41%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ACCENT CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    accentBackground: 'hsl(215, 25%, 18%)',
-    accentForeground: 'hsl(210, 40%, 96%)',
-    accentMetricBackground: 'hsl(175, 62%, 41%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Negative
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentNegativeBackground: 'hsl(0, 84%, 60%)',
-    sentimentNegativeBackgroundHover: 'hsl(0, 84%, 65%)',
-    sentimentNegativeBackgroundActive: 'hsl(0, 84%, 70%)',
-    sentimentNegativeForeground: 'hsl(0, 0%, 100%)',
-    sentimentNegativeForegroundHover: 'hsl(0, 100%, 98%)',
-    sentimentNegativeForegroundActive: 'hsl(0, 100%, 96%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Positive
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentPositiveForeground: 'hsl(142, 76%, 36%)',
-    sentimentPositiveAccentBackground: 'hsl(142, 76%, 15%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SENTIMENT CHARACTERISTIC - Caution
-    // ═══════════════════════════════════════════════════════════════════════════
-    sentimentCautionForeground: 'hsl(38, 92%, 50%)',
-    sentimentCautionAccentBackground: 'hsl(38, 92%, 15%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // STATUS CHARACTERISTIC - Info
-    // ═══════════════════════════════════════════════════════════════════════════
-    statusInfoForeground: 'hsl(175, 62%, 41%)',
-    statusInfoAccentBackground: 'hsl(175, 62%, 15%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // SEPARABLE CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    separableBorderColor: 'hsla(210, 40%, 98%, 0.3)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // FOCUSED CHARACTERISTIC
-    // ═══════════════════════════════════════════════════════════════════════════
-    focusedRingColor: 'hsl(210, 40%, 98%)',
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LEGACY ALERT TOKENS
-    // ═══════════════════════════════════════════════════════════════════════════
-    alertColor: 'hsl(215, 25%, 15%)',
-    alertForegroundColor: 'hsl(210, 40%, 98%)',
+    containerPrimaryBackground: '#f7fafc',
+    containerCardBackground: '#FFFFFF',
+    containerPrimaryForeground: '#1e293b',
+    containerSecondaryBackground: '#f8fafc',
+    containerSecondaryForeground: '#64748b',
+    contentPrimaryForeground: '#1e293b',
+    overlayableBackground: '#FFFFFF',
+    overlayableForeground: '#1e293b',
+    accentBackground: '#f1f5f9',
+    accentForeground: '#475569',
+    accentMetricBackground: '#2cb9ac',
+    editableBackground: '#FFFFFF',
+    editableBorderColor: '#0000004d',
+    editableLabelForeground: '#1e293b',
+    actionableAccentedBoldBackground: '#f55727',
+    actionableAccentedBoldBackgroundHover: '#e14d1f',
+    actionableAccentedBoldBackgroundActive: '#cc4319',
+    actionableAccentedBoldForeground: '#ffffff',
+    actionableAccentedBoldBorderWidth: '0px',
+    actionableSubtleBackground: '#FDF7F0',
+    actionableSubtleBackgroundHover: 'hsla(240, 4.8%, 95.9%, 0.5)',
+    actionableSubtleBackgroundActive: '#2CB9AC',
+    actionableSubtleForeground: '#f55727',
+    actionableSubtleForegroundHover: '#e14d1f',
+    actionableSubtleForegroundActive: '#2CB9AC',
+    actionableSubtleBorderWidth: '1px',
+    focusedRingColor: '#f55727',
+    actionableNegativeBoldBackground: '#ef4444',
+    actionableNegativeBoldBackgroundHover: '#dc2626',
+    actionableNegativeBoldBackgroundActive: '#b91c1c',
+    actionableNegativeBoldForeground: '#ffffff',
+    actionableNegativeBoldForegroundHover: '#fef2f2',
+    actionableNegativeBoldForegroundActive: '#fee2e2',
+    sentimentCautionForeground: '#f59e0b',
+    sentimentCautionAccentBackground: '#fef3c7',
+    sentimentPositiveForeground: '#10b981',
+    sentimentPositiveAccentBackground: '#d1fae5',
+    statusInfoForeground: '#2cb9ac',
+    statusInfoAccentBackground: '#f0fffd',
+    statusSuccessForeground: '#10b981',
+    statusSuccessAccentBackground: '#d1fae5',
+    statusWarningForeground: '#f59e0b',
+    statusWarningAccentBackground: '#fef3c7',
+    separableBorderColor: '#0000004d',
   },
 };
 
 /**
- * Default Theme Configuration
+ * Default Blue Theme Configuration
  *
- * Clean, neutral theme for general use
+ * Clean blue-focused theme with modern styling
  */
-export const NEUTRAL_THEME: EBTheme = {
+export const DEFAULT_BLUE_THEME: EBTheme = {
+  colorScheme: 'light',
   variables: {
-    fontFamily: 'Inter',
-    headerFontFamily: 'Inter',
-    buttonFontFamily: 'Inter',
-
-    // Default colors
-    primaryColor: '#3b82f6',
-    primaryHoverColor: '#2563eb',
-    primaryActiveColor: '#1d4ed8',
-    primaryForegroundColor: '#ffffff',
-
-    secondaryColor: '#f8fafc',
-    secondaryHoverColor: '#f1f5f9',
-    secondaryActiveColor: '#e2e8f0',
-    secondaryForegroundColor: '#374151',
-    secondaryForegroundHoverColor: '#1f2937',
-    secondaryForegroundActiveColor: '#111827',
-    secondaryBorderWidth: '1px',
-
-    backgroundColor: '#ffffff',
-    foregroundColor: '#111827',
-    cardColor: '#ffffff',
-    cardForegroundColor: '#111827',
-
-    mutedColor: '#f9fafb',
-    mutedForegroundColor: '#6b7280',
-    accentColor: '#f3f4f6',
-    accentForegroundColor: '#374151',
-
-    alertColor: '#fef2f2',
-    alertForegroundColor: '#991b1b',
-    informativeColor: '#eff6ff',
-    informativeAccentColor: '#dbeafe',
-    warningColor: '#fffbeb',
-    warningAccentColor: '#fef3c7',
-    successColor: '#f0fdf4',
-    successAccentColor: '#dcfce7',
-    metricAccentColor: '#3b82f6', // Metric accent color - using primary for Default theme
-
-    destructiveColor: '#ef4444',
-    destructiveHoverColor: '#dc2626',
-    destructiveActiveColor: '#b91c1c',
-    destructiveForegroundColor: '#ffffff',
-    destructiveForegroundHoverColor: '#fef2f2',
-    destructiveForegroundActiveColor: '#fee2e2',
-
-    inputColor: '#ffffff',
-    inputBorderColor: '#d1d5db',
-    borderColor: '#d1d5db',
-
-    borderRadius: '6px',
-    inputBorderRadius: '4px',
-    buttonBorderRadius: '6px',
-
-    buttonFontWeight: '500',
-    buttonFontSize: '0.875rem',
-    buttonLineHeight: '1.25rem',
-    buttonTextTransform: 'none',
-    buttonLetterSpacing: '0.025em',
-
-    primaryButtonFontWeight: '500',
-    secondaryButtonFontWeight: '500',
-    destructiveButtonFontWeight: '500',
-
-    formLabelFontSize: '0.875rem',
-    formLabelFontWeight: '500',
-    formLabelLineHeight: '1.25rem',
-
-    primaryBorderWidth: '0px',
-    destructiveBorderWidth: '0px',
-
+    contentFontFamily:
+      'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+    contentHeaderFontFamily:
+      'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+    actionableFontFamily:
+      'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+    actionableFontWeight: '500',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'none',
+    actionableLetterSpacing: '0em',
+    actionableAccentedBoldFontWeight: '600',
+    actionableSubtleFontWeight: '500',
+    actionableShiftOnActive: true,
+    actionableBorderRadius: '.313em',
+    editableBorderRadius: '6px',
+    editableLabelFontSize: '0.875rem',
+    editableLabelFontWeight: '500',
+    editableLabelLineHeight: '1.25rem',
+    separableBorderRadius: '8px',
     spacingUnit: '0.25rem',
-    shiftButtonOnActive: false,
-    zIndexOverlay: 1000,
+    overlayableZIndex: 1000,
+  },
+  light: {
+    containerPrimaryBackground: '#ffffff',
+    containerCardBackground: '#ffffff',
+    containerPrimaryForeground: '#1e293b',
+    containerSecondaryBackground: '#f8fafc',
+    containerSecondaryForeground: '#64748b',
+    contentPrimaryForeground: '#1e293b',
+    overlayableBackground: '#ffffff',
+    overlayableForeground: '#1e293b',
+    accentBackground: '#f1f5f9',
+    accentForeground: '#475569',
+    editableBackground: '#ffffff',
+    editableBorderColor: '#d1d5db',
+    actionableAccentedBoldBackground: '#0060f0',
+    actionableAccentedBoldBackgroundHover: '#0a4386',
+    actionableAccentedBoldBackgroundActive: '#083366',
+    actionableAccentedBoldForeground: '#ffffff',
+    actionableAccentedBoldForegroundHover: '#f8fafc',
+    actionableAccentedBoldForegroundActive: '#f1f5f9',
+    actionableAccentedBoldBorderWidth: '0px',
+    actionableSubtleBackground: '#00000000',
+    actionableSubtleBackgroundHover: '#0060f014',
+    actionableSubtleBackgroundActive: '#0060f01f',
+    actionableSubtleForeground: '#0060f0',
+    actionableSubtleForegroundHover: '#0a4386',
+    actionableSubtleForegroundActive: '#083366',
+    actionableSubtleBorderWidth: '1px',
+    focusedRingColor: '#0060f0',
+    actionableNegativeBoldBackground: '#ef4444',
+    actionableNegativeBoldBackgroundHover: '#dc2626',
+    actionableNegativeBoldBackgroundActive: '#b91c1c',
+    actionableNegativeBoldForeground: '#ffffff',
+    actionableNegativeBoldForegroundHover: '#fef2f2',
+    actionableNegativeBoldForegroundActive: '#fee2e2',
+    sentimentCautionForeground: '#f59e0b',
+    sentimentCautionAccentBackground: '#fef3c7',
+    sentimentPositiveForeground: '#10b981',
+    sentimentPositiveAccentBackground: '#d1fae5',
+    statusInfoForeground: '#0ea5e9',
+    statusInfoAccentBackground: '#e0f2fe',
+    statusSuccessForeground: '#10b981',
+    statusSuccessAccentBackground: '#d1fae5',
+    statusWarningForeground: '#f59e0b',
+    statusWarningAccentBackground: '#fef3c7',
+    separableBorderColor: '#e2e8f0',
   },
 };
 
-export const SALT_THEME: EBTheme = {
+/**
+ * Create Commerce Theme Configuration
+ *
+ * Dark, sophisticated theme with coral/salmon accents
+ * Features a teal-gray background with warm coral primary color
+ */
+export const CREATE_COMMERCE_THEME: EBTheme = {
+  colorScheme: 'light', // Still light mode but with dark container colors
   variables: {
-    fontFamily: 'Open Sans',
-    headerFontFamily: 'Amplitude',
-    backgroundColor: '#f6f7f8',
-    inputColor: '#FFFFFF',
-    inputBorderColor: '#0000004D',
-    borderColor: '#0000004D',
-    borderRadius: '6px',
-    inputBorderRadius: '4px',
-    buttonBorderRadius: '8px',
-    buttonFontFamily: 'Amplitude',
-    buttonTextTransform: 'uppercase',
-    buttonLetterSpacing: '0.6px',
-    primaryColor: '#1B7F9E',
-    secondaryColor: '#f6f7f8',
-    secondaryForegroundColor: '#1B7F9E',
-    secondaryBorderWidth: '1px',
-    secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)',
-    formLabelFontSize: '0.75rem',
-    formLabelLineHeight: '1rem',
-    formLabelFontWeight: '600',
-    formLabelForegroundColor: '#4C5157',
+    contentFontFamily: 'Open Sans',
+    contentHeaderFontFamily: 'Open Sans',
+    actionableFontFamily: 'Open Sans',
+    actionableFontWeight: '600',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'uppercase',
+    actionableLetterSpacing: '0.6px',
+    actionableAccentedBoldFontWeight: '600',
+    actionableSubtleFontWeight: '600',
+    actionableShiftOnActive: false,
+    actionableBorderRadius: '8px',
+    editableBorderRadius: '4px',
+    editableLabelFontSize: '0.875rem',
+    editableLabelFontWeight: '500',
+    editableLabelLineHeight: '1.25rem',
+    separableBorderRadius: '8px',
+    spacingUnit: '0.25rem',
+    overlayableZIndex: 1000,
+  },
+  light: {
+    containerPrimaryBackground: '#3D5C6B',
+    containerCardBackground: '#3D5C6B',
+    containerPrimaryForeground: '#EDEFF7',
+    containerSecondaryBackground: '#38474E',
+    containerSecondaryForeground: '#98A2CD',
+    contentPrimaryForeground: '#EDEFF7',
+    overlayableBackground: '#38474E',
+    overlayableForeground: '#EDEFF7',
+    accentBackground: '#38474E',
+    accentForeground: '#EDEFF7',
+    editableBackground: '#38474E',
+    editableBorderColor: '#0000004D',
+    editableLabelForeground: '#EDEFF7',
+    actionableAccentedBoldBackground: '#FD8172',
+    actionableAccentedBoldBackgroundHover: '#fd6b5a',
+    actionableAccentedBoldBackgroundActive: '#fc5441',
+    actionableAccentedBoldForeground: '#EDEFF7',
+    actionableAccentedBoldForegroundHover: '#EDEFF7',
+    actionableAccentedBoldForegroundActive: '#EDEFF7',
+    actionableAccentedBoldBorderWidth: '0px',
+    actionableSubtleBackground: '#EDEFF7',
+    actionableSubtleBackgroundHover: '#d5d9e9',
+    actionableSubtleBackgroundActive: '#2CB9AC',
+    actionableSubtleForeground: '#3D5C6B',
+    actionableSubtleForegroundHover: '#3D5C6B',
+    actionableSubtleForegroundActive: '#2CB9AC',
+    actionableSubtleBorderWidth: '1px',
+    focusedRingColor: '#FD8172',
+    actionableNegativeBoldBackground: '#FC8181',
+    actionableNegativeBoldBackgroundHover: '#F56565',
+    actionableNegativeBoldBackgroundActive: '#E53E3E',
+    actionableNegativeBoldForeground: '#EDEFF7',
+    actionableNegativeBoldForegroundHover: '#EDEFF7',
+    actionableNegativeBoldForegroundActive: '#EDEFF7',
+    sentimentCautionForeground: '#FBBF24',
+    sentimentCautionAccentBackground: '#38474E',
+    sentimentPositiveForeground: '#34D399',
+    sentimentPositiveAccentBackground: '#38474E',
+    statusInfoForeground: '#60A5FA',
+    statusInfoAccentBackground: '#B3C9CC',
+    statusSuccessForeground: '#34D399',
+    statusSuccessAccentBackground: '#38474E',
+    statusWarningForeground: '#FBBF24',
+    statusWarningAccentBackground: '#38474E',
+    separableBorderColor: '#0000004D',
+  },
+};
+
+/**
+ * PayFicient Theme Configuration
+ *
+ * Warm, professional theme with forest green primary
+ * Features cream/warm white backgrounds with green accents
+ */
+export const PAYFICIENT_THEME: EBTheme = {
+  colorScheme: 'light',
+  variables: {
+    contentFontFamily: 'Manrope',
+    contentHeaderFontFamily: 'Manrope',
+    actionableFontFamily: 'Manrope',
+    actionableFontWeight: '600',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'uppercase',
+    actionableLetterSpacing: '0.6px',
+    actionableAccentedBoldFontWeight: '600',
+    actionableSubtleFontWeight: '600',
+    actionableShiftOnActive: false,
+    actionableBorderRadius: '8px',
+    editableBorderRadius: '4px',
+    editableLabelFontSize: '0.875rem',
+    editableLabelFontWeight: '500',
+    editableLabelLineHeight: '1.25rem',
+    separableBorderRadius: '5px',
+    spacingUnit: '0.25rem',
+    overlayableZIndex: 1000,
+  },
+  light: {
+    containerPrimaryBackground: '#FFFCF6',
+    containerCardBackground: '#F7F3F0',
+    containerPrimaryForeground: '#1e293b',
+    containerSecondaryBackground: '#f8fafc',
+    containerSecondaryForeground: '#64748b',
+    contentPrimaryForeground: '#1e293b',
+    overlayableBackground: '#FFFFFF',
+    overlayableForeground: '#1e293b',
+    accentBackground: '#f1f5f9',
+    accentForeground: '#475569',
+    editableBackground: '#FFFFFF',
+    editableBorderColor: '#0000004d',
+    editableLabelForeground: '#1e293b',
+    actionableAccentedBoldBackground: '#177556',
+    actionableAccentedBoldBackgroundHover: '#145f47',
+    actionableAccentedBoldBackgroundActive: '#114a38',
+    actionableAccentedBoldForeground: '#ffffff',
+    actionableAccentedBoldBorderWidth: '0px',
+    actionableSubtleBackground: '#FFFCF6',
+    actionableSubtleBackgroundHover: 'hsla(240, 4.8%, 95.9%, 0.5)',
+    actionableSubtleBackgroundActive: '#d6e8d1',
+    actionableSubtleForeground: '#177556',
+    actionableSubtleForegroundHover: '#145f47',
+    actionableSubtleForegroundActive: '#114a38',
+    actionableSubtleBorderWidth: '1px',
+    focusedRingColor: '#177556',
+    actionableNegativeBoldBackground: '#ef4444',
+    actionableNegativeBoldBackgroundHover: '#dc2626',
+    actionableNegativeBoldBackgroundActive: '#b91c1c',
+    actionableNegativeBoldForeground: '#ffffff',
+    actionableNegativeBoldForegroundHover: '#fef2f2',
+    actionableNegativeBoldForegroundActive: '#fee2e2',
+    sentimentCautionForeground: '#f59e0b',
+    sentimentCautionAccentBackground: '#fef3c7',
+    sentimentPositiveForeground: '#177556',
+    sentimentPositiveAccentBackground: '#d6e8d1',
+    statusInfoForeground: '#177556',
+    statusInfoAccentBackground: '#e6f2ed',
+    statusSuccessForeground: '#177556',
+    statusSuccessAccentBackground: '#d6e8d1',
+    statusWarningForeground: '#f59e0b',
+    statusWarningAccentBackground: '#fef3c7',
+    separableBorderColor: '#0000004d',
+  },
+};
+
+/**
+ * Retro Arcade Theme Configuration
+ *
+ * A fun, fictional theme inspired by 80s arcade aesthetics
+ * Features neon pink, electric cyan, and dark purple
+ * Perfect for demonstrating how drastically different a theme can look
+ */
+export const RETRO_ARCADE_THEME: EBTheme = {
+  colorScheme: 'light',
+  variables: {
+    contentFontFamily: '"Press Start 2P", "Courier New", monospace',
+    contentHeaderFontFamily: '"Press Start 2P", "Courier New", monospace',
+    actionableFontFamily: '"Press Start 2P", "Courier New", monospace',
+    actionableFontWeight: '400',
+    actionableFontSize: '0.75rem',
+    actionableLineHeight: '1.5rem',
+    actionableTextTransform: 'uppercase',
+    actionableLetterSpacing: '0.1em',
+    actionableAccentedBoldFontWeight: '400',
+    actionableSubtleFontWeight: '400',
+    actionableShiftOnActive: true,
+    actionableBorderRadius: '0px', // Sharp corners for retro feel
+    editableBorderRadius: '0px',
+    editableLabelFontSize: '0.75rem',
+    editableLabelFontWeight: '400',
+    editableLabelLineHeight: '1.25rem',
+    separableBorderRadius: '0px',
+    spacingUnit: '0.25rem',
+    overlayableZIndex: 1000,
+  },
+  light: {
+    // Dark purple background like old CRT monitors
+    containerPrimaryBackground: '#1a0a2e',
+    containerCardBackground: '#16082a',
+    containerPrimaryForeground: '#00ffff', // Cyan text
+    containerSecondaryBackground: '#0d0221',
+    containerSecondaryForeground: '#ff00ff', // Magenta
+    contentPrimaryForeground: '#00ffff',
+    overlayableBackground: '#16082a',
+    overlayableForeground: '#00ffff',
+    accentBackground: '#2d1b4e',
+    accentForeground: '#ffff00', // Yellow for accents
+    accentMetricBackground: '#ff00ff',
+    editableBackground: '#0d0221',
+    editableBorderColor: '#ff00ff',
+    editableLabelForeground: '#00ffff',
+    // Neon pink primary buttons
+    actionableAccentedBoldBackground: '#ff006e',
+    actionableAccentedBoldBackgroundHover: '#ff3385',
+    actionableAccentedBoldBackgroundActive: '#cc0058',
+    actionableAccentedBoldForeground: '#ffffff',
+    actionableAccentedBoldForegroundHover: '#ffffff',
+    actionableAccentedBoldForegroundActive: '#ffffff',
+    actionableAccentedBoldBorderWidth: '2px',
+    // Cyan secondary buttons
+    actionableSubtleBackground: 'transparent',
+    actionableSubtleBackgroundHover: '#00ffff22',
+    actionableSubtleBackgroundActive: '#00ffff44',
+    actionableSubtleForeground: '#00ffff',
+    actionableSubtleForegroundHover: '#66ffff',
+    actionableSubtleForegroundActive: '#00cccc',
+    actionableSubtleBorderWidth: '2px',
+    focusedRingColor: '#ffff00',
+    // Red for errors (game over!)
+    actionableNegativeBoldBackground: '#ff0000',
+    actionableNegativeBoldBackgroundHover: '#ff3333',
+    actionableNegativeBoldBackgroundActive: '#cc0000',
+    actionableNegativeBoldForeground: '#ffffff',
+    actionableNegativeBoldForegroundHover: '#ffffff',
+    actionableNegativeBoldForegroundActive: '#ffffff',
+    sentimentNegativeAccentBackground: '#330000',
+    // Yellow for warnings (caution!)
+    sentimentCautionForeground: '#ffff00',
+    sentimentCautionAccentBackground: '#333300',
+    // Green for success (high score!)
+    sentimentPositiveForeground: '#00ff00',
+    sentimentPositiveAccentBackground: '#003300',
+    // Status colors - neon arcade style
+    statusInfoForeground: '#00ffff', // Cyan
+    statusInfoAccentBackground: '#003333',
+    statusSuccessForeground: '#00ff00', // Neon green
+    statusSuccessAccentBackground: '#003300',
+    statusWarningForeground: '#ffff00', // Yellow
+    statusWarningAccentBackground: '#333300',
+    separableBorderColor: '#ff00ff',
   },
 };
 
@@ -369,10 +485,12 @@ export const SALT_THEME: EBTheme = {
  * Available themes for use in stories
  */
 export const THEMES = {
-  Default: defaultTheme,
-  SellSense: SELLSENSE_THEME,
-  Neutral: NEUTRAL_THEME,
   Salt: SALT_THEME,
+  SellSense: SELLSENSE_THEME,
+  DefaultBlue: DEFAULT_BLUE_THEME,
+  CreateCommerce: CREATE_COMMERCE_THEME,
+  PayFicient: PAYFICIENT_THEME,
+  RetroArcade: RETRO_ARCADE_THEME,
 } as const;
 
 export type ThemeName = keyof typeof THEMES;

@@ -8,77 +8,32 @@ import {
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { userEvent, within } from '@storybook/testing-library';
 import { http, HttpResponse } from 'msw';
-import { SELLSENSE_THEME } from '@storybook-themes';
 
-import { EBComponentsProvider } from '../../EBComponentsProvider';
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { MakePayment } from '../../MakePayment';
 import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
 
-// Wrapper component that follows the same pattern as TransactionsDisplay
-const RecipientsWithProvider = ({
-  children,
-  theme = {},
-  contentTokens = { name: 'enUS' },
-  ...recipientsProps
-}: RecipientsProps & {
-  children?: React.ReactNode;
-  theme?: Record<string, any>;
-  contentTokens?: Record<string, any>;
-}) => {
+/**
+ * Story args interface extending base provider args
+ */
+interface RecipientsStoryArgs extends BaseStoryArgs, RecipientsProps {}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const RecipientsStory = (props: RecipientsProps) => {
   return (
-    <EBComponentsProvider
-      apiBaseUrl="https://api.example.com"
-      headers={{}}
-      theme={theme}
-      contentTokens={contentTokens}
-    >
-      <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
-        <Recipients {...recipientsProps} />
-      </div>
-    </EBComponentsProvider>
+    <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
+      <Recipients {...props} />
+    </div>
   );
 };
 
-const meta: Meta<typeof Recipients> & {
-  argTypes: {
-    clientId: {
-      control: 'text';
-      description: string;
-    };
-    initialRecipientType: {
-      control: { type: 'select' };
-      options: string[];
-      description: string;
-    };
-    showCreateButton: {
-      control: 'boolean';
-      description: string;
-    };
-    onRecipientCreated: {
-      action: string;
-      description: string;
-    };
-    onRecipientUpdated: {
-      action: string;
-      description: string;
-    };
-    userEventsHandler: {
-      action: string;
-      description: string;
-    };
-    theme: {
-      control: 'object';
-      description: string;
-    };
-    contentTokens: {
-      control: 'object';
-      description: string;
-    };
-  };
-} = {
+const meta: Meta<RecipientsStoryArgs> = {
   title: 'Core/Recipients',
-  component: Recipients,
+  component: RecipientsStory,
   tags: ['@core', '@recipients'],
   parameters: {
     layout: 'fullscreen',
@@ -119,34 +74,34 @@ const meta: Meta<typeof Recipients> & {
       action: 'user-event',
       description: 'Handler for user events',
     },
-    theme: {
-      control: 'object',
-      description: 'Theme configuration for the EBComponentsProvider',
-    },
-    contentTokens: {
-      control: 'object',
-      description: 'Content tokens configuration for the EBComponentsProvider',
-    },
   },
+  render: (args) => (
+    <RecipientsStory
+      clientId={args.clientId}
+      initialRecipientType={args.initialRecipientType}
+      showCreateButton={args.showCreateButton}
+      isWidget={args.isWidget}
+      onRecipientCreated={args.onRecipientCreated}
+      onRecipientUpdated={args.onRecipientUpdated}
+      userEventsHandler={args.userEventsHandler}
+      userEventsToTrack={args.userEventsToTrack}
+      makePaymentComponent={args.makePaymentComponent}
+      config={args.config}
+    />
+  ),
 };
 export default meta;
-type Story = StoryObj<typeof Recipients> & {
-  args?: Partial<RecipientsProps> & {
-    theme?: Record<string, any>;
-    contentTokens?: Record<string, any>;
-  };
-};
+
+type Story = StoryObj<RecipientsStoryArgs>;
 
 // Default story with all recipients
 export const Default: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: {},
-    contentTokens: { name: 'enUS' },
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -167,11 +122,11 @@ export const Default: Story = {
 // Story with only active recipients
 export const ActiveRecipients: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -194,11 +149,11 @@ export const ActiveRecipients: Story = {
 // Story with inactive recipients
 export const InactiveRecipients: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -219,11 +174,11 @@ export const InactiveRecipients: Story = {
 // Story with empty state
 export const EmptyState: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -238,11 +193,11 @@ export const EmptyState: Story = {
 // Story with loading state
 export const Loading: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -257,11 +212,11 @@ export const Loading: Story = {
 // Story with error state
 export const ErrorState: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -279,11 +234,11 @@ export const ErrorState: Story = {
 // Story with create button hidden
 export const ReadOnly: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: false,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -298,11 +253,11 @@ export const ReadOnly: Story = {
 // Story with verification disabled
 export const NoVerification: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -317,11 +272,11 @@ export const NoVerification: Story = {
 // Story with large dataset for pagination
 export const LargeDataset: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -369,11 +324,11 @@ export const LargeDataset: Story = {
 // Story with 100 recipients to showcase sorting and pagination
 export const OneHundredRecipients: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -564,11 +519,11 @@ export const OneHundredRecipients: Story = {
 // Story with specific recipient types
 export const RecipientTypes: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -597,11 +552,11 @@ export const RecipientTypes: Story = {
 // Story with rejected recipients
 export const RejectedRecipients: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -622,11 +577,11 @@ export const RejectedRecipients: Story = {
 // Interactive story for testing user interactions
 export const InteractiveDemo: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -662,11 +617,11 @@ export const InteractiveDemo: Story = {
 // Story for mobile responsiveness
 export const MobileView: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     viewport: {
       defaultViewport: 'mobile1',
@@ -681,17 +636,19 @@ export const MobileView: Story = {
   },
 };
 
-// Story for SellSense theme
+/**
+ * Story with SellSense theme preset.
+ * Theme is applied via themePreset arg which is handled by the global decorator.
+ */
 export const SellSenseTheme: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: SELLSENSE_THEME,
-    contentTokens: { name: 'enUS' },
+    themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -703,17 +660,18 @@ export const SellSenseTheme: Story = {
   },
 };
 
-// Story for SellSense theme
+/**
+ * Story with SellSense dark theme preset.
+ */
 export const DarkSellSenseTheme: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: { ...SELLSENSE_THEME, colorScheme: 'dark' }, // Explicitly override for dark mode demo
-    contentTokens: { name: 'enUS' },
+    themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -728,16 +686,14 @@ export const DarkSellSenseTheme: Story = {
 // Story with custom event tracking
 export const WithEventTracking: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
       console.log('User event:', event);
     },
-    theme: {},
-    contentTokens: { name: 'enUS' },
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -752,18 +708,12 @@ export const WithEventTracking: Story = {
 // Story with custom content tokens
 export const CustomContentTokens: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
-    theme: {},
-    contentTokens: {
-      name: 'esES',
-      currency: 'EUR',
-      dateFormat: 'DD/MM/YYYY',
-      timeFormat: '24h',
-    },
+    contentTokensPreset: 'frCA',
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -778,6 +728,7 @@ export const CustomContentTokens: Story = {
 // Story demonstrating MakePayment component integration
 export const WithMakePaymentComponent: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
     makePaymentComponent: (
@@ -785,7 +736,6 @@ export const WithMakePaymentComponent: Story = {
     ),
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -865,6 +815,7 @@ export const WithMakePaymentComponent: Story = {
 // Story demonstrating widget layout
 export const WidgetLayout: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: false,
     isWidget: true,
@@ -873,7 +824,6 @@ export const WidgetLayout: Story = {
     ),
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     docs: {
       description: {
@@ -953,6 +903,7 @@ export const WidgetLayout: Story = {
 // Story demonstrating widget layout with mobile viewport
 export const WidgetLayoutMobile: Story = {
   args: {
+    apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: false,
     isWidget: true,
@@ -961,7 +912,6 @@ export const WidgetLayoutMobile: Story = {
     ),
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
   parameters: {
     viewport: {
       defaultViewport: 'mobile1',

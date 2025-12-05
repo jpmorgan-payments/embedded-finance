@@ -1,9 +1,7 @@
-import React from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { SELLSENSE_THEME } from '@storybook-themes';
 
-import { EBComponentsProvider } from '../EBComponentsProvider';
+import type { BaseStoryArgs } from '../../../.storybook/preview';
 import { Accounts } from './Accounts';
 import type { AccountsProps } from './Accounts.types';
 
@@ -61,29 +59,26 @@ const mockBalanceResponse = {
   ],
 };
 
-// --- Provider Wrapper ---
-const AccountsWithProvider = (props: AccountsProps) => {
+/**
+ * Story args interface extending base provider args
+ */
+interface AccountsStoryArgs extends BaseStoryArgs, AccountsProps {}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const AccountsStory = (props: AccountsProps) => {
   return (
-    <EBComponentsProvider
-      apiBaseUrl="/"
-      headers={{}}
-      contentTokens={{ name: 'enUS' }}
-      reactQueryDefaultOptions={{
-        queries: {
-          retry: false,
-        },
-      }}
-    >
-      <div className="eb-mx-auto eb-w-full eb-max-w-6xl eb-p-6">
-        <Accounts {...props} />
-      </div>
-    </EBComponentsProvider>
+    <div className="eb-mx-auto eb-w-full eb-max-w-6xl eb-p-6">
+      <Accounts {...props} />
+    </div>
   );
 };
 
-const meta: Meta<typeof Accounts> = {
+const meta: Meta<AccountsStoryArgs> = {
   title: 'Core/Accounts',
-  component: Accounts,
+  component: AccountsStory,
   tags: ['@core', '@accounts'],
   parameters: {
     layout: 'centered',
@@ -104,17 +99,24 @@ const meta: Meta<typeof Accounts> = {
       description: 'Optional client ID filter',
     },
   },
+  render: (args) => (
+    <AccountsStory
+      allowedCategories={args.allowedCategories}
+      clientId={args.clientId}
+    />
+  ),
 };
 export default meta;
-type Story = StoryObj<typeof Accounts>;
+
+type Story = StoryObj<AccountsStoryArgs>;
 
 // --- Stories ---
 export const Default: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -129,10 +131,10 @@ export const Default: Story = {
 
 export const Empty: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -146,10 +148,10 @@ export const Empty: Story = {
 
 export const Loading: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [http.get('*/accounts', () => new Promise(() => {}))],
@@ -159,10 +161,10 @@ export const Loading: Story = {
 
 export const Error: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -176,10 +178,10 @@ export const Error: Story = {
 
 export const DarkTheme: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     backgrounds: {
       default: 'dark',
@@ -198,10 +200,10 @@ export const DarkTheme: Story = {
 
 export const SingleCategory: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -220,10 +222,10 @@ export const SingleCategory: Story = {
 
 export const MultipleCategories: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
   },
-  render: (args) => <AccountsWithProvider {...args} />,
   parameters: {
     msw: {
       handlers: [
@@ -236,24 +238,18 @@ export const MultipleCategories: Story = {
   },
 };
 
+/**
+ * Story with SellSense theme preset.
+ * Theme is applied via themePreset arg which is handled by the global decorator.
+ */
 export const SellSenseTheme: Story = {
   args: {
+    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     clientId: 'client-001',
+    themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
-  render: (args) => (
-    <EBComponentsProvider
-      apiBaseUrl="/"
-      headers={{}}
-      theme={SELLSENSE_THEME}
-      contentTokens={{ name: 'enUS' }}
-    >
-      <div className="eb-mx-auto eb-w-full eb-max-w-6xl eb-p-6">
-        <Accounts {...args} />
-      </div>
-    </EBComponentsProvider>
-  ),
   parameters: {
     msw: {
       handlers: [

@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { SELLSENSE_THEME } from '@storybook-themes';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import { EBConfig } from '@/core/EBComponentsProvider/config.types';
-
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { MakePayment } from '../MakePayment';
 
-interface MakePaymentWithProviderProps extends EBConfig {
+/**
+ * Story args interface extending base provider args
+ */
+interface MakePaymentStoryArgs extends BaseStoryArgs {
   triggerButton?: React.ReactNode;
   triggerButtonVariant?:
     | 'default'
@@ -393,9 +393,35 @@ const mockAccountBalances = {
   },
 };
 
-const meta: Meta<MakePaymentWithProviderProps> = {
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const MakePaymentStory = (props: {
+  paymentMethods?: MakePaymentStoryArgs['paymentMethods'];
+  recipientId?: string;
+  triggerButtonVariant?: MakePaymentStoryArgs['triggerButtonVariant'];
+  icon?: React.ReactNode;
+  showPreviewPanel?: boolean;
+  onTransactionSettled?: (response?: any, error?: any) => void;
+}) => {
+  return (
+    <div className="eb-p-4">
+      <MakePayment
+        paymentMethods={props.paymentMethods}
+        recipientId={props.recipientId}
+        triggerButtonVariant={props.triggerButtonVariant}
+        icon={props.icon}
+        showPreviewPanel={props.showPreviewPanel}
+        onTransactionSettled={props.onTransactionSettled}
+      />
+    </div>
+  );
+};
+
+const meta: Meta<MakePaymentStoryArgs> = {
   title: 'Core/MakePayment',
-  component: MakePayment,
+  component: MakePaymentStory,
   tags: ['@core', '@payment'],
   parameters: {
     layout: 'centered',
@@ -455,65 +481,23 @@ const meta: Meta<MakePaymentWithProviderProps> = {
       ],
     },
   },
-  decorators: [
-    (Story, context) => {
-      const {
-        apiBaseUrl,
-        headers,
-        theme,
-        reactQueryDefaultOptions,
-        contentTokens,
-        accounts,
-        paymentMethods,
-        recipientId,
-        triggerButtonVariant,
-        icon,
-        showPreviewPanel,
-        onTransactionSettled,
-      } = context.args;
-      return (
-        <div className="eb-light">
-          <EBComponentsProvider
-            apiBaseUrl={apiBaseUrl}
-            headers={headers}
-            theme={{
-              colorScheme: 'light',
-              ...theme,
-            }}
-            reactQueryDefaultOptions={{
-              queries: {
-                refetchOnWindowFocus: false,
-                retry: false,
-              },
-              ...reactQueryDefaultOptions,
-            }}
-            contentTokens={contentTokens}
-          >
-            <div className="eb-p-4">
-              <Story
-                args={{
-                  accounts,
-                  paymentMethods,
-                  recipientId,
-                  triggerButtonVariant,
-                  icon,
-                  showPreviewPanel,
-                  onTransactionSettled,
-                }}
-              />
-            </div>
-          </EBComponentsProvider>
-        </div>
-      );
-    },
-  ],
   argTypes: {
     onTransactionSettled: { table: { disable: true } },
   },
+  render: (args) => (
+    <MakePaymentStory
+      paymentMethods={args.paymentMethods}
+      recipientId={args.recipientId}
+      triggerButtonVariant={args.triggerButtonVariant}
+      icon={args.icon}
+      showPreviewPanel={args.showPreviewPanel}
+      onTransactionSettled={args.onTransactionSettled}
+    />
+  ),
 };
 export default meta;
 
-type Story = StoryObj<MakePaymentWithProviderProps>;
+type Story = StoryObj<MakePaymentStoryArgs>;
 
 const defaultPaymentMethods = [
   { id: 'ACH', name: 'ACH', fee: 2.5 },
@@ -524,16 +508,6 @@ const defaultPaymentMethods = [
 export const Default: Story = {
   args: {
     apiBaseUrl: '/api',
-    headers: {
-      client_id: 'client01',
-      platform_id: 'platform01',
-    },
-    theme: {
-      colorScheme: 'light',
-    },
-    contentTokens: {
-      name: 'enUS',
-    },
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
   },
@@ -551,10 +525,10 @@ export const Default: Story = {
  * LIMITED_DDA Account: Tests the conditional dropdown logic where only active linked accounts are shown.
  */
 export const LimitedDDAAccount: Story = {
-  ...Default,
   name: 'LIMITED_DDA Account - Active Linked Accounts Only',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
   },
   parameters: {
@@ -616,8 +590,12 @@ export const LimitedDDAAccount: Story = {
  * Single Account with Single Active Linked Account: Tests auto-selection when only one account and one active linked account are available.
  */
 export const SingleAccountWithSingleLinkedAccount: Story = {
-  ...Default,
   name: 'Single Account + Single Active Linked Account',
+  args: {
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
+    icon: 'CirclePlus',
+  },
   parameters: {
     docs: {
       description: {
@@ -676,137 +654,14 @@ export const SingleAccountWithSingleLinkedAccount: Story = {
 };
 
 /**
- * Single Account with Non-Active Linked Accounts: Tests the scenario where no active linked accounts are available.
- */
-export const SingleAccountWithNonActiveLinkedAccounts: Story = {
-  ...Default,
-  name: 'Single Account + Non-Active Linked Accounts',
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'When a LIMITED_DDA account is selected but only inactive linked accounts are available, the recipients dropdown shows an appropriate message.',
-      },
-    },
-    msw: {
-      handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json({
-            recipients: [mockRecipients[2]], // Only inactive linked account
-          });
-        }),
-        http.get('*/accounts', () => {
-          return HttpResponse.json({
-            ...mockAccounts,
-            items: [mockAccounts.items[2]], // Only LIMITED_DDA account
-          });
-        }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
-          const accountId = params.accountId as string;
-          const balance =
-            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
-          if (balance) {
-            return HttpResponse.json(balance);
-          }
-          return HttpResponse.json(
-            { error: 'Account not found' },
-            { status: 404 }
-          );
-        }),
-        http.post('*/transactions', () => {
-          return HttpResponse.json({
-            id: 'txn-12345',
-            amount: 100.0,
-            currency: 'USD',
-            debtorAccountId: 'account3',
-            creditorAccountId: 'acc-1234',
-            recipientId: 'linkedAccount1',
-            transactionReferenceId: 'PAY-1234567890',
-            type: 'ACH',
-            memo: 'Test payment',
-            status: 'PENDING',
-            paymentDate: '2024-01-15',
-            createdAt: '2024-01-15T10:30:00Z',
-            debtorName: 'John Doe',
-            creditorName: 'Jane Smith',
-            debtorAccountNumber: '****1234',
-            creditorAccountNumber: '****5678',
-          });
-        }),
-      ],
-    },
-  },
-};
-
-/**
- * Both LIMITED_DDA and LIMITED_DDA_PAYMENTS: Tests the scenario with both account types available.
- */
-export const BothLimitedDDATypes: Story = {
-  ...Default,
-  name: 'Both LIMITED_DDA and LIMITED_DDA_PAYMENTS',
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Shows both LIMITED_DDA and LIMITED_DDA_PAYMENTS accounts. LIMITED_DDA will only show active linked accounts, while LIMITED_DDA_PAYMENTS will show all recipients.',
-      },
-    },
-    msw: {
-      handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json({ recipients: mockRecipients });
-        }),
-        http.get('*/accounts', () => {
-          return HttpResponse.json({
-            ...mockAccounts,
-            items: [mockAccounts.items[2], mockAccounts.items[3]], // LIMITED_DDA and LIMITED_DDA_PAYMENTS
-          });
-        }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
-          const accountId = params.accountId as string;
-          const balance =
-            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
-          if (balance) {
-            return HttpResponse.json(balance);
-          }
-          return HttpResponse.json(
-            { error: 'Account not found' },
-            { status: 404 }
-          );
-        }),
-        http.post('*/transactions', () => {
-          return HttpResponse.json({
-            id: 'txn-12345',
-            amount: 100.0,
-            currency: 'USD',
-            debtorAccountId: 'account3',
-            creditorAccountId: 'acc-1234',
-            recipientId: 'linkedAccount1',
-            transactionReferenceId: 'PAY-1234567890',
-            type: 'ACH',
-            memo: 'Test payment',
-            status: 'PENDING',
-            paymentDate: '2024-01-15',
-            createdAt: '2024-01-15T10:30:00Z',
-            debtorName: 'John Doe',
-            creditorName: 'Jane Smith',
-            debtorAccountNumber: '****1234',
-            creditorAccountNumber: '****5678',
-          });
-        }),
-      ],
-    },
-  },
-};
-
-/**
  * Error Handling: Tests the transaction error scenario.
  */
 export const WithTransactionError: Story = {
-  ...Default,
   name: 'Transaction Error Handling',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
+    icon: 'CirclePlus',
     onTransactionSettled: (response, error) => {
       if (response) {
         console.log('@@TRANSACTION response data', response);
@@ -868,10 +723,10 @@ export const WithTransactionError: Story = {
  * Pre-selected Recipient: Tests the recipientId prop functionality.
  */
 export const WithPreselectedRecipient: Story = {
-  ...Default,
   name: 'Pre-selected Recipient',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
     recipientId: 'linkedAccount1',
     icon: 'CirclePlus',
   },
@@ -886,34 +741,13 @@ export const WithPreselectedRecipient: Story = {
 };
 
 /**
- * Invalid Recipient ID: Tests the warning when recipientId is not found.
- */
-export const WithInvalidRecipientId: Story = {
-  ...Default,
-  name: 'Invalid Recipient ID Warning',
-  args: {
-    ...Default.args,
-    recipientId: 'non-existent-recipient-id',
-    icon: 'CirclePlus',
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'This story demonstrates the warning message that appears when a recipientId is provided but not found in the available recipients list.',
-      },
-    },
-  },
-};
-
-/**
  * Without Preview Panel: Tests the showPreviewPanel=false functionality.
  */
 export const WithoutPreviewPanel: Story = {
-  ...Default,
   name: 'Without Preview Panel',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
     showPreviewPanel: false,
     icon: 'CirclePlus',
   },
@@ -928,97 +762,21 @@ export const WithoutPreviewPanel: Story = {
 };
 
 /**
- * Single Account with Pre-selected Recipient: Tests auto-selection when only one account is available.
- */
-export const SingleAccountWithPreselectedRecipient: Story = {
-  ...Default,
-  name: 'Single Account with Pre-selected Recipient',
-  args: {
-    ...Default.args,
-    recipientId: 'linkedAccount1',
-    icon: 'CirclePlus',
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'This story demonstrates the scenario where a recipientId is provided and there is only one account available. Both the account and recipient should be auto-selected.',
-      },
-    },
-    msw: {
-      handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json({ recipients: mockRecipients });
-        }),
-        http.get('*/accounts', () => {
-          return HttpResponse.json({
-            ...mockAccounts,
-            items: [mockAccounts.items[0]], // Only one account
-          });
-        }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
-          const accountId = params.accountId as string;
-          const balance =
-            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
-          if (balance) {
-            return HttpResponse.json(balance);
-          }
-          return HttpResponse.json(
-            { error: 'Account not found' },
-            { status: 404 }
-          );
-        }),
-        http.post('*/transactions', () => {
-          return HttpResponse.json({
-            id: 'txn-12345',
-            amount: 100.0,
-            currency: 'USD',
-            debtorAccountId: 'account1',
-            creditorAccountId: 'acc-1234',
-            recipientId: 'linkedAccount1',
-            transactionReferenceId: 'PAY-1234567890',
-            type: 'ACH',
-            memo: 'Test payment',
-            status: 'PENDING',
-            paymentDate: '2024-01-15',
-            createdAt: '2024-01-15T10:30:00Z',
-            debtorName: 'John Doe',
-            creditorName: 'Jane Smith',
-            debtorAccountNumber: '****1234',
-            creditorAccountNumber: '****5678',
-          });
-        }),
-      ],
-    },
-  },
-};
-
-/**
  * Ghost Variant with No Icon: Demonstrates a subtle trigger button style.
  */
 export const GhostVariantNoIcon: Story = {
-  ...Default,
   name: 'Ghost Variant - No Icon',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
     triggerButtonVariant: 'ghost',
     icon: undefined, // No icon
-    contentTokens: {
-      name: 'enUS',
-      tokens: {
-        'make-payment': {
-          buttons: {
-            makePayment: 'Pay',
-          },
-        },
-      },
-    },
   },
   parameters: {
     docs: {
       description: {
         story:
-          'This story demonstrates the MakePayment component with a Ghost variant trigger button and no icon. The Ghost variant provides a subtle, minimal appearance suitable for secondary actions or less prominent UI elements. The button text is customized using content tokens to show "Pay" instead of the default text.',
+          'This story demonstrates the MakePayment component with a Ghost variant trigger button and no icon. The Ghost variant provides a subtle, minimal appearance suitable for secondary actions or less prominent UI elements.',
       },
     },
   },
@@ -1028,11 +786,11 @@ export const GhostVariantNoIcon: Story = {
  * SellSense Theme: Demonstrates the component with SellSense brand theming.
  */
 export const SellSenseTheme: Story = {
-  ...Default,
   name: 'SellSense Theme',
   args: {
-    ...Default.args,
-    theme: SELLSENSE_THEME,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
+    themePreset: 'SellSense',
     icon: 'CirclePlus',
   },
   tags: ['@sellsense', '@theme'],
@@ -1050,10 +808,10 @@ export const SellSenseTheme: Story = {
  * Manual Recipient Entry: Demonstrates entering recipient details and posting a transaction without creating a recipient.
  */
 export const ManualRecipientEntry: Story = {
-  ...Default,
   name: 'Manual recipient entry',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     showPreviewPanel: true,
   },
@@ -1094,17 +852,17 @@ export const ManualRecipientEntry: Story = {
     docs: {
       description: {
         story:
-          'Use the new toggle to switch to “Enter details” and provide recipient info inline. This posts to /transactions without creating a recipient.',
+          'Use the new toggle to switch to "Enter details" and provide recipient info inline. This posts to /transactions without creating a recipient.',
       },
     },
   },
 };
 
 export const FunctionalTestingNoMocks: Story = {
-  ...Default,
   name: 'Functional Testing with no mocks',
   args: {
-    ...Default.args,
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     showPreviewPanel: true,
   },

@@ -648,12 +648,12 @@ The `EBComponentsProvider` accepts a `theme` prop with these properties:
       separableBorderRadius: '0.5rem',
     },
     light: {
-      containerBackground: '#ffffff',
-      actionablePrimaryBackground: '#2563eb',
+      containerPrimaryBackground: '#ffffff',
+      actionableAccentedBoldBackground: '#2563eb',
     },
     dark: {
-      containerBackground: '#1f2937',
-      actionablePrimaryBackground: '#3b82f6',
+      containerPrimaryBackground: '#1f2937',
+      actionableAccentedBoldBackground: '#3b82f6',
     },
   }}
 >
@@ -665,18 +665,18 @@ The `EBComponentsProvider` accepts a `theme` prop with these properties:
 
 #### Content Tokens (Typography)
 
-| Token                     | Description                | Default   |
-| ------------------------- | -------------------------- | --------- |
-| `contentFontFamily`       | Primary font for body text | `"Geist"` |
-| `contentHeaderFontFamily` | Font for headings (h1-h6)  | Inherits  |
+| Token                   | Description                | Default   |
+| ----------------------- | -------------------------- | --------- |
+| `contentFontFamily`     | Primary font for body text | `"Geist"` |
+| `textHeadingFontFamily` | Font for headings (h1-h6)  | Inherits  |
 
 #### Container Tokens (Surfaces)
 
 | Token                          | Description             | Light Default         | Dark Default          |
 | ------------------------------ | ----------------------- | --------------------- | --------------------- |
-| `containerBackground`          | Base page background    | `hsl(0 0% 100%)`      | `hsl(240 10% 3.9%)`   |
+| `containerPrimaryBackground`   | Base page background    | `hsl(0 0% 100%)`      | `hsl(240 10% 3.9%)`   |
 | `contentPrimaryForeground`     | Primary text color      | `hsl(240 10% 3.9%)`   | `hsl(0 0% 98%)`       |
-| `containerPrimaryBackground`   | Card/panel background   | `hsl(0 0% 100%)`      | `hsl(240 10% 3.9%)`   |
+| `containerCardBackground`      | Card/panel background   | `hsl(0 0% 100%)`      | `hsl(240 10% 3.9%)`   |
 | `containerPrimaryForeground`   | Text on cards/panels    | `hsl(240 10% 3.9%)`   | `hsl(0 0% 98%)`       |
 | `containerSecondaryBackground` | Muted/subtle background | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
 | `containerSecondaryForeground` | Subtle text color       | `hsl(240 3.8% 46.1%)` | `hsl(240 5% 64.9%)`   |
@@ -694,25 +694,25 @@ The `EBComponentsProvider` accepts a `theme` prop with these properties:
 | `actionableBorderRadius`  | Button corner radius        | Inherits     |
 | `actionableShiftOnActive` | Press animation (1px shift) | `true`       |
 
-**Primary Variant:**
+**Accented Bold Variant** (Solid CTA with accent/brand color):
 
-| Token                               | Description               | Light Default   | Dark Default    |
-| ----------------------------------- | ------------------------- | --------------- | --------------- |
-| `actionablePrimaryBackground`       | Primary button background | `#155C93`       | `#155C93`       |
-| `actionablePrimaryBackgroundHover`  | Hover background          | Auto (90%)      | Auto (90%)      |
-| `actionablePrimaryBackgroundActive` | Active background         | -               | -               |
-| `actionablePrimaryForeground`       | Primary button text       | `hsl(0 0% 98%)` | `hsl(0 0% 98%)` |
-| `actionablePrimaryBorderWidth`      | Border width              | `"0rem"`        | `"0rem"`        |
-| `actionablePrimaryFontWeight`       | Font weight override      | Inherits        | Inherits        |
+| Token                                    | Description                     | Light Default   | Dark Default    |
+| ---------------------------------------- | ------------------------------- | --------------- | --------------- |
+| `actionableAccentedBoldBackground`       | Accented bold button background | `#155C93`       | `#155C93`       |
+| `actionableAccentedBoldBackgroundHover`  | Hover background                | Auto (90%)      | Auto (90%)      |
+| `actionableAccentedBoldBackgroundActive` | Active background               | -               | -               |
+| `actionableAccentedBoldForeground`       | Accented bold button text       | `hsl(0 0% 98%)` | `hsl(0 0% 98%)` |
+| `actionableAccentedBoldBorderWidth`      | Border width                    | `"0rem"`        | `"0rem"`        |
+| `actionableAccentedBoldFontWeight`       | Font weight override            | Inherits        | Inherits        |
 
-**Secondary Variant:**
+**Subtle Variant** (Transparent neutral - previous Secondary):
 
-| Token                                | Description                 | Light Default         | Dark Default          |
-| ------------------------------------ | --------------------------- | --------------------- | --------------------- |
-| `actionableSecondaryBackground`      | Secondary button background | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
-| `actionableSecondaryBackgroundHover` | Hover background            | Auto (90%)            | Auto (90%)            |
-| `actionableSecondaryForeground`      | Secondary button text       | `hsl(240 5.9% 10%)`   | `hsl(0 0% 98%)`       |
-| `actionableSecondaryBorderWidth`     | Border width                | `"0rem"`              | `"0rem"`              |
+| Token                             | Description              | Light Default         | Dark Default          |
+| --------------------------------- | ------------------------ | --------------------- | --------------------- |
+| `actionableSubtleBackground`      | Subtle button background | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
+| `actionableSubtleBackgroundHover` | Hover background         | Auto (90%)            | Auto (90%)            |
+| `actionableSubtleForeground`      | Subtle button text       | `hsl(240 5.9% 10%)`   | `hsl(0 0% 98%)`       |
+| `actionableSubtleBorderWidth`     | Border width             | `"0rem"`              | `"0rem"`              |
 
 #### Editable Tokens (Form Inputs)
 
@@ -756,17 +756,24 @@ The `EBComponentsProvider` accepts a `theme` prop with these properties:
 | ------------------ | ---------------- | ------------------- | --------------------- |
 | `focusedRingColor` | Focus ring color | `hsl(240 10% 3.9%)` | `hsl(240 4.9% 83.9%)` |
 
-#### Sentiment Tokens (Emotional States)
+#### Actionable Negative Tokens (Destructive Actions)
 
-**Negative** (Destructive actions):
+**Negative Bold Variant** (Solid destructive):
 
-| Token                               | Description            | Light Default        | Dark Default     |
-| ----------------------------------- | ---------------------- | -------------------- | ---------------- |
-| `sentimentNegativeBackground`       | Destructive btn bg     | `hsl(0 84.2% 60.2%)` | `hsl(0 74% 54%)` |
-| `sentimentNegativeBackgroundHover`  | Hover background       | Auto (90%)           | Auto (90%)       |
-| `sentimentNegativeForeground`       | Destructive btn text   | `hsl(0 0% 98%)`      | `hsl(0 0% 98%)`  |
-| `sentimentNegativeAccentBackground` | Error alert background | `#FFECEA`            | `#FFECEA`        |
-| `sentimentNegativeBorderWidth`      | Border width           | `"0rem"`             | `"0rem"`         |
+| Token                                   | Description               | Light Default        | Dark Default     |
+| --------------------------------------- | ------------------------- | -------------------- | ---------------- |
+| `actionableNegativeBoldBackground`      | Negative bold button bg   | `hsl(0 84.2% 60.2%)` | `hsl(0 74% 54%)` |
+| `actionableNegativeBoldBackgroundHover` | Hover background          | Auto (90%)           | Auto (90%)       |
+| `actionableNegativeBoldForeground`      | Negative bold button text | `hsl(0 0% 98%)`      | `hsl(0 0% 98%)`  |
+| `actionableNegativeBoldBorderWidth`     | Border width              | `"0rem"`             | `"0rem"`         |
+
+#### Sentiment Tokens (Emotional States - Non-Actionable)
+
+**Negative** (Error alerts, messages):
+
+| Token                               | Description            | Default   |
+| ----------------------------------- | ---------------------- | --------- |
+| `sentimentNegativeAccentBackground` | Error alert background | `#FFECEA` |
 
 **Positive** (Success states):
 
@@ -791,11 +798,11 @@ The `EBComponentsProvider` accepts a `theme` prop with these properties:
 
 #### Accent Tokens (Highlights)
 
-| Token                    | Description        | Light Default         | Dark Default          |
-| ------------------------ | ------------------ | --------------------- | --------------------- |
-| `accentBackground`       | Accent background  | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
-| `accentForeground`       | Accent text        | `hsl(240 5.9% 10%)`   | `hsl(0 0% 98%)`       |
-| `accentMetricBackground` | Data visualization | -                     | -                     |
+| Token                     | Description        | Light Default         | Dark Default          |
+| ------------------------- | ------------------ | --------------------- | --------------------- |
+| `accentBackground`        | Accent background  | `hsl(240 4.8% 95.9%)` | `hsl(240 3.7% 15.9%)` |
+| `contentAccentForeground` | Accent text        | `hsl(240 5.9% 10%)`   | `hsl(0 0% 98%)`       |
+| `accentMetricBackground`  | Data visualization | -                     | -                     |
 
 #### Layout Tokens
 
@@ -807,30 +814,30 @@ The `EBComponentsProvider` accepts a `theme` prop with these properties:
 
 All legacy token names (e.g., `primaryColor`, `backgroundColor`, `fontFamily`) remain fully supported. The new semantic names are preferred for new implementations.
 
-| Legacy Token             | New Semantic Token              |
-| ------------------------ | ------------------------------- |
-| `fontFamily`             | `contentFontFamily`             |
-| `backgroundColor`        | `containerBackground`           |
-| `foregroundColor`        | `contentPrimaryForeground`      |
-| `primaryColor`           | `actionablePrimaryBackground`   |
-| `primaryForegroundColor` | `actionablePrimaryForeground`   |
-| `secondaryColor`         | `actionableSecondaryBackground` |
-| `destructiveColor`       | `sentimentNegativeBackground`   |
-| `successColor`           | `sentimentPositiveForeground`   |
-| `warningColor`           | `sentimentCautionForeground`    |
-| `informativeColor`       | `statusInfoForeground`          |
-| `cardColor`              | `containerPrimaryBackground`    |
-| `mutedColor`             | `containerSecondaryBackground`  |
-| `popoverColor`           | `overlayableBackground`         |
-| `borderColor`            | `separableBorderColor`          |
-| `borderRadius`           | `separableBorderRadius`         |
-| `inputColor`             | `editableBackground`            |
-| `inputBorderColor`       | `editableBorderColor`           |
-| `ringColor`              | `focusedRingColor`              |
-| `zIndexOverlay`          | `overlayableZIndex`             |
-| `buttonFontWeight`       | `actionableFontWeight`          |
-| `buttonFontSize`         | `actionableFontSize`            |
-| `formLabelFontSize`      | `editableLabelFontSize`         |
+| Legacy Token             | New Semantic Token                 |
+| ------------------------ | ---------------------------------- |
+| `fontFamily`             | `contentFontFamily`                |
+| `backgroundColor`        | `containerBackground`              |
+| `foregroundColor`        | `contentPrimaryForeground`         |
+| `primaryColor`           | `actionableAccentedBoldBackground` |
+| `primaryForegroundColor` | `actionableAccentedBoldForeground` |
+| `secondaryColor`         | `actionableSubtleBackground`       |
+| `destructiveColor`       | `actionableNegativeBoldBackground` |
+| `successColor`           | `sentimentPositiveForeground`      |
+| `warningColor`           | `sentimentCautionForeground`       |
+| `informativeColor`       | `statusInfoForeground`             |
+| `cardColor`              | `containerPrimaryBackground`       |
+| `mutedColor`             | `containerSecondaryBackground`     |
+| `popoverColor`           | `overlayableBackground`            |
+| `borderColor`            | `separableBorderColor`             |
+| `borderRadius`           | `separableBorderRadius`            |
+| `inputColor`             | `editableBackground`               |
+| `inputBorderColor`       | `editableBorderColor`              |
+| `ringColor`              | `focusedRingColor`                 |
+| `zIndexOverlay`          | `overlayableZIndex`                |
+| `buttonFontWeight`       | `actionableFontWeight`             |
+| `buttonFontSize`         | `actionableFontSize`               |
+| `formLabelFontSize`      | `editableLabelFontSize`            |
 
 ### Theme Inheritance
 
@@ -865,25 +872,27 @@ function App() {
         },
         light: {
           // Surfaces
-          containerBackground: '#ffffff',
+          containerPrimaryBackground: '#ffffff',
           contentPrimaryForeground: '#1f2937',
-          containerPrimaryBackground: '#f9fafb',
+          containerCardBackground: '#f9fafb',
 
-          // Primary actions
-          actionablePrimaryBackground: '#2563eb',
-          actionablePrimaryForeground: '#ffffff',
+          // Primary actions (accented bold)
+          actionableAccentedBoldBackground: '#2563eb',
+          actionableAccentedBoldForeground: '#ffffff',
 
-          // Sentiment colors
+          // Destructive actions (negative bold)
+          actionableNegativeBoldBackground: '#dc2626',
+
+          // Sentiment colors (non-actionable)
           sentimentPositiveForeground: '#059669',
-          sentimentNegativeBackground: '#dc2626',
           sentimentCautionForeground: '#d97706',
           statusInfoForeground: '#0284c7',
         },
         dark: {
-          containerBackground: '#111827',
+          containerPrimaryBackground: '#111827',
           contentPrimaryForeground: '#f9fafb',
-          containerPrimaryBackground: '#1f2937',
-          actionablePrimaryBackground: '#3b82f6',
+          containerCardBackground: '#1f2937',
+          actionableAccentedBoldBackground: '#3b82f6',
         },
       }}
     >

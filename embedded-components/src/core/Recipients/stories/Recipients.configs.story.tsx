@@ -5,33 +5,31 @@ import {
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-import { EBComponentsProvider } from '../../EBComponentsProvider';
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
 import type { RecipientsConfig } from '../types/paymentConfig';
 
-// Wrapper component that follows the same pattern as the original Recipients.story.tsx
-const RecipientsWithProvider = ({
-  children,
-  ...recipientsProps
-}: RecipientsProps & { children?: React.ReactNode }) => {
+/**
+ * Story args interface extending base provider args
+ */
+interface RecipientsConfigStoryArgs extends BaseStoryArgs, RecipientsProps {}
+
+/**
+ * Wrapper component for stories - NO EBComponentsProvider here!
+ * The global decorator in preview.tsx handles the provider wrapping.
+ */
+const RecipientsStory = (props: RecipientsProps) => {
   return (
-    <EBComponentsProvider
-      apiBaseUrl="https://api.example.com"
-      headers={{}}
-      theme={{}}
-      contentTokens={{ name: 'enUS' }}
-    >
-      <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
-        <Recipients {...recipientsProps} />
-      </div>
-    </EBComponentsProvider>
+    <div className="eb-mx-auto eb-max-w-7xl eb-p-6">
+      <Recipients {...props} />
+    </div>
   );
 };
 
-const meta: Meta<typeof Recipients> = {
+const meta: Meta<RecipientsConfigStoryArgs> = {
   title: 'Core/Recipients/Configuration',
-  component: Recipients,
+  component: RecipientsStory,
   tags: ['@core', '@recipients'],
   parameters: {
     layout: 'fullscreen',
@@ -52,15 +50,23 @@ const meta: Meta<typeof Recipients> = {
       description: 'Show/hide create functionality',
     },
   },
+  render: (args) => (
+    <RecipientsStory
+      clientId={args.clientId}
+      showCreateButton={args.showCreateButton}
+      config={args.config}
+    />
+  ),
 };
 export default meta;
 
-type Story = StoryObj<typeof Recipients>;
+type Story = StoryObj<RecipientsConfigStoryArgs>;
 
 // Default Configuration (ACH, WIRE, RTP)
 export const DefaultConfig: Story = {
   name: 'Default Configuration',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,
     clientId: 'client-001',
   },
@@ -97,7 +103,6 @@ export const DefaultConfig: Story = {
       },
     },
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
 };
 
 // Multiple Payment Methods with Advanced Features
@@ -125,6 +130,7 @@ const multiMethodConfig: RecipientsConfig = {
 export const MultiplePaymentMethods: Story = {
   name: 'Multiple Payment Methods',
   args: {
+    apiBaseUrl: 'https://api.example.com',
     config: multiMethodConfig,
     showCreateButton: true,
     clientId: 'client-001',
@@ -150,5 +156,4 @@ export const MultiplePaymentMethods: Story = {
       },
     },
   },
-  render: (args) => <RecipientsWithProvider {...args} />,
 };

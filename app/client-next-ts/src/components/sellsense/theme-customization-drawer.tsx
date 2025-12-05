@@ -76,113 +76,344 @@ const FONT_FAMILIES = [
   { value: 'Comic Sans MS', label: 'Comic Sans MS', preview: 'Comic Sans MS' },
 ];
 
-// Group tokens logically for better organization
+// Semantic token labels (Salt-inspired) for display
+const TOKEN_LABELS: Record<string, string> = {
+  contentFontFamily: 'Content Font Family',
+  textHeadingFontFamily: 'Header Font Family',
+  actionableFontFamily: 'Actionable Font Family',
+  actionableFontWeight: 'Actionable Font Weight',
+  actionableFontSize: 'Actionable Font Size',
+  actionableLineHeight: 'Actionable Line Height',
+  actionableTextTransform: 'Actionable Text Transform',
+  actionableLetterSpacing: 'Actionable Letter Spacing',
+  actionableAccentedBoldFontWeight: 'Accented Bold Font Weight',
+  actionableSubtleFontWeight: 'Subtle Font Weight',
+
+  containerPrimaryBackground: 'Page Background',
+  containerCardBackground: 'Card Background',
+  containerPrimaryForeground: 'Card Foreground',
+  containerSecondaryBackground: 'Muted Background',
+  containerSecondaryForeground: 'Muted Foreground',
+  overlayableBackground: 'Overlay Background',
+  overlayableForeground: 'Overlay Foreground',
+  overlayableZIndex: 'Overlay Z-Index',
+  accentBackground: 'Accent Background',
+  contentAccentForeground: 'Accent Foreground',
+
+  actionableAccentedBoldBackground: 'Accented Bold Background',
+  actionableAccentedBoldBackgroundHover: 'Accented Bold Background Hover',
+  actionableAccentedBoldBackgroundActive: 'Accented Bold Background Active',
+  actionableAccentedBoldForeground: 'Accented Bold Foreground',
+  actionableAccentedBoldForegroundHover: 'Accented Bold Foreground Hover',
+  actionableAccentedBoldForegroundActive: 'Accented Bold Foreground Active',
+  actionableAccentedBoldBorderWidth: 'Accented Bold Border Width',
+  actionableBorderRadius: 'Action Border Radius',
+  actionableShiftOnActive: 'Shift On Active',
+
+  actionableSubtleBackground: 'Subtle Background',
+  actionableSubtleBackgroundHover: 'Subtle Background Hover',
+  actionableSubtleBackgroundActive: 'Subtle Background Active',
+  actionableSubtleForeground: 'Subtle Foreground',
+  actionableSubtleForegroundHover: 'Subtle Foreground Hover',
+  actionableSubtleForegroundActive: 'Subtle Foreground Active',
+  actionableSubtleBorderWidth: 'Subtle Border Width',
+
+  editableBackground: 'Input Background',
+  editableBorderColor: 'Input Border Color',
+  editableBorderRadius: 'Input Border Radius',
+  editableLabelFontSize: 'Label Font Size',
+  editableLabelFontWeight: 'Label Font Weight',
+  editableLabelLineHeight: 'Label Line Height',
+  editableLabelForeground: 'Label Foreground',
+
+  separableBorderColor: 'Border Color',
+  separableBorderRadius: 'Border Radius',
+  spacingUnit: 'Spacing Unit',
+
+  focusedRingColor: 'Focus Ring Color',
+
+  actionableNegativeBoldBackground: 'Negative Bold Background',
+  actionableNegativeBoldBackgroundHover: 'Negative Bold Background Hover',
+  actionableNegativeBoldBackgroundActive: 'Negative Bold Background Active',
+  actionableNegativeBoldForeground: 'Negative Bold Foreground',
+  actionableNegativeBoldForegroundHover: 'Negative Bold Foreground Hover',
+  actionableNegativeBoldForegroundActive: 'Negative Bold Foreground Active',
+
+  sentimentNegativeAccentBackground: 'Negative Accent Background (Alerts)',
+  sentimentCautionForeground: 'Caution Foreground',
+  sentimentCautionAccentBackground: 'Caution Accent Background',
+  sentimentPositiveForeground: 'Positive Foreground',
+  sentimentPositiveAccentBackground: 'Positive Accent Background',
+  statusInfoForeground: 'Info Foreground',
+  statusInfoAccentBackground: 'Info Accent Background',
+  statusErrorForegroundInformative: 'Error Foreground (Informative)',
+  statusErrorBackground: 'Error Background',
+  statusSuccessForeground: 'Success Foreground',
+  statusSuccessAccentBackground: 'Success Accent Background',
+  statusWarningForeground: 'Warning Foreground',
+  statusWarningAccentBackground: 'Warning Accent Background',
+  navigableBackground: 'Navigable Background',
+  navigableForeground: 'Navigable Foreground',
+  navigableAccentBackground: 'Navigable Accent Background',
+  navigableAccentForeground: 'Navigable Accent Foreground',
+  actionableNegativeBoldBorderWidth: 'Negative Bold Border Width',
+  actionableNegativeBoldFontWeight: 'Negative Bold Font Weight',
+  accentMetricBackground: 'Metric Accent Background',
+};
+
+// Semantic token order following Salt Design System characteristics
+// Order: Actionable, Category, Container, Content, Editable, Focused, Navigable, Overlayable, Selectable, Sentiment, Separable, Status, Target, Text
+const SEMANTIC_TOKEN_ORDER = [
+  // 1. Actionable
+  'actionableFontFamily',
+  'actionableFontWeight',
+  'actionableFontSize',
+  'actionableLineHeight',
+  'actionableTextTransform',
+  'actionableLetterSpacing',
+  'actionableBorderRadius',
+  'actionableShiftOnActive',
+  'actionableAccentedBoldBackground',
+  'actionableAccentedBoldBackgroundHover',
+  'actionableAccentedBoldBackgroundActive',
+  'actionableAccentedBoldForeground',
+  'actionableAccentedBoldForegroundHover',
+  'actionableAccentedBoldForegroundActive',
+  'actionableAccentedBoldBorderWidth',
+  'actionableAccentedBoldFontWeight',
+  'actionableSubtleBackground',
+  'actionableSubtleBackgroundHover',
+  'actionableSubtleBackgroundActive',
+  'actionableSubtleForeground',
+  'actionableSubtleForegroundHover',
+  'actionableSubtleForegroundActive',
+  'actionableSubtleBorderWidth',
+  'actionableSubtleFontWeight',
+  'actionableNegativeBoldBackground',
+  'actionableNegativeBoldBackgroundHover',
+  'actionableNegativeBoldBackgroundActive',
+  'actionableNegativeBoldForeground',
+  'actionableNegativeBoldForegroundHover',
+  'actionableNegativeBoldForegroundActive',
+  'actionableNegativeBoldBorderWidth',
+  'actionableNegativeBoldFontWeight',
+
+  // 2. Container
+  'containerPrimaryBackground',
+  'containerCardBackground',
+  'containerPrimaryForeground',
+  'containerSecondaryBackground',
+  'containerSecondaryForeground',
+
+  // 3. Content
+  'contentFontFamily',
+  'contentPrimaryForeground',
+  'contentAccentForeground',
+
+  // 4. Editable
+  'editableBackground',
+  'editableBorderColor',
+  'editableBorderRadius',
+  'editableLabelFontSize',
+  'editableLabelFontWeight',
+  'editableLabelLineHeight',
+  'editableLabelForeground',
+
+  // 5. Focused
+  'focusedRingColor',
+
+  // 6. Navigable
+  'navigableBackground',
+  'navigableForeground',
+  'navigableAccentBackground',
+  'navigableAccentForeground',
+
+  // 7. Overlayable
+  'overlayableBackground',
+  'overlayableForeground',
+  'overlayableZIndex',
+
+  // 8. Sentiment
+  'sentimentNegativeAccentBackground',
+  'sentimentCautionForeground',
+  'sentimentCautionAccentBackground',
+  'sentimentPositiveForeground',
+  'sentimentPositiveAccentBackground',
+
+  // 9. Separable
+  'separableBorderColor',
+  'separableBorderRadius',
+  'spacingUnit',
+
+  // 10. Status
+  'statusInfoForeground',
+  'statusInfoAccentBackground',
+  'statusErrorForegroundInformative',
+  'statusErrorBackground',
+  'statusSuccessForeground',
+  'statusSuccessAccentBackground',
+  'statusWarningForeground',
+  'statusWarningAccentBackground',
+
+  // 11. Text
+  'textHeadingFontFamily',
+
+  // Extension tokens (not in Salt)
+  'accentBackground',
+  'accentMetricBackground',
+] as const;
+
 const TOKEN_GROUPS = {
-  typography: {
-    title: 'Typography',
-    icon: Type,
+  // 1. Actionable - Interactive elements (buttons, links)
+  actionable: {
+    title: 'Actionable',
+    icon: Brush,
     tokens: [
-      'fontFamily',
-      'headerFontFamily',
-      'buttonFontFamily',
-      'buttonFontWeight',
-      'buttonFontSize',
-      'buttonLineHeight',
-      'buttonTextTransform',
-      'buttonLetterSpacing',
-      'primaryButtonFontWeight',
-      'secondaryButtonFontWeight',
-      'destructiveButtonFontWeight',
-      'formLabelFontSize',
-      'formLabelFontWeight',
-      'formLabelLineHeight',
-      'formLabelForegroundColor',
+      // Common actionable properties
+      'actionableFontFamily',
+      'actionableFontWeight',
+      'actionableFontSize',
+      'actionableLineHeight',
+      'actionableTextTransform',
+      'actionableLetterSpacing',
+      'actionableBorderRadius',
+      'actionableShiftOnActive',
+      // Accented Bold variant
+      'actionableAccentedBoldBackground',
+      'actionableAccentedBoldBackgroundHover',
+      'actionableAccentedBoldBackgroundActive',
+      'actionableAccentedBoldForeground',
+      'actionableAccentedBoldForegroundHover',
+      'actionableAccentedBoldForegroundActive',
+      'actionableAccentedBoldBorderWidth',
+      'actionableAccentedBoldFontWeight',
+      // Subtle variant
+      'actionableSubtleBackground',
+      'actionableSubtleBackgroundHover',
+      'actionableSubtleBackgroundActive',
+      'actionableSubtleForeground',
+      'actionableSubtleForegroundHover',
+      'actionableSubtleForegroundActive',
+      'actionableSubtleBorderWidth',
+      'actionableSubtleFontWeight',
+      // Negative Bold variant
+      'actionableNegativeBoldBackground',
+      'actionableNegativeBoldBackgroundHover',
+      'actionableNegativeBoldBackgroundActive',
+      'actionableNegativeBoldForeground',
+      'actionableNegativeBoldForegroundHover',
+      'actionableNegativeBoldForegroundActive',
+      'actionableNegativeBoldBorderWidth',
+      'actionableNegativeBoldFontWeight',
     ],
   },
-  colors: {
-    title: 'Colors',
-    icon: Palette,
-    tokens: [
-      'backgroundColor',
-      'foregroundColor',
-      'cardColor',
-      'cardForegroundColor',
-      'popoverColor',
-      'popoverForegroundColor',
-      'mutedColor',
-      'mutedForegroundColor',
-      'accentColor',
-      'accentForegroundColor',
-      'borderColor',
-      'inputColor',
-      'inputBorderColor',
-      'ringColor',
-    ],
-  },
-  primary: {
-    title: 'Primary Colors',
-    icon: Palette,
-    tokens: [
-      'primaryColor',
-      'primaryHoverColor',
-      'primaryActiveColor',
-      'primaryForegroundColor',
-      'primaryForegroundHoverColor',
-      'primaryForegroundActiveColor',
-    ],
-  },
-  secondary: {
-    title: 'Secondary Colors',
-    icon: Palette,
-    tokens: [
-      'secondaryColor',
-      'secondaryHoverColor',
-      'secondaryActiveColor',
-      'secondaryForegroundColor',
-      'secondaryForegroundHoverColor',
-      'secondaryForegroundActiveColor',
-      'secondaryBorderWidth',
-    ],
-  },
-  destructive: {
-    title: 'Destructive Colors',
-    icon: Palette,
-    tokens: [
-      'destructiveColor',
-      'destructiveHoverColor',
-      'destructiveActiveColor',
-      'destructiveForegroundColor',
-      'destructiveForegroundHoverColor',
-      'destructiveForegroundActiveColor',
-      'destructiveBorderWidth',
-    ],
-  },
-  alerts: {
-    title: 'Alert Colors',
-    icon: Palette,
-    tokens: [
-      'alertColor',
-      'alertForegroundColor',
-      'informativeColor',
-      'informativeAccentColor',
-      'warningColor',
-      'warningAccentColor',
-      'successColor',
-      'successAccentColor',
-    ],
-  },
-  layout: {
-    title: 'Layout & Spacing',
+  // 2. Container - Surfaces and layout backgrounds
+  container: {
+    title: 'Container',
     icon: Layout,
     tokens: [
-      'borderRadius',
-      'inputBorderRadius',
-      'buttonBorderRadius',
-      'primaryBorderWidth',
-      'spacingUnit',
-      'zIndexOverlay',
-      'shiftButtonOnActive',
+      'containerPrimaryBackground',
+      'containerCardBackground',
+      'containerPrimaryForeground',
+      'containerSecondaryBackground',
+      'containerSecondaryForeground',
     ],
+  },
+  // 3. Content - Typography and text properties
+  content: {
+    title: 'Content',
+    icon: Type,
+    tokens: [
+      'contentFontFamily',
+      'contentPrimaryForeground',
+      'contentAccentForeground',
+    ],
+  },
+  // 4. Editable - Form inputs and text fields
+  editable: {
+    title: 'Editable',
+    icon: Layout,
+    tokens: [
+      'editableBackground',
+      'editableBorderColor',
+      'editableBorderRadius',
+      'editableLabelFontSize',
+      'editableLabelFontWeight',
+      'editableLabelLineHeight',
+      'editableLabelForeground',
+    ],
+  },
+  // 5. Focused - Focus indicators
+  focused: {
+    title: 'Focused',
+    icon: Info,
+    tokens: ['focusedRingColor'],
+  },
+  // 6. Navigable - Sidebars and navigation elements
+  navigable: {
+    title: 'Navigable',
+    icon: Layout,
+    tokens: [
+      'navigableBackground',
+      'navigableForeground',
+      'navigableAccentBackground',
+      'navigableAccentForeground',
+    ],
+  },
+  // 7. Overlayable - Popovers, dialogs, tooltips
+  overlayable: {
+    title: 'Overlayable',
+    icon: Palette,
+    tokens: [
+      'overlayableBackground',
+      'overlayableForeground',
+      'overlayableZIndex',
+    ],
+  },
+  // 8. Sentiment - Emotional states (negative, positive, caution)
+  sentiment: {
+    title: 'Sentiment',
+    icon: Palette,
+    tokens: [
+      'sentimentNegativeAccentBackground',
+      'sentimentCautionForeground',
+      'sentimentCautionAccentBackground',
+      'sentimentPositiveForeground',
+      'sentimentPositiveAccentBackground',
+    ],
+  },
+  // 9. Separable - Borders and dividers
+  separable: {
+    title: 'Separable',
+    icon: Layout,
+    tokens: ['separableBorderColor', 'separableBorderRadius', 'spacingUnit'],
+  },
+  // 10. Status - Informational states (info, error, success, warning)
+  status: {
+    title: 'Status',
+    icon: Info,
+    tokens: [
+      'statusInfoForeground',
+      'statusInfoAccentBackground',
+      'statusErrorForegroundInformative',
+      'statusErrorBackground',
+      'statusSuccessForeground',
+      'statusSuccessAccentBackground',
+      'statusWarningForeground',
+      'statusWarningAccentBackground',
+    ],
+  },
+  // 11. Text - Typography (headings)
+  text: {
+    title: 'Text',
+    icon: Type,
+    tokens: ['textHeadingFontFamily'],
+  },
+  // Extension tokens (not in Salt)
+  accent: {
+    title: 'Accent (Extension)',
+    icon: Palette,
+    tokens: ['accentBackground', 'accentMetricBackground'],
   },
 };
 
@@ -195,6 +426,22 @@ const AVAILABLE_THEMES: ThemeOption[] = [
   'SellSense',
   'PayFicient',
 ];
+
+const SEMANTIC_KEYS = new Set<string>(
+  SEMANTIC_TOKEN_ORDER as readonly string[],
+);
+
+const pickSemanticTokens = (
+  variables: EBThemeVariables = {},
+): EBThemeVariables =>
+  Array.from(SEMANTIC_KEYS).reduce((acc, key) => {
+    const typedKey = key as keyof EBThemeVariables;
+    const value = variables[typedKey];
+    if (value !== undefined) {
+      (acc as any)[typedKey] = value;
+    }
+    return acc;
+  }, {} as EBThemeVariables);
 
 export function ThemeCustomizationDrawer({
   isOpen,
@@ -235,7 +482,9 @@ export function ThemeCustomizationDrawer({
 
   // State management - only customTheme, no selectedBaseTheme state
   const [customTheme, setCustomTheme] = useState<EBThemeVariables>(
-    initialCustomData.variables,
+    pickSemanticTokens(
+      getThemeVariables('Custom', initialCustomData.variables || {}),
+    ),
   );
   const [isCopied, setIsCopied] = useState(false);
   const [isUrlCopied, setIsUrlCopied] = useState(false);
@@ -292,25 +541,28 @@ export function ThemeCustomizationDrawer({
   useEffect(() => {
     if (isOpen) {
       const customData = getCustomThemeData();
-      setCustomTheme(customData.variables);
+      setCustomTheme(
+        pickSemanticTokens(
+          getThemeVariables('Custom', customData.variables || {}),
+        ),
+      );
     }
-  }, [isOpen, currentTheme, customThemeData]);
+  }, [isOpen, currentTheme, customThemeData, getThemeVariables]);
 
   // Handle base theme selection
   const handleBaseThemeChange = (theme: ThemeOption) => {
     console.log('handleBaseThemeChange called with theme:', theme);
 
-    const baseVariables = getThemeVariables(theme);
+    const baseVariables = pickSemanticTokens(getThemeVariables(theme));
 
     // Reset to the new base theme (don't merge with existing custom changes)
     setCustomTheme(baseVariables);
 
     // Check if we have any custom changes
-    const hasChanges = Object.keys(customTheme).some(
-      (key) =>
-        customTheme[key as keyof EBThemeVariables] !==
-        baseVariables[key as keyof EBThemeVariables],
-    );
+    const hasChanges = Object.keys(customTheme).some((key) => {
+      const typedKey = key as keyof EBThemeVariables;
+      return customTheme[typedKey] !== baseVariables[typedKey];
+    });
 
     if (hasChanges) {
       // We have custom changes, keep them in custom mode
@@ -332,7 +584,9 @@ export function ThemeCustomizationDrawer({
   ) => {
     // Get the current base theme variables
     const currentBaseTheme = getCurrentBaseTheme();
-    const baseVariables = getThemeVariables(currentBaseTheme);
+    const baseVariables = pickSemanticTokens(
+      getThemeVariables(currentBaseTheme),
+    );
 
     console.log('handleTokenChange called with:', {
       token,
@@ -342,20 +596,19 @@ export function ThemeCustomizationDrawer({
     });
 
     // Create updated theme by merging base variables with custom changes
-    const updatedTheme = {
+    const updatedTheme = pickSemanticTokens({
       ...baseVariables,
       ...customTheme,
-      [token]: value,
-    };
+      [token]: value as EBThemeVariables[keyof EBThemeVariables],
+    });
 
     setCustomTheme(updatedTheme);
 
     // Check if this change makes the theme different from base
-    const hasChanges = Object.keys(updatedTheme).some(
-      (key) =>
-        updatedTheme[key as keyof EBThemeVariables] !==
-        baseVariables[key as keyof EBThemeVariables],
-    );
+    const hasChanges = Object.keys(updatedTheme).some((key) => {
+      const typedKey = key as keyof EBThemeVariables;
+      return updatedTheme[typedKey] !== baseVariables[typedKey];
+    });
 
     if (hasChanges) {
       // Create custom theme data with base theme information
@@ -375,7 +628,11 @@ export function ThemeCustomizationDrawer({
   // Copy theme to clipboard
   const copyThemeToClipboard = useCallback(async () => {
     try {
-      const themeJson = JSON.stringify(customTheme, null, 2);
+      const themeJson = JSON.stringify(
+        pickSemanticTokens(customTheme),
+        null,
+        2,
+      );
       await navigator.clipboard.writeText(themeJson);
 
       // Show success feedback
@@ -452,8 +709,8 @@ export function ThemeCustomizationDrawer({
         throw new Error('No valid theme properties found in clipboard data');
       }
 
-      // Merge with existing custom theme
-      const mergedTheme = { ...customTheme, ...variables };
+      // Merge with existing custom theme and normalize to semantic tokens
+      const mergedTheme = pickSemanticTokens({ ...customTheme, ...variables });
       setCustomTheme(mergedTheme);
 
       // Update the theme with merged values
@@ -468,10 +725,12 @@ export function ThemeCustomizationDrawer({
       );
 
       if (hasChanges) {
-        // Call onThemeChange with the correct parameters: theme name and variables object
-        onThemeChange('Custom', mergedTheme);
+        const customThemeData: CustomThemeData = {
+          baseTheme: currentBaseTheme,
+          variables: mergedTheme,
+        };
+        onThemeChange('Custom', customThemeData as any);
       } else {
-        // If no changes from base, revert to base theme
         onThemeChange(currentBaseTheme, {});
       }
 
@@ -492,7 +751,9 @@ export function ThemeCustomizationDrawer({
 
   // Reset to base theme
   const resetToBaseTheme = () => {
-    const baseVariables = getThemeVariables(getCurrentBaseTheme());
+    const baseVariables = pickSemanticTokens(
+      getThemeVariables(getCurrentBaseTheme()),
+    );
     setCustomTheme(baseVariables);
 
     // Just change to the base theme, no custom mode
@@ -528,18 +789,29 @@ export function ThemeCustomizationDrawer({
     };
   }, [isOpen, onClose]);
 
+  const isColorToken = (token: string) => {
+    const normalized = token.toLowerCase();
+    return (
+      normalized.includes('color') ||
+      normalized.includes('background') ||
+      normalized.includes('foreground') ||
+      normalized.includes('accent')
+    );
+  };
+
   // Render form control based on token type
   const renderTokenControl = (token: keyof EBThemeVariables, value: any) => {
-    const isColor = token.toLowerCase().includes('color');
+    const isColor = isColorToken(token as string);
     const isBoolean = typeof value === 'boolean';
     const isNumber = typeof value === 'number';
     const isSpacing =
       token.includes('spacing') ||
       token.includes('radius') ||
       token.includes('width');
-    const isFontWeight = token.includes('fontweight');
+    const isFontWeight = token.toLowerCase().includes('fontweight');
     const isFontSize =
-      token.includes('fontsize') || token.includes('lineheight');
+      token.toLowerCase().includes('fontsize') ||
+      token.toLowerCase().includes('lineheight');
     const isFontFamily = token.toLowerCase().includes('fontfamily');
 
     if (isBoolean) {
@@ -870,8 +1142,8 @@ export function ThemeCustomizationDrawer({
                         <div className="space-y-4 pt-2">
                           {group.tokens.map((token) => {
                             // Get the current value from the merged theme (base + custom)
-                            const baseVariables = getThemeVariables(
-                              getCurrentBaseTheme(),
+                            const baseVariables = pickSemanticTokens(
+                              getThemeVariables(getCurrentBaseTheme()),
                             );
                             const value =
                               customTheme[token as keyof EBThemeVariables] !==
@@ -887,7 +1159,7 @@ export function ThemeCustomizationDrawer({
                                   htmlFor={token}
                                   className="text-xs text-gray-900 font-medium"
                                 >
-                                  {token}
+                                  {TOKEN_LABELS[token] || token}
                                 </Label>
                                 {renderTokenControl(
                                   token as keyof EBThemeVariables,

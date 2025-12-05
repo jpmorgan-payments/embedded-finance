@@ -8,215 +8,107 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
+import { Route as MswTestRouteImport } from './routes/msw-test'
+import { Route as GithubRouteImport } from './routes/github'
+import { Route as DocumentationRouteImport } from './routes/documentation'
+import { Route as DemosRouteImport } from './routes/demos'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoriesIndexRouteImport } from './routes/stories.index'
+import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 
-import { Route as rootRoute } from './routes/__root';
-import { Route as StoriesImport } from './routes/stories';
-import { Route as SolutionsImport } from './routes/solutions';
-import { Route as SellsenseDemoImport } from './routes/sellsense-demo';
-import { Route as MswTestImport } from './routes/msw-test';
-import { Route as GithubImport } from './routes/github';
-import { Route as DocumentationImport } from './routes/documentation';
-import { Route as DemosImport } from './routes/demos';
-import { Route as IndexImport } from './routes/index';
-import { Route as StoriesIndexImport } from './routes/stories.index';
-import { Route as StoriesStoryIdImport } from './routes/stories.$storyId';
-
-// Create/Update Routes
-
-const StoriesRoute = StoriesImport.update({
+const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const SolutionsRoute = SolutionsImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsRoute = SolutionsRouteImport.update({
   id: '/solutions',
   path: '/solutions',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const SellsenseDemoRoute = SellsenseDemoImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
   id: '/sellsense-demo',
   path: '/sellsense-demo',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const MswTestRoute = MswTestImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MswTestRoute = MswTestRouteImport.update({
   id: '/msw-test',
   path: '/msw-test',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const GithubRoute = GithubImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GithubRoute = GithubRouteImport.update({
   id: '/github',
   path: '/github',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const DocumentationRoute = DocumentationImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const DemosRoute = DemosImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemosRoute = DemosRouteImport.update({
   id: '/demos',
   path: '/demos',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const IndexRoute = IndexImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any);
-
-const StoriesIndexRoute = StoriesIndexImport.update({
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoriesIndexRoute = StoriesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoriesRoute,
-} as any);
-
-const StoriesStoryIdRoute = StoriesStoryIdImport.update({
+} as any)
+const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
   id: '/$storyId',
   path: '/$storyId',
   getParentRoute: () => StoriesRoute,
-} as any);
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/demos': {
-      id: '/demos';
-      path: '/demos';
-      fullPath: '/demos';
-      preLoaderRoute: typeof DemosImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/documentation': {
-      id: '/documentation';
-      path: '/documentation';
-      fullPath: '/documentation';
-      preLoaderRoute: typeof DocumentationImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/github': {
-      id: '/github';
-      path: '/github';
-      fullPath: '/github';
-      preLoaderRoute: typeof GithubImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/msw-test': {
-      id: '/msw-test';
-      path: '/msw-test';
-      fullPath: '/msw-test';
-      preLoaderRoute: typeof MswTestImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/sellsense-demo': {
-      id: '/sellsense-demo';
-      path: '/sellsense-demo';
-      fullPath: '/sellsense-demo';
-      preLoaderRoute: typeof SellsenseDemoImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/solutions': {
-      id: '/solutions';
-      path: '/solutions';
-      fullPath: '/solutions';
-      preLoaderRoute: typeof SolutionsImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/stories': {
-      id: '/stories';
-      path: '/stories';
-      fullPath: '/stories';
-      preLoaderRoute: typeof StoriesImport;
-      parentRoute: typeof rootRoute;
-    };
-    '/stories/$storyId': {
-      id: '/stories/$storyId';
-      path: '/$storyId';
-      fullPath: '/stories/$storyId';
-      preLoaderRoute: typeof StoriesStoryIdImport;
-      parentRoute: typeof StoriesImport;
-    };
-    '/stories/': {
-      id: '/stories/';
-      path: '/';
-      fullPath: '/stories/';
-      preLoaderRoute: typeof StoriesIndexImport;
-      parentRoute: typeof StoriesImport;
-    };
-  }
-}
-
-// Create and export the route tree
-
-interface StoriesRouteChildren {
-  StoriesStoryIdRoute: typeof StoriesStoryIdRoute;
-  StoriesIndexRoute: typeof StoriesIndexRoute;
-}
-
-const StoriesRouteChildren: StoriesRouteChildren = {
-  StoriesStoryIdRoute: StoriesStoryIdRoute,
-  StoriesIndexRoute: StoriesIndexRoute,
-};
-
-const StoriesRouteWithChildren =
-  StoriesRoute._addFileChildren(StoriesRouteChildren);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute;
-  '/demos': typeof DemosRoute;
-  '/documentation': typeof DocumentationRoute;
-  '/github': typeof GithubRoute;
-  '/msw-test': typeof MswTestRoute;
-  '/sellsense-demo': typeof SellsenseDemoRoute;
-  '/solutions': typeof SolutionsRoute;
-  '/stories': typeof StoriesRouteWithChildren;
-  '/stories/$storyId': typeof StoriesStoryIdRoute;
-  '/stories/': typeof StoriesIndexRoute;
+  '/': typeof IndexRoute
+  '/demos': typeof DemosRoute
+  '/documentation': typeof DocumentationRoute
+  '/github': typeof GithubRoute
+  '/msw-test': typeof MswTestRoute
+  '/sellsense-demo': typeof SellsenseDemoRoute
+  '/solutions': typeof SolutionsRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/stories/': typeof StoriesIndexRoute
 }
-
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute;
-  '/demos': typeof DemosRoute;
-  '/documentation': typeof DocumentationRoute;
-  '/github': typeof GithubRoute;
-  '/msw-test': typeof MswTestRoute;
-  '/sellsense-demo': typeof SellsenseDemoRoute;
-  '/solutions': typeof SolutionsRoute;
-  '/stories/$storyId': typeof StoriesStoryIdRoute;
-  '/stories': typeof StoriesIndexRoute;
+  '/': typeof IndexRoute
+  '/demos': typeof DemosRoute
+  '/documentation': typeof DocumentationRoute
+  '/github': typeof GithubRoute
+  '/msw-test': typeof MswTestRoute
+  '/sellsense-demo': typeof SellsenseDemoRoute
+  '/solutions': typeof SolutionsRoute
+  '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/stories': typeof StoriesIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  '/': typeof IndexRoute;
-  '/demos': typeof DemosRoute;
-  '/documentation': typeof DocumentationRoute;
-  '/github': typeof GithubRoute;
-  '/msw-test': typeof MswTestRoute;
-  '/sellsense-demo': typeof SellsenseDemoRoute;
-  '/solutions': typeof SolutionsRoute;
-  '/stories': typeof StoriesRouteWithChildren;
-  '/stories/$storyId': typeof StoriesStoryIdRoute;
-  '/stories/': typeof StoriesIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/demos': typeof DemosRoute
+  '/documentation': typeof DocumentationRoute
+  '/github': typeof GithubRoute
+  '/msw-test': typeof MswTestRoute
+  '/sellsense-demo': typeof SellsenseDemoRoute
+  '/solutions': typeof SolutionsRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/stories/': typeof StoriesIndexRoute
 }
-
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/demos'
@@ -227,8 +119,8 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/stories'
     | '/stories/$storyId'
-    | '/stories/';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/stories/'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/demos'
@@ -238,7 +130,7 @@ export interface FileRouteTypes {
     | '/sellsense-demo'
     | '/solutions'
     | '/stories/$storyId'
-    | '/stories';
+    | '/stories'
   id:
     | '__root__'
     | '/'
@@ -250,20 +142,107 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/stories'
     | '/stories/$storyId'
-    | '/stories/';
-  fileRoutesById: FileRoutesById;
+    | '/stories/'
+  fileRoutesById: FileRoutesById
+}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  DemosRoute: typeof DemosRoute
+  DocumentationRoute: typeof DocumentationRoute
+  GithubRoute: typeof GithubRoute
+  MswTestRoute: typeof MswTestRoute
+  SellsenseDemoRoute: typeof SellsenseDemoRoute
+  SolutionsRoute: typeof SolutionsRoute
+  StoriesRoute: typeof StoriesRouteWithChildren
 }
 
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  DemosRoute: typeof DemosRoute;
-  DocumentationRoute: typeof DocumentationRoute;
-  GithubRoute: typeof GithubRoute;
-  MswTestRoute: typeof MswTestRoute;
-  SellsenseDemoRoute: typeof SellsenseDemoRoute;
-  SolutionsRoute: typeof SolutionsRoute;
-  StoriesRoute: typeof StoriesRouteWithChildren;
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions': {
+      id: '/solutions'
+      path: '/solutions'
+      fullPath: '/solutions'
+      preLoaderRoute: typeof SolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sellsense-demo': {
+      id: '/sellsense-demo'
+      path: '/sellsense-demo'
+      fullPath: '/sellsense-demo'
+      preLoaderRoute: typeof SellsenseDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/msw-test': {
+      id: '/msw-test'
+      path: '/msw-test'
+      fullPath: '/msw-test'
+      preLoaderRoute: typeof MswTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/github': {
+      id: '/github'
+      path: '/github'
+      fullPath: '/github'
+      preLoaderRoute: typeof GithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documentation': {
+      id: '/documentation'
+      path: '/documentation'
+      fullPath: '/documentation'
+      preLoaderRoute: typeof DocumentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demos': {
+      id: '/demos'
+      path: '/demos'
+      fullPath: '/demos'
+      preLoaderRoute: typeof DemosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stories/': {
+      id: '/stories/'
+      path: '/'
+      fullPath: '/stories/'
+      preLoaderRoute: typeof StoriesIndexRouteImport
+      parentRoute: typeof StoriesRoute
+    }
+    '/stories/$storyId': {
+      id: '/stories/$storyId'
+      path: '/$storyId'
+      fullPath: '/stories/$storyId'
+      preLoaderRoute: typeof StoriesStoryIdRouteImport
+      parentRoute: typeof StoriesRoute
+    }
+  }
 }
+
+interface StoriesRouteChildren {
+  StoriesStoryIdRoute: typeof StoriesStoryIdRoute
+  StoriesIndexRoute: typeof StoriesIndexRoute
+}
+
+const StoriesRouteChildren: StoriesRouteChildren = {
+  StoriesStoryIdRoute: StoriesStoryIdRoute,
+  StoriesIndexRoute: StoriesIndexRoute,
+}
+
+const StoriesRouteWithChildren =
+  StoriesRoute._addFileChildren(StoriesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -274,64 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
-};
-
-export const routeTree = rootRoute
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/demos",
-        "/documentation",
-        "/github",
-        "/msw-test",
-        "/sellsense-demo",
-        "/solutions",
-        "/stories"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/demos": {
-      "filePath": "demos.tsx"
-    },
-    "/documentation": {
-      "filePath": "documentation.tsx"
-    },
-    "/github": {
-      "filePath": "github.tsx"
-    },
-    "/msw-test": {
-      "filePath": "msw-test.tsx"
-    },
-    "/sellsense-demo": {
-      "filePath": "sellsense-demo.tsx"
-    },
-    "/solutions": {
-      "filePath": "solutions.tsx"
-    },
-    "/stories": {
-      "filePath": "stories.tsx",
-      "children": [
-        "/stories/$storyId",
-        "/stories/"
-      ]
-    },
-    "/stories/$storyId": {
-      "filePath": "stories.$storyId.tsx",
-      "parent": "/stories"
-    },
-    "/stories/": {
-      "filePath": "stories.index.tsx",
-      "parent": "/stories"
-    }
-  }
 }
-ROUTE_MANIFEST_END */
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
