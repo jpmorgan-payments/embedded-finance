@@ -19,10 +19,11 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import type { AddOwnerDialogProps } from './types';
 import { VALIDATION_MESSAGES } from '../../IndirectOwnership.internal.types';
-import { useAddOwnerFormSchema, type AddOwnerFormData } from './AddOwnerDialog.schema';
+import { addOwnerFormSchema, type AddOwnerFormData } from './AddOwnerDialog.schema';
 
 /**
  * AddOwnerDialog - Dialog for adding/editing beneficial owners
@@ -43,11 +44,16 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   testId = 'add-owner-dialog',
 }) => {
   const { t } = useTranslation();
-  const schema = useAddOwnerFormSchema();
+
+  // Simple error state management (established pattern)
+  const [submissionError, setSubmissionError] = React.useState<Error | null>(null);
+  const [isSubmittingForm, setIsSubmittingForm] = React.useState(false);
 
   // React Hook Form setup with Zod validation
   const {
     register,
+    clearErrors,
+    getValues,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
@@ -55,7 +61,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
     watch,
     setError
   } = useForm<AddOwnerFormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(addOwnerFormSchema),
     mode: 'onBlur',
     defaultValues: {
       firstName: '',
@@ -113,8 +119,14 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
       return;
     }
 
+    // Clear previous submission errors
+    clearErrors('root.submission');
+    setSubmissionError(null);
+
     try {
-      await onSubmit({
+      setIsSubmittingForm(true);
+      
+      onSubmit({
         ownershipType: data.ownershipType,
         status: data.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
         meets25PercentThreshold: true, // Always true for beneficial owners
@@ -124,18 +136,28 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           lastName: data.lastName,
         },
       } as any); // Type assertion needed due to interface differences
+      
+      // Success - close dialog and reset form
+      reset();
+      onClose();
+      
     } catch (error) {
+      const err = error instanceof Error ? error : new Error('Failed to add owner');
+      setSubmissionError(err);
       setError('root.general', {
         type: 'submission',
-        message: error instanceof Error ? error.message : 'Failed to add owner'
+        message: err.message
       });
+    } finally {
+      setIsSubmittingForm(false);
     }
   };
 
   // Handle dialog close
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!isSubmittingForm) {
       reset();
+      setSubmissionError(null);
       onClose();
     }
   };
@@ -164,7 +186,21 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           aria-labelledby="dialog-title"
           aria-describedby="dialog-description"
         >
-          {/* General Error */}
+          {/* Server Error Alert */}
+          {submissionError && (
+            <ServerErrorAlert 
+              error={submissionError as any}
+              customTitle="Failed to Add Owner"
+              showDetails={false}
+              tryAgainAction={() => {
+                // Simple retry - resubmit the form
+                const formData = getValues();
+                onFormSubmit(formData);
+              }}
+            />
+          )}
+
+          {/* Validation Errors */}
           {errors.root?.general && (
             <Alert 
               className="eb-border-red-200 eb-bg-red-50"
@@ -173,6 +209,18 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             >
               <AlertDescription className="eb-text-red-700">
                 {errors.root.general.message}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {errors.root?.submission && (
+            <Alert 
+              className="eb-border-red-200 eb-bg-red-50"
+              role="alert"
+              aria-live="polite"
+            >
+              <AlertDescription className="eb-text-red-700">
+                {errors.root.submission.message}
               </AlertDescription>
             </Alert>
           )}
@@ -310,15 +358,17 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={isSubmittingForm}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmittingForm}
             >
-              {isSubmitting ? 'Adding...' : editingOwnerId ? 'Update Owner' : 'Add Owner'}
+              {isSubmittingForm 
+                ? 'Adding...'
+                : editingOwnerId ? 'Update Owner' : 'Add Owner'}
             </Button>
           </DialogFooter>
         </form>

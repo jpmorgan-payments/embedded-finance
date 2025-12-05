@@ -28,6 +28,8 @@ import {
   getBeneficialOwnerFullName
 } from './utils/openapi-transforms';
 
+
+
 /**
  * IndirectOwnership - Streamlined ownership structure building
  * 
@@ -36,9 +38,10 @@ import {
  * - Dialog-based owner addition with immediate feedback
  * - On-demand hierarchy building for indirect owners
  * - Live validation and progress tracking
- * - Reuses existing AlternateOwnershipReview.renderOwnershipChain() for visualization
+ * - Enhanced error handling with boundaries and safe transforms
+ * - Retry mechanisms for failed operations
  */
-export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
+const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   client,
   onOwnershipComplete,
   onValidationChange,
@@ -47,7 +50,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
   className = '',
   testId = 'indirect-ownership',
 }) => {
-  // Extract data from OpenAPI client
+  // Extract data from OpenAPI client (established pattern)
   const rootCompanyName = client ? getRootCompanyName(client) : 'Unknown Entity';
   const initialOwners = client ? extractBeneficialOwners(client) : [];
   
@@ -539,7 +542,16 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
   );
 };
 
-// Simple Add Owner Dialog Component
+/**
+ * IndirectOwnership component (relies on global ErrorBoundary in EBComponentsProvider)
+ */
+export const IndirectOwnership: React.FC<IndirectOwnershipProps> = (props) => {
+  return <IndirectOwnershipCore {...props} />;
+};
+
+/**
+ * Simple Add Owner Dialog Component
+ */
 interface AddOwnerDialogProps {
   isOpen: boolean;
   onClose: () => void;

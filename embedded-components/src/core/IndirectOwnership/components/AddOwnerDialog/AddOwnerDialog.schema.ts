@@ -2,10 +2,9 @@ import { z } from 'zod';
 
 /**
  * Zod schema for AddOwnerDialog form validation
- * Follows project patterns for form validation with proper error messages
+ * Uses direct schema definition following established codebase patterns
  */
-export const useAddOwnerFormSchema = () => {
-  return z.object({
+export const addOwnerFormSchema = z.object({
     firstName: z
       .string()
       .min(1, 'First name is required')
@@ -51,9 +50,8 @@ export const useAddOwnerFormSchema = () => {
       path: ['general']
     }
   );
-};
 
 /**
  * Type inference for the form schema
  */
-export type AddOwnerFormData = z.infer<ReturnType<typeof useAddOwnerFormSchema>>;
+export type AddOwnerFormData = z.infer<typeof addOwnerFormSchema>;
