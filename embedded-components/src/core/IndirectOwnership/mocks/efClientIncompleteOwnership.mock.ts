@@ -1,80 +1,89 @@
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
- * Mock client data with incomplete beneficial ownership structure.
- * This client has entities that don't have identified beneficial owners (individuals),
- * which triggers the INCOMPLETE_BENEFICIAL_OWNERSHIP validation error.
- *
- * Structure:
- * Central Perk Coffee & Cookies (Client)
- * ├── Central Perk Coffee - Entity WITHOUT beneficial owners (⚠️ VALIDATION ERROR)
- * └── Central Perk Cookies - Entity WITHOUT beneficial owners (⚠️ VALIDATION ERROR)
- *
- * Both entities are missing their individual beneficial owners, which should trigger
- * the validation error: "Entity does not have identified beneficial owners"
+ * Mock client with error state beneficial ownership - demonstrates parties needing additional information.
+ * 
+ * Features:
+ * - Ross Geller: Needs additional documentation (INFORMATION_REQUESTED status)
+ * - Demonstrates error handling workflow
  */
 export const efClientIncompleteOwnership: ClientResponse = {
   id: 'incomplete-ownership-client-001',
   attestations: [],
   parties: [
-    // Root client entity - Central Perk Coffee & Cookies
+    // CLIENT: Central Perk Coffee & Cookies
     {
-      id: 'party-client-001',
+      id: 'party-central-perk',
       partyType: 'ORGANIZATION',
-      externalId: 'CENTRALPERK001',
-      email: 'contact@centralperk.com',
+      externalId: 'CENTRAL_PERK_001',
+      email: 'info@centralperk.com',
       roles: ['CLIENT'],
       profileStatus: 'APPROVED',
       active: true,
-      createdAt: '2024-01-15T10:00:00Z',
+      createdAt: '2024-01-15T10:00:00.000Z',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
         organizationName: 'Central Perk Coffee & Cookies',
         countryOfFormation: 'US',
       },
     },
-    // Central Perk Coffee - entity without beneficial owners identified (VALIDATION ERROR)
+
+    // ERROR STATE: Ross Geller (indirect owner) needs additional documentation
     {
-      id: 'party-entity-001',
-      partyType: 'ORGANIZATION',
-      externalId: 'COFFEE001',
-      email: 'coffee@centralperk.com',
+      id: 'party-ross-error',
+      partyType: 'INDIVIDUAL',
+      externalId: 'ROSS_ERROR_001',
+      email: 'ross.geller@email.com',
       roles: ['BENEFICIAL_OWNER'],
+      profileStatus: 'INFORMATION_REQUESTED', // Error state
+      active: true,
+      parentPartyId: 'party-central-perk-coffee-error', // Indirect ownership
+      createdAt: '2024-01-15T10:45:00.000Z',
+      individualDetails: {
+        firstName: 'Ross',
+        lastName: 'Geller',
+      },
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          fields: [
+            {
+              name: 'government_id',
+            },
+            {
+              name: 'address_verification',
+            },
+          ],
+        },
+      ],
+    },
+
+    // INTERMEDIATE ENTITY for Ross's error state ownership chain
+    {
+      id: 'party-central-perk-coffee-error',
+      partyType: 'ORGANIZATION',
+      externalId: 'CENTRAL_PERK_COFFEE_ERROR_001',
+      email: 'contact@centralperkcoffee.com',
+      roles: [], // Not a BENEFICIAL_OWNER role - just an intermediate entity
       profileStatus: 'APPROVED',
       active: true,
-      createdAt: '2024-01-15T10:00:00Z',
-      parentPartyId: 'party-client-001',
+      createdAt: '2024-01-15T11:00:00.000Z',
       organizationDetails: {
         organizationType: 'LIMITED_LIABILITY_COMPANY',
         organizationName: 'Central Perk Coffee',
         countryOfFormation: 'US',
       },
-    },
-    // Central Perk Cookies - entity without beneficial owners identified (VALIDATION ERROR)
-    {
-      id: 'party-entity-002',
-      partyType: 'ORGANIZATION',
-      externalId: 'COOKIES001',
-      email: 'cookies@centralperk.com',
-      roles: ['BENEFICIAL_OWNER'],
-      profileStatus: 'APPROVED',
-      active: true,
-      createdAt: '2024-01-15T10:00:00Z',
-      parentPartyId: 'party-client-001',
-      organizationDetails: {
-        organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationName: 'Central Perk Cookies',
-        countryOfFormation: 'US',
-      },
+      // No parentPartyId = Directly owns Central Perk Coffee & Cookies
     },
   ],
-  partyId: 'party-client-001',
+  partyId: 'party-central-perk',
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
     attestationDocumentIds: [],
     documentRequestIds: [],
-    partyIds: [],
-    partyRoles: [],
+    partyIds: ['party-ross-error'],
+    partyRoles: ['BENEFICIAL_OWNER'],
     questionIds: [],
   },
   createdAt: '2024-01-15T10:00:00Z',

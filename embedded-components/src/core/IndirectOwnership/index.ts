@@ -1,6 +1,19 @@
-// Main IndirectOwnership module exports
+/**
+ * IndirectOwnership - Public API
+ */
+
+// Main component
 export { IndirectOwnership } from './IndirectOwnership';
-export * from './components';
-export * from './hooks';
-export * from './types';
-export * from './utils';
+
+// Public types only
+export type { 
+  IndirectOwnershipProps, 
+  BeneficialOwner, 
+  BeneficialOwnerStatus,
+  ValidationSummary,
+  OwnershipHierarchy,
+  HierarchyStep 
+} from './IndirectOwnership.types';
+
+// ❌ DON'T export internals:
+// - Hooks, sub-components, utils, constants
