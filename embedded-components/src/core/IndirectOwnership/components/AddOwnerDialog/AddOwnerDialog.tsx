@@ -142,20 +142,35 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="eb-max-w-md" data-testid={testId}>
+      <DialogContent 
+        className="eb-max-w-md" 
+        data-testid={testId}
+        aria-labelledby="dialog-title"
+        aria-describedby="dialog-description"
+      >
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle id="dialog-title">
             {editingOwnerId ? 'Edit Beneficial Owner' : 'Add Beneficial Owner'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="dialog-description">
             Add someone who owns 25% or more of your business.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onFormSubmit)} className="eb-space-y-4">
+        <form 
+          onSubmit={handleSubmit(onFormSubmit)} 
+          className="eb-space-y-4"
+          noValidate
+          aria-labelledby="dialog-title"
+          aria-describedby="dialog-description"
+        >
           {/* General Error */}
           {errors.root?.general && (
-            <Alert className="eb-border-red-200 eb-bg-red-50">
+            <Alert 
+              className="eb-border-red-200 eb-bg-red-50"
+              role="alert"
+              aria-live="polite"
+            >
               <AlertDescription className="eb-text-red-700">
                 {errors.root.general.message}
               </AlertDescription>
@@ -170,9 +185,19 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               {...register('firstName')}
               placeholder="John"
               className={errors.firstName ? 'eb-border-red-300' : ''}
+              aria-required="true"
+              aria-invalid={errors.firstName ? 'true' : 'false'}
+              aria-describedby={errors.firstName ? 'firstName-error' : undefined}
             />
             {errors.firstName && (
-              <p className="eb-text-sm eb-text-red-600">{errors.firstName.message}</p>
+              <p 
+                id="firstName-error"
+                className="eb-text-sm eb-text-red-600"
+                role="alert"
+                aria-live="polite"
+              >
+                {errors.firstName.message}
+              </p>
             )}
           </div>
 
@@ -184,31 +209,49 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               {...register('lastName')}
               placeholder="Smith"
               className={errors.lastName ? 'eb-border-red-300' : ''}
+              aria-required="true"
+              aria-invalid={errors.lastName ? 'true' : 'false'}
+              aria-describedby={errors.lastName ? 'lastName-error' : undefined}
             />
             {errors.lastName && (
-              <p className="eb-text-sm eb-text-red-600">{errors.lastName.message}</p>
+              <p 
+                id="lastName-error"
+                className="eb-text-sm eb-text-red-600"
+                role="alert"
+                aria-live="polite"
+              >
+                {errors.lastName.message}
+              </p>
             )}
           </div>
 
           {/* Ownership Type */}
-          <div className="eb-space-y-3">
-            <Label>Ownership Type *</Label>
+          <fieldset className="eb-space-y-3">
+            <legend className="eb-text-sm eb-font-medium">Ownership Type *</legend>
             <RadioGroup
               value={watchedValues.ownershipType}
               onValueChange={(value: 'DIRECT' | 'INDIRECT') => 
                 setValue('ownershipType', value)
               }
               className="eb-space-y-3"
+              aria-required="true"
+              aria-invalid={errors.ownershipType ? 'true' : 'false'}
+              aria-describedby={errors.ownershipType ? 'ownershipType-error' : 'ownership-type-help'}
             >
               {/* Direct Owner */}
               <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-bg-blue-50 eb-border-blue-200">
-                <RadioGroupItem value="DIRECT" id="direct" className="eb-mt-1" />
+                <RadioGroupItem 
+                  value="DIRECT" 
+                  id="direct" 
+                  className="eb-mt-1"
+                  aria-describedby="direct-description" 
+                />
                 <div className="eb-flex-1">
                   <Label htmlFor="direct" className="eb-flex eb-items-center eb-gap-2 eb-font-medium eb-text-blue-900">
-                    <User className="eb-h-4 eb-w-4" />
+                    <User className="eb-h-4 eb-w-4" aria-hidden="true" />
                     Direct Owner
                   </Label>
-                  <p className="eb-text-sm eb-text-blue-700 eb-mt-1">
+                  <p id="direct-description" className="eb-text-sm eb-text-blue-700 eb-mt-1">
                     Has 25% or more ownership directly in your business
                   </p>
                 </div>
@@ -216,22 +259,40 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
               {/* Indirect Owner */}
               <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-bg-orange-50 eb-border-orange-200">
-                <RadioGroupItem value="INDIRECT" id="indirect" className="eb-mt-1" />
+                <RadioGroupItem 
+                  value="INDIRECT" 
+                  id="indirect" 
+                  className="eb-mt-1"
+                  aria-describedby="indirect-description"
+                />
                 <div className="eb-flex-1">
                   <Label htmlFor="indirect" className="eb-flex eb-items-center eb-gap-2 eb-font-medium eb-text-orange-900">
-                    <Building className="eb-h-4 eb-w-4" />
+                    <Building className="eb-h-4 eb-w-4" aria-hidden="true" />
                     Indirect Owner
                   </Label>
-                  <p className="eb-text-sm eb-text-orange-700 eb-mt-1">
+                  <p id="indirect-description" className="eb-text-sm eb-text-orange-700 eb-mt-1">
                     Has 25% or more ownership through other companies
                   </p>
                 </div>
               </div>
             </RadioGroup>
             {errors.ownershipType && (
-              <p className="eb-text-sm eb-text-red-600">{errors.ownershipType.message}</p>
+              <p 
+                id="ownershipType-error"
+                className="eb-text-sm eb-text-red-600"
+                role="alert"
+                aria-live="polite"
+              >
+                {errors.ownershipType.message}
+              </p>
             )}
-          </div>
+            <div 
+              id="ownership-type-help" 
+              className="eb-sr-only"
+            >
+              Choose how this person owns 25% or more of your business: directly through shares or indirectly through other companies.
+            </div>
+          </fieldset>
 
           {/* Information about next steps */}
           {watchedValues.ownershipType === 'INDIRECT' && (

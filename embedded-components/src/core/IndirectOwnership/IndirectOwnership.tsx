@@ -144,31 +144,51 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
 
       
       {/* Main Header - Aligned with LinkedAccountWidget pattern */}
-      <Card>
+      <Card 
+        role="region"
+        aria-labelledby="ownership-title"
+        aria-describedby="ownership-description"
+      >
         <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
             <div>
-              <CardTitle className="eb-font-header eb-text-lg eb-font-semibold @md:eb-text-xl">
+              <CardTitle 
+                id="ownership-title"
+                className="eb-font-header eb-text-lg eb-font-semibold @md:eb-text-xl"
+              >
                 Who are your beneficial owners?{' '}
                 {beneficialOwners.length > 0 && (
-                  <span className="eb-animate-fade-in">
+                  <span 
+                    className="eb-animate-fade-in"
+                    aria-live="polite"
+                    aria-label={`${beneficialOwners.length} beneficial owners added`}
+                  >
                     ({beneficialOwners.length} added)
                   </span>
                 )}
               </CardTitle>
-              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              <p 
+                id="ownership-description"
+                className="eb-mt-1 eb-text-sm eb-text-muted-foreground"
+              >
                 A beneficial owner is an individual who owns 25% or more of your business, either directly or through other companies.
               </p>
             </div>
-            <div className="eb-flex eb-items-center eb-gap-2">
+            <div 
+              className="eb-flex eb-items-center eb-gap-2" 
+              role="toolbar" 
+              aria-label="Beneficial ownership management actions"
+            >
               {!readOnly && (
                 <Button
                   onClick={handleAddOwner}
                   variant="outline"
                   size="sm"
                   className="eb-shrink-0 eb-bg-background"
+                  aria-label="Add new beneficial owner to ownership structure"
+                  aria-describedby="ownership-description"
                 >
-                  <Plus className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                  <Plus className="eb-mr-1.5 eb-h-4 eb-w-4" aria-hidden="true" />
                   Add Beneficial Owner
                 </Button>
               )}
@@ -178,6 +198,12 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                   disabled={!validationSummary.canComplete}
                   variant={validationSummary.canComplete ? 'default' : 'outline'}
                   size="sm"
+                  aria-label={`Complete ownership structure setup. ${
+                    validationSummary.canComplete 
+                      ? 'All requirements met, ready to complete' 
+                      : `${validationSummary.errors.length + validationSummary.pendingHierarchies} issues need to be resolved`
+                  }`}
+                  aria-describedby="validation-summary"
                 >
                   Complete
                 </Button>
@@ -187,11 +213,26 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
         </CardHeader>
         <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
           {/* Current Ownership Structure */}
-          <div>
-            <h3 className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3">Current Ownership Structure:</h3>
+          <section aria-labelledby="ownership-structure-heading" aria-live="polite">
+            <h3 
+              id="ownership-structure-heading"
+              className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3"
+            >
+              Current Ownership Structure:
+              <span className="eb-sr-only">
+                {beneficialOwners.length === 0 
+                  ? "No beneficial owners added" 
+                  : `${beneficialOwners.length} beneficial owners added`
+                }
+              </span>
+            </h3>
             {beneficialOwners.length === 0 ? (
-              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12 eb-text-center eb-animate-fade-in">
-                <div className="eb-relative">
+              <div 
+                className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12 eb-text-center eb-animate-fade-in"
+                role="status"
+                aria-label="Empty ownership structure"
+              >
+                <div className="eb-relative" aria-hidden="true">
                   <div className="eb-rounded-full eb-bg-muted eb-p-4">
                     <User className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
                   </div>
@@ -200,16 +241,20 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                   </div>
                 </div>
                 <div className="eb-space-y-1">
-                  <h3 className="eb-text-base eb-font-semibold eb-text-foreground">
+                  <h4 className="eb-text-base eb-font-semibold eb-text-foreground">
                     No beneficial owners added yet
-                  </h3>
+                  </h4>
                   <p className="eb-max-w-sm eb-text-sm eb-text-muted-foreground">
                     Click "Add Beneficial Owner" to get started building your ownership structure
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-3">
+              <div 
+                className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-3"
+                role="list"
+                aria-label={`Beneficial owners list with ${beneficialOwners.length} owners`}
+              >
                 {beneficialOwners.map((owner, index) => (
                   <div 
                     key={owner.id} 
@@ -218,53 +263,80 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                       animationDelay: `${index * 50}ms`,
                       animationFillMode: 'backwards',
                     }}
+                    role="listitem"
+                    aria-labelledby={`owner-${owner.id}-name`}
+                    aria-describedby={`owner-${owner.id}-status owner-${owner.id}-type`}
                   >
                     <div className="eb-p-4">
                     <div className="eb-flex eb-items-center eb-justify-between">
                       <div className="eb-flex eb-items-center eb-gap-3">
                         <div className="eb-flex eb-items-center eb-gap-2">
                           {owner.status === 'COMPLETE' ? (
-                            <CheckCircle2 className="eb-h-5 eb-w-5 eb-text-success" />
+                            <CheckCircle2 
+                              className="eb-h-5 eb-w-5 eb-text-success" 
+                              aria-hidden="true" 
+                            />
                           ) : owner.status === 'PENDING_HIERARCHY' ? (
-                            <Clock className="eb-h-5 eb-w-5 eb-text-warning" />
+                            <Clock 
+                              className="eb-h-5 eb-w-5 eb-text-warning" 
+                              aria-hidden="true" 
+                            />
                           ) : (
-                            <AlertTriangle className="eb-h-5 eb-w-5 eb-text-destructive" />
+                            <AlertTriangle 
+                              className="eb-h-5 eb-w-5 eb-text-destructive" 
+                              aria-hidden="true" 
+                            />
                           )}
-                          <span className="eb-font-medium">{getBeneficialOwnerFullName(owner)}</span>
+                          <span 
+                            id={`owner-${owner.id}-name`}
+                            className="eb-font-medium"
+                          >
+                            {getBeneficialOwnerFullName(owner)}
+                          </span>
                         </div>
                         <Badge 
+                          id={`owner-${owner.id}-type`}
                           variant={owner.ownershipType === 'DIRECT' ? 'success' : 'secondary'}
                           className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
+                          aria-label={`Ownership type: ${owner.ownershipType === 'DIRECT' ? 'Direct owner' : 'Indirect owner'}`}
                         >
                           {owner.ownershipType === 'DIRECT' ? (
                             <>
-                              <UserCheck className="eb-h-3.5 eb-w-3.5" />
+                              <UserCheck className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
                               Direct Owner
                             </>
                           ) : (
                             <>
-                              <Users className="eb-h-3.5 eb-w-3.5" />
+                              <Users className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
                               Indirect Owner
                             </>
                           )}
                         </Badge>
                         {owner.status === 'PENDING_HIERARCHY' && (
                           <Badge 
+                            id={`owner-${owner.id}-status`}
                             variant="warning"
                             className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
+                            aria-label="Status: Pending hierarchy setup"
                           >
-                            <Clock className="eb-h-3.5 eb-w-3.5" />
+                            <Clock className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
                             Pending Hierarchy
                           </Badge>
                         )}
                       </div>
-                      <div className="eb-flex eb-items-center eb-gap-2">
+                      <div 
+                        className="eb-flex eb-items-center eb-gap-2"
+                        role="group"
+                        aria-label={`Actions for ${getBeneficialOwnerFullName(owner)}`}
+                      >
                         {!readOnly && owner.status === 'PENDING_HIERARCHY' && (
                           <Button
                             onClick={() => owner.id && handleBuildHierarchy(owner.id)}
                             size="sm"
                             variant="outline"
                             className="eb-shrink-0 eb-bg-background"
+                            aria-label={`Build ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
+                            aria-describedby={`owner-${owner.id}-status`}
                           >
                             Build Ownership Hierarchy
                           </Button>
@@ -275,8 +347,9 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             size="sm"
                             variant="outline"
                             className="eb-shrink-0 eb-bg-background"
+                            aria-label={`Edit ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
                           >
-                            <Edit className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                            <Edit className="eb-mr-1.5 eb-h-4 eb-w-4" aria-hidden="true" />
                             Edit Chain
                           </Button>
                         )}
@@ -286,8 +359,10 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                             size="sm"
                             variant="outline"
                             className="eb-shrink-0 eb-bg-background eb-text-destructive eb-hover:bg-destructive/5"
+                            aria-label={`Remove ${getBeneficialOwnerFullName(owner)} from ownership structure`}
+                            title={`Remove ${getBeneficialOwnerFullName(owner)}`}
                           >
-                            <Trash2 className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                            <Trash2 className="eb-mr-1.5 eb-h-4 eb-w-4" aria-hidden="true" />
                             Remove
                           </Button>
                         )}
@@ -350,29 +425,52 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                 ))}
               </div>
             )}
-          </div>
+          </section>
 
           
           {/* Validation Status */}
-          <div>
-            <h3 className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3">Validation Status:</h3>
-            <Alert className={
-              validationSummary.hasErrors 
-                ? 'eb-border-destructive eb-bg-destructive-accent' 
-                : validationSummary.canComplete 
-                ? 'eb-border-success eb-bg-success-accent' 
-                : 'eb-border-warning eb-bg-warning-accent'
-            }>
+          <section 
+            aria-labelledby="validation-status-heading"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <h3 
+              id="validation-status-heading"
+              className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3"
+            >
+              Validation Status:
+            </h3>
+            <Alert 
+              className={
+                validationSummary.hasErrors 
+                  ? 'eb-border-destructive eb-bg-destructive-accent' 
+                  : validationSummary.canComplete 
+                  ? 'eb-border-success eb-bg-success-accent' 
+                  : 'eb-border-warning eb-bg-warning-accent'
+              }
+              role="status"
+              aria-labelledby="validation-status-heading"
+              aria-describedby="validation-summary"
+            >
               <div className="eb-flex eb-items-center eb-gap-2">
                 {validationSummary.hasErrors ? (
-                  <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
+                  <AlertTriangle 
+                    className="eb-h-4 eb-w-4 eb-text-destructive" 
+                    aria-hidden="true" 
+                  />
                 ) : validationSummary.canComplete ? (
-                  <CheckCircle2 className="eb-h-4 eb-w-4 eb-text-success" />
+                  <CheckCircle2 
+                    className="eb-h-4 eb-w-4 eb-text-success" 
+                    aria-hidden="true" 
+                  />
                 ) : (
-                  <Clock className="eb-h-4 eb-w-4 eb-text-warning" />
+                  <Clock 
+                    className="eb-h-4 eb-w-4 eb-text-warning" 
+                    aria-hidden="true" 
+                  />
                 )}
               </div>
-              <AlertDescription>
+              <AlertDescription id="validation-summary">
                 <div className="eb-space-y-1">
                   {validationSummary.totalOwners === 0 ? (
                     <div>Add your first beneficial owner to get started.</div>
@@ -398,7 +496,7 @@ export const IndirectOwnership: React.FC<IndirectOwnershipProps> = ({
                 </div>
               </AlertDescription>
             </Alert>
-          </div>
+          </section>
         </CardContent>
       </Card>
 
