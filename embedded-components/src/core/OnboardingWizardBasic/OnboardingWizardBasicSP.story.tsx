@@ -21,6 +21,13 @@ import type { BaseStoryArgs } from '../../../.storybook/preview';
 export type OnboardingWizardBasicSPStoryArgs = OnboardingWizardBasicProps &
   BaseStoryArgs;
 
+/**
+ * @deprecated Use OnboardingWizardBasicSPStoryArgs instead
+ * Kept for backward compatibility with existing story files
+ */
+export type OnboardingWizardBasicWithProviderProps =
+  OnboardingWizardBasicSPStoryArgs;
+
 const meta: Meta<OnboardingWizardBasicSPStoryArgs> = {
   title: 'Legacy/OnboardingWizardBasic/Steps',
   component: OnboardingWizardBasic,

@@ -13,6 +13,12 @@ import { handlers } from '../../../msw/handlers';
  */
 export type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
+/**
+ * @deprecated Use OnboardingFlowStoryArgs instead
+ * Kept for backward compatibility with existing story files
+ */
+export type OnboardingFlowWithProviderProps = OnboardingFlowStoryArgs;
+
 const meta: Meta<OnboardingFlowStoryArgs> = {
   title: 'Core/OnboardingFlow/Themes',
   component: OnboardingFlow,

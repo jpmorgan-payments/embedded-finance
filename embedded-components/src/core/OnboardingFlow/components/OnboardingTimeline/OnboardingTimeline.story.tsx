@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ScreenId } from '@/core/OnboardingFlow/types';
 
-import type { BaseStoryArgs } from '../../../../../../.storybook/preview';
+import type { BaseStoryArgs } from '../../../../../.storybook/preview';
 import { OnboardingTimeline, TimelineSection } from './OnboardingTimeline';
 
 /**
@@ -38,6 +38,9 @@ const meta: Meta<OnboardingTimelineStoryArgs> = {
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
+  },
+  args: {
+    sections: [],
   },
   render: (args) => (
     <OnboardingTimelineStory
@@ -174,7 +177,6 @@ const mockSections: TimelineSection[] = [
 
 export const Default: Story = {
   args: {
-    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'personal-section',
     currentStepId: 'identity-document',
@@ -183,7 +185,6 @@ export const Default: Story = {
 
 export const FirstSection: Story = {
   args: {
-    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'business-section',
     currentStepId: 'business-info',
@@ -192,7 +193,6 @@ export const FirstSection: Story = {
 
 export const AllCompleted: Story = {
   args: {
-    apiBaseUrl: '/',
     sections: mockSections.map((section) => ({
       ...section,
       status: 'completed' as const,
@@ -208,7 +208,6 @@ export const AllCompleted: Story = {
 
 export const LastSection: Story = {
   args: {
-    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'compliance-section',
     currentStepId: 'kyc-verification',
@@ -217,7 +216,6 @@ export const LastSection: Story = {
 
 export const WithCustomHandlers: Story = {
   args: {
-    apiBaseUrl: '/',
     sections: mockSections,
     currentSectionId: 'personal-section',
     currentStepId: 'identity-document',
