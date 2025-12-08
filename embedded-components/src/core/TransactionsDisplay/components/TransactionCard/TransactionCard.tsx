@@ -9,15 +9,16 @@ import {
   formatNumberToCurrency,
   formatStatusText,
   getStatusVariant,
+  useLocale,
 } from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
 
 /**
  * Format date for display
  */
-const formatDate = (date?: string): string => {
+const formatDate = (date?: string, locale = 'en-US'): string => {
   if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -40,6 +41,7 @@ interface TransactionCardProps {
  */
 export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
   const { t } = useTranslation(['transactions', 'common']);
+  const locale = useLocale();
   const transactionId = transaction.id ?? '';
 
   return (
@@ -62,7 +64,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
               </Badge>
             </div>
             <div className="eb-text-xs eb-text-muted-foreground">
-              {formatDate(transaction.paymentDate)}
+              {formatDate(transaction.paymentDate, locale)}
             </div>
           </div>
           <div className="eb-shrink-0 eb-text-right">
@@ -70,7 +72,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
               {transaction.amount
                 ? formatNumberToCurrency(
                     transaction.amount,
-                    transaction.currency ?? 'USD'
+                    transaction.currency ?? 'USD',
+                    locale
                   )
                 : 'N/A'}
             </div>

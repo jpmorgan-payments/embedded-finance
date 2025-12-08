@@ -20,6 +20,7 @@ import {
   formatNumberToCurrency,
   formatStatusText,
   getStatusVariant,
+  useLocale,
 } from '../utils';
 
 export type TransactionDetailsDialogTriggerProps = {
@@ -31,6 +32,7 @@ export const TransactionDetailsDialogTrigger: FC<
   TransactionDetailsDialogTriggerProps
 > = ({ children, transactionId }) => {
   const { t } = useTranslation(['transactions', 'common']);
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
   const {
@@ -39,6 +41,8 @@ export const TransactionDetailsDialogTrigger: FC<
     error,
     refetch,
   } = useGetTransactionV2(transactionId, { query: { enabled: open } });
+
+  const naText = t('common:na', { defaultValue: 'N/A' });
 
   // Helper function to check if a field has a value
   const hasValue = (val: any): boolean => {
@@ -68,12 +72,10 @@ export const TransactionDetailsDialogTrigger: FC<
     );
   };
 
-  const naText = t('common:na', { defaultValue: 'N/A' });
-
   // Helper to format dates
   const formatDate = (date: string | undefined) => {
     if (!date) return naText;
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -83,7 +85,7 @@ export const TransactionDetailsDialogTrigger: FC<
   // Helper to format date-time
   const formatDateTime = (date: string | undefined) => {
     if (!date) return naText;
-    return new Date(date).toLocaleString('en-US', {
+    return new Date(date).toLocaleString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -185,19 +187,20 @@ export const TransactionDetailsDialogTrigger: FC<
               {/* Amount Section - Prominent */}
               <div className="eb-space-y-2">
                 <div className="eb-text-2xl eb-font-semibold">
-              {transaction.amount
-                ? formatNumberToCurrency(
-                    transaction.amount,
-                    transaction.currency ?? 'USD'
-                  )
-                : naText}
+                  {transaction.amount
+                    ? formatNumberToCurrency(
+                        transaction.amount,
+                        transaction.currency ?? 'USD',
+                        locale
+                      )
+                    : naText}
                 </div>
                 {renderField(
-                t('details.fields.currency', {
-                  defaultValue: 'Currency',
-                }),
-                transaction.currency
-              )}
+                  t('details.fields.currency', {
+                    defaultValue: 'Currency',
+                  }),
+                  transaction.currency
+                )}
               </div>
 
               {/* General Section */}
@@ -443,7 +446,8 @@ export const TransactionDetailsDialogTrigger: FC<
                         (val) =>
                           formatNumberToCurrency(
                             val,
-                            transaction.currency ?? 'USD'
+                            transaction.currency ?? 'USD',
+                            locale
                           )
                       )}
                       {renderField(

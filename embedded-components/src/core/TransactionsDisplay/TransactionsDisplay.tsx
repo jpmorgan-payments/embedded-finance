@@ -27,12 +27,14 @@ import type {
   TransactionsDisplayProps,
   TransactionsDisplayRef,
 } from './TransactionsDisplay.types';
+import { useLocale } from './utils';
 
 export const TransactionsDisplay = forwardRef<
   TransactionsDisplayRef,
   TransactionsDisplayProps
 >(({ accountIds }, ref) => {
   const { t } = useTranslation(['transactions']);
+  const locale = useLocale();
   const { filteredAccountIds } = useAccountsData();
   const { transactions, status, failureReason, refetch, isFetching } =
     useTransactionsData({
@@ -42,7 +44,11 @@ export const TransactionsDisplay = forwardRef<
   const isMobile = useMediaQuery('(max-width: 640px)');
 
   // Get translated columns
-  const transactionsColumns = getTransactionsColumns(t);
+  // Type assertion needed due to TypeScript overload resolution issues with TFunction
+  const transactionsColumns = getTransactionsColumns(
+    t as (key: string, options?: any) => string,
+    locale
+  );
 
   // Table state management (shared for both table and card views)
   const [sorting, setSorting] = useState<SortingState>([]);

@@ -14,9 +14,13 @@ import { DataTableColumnHeader } from './DataTableColumnHeader';
 /**
  * Format date for display
  */
-const formatDate = (date?: string, naText = 'N/A'): string => {
+const formatDate = (
+  date?: string,
+  naText = 'N/A',
+  locale = 'en-US'
+): string => {
   if (!date) return naText;
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -26,9 +30,13 @@ const formatDate = (date?: string, naText = 'N/A'): string => {
 /**
  * Format date-time for display
  */
-const formatDateTime = (date?: string, naText = 'N/A'): string => {
+const formatDateTime = (
+  date?: string,
+  naText = 'N/A',
+  locale = 'en-US'
+): string => {
   if (!date) return naText;
-  return new Date(date).toLocaleString('en-US', {
+  return new Date(date).toLocaleString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -47,9 +55,12 @@ const formatDateTime = (date?: string, naText = 'N/A'): string => {
  * - transactionReferenceId, createdAt, effectiveDate, memo, debtorName, creditorName, ledgerBalance, etc.
  */
 export const getTransactionsColumns = (
-  t: (key: string, options?: any) => string
+  t: (key: string, options?: any) => string,
+  locale?: string
 ): ColumnDef<ModifiedTransaction>[] => {
   const naText = t('common:na', { defaultValue: 'N/A' });
+  // Get locale from language code if not provided, or use provided locale
+  const currentLocale = locale || 'en-US';
   const dateTitle = t('columns.date', { defaultValue: 'Date' });
   const statusTitle = t('columns.status', { defaultValue: 'Status' });
   const typeTitle = t('columns.type', { defaultValue: 'Type' });
@@ -92,7 +103,11 @@ export const getTransactionsColumns = (
         return new Date(row.paymentDate).getTime();
       },
       cell: ({ row }) => {
-        return <div>{formatDate(row.original.paymentDate, naText)}</div>;
+        return (
+          <div>
+            {formatDate(row.original.paymentDate, naText, currentLocale)}
+          </div>
+        );
       },
       enableHiding: false,
     },
@@ -149,7 +164,8 @@ export const getTransactionsColumns = (
         }
         const formattedAmount = formatNumberToCurrency(
           transaction.amount,
-          transaction.currency ?? 'USD'
+          transaction.currency ?? 'USD',
+          currentLocale
         );
         const displayAmount =
           transaction.payinOrPayout === 'PAYIN'
@@ -216,7 +232,11 @@ export const getTransactionsColumns = (
         return new Date(row.createdAt).getTime();
       },
       cell: ({ row }) => {
-        return <div>{formatDateTime(row.original.createdAt, naText)}</div>;
+        return (
+          <div>
+            {formatDateTime(row.original.createdAt, naText, currentLocale)}
+          </div>
+        );
       },
     },
     // Effective Date - Hidden by default
@@ -232,7 +252,11 @@ export const getTransactionsColumns = (
         return new Date(row.effectiveDate).getTime();
       },
       cell: ({ row }) => {
-        return <div>{formatDateTime(row.original.effectiveDate, naText)}</div>;
+        return (
+          <div>
+            {formatDateTime(row.original.effectiveDate, naText, currentLocale)}
+          </div>
+        );
       },
     },
     // Memo - Hidden by default
@@ -294,7 +318,8 @@ export const getTransactionsColumns = (
         }
         const formatted = formatNumberToCurrency(
           balance,
-          transaction.currency ?? 'USD'
+          transaction.currency ?? 'USD',
+          currentLocale
         );
         return <div className="eb-text-right">{formatted}</div>;
       },
