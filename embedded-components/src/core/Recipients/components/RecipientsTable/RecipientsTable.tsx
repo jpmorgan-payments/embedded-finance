@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
@@ -29,6 +30,7 @@ export interface RecipientsTableProps {
   onDeactivate: (recipient: Recipient) => void;
   makePaymentComponent?: React.ReactNode;
   isDeactivating: boolean;
+  locale?: string;
   layout?: 'widget' | 'tablet' | 'desktop';
 }
 
@@ -55,8 +57,12 @@ export const RecipientsTable: React.FC<RecipientsTableProps> = ({
   onDeactivate,
   makePaymentComponent,
   isDeactivating,
+  locale = 'en-US',
   layout = 'desktop',
 }) => {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   // All layouts (desktop, tablet, widget) use dynamic column configuration
   return (
     <div className="eb-w-full eb-overflow-hidden eb-rounded-md eb-border">
@@ -100,7 +106,9 @@ export const RecipientsTable: React.FC<RecipientsTableProps> = ({
                 colSpan={visibleColumns.length}
                 className="eb-py-8 eb-text-center eb-text-gray-500"
               >
-                No recipients found
+                {t('recipients:emptyState.noRecipients', {
+                  defaultValue: 'No recipients found',
+                })}
               </TableCell>
             </TableRow>
           ) : (
@@ -113,6 +121,8 @@ export const RecipientsTable: React.FC<RecipientsTableProps> = ({
                     onDeactivate,
                     makePaymentComponent,
                     isDeactivating,
+                    locale,
+                    t,
                   })
                 )}
               </TableRow>

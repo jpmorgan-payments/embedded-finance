@@ -5,6 +5,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +38,10 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
+
   if (totalItems === 0) {
     return null;
   }
@@ -45,12 +50,19 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
     <div className="eb-flex eb-flex-col eb-gap-2 eb-px-2 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between sm:eb-gap-0">
       {/* Row count - hidden on mobile to save space */}
       <div className="eb-hidden eb-text-sm eb-text-muted-foreground sm:eb-block">
-        {totalItems} row(s) total
+        {t('recipients:pagination.rowsTotal', {
+          defaultValue: '{{count}} row(s) total',
+          count: totalItems,
+        })}
       </div>
       <div className="eb-flex eb-flex-col eb-gap-2 sm:eb-flex-row sm:eb-items-center sm:eb-gap-4">
         {/* Page size selector - hidden on mobile to save space */}
         <div className="eb-hidden eb-items-center eb-gap-2 sm:eb-flex">
-          <p className="eb-text-sm eb-font-medium">Rows per page</p>
+          <p className="eb-text-sm eb-font-medium">
+            {t('recipients:pagination.rowsPerPage', {
+              defaultValue: 'Rows per page',
+            })}
+          </p>
           <Select
             value={`${pageSize}`}
             onValueChange={(value) => {
@@ -81,7 +93,11 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               onClick={() => onPageChange(1)}
               disabled={currentPage === 1}
             >
-              <span className="eb-sr-only">Go to first page</span>
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToFirstPage.srOnly', {
+                  defaultValue: 'Go to first page',
+                })}
+              </span>
               <ChevronsLeft className="eb-h-4 eb-w-4" />
             </Button>
             <Button
@@ -91,7 +107,11 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
-              <span className="eb-sr-only">Go to previous page</span>
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToPreviousPage.srOnly', {
+                  defaultValue: 'Go to previous page',
+                })}
+              </span>
               <ChevronLeft className="eb-h-5 eb-w-5 sm:eb-h-4 sm:eb-w-4" />
             </Button>
             <Button
@@ -101,7 +121,11 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
-              <span className="eb-sr-only">Go to next page</span>
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToNextPage.srOnly', {
+                  defaultValue: 'Go to next page',
+                })}
+              </span>
               <ChevronRight className="eb-h-5 eb-w-5 sm:eb-h-4 sm:eb-w-4" />
             </Button>
             <Button
@@ -111,17 +135,29 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               onClick={() => onPageChange(totalPages)}
               disabled={currentPage >= totalPages}
             >
-              <span className="eb-sr-only">Go to last page</span>
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToLastPage.srOnly', {
+                  defaultValue: 'Go to last page',
+                })}
+              </span>
               <ChevronsRight className="eb-h-4 eb-w-4" />
             </Button>
           </div>
           {/* Page info - compact on mobile */}
           <div className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
             <span className="eb-hidden sm:eb-inline">
-              Page {currentPage} of {totalPages}
+              {t('recipients:pagination.pageInfo', {
+                defaultValue: 'Page {{current}} of {{total}}',
+                current: currentPage,
+                total: totalPages,
+              })}
             </span>
             <span className="eb-inline sm:eb-hidden">
-              {currentPage} / {totalPages}
+              {t('recipients:pagination.pageInfoMobile', {
+                defaultValue: '{{current}} / {{total}}',
+                current: currentPage,
+                total: totalPages,
+              })}
             </span>
           </div>
         </div>

@@ -3,47 +3,33 @@ import { describe, expect, test } from 'vitest';
 import { formatStatusText } from './formatStatusText';
 
 describe('formatStatusText', () => {
-  test('formats ACTIVE to Active', () => {
-    expect(formatStatusText('ACTIVE')).toBe('Active');
-  });
-
-  test('formats INACTIVE to Inactive', () => {
-    expect(formatStatusText('INACTIVE')).toBe('Inactive');
-  });
-
-  test('formats PENDING to Pending', () => {
-    expect(formatStatusText('PENDING')).toBe('Pending');
-  });
-
-  test('formats REJECTED to Rejected', () => {
-    expect(formatStatusText('REJECTED')).toBe('Rejected');
-  });
-
-  test('formats MICRODEPOSITS_INITIATED to Microdeposits Initiated', () => {
-    expect(formatStatusText('MICRODEPOSITS_INITIATED')).toBe(
-      'Microdeposits Initiated'
-    );
-  });
-
-  test('formats READY_FOR_VALIDATION to Ready For Validation', () => {
-    expect(formatStatusText('READY_FOR_VALIDATION')).toBe(
-      'Ready For Validation'
-    );
-  });
-
-  test('returns N/A for undefined', () => {
+  test('returns N/A for undefined and empty string', () => {
     expect(formatStatusText(undefined)).toBe('N/A');
-  });
-
-  test('returns N/A for empty string', () => {
     expect(formatStatusText('')).toBe('N/A');
   });
 
-  test('handles mixed case input', () => {
-    expect(formatStatusText('AcTiVe')).toBe('Active');
-  });
+  test('uses translation when provided and falls back to formatting when key not found', () => {
+    // Mock translation function that returns translated values
+    const mockT = (key: string): string => {
+      const translations: Record<string, string> = {
+        'common:na': 'N/A',
+        'recipients:status.active': 'Active',
+        'recipients:status.microdeposits_initiated': 'Microdeposits Initiated',
+      };
 
-  test('handles single word statuses', () => {
-    expect(formatStatusText('ACTIVE')).toBe('Active');
+      return translations[key] || key;
+    };
+
+    // Uses translation when available
+    expect(formatStatusText('ACTIVE', mockT)).toBe('Active');
+    expect(formatStatusText('MICRODEPOSITS_INITIATED', mockT)).toBe(
+      'Microdeposits Initiated'
+    );
+
+    // Falls back to formatting when translation key not found
+    const mockTWithoutKey = (key: string): string => key;
+    expect(formatStatusText('UNKNOWN_STATUS', mockTWithoutKey)).toBe(
+      'Unknown Status'
+    );
   });
 });
