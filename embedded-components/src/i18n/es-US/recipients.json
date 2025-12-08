@@ -1,0 +1,132 @@
+{
+  "title": "Beneficiarios",
+  "loading": {
+    "recipients": "Cargando beneficiarios..."
+  },
+  "error": {
+    "loadFailed": "Error al cargar los beneficiarios. Por favor, intente nuevamente.",
+    "retry": "Reintentar"
+  },
+  "emptyState": {
+    "noRecipients": "No se encontraron beneficiarios"
+  },
+  "actions": {
+    "addRecipient": "Agregar Beneficiario",
+    "createNewRecipient": "Crear Nuevo Beneficiario",
+    "editRecipient": "Editar Beneficiario",
+    "deactivateRecipient": "Desactivar Beneficiario",
+    "deactivating": "Desactivando...",
+    "viewDetails": "Ver detalles",
+    "edit": "Editar",
+    "deactivate": "Desactivar",
+    "viewRecipientDetails": "Ver detalles del beneficiario",
+    "editRecipientTitle": "Editar beneficiario",
+    "deactivateRecipientTitle": "Desactivar beneficiario"
+  },
+  "filters": {
+    "searchPlaceholder": "Buscar beneficiarios...",
+    "type": {
+      "label": "Tipo",
+      "all": "Todos los tipos",
+      "recipient": "Beneficiario",
+      "linkedAccount": "Cuenta Vinculada",
+      "settlementAccount": "Cuenta de Liquidación"
+    },
+    "status": {
+      "label": "Estado",
+      "all": "Todos los estados",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "microdepositsInitiated": "Microdepósitos Iniciados",
+      "readyForValidation": "Listo para Validación",
+      "rejected": "Rechazado"
+    },
+    "clearFilters": "Limpiar Filtros"
+  },
+  "columns": {
+    "name": "Nombre",
+    "type": "Tipo",
+    "status": "Estado",
+    "accountNumber": "Número de Cuenta",
+    "accountType": "Tipo de Cuenta",
+    "routingNumber": "Número de Enrutamiento",
+    "createdAt": "Creado",
+    "updatedAt": "Actualizado",
+    "partyId": "ID de Parte",
+    "clientId": "ID de Cliente",
+    "actions": "Acciones"
+  },
+  "columnToggle": {
+    "button": "Columnas",
+    "label": "Alternar columnas"
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} fila(s) en total",
+    "rowsPerPage": "Filas por página",
+    "pageInfo": "Página {{current}} de {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirstPage": {
+      "srOnly": "Ir a la primera página"
+    },
+    "goToPreviousPage": {
+      "srOnly": "Ir a la página anterior"
+    },
+    "goToNextPage": {
+      "srOnly": "Ir a la página siguiente"
+    },
+    "goToLastPage": {
+      "srOnly": "Ir a la última página"
+    }
+  },
+  "details": {
+    "title": "Beneficiario: {{name}}",
+    "unknown": "Desconocido",
+    "partyType": {
+      "individual": "Individual",
+      "business": "Empresa"
+    },
+    "sections": {
+      "partyInformation": "Información de la Parte",
+      "address": "Dirección",
+      "contactInformation": "Información de Contacto",
+      "accountInformation": "Información de la Cuenta",
+      "routingInformation": "Información de Enrutamiento",
+      "accountSummary": "Resumen de la Cuenta"
+    },
+    "fields": {
+      "type": "Tipo",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "businessName": "Nombre de la Empresa",
+      "accountNumber": "Número de Cuenta",
+      "accountType": "Tipo de Cuenta",
+      "country": "País",
+      "routingNumber": "Número de Enrutamiento",
+      "codeType": "Tipo de Código",
+      "transactionType": "Tipo de Transacción"
+    },
+    "validationIssues": {
+      "title": "Este beneficiario tiene problemas de validación:"
+    }
+  },
+  "card": {
+    "noPaymentMethods": "Sin métodos de pago",
+    "account": "Cuenta:"
+  },
+  "deactivateDialog": {
+    "title": "Desactivar Beneficiario",
+    "description": "¿Está seguro de que desea desactivar {{name}}? Esta acción no se puede deshacer.",
+    "unknownRecipient": "este beneficiario",
+    "cancel": "Cancelar",
+    "confirm": "Desactivar"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "rejected": "Rechazado",
+    "microdepositsInitiated": "Microdepósitos Iniciados",
+    "readyForValidation": "Listo para Validación"
+  }
+}
+

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +12,12 @@ export interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   return (
     <Badge variant={getStatusVariant(status)} className="eb-text-xs">
-      {formatStatusText(status)}
+      {formatStatusText(status, t)}
     </Badge>
   );
 };

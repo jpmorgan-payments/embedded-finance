@@ -1,4 +1,5 @@
 import { Settings2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +39,9 @@ export function RecipientsColumnVisibility({
   columnConfig,
   onColumnVisibilityChange,
 }: RecipientsColumnVisibilityProps) {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   // Get all columns except 'actions' (actions should always be visible)
   const toggleableColumns = (
     Object.keys(columnConfig) as RecipientColumnKey[]
@@ -48,11 +52,15 @@ export function RecipientsColumnVisibility({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="eb-ml-auto eb-h-8">
           <Settings2 className="eb-mr-2 eb-h-4 eb-w-4" />
-          Columns
+          {t('recipients:columnToggle.button', { defaultValue: 'Columns' })}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eb-w-[180px]">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {t('recipients:columnToggle.label', {
+            defaultValue: 'Toggle columns',
+          })}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {toggleableColumns.map((columnKey) => {
           const config = columnConfig[columnKey];

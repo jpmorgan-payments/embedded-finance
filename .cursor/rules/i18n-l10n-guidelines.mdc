@@ -20,6 +20,7 @@ Additional locales can be added by following the patterns established in the exi
 3. **Default values** - Always provide `defaultValue` in translation calls for fallback
 4. **Optional locale parameters** - All formatting functions should have locale as optional with 'en-US' default
 5. **Use i18next's built-in features** - Leverage i18next's formatting capabilities when possible
+6. **Type assertion for `t` function** - Always use type assertion to avoid TypeScript overload resolution issues (see TypeScript Overload Issue section below)
 
 ## Translation Keys and Namespaces
 
@@ -267,6 +268,7 @@ When creating or updating a component with i18n/l10n support:
 ### ✅ Implementation Checklist
 
 - [ ] Import `useTranslation` hook with appropriate namespaces
+- [ ] **Apply type assertion to `t` function** - `const t = tRaw as (key: string, options?: any) => string`
 - [ ] Import `useLocale` hook for locale-aware formatting
 - [ ] Replace all hardcoded strings with `t()` calls
 - [ ] Add `defaultValue` to all translation calls
@@ -298,7 +300,9 @@ When creating or updating a component with i18n/l10n support:
 import { useTranslation } from 'react-i18next';
 
 export const MyComponent = () => {
-  const { t } = useTranslation(['my-namespace']);
+  const { t: tRaw } = useTranslation(['my-namespace']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   
   return (
     <div>
@@ -313,10 +317,12 @@ export const MyComponent = () => {
 
 ```typescript
 import { useTranslation } from 'react-i18next';
-import { useLocale } from './utils';
+import { useLocale } from '@/lib/hooks';
 
 export const DateComponent = () => {
-  const { t } = useTranslation(['my-namespace', 'common']);
+  const { t: tRaw } = useTranslation(['my-namespace', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   const locale = useLocale();
   const naText = t('common:na', { defaultValue: 'N/A' });
 
@@ -337,10 +343,13 @@ export const DateComponent = () => {
 
 ```typescript
 import { useTranslation } from 'react-i18next';
-import { formatNumberToCurrency, useLocale } from './utils';
+import { useLocale } from '@/lib/hooks';
+import { formatNumberToCurrency } from './utils';
 
 export const CurrencyComponent = () => {
-  const { t } = useTranslation(['my-namespace', 'common']);
+  const { t: tRaw } = useTranslation(['my-namespace', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   const locale = useLocale();
   const naText = t('common:na', { defaultValue: 'N/A' });
 
@@ -463,6 +472,96 @@ See the `TransactionsDisplay` and `Accounts` components for complete reference i
 - `embedded-components/src/core/Accounts/`
 - Translation files: `embedded-components/src/i18n/en-US/transactions.json`, `embedded-components/src/i18n/en-US/accounts.json`
 - **Shared locale utilities**: `embedded-components/src/lib/hooks/useLocale.ts` and `embedded-components/src/lib/utils/getLocaleFromLanguage.ts`
+
+## TypeScript Overload Issue
+
+### ⚠️ Important: Type Assertion Required
+
+When using `useTranslation` hook, you **must** use a type assertion to avoid TypeScript compiler errors.
+
+### What is the Issue?
+
+TypeScript can encounter a compiler bug ("Debug Failure. No error for last overload signature") when trying to resolve the complex overloads in `react-i18next`'s `TFunction` type, especially when:
+- Using `t()` function in JSX expressions
+- Passing `t` to utility functions or callbacks
+- Using `t` in `useMemo` or `useCallback` dependencies
+
+### Why Does It Happen?
+
+The `TFunction` type from `react-i18next` has multiple overloads to support different translation scenarios (with/without namespaces, interpolation, etc.). TypeScript's overload resolution can fail when these overloads are used in complex contexts like:
+- JSX expressions with conditional rendering
+- Function parameters in utility functions
+- Dependency arrays in React hooks
+
+This is a known TypeScript compiler limitation, not a bug in our code.
+
+### How to Prevent It
+
+**Always use type assertion immediately after `useTranslation`:**
+
+```typescript
+import { useTranslation } from 'react-i18next';
+
+const MyComponent = () => {
+  // ✅ CORRECT - Type assertion prevents overload resolution issues
+  const { t: tRaw } = useTranslation(['my-namespace', 'common']);
+  const t = tRaw as (key: string, options?: any) => string;
+  
+  // Now use 't' normally throughout the component
+  return <div>{t('title', { defaultValue: 'My Title' })}</div>;
+};
+```
+
+### Pattern for All Components
+
+```typescript
+// ✅ ALWAYS use this pattern
+const { t: tRaw } = useTranslation(['namespace1', 'namespace2']);
+const t = tRaw as (key: string, options?: any) => string;
+```
+
+### When Passing `t` to Functions
+
+When passing the `t` function to utility functions or column definitions, the function parameter should already be typed:
+
+```typescript
+// ✅ CORRECT - Function parameter is already typed
+export const getMyColumns = (
+  t: (key: string, options?: any) => string,
+  locale?: string
+): ColumnDef<MyType>[] => {
+  // Use t normally here
+  const title = t('columns.title', { defaultValue: 'Title' });
+  // ...
+};
+
+// In component:
+const { t: tRaw } = useTranslation(['my-namespace']);
+const t = tRaw as (key: string, options?: any) => string;
+const columns = getMyColumns(t, locale);
+```
+
+### ❌ Common Mistakes
+
+```typescript
+// ❌ WRONG - No type assertion
+const { t } = useTranslation(['my-namespace']);
+// This can cause TypeScript compiler errors in complex JSX
+
+// ❌ WRONG - Asserting in wrong place
+const { t } = useTranslation(['my-namespace']);
+const myTitle = t('title', { defaultValue: 'Title' }) as string;
+// Assertion should be on the function, not the result
+```
+
+### Examples from Codebase
+
+See working examples in:
+- `embedded-components/src/core/TransactionsDisplay/TransactionsDisplay.tsx`
+- `embedded-components/src/core/Accounts/Accounts.tsx`
+- `embedded-components/src/core/Recipients/Recipients.tsx`
+
+All these components use the type assertion pattern to avoid TypeScript overload issues.
 
 ## Resources
 

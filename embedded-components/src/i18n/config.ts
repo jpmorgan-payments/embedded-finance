@@ -16,9 +16,11 @@ import enUS_linkedAccounts from './en-US/linked-accounts.json';
 import enUS_makePayment from './en-US/make-payment.json';
 import enUS_onboardingOverview from './en-US/onboarding-overview.json';
 import enUS_onboarding from './en-US/onboarding.json';
+import enUS_recipients from './en-US/recipients.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
 import esUS_accounts from './es-US/accounts.json';
+import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
 import frCA_accounts from './fr-CA/accounts.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
@@ -26,6 +28,7 @@ import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
 import frCA_makePayment from './fr-CA/make-payment.json';
 import frCA_onboarding from './fr-CA/onboarding.json';
+import frCA_recipients from './fr-CA/recipients.json';
 import frCA_transactions from './fr-CA/transactions.json';
 
 export const defaultResources = {
@@ -39,6 +42,7 @@ export const defaultResources = {
     'linked-accounts': enUS_linkedAccounts,
     'bank-account-form': enUS_bankAccountForm,
     accounts: enUS_accounts,
+    recipients: enUS_recipients,
     transactions: enUS_transactions,
     zod: en_zod,
   },
@@ -52,6 +56,7 @@ export const defaultResources = {
     'linked-accounts': frCA_linkedAccounts,
     'bank-account-form': frCA_bankAccountForm,
     accounts: frCA_accounts,
+    recipients: frCA_recipients,
     transactions: frCA_transactions,
     zod: fr_zod,
   },
@@ -65,6 +70,7 @@ export const defaultResources = {
     'linked-accounts': enUS_linkedAccounts, // Using English linked-accounts for now
     'bank-account-form': enUS_bankAccountForm, // Using English bank-account-form for now
     accounts: esUS_accounts,
+    recipients: esUS_recipients,
     transactions: esUS_transactions,
     zod: es_zod,
   },
@@ -97,6 +103,7 @@ i18n.use(initReactI18next).init({
     'linked-accounts',
     'bank-account-form',
     'accounts',
+    'recipients',
     'transactions',
   ],
   resources,
@@ -156,6 +163,7 @@ export const createI18nInstance = (
       'linked-accounts',
       'bank-account-form',
       'accounts',
+      'recipients',
       'transactions',
     ],
     // Deep clone to avoid mutating the original defaults
