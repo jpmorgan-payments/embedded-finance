@@ -70,7 +70,6 @@ type Story = StoryObj<RecipientsValidationStoryArgs>;
 // Remove any configs or stories that do not include all required RoutingInformationTransactionType keys
 
 export const ConditionalFieldRequirements: Story = {
-  name: 'Conditional Field Requirements',
   args: {
     apiBaseUrl: 'https://api.example.com',
     showCreateButton: true,

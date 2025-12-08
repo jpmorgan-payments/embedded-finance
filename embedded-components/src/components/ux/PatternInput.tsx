@@ -50,7 +50,7 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
       value,
       obfuscateWhenUnfocused = false,
       onFocus,
-      onBlur,
+      onBlur: _onBlur,
       ...props
     },
     ref

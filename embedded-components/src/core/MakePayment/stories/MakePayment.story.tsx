@@ -664,8 +664,10 @@ export const WithTransactionError: Story = {
     icon: 'CirclePlus',
     onTransactionSettled: (response, error) => {
       if (response) {
+        // eslint-disable-next-line no-console
         console.log('@@TRANSACTION response data', response);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@TRANSACTION response error', error);
       }
     },
@@ -744,7 +746,6 @@ export const WithPreselectedRecipient: Story = {
  * Without Preview Panel: Tests the showPreviewPanel=false functionality.
  */
 export const WithoutPreviewPanel: Story = {
-  name: 'Without Preview Panel',
   args: {
     apiBaseUrl: '/api',
     paymentMethods: defaultPaymentMethods,

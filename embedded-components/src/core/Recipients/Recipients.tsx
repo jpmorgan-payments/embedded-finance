@@ -13,6 +13,16 @@ import type {
 } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 // UI Components
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -122,6 +132,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
   // State
   const [searchTerm, setSearchTerm] = useState('');
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [recipientToDeactivate, setRecipientToDeactivate] =
+    useState<Recipient | null>(null);
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
@@ -253,19 +266,19 @@ export const Recipients: React.FC<RecipientsProps> = ({
     [openEditDialog, userEventsHandler]
   );
 
-  const handleDeactivateRecipient = useCallback(
-    (recipient: Recipient) => {
-      if (
-        window.confirm(
-          `Are you sure you want to deactivate ${formatRecipientName(recipient)}?`
-        )
-      ) {
-        deactivateRecipient(recipient.id);
-        userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
-      }
-    },
-    [deactivateRecipient, userEventsHandler]
-  );
+  const handleDeactivateRecipient = useCallback((recipient: Recipient) => {
+    setRecipientToDeactivate(recipient);
+    setDeactivateDialogOpen(true);
+  }, []);
+
+  const confirmDeactivate = useCallback(() => {
+    if (recipientToDeactivate) {
+      deactivateRecipient(recipientToDeactivate.id);
+      userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
+      setDeactivateDialogOpen(false);
+      setRecipientToDeactivate(null);
+    }
+  }, [recipientToDeactivate, deactivateRecipient, userEventsHandler]);
 
   // Paginated recipients
   const paginatedRecipients = paginatedItems(filteredRecipients);
@@ -554,6 +567,31 @@ export const Recipients: React.FC<RecipientsProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog
+        open={deactivateDialogOpen}
+        onOpenChange={setDeactivateDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Recipient</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate{' '}
+              {recipientToDeactivate
+                ? formatRecipientName(recipientToDeactivate)
+                : 'this recipient'}
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeactivate}>
+              Deactivate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

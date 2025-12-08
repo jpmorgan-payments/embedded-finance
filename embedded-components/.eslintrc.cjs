@@ -1,5 +1,10 @@
 module.exports = {
-  extends: ['mantine', 'plugin:tailwindcss/recommended', 'prettier', 'plugin:storybook/recommended'],
+  extends: [
+    'mantine',
+    'plugin:tailwindcss/recommended',
+    'prettier',
+    'plugin:storybook/recommended',
+  ],
   parserOptions: {
     project: './tsconfig.json',
     tsconfigRootDir: __dirname,
@@ -9,6 +14,14 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     'linebreak-style': 'off',
     'arrow-body-style': 'off',
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      },
+    ],
     'tailwindcss/classnames-order': 'warn',
     'tailwindcss/no-custom-classname': [
       'warn',

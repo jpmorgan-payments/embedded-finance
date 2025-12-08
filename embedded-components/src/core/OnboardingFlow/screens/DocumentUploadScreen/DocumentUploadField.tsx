@@ -207,7 +207,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
       <FormField
         control={control}
         name={filesFieldName}
-        render={({ field: { onChange, value, ...fieldProps } }) => (
+        render={({ field: { onChange, value: _value, ...fieldProps } }) => (
           <FormItem className="eb-space-y-2">
             <FormLabel
               asterisk={!isOptional}

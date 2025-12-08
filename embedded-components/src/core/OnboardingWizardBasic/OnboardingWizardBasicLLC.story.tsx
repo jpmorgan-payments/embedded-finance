@@ -33,22 +33,28 @@ const meta: Meta<OnboardingWizardBasicLLCStoryArgs> = {
   args: {
     onPostClientResponse: (data, error) => {
       if (data) {
+        // eslint-disable-next-line no-console
         console.log('@@POST client response data', data);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST client response error', error);
       }
     },
     onPostPartyResponse(response, error) {
       if (response) {
+        // eslint-disable-next-line no-console
         console.log('@@POST party response data', response);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST party response error', error);
       }
     },
     onPostClientVerificationsResponse: (data, error) => {
       if (data) {
+        // eslint-disable-next-line no-console
         console.log('@@POST verifications response data', data);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST verifications response error', error);
       }
     },
@@ -280,6 +286,7 @@ AdditionalDocumentsRequested.parameters = {
         });
       }),
       http.post('/document-requests/:requestId/submit', ({ params }) => {
+        // eslint-disable-next-line no-console
         console.log(
           `Document request ${params.requestId} submitted successfully`
         );
@@ -331,6 +338,7 @@ AdditionalDocumentsRequestedComplex.parameters = {
         });
       }),
       http.post('/document-requests/:requestId/submit', ({ params }) => {
+        // eslint-disable-next-line no-console
         console.log(
           `Document request ${params.requestId} submitted successfully`
         );
@@ -382,6 +390,7 @@ ClientStatusChangeSimulation.parameters = {
         });
       }),
       http.post('/document-requests/:requestId/submit', ({ params }) => {
+        // eslint-disable-next-line no-console
         console.log(
           `Document request ${params.requestId} submitted successfully`
         );

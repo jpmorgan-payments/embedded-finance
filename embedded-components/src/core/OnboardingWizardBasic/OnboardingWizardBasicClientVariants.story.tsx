@@ -21,7 +21,6 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
 export default meta;
 
 export const SoleProprietorship_EP_NEW = Default.bind({});
-SoleProprietorship_EP_NEW.storyName = 'Sole Proprietorship EP NEW';
 SoleProprietorship_EP_NEW.args = {
   ...Default.args,
   initialClientId: '0030000135',
@@ -56,7 +55,6 @@ SoleProprietorship_EP_NEW.parameters = {
 };
 
 export const SoleProprietorship_EP = Default.bind({});
-SoleProprietorship_EP.storyName = 'Sole Proprietorship EP';
 SoleProprietorship_EP.args = {
   ...Default.args,
   initialClientId: '0030000129',

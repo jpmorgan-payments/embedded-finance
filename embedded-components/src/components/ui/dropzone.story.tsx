@@ -57,6 +57,7 @@ const DropzoneWithState = (args: any) => {
         {...args}
         onChange={(newFiles) => {
           setFiles(newFiles);
+          // eslint-disable-next-line no-console
           console.log('Files changed:', newFiles);
         }}
       />

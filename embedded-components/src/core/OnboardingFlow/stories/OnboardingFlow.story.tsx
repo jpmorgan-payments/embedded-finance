@@ -32,22 +32,28 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
   args: {
     onPostClientSettled: (data, error) => {
       if (data) {
+        // eslint-disable-next-line no-console
         console.log('@@POST client response data', data);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST client response error', error);
       }
     },
     onPostPartySettled(response, error) {
       if (response) {
+        // eslint-disable-next-line no-console
         console.log('@@POST party response data', response);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST party response error', error);
       }
     },
     onPostClientVerificationsSettled: (data, error) => {
       if (data) {
+        // eslint-disable-next-line no-console
         console.log('@@POST verifications response data', data);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST verifications response error', error);
       }
     },

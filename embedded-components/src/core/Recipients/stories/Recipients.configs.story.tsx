@@ -128,7 +128,6 @@ const multiMethodConfig: RecipientsConfig = {
 };
 
 export const MultiplePaymentMethods: Story = {
-  name: 'Multiple Payment Methods',
   args: {
     apiBaseUrl: 'https://api.example.com',
     config: multiMethodConfig,

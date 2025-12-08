@@ -90,7 +90,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
         >
           {/* Left Section: Balances */}
           <div
-            className={`eb-min-w-0 eb-flex-shrink eb-p-4 ${
+            className={`eb-min-w-0 eb-shrink eb-p-4 ${
               account.category === 'LIMITED_DDA'
                 ? 'eb-w-full'
                 : 'eb-w-full md:eb-flex-1'

@@ -78,7 +78,7 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
           valueSchema = z.string();
       }
     } else {
-      console.log('Unknown question type', question);
+      // Unknown question type
       return;
     }
 
