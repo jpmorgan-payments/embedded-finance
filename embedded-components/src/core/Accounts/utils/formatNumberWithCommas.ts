@@ -14,3 +14,4 @@ export function formatNumberWithCommas(value: number): {
   );
   return { whole: formattedWhole, decimal: parts[1] };
 }
+

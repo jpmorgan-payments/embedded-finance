@@ -39,6 +39,15 @@ const getStatusVariant = (
   }
 };
 
+/**
+ * Format status text for display (convert from uppercase to title case)
+ */
+const formatStatusText = (status?: string): string => {
+  if (!status) return 'N/A';
+  // Convert "COMPLETED" to "Completed", "PENDING" to "Pending", etc.
+  return status.charAt(0) + status.slice(1).toLowerCase();
+};
+
 export type TransactionDetailsDialogTriggerProps = {
   children: React.ReactNode;
   transactionId: string;
@@ -74,10 +83,10 @@ export const TransactionDetailsDialogTrigger: FC<
 
     return (
       <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
-        <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
+        <Label className="eb-shrink-0 eb-text-sm eb-font-normal eb-text-muted-foreground">
           {label}
         </Label>
-        <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+        <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-normal">
           {displayValue}
         </div>
       </div>
@@ -169,7 +178,7 @@ export const TransactionDetailsDialogTrigger: FC<
             <>
               {/* Amount Section - Prominent */}
               <div className="eb-space-y-2">
-                <div className="eb-text-2xl eb-font-bold">
+                <div className="eb-text-2xl eb-font-semibold">
                   {transaction.amount
                     ? formatNumberToCurrency(
                         transaction.amount,
@@ -186,24 +195,24 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.status) ||
                 hasValue(transaction.feeType)) && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                       General
                     </h3>
                     <div className="eb-space-y-1">
                       {renderField('Type', transaction.type)}
                       {transaction.status && (
                         <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
-                          <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
+                          <Label className="eb-shrink-0 eb-text-sm eb-font-normal eb-text-muted-foreground">
                             Status
                           </Label>
-                          <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+                          <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-normal">
                             <Badge
                               variant={getStatusVariant(transaction.status)}
                               className="eb-text-sm"
                             >
-                              {transaction.status}
+                              {formatStatusText(transaction.status)}
                             </Badge>
                           </div>
                         </div>
@@ -221,9 +230,9 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.originatingId) ||
                 hasValue(transaction.originatingTransactionType)) && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                       Identifiers
                     </h3>
                     <div className="eb-space-y-1">
@@ -249,9 +258,9 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.effectiveDate) ||
                 hasValue(transaction.postingVersion)) && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                       Dates & Versioning
                     </h3>
                     <div className="eb-space-y-1">
@@ -286,9 +295,9 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.debtorAccountNumber) ||
                 hasValue(transaction.debtorClientId)) && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                       Debtor
                     </h3>
                     <div className="eb-space-y-1">
@@ -311,9 +320,9 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.creditorAccountNumber) ||
                 hasValue(transaction.creditorClientId)) && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                       Creditor
                     </h3>
                     <div className="eb-space-y-1">
@@ -335,9 +344,9 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.memo) ||
                 hasValue(transaction.recipientId)) && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                       Financial
                     </h3>
                     <div className="eb-space-y-1">
@@ -360,9 +369,9 @@ export const TransactionDetailsDialogTrigger: FC<
               {/* Error Section (conditional) */}
               {transaction.error && (
                 <>
-                  <div className="eb-border-t-2 eb-border-border/40" />
+                  <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5 eb-rounded-md eb-border eb-border-destructive/50 eb-bg-destructive/5 eb-p-2">
-                    <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-destructive">
+                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-destructive">
                       Error Details
                     </h3>
                     <div className="eb-space-y-1">

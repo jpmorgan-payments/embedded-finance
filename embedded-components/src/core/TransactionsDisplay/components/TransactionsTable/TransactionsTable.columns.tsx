@@ -1,11 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { ChevronRightIcon } from 'lucide-react';
 
 import { PaymentTypeResponse } from '@/api/generated/ep-transactions.schemas';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 
-import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
 import { formatNumberToCurrency } from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
 import { DataTableColumnHeader } from './DataTableColumnHeader';
@@ -29,6 +26,15 @@ const getStatusVariant = (
     default:
       return 'informative'; // Uses statusInfo tokens (statusInfoAccentBackground + statusInfoForeground)
   }
+};
+
+/**
+ * Format status text for display (convert from uppercase to title case)
+ */
+const formatStatusText = (status?: string): string => {
+  if (!status) return 'N/A';
+  // Convert "COMPLETED" to "Completed", "PENDING" to "Pending", etc.
+  return status.charAt(0) + status.slice(1).toLowerCase();
 };
 
 /**
@@ -61,10 +67,10 @@ const formatDateTime = (date?: string): string => {
  * Comprehensive column definitions for the transactions data table
  *
  * Default visible columns (most commonly used):
- * - paymentDate, status, type, amount, counterpartName, transactionReferenceId, actions
+ * - paymentDate, status, type, amount, currency, counterpartName
  *
  * Hidden by default (available via column toggle):
- * - createdAt, effectiveDate, memo, debtorName, creditorName, ledgerBalance, etc.
+ * - transactionReferenceId, createdAt, effectiveDate, memo, debtorName, creditorName, ledgerBalance, etc.
  */
 export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
   // Date - Default visible
@@ -93,7 +99,9 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
     cell: ({ row }) => {
       const status = row.getValue('status') as string | undefined;
       return (
-        <Badge variant={getStatusVariant(status)}>{status || 'N/A'}</Badge>
+        <Badge variant={getStatusVariant(status)}>
+          {formatStatusText(status)}
+        </Badge>
       );
     },
     filterFn: (row, id, value) => {
@@ -147,6 +155,17 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
     },
     enableHiding: false,
   },
+  // Currency - Default visible
+  {
+    accessorKey: 'currency',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Currency" />
+    ),
+    cell: ({ row }) => {
+      return <div>{row.getValue('currency') || 'N/A'}</div>;
+    },
+    enableHiding: false,
+  },
   // Counterpart - Default visible
   {
     accessorKey: 'counterpartName',
@@ -161,7 +180,7 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
       return counterpart.toLowerCase().includes(value.toLowerCase());
     },
   },
-  // Transaction Reference ID - Default visible
+  // Transaction Reference ID - Hidden by default
   {
     accessorKey: 'transactionReferenceId',
     header: ({ column }) => (
@@ -306,32 +325,6 @@ export const transactionsColumns: ColumnDef<ModifiedTransaction>[] = [
     filterFn: (row, id, value) => {
       const direction = row.getValue(id) as string | undefined;
       return value.includes(direction || '');
-    },
-  },
-  // Currency - Hidden by default
-  {
-    accessorKey: 'currency',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Currency" />
-    ),
-    cell: ({ row }) => {
-      return <div>{row.getValue('currency') || 'N/A'}</div>;
-    },
-  },
-  // Actions - Always visible
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const transaction = row.original;
-      return (
-        <TransactionDetailsDialogTrigger transactionId={transaction.id ?? ''}>
-          <Button variant="ghost" className="eb-h-8 eb-w-8 eb-p-0">
-            <span className="eb-sr-only">View transaction details</span>
-            <ChevronRightIcon className="eb-h-4 eb-w-4" />
-          </Button>
-        </TransactionDetailsDialogTrigger>
-      );
     },
   },
 ];
