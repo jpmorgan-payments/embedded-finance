@@ -3,7 +3,7 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 /**
  * Mock client with Friends character ownership structure matching requirements:
  * 1. Monica Geller (Direct Owner) → Central Perk Coffee & Cookies
- * 2. Ross Geller (Indirect Owner) → Central Perk Coffee → Central Perk Coffee & Cookies  
+ * 2. Ross Geller (Indirect Owner) → Central Perk Coffee → Central Perk Coffee & Cookies
  * 3. Rachel Green (Indirect Owner) → Cookie Co. → Central Perk Cookie → Central Perk Coffee & Cookies
  */
 export const efClientWithOwnershipStructure: ClientResponse = {
@@ -26,7 +26,7 @@ export const efClientWithOwnershipStructure: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    
+
     // 1. DIRECT BENEFICIAL OWNER: Monica Geller → Central Perk Coffee & Cookies
     {
       id: 'party-monica',
@@ -78,8 +78,6 @@ export const efClientWithOwnershipStructure: ClientResponse = {
       },
       // No parentPartyId = Directly owns Central Perk Coffee & Cookies
     },
-
-
 
     // 3. INDIRECT BENEFICIAL OWNER: Rachel Green → Cookie Co. → Central Perk Cookie → Central Perk Coffee & Cookies
     {
@@ -133,8 +131,6 @@ export const efClientWithOwnershipStructure: ClientResponse = {
       },
       // No parentPartyId = Directly owns Central Perk Coffee & Cookies
     },
-
-
   ],
   partyId: 'party-central-perk',
   products: ['EMBEDDED_PAYMENTS'],
@@ -148,5 +144,3 @@ export const efClientWithOwnershipStructure: ClientResponse = {
   createdAt: '2024-01-15T10:00:00.000Z',
   status: 'APPROVED',
 };
-
-

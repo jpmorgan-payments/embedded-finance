@@ -166,13 +166,13 @@ export const ownershipTestScenarios = {
     description: 'One owner with 100% ownership',
   },
   dual: {
-    name: 'Two Owners (50% each)', 
+    name: 'Two Owners (50% each)',
     owners: 2,
     description: 'Equal partnership structure',
   },
   complex: {
     name: 'Complex Structure (4 owners)',
-    owners: 4, 
+    owners: 4,
     description: 'Maximum complexity with indirect ownership chains',
   },
 } as const;

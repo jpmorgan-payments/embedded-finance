@@ -20,4 +20,3 @@ export function getAccountStatusIcon(state?: string) {
       return null;
   }
 }
-

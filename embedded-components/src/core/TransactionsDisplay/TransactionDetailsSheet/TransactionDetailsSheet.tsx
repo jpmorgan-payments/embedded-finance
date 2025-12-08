@@ -15,38 +15,11 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
-import { formatNumberToCurrency } from '../utils';
-
-/**
- * Get status badge variant based on transaction status
- * Uses Salt Status tokens: success, warning, destructive (error), informative
- * Consistent with TransactionsTable pattern
- */
-const getStatusVariant = (
-  status?: string
-): 'success' | 'warning' | 'destructive' | 'informative' | 'outline' => {
-  switch (status) {
-    case 'COMPLETED':
-      return 'success'; // Uses statusSuccess tokens (statusSuccessAccentBackground + statusSuccessForeground)
-    case 'PENDING':
-      return 'warning'; // Uses statusWarning tokens (statusWarningAccentBackground + statusWarningForeground)
-    case 'REJECTED':
-    case 'RETURNED':
-    case 'FAILED':
-      return 'destructive'; // Uses sentimentNegative tokens (maps to statusError)
-    default:
-      return 'informative'; // Uses statusInfo tokens (statusInfoAccentBackground + statusInfoForeground)
-  }
-};
-
-/**
- * Format status text for display (convert from uppercase to title case)
- */
-const formatStatusText = (status?: string): string => {
-  if (!status) return 'N/A';
-  // Convert "COMPLETED" to "Completed", "PENDING" to "Pending", etc.
-  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-};
+import {
+  formatNumberToCurrency,
+  formatStatusText,
+  getStatusVariant,
+} from '../utils';
 
 export type TransactionDetailsDialogTriggerProps = {
   children: React.ReactNode;

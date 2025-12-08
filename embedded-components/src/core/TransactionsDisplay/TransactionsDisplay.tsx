@@ -151,7 +151,7 @@ export const TransactionsDisplay = forwardRef<
                     .getRowModel()
                     .rows.map((row) => (
                       <TransactionCard
-                        key={row.original.id}
+                        key={row.original.id ?? `transaction-${row.id}`}
                         transaction={row.original}
                       />
                     ))

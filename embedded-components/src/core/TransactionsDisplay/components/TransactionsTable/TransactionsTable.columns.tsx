@@ -3,39 +3,13 @@ import { ColumnDef } from '@tanstack/react-table';
 import { PaymentTypeResponse } from '@/api/generated/ep-transactions.schemas';
 import { Badge } from '@/components/ui/badge';
 
-import { formatNumberToCurrency } from '../../utils';
+import {
+  formatNumberToCurrency,
+  formatStatusText,
+  getStatusVariant,
+} from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
 import { DataTableColumnHeader } from './DataTableColumnHeader';
-
-/**
- * Get status badge variant based on transaction status
- * Uses Salt Status tokens: success, warning, destructive (error), informative
- */
-const getStatusVariant = (
-  status?: string
-): 'success' | 'warning' | 'destructive' | 'informative' | 'outline' => {
-  switch (status) {
-    case 'COMPLETED':
-      return 'success'; // Uses statusSuccess tokens (statusSuccessAccentBackground + statusSuccessForeground)
-    case 'PENDING':
-      return 'warning'; // Uses statusWarning tokens (statusWarningAccentBackground + statusWarningForeground)
-    case 'REJECTED':
-    case 'RETURNED':
-    case 'FAILED':
-      return 'destructive'; // Uses sentimentNegative tokens (maps to statusError)
-    default:
-      return 'informative'; // Uses statusInfo tokens (statusInfoAccentBackground + statusInfoForeground)
-  }
-};
-
-/**
- * Format status text for display (convert from uppercase to title case)
- */
-const formatStatusText = (status?: string): string => {
-  if (!status) return 'N/A';
-  // Convert "COMPLETED" to "Completed", "PENDING" to "Pending", etc.
-  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-};
 
 /**
  * Format date for display

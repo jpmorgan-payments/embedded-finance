@@ -1,33 +1,36 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Building } from 'lucide-react';
+import { Building, User } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
-import type { AddOwnerDialogProps } from './types';
 import { VALIDATION_MESSAGES } from '../../IndirectOwnership.internal.types';
-import { addOwnerFormSchema, type AddOwnerFormData } from './AddOwnerDialog.schema';
+import {
+  addOwnerFormSchema,
+  type AddOwnerFormData,
+} from './AddOwnerDialog.schema';
+import type { AddOwnerDialogProps } from './types';
 
 /**
  * AddOwnerDialog - Dialog for adding/editing beneficial owners
- * 
+ *
  * Features:
  * - Simple form with firstName, lastName, ownershipType
  * - Real-time validation for required fields and duplicates
@@ -46,7 +49,9 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   const { t } = useTranslation();
 
   // Simple error state management (established pattern)
-  const [submissionError, setSubmissionError] = React.useState<Error | null>(null);
+  const [submissionError, setSubmissionError] = React.useState<Error | null>(
+    null
+  );
   const [isSubmittingForm, setIsSubmittingForm] = React.useState(false);
 
   // React Hook Form setup with Zod validation
@@ -59,7 +64,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
     reset,
     setValue,
     watch,
-    setError
+    setError,
   } = useForm<AddOwnerFormData>({
     resolver: zodResolver(addOwnerFormSchema),
     mode: 'onBlur',
@@ -67,7 +72,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
       firstName: '',
       lastName: '',
       ownershipType: 'DIRECT',
-    }
+    },
   });
 
   const watchedValues = watch();
@@ -95,17 +100,20 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   const checkForDuplicates = (data: AddOwnerFormData) => {
     if (!data.firstName.trim() || !data.lastName.trim()) return;
 
-    const isDuplicate = existingOwners.some(owner => 
-      owner.id !== editingOwnerId &&
-      owner.individualDetails &&
-      owner.individualDetails.firstName?.toLowerCase() === data.firstName.trim().toLowerCase() &&
-      owner.individualDetails.lastName?.toLowerCase() === data.lastName.trim().toLowerCase()
+    const isDuplicate = existingOwners.some(
+      (owner) =>
+        owner.id !== editingOwnerId &&
+        owner.individualDetails &&
+        owner.individualDetails.firstName?.toLowerCase() ===
+          data.firstName.trim().toLowerCase() &&
+        owner.individualDetails.lastName?.toLowerCase() ===
+          data.lastName.trim().toLowerCase()
     );
 
     if (isDuplicate) {
       setError('root.general', {
         type: 'duplicate',
-        message: VALIDATION_MESSAGES.duplicateName
+        message: VALIDATION_MESSAGES.duplicateName,
       });
       return false;
     }
@@ -125,10 +133,11 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
     try {
       setIsSubmittingForm(true);
-      
+
       onSubmit({
         ownershipType: data.ownershipType,
-        status: data.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
+        status:
+          data.ownershipType === 'DIRECT' ? 'COMPLETE' : 'PENDING_HIERARCHY',
         meets25PercentThreshold: true, // Always true for beneficial owners
         validationErrors: [],
         individualDetails: {
@@ -136,17 +145,17 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           lastName: data.lastName,
         },
       } as any); // Type assertion needed due to interface differences
-      
+
       // Success - close dialog and reset form
       reset();
       onClose();
-      
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Failed to add owner');
+      const err =
+        error instanceof Error ? error : new Error('Failed to add owner');
       setSubmissionError(err);
       setError('root.general', {
         type: 'submission',
-        message: err.message
+        message: err.message,
       });
     } finally {
       setIsSubmittingForm(false);
@@ -164,8 +173,8 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent 
-        className="eb-max-w-md" 
+      <DialogContent
+        className="eb-max-w-md"
         data-testid={testId}
         aria-labelledby="dialog-title"
         aria-describedby="dialog-description"
@@ -179,8 +188,8 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form 
-          onSubmit={handleSubmit(onFormSubmit)} 
+        <form
+          onSubmit={handleSubmit(onFormSubmit)}
           className="eb-space-y-4"
           noValidate
           aria-labelledby="dialog-title"
@@ -188,7 +197,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
         >
           {/* Server Error Alert */}
           {submissionError && (
-            <ServerErrorAlert 
+            <ServerErrorAlert
               error={submissionError as any}
               customTitle="Failed to Add Owner"
               showDetails={false}
@@ -202,7 +211,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
           {/* Validation Errors */}
           {errors.root?.general && (
-            <Alert 
+            <Alert
               className="eb-border-red-200 eb-bg-red-50"
               role="alert"
               aria-live="polite"
@@ -214,7 +223,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           )}
 
           {errors.root?.submission && (
-            <Alert 
+            <Alert
               className="eb-border-red-200 eb-bg-red-50"
               role="alert"
               aria-live="polite"
@@ -235,10 +244,12 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               className={errors.firstName ? 'eb-border-red-300' : ''}
               aria-required="true"
               aria-invalid={errors.firstName ? 'true' : 'false'}
-              aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+              aria-describedby={
+                errors.firstName ? 'firstName-error' : undefined
+              }
             />
             {errors.firstName && (
-              <p 
+              <p
                 id="firstName-error"
                 className="eb-text-sm eb-text-red-600"
                 role="alert"
@@ -262,7 +273,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               aria-describedby={errors.lastName ? 'lastName-error' : undefined}
             />
             {errors.lastName && (
-              <p 
+              <p
                 id="lastName-error"
                 className="eb-text-sm eb-text-red-600"
                 role="alert"
@@ -275,57 +286,75 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
           {/* Ownership Type */}
           <fieldset className="eb-space-y-3">
-            <legend className="eb-text-sm eb-font-medium">Ownership Type *</legend>
+            <legend className="eb-text-sm eb-font-medium">
+              Ownership Type *
+            </legend>
             <RadioGroup
               value={watchedValues.ownershipType}
-              onValueChange={(value: 'DIRECT' | 'INDIRECT') => 
+              onValueChange={(value: 'DIRECT' | 'INDIRECT') =>
                 setValue('ownershipType', value)
               }
               className="eb-space-y-3"
               aria-required="true"
               aria-invalid={errors.ownershipType ? 'true' : 'false'}
-              aria-describedby={errors.ownershipType ? 'ownershipType-error' : 'ownership-type-help'}
+              aria-describedby={
+                errors.ownershipType
+                  ? 'ownershipType-error'
+                  : 'ownership-type-help'
+              }
             >
               {/* Direct Owner */}
-              <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-bg-blue-50 eb-border-blue-200">
-                <RadioGroupItem 
-                  value="DIRECT" 
-                  id="direct" 
+              <div className="eb-flex eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-border-blue-200 eb-bg-blue-50 eb-p-3">
+                <RadioGroupItem
+                  value="DIRECT"
+                  id="direct"
                   className="eb-mt-1"
-                  aria-describedby="direct-description" 
+                  aria-describedby="direct-description"
                 />
                 <div className="eb-flex-1">
-                  <Label htmlFor="direct" className="eb-flex eb-items-center eb-gap-2 eb-font-medium eb-text-blue-900">
+                  <Label
+                    htmlFor="direct"
+                    className="eb-flex eb-items-center eb-gap-2 eb-font-medium eb-text-blue-900"
+                  >
                     <User className="eb-h-4 eb-w-4" aria-hidden="true" />
                     Direct Owner
                   </Label>
-                  <p id="direct-description" className="eb-text-sm eb-text-blue-700 eb-mt-1">
+                  <p
+                    id="direct-description"
+                    className="eb-mt-1 eb-text-sm eb-text-blue-700"
+                  >
                     Has 25% or more ownership directly in your business
                   </p>
                 </div>
               </div>
 
               {/* Indirect Owner */}
-              <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-bg-orange-50 eb-border-orange-200">
-                <RadioGroupItem 
-                  value="INDIRECT" 
-                  id="indirect" 
+              <div className="eb-flex eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-border-orange-200 eb-bg-orange-50 eb-p-3">
+                <RadioGroupItem
+                  value="INDIRECT"
+                  id="indirect"
                   className="eb-mt-1"
                   aria-describedby="indirect-description"
                 />
                 <div className="eb-flex-1">
-                  <Label htmlFor="indirect" className="eb-flex eb-items-center eb-gap-2 eb-font-medium eb-text-orange-900">
+                  <Label
+                    htmlFor="indirect"
+                    className="eb-flex eb-items-center eb-gap-2 eb-font-medium eb-text-orange-900"
+                  >
                     <Building className="eb-h-4 eb-w-4" aria-hidden="true" />
                     Indirect Owner
                   </Label>
-                  <p id="indirect-description" className="eb-text-sm eb-text-orange-700 eb-mt-1">
+                  <p
+                    id="indirect-description"
+                    className="eb-mt-1 eb-text-sm eb-text-orange-700"
+                  >
                     Has 25% or more ownership through other companies
                   </p>
                 </div>
               </div>
             </RadioGroup>
             {errors.ownershipType && (
-              <p 
+              <p
                 id="ownershipType-error"
                 className="eb-text-sm eb-text-red-600"
                 role="alert"
@@ -334,11 +363,9 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                 {errors.ownershipType.message}
               </p>
             )}
-            <div 
-              id="ownership-type-help" 
-              className="eb-sr-only"
-            >
-              Choose how this person owns 25% or more of your business: directly through shares or indirectly through other companies.
+            <div id="ownership-type-help" className="eb-sr-only">
+              Choose how this person owns 25% or more of your business: directly
+              through shares or indirectly through other companies.
             </div>
           </fieldset>
 
@@ -347,8 +374,8 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             <Alert className="eb-border-orange-200 eb-bg-orange-50">
               <Building className="eb-h-4 eb-w-4 eb-text-orange-600" />
               <AlertDescription className="eb-text-orange-700">
-                After adding this owner, you'll need to build their ownership hierarchy 
-                to show how they own 25% or more of your business.
+                After adding this owner, you'll need to build their ownership
+                hierarchy to show how they own 25% or more of your business.
               </AlertDescription>
             </Alert>
           )}
@@ -362,13 +389,12 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmittingForm}
-            >
-              {isSubmittingForm 
+            <Button type="submit" disabled={isSubmittingForm}>
+              {isSubmittingForm
                 ? 'Adding...'
-                : editingOwnerId ? 'Update Owner' : 'Add Owner'}
+                : editingOwnerId
+                  ? 'Update Owner'
+                  : 'Add Owner'}
             </Button>
           </DialogFooter>
         </form>

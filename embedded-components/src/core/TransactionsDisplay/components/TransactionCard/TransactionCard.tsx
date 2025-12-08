@@ -4,37 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
 import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
-import { formatNumberToCurrency } from '../../utils';
+import {
+  formatNumberToCurrency,
+  formatStatusText,
+  getStatusVariant,
+} from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
-
-/**
- * Format status text for display (convert from uppercase to title case)
- */
-const formatStatusText = (status?: string): string => {
-  if (!status) return 'N/A';
-  // Convert "COMPLETED" to "Completed", "PENDING" to "Pending", etc.
-  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-};
-
-/**
- * Get status badge variant based on transaction status
- */
-const getStatusVariant = (
-  status?: string
-): 'success' | 'warning' | 'destructive' | 'informative' | 'outline' => {
-  switch (status) {
-    case 'COMPLETED':
-      return 'success';
-    case 'PENDING':
-      return 'warning';
-    case 'REJECTED':
-    case 'RETURNED':
-    case 'FAILED':
-      return 'destructive';
-    default:
-      return 'informative';
-  }
-};
 
 /**
  * Format date for display

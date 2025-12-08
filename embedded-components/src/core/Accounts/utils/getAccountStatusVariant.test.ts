@@ -27,4 +27,3 @@ describe('getAccountStatusVariant', () => {
     expect(getAccountStatusVariant(undefined)).toBe('outline');
   });
 });
-
