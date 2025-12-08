@@ -34,6 +34,9 @@ export interface IndirectOwnershipComponentProps {
 
   /** Whether the component is in read-only mode */
   readOnly?: boolean;
+
+  /** Component mode - DEFAULT (existing) or ALTERNATE (beneficial owner first) */
+  mode?: 'DEFAULT' | 'ALTERNATE';
 }
 
 /**
@@ -151,6 +154,72 @@ export interface OwnershipVisualizationConfig {
   highlightUltimateOwners: boolean;
   expandDepth: number;
   theme: 'light' | 'dark';
+}
+
+/**
+ * Alternate ownership flow types for beneficial owner first approach
+ */
+
+/**
+ * Individual beneficial owner in the alternate flow
+ */
+export interface AlternateBeneficialOwner {
+  id: string;
+  firstName: string;
+  lastName: string;
+  ownershipType: 'DIRECT' | 'INDIRECT' | 'PENDING_CLASSIFICATION';
+  hierarchyChain?: AlternateOwnershipHierarchyStep[];
+  owns25PercentOfKycCompany: true; // Always true - qualifies as beneficial owner of the KYC company
+}
+
+/**
+ * Step in the alternate ownership hierarchy
+ */
+export interface AlternateOwnershipHierarchyStep {
+  id: string;
+  companyName: string;
+  isKycCompany: boolean; // True if this is the company undergoing KYC
+  isRootCompany: boolean; // True if this is the ultimate parent
+  level: number; // 0 = beneficial owner, 1+ = intermediate companies
+  // Note: 25%+ threshold applies only to the final KYC company ownership
+}
+
+/**
+ * State for the alternate ownership flow
+ */
+export interface AlternateOwnershipState {
+  kycCompanyName?: string;
+  beneficialOwners: AlternateBeneficialOwner[];
+  currentStep: 'OWNERS' | 'CLASSIFICATION' | 'HIERARCHY' | 'REVIEW';
+  currentOwnerIndex: number;
+  validationErrors: string[];
+  isComplete: boolean;
+}
+
+/**
+ * Props for alternate ownership components
+ */
+export interface AlternateOwnershipProps {
+  /** KYC company name (can be pre-filled or determined during flow) */
+  kycCompanyName?: string;
+
+  /** Callback when ownership structure is completed */
+  onOwnershipComplete?: (ownershipStructure: AlternateOwnershipState) => void;
+
+  /** Callback for step navigation */
+  onStepChange?: (step: string, ownerIndex: number) => void;
+
+  /** Initial beneficial owners (if any) */
+  initialBeneficialOwners?: AlternateBeneficialOwner[];
+
+  /** Whether to auto-advance through steps */
+  autoAdvance?: boolean;
+
+  /** Maximum ownership levels allowed */
+  maxHierarchyLevels?: number;
+
+  /** Read-only mode */
+  readOnly?: boolean;
 }
 
 // Re-export relevant types from API

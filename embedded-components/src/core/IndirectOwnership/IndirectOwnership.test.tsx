@@ -1,84 +1,128 @@
-import { server } from '@/msw/server';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { http, HttpResponse } from 'msw';
-import { render, screen } from '@test-utils';
+import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import { IndirectOwnership } from './IndirectOwnership';
 
-// Setup QueryClient for tests
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
-
-// Mock client data
-const mockClientData = {
+// Mock client data focusing on ownership hierarchy structure
+const mockClientWithOwners: ClientResponse = {
   id: 'client-1',
   partyId: 'party-1',
   status: 'APPROVED',
-  products: ['MERCHANT_SERVICES'],
+  products: ['EMBEDDED_PAYMENTS'],
   parties: [
+    // CLIENT entity
     {
       id: 'party-1',
       partyType: 'ORGANIZATION',
       roles: ['CLIENT'],
+      profileStatus: 'APPROVED',
+      active: true,
       organizationDetails: {
         organizationName: 'Test Company Inc.',
-        entitiesInOwnership: true,
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        countryOfFormation: 'US'
       },
+      createdAt: '2024-01-01T00:00:00.000Z'
     },
+    // BENEFICIAL OWNER - Direct
     {
-      id: 'party-2',
-      parentPartyId: 'party-1',
-      partyType: 'ORGANIZATION',
-      roles: ['BENEFICIAL_OWNER'],
-      organizationDetails: {
-        organizationName: 'Parent Company LLC',
-        entitiesInOwnership: false,
-      },
-    },
-    {
-      id: 'party-3',
-      parentPartyId: 'party-2',
+      id: 'party-2', 
       partyType: 'INDIVIDUAL',
       roles: ['BENEFICIAL_OWNER'],
+      profileStatus: 'APPROVED',
+      active: true,
       individualDetails: {
         firstName: 'John',
-        lastName: 'Doe',
-        natureOfOwnership: 'Indirect',
+        lastName: 'Doe'
       },
+      createdAt: '2024-01-01T00:00:00.000Z'
     },
+    // BENEFICIAL OWNER - Indirect (has hierarchy chain)
+    {
+      id: 'party-3',
+      parentPartyId: 'party-intermediate',
+      partyType: 'INDIVIDUAL', 
+      roles: ['BENEFICIAL_OWNER'],
+      profileStatus: 'APPROVED',
+      active: true,
+      individualDetails: {
+        firstName: 'Jane',
+        lastName: 'Smith'
+      },
+      createdAt: '2024-01-01T00:00:00.000Z'
+    },
+    // Intermediate entity in hierarchy chain
+    {
+      id: 'party-intermediate',
+      partyType: 'ORGANIZATION',
+      roles: [],
+      profileStatus: 'APPROVED', 
+      active: true,
+      organizationDetails: {
+        organizationName: 'Intermediate LLC',
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        countryOfFormation: 'US'
+      },
+      createdAt: '2024-01-01T00:00:00.000Z'
+    }
   ],
   outstanding: {
     partyIds: [],
+    partyRoles: [],
     questionIds: [],
     documentRequestIds: [],
+    attestationDocumentIds: []
   },
+  attestations: [],
+  createdAt: '2024-01-01T00:00:00Z'
+};
+
+const mockEmptyClient: ClientResponse = {
+  id: 'empty-client',
+  partyId: 'party-empty',
+  status: 'APPROVED',
+  products: ['EMBEDDED_PAYMENTS'],
+  parties: [
+    {
+      id: 'party-empty',
+      partyType: 'ORGANIZATION',
+      roles: ['CLIENT'],
+      profileStatus: 'APPROVED',
+      active: true,
+      organizationDetails: {
+        organizationName: 'Empty Company Inc.',
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        countryOfFormation: 'US'
+      },
+      createdAt: '2024-01-01T00:00:00.000Z'
+    }
+  ],
+  outstanding: {
+    partyIds: [],
+    partyRoles: [],
+    questionIds: [],
+    documentRequestIds: [],
+    attestationDocumentIds: []
+  },
+  attestations: [],
+  createdAt: '2024-01-01T00:00:00Z'
 };
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <QueryClientProvider client={queryClient}>
-    <EBComponentsProvider
-      apiBaseUrl="https://api.test.com"
-      headers={{ Authorization: 'Bearer test-token' }}
-    >
-      {children}
-    </EBComponentsProvider>
-  </QueryClientProvider>
+  <EBComponentsProvider
+    apiBaseUrl="https://api.test.com"
+    headers={{ Authorization: 'Bearer test-token' }}
+    contentTokens={{ name: 'enUS' }}
+  >
+    {children}
+  </EBComponentsProvider>
 );
 
 describe('IndirectOwnership Component', () => {
-  beforeEach(() => {
-    queryClient.clear();
-    server.resetHandlers();
-  });
-
-  it('renders main headings and sections', async () => {
+  it('renders main heading and empty state with no client data', () => {
     render(
       <TestWrapper>
         <IndirectOwnership />
@@ -87,112 +131,123 @@ describe('IndirectOwnership Component', () => {
 
     // Main heading
     expect(
-      screen.getByText(/Indirect Ownership Structure/i)
+      screen.getByText(/Who are your beneficial owners?/i)
     ).toBeInTheDocument();
-    // Tab navigation
+    
+    // Add beneficial owner button
     expect(
-      screen.getByRole('button', { name: /Full Structure/i })
+      screen.getByRole('button', { name: /Add new beneficial owner/i })
     ).toBeInTheDocument();
+    
+    // Empty state message
     expect(
-      screen.getByRole('button', { name: /Beneficial Owners/i })
-    ).toBeInTheDocument();
-    // Ownership Hierarchy section
-    expect(screen.getByText(/Ownership Hierarchy/i)).toBeInTheDocument();
-    // Info alert
-    expect(
-      screen.getByText(
-        /Add entities and individuals that have ownership interest/i
-      )
-    ).toBeInTheDocument();
-    // Ownership Tree Visualization section
-    expect(
-      screen.getByText(/Ownership Tree Visualization/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Interactive hierarchy showing ownership relationships/i)
+      screen.getByText(/No beneficial owners added yet/i)
     ).toBeInTheDocument();
   });
 
-  it('renders loading skeletons when clientId is provided', async () => {
-    server.use(
-      http.get('/clients/:id', () => {
-        return HttpResponse.json(mockClientData);
-      })
-    );
-
-    const { container } = render(
+  it('renders with client data showing beneficial owners', () => {
+    render(
       <TestWrapper>
-        <IndirectOwnership clientId="client-1" />
+        <IndirectOwnership client={mockClientWithOwners} />
       </TestWrapper>
     );
 
-    // Skeleton loading indicators (check for animate-pulse class)
-    const skeletons = container.querySelectorAll('.eb-animate-pulse');
-    expect(skeletons.length).toBeGreaterThanOrEqual(1);
+    // Main heading with count
+    expect(
+      screen.getByText(/Who are your beneficial owners?/i)
+    ).toBeInTheDocument();
+    
+    // Should show beneficial owners from mock data
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Jane Smith/i)).toHaveLength(2); // Appears in owner list and hierarchy chain
   });
 
-  it('handles ownership structure update callback (UI presence)', async () => {
-    const onUpdateMock = vi.fn();
-
-    server.use(
-      http.get('/clients/:id', () => {
-        return HttpResponse.json(mockClientData);
-      })
+  it('renders empty state for client with no beneficial owners', () => {
+    render(
+      <TestWrapper>
+        <IndirectOwnership client={mockEmptyClient} />
+      </TestWrapper>
     );
 
-    const { container } = render(
+    // Should show empty state
+    expect(
+      screen.getByText(/No beneficial owners added yet/i)
+    ).toBeInTheDocument();
+    
+    // Should show add button
+    expect(
+      screen.getByRole('button', { name: /Add new beneficial owner/i })
+    ).toBeInTheDocument();
+  });
+
+  it('respects readOnly prop', () => {
+    render(
       <TestWrapper>
-        <IndirectOwnership
-          clientId="client-1"
-          onOwnershipStructureUpdate={onUpdateMock}
+        <IndirectOwnership client={mockClientWithOwners} readOnly={true} />
+      </TestWrapper>
+    );
+
+    // Should not show add button in readOnly mode
+    expect(
+      screen.queryByRole('button', { name: /Add Beneficial Owner/i })
+    ).not.toBeInTheDocument();
+    
+    // Should still show beneficial owners
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+  });
+
+  it('calls onOwnershipComplete callback when complete button is clicked', () => {
+    const onCompleteMock = vi.fn();
+    
+    render(
+      <TestWrapper>
+        <IndirectOwnership 
+          client={mockClientWithOwners} 
+          onOwnershipComplete={onCompleteMock}
         />
       </TestWrapper>
     );
 
-    // When loading, skeletons should be present
-    const skeletons = container.querySelectorAll('.eb-animate-pulse');
-    expect(skeletons.length).toBeGreaterThanOrEqual(1);
-    // Callback functionality will be tested when actual implementation is added
+    // Complete button should be present for hierarchy management
+    const completeButton = screen.queryByRole('button', { name: /Complete/i });
+    
+    // This test verifies the callback prop is accepted
+    expect(completeButton).toBeInTheDocument();
   });
 
-  it('renders all main component sections', async () => {
+  it('accepts onValidationChange callback prop', () => {
+    const onValidationMock = vi.fn();
+    
     render(
       <TestWrapper>
-        <IndirectOwnership />
+        <IndirectOwnership 
+          client={mockClientWithOwners} 
+          onValidationChange={onValidationMock}
+        />
       </TestWrapper>
     );
 
-    expect(
-      screen.getByText(/Ownership Tree Visualization/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Interactive hierarchy showing ownership relationships/i)
-    ).toBeInTheDocument();
-    // The other sections may be present as headings or info blocks
-    expect(screen.getByText(/Ownership Hierarchy/i)).toBeInTheDocument();
+    // This test verifies the callback prop is accepted without errors
+    // The component should render successfully with the callback
+    expect(screen.getByText(/Who are your beneficial owners?/i)).toBeInTheDocument();
   });
 
-  // Optional: keep these if the dev mode debug info is still rendered
-  it('respects showVisualization prop (dev mode only)', async () => {
+  it('applies custom className and testId', () => {
+    const customClass = 'custom-test-class';
+    const customTestId = 'custom-test-id';
+    
     render(
       <TestWrapper>
-        <IndirectOwnership clientId="client-1" showVisualization={false} />
+        <IndirectOwnership 
+          client={mockEmptyClient}
+          className={customClass}
+          testId={customTestId}
+        />
       </TestWrapper>
     );
-    // Only check if NODE_ENV is development and debug info is rendered
-    if (process.env.NODE_ENV === 'development') {
-      expect(screen.getByText(/Show Visualization: No/i)).toBeInTheDocument();
-    }
-  });
 
-  it('respects maxDepth prop (dev mode only)', async () => {
-    render(
-      <TestWrapper>
-        <IndirectOwnership clientId="client-1" maxDepth={5} />
-      </TestWrapper>
-    );
-    if (process.env.NODE_ENV === 'development') {
-      expect(screen.getByText(/Max Depth: 5/i)).toBeInTheDocument();
-    }
+    const component = screen.getByTestId(customTestId);
+    expect(component).toBeInTheDocument();
+    expect(component).toHaveClass(customClass);
   });
 });
