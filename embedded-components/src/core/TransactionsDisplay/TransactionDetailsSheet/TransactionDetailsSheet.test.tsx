@@ -112,7 +112,7 @@ describe('TransactionDetailsSheet', () => {
       });
 
       expect(screen.getByText('ACH')).toBeInTheDocument();
-      expect(screen.getByText('COMPLETED')).toBeInTheDocument();
+      expect(screen.getByText('Completed')).toBeInTheDocument();
     });
 
     test.skip('closes dialog on close button click', async () => {
@@ -251,7 +251,7 @@ describe('TransactionDetailsSheet', () => {
 
       // Check all major fields are present
       expect(screen.getByText('ACH')).toBeInTheDocument();
-      expect(screen.getByText('COMPLETED')).toBeInTheDocument();
+      expect(screen.getByText('Completed')).toBeInTheDocument();
       expect(screen.getByText('REF-COMPLETE-12345')).toBeInTheDocument();
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('Acme Corp')).toBeInTheDocument();
@@ -445,7 +445,7 @@ describe('TransactionDetailsSheet', () => {
         ).toBeInTheDocument();
       });
 
-      expect(screen.getByText('PENDING')).toBeInTheDocument();
+      expect(screen.getByText('Pending')).toBeInTheDocument();
       expect(screen.getByText('TRANSFER')).toBeInTheDocument();
     });
 

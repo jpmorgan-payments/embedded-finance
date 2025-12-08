@@ -1,0 +1,92 @@
+---
+description: Fix PowerShell output capture issues for test commands
+---
+
+# Fixing PowerShell Output Capture Issues
+
+## Problem
+
+Commands complete but don't show output when using pipes or redirection in PowerShell.
+
+## Solutions
+
+### ✅ Solution 1: Run Commands Separately (BEST)
+
+Instead of chaining with pipes, run commands separately:
+
+```powershell
+# ❌ BAD - Output gets lost
+cd embedded-components && yarn test:unit src/core/TransactionsDisplay 2>&1 | Select-String -Pattern "PASS|FAIL"
+
+# ✅ GOOD - Output is visible
+cd embedded-components
+yarn test:unit src/core/TransactionsDisplay
+```
+
+### ✅ Solution 2: Use Write-Host for Debugging
+
+```powershell
+cd embedded-components
+$output = yarn test:unit src/core/TransactionsDisplay 2>&1
+Write-Host $output
+```
+
+### ✅ Solution 3: Force Unbuffered Output
+
+```powershell
+cd embedded-components
+$env:FORCE_COLOR=0
+yarn test:unit src/core/TransactionsDisplay | Out-Host
+```
+
+### ✅ Solution 4: Use Tee-Object to See Output
+
+```powershell
+cd embedded-components
+yarn test:unit src/core/TransactionsDisplay 2>&1 | Tee-Object -Variable output
+$output | Select-String -Pattern "PASS|FAIL|✓|×"
+```
+
+### ✅ Solution 5: Direct Execution (No Redirection)
+
+```powershell
+# Just run the command directly - output will show
+cd C:\code\embedded-banking\embedded-components
+yarn vitest run src/core/TransactionsDisplay
+```
+
+## For AI Assistant Commands
+
+When asking the AI to run tests, use:
+
+```powershell
+# Simple, direct command
+cd embedded-components
+yarn test:unit src/core/TransactionsDisplay
+```
+
+**Avoid:**
+
+- Pipes (`|`) with Select-String or Select-Object
+- Complex redirection (`2>&1 | ...`)
+- Command chaining with `&&` (doesn't work in PowerShell anyway)
+
+## Why This Happens
+
+PowerShell buffers output differently than bash:
+
+- Pipes can buffer output
+- Some programs detect they're piped and change behavior
+- Redirection can interfere with terminal output
+- Vitest/yarn may detect non-interactive terminal and suppress output
+
+## Quick Test
+
+To verify output is working:
+
+```powershell
+cd embedded-components
+yarn vitest run src/core/TransactionsDisplay --reporter=basic
+```
+
+This forces basic output that should always be visible.
