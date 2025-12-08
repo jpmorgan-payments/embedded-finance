@@ -146,7 +146,8 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
             (device) => device.kind === 'videoinput'
           );
           setEnableCameraCapture(hasVideoInput);
-        } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch {
           // If we can't enumerate devices, assume camera is available on mobile
           setEnableCameraCapture(true);
         }

@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-const swithcVariants = cva('', {
+const _switchVariants = cva('', {
   variants: {
     variant: {
       default: '',
@@ -18,7 +18,7 @@ const swithcVariants = cva('', {
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root> &
-    VariantProps<typeof swithcVariants>
+    VariantProps<typeof _switchVariants>
 >(({ className, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(

@@ -15,6 +15,8 @@ module.exports = {
     'linebreak-style': 'off',
     'arrow-body-style': 'off',
     'no-console': ['warn', { allow: ['warn', 'error'] }],
+    // Disable removed rule from typescript-eslint v8
+    '@typescript-eslint/no-throw-literal': 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {

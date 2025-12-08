@@ -1,3 +1,5 @@
+import containerQueries from '@tailwindcss/container-queries';
+import tailwindcssAnimate from 'tailwindcss-animate';
 import {
   isolateInsideOfContainer,
   scopedPreflightStyles,
@@ -5,7 +7,7 @@ import {
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ['class'],
   content: [
     './pages/**/*.{ts,tsx}',
@@ -211,8 +213,8 @@ module.exports = {
     },
   },
   plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/container-queries'),
+    tailwindcssAnimate,
+    containerQueries,
     scopedPreflightStyles({
       isolationStrategy: isolateInsideOfContainer('.eb-component', {
         rootStyles: 'add :where',

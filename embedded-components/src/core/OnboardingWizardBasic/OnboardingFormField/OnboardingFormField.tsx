@@ -153,7 +153,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     const context = useOnboardingContext();
     const { data } = useSmbdoGetClient(context.clientId ?? '');
     clientData = data;
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch {
     const context = useOnboardingOverviewContext();
     clientData = context.clientData;
     isOverviewFlow = true;
