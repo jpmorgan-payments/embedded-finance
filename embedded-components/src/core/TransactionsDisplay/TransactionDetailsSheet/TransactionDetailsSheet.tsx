@@ -45,7 +45,7 @@ const getStatusVariant = (
 const formatStatusText = (status?: string): string => {
   if (!status) return 'N/A';
   // Convert "COMPLETED" to "Completed", "PENDING" to "Pending", etc.
-  return status.charAt(0) + status.slice(1).toLowerCase();
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 };
 
 export type TransactionDetailsDialogTriggerProps = {

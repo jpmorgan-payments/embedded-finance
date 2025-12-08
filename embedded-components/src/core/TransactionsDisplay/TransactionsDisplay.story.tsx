@@ -315,6 +315,86 @@ export const Loading: Story = {
 // Error stories are organized in stories/TransactionsDisplay.errors.story.tsx
 
 /**
+ * Generate multiple transactions for pagination demonstration
+ */
+const generateManyTransactions = (count: number) => {
+  const baseTransaction = mockTransactions[0];
+  const transactions = [];
+  const statuses = ['COMPLETED', 'PENDING', 'REJECTED', 'FAILED'];
+  const types = ['ACH', 'WIRE', 'CHECK', 'CARD'];
+  const currencies = ['USD', 'EUR', 'GBP'];
+
+  for (let i = 0; i < count; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    transactions.push({
+      ...baseTransaction,
+      id: `txn-${String(i + 1).padStart(3, '0')}`,
+      status: statuses[i % statuses.length],
+      type: types[i % types.length],
+      amount: Math.random() * 10000 + 100,
+      currency: currencies[i % currencies.length],
+      paymentDate: date.toISOString().split('T')[0],
+      createdAt: date.toISOString(),
+      effectiveDate: date.toISOString(),
+      transactionReferenceId: `REF-${String(i + 10000).padStart(5, '0')}`,
+      counterpartName: `Counterpart ${i + 1}`,
+      memo: i % 3 === 0 ? `Memo for transaction ${i + 1}` : undefined,
+    });
+  }
+  return transactions;
+};
+
+/**
+ * Story demonstrating pagination with multiple pages
+ */
+export const MultiplePages: Story = {
+  args: {
+    apiBaseUrl: '/',
+    apiBaseUrls: {
+      transactions: '/v2/',
+    },
+    headers: {},
+    accountIds: ['account1', 'account2'],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/transactions', () => {
+          const manyTransactions = generateManyTransactions(75); // 75 transactions = 3 pages at 25 per page
+          return HttpResponse.json({
+            items: manyTransactions,
+            metadata: {
+              page: 1,
+              limit: 100,
+              total_items: manyTransactions.length,
+            },
+          });
+        }),
+        http.get('*/transactions/:id', ({ params }) => {
+          const { id } = params;
+          const manyTransactions = generateManyTransactions(75);
+          const transaction = manyTransactions.find((t) => t.id === id);
+          if (transaction) {
+            return HttpResponse.json(transaction);
+          }
+          return HttpResponse.json(
+            { error: 'Transaction not found' },
+            { status: 404 }
+          );
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'Demonstrates pagination with 75 transactions (3 pages at 25 per page). Use the pagination controls to navigate between pages.',
+      },
+    },
+  },
+};
+
+/**
  * Story with SellSense theme preset.
  * Theme is applied via themePreset arg which is handled by the global decorator.
  */

@@ -8,6 +8,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   SortingState,
+  Table as TanStackTable,
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table';
@@ -32,6 +33,7 @@ import { TransactionsTableToolbar } from './TransactionsTableToolbar';
 interface TransactionsTableProps {
   columns: ColumnDef<ModifiedTransaction>[];
   data: ModifiedTransaction[];
+  table?: TanStackTable<ModifiedTransaction>;
 }
 
 /**
@@ -44,7 +46,12 @@ interface TransactionsTableProps {
  * - Pagination with page size control
  * - Client-side filtering and sorting
  */
-export function TransactionsTable({ columns, data }: TransactionsTableProps) {
+export function TransactionsTable({
+  columns,
+  data,
+  table: providedTable,
+}: TransactionsTableProps) {
+  // Use provided table or create own table instance
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -62,7 +69,7 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
       payinOrPayout: false,
     });
 
-  const table = useReactTable({
+  const internalTable = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
@@ -90,9 +97,11 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
     },
   });
 
+  const table = providedTable || internalTable;
+
   return (
     <div className="eb-w-full eb-space-y-4">
-      <TransactionsTableToolbar table={table} />
+      {!providedTable && <TransactionsTableToolbar table={table} />}
       <div className="eb-rounded-md eb-border">
         <Table>
           <TableHeader>
@@ -161,7 +170,7 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      {!providedTable && <DataTablePagination table={table} />}
     </div>
   );
 }

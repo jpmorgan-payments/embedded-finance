@@ -19,6 +19,30 @@ interface DataTableViewOptionsProps<TData> {
 }
 
 /**
+ * Map column IDs to their display names
+ */
+const getColumnDisplayName = (columnId: string): string => {
+  const displayNameMap: Record<string, string> = {
+    paymentDate: 'Date',
+    status: 'Status',
+    type: 'Type',
+    amount: 'Amount',
+    currency: 'Currency',
+    counterpartName: 'Counterpart',
+    transactionReferenceId: 'Reference ID',
+    createdAt: 'Created At',
+    effectiveDate: 'Effective Date',
+    memo: 'Memo',
+    debtorName: 'Debtor',
+    creditorName: 'Creditor',
+    ledgerBalance: 'Ledger Balance',
+    postingVersion: 'Posting Version',
+    payinOrPayout: 'Direction',
+  };
+  return displayNameMap[columnId] || columnId;
+};
+
+/**
  * DataTableViewOptions - Column visibility toggle component
  *
  * Allows users to show/hide table columns.
@@ -39,7 +63,7 @@ export function DataTableViewOptions<TData>({
           Columns
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="eb-w-[220px]">
+      <DropdownMenuContent align="end" className="eb-w-auto eb-min-w-[200px]">
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
@@ -52,11 +76,11 @@ export function DataTableViewOptions<TData>({
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className="eb-capitalize"
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                className="eb-pr-4"
               >
-                {column.id}
+                {getColumnDisplayName(column.id)}
               </DropdownMenuCheckboxItem>
             );
           })}
