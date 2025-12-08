@@ -9,6 +9,7 @@ import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
 import type { EBConfig } from '@/core/EBComponentsProvider/config.types';
 
+import enUS_accounts from './en-US/accounts.json';
 import enUS_bankAccountForm from './en-US/bank-account-form.json';
 import enUS_common from './en-US/common.json';
 import enUS_linkedAccounts from './en-US/linked-accounts.json';
@@ -17,7 +18,9 @@ import enUS_onboardingOverview from './en-US/onboarding-overview.json';
 import enUS_onboarding from './en-US/onboarding.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
+import esUS_accounts from './es-US/accounts.json';
 import esUS_transactions from './es-US/transactions.json';
+import frCA_accounts from './fr-CA/accounts.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
 import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
@@ -35,6 +38,7 @@ export const defaultResources = {
     'make-payment': enUS_makePayment,
     'linked-accounts': enUS_linkedAccounts,
     'bank-account-form': enUS_bankAccountForm,
+    accounts: enUS_accounts,
     transactions: enUS_transactions,
     zod: en_zod,
   },
@@ -47,6 +51,7 @@ export const defaultResources = {
     'make-payment': frCA_makePayment,
     'linked-accounts': frCA_linkedAccounts,
     'bank-account-form': frCA_bankAccountForm,
+    accounts: frCA_accounts,
     transactions: frCA_transactions,
     zod: fr_zod,
   },
@@ -59,6 +64,7 @@ export const defaultResources = {
     'make-payment': enUS_makePayment, // Using English make-payment for now
     'linked-accounts': enUS_linkedAccounts, // Using English linked-accounts for now
     'bank-account-form': enUS_bankAccountForm, // Using English bank-account-form for now
+    accounts: esUS_accounts,
     transactions: esUS_transactions,
     zod: es_zod,
   },
@@ -90,6 +96,7 @@ i18n.use(initReactI18next).init({
     'make-payment',
     'linked-accounts',
     'bank-account-form',
+    'accounts',
     'transactions',
   ],
   resources,
@@ -148,6 +155,7 @@ export const createI18nInstance = (
       'make-payment',
       'linked-accounts',
       'bank-account-form',
+      'accounts',
       'transactions',
     ],
     // Deep clone to avoid mutating the original defaults

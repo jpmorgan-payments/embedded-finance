@@ -12,6 +12,7 @@ import {
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,6 @@ import type {
   TransactionsDisplayProps,
   TransactionsDisplayRef,
 } from './TransactionsDisplay.types';
-import { useLocale } from './utils';
 
 export const TransactionsDisplay = forwardRef<
   TransactionsDisplayRef,

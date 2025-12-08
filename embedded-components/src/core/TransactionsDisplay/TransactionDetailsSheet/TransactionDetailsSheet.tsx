@@ -2,6 +2,7 @@ import { FC, useState } from 'react';
 import { CopyIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
 import { useGetTransactionV2 } from '@/api/generated/ep-transactions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,6 @@ import {
   formatNumberToCurrency,
   formatStatusText,
   getStatusVariant,
-  useLocale,
 } from '../utils';
 
 export type TransactionDetailsDialogTriggerProps = {

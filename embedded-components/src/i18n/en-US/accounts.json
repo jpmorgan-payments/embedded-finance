@@ -1,0 +1,37 @@
+{
+  "title": "Accounts",
+  "loading": {
+    "accounts": "Loading accounts..."
+  },
+  "error": {
+    "loadFailed": "Failed to load accounts. Please try again.",
+    "retry": "Retry"
+  },
+  "emptyState": {
+    "title": "No accounts found",
+    "description": "No accounts match the selected categories. Contact support if you need to create an account."
+  },
+  "card": {
+    "overview": "Overview",
+    "accountDetails": "Account Details",
+    "accountDetailsTooltip": "Account can be funded from external sources and is externally addressable via routing/account numbers here",
+    "accountNumber": "Account Number:",
+    "achRouting": "ACH Routing:",
+    "wireRtpRouting": "Wire/RTP Routing:",
+    "showDetails": "Show account details",
+    "hideDetails": "Hide account details",
+    "copyAccountNumber": "Copy account number",
+    "copyAchRouting": "Copy ACH Routing",
+    "copyWireRtpRouting": "Copy Wire/RTP Routing",
+    "noBalanceData": "No balance data."
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "Payments DDA",
+    "LIMITED_DDA": "Limited DDA"
+  },
+  "balanceTypes": {
+    "ITAV": "Available Balance",
+    "ITBD": "Current Balance"
+  }
+}
+

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
@@ -9,7 +10,6 @@ import {
   formatNumberToCurrency,
   formatStatusText,
   getStatusVariant,
-  useLocale,
 } from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
 

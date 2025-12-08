@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { getLocaleFromLanguage } from './getLocaleFromLanguage';
+import { getLocaleFromLanguage } from '../utils/getLocaleFromLanguage';
 
 /**
  * Hook to get the current locale string from the i18n instance

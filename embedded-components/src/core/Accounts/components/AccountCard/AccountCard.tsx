@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useState } from 'react';
 import { Copy, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
 import { useGetAccountBalance } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +29,9 @@ interface AccountCardProps {
 
 export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
   ({ account }, ref) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation(['accounts', 'common']);
+    const locale = useLocale();
+    const naText = t('common:na', { defaultValue: 'N/A' });
     const {
       data: balanceData,
       isLoading: isBalanceLoading,
@@ -51,17 +54,19 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       setShowSensitiveInfo(!showSensitiveInfo);
     };
 
-    const formattedCategory =
-      account.category === 'LIMITED_DDA_PAYMENTS'
-        ? 'Payments DDA'
-        : account.category === 'LIMITED_DDA'
-          ? 'Limited DDA'
-          : account.category;
+    const formattedCategory = t(`accounts:categories.${account.category}`, {
+      defaultValue:
+        account.category === 'LIMITED_DDA_PAYMENTS'
+          ? 'Payments DDA'
+          : account.category === 'LIMITED_DDA'
+            ? 'Limited DDA'
+            : account.category,
+    });
 
     // Mask account number: show last 4 digits with 4 asterisks (aligned with LinkedAccountWidget pattern)
     const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
       ? `****${account.paymentRoutingInformation.accountNumber.slice(-4)}`
-      : 'N/A';
+      : naText;
 
     return (
       <Card className="eb-mb-4 eb-flex eb-w-full eb-flex-col eb-border eb-p-4 lg:eb-max-w-5xl">
@@ -125,9 +130,13 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                       })}
                     </span>
                     <span className="eb-font-mono eb-break-words eb-text-2xl eb-font-bold eb-leading-tight eb-text-metric">
-                      {formatNumberWithCommas(Number(b.amount)).whole}
+                      {formatNumberWithCommas(Number(b.amount), locale).whole}
                       <span className="eb-text-base">
-                        .{formatNumberWithCommas(Number(b.amount)).decimal}{' '}
+                        .
+                        {
+                          formatNumberWithCommas(Number(b.amount), locale)
+                            .decimal
+                        }{' '}
                         {balanceData.currency}
                       </span>
                     </span>
@@ -170,7 +179,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <span className="eb-font-mono eb-text-sm">
                       {showSensitiveInfo
                         ? account.paymentRoutingInformation?.accountNumber ||
-                          'N/A'
+                          naText
                         : maskedAccountNumber}
                     </span>
                     <button

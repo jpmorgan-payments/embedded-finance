@@ -16,8 +16,11 @@ import { AccountCard } from './components/AccountCard/AccountCard';
 import type { AccountCardRef } from './components/AccountCard/AccountCard';
 
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
-  ({ allowedCategories, clientId, title = 'Accounts' }, ref) => {
-    const { t } = useTranslation();
+  ({ allowedCategories, clientId, title }, ref) => {
+    const { t } = useTranslation(['accounts', 'common']);
+    // Use translated title if not provided, otherwise use the provided title
+    const displayTitle =
+      title || t('accounts:title', { defaultValue: 'Accounts' });
     const { interceptorReady } = useInterceptorStatus();
     const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
 
@@ -74,7 +77,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
+              {displayTitle}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -142,7 +145,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
+              {displayTitle}
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-pt-6">
@@ -171,7 +174,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         <Card className="eb-component eb-w-full">
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
+              {displayTitle}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -213,7 +216,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         <Card className="eb-component eb-w-full" ref={containerRef}>
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
+              {displayTitle}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -245,7 +248,9 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     return (
       <Card className="eb-component eb-w-full" ref={containerRef}>
         <CardHeader>
-          <CardTitle className="eb-text-xl eb-font-semibold">{title}</CardTitle>
+          <CardTitle className="eb-text-xl eb-font-semibold">
+            {displayTitle}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <AccountCard

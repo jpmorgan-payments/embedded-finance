@@ -68,7 +68,7 @@ t('transactions.title')
 - Falls back to 'en-US' if locale cannot be determined
 
 ```typescript
-import { useLocale } from '@/core/TransactionsDisplay/utils';
+import { useLocale } from '@/lib/hooks';
 
 const MyComponent = () => {
   const locale = useLocale(); // Returns 'en-US', 'fr-CA', etc.
@@ -93,7 +93,7 @@ const MyComponent = () => {
 ### Implementation Pattern
 
 ```typescript
-import { useLocale } from './utils';
+import { useLocale } from '@/lib/hooks';
 
 const MyComponent = () => {
   const locale = useLocale();
@@ -389,7 +389,7 @@ export const getMyColumns = (
 Hook to get current locale string from i18n instance.
 
 ```typescript
-import { useLocale } from './utils';
+import { useLocale } from '@/lib/hooks';
 
 const locale = useLocale(); // Returns 'en-US', 'fr-CA', etc.
 ```
@@ -399,12 +399,14 @@ const locale = useLocale(); // Returns 'en-US', 'fr-CA', etc.
 Converts i18next language code to locale string.
 
 ```typescript
-import { getLocaleFromLanguage } from './utils';
+import { getLocaleFromLanguage } from '@/lib/utils/getLocaleFromLanguage';
 
 const locale = getLocaleFromLanguage('enUS'); // Returns 'en-US'
 const locale = getLocaleFromLanguage('frCA'); // Returns 'fr-CA'
 const locale = getLocaleFromLanguage(undefined); // Returns 'en-US'
 ```
+
+**Note**: These utilities are shared across all components and located in `src/lib/` since they're used by 2+ components (TransactionsDisplay, Accounts, etc.).
 
 ### `formatNumberToCurrency(amount, currency, locale?)`
 
@@ -456,10 +458,11 @@ When migrating existing components to support i18n/l10n:
 
 ## Examples
 
-See the `TransactionsDisplay` component for a complete reference implementation:
+See the `TransactionsDisplay` and `Accounts` components for complete reference implementations:
 - `embedded-components/src/core/TransactionsDisplay/`
-- Translation files: `embedded-components/src/i18n/en-US/transactions.json`
-- Locale utilities: `embedded-components/src/core/TransactionsDisplay/utils/`
+- `embedded-components/src/core/Accounts/`
+- Translation files: `embedded-components/src/i18n/en-US/transactions.json`, `embedded-components/src/i18n/en-US/accounts.json`
+- **Shared locale utilities**: `embedded-components/src/lib/hooks/useLocale.ts` and `embedded-components/src/lib/utils/getLocaleFromLanguage.ts`
 
 ## Resources
 
