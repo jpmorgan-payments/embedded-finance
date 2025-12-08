@@ -14,7 +14,8 @@ const mockT = (
   return options?.defaultValue || key;
 };
 
-const transactionsColumns = getTransactionsColumns(mockT, 'en-US');
+// Test without locale to ensure default 'en-US' is used
+const transactionsColumns = getTransactionsColumns(mockT);
 
 const queryClient = new QueryClient({
   defaultOptions: {
