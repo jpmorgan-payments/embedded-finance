@@ -5,6 +5,7 @@ import {
   ChevronUpIcon,
   RefreshCwIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { ErrorType } from '@/api/axios-instance';
@@ -127,6 +128,9 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   tryAgainAction,
   showDetails = false,
 }) => {
+  const { t } = useTranslation(['common']);
+  // Type assertion to avoid TypeScript overload issues
+  const tCommon = t as (key: string, options?: any) => string;
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   if (!error) {
@@ -178,7 +182,9 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
             ) : (
               <ChevronDownIcon className="eb-h-3 eb-w-3" />
             )}
-            {isDetailsExpanded ? 'Hide Details' : 'Show Details'}
+            {isDetailsExpanded
+              ? tCommon('errors.hideDetails', { defaultValue: 'Hide Details' })
+              : tCommon('errors.showDetails', { defaultValue: 'Show Details' })}
           </Button>
 
           {isDetailsExpanded && (
@@ -210,7 +216,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
             className="eb-border-red-300 eb-bg-white eb-text-red-900 hover:eb-bg-red-50 hover:eb-text-red-700"
           >
             <RefreshCwIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-            Try Again
+            {tCommon('errors.tryAgain', { defaultValue: 'Try Again' })}
           </Button>
         </AlertDescription>
       )}

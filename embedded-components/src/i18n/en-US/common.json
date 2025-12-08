@@ -97,5 +97,10 @@
     "MAILING_ADDRESS": "Mailing address",
     "BUSINESS_ADDRESS": "Business address",
     "RESIDENTIAL_ADDRESS": "Residential address"
+  },
+  "errors": {
+    "tryAgain": "Try Again",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details"
   }
 }

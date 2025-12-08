@@ -9,5 +9,10 @@
   "no": "Non",
   "validation": {
     "required": "Ce champ est requis"
+  },
+  "errors": {
+    "tryAgain": "Réessayer",
+    "showDetails": "Afficher les détails",
+    "hideDetails": "Masquer les détails"
   }
 }
