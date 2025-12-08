@@ -373,8 +373,9 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             <Alert className="eb-border-orange-200 eb-bg-orange-50">
               <Building className="eb-h-4 eb-w-4 eb-text-orange-600" />
               <AlertDescription className="eb-text-orange-700">
-                After adding this owner, you&apos;ll need to build their ownership
-                hierarchy to show how they own 25% or more of your business.
+                After adding this owner, you&apos;ll need to build their
+                ownership hierarchy to show how they own 25% or more of your
+                business.
               </AlertDescription>
             </Alert>
           )}
