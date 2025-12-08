@@ -14,12 +14,14 @@ import enUS_linkedAccounts from './en-US/linked-accounts.json';
 import enUS_makePayment from './en-US/make-payment.json';
 import enUS_onboardingOverview from './en-US/onboarding-overview.json';
 import enUS_onboarding from './en-US/onboarding.json';
+import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
 import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
 import frCA_makePayment from './fr-CA/make-payment.json';
 import frCA_onboarding from './fr-CA/onboarding.json';
+import frCA_transactions from './fr-CA/transactions.json';
 
 export const defaultResources = {
   enUS: {
@@ -31,6 +33,7 @@ export const defaultResources = {
     'make-payment': enUS_makePayment,
     'linked-accounts': enUS_linkedAccounts,
     'bank-account-form': enUS_bankAccountForm,
+    transactions: enUS_transactions,
     zod: en_zod,
   },
   frCA: {
@@ -42,6 +45,7 @@ export const defaultResources = {
     'make-payment': frCA_makePayment,
     'linked-accounts': frCA_linkedAccounts,
     'bank-account-form': frCA_bankAccountForm,
+    transactions: frCA_transactions,
     zod: fr_zod,
   },
 };
@@ -72,6 +76,7 @@ i18n.use(initReactI18next).init({
     'make-payment',
     'linked-accounts',
     'bank-account-form',
+    'transactions',
   ],
   resources,
   interpolation: {
@@ -129,6 +134,7 @@ export const createI18nInstance = (
       'make-payment',
       'linked-accounts',
       'bank-account-form',
+      'transactions',
     ],
     // Deep clone to avoid mutating the original defaults
     resources: cloneDeep(defaultResources),

@@ -10,6 +10,7 @@ import {
   VisibilityState,
 } from '@tanstack/react-table';
 import { RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { TransactionCard } from './components/TransactionCard/TransactionCard';
 import { DataTablePagination } from './components/TransactionsTable/DataTablePagination';
 import { TransactionsTable } from './components/TransactionsTable/TransactionsTable';
-import { transactionsColumns } from './components/TransactionsTable/TransactionsTable.columns';
+import { getTransactionsColumns } from './components/TransactionsTable/TransactionsTable.columns';
 import { TransactionsTableToolbar } from './components/TransactionsTable/TransactionsTableToolbar';
 import { useAccountsData, useTransactionsData } from './hooks';
 import type {
@@ -31,6 +32,7 @@ export const TransactionsDisplay = forwardRef<
   TransactionsDisplayRef,
   TransactionsDisplayProps
 >(({ accountIds }, ref) => {
+  const { t } = useTranslation(['transactions']);
   const { filteredAccountIds } = useAccountsData();
   const { transactions, status, failureReason, refetch, isFetching } =
     useTransactionsData({
@@ -38,6 +40,9 @@ export const TransactionsDisplay = forwardRef<
     });
 
   const isMobile = useMediaQuery('(max-width: 640px)');
+
+  // Get translated columns
+  const transactionsColumns = getTransactionsColumns(t);
 
   // Table state management (shared for both table and card views)
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -98,18 +103,26 @@ export const TransactionsDisplay = forwardRef<
     <Card className="eb-component eb-w-full">
       <CardHeader className="eb-flex eb-flex-row eb-items-center eb-justify-between eb-gap-2">
         <CardTitle className="eb-flex-1 eb-text-xl eb-font-semibold">
-          Transactions
+          {t('title', { defaultValue: 'Transactions' })}
         </CardTitle>
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Refresh transactions"
-          title="Refresh transactions"
+          aria-label={t('actions.refresh.label', {
+            defaultValue: 'Refresh transactions',
+          })}
+          title={t('actions.refresh.label', {
+            defaultValue: 'Refresh transactions',
+          })}
           onClick={() => refetch()}
           disabled={isFetching}
           className="eb-ml-2 eb-cursor-pointer"
         >
-          <span className="eb-sr-only">Refresh transactions</span>
+          <span className="eb-sr-only">
+            {t('actions.refresh.srOnly', {
+              defaultValue: 'Refresh transactions',
+            })}
+          </span>
           <RefreshCw
             className={`eb-h-5 eb-w-5 eb-text-muted-foreground ${isFetching ? 'eb-animate-spin' : ''}`}
           />
@@ -118,24 +131,43 @@ export const TransactionsDisplay = forwardRef<
       <CardContent className="eb-space-y-4">
         {status === 'pending' && (
           <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
-            Loading transactions...
+            {t('loading.transactions', {
+              defaultValue: 'Loading transactions...',
+            })}
           </div>
         )}
         {status === 'error' && (
           <ServerErrorAlert
             error={failureReason as any}
-            customTitle="Failed to load transactions"
+            customTitle={t('errors.loadTransactions.title', {
+              defaultValue: 'Failed to load transactions',
+            })}
             customErrorMessage={{
-              '400':
-                'Invalid request. Please check your account filters and try again.',
-              '401': 'Please log in and try again.',
-              '403': 'You do not have permission to view these transactions.',
-              '404': 'Transactions not found.',
-              '500':
-                'An unexpected error occurred while loading transactions. Please try again later.',
-              '503':
-                'The service is currently unavailable. Please try again later.',
-              default: 'Failed to load transactions. Please try again.',
+              '400': t('errors.loadTransactions.400', {
+                defaultValue:
+                  'Invalid request. Please check your account filters and try again.',
+              }),
+              '401': t('errors.loadTransactions.401', {
+                defaultValue: 'Please log in and try again.',
+              }),
+              '403': t('errors.loadTransactions.403', {
+                defaultValue:
+                  'You do not have permission to view these transactions.',
+              }),
+              '404': t('errors.loadTransactions.404', {
+                defaultValue: 'Transactions not found.',
+              }),
+              '500': t('errors.loadTransactions.500', {
+                defaultValue:
+                  'An unexpected error occurred while loading transactions. Please try again later.',
+              }),
+              '503': t('errors.loadTransactions.503', {
+                defaultValue:
+                  'The service is currently unavailable. Please try again later.',
+              }),
+              default: t('errors.loadTransactions.default', {
+                defaultValue: 'Failed to load transactions. Please try again.',
+              }),
             }}
             tryAgainAction={() => refetch()}
             showDetails={false}
@@ -157,7 +189,7 @@ export const TransactionsDisplay = forwardRef<
                     ))
                 ) : (
                   <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
-                    No results.
+                    {t('empty.noResults', { defaultValue: 'No results.' })}
                   </div>
                 )}
               </div>
@@ -173,7 +205,9 @@ export const TransactionsDisplay = forwardRef<
         )}
         {status === 'success' && transactions.length === 0 && (
           <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
-            No transactions found
+            {t('empty.noTransactions', {
+              defaultValue: 'No transactions found',
+            })}
           </div>
         )}
       </CardContent>

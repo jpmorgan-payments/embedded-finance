@@ -4,7 +4,17 @@ import userEvent from '@testing-library/user-event';
 
 import type { ModifiedTransaction } from '../../utils';
 import { TransactionsTable } from './TransactionsTable';
-import { transactionsColumns } from './TransactionsTable.columns';
+import { getTransactionsColumns } from './TransactionsTable.columns';
+
+// Mock translation function for tests
+const mockT = (
+  key: string,
+  options?: { defaultValue?: string; [key: string]: any }
+): string => {
+  return options?.defaultValue || key;
+};
+
+const transactionsColumns = getTransactionsColumns(mockT);
 
 const queryClient = new QueryClient({
   defaultOptions: {

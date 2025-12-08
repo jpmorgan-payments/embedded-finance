@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -38,6 +39,7 @@ interface TransactionCardProps {
  * Clicking the card opens the transaction details modal.
  */
 export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
+  const { t } = useTranslation(['transactions', 'common']);
   const transactionId = transaction.id ?? '';
 
   return (
@@ -47,7 +49,10 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
           <div className="eb-min-w-0 eb-flex-1">
             <div className="eb-mb-1 eb-flex eb-items-center eb-gap-2">
               <div className="eb-truncate eb-text-sm eb-font-medium">
-                {transaction.type || 'Transaction'}
+                {transaction.type ||
+                  t('card.transactionFallback', {
+                    defaultValue: 'Transaction',
+                  })}
               </div>
               <Badge
                 variant={getStatusVariant(transaction.status)}
