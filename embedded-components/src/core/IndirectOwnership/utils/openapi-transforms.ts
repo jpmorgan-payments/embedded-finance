@@ -67,8 +67,7 @@ export function transformPartyToBeneficialOwner(
 
   // Calculate if meets 25% threshold based on requirements scenarios
   const meets25PercentThreshold =
-    ownershipType === 'DIRECT' ||
-    party.individualDetails?.firstName === 'Ross'; // Ross: 25% (meets), Rachel: 20% (doesn't meet)
+    ownershipType === 'DIRECT' || party.individualDetails?.firstName === 'Ross'; // Ross: 25% (meets), Rachel: 20% (doesn't meet)
 
   return {
     id: party.id,

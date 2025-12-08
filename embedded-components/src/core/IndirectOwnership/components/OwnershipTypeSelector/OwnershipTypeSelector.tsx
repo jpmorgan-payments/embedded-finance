@@ -105,8 +105,8 @@ export const OwnershipTypeSelector: React.FC<OwnershipTypeSelectorProps> = ({
                     </div>
                   </Label>
                   <p className="eb-mt-1 eb-text-sm eb-text-gray-600">
-                    Owns 25%+ through other companies (we&apos;ll build the ownership
-                    chain next)
+                    Owns 25%+ through other companies (we&apos;ll build the
+                    ownership chain next)
                   </p>
                 </div>
               </div>

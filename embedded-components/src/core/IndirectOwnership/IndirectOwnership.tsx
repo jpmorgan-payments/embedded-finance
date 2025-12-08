@@ -314,8 +314,8 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                     No beneficial owners added yet
                   </h4>
                   <p className="eb-max-w-sm eb-text-sm eb-text-muted-foreground">
-                    Click &quot;Add Beneficial Owner&quot; to get started building your
-                    ownership structure
+                    Click &quot;Add Beneficial Owner&quot; to get started
+                    building your ownership structure
                   </p>
                 </div>
               </div>
@@ -935,13 +935,13 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       return;
     }
 
-      const newStep = {
-        id: `step-${Date.now()}`,
-        entityName: currentCompanyName.trim(),
-        hasOwnership: true,
-        ownsRootBusinessDirectly,
-        level: hierarchySteps.length + 1,
-      };
+    const newStep = {
+      id: `step-${Date.now()}`,
+      entityName: currentCompanyName.trim(),
+      hasOwnership: true,
+      ownsRootBusinessDirectly,
+      level: hierarchySteps.length + 1,
+    };
 
     // When adding a company that directly owns the root business,
     // ensure all previous steps are marked as intermediary (not direct owners)
