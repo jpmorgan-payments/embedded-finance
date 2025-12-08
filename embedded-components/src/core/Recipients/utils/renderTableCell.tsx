@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { TableCell } from '@/components/ui/table';
 
 import type { RecipientColumnKey } from '../Recipients.columns';
+import { formatStatusText } from './formatStatusText';
+import { getStatusVariant } from './getStatusVariant';
 import { formatRecipientName } from './recipientHelpers';
 
 /**
@@ -44,13 +46,13 @@ export function renderTableCell(
     case 'type':
       return (
         <TableCell>
-          <Badge variant="outline" className="eb-text-sm">
+          <span className="eb-text-sm eb-text-gray-600">
             {recipient.type === 'LINKED_ACCOUNT'
               ? 'Linked Account'
               : recipient.type === 'SETTLEMENT_ACCOUNT'
                 ? 'Settlement Account'
                 : 'Recipient'}
-          </Badge>
+          </span>
         </TableCell>
       );
 
@@ -58,16 +60,10 @@ export function renderTableCell(
       return (
         <TableCell>
           <Badge
-            variant={
-              recipient.status === 'ACTIVE'
-                ? 'default'
-                : recipient.status === 'INACTIVE'
-                  ? 'secondary'
-                  : 'outline'
-            }
+            variant={getStatusVariant(recipient.status)}
             className="eb-text-sm"
           >
-            {recipient.status?.replace(/_/g, ' ') || 'N/A'}
+            {formatStatusText(recipient.status)}
           </Badge>
         </TableCell>
       );

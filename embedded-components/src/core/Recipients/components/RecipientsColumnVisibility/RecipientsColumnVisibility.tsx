@@ -48,7 +48,7 @@ export function RecipientsColumnVisibility({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="eb-ml-auto eb-h-8">
           <Settings2 className="eb-mr-2 eb-h-4 eb-w-4" />
-          View
+          Columns
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eb-w-[180px]">

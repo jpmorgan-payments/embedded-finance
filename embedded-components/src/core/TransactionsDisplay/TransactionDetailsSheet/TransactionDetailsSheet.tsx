@@ -119,7 +119,7 @@ export const TransactionDetailsDialogTrigger: FC<
             Show all fields
           </Label>
         </div>
-        <div className="eb-scrollable-content eb-space-y-2">
+        <div className="eb-scrollable-content">
           {status === 'pending' && (
             <div className="eb-py-8 eb-text-center eb-text-sm eb-text-muted-foreground">
               Loading transaction details...
@@ -148,7 +148,7 @@ export const TransactionDetailsDialogTrigger: FC<
             />
           )}
           {status === 'success' && transaction && (
-            <>
+            <div className="eb-space-y-2">
               {/* Amount Section - Prominent */}
               <div className="eb-space-y-2">
                 <div className="eb-text-2xl eb-font-semibold">
@@ -356,7 +356,7 @@ export const TransactionDetailsDialogTrigger: FC<
                   </div>
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
       </DialogContent>

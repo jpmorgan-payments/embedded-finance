@@ -464,42 +464,40 @@ export const Recipients: React.FC<RecipientsProps> = ({
             )}
           </div>
         ) : (
-          <>
-            <RecipientsTable
-              recipients={paginatedRecipients}
-              visibleColumns={visibleColumns}
-              columnConfig={finalColumnConfig}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onViewDetails={handleViewDetails}
-              onEdit={handleEditRecipient}
-              onDeactivate={handleDeactivateRecipient}
-              makePaymentComponent={makePaymentComponent}
-              isDeactivating={isDeactivating}
-              layout={
-                shouldUseWidgetLayout
-                  ? 'widget'
-                  : shouldUseTabletLayout
-                    ? 'tablet'
-                    : 'desktop'
-              }
-            />
-            <RecipientsPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalItems={filteredRecipients.length}
-              startIndex={paginationInfo.startIndex}
-              endIndex={paginationInfo.endIndex}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
-          </>
+          <RecipientsTable
+            recipients={paginatedRecipients}
+            visibleColumns={visibleColumns}
+            columnConfig={finalColumnConfig}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            onViewDetails={handleViewDetails}
+            onEdit={handleEditRecipient}
+            onDeactivate={handleDeactivateRecipient}
+            makePaymentComponent={makePaymentComponent}
+            isDeactivating={isDeactivating}
+            layout={
+              shouldUseWidgetLayout
+                ? 'widget'
+                : shouldUseTabletLayout
+                  ? 'tablet'
+                  : 'desktop'
+            }
+          />
         )}
+        <RecipientsPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredRecipients.length}
+          startIndex={paginationInfo.startIndex}
+          endIndex={paginationInfo.endIndex}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
       </CardContent>
 
       {/* Details Dialog */}
@@ -511,8 +509,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
           }
         }}
       >
-        <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
-          <DialogHeader className="eb-pb-4">
+        <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
+          <DialogHeader>
             <DialogTitle>
               Recipient:{' '}
               {selectedRecipient
@@ -520,7 +518,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
                 : 'Unknown'}
             </DialogTitle>
           </DialogHeader>
-          <div className="eb-scrollable-content">
+          <div className="eb-scrollable-content eb-space-y-2">
             {selectedRecipient && (
               <RecipientDetails
                 recipient={selectedRecipient}
