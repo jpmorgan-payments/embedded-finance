@@ -30,17 +30,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-import { VALIDATION_MESSAGES } from './IndirectOwnership.internal.types';
 import type {
   BeneficialOwner,
   IndirectOwnershipProps,
   ValidationSummary,
 } from './IndirectOwnership.types';
 import {
-  getBeneficialOwnerDisplayName,
   getBeneficialOwnerFullName,
   getRootCompanyName,
-  hasOutstandingOwnershipRequirements,
   transformPartyToBeneficialOwner,
 } from './utils/openapi-transforms';
 
@@ -58,8 +55,6 @@ import {
 const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   client,
   onOwnershipComplete,
-  onValidationChange,
-  config = {},
   readOnly = false,
   className = '',
   testId = 'indirect-ownership',
@@ -319,7 +314,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                     No beneficial owners added yet
                   </h4>
                   <p className="eb-max-w-sm eb-text-sm eb-text-muted-foreground">
-                    Click "Add Beneficial Owner" to get started building your
+                    Click &quot;Add Beneficial Owner&quot; to get started building your
                     ownership structure
                   </p>
                 </div>
@@ -548,7 +543,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                                   className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-destructive"
                                 >
                                   <AlertTriangle
-                                    className="eb-h-3 eb-w-3 eb-flex-shrink-0"
+                                    className="eb-h-3 eb-w-3 eb-shrink-0"
                                     aria-hidden="true"
                                   />
                                   <span>{error}</span>
@@ -693,7 +688,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                 ?.ownershipHierarchy
             : undefined
         }
-        isEditMode={true}
+        isEditMode
       />
     </div>
   );
@@ -843,7 +838,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                 }
                 className="eb-space-y-3"
               >
-                <div className="eb-hover:bg-accent eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3">
+                <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
                   <RadioGroupItem
                     value="DIRECT"
                     id="direct"
@@ -858,7 +853,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="eb-hover:bg-accent eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3">
+                <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
                   <RadioGroupItem
                     value="INDIRECT"
                     id="indirect"
@@ -940,13 +935,13 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       return;
     }
 
-    const newStep = {
-      id: `step-${Date.now()}`,
-      entityName: currentCompanyName.trim(),
-      hasOwnership: true,
-      ownsRootBusinessDirectly: ownsRootBusinessDirectly,
-      level: hierarchySteps.length + 1,
-    };
+      const newStep = {
+        id: `step-${Date.now()}`,
+        entityName: currentCompanyName.trim(),
+        hasOwnership: true,
+        ownsRootBusinessDirectly,
+        level: hierarchySteps.length + 1,
+      };
 
     // When adding a company that directly owns the root business,
     // ensure all previous steps are marked as intermediary (not direct owners)
@@ -1089,7 +1084,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
               </>
             ) : (
               <>
-                We'll build the chain step by step from{' '}
+                We&apos;ll build the chain step by step from{' '}
                 <span className="eb-font-medium eb-text-foreground">
                   {ownerName}
                 </span>{' '}
@@ -1142,7 +1137,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                       onClick={() => handleRemoveCompany(index)}
                       size="sm"
                       variant="outline"
-                      className="eb-hover:bg-destructive/5 eb-text-destructive"
+                      className="eb-text-destructive hover:eb-bg-destructive/5"
                     >
                       <Trash2 className="eb-h-3 eb-w-3" />
                     </Button>

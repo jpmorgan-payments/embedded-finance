@@ -39,7 +39,7 @@ export function DataTablePagination<TData>({
       </div>
       <div className="eb-flex eb-flex-col eb-gap-2 sm:eb-flex-row sm:eb-items-center sm:eb-gap-4">
         {/* Page size selector - hidden on mobile to save space */}
-        <div className="eb-flex eb-hidden eb-items-center eb-gap-2 sm:eb-flex">
+        <div className="eb-hidden eb-items-center eb-gap-2 sm:eb-flex">
           <p className="eb-text-sm eb-font-medium">Rows per page</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}

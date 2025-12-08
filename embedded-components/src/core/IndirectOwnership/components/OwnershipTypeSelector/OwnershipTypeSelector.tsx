@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { ArrowLeft, Building, User } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,8 +25,6 @@ export const OwnershipTypeSelector: React.FC<OwnershipTypeSelectorProps> = ({
   currentOwnerIndex,
   totalOwners,
 }) => {
-  const { t } = useTranslation();
-
   const handleContinue = () => {
     if (!selectedType) return;
     onContinue();
@@ -108,7 +105,7 @@ export const OwnershipTypeSelector: React.FC<OwnershipTypeSelectorProps> = ({
                     </div>
                   </Label>
                   <p className="eb-mt-1 eb-text-sm eb-text-gray-600">
-                    Owns 25%+ through other companies (we'll build the ownership
+                    Owns 25%+ through other companies (we&apos;ll build the ownership
                     chain next)
                   </p>
                 </div>

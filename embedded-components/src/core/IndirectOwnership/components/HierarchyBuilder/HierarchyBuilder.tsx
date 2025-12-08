@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowLeft, Building, CheckCircle, Plus, User, X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Building, Plus, User, X } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,8 +24,6 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
   kycCompanyName = 'your company',
   maxLevels = 10,
 }) => {
-  const { t } = useTranslation();
-
   const [currentCompanyName, setCurrentCompanyName] = React.useState('');
   const [isKycCompany, setIsKycCompany] = React.useState<'yes' | 'no' | null>(
     null
@@ -145,7 +142,7 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
                 </span>
 
                 {/* Company chain */}
-                {hierarchyChain.map((company, index) => (
+                {hierarchyChain.map((company) => (
                   <React.Fragment key={company.id}>
                     <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2 eb-rounded eb-border eb-bg-white eb-px-3 eb-py-1.5 eb-text-sm">
                       <Building className="eb-h-3 eb-w-3 eb-text-gray-600" />

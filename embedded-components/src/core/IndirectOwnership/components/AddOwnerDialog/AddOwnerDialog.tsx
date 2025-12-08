@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Building, User } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -46,8 +45,6 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   editingOwnerId,
   testId = 'add-owner-dialog',
 }) => {
-  const { t } = useTranslation();
-
   // Simple error state management (established pattern)
   const [submissionError, setSubmissionError] = React.useState<Error | null>(
     null
@@ -60,7 +57,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
     clearErrors,
     getValues,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
     setValue,
     watch,
@@ -97,8 +94,10 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   }, [isOpen, initialData, reset]);
 
   // Custom duplicate validation
-  const checkForDuplicates = (data: AddOwnerFormData) => {
-    if (!data.firstName.trim() || !data.lastName.trim()) return;
+  const checkForDuplicates = (data: AddOwnerFormData): boolean => {
+    if (!data.firstName.trim() || !data.lastName.trim()) {
+      return true;
+    }
 
     const isDuplicate = existingOwners.some(
       (owner) =>
@@ -374,7 +373,7 @@ export const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
             <Alert className="eb-border-orange-200 eb-bg-orange-50">
               <Building className="eb-h-4 eb-w-4 eb-text-orange-600" />
               <AlertDescription className="eb-text-orange-700">
-                After adding this owner, you'll need to build their ownership
+                After adding this owner, you&apos;ll need to build their ownership
                 hierarchy to show how they own 25% or more of your business.
               </AlertDescription>
             </Alert>

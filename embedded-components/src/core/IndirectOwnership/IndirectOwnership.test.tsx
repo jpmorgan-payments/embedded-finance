@@ -183,7 +183,7 @@ describe('IndirectOwnership Component', () => {
   it('respects readOnly prop', () => {
     render(
       <TestWrapper>
-        <IndirectOwnership client={mockClientWithOwners} readOnly={true} />
+        <IndirectOwnership client={mockClientWithOwners} readOnly />
       </TestWrapper>
     );
 

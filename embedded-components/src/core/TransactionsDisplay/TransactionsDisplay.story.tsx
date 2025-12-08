@@ -324,7 +324,7 @@ const generateManyTransactions = (count: number) => {
   const types = ['ACH', 'WIRE', 'CHECK', 'CARD'];
   const currencies = ['USD', 'EUR', 'GBP'];
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     transactions.push({

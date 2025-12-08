@@ -57,7 +57,7 @@ export const renderOwnershipChain = (
       <span className="eb-shrink-0 eb-text-gray-400">→</span>
 
       {/* Company chain */}
-      {hierarchyChain.map((company, index) => (
+      {hierarchyChain.map((company) => (
         <React.Fragment key={company.id}>
           <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-1 eb-rounded eb-border eb-bg-white eb-px-2 eb-py-1">
             <Building className="eb-h-3 eb-w-3 eb-text-gray-600" />
