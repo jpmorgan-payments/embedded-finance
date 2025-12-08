@@ -4,6 +4,7 @@ import { initReactI18next } from 'react-i18next';
 import { z } from 'zod';
 import { zodI18nMap } from 'zod-i18n-map';
 import en_zod from 'zod-i18n-map/locales/en/zod.json';
+import es_zod from 'zod-i18n-map/locales/es/zod.json';
 import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
 import type { EBConfig } from '@/core/EBComponentsProvider/config.types';
@@ -16,6 +17,7 @@ import enUS_onboardingOverview from './en-US/onboarding-overview.json';
 import enUS_onboarding from './en-US/onboarding.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
+import esUS_transactions from './es-US/transactions.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
 import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
@@ -47,6 +49,18 @@ export const defaultResources = {
     'bank-account-form': frCA_bankAccountForm,
     transactions: frCA_transactions,
     zod: fr_zod,
+  },
+  esUS: {
+    locale: 'es-US',
+    common: enUS_common, // Using English common for now, can be translated later
+    validation: enUS_validation, // Using English validation for now
+    'onboarding-old': enUS_onboarding, // Using English onboarding for now
+    'onboarding-overview': enUS_onboardingOverview, // Using English onboarding-overview for now
+    'make-payment': enUS_makePayment, // Using English make-payment for now
+    'linked-accounts': enUS_linkedAccounts, // Using English linked-accounts for now
+    'bank-account-form': enUS_bankAccountForm, // Using English bank-account-form for now
+    transactions: esUS_transactions,
+    zod: es_zod,
   },
 };
 

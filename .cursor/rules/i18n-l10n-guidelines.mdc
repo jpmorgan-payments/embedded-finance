@@ -4,6 +4,15 @@
 
 This document provides comprehensive guidelines for implementing internationalization (i18n) and localization (l10n) in the Embedded Finance Components library. All components must support multiple locales and properly format dates, numbers, and currency according to the user's locale.
 
+### Supported Locales
+
+The library currently supports:
+- **en-US** (English - United States) - Default
+- **fr-CA** (French - Canada)
+- **es-US** (Spanish - United States)
+
+Additional locales can be added by following the patterns established in the existing translation files.
+
 ## Core Principles
 
 1. **Always use `useTranslation` hook** - Never hardcode text strings in components
