@@ -1,1796 +1,1051 @@
 'use client';
 
-import React from 'react';
-import {
-  AlertCircle,
-  Building,
-  CheckCircle2,
-  Info,
-  Plus,
-  Trash2,
-  User,
-  Users,
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Plus, CheckCircle2, AlertTriangle, Clock, User, Building, Edit, Trash2, UserCheck, Users } from 'lucide-react';
 
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-// Removed tabs import due to missing dependency - using button-based toggle instead
+import type { 
+  IndirectOwnershipProps,
+  BeneficialOwner,
+  ValidationSummary
+} from './IndirectOwnership.types';
 
-import type { IndirectOwnershipComponentProps } from './types/types';
+import type { PartyResponse } from '@/api/generated/smbdo.schemas';
+
+import { VALIDATION_MESSAGES } from './IndirectOwnership.internal.types';
+
+import { 
+  transformPartyToBeneficialOwner,
+  getRootCompanyName, 
+  hasOutstandingOwnershipRequirements,
+  getBeneficialOwnerDisplayName,
+  getBeneficialOwnerFullName
+} from './utils/openapi-transforms';
+
+
 
 /**
- * IndirectOwnership component for managing complex ownership structures
- * where companies are owned by other companies in a hierarchical chain
- * until reaching ultimate beneficial owners (individuals).
+ * IndirectOwnership - Streamlined ownership structure building
+ * 
+ * Features:
+ * - Single interface with real-time updates
+ * - Dialog-based owner addition with immediate feedback
+ * - On-demand hierarchy building for indirect owners
+ * - Live validation and progress tracking
+ * - Enhanced error handling with boundaries and safe transforms
+ * - Retry mechanisms for failed operations
  */
-export const IndirectOwnership: React.FC<IndirectOwnershipComponentProps> = ({
-  clientId,
-  onOwnershipStructureUpdate,
-  showVisualization = true,
-  maxDepth = 10,
+const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
+  client,
+  onOwnershipComplete,
+  onValidationChange,
+  config = {},
   readOnly = false,
+  className = '',
+  testId = 'indirect-ownership',
 }) => {
-  const { t } = useTranslation();
+  // Extract data from OpenAPI client (established pattern)
+  const rootCompanyName = client ? getRootCompanyName(client) : 'Unknown Entity';
+  const initialParties = client?.parties?.filter(party => 
+    party.roles?.includes('BENEFICIAL_OWNER')
+  ) || [];
+  
+  // State management - Use PartyResponse as source of truth
+  const [beneficialOwnerParties, setBeneficialOwnerParties] = useState<PartyResponse[]>(initialParties);
+  // Store custom hierarchies for parties where user manually built/edited them
+  const [customOwnershipHierarchies, setCustomOwnershipHierarchies] = useState<Map<string, any>>(new Map());
+  
+  // Computed view - Transform PartyResponse[] to BeneficialOwner[] on demand
+  // For existing OpenAPI data, hierarchies are auto-derived from parentPartyId
+  // For new owners, use custom hierarchies from user interaction
+  const beneficialOwners = useMemo(() => 
+    beneficialOwnerParties.map(party => {
+      const customHierarchy = customOwnershipHierarchies.get(party.id || '');
+      return transformPartyToBeneficialOwner(party, client?.parties || [], customHierarchy);
+    }), 
+    [beneficialOwnerParties, client?.parties, customOwnershipHierarchies]
+  );
+  const [currentDialog, setCurrentDialog] = useState<'NONE' | 'ADD_OWNER' | 'BUILD_CHAIN' | 'EDIT_CHAIN' | 'CONFIRM_CHAIN'>('NONE');
+  const [currentOwnerBeingEdited, setCurrentOwnerBeingEdited] = useState<string | undefined>();
 
-  // Dialog state
-  const [isAddOwnerDialogOpen, setIsAddOwnerDialogOpen] = React.useState(false);
-  const [selectedParent, setSelectedParent] = React.useState<any>(null);
-  const [ownerType, setOwnerType] = React.useState<
-    'entity' | 'individual' | null
-  >(null);
+  // Calculate validation summary
+  const validationSummary: ValidationSummary = {
+    totalOwners: beneficialOwners.length,
+    completeOwners: beneficialOwners.filter(owner => owner.status === 'COMPLETE').length,
+    pendingHierarchies: beneficialOwners.filter(owner => owner.status === 'PENDING_HIERARCHY').length,
+    ownersWithErrors: beneficialOwners.filter(owner => owner.status === 'ERROR').length,
+    hasErrors: beneficialOwners.some(owner => owner.status === 'ERROR'),
+    errors: beneficialOwners.flatMap(owner => owner.validationErrors || []),
+    warnings: [],
+    canComplete: beneficialOwners.length > 0 && beneficialOwners.every(owner => owner.status === 'COMPLETE'),
+    completionPercentage: beneficialOwners.length === 0 ? 0 : Math.round((beneficialOwners.filter(owner => owner.status === 'COMPLETE').length / beneficialOwners.length) * 100)
+  };
 
-  // Delete confirmation dialog state
-  const [isDeleteConfirmDialogOpen, setIsDeleteConfirmDialogOpen] =
-    React.useState(false);
-  const [partyToDelete, setPartyToDelete] = React.useState<any>(null);
+  // Handlers
+  const handleAddOwner = useCallback(() => {
+    setCurrentDialog('ADD_OWNER');
+  }, []);
 
-  // Local state for ownership data (overrides API data when modified)
-  const [localOwnershipData, setLocalOwnershipData] = React.useState<any>(null);
+  const handleCloseDialog = useCallback(() => {
+    setCurrentDialog('NONE');
+    setCurrentOwnerBeingEdited(undefined);
+  }, []);
 
-  // Tab state
-  const [activeTab, setActiveTab] = React.useState('full-structure');
-
-  // Form state
-  const [formData, setFormData] = React.useState({
-    // Individual fields
-    firstName: '',
-    lastName: '',
-    middleName: '',
-    // Entity fields
-    organizationName: '',
-    organizationType: '',
-    countryOfFormation: 'US',
-  });
-
-  // Reset form when dialog closes
-  React.useEffect(() => {
-    if (!isAddOwnerDialogOpen) {
-      setOwnerType(null);
-      setFormData({
-        firstName: '',
-        lastName: '',
-        middleName: '',
-        organizationName: '',
-        organizationType: '',
-        countryOfFormation: 'US',
-      });
-    }
-  }, [isAddOwnerDialogOpen]);
-
-  // Fetch client data using SMBDO API
-  const {
-    data: clientData,
-    isLoading,
-    isError,
-  } = useSmbdoGetClient(clientId!, {
-    query: {
-      enabled: !!clientId,
-    },
-  });
-
-  // Use local ownership data if available, otherwise use API data
-  const currentOwnershipData = localOwnershipData || clientData;
-
-  // Check if client needs ownership information
-  const needsOwnershipInfo =
-    currentOwnershipData?.status === 'INFORMATION_REQUESTED' ||
-    currentOwnershipData?.parties?.[0]?.profileStatus ===
-      'INFORMATION_REQUESTED';
-
-  // Check if client has ownership structure (parties beyond the root client)
-  const hasOwnershipStructure =
-    currentOwnershipData?.parties && currentOwnershipData.parties.length > 1;
-
-  // Build ownership tree from parties data
-  const buildOwnershipTree = () => {
-    if (!currentOwnershipData?.parties) return [];
-
-    const rootParty = currentOwnershipData.parties.find((p: any) =>
-      p.roles?.includes('CLIENT')
-    );
-    if (!rootParty) return [];
-
-    const getChildren = (parentId: string, currentDepth = 0): any[] => {
-      if (currentDepth >= maxDepth || !currentOwnershipData?.parties) return [];
-
-      return currentOwnershipData.parties
-        .filter((p: any) => p.parentPartyId === parentId)
-        .map((party: any) => ({
-          ...party,
-          children: party.id ? getChildren(party.id, currentDepth + 1) : [],
-        }));
-    };
-
-    return [
-      {
-        ...rootParty,
-        children: rootParty.id ? getChildren(rootParty.id) : [],
+  const handleOwnerSubmit = useCallback((ownerData: { firstName: string; lastName: string; ownershipType: 'DIRECT' | 'INDIRECT' }) => {
+    const newParty: PartyResponse = {
+      id: `owner-${Date.now()}`,
+      partyType: 'INDIVIDUAL',
+      // Don't set profileStatus - that's managed by KYC systems
+      active: true,
+      roles: ['BENEFICIAL_OWNER'],
+      parentPartyId: ownerData.ownershipType === 'INDIRECT' ? 'temp-parent' : undefined,
+      individualDetails: {
+        firstName: ownerData.firstName,
+        lastName: ownerData.lastName,
       },
-    ];
-  };
-
-  const ownershipTree = buildOwnershipTree();
-
-  // Calculate beneficial owners grouped by direct and indirect
-  const calculateBeneficialOwners = () => {
-    if (!currentOwnershipData?.parties) return { direct: [], indirect: [] };
-
-    const rootParty = currentOwnershipData.parties.find((p: any) =>
-      p.roles?.includes('CLIENT')
-    );
-    if (!rootParty?.id) return { direct: [], indirect: [] };
-
-    const directOwners: Array<{
-      party: any;
-      chainDescription: string;
-    }> = [];
-
-    const indirectOwners: Array<{
-      party: any;
-      chainDescription: string;
-    }> = [];
-
-    // Find all individuals who are beneficial owners
-    const individuals = currentOwnershipData.parties.filter(
-      (p: any) =>
-        p.partyType === 'INDIVIDUAL' && p.roles?.includes('BENEFICIAL_OWNER')
-    );
-
-    individuals.forEach((individual: any) => {
-      const individualName =
-        `${individual.individualDetails?.firstName || ''} ${individual.individualDetails?.lastName || ''}`.trim();
-
-      // Check if this is a direct owner (parent is the client entity)
-      const isDirect = individual.parentPartyId === rootParty.id;
-
-      if (isDirect) {
-        // Direct owner - simple description
-        directOwners.push({
-          party: individual,
-          chainDescription: `${individualName || 'Unnamed Individual'} directly owns the client entity`,
-        });
-      } else {
-        // Indirect owner - build ownership chain description
-        const chain: Array<{ name: string; id: string }> = [];
-        let currentPartyId = individual.parentPartyId;
-
-        // Traverse up the ownership chain to build the path
-        while (currentPartyId && currentPartyId !== rootParty.id) {
-          const parentParty = currentOwnershipData.parties.find(
-            (p: any) => p.id === currentPartyId
-          );
-          if (!parentParty) break;
-
-          const parentName =
-            parentParty.partyType === 'ORGANIZATION'
-              ? parentParty.organizationDetails?.organizationName
-              : `${parentParty.individualDetails?.firstName || ''} ${parentParty.individualDetails?.lastName || ''}`.trim();
-
-          chain.push({
-            name: parentName || 'Unnamed Entity',
-            id: parentParty.id,
-          });
-
-          currentPartyId = parentParty.parentPartyId;
-        }
-
-        // Build chain description (reverse to show from individual to client)
-        let chainDescription = `${individualName || 'Unnamed Individual'}`;
-
-        if (chain.length > 0) {
-          chain.reverse(); // Show from individual outward
-          chainDescription += ` owns ${chain[0].name}`;
-
-          for (let i = 1; i < chain.length; i += 1) {
-            chainDescription += ` which owns ${chain[i].name}`;
-          }
-        }
-
-        indirectOwners.push({
-          party: individual,
-          chainDescription,
-        });
-      }
-    });
-
-    return { direct: directOwners, indirect: indirectOwners };
-  };
-
-  const beneficialOwners = calculateBeneficialOwners();
-
-  // Validation functions
-  const validateOwnershipStructure = () => {
-    const errors: Array<{ type: string; message: string; partyId?: string }> =
-      [];
-
-    if (!currentOwnershipData?.parties) return errors;
-
-    // Validation 1: Check for entity nodes without individual children (incomplete beneficial ownership)
-    const entities = currentOwnershipData.parties.filter(
-      (p: any) =>
-        p.partyType === 'ORGANIZATION' && p.roles?.includes('BENEFICIAL_OWNER')
-    );
-
-    entities.forEach((entity: any) => {
-      const hasIndividualChildren = currentOwnershipData.parties.some(
-        (p: any) =>
-          p.parentPartyId === entity.id && p.partyType === 'INDIVIDUAL'
-      );
-
-      if (!hasIndividualChildren) {
-        // Build ownership lineage path from root client to this entity
-        const buildLineagePath = (targetEntityId: string): string[] => {
-          const path: string[] = [];
-          let currentPartyId = targetEntityId;
-
-          while (currentPartyId) {
-            const party = currentOwnershipData.parties.find(
-              (p: any) => p.id === currentPartyId
-            );
-            if (!party) break;
-
-            const name =
-              party.partyType === 'ORGANIZATION'
-                ? party.organizationDetails?.organizationName ||
-                  'Unnamed Entity'
-                : `${party.individualDetails?.firstName || ''} ${party.individualDetails?.lastName || ''}`.trim() ||
-                  'Unnamed Individual';
-
-            path.unshift(name);
-            currentPartyId = party.parentPartyId;
-          }
-
-          return path;
-        };
-
-        const lineagePath = buildLineagePath(entity.id);
-        const entityName =
-          entity.organizationDetails?.organizationName || 'Entity';
-
-        // Create descriptive error message with ownership chain
-        let errorMessage: string;
-        if (lineagePath.length <= 2) {
-          // Direct child of client (simple case)
-          errorMessage = `${entityName} does not have identified beneficial owners`;
-        } else {
-          // Nested entity (show full path)
-          const pathDescription = lineagePath.join(' → ');
-          errorMessage = `${entityName} does not have identified beneficial owners (ownership path: ${pathDescription})`;
-        }
-
-        errors.push({
-          type: 'INCOMPLETE_BENEFICIAL_OWNERSHIP',
-          message: errorMessage,
-          partyId: entity.id,
-        });
-      }
-    });
-
-    // Validation 2: Check for more than 4 natural persons (mathematical limit for 25%+ ownership)
-    const individuals = currentOwnershipData.parties.filter(
-      (p: any) =>
-        p.partyType === 'INDIVIDUAL' && p.roles?.includes('BENEFICIAL_OWNER')
-    );
-
-    if (individuals.length > 4) {
-      errors.push({
-        type: 'TOO_MANY_BENEFICIAL_OWNERS',
-        message: `Cannot have more than 4 beneficial owners (currently ${individuals.length}). Each must own at least 25%.`,
-      });
-    }
-
-    return errors;
-  };
-
-  const validationErrors = validateOwnershipStructure();
-  const canAddMoreOwners = () => {
-    const individuals =
-      currentOwnershipData?.parties?.filter(
-        (p: any) =>
-          p.partyType === 'INDIVIDUAL' && p.roles?.includes('BENEFICIAL_OWNER')
-      ) || [];
-    return individuals.length < 4;
-  };
-
-  // Check if a party can be deleted
-  const canDeleteParty = (party: any): boolean => {
-    // Cannot delete the root client entity
-    if (party.roles?.includes('CLIENT')) return false;
-
-    // For individuals: Always allow deletion (validation system will handle warnings for empty entities)
-    if (party.partyType === 'INDIVIDUAL') {
-      return true;
-    }
-
-    // For entities: Cannot delete if it would leave parent without any beneficial owners
-    if (party.partyType === 'ORGANIZATION') {
-      if (party.parentPartyId) {
-        const parent = currentOwnershipData?.parties?.find(
-          (p: any) => p.id === party.parentPartyId
-        );
-        if (parent) {
-          const siblings =
-            currentOwnershipData?.parties?.filter(
-              (p: any) =>
-                p.parentPartyId === party.parentPartyId && p.id !== party.id
-            ) || [];
-
-          // If this is the only child of a beneficial owner entity, cannot delete
-          if (
-            parent.roles?.includes('BENEFICIAL_OWNER') &&
-            parent.partyType === 'ORGANIZATION' &&
-            siblings.length === 0
-          ) {
-            return false;
-          }
-        }
-      }
-    }
-
-    return true;
-  };
-
-  // Handle deleting a party and all its children
-  const handleDeleteOwner = (party: any) => {
-    setPartyToDelete(party);
-    setIsDeleteConfirmDialogOpen(true);
-  };
-
-  // Confirm and execute deletion
-  const confirmDeleteOwner = () => {
-    if (!partyToDelete || !currentOwnershipData) return;
-
-    // Get all descendant IDs (including the party itself)
-    const getDescendantIds = (partyId: string): string[] => {
-      const descendants: string[] = [partyId];
-      const children =
-        currentOwnershipData.parties?.filter(
-          (p: any) => p.parentPartyId === partyId
-        ) || [];
-
-      children.forEach((child: any) => {
-        descendants.push(...getDescendantIds(child.id));
-      });
-
-      return descendants;
+      createdAt: new Date().toISOString(),
     };
 
-    const idsToDelete = getDescendantIds(partyToDelete.id);
+    setBeneficialOwnerParties(prev => [...prev, newParty]);
+    handleCloseDialog();
+  }, [handleCloseDialog]);
 
-    // Update local ownership data by removing the party and all its descendants
-    const updatedOwnershipData = {
-      ...currentOwnershipData,
-      parties:
-        currentOwnershipData.parties?.filter(
-          (p: any) => !idsToDelete.includes(p.id)
-        ) || [],
-    };
+  const handleRemoveOwner = useCallback((ownerId: string) => {
+    setBeneficialOwnerParties(prev => prev.filter(party => party.id !== ownerId));
+  }, []);
 
-    // Update local state to immediately reflect the change
-    setLocalOwnershipData(updatedOwnershipData);
+  const handleBuildHierarchy = useCallback((ownerId: string) => {
+    setCurrentOwnerBeingEdited(ownerId);
+    setCurrentDialog('BUILD_CHAIN');
+  }, []);
 
-    console.log('Deleting party and descendants:', idsToDelete);
+  const handleEditHierarchy = useCallback((ownerId: string) => {
+    setCurrentOwnerBeingEdited(ownerId);
+    setCurrentDialog('EDIT_CHAIN');
+  }, []);
 
-    // Call the callback with updated ownership structure
-    if (onOwnershipStructureUpdate) {
-      onOwnershipStructureUpdate(updatedOwnershipData);
+  const handleComplete = useCallback(() => {
+    if (validationSummary.canComplete) {
+      onOwnershipComplete?.(beneficialOwners);
     }
+  }, [validationSummary.canComplete, onOwnershipComplete, beneficialOwners]);
 
-    // Close dialog and clear state
-    setIsDeleteConfirmDialogOpen(false);
-    setPartyToDelete(null);
+  const handleHierarchySaved = useCallback((ownerId: string, hierarchy: any) => {
+    // Store hierarchy data separately - this marks the hierarchy as complete
+    setCustomOwnershipHierarchies(prev => new Map(prev).set(ownerId, hierarchy));
+    
+    // Don't modify profileStatus - that's for KYC approval status
+    // The transform function will determine completion status based on hierarchy existence
+    handleCloseDialog();
+  }, [handleCloseDialog]);
+  return (
+    <div 
+      className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-space-y-6 ${className}`} 
+      data-testid={testId}
+    >
+
+      
+      {/* Main Header - Aligned with LinkedAccountWidget pattern */}
+      <Card 
+        role="region"
+        aria-labelledby="ownership-title"
+        aria-describedby="ownership-description"
+      >
+        <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+          <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
+            <div>
+              <CardTitle 
+                id="ownership-title"
+                className="eb-font-header eb-text-lg eb-font-semibold @md:eb-text-xl"
+              >
+                Who are your beneficial owners?{' '}
+                {beneficialOwners.length > 0 && (
+                  <span 
+                    className="eb-animate-fade-in"
+                    aria-live="polite"
+                    aria-label={`${beneficialOwners.length} beneficial owners added`}
+                  >
+                    ({beneficialOwners.length} added)
+                  </span>
+                )}
+              </CardTitle>
+              <p 
+                id="ownership-description"
+                className="eb-mt-1 eb-text-sm eb-text-muted-foreground"
+              >
+                A beneficial owner is an individual who owns 25% or more of your business, either directly or through other companies.
+              </p>
+            </div>
+            <div 
+              className="eb-flex eb-items-center eb-gap-2" 
+              role="toolbar" 
+              aria-label="Beneficial ownership management actions"
+            >
+              {!readOnly && (
+                <Button
+                  onClick={handleAddOwner}
+                  variant="outline"
+                  size="sm"
+                  className="eb-shrink-0 eb-bg-background"
+                  aria-label="Add new beneficial owner to ownership structure"
+                  aria-describedby="ownership-description"
+                >
+                  <Plus className="eb-mr-1.5 eb-h-4 eb-w-4" aria-hidden="true" />
+                  Add Beneficial Owner
+                </Button>
+              )}
+              {!readOnly && (
+                <Button
+                  onClick={handleComplete}
+                  disabled={!validationSummary.canComplete}
+                  variant={validationSummary.canComplete ? 'default' : 'outline'}
+                  size="sm"
+                  aria-label={`Complete ownership structure setup. ${
+                    validationSummary.canComplete 
+                      ? 'All requirements met, ready to complete' 
+                      : `${validationSummary.errors.length + validationSummary.pendingHierarchies} issues need to be resolved`
+                  }`}
+                  aria-describedby="validation-summary"
+                >
+                  Complete
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+          {/* Current Ownership Structure */}
+          <section aria-labelledby="ownership-structure-heading" aria-live="polite">
+            <h3 
+              id="ownership-structure-heading"
+              className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3"
+            >
+              Current Ownership Structure:
+              <span className="eb-sr-only">
+                {beneficialOwners.length === 0 
+                  ? "No beneficial owners added" 
+                  : `${beneficialOwners.length} beneficial owners added`
+                }
+              </span>
+            </h3>
+            {beneficialOwners.length === 0 ? (
+              <div 
+                className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12 eb-text-center eb-animate-fade-in"
+                role="status"
+                aria-label="Empty ownership structure"
+              >
+                <div className="eb-relative" aria-hidden="true">
+                  <div className="eb-rounded-full eb-bg-muted eb-p-4">
+                    <User className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
+                  </div>
+                  <div className="eb-absolute -eb-bottom-1 -eb-right-1 eb-rounded-full eb-bg-background eb-p-0.5">
+                    <Plus className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="eb-space-y-1">
+                  <h4 className="eb-text-base eb-font-semibold eb-text-foreground">
+                    No beneficial owners added yet
+                  </h4>
+                  <p className="eb-max-w-sm eb-text-sm eb-text-muted-foreground">
+                    Click "Add Beneficial Owner" to get started building your ownership structure
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div 
+                className="eb-grid eb-grid-cols-1 eb-items-start eb-gap-3"
+                role="list"
+                aria-label={`Beneficial owners list with ${beneficialOwners.length} owners`}
+              >
+                {beneficialOwners.map((owner, index) => (
+                  <div 
+                    key={owner.id} 
+                    className="eb-animate-fade-in eb-overflow-hidden eb-rounded-lg eb-border eb-bg-card eb-text-card-foreground eb-shadow-sm eb-transition-shadow"
+                    style={{
+                      animationDelay: `${index * 50}ms`,
+                      animationFillMode: 'backwards',
+                    }}
+                    role="listitem"
+                    aria-labelledby={`owner-${owner.id}-name`}
+                    aria-describedby={`owner-${owner.id}-status owner-${owner.id}-type`}
+                  >
+                    <div className="eb-p-4">
+                    <div className="eb-flex eb-items-center eb-justify-between">
+                      <div className="eb-flex eb-items-center eb-gap-3">
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          {owner.status === 'COMPLETE' ? (
+                            <CheckCircle2 
+                              className="eb-h-5 eb-w-5 eb-text-success" 
+                              aria-hidden="true" 
+                            />
+                          ) : owner.status === 'PENDING_HIERARCHY' ? (
+                            <Clock 
+                              className="eb-h-5 eb-w-5 eb-text-warning" 
+                              aria-hidden="true" 
+                            />
+                          ) : (
+                            <AlertTriangle 
+                              className="eb-h-5 eb-w-5 eb-text-destructive" 
+                              aria-hidden="true" 
+                            />
+                          )}
+                          <span 
+                            id={`owner-${owner.id}-name`}
+                            className="eb-font-medium"
+                          >
+                            {getBeneficialOwnerFullName(owner)}
+                          </span>
+                        </div>
+                        <Badge 
+                          id={`owner-${owner.id}-type`}
+                          variant={owner.ownershipType === 'DIRECT' ? 'success' : 'secondary'}
+                          className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
+                          aria-label={`Ownership type: ${owner.ownershipType === 'DIRECT' ? 'Direct owner' : 'Indirect owner'}`}
+                        >
+                          {owner.ownershipType === 'DIRECT' ? (
+                            <>
+                              <UserCheck className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
+                              Direct Owner
+                            </>
+                          ) : (
+                            <>
+                              <Users className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
+                              Indirect Owner
+                            </>
+                          )}
+                        </Badge>
+                        {owner.status === 'PENDING_HIERARCHY' && (
+                          <Badge 
+                            id={`owner-${owner.id}-status`}
+                            variant="warning"
+                            className="eb-text-xs"
+                            aria-label="Status: Hierarchy required"
+                          >
+                            Hierarchy Required
+                          </Badge>
+                        )}
+                      </div>
+
+                      {!readOnly && (
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          {owner.ownershipType === 'INDIRECT' && (
+                            <>
+                              {owner.status === 'PENDING_HIERARCHY' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="eb-h-8 eb-px-3 eb-text-xs"
+                                  onClick={() => owner.id && handleBuildHierarchy(owner.id)}
+                                  aria-label={`Build ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
+                                >
+                                  <Edit className="eb-mr-1 eb-h-3 eb-w-3" aria-hidden="true" />
+                                  Build Chain
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="eb-h-8 eb-px-3 eb-text-xs"
+                                  onClick={() => owner.id && handleEditHierarchy(owner.id)}
+                                  aria-label={`Edit ownership hierarchy for ${getBeneficialOwnerFullName(owner)}`}
+                                >
+                                  <Edit className="eb-mr-1 eb-h-3 eb-w-3" aria-hidden="true" />
+                                  Edit Chain
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="eb-h-8 eb-w-8 eb-p-0 eb-text-muted-foreground hover:eb-text-destructive"
+                            onClick={() => owner.id && handleRemoveOwner(owner.id)}
+                            aria-label={`Remove ${getBeneficialOwnerFullName(owner)} from ownership list`}
+                          >
+                            <Trash2 className="eb-h-4 eb-w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hierarchy visualization for indirect owners with complete hierarchies */}
+                    {owner.ownershipHierarchy && owner.status === 'COMPLETE' && (
+                      <div className="eb-mt-3 eb-pt-3 eb-border-t">
+                        <div className="eb-text-xs eb-text-muted-foreground eb-mb-2">Ownership Chain:</div>
+                        <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-flex-wrap eb-p-2 eb-bg-muted eb-border eb-rounded">
+                          {/* Owner at the start */}
+                          <div className="eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-bg-primary/10 eb-border eb-border-primary/20 eb-rounded eb-shrink-0">
+                            <User className="eb-h-3 eb-w-3 eb-text-primary" />
+                            <span className="eb-font-medium eb-text-foreground">{getBeneficialOwnerFullName(owner)}</span>
+                          </div>
+                          
+                          {/* Company chain */}
+                          {owner.ownershipHierarchy.steps.map((step) => {
+                            const isDirectOwner = step.ownsRootBusinessDirectly;
+                            
+                            return (
+                              <React.Fragment key={step.id}>
+                                <span className="eb-text-muted-foreground eb-shrink-0">→</span>
+                                <div className={`eb-flex eb-items-center eb-gap-1 eb-px-2 eb-py-1 eb-border eb-rounded eb-shrink-0 ${
+                                  isDirectOwner 
+                                    ? 'eb-bg-success-accent eb-border-success' 
+                                    : 'eb-bg-card eb-border-border'
+                                }`}>
+                                  <Building className={`eb-h-3 eb-w-3 ${
+                                    isDirectOwner ? 'eb-text-success' : 'eb-text-muted-foreground'
+                                  }`} />
+                                  <span className={`eb-font-medium ${
+                                    isDirectOwner ? 'eb-text-success' : 'eb-text-foreground'
+                                  }`}>
+                                    {step.entityName}
+                                  </span>
+                                  <Badge 
+                                    variant={isDirectOwner ? 'success' : 'secondary'}
+                                    className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs eb-px-1 eb-py-0.5"
+                                  >
+                                    {isDirectOwner ? (
+                                      <>
+                                        <Building className="eb-h-3.5 eb-w-3.5" />
+                                        Direct Owner
+                                      </>
+                                    ) : (
+                                      'Intermediary'
+                                    )}
+                                  </Badge>
+                                </div>
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Validation Errors */}
+                    {owner.validationErrors && owner.validationErrors.length > 0 && (
+                      <div className="eb-mt-3 eb-space-y-1">
+                        {owner.validationErrors.map((error: string, errorIndex: number) => (
+                          <div 
+                            key={errorIndex}
+                            className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-destructive"
+                          >
+                            <AlertTriangle className="eb-h-3 eb-w-3 eb-flex-shrink-0" aria-hidden="true" />
+                            <span>{error}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          
+          {/* Validation Status */}
+          <section 
+            aria-labelledby="validation-status-heading"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <h3 
+              id="validation-status-heading"
+              className="eb-font-header eb-font-medium eb-text-foreground eb-mb-3"
+            >
+              Validation Status:
+            </h3>
+            <Alert 
+              className={
+                validationSummary.hasErrors 
+                  ? 'eb-border-destructive eb-bg-destructive-accent' 
+                  : validationSummary.canComplete 
+                  ? 'eb-border-success eb-bg-success-accent' 
+                  : 'eb-border-warning eb-bg-warning-accent'
+              }
+              role="status"
+              aria-labelledby="validation-status-heading"
+              aria-describedby="validation-summary"
+            >
+              <div className="eb-flex eb-items-center eb-gap-2">
+                {validationSummary.hasErrors ? (
+                  <AlertTriangle 
+                    className="eb-h-4 eb-w-4 eb-text-destructive" 
+                    aria-hidden="true" 
+                  />
+                ) : validationSummary.canComplete ? (
+                  <CheckCircle2 
+                    className="eb-h-4 eb-w-4 eb-text-success" 
+                    aria-hidden="true" 
+                  />
+                ) : (
+                  <Clock 
+                    className="eb-h-4 eb-w-4 eb-text-warning" 
+                    aria-hidden="true" 
+                  />
+                )}
+              </div>
+              <AlertDescription id="validation-summary">
+                <div className="eb-space-y-1">
+                  {validationSummary.totalOwners === 0 ? (
+                    <div>Add your first beneficial owner to get started.</div>
+                  ) : (
+                    <>
+                      <div>
+                        {validationSummary.completeOwners} of {validationSummary.totalOwners} owners have complete information 
+                        {validationSummary.canComplete ? ' ✓' : ' ⚠'}
+                      </div>
+                      {validationSummary.pendingHierarchies > 0 && (
+                        <div>
+                          {validationSummary.pendingHierarchies} indirect owner{validationSummary.pendingHierarchies !== 1 ? 's' : ''} need{validationSummary.pendingHierarchies === 1 ? 's' : ''} ownership hierarchy
+                        </div>
+                      )}
+                      <div>
+                        Ready to complete: {validationSummary.canComplete ? 'Yes ✓' : 'No (pending actions required)'}
+                      </div>
+                      <div className="eb-text-sm eb-opacity-75">
+                        Completion: {validationSummary.completionPercentage}%
+                      </div>
+                    </>
+                  )}
+                </div>
+              </AlertDescription>
+            </Alert>
+          </section>
+        </CardContent>
+      </Card>
+
+      {/* Add Owner Dialog */}
+      <AddOwnerDialog 
+        isOpen={currentDialog === 'ADD_OWNER'}
+        onClose={handleCloseDialog}
+        onSubmit={handleOwnerSubmit}
+        existingOwners={beneficialOwners}
+      />
+
+      {/* Hierarchy Building Dialog */}
+      <HierarchyBuildingDialog
+        isOpen={currentDialog === 'BUILD_CHAIN'}
+        onClose={handleCloseDialog}
+        ownerId={currentOwnerBeingEdited || ''}
+        ownerName={currentOwnerBeingEdited ? 
+          getBeneficialOwnerFullName(beneficialOwners.find(o => o.id === currentOwnerBeingEdited)!) : ''
+        }
+        rootCompanyName={rootCompanyName}
+        onSave={handleHierarchySaved}
+      />
+
+      {/* Edit Hierarchy Dialog */}
+      <HierarchyBuildingDialog
+        isOpen={currentDialog === 'EDIT_CHAIN'}
+        onClose={handleCloseDialog}
+        ownerId={currentOwnerBeingEdited || ''}
+        ownerName={currentOwnerBeingEdited ? 
+          getBeneficialOwnerFullName(beneficialOwners.find(o => o.id === currentOwnerBeingEdited)!) : ''
+        }
+        rootCompanyName={rootCompanyName}
+        onSave={handleHierarchySaved}
+        existingHierarchy={currentOwnerBeingEdited ? 
+          beneficialOwners.find(o => o.id === currentOwnerBeingEdited)?.ownershipHierarchy : undefined
+        }
+        isEditMode={true}
+      />
+    </div>
+  );
+};
+
+/**
+ * IndirectOwnership component (relies on global ErrorBoundary in EBComponentsProvider)
+ */
+export const IndirectOwnership: React.FC<IndirectOwnershipProps> = (props) => {
+  return <IndirectOwnershipCore {...props} />;
+};
+
+/**
+ * Simple Add Owner Dialog Component
+ */
+interface AddOwnerDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: { firstName: string; lastName: string; ownershipType: 'DIRECT' | 'INDIRECT' }) => void;
+  existingOwners: BeneficialOwner[];
+}
+
+const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({ isOpen, onClose, onSubmit, existingOwners }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [ownershipType, setOwnershipType] = useState<'DIRECT' | 'INDIRECT'>('DIRECT');
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    const newErrors: string[] = [];
+    
+    if (!firstName.trim()) {
+      newErrors.push('First name is required');
+    }
+    
+    if (!lastName.trim()) {
+      newErrors.push('Last name is required');
+    }
+    
+    // Check for duplicates
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
+    const isDuplicate = existingOwners.some(owner => 
+      getBeneficialOwnerFullName(owner).toLowerCase() === fullName.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+      newErrors.push('Owner with this name already exists');
+    }
+    
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    // Submit
+    onSubmit({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      ownershipType
+    });
+    
+    // Reset form
+    setFirstName('');
+    setLastName('');
+    setOwnershipType('DIRECT');
+    setErrors([]);
   };
 
-  // Handle adding an owner to a specific party
-  const handleAddOwner = (parentParty: any) => {
-    setSelectedParent(parentParty);
-    setIsAddOwnerDialogOpen(true);
+  const handleClose = () => {
+    setFirstName('');
+    setLastName('');
+    setOwnershipType('DIRECT');
+    setErrors([]);
+    onClose();
   };
 
-  // Handle form submission
-  const handleSubmitOwner = () => {
-    if (!selectedParent || !ownerType || !currentOwnershipData) return;
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="eb-max-w-md eb-p-6">
+        <DialogHeader className="eb-pb-4">
+          <DialogTitle className="eb-font-header eb-text-lg eb-font-semibold">Add Beneficial Owner</DialogTitle>
+        </DialogHeader>
+        
+        <div className="eb-space-y-6">
+          {errors.length > 0 && (
+            <Alert className="eb-border-destructive eb-bg-destructive-accent">
+              <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
+              <AlertDescription>
+                <div className="eb-space-y-1">
+                  {errors.map((error, index) => (
+                    <div key={index} className="eb-text-destructive">{error}</div>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <form onSubmit={handleSubmit} className="eb-space-y-5">
+            <div className="eb-space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                className="eb-h-10"
+              />
+            </div>
+            
+            <div className="eb-space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Smith"
+                className="eb-h-10"
+              />
+            </div>
+            
+            <div className="eb-space-y-3">
+              <Label>Ownership Type</Label>
+              <RadioGroup
+                value={ownershipType}
+                onValueChange={(value: 'DIRECT' | 'INDIRECT') => setOwnershipType(value)}
+                className="eb-space-y-3"
+              >
+                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-accent eb-cursor-pointer">
+                  <RadioGroupItem value="DIRECT" id="direct" className="eb-mt-0.5" />
+                  <div className="eb-flex-1 eb-space-y-1">
+                    <Label htmlFor="direct" className="eb-cursor-pointer">
+                      Direct Owner
+                    </Label>
+                    <p className="eb-text-sm eb-text-muted-foreground">
+                      Has 25% or more ownership directly
+                    </p>
+                  </div>
+                </div>
+                <div className="eb-flex eb-items-start eb-space-x-3 eb-p-3 eb-border eb-rounded-lg eb-hover:bg-accent eb-cursor-pointer">
+                  <RadioGroupItem value="INDIRECT" id="indirect" className="eb-mt-0.5" />
+                  <div className="eb-flex-1 eb-space-y-1">
+                    <Label htmlFor="indirect" className="eb-cursor-pointer">
+                      Indirect Owner
+                    </Label>
+                    <p className="eb-text-sm eb-text-muted-foreground">
+                      Has 25% or more ownership through other companies
+                    </p>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+          </form>
+        </div>
+        
+        <DialogFooter className="eb-pt-6 eb-space-x-2">
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button type="submit" onClick={handleSubmit}>
+            Add Owner
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
-    // Validation: Check if we're trying to add a 5th individual
-    if (ownerType === 'individual' && !canAddMoreOwners()) {
-      alert(
-        'Cannot add more than 4 beneficial owners. Each beneficial owner must own at least 25% of the entity.'
-      );
+// Hierarchy Building Dialog Component
+interface HierarchyBuildingDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  ownerId: string;
+  ownerName: string;
+  rootCompanyName: string;
+  onSave: (ownerId: string, hierarchy: any) => void;
+  existingHierarchy?: any;
+  isEditMode?: boolean;
+}
+
+const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({ 
+  isOpen, 
+  onClose, 
+  ownerId, 
+  ownerName, 
+  rootCompanyName, 
+  onSave,
+  existingHierarchy,
+  isEditMode = false 
+}) => {
+  const [hierarchySteps, setHierarchySteps] = useState<Array<{
+    id: string;
+    entityName: string;
+    hasOwnership: boolean;
+    ownsRootBusinessDirectly: boolean;
+    level: number;
+  }>>([]);
+  const [currentCompanyName, setCurrentCompanyName] = useState('');
+  const [errors, setErrors] = useState<string[]>([]);
+
+  // Pre-populate existing hierarchy data in edit mode
+  React.useEffect(() => {
+    if (isOpen && isEditMode && existingHierarchy) {
+      setHierarchySteps(existingHierarchy.steps || []);
+    } else if (isOpen && !isEditMode) {
+      setHierarchySteps([]);
+    }
+  }, [isOpen, isEditMode, existingHierarchy]);
+
+  const handleAddCompany = (ownsRootBusinessDirectly: boolean) => {
+    if (!currentCompanyName.trim()) {
+      setErrors(['Company name is required']);
       return;
     }
 
-    const newOwner = {
-      id: `party-${Date.now()}`, // Generate temporary ID
-      partyType: ownerType === 'entity' ? 'ORGANIZATION' : 'INDIVIDUAL',
-      externalId: `NEW${Date.now()}`,
-      email:
-        ownerType === 'entity'
-          ? `contact@${formData.organizationName.toLowerCase().replace(/\s+/g, '')}.com`
-          : `${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@email.com`,
-      roles: ['BENEFICIAL_OWNER'],
-      profileStatus: 'NEW',
-      active: true,
-      createdAt: new Date().toISOString(),
-      parentPartyId: selectedParent.id,
-      ...(ownerType === 'entity'
-        ? {
-            organizationDetails: {
-              organizationType: formData.organizationType,
-              organizationName: formData.organizationName,
-              countryOfFormation: formData.countryOfFormation,
-            },
-          }
-        : {
-            individualDetails: {
-              firstName: formData.firstName,
-              lastName: formData.lastName,
-              middleName: formData.middleName || undefined,
-            },
-          }),
+    const newStep = {
+      id: `step-${Date.now()}`,
+      entityName: currentCompanyName.trim(),
+      hasOwnership: true,
+      ownsRootBusinessDirectly: ownsRootBusinessDirectly,
+      level: hierarchySteps.length + 1
     };
 
-    // Update local ownership data by adding the new owner to the parties array
-    const updatedOwnershipData = {
-      ...currentOwnershipData,
-      parties: [...currentOwnershipData.parties, newOwner],
-    };
+    // When adding a company that directly owns the root business,
+    // ensure all previous steps are marked as intermediary (not direct owners)
+    const updatedPreviousSteps = hierarchySteps.map(step => ({
+      ...step,
+      ownsRootBusinessDirectly: false
+    }));
 
-    // Update local state to immediately reflect the change
-    setLocalOwnershipData(updatedOwnershipData);
+    const updatedSteps = [...updatedPreviousSteps, newStep];
 
-    console.log('Adding new owner:', newOwner);
-
-    // Call the callback with updated ownership structure
-    if (onOwnershipStructureUpdate) {
-      const updatedOwnership = {
-        ...currentOwnershipData,
-        parties: [...(currentOwnershipData.parties || []), newOwner],
+    if (ownsRootBusinessDirectly) {
+      // Complete the hierarchy
+      const hierarchy = {
+        id: `hierarchy-${ownerId}`,
+        steps: updatedSteps,
+        isValid: true,
+        meets25PercentThreshold: true,
+        validationErrors: []
       };
-      onOwnershipStructureUpdate(updatedOwnership);
-    }
 
-    // Close dialog
-    setIsAddOwnerDialogOpen(false);
+      onSave(ownerId, hierarchy);
+      handleClose();
+    } else {
+      // Continue building the chain
+      setHierarchySteps(updatedSteps);
+      setCurrentCompanyName('');
+      setErrors([]);
+    }
   };
 
-  // Render a single party in the ownership tree
-  const renderParty = (party: any, depth = 0) => {
-    const isOrganization = party.partyType === 'ORGANIZATION';
-    const name = isOrganization
-      ? party.organizationDetails?.organizationName
-      : `${party.individualDetails?.firstName || ''} ${party.individualDetails?.lastName || ''}`.trim();
+  const handleRemoveCompany = (indexToRemove: number) => {
+    const stepToRemove = hierarchySteps[indexToRemove];
+    const newSteps = hierarchySteps.filter((_, i) => i !== indexToRemove);
 
-    const isBeneficialOwner = party.roles?.includes('BENEFICIAL_OWNER');
-    const isClient = party.roles?.includes('CLIENT');
-    const hasChildren = party.children && party.children.length > 0;
-
-    // Check if this entity needs beneficial owner identification
-    const needsBeneficialOwner =
-      isOrganization &&
-      party.roles?.includes('BENEFICIAL_OWNER') &&
-      !currentOwnershipData?.parties?.some(
-        (p: any) => p.parentPartyId === party.id && p.partyType === 'INDIVIDUAL'
-      );
-
-    const hasValidationError = validationErrors.some(
-      (error) => error.partyId === party.id
-    );
-
-    // If this party has children, wrap in accordion
-    if (hasChildren) {
-      // Count direct children only (not nested)
-      const directBeneficialOwnerCount = party.children.filter((child: any) =>
-        child.roles?.includes('BENEFICIAL_OWNER')
-      ).length;
-
-      // Determine default value - only open for root level (depth 0)
-      const defaultValue = depth === 0 ? 'open' : undefined;
-
-      return (
-        <div key={party.id} className="eb-mb-2">
-          <Accordion type="single" collapsible defaultValue={defaultValue}>
-            <AccordionItem
-              value="open"
-              className="eb-rounded-lg eb-border eb-border-gray-200"
-            >
-              <AccordionTrigger className="eb-rounded-t-lg eb-p-3 hover:eb-bg-gray-50 hover:eb-no-underline sm:eb-px-4">
-                <div className="eb-mr-2 eb-flex eb-w-full eb-items-center eb-justify-between">
-                  {/* Mobile Layout - Stacked */}
-                  <div className="eb-block eb-w-full sm:eb-hidden">
-                    <div className="eb-mb-2 eb-flex eb-items-center eb-space-x-3">
-                      {isOrganization ? (
-                        <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
-                      ) : (
-                        <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
-                      )}
-                      <div className="eb-min-w-0 eb-flex-1">
-                        <div className="eb-truncate eb-text-left eb-font-medium">
-                          {name || 'Unnamed Entity'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="eb-flex eb-flex-wrap eb-gap-2 eb-text-left eb-text-sm">
-                      <span className="eb-text-gray-600">
-                        {isOrganization
-                          ? party.organizationDetails?.organizationType
-                          : 'Individual'}
-                      </span>
-                      {isClient && (
-                        <Badge variant="secondary" className="eb-text-xs">
-                          Client
-                        </Badge>
-                      )}
-                      {isBeneficialOwner && (
-                        <Badge variant="outline" className="eb-text-xs">
-                          Beneficial Owner
-                        </Badge>
-                      )}
-                      <Badge
-                        variant="secondary"
-                        className="eb-bg-blue-100 eb-text-xs eb-text-blue-800"
-                      >
-                        {directBeneficialOwnerCount} Direct Owner
-                        {directBeneficialOwnerCount !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Desktop Layout - Single Line */}
-                  <div className="eb-hidden eb-w-full eb-items-center eb-justify-between sm:eb-flex">
-                    <div className="eb-flex eb-min-w-0 eb-flex-1 eb-items-center eb-space-x-3">
-                      {isOrganization ? (
-                        <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
-                      ) : (
-                        <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
-                      )}
-                      <div className="eb-min-w-0 eb-flex-1">
-                        <span className="eb-block eb-truncate eb-text-left eb-font-medium">
-                          {name || 'Unnamed Entity'}
-                        </span>
-                      </div>
-                      <div className="eb-shrink-0 eb-text-sm eb-text-gray-600">
-                        {isOrganization
-                          ? party.organizationDetails?.organizationType
-                          : 'Individual'}
-                      </div>
-                    </div>
-
-                    <div className="eb-flex eb-shrink-0 eb-items-center eb-space-x-2">
-                      {isClient && (
-                        <Badge variant="secondary" className="eb-text-xs">
-                          Client
-                        </Badge>
-                      )}
-                      {isBeneficialOwner && (
-                        <Badge variant="outline" className="eb-text-xs">
-                          Beneficial Owner
-                        </Badge>
-                      )}
-                      <Badge
-                        variant="secondary"
-                        className="eb-bg-blue-100 eb-text-xs eb-text-blue-800"
-                      >
-                        {directBeneficialOwnerCount} Direct Owner
-                        {directBeneficialOwnerCount !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="eb-px-3 eb-pb-3 sm:eb-px-4">
-                <div className="eb-space-y-2 eb-pt-2">
-                  {party.children.map((child: any) =>
-                    renderParty(child, depth + 1)
-                  )}
-
-                  {/* Action Buttons */}
-                  {!readOnly && (
-                    <div className="eb-border-t eb-border-gray-100 eb-pt-2">
-                      <div className="eb-flex eb-flex-wrap eb-gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAddOwner(party)}
-                          disabled={
-                            ownerType === 'individual' && !canAddMoreOwners()
-                          }
-                          className="eb-flex-1 eb-text-sm sm:eb-flex-initial"
-                        >
-                          <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
-                          {t('indirectOwnership.addOwnership', 'Add Ownership')}
-                        </Button>
-                        {canDeleteParty(party) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteOwner(party)}
-                            className="eb-flex-1 eb-text-sm eb-text-red-600 hover:eb-border-red-300 hover:eb-text-red-700 sm:eb-flex-initial"
-                          >
-                            <Trash2 className="eb-mr-2 eb-h-4 eb-w-4" />
-                            {t('indirectOwnership.removeOwnership', 'Remove')}
-                          </Button>
-                        )}
-                      </div>
-                      {!canAddMoreOwners() && (
-                        <p className="eb-mt-1 eb-text-xs eb-text-orange-600">
-                          Maximum of 4 beneficial owners reached
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      );
+    // If removing the last step and it was the direct owner, 
+    // we need to handle the direct ownership assignment
+    if (stepToRemove.ownsRootBusinessDirectly && newSteps.length > 0) {
+      // Automatically make the new last company the direct owner
+      const updatedSteps = newSteps.map((step, index) => ({
+        ...step,
+        ownsRootBusinessDirectly: index === newSteps.length - 1,
+        // Recalculate levels after removal
+        level: index + 1
+      }));
+      setHierarchySteps(updatedSteps);
+    } else {
+      // For non-direct owners or when removing results in empty chain,
+      // just remove and recalculate levels
+      const updatedSteps = newSteps.map((step, index) => ({
+        ...step,
+        level: index + 1
+      }));
+      setHierarchySteps(updatedSteps);
     }
+  };
 
-    // If no children, render as a simple card (leaf node)
+  const handleClose = () => {
+    setHierarchySteps([]);
+    setCurrentCompanyName('');
+    setErrors([]);
+    onClose();
+  };
+
+  const renderChainPreview = () => {
+    if (hierarchySteps.length === 0) return null;
+
     return (
-      <div key={party.id}>
-        <Card
-          className={`eb-mb-2 eb-border eb-transition-colors hover:eb-border-gray-300 ${
-            hasValidationError
-              ? 'eb-border-orange-300 eb-bg-orange-50'
-              : 'eb-border-gray-200'
-          }`}
-        >
-          <CardContent className="eb-p-3 sm:eb-p-4">
-            {/* Mobile Layout - Stacked */}
-            <div className="eb-block sm:eb-hidden">
-              <div className="eb-mb-2 eb-flex eb-items-center eb-space-x-3">
-                {isOrganization ? (
-                  <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
-                ) : (
-                  <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
-                )}
-                <div className="eb-min-w-0 eb-flex-1">
-                  <div className="eb-truncate eb-font-medium">
-                    {name || 'Unnamed Entity'}
-                  </div>
-                </div>
+      <div className="eb-p-4 eb-bg-muted eb-border eb-rounded-lg">
+        <div className="eb-text-sm eb-font-semibold eb-text-foreground eb-mb-3">Current Chain:</div>
+        <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-flex-wrap">
+          {/* Owner at start */}
+          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-primary/10 eb-border eb-border-primary/20 eb-rounded-lg eb-shadow-sm">
+            <User className="eb-h-4 eb-w-4 eb-text-primary" />
+            <span className="eb-font-semibold eb-text-foreground">{ownerName}</span>
+          </div>
+          
+          {/* Company chain */}
+          {hierarchySteps.map((step) => (
+            <React.Fragment key={step.id}>
+              <span className="eb-text-muted-foreground eb-text-lg eb-font-bold">→</span>
+              <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-card eb-border eb-rounded-lg eb-shadow-sm">
+                <Building className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                <span className="eb-font-semibold eb-text-foreground">{step.entityName}</span>
               </div>
-              <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-text-sm">
-                <span className="eb-text-gray-600">
-                  {isOrganization
-                    ? party.organizationDetails?.organizationType
-                    : 'Individual'}
-                </span>
-                {isClient && (
-                  <Badge variant="secondary" className="eb-text-xs">
-                    Client
-                  </Badge>
-                )}
-                {isBeneficialOwner && (
-                  <Badge variant="outline" className="eb-text-xs">
-                    Beneficial Owner
-                  </Badge>
-                )}
-                {needsBeneficialOwner && (
-                  <Badge
-                    variant="default"
-                    className="eb-bg-orange-100 eb-text-xs eb-text-orange-800"
-                  >
-                    Needs Individual Owner
-                  </Badge>
-                )}
-                {/* Action Buttons for Mobile */}
-                {!readOnly && (
-                  <div className="eb-ml-auto eb-flex eb-gap-1">
-                    {isOrganization && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAddOwner(party)}
-                        className="eb-h-6 eb-px-2 eb-text-xs"
-                      >
-                        <Plus className="eb-h-3 eb-w-3" />
-                      </Button>
-                    )}
-                    {canDeleteParty(party) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteOwner(party)}
-                        className="eb-h-6 eb-px-2 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
-                      >
-                        <Trash2 className="eb-h-3 eb-w-3" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop Layout - Single Line */}
-            <div className="eb-hidden eb-items-center eb-justify-between eb-gap-4 sm:eb-flex">
-              <div className="eb-flex eb-min-w-0 eb-flex-1 eb-items-center eb-space-x-3">
-                {isOrganization ? (
-                  <Building className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
-                ) : (
-                  <Users className="eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
-                )}
-                <div className="eb-min-w-0 eb-flex-1">
-                  <span className="eb-block eb-truncate eb-font-medium">
-                    {name || 'Unnamed Entity'}
-                  </span>
-                </div>
-                <div className="eb-shrink-0 eb-text-sm eb-text-gray-600">
-                  {isOrganization
-                    ? party.organizationDetails?.organizationType
-                    : 'Individual'}
-                </div>
-              </div>
-
-              <div className="eb-flex eb-shrink-0 eb-items-center eb-space-x-2">
-                {isClient && (
-                  <Badge variant="secondary" className="eb-text-xs">
-                    Client
-                  </Badge>
-                )}
-                {isBeneficialOwner && (
-                  <Badge variant="outline" className="eb-text-xs">
-                    Beneficial Owner
-                  </Badge>
-                )}
-                {needsBeneficialOwner && (
-                  <Badge
-                    variant="default"
-                    className="eb-bg-orange-100 eb-text-xs eb-text-orange-800"
-                  >
-                    Needs Individual Owner
-                  </Badge>
-                )}
-                {/* Action Buttons for Desktop */}
-                {!readOnly && (
-                  <div className="eb-flex eb-gap-2">
-                    {isOrganization && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAddOwner(party)}
-                        className="eb-h-7 eb-px-2 eb-text-xs"
-                      >
-                        <Plus className="eb-mr-1 eb-h-3 eb-w-3" />
-                        {t('indirectOwnership.addOwnership', 'Add Ownership')}
-                      </Button>
-                    )}
-                    {canDeleteParty(party) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteOwner(party)}
-                        className="eb-h-7 eb-px-2 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
-                      >
-                        <Trash2 className="eb-mr-1 eb-h-3 eb-w-3" />
-                        {t('indirectOwnership.removeOwnership', 'Remove')}
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </React.Fragment>
+          ))}
+          
+          {/* Next step indicator */}
+          <span className="eb-text-muted-foreground eb-text-lg eb-font-bold">→</span>
+          <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-2 eb-bg-success-accent eb-border eb-border-success eb-rounded-lg eb-border-dashed eb-shadow-sm">
+            <Building className="eb-h-4 eb-w-4 eb-text-success" />
+            <span className="eb-font-semibold eb-text-success">{rootCompanyName}</span>
+          </div>
+        </div>
       </div>
     );
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <Card className="eb-component eb-w-full">
-        <CardHeader>
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <Skeleton className="eb-h-6 eb-w-48" />
-            <Skeleton className="eb-h-10 eb-w-28" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="eb-space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="eb-h-24 eb-w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Error state
-  if (isError) {
-    return (
-      <Card className="eb-component eb-w-full">
-        <CardHeader>
-          <CardTitle className="eb-text-xl eb-font-semibold">
-            {t('indirectOwnership.title', 'Indirect Ownership Structure')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="eb-py-8 eb-text-center eb-text-red-500">
-            {t(
-              'indirectOwnership.error',
-              'Failed to load ownership structure. Please try again.'
-            )}
-            <Button
-              variant="link"
-              className="eb-ml-2 eb-h-auto eb-p-0"
-              onClick={() => {
-                // TODO: Implement refetch when API integration is added
-                console.log('Refetch ownership data');
-              }}
-            >
-              {t('common.retry', 'Retry')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const getInstructionText = () => {
+    if (hierarchySteps.length === 0) {
+      return `What company does ${ownerName} own that leads to ${rootCompanyName}?`;
+    }
+    return `What company does ${hierarchySteps[hierarchySteps.length - 1].entityName} own that leads to ${rootCompanyName}?`;
+  };
 
   return (
-    <Card className="eb-component eb-w-full">
-      <CardHeader>
-        <div className="eb-flex eb-items-center eb-justify-between">
-          <CardTitle className="eb-text-xl eb-font-semibold">
-            {t('indirectOwnership.title', 'Indirect Ownership Structure')}
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="eb-space-y-4">
-        {/* Information Requested Alert */}
-        {needsOwnershipInfo && (
-          <Alert className="eb-border-orange-200 eb-bg-orange-50">
-            <AlertCircle className="eb-h-4 eb-w-4 eb-text-orange-600" />
-            <AlertDescription className="eb-text-orange-800">
-              <strong>Action Required:</strong>{' '}
-              {t(
-                'indirectOwnership.infoRequested',
-                'Additional ownership information is needed to complete your application. Please provide complete beneficial ownership details.'
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="eb-max-w-2xl eb-p-6">
+        <DialogHeader className="eb-pb-4">
+          <DialogTitle className="eb-font-header eb-text-lg eb-font-semibold">
+            {isEditMode ? 'Edit' : 'Build'} Ownership Chain for {ownerName}
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Validation Errors */}
-        {validationErrors.length > 0 && (
-          <Alert className="eb-mb-4 eb-border-red-200 eb-bg-red-50">
-            <AlertCircle className="eb-h-4 eb-w-4 eb-text-red-600" />
-            <AlertDescription className="eb-text-red-800">
-              <strong>Ownership Structure Issues:</strong>
-              <ul className="eb-mt-2 eb-space-y-1">
-                {validationErrors.map((error, index) => (
-                  <li key={index} className="eb-text-sm">
-                    • {error.message}
-                  </li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Two-Tab Navigation */}
-        <div className="eb-mb-4 eb-border-b eb-border-gray-200">
-          <nav className="eb-flex eb-space-x-8">
-            <button
-              type="button"
-              onClick={() => setActiveTab('full-structure')}
-              className={`eb-border-b-2 eb-px-1 eb-py-2 eb-text-sm eb-font-medium eb-transition-colors eb-duration-200 ${
-                activeTab === 'full-structure'
-                  ? 'eb-border-orange-500 eb-text-orange-600'
-                  : 'eb-border-transparent eb-text-gray-500 hover:eb-border-gray-300 hover:eb-text-gray-700'
-              }`}
-            >
-              {t('indirectOwnership.tabs.fullStructure', 'Full Structure')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('beneficial-owners')}
-              className={`eb-border-b-2 eb-px-1 eb-py-2 eb-text-sm eb-font-medium eb-transition-colors eb-duration-200 ${
-                activeTab === 'beneficial-owners'
-                  ? 'eb-border-orange-500 eb-text-orange-600'
-                  : 'eb-border-transparent eb-text-gray-500 hover:eb-border-gray-300 hover:eb-text-gray-700'
-              }`}
-            >
-              {t(
-                'indirectOwnership.tabs.beneficialOwners',
-                'Beneficial Owners'
-              )}
-            </button>
-          </nav>
-        </div>
-
-        {/* Full Structure Content */}
-        {activeTab === 'full-structure' && (
-          <div className="eb-space-y-4">
-            {/* Ownership Structure Display */}
-            {hasOwnershipStructure && !needsOwnershipInfo ? (
-              <div className="eb-space-y-4">
-                <div className="eb-flex eb-items-center eb-justify-between">
-                  <h3 className="eb-text-lg eb-font-medium">
-                    {t(
-                      'indirectOwnership.structure.title',
-                      'Ownership Hierarchy'
-                    )}
-                  </h3>
-                  <Badge variant="outline">
-                    {currentOwnershipData?.parties?.length || 0}{' '}
-                    {t('indirectOwnership.structure.parties', 'Parties')}
-                  </Badge>
-                </div>
-
-                {showVisualization && (
-                  <Alert>
-                    <Info className="eb-h-4 eb-w-4" />
-                    <AlertDescription>
-                      {t(
-                        'indirectOwnership.structure.description',
-                        'This shows the complete ownership hierarchy from your organization down to individual beneficial owners.'
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="eb-space-y-2">
-                  {ownershipTree.map((party) => renderParty(party))}
-                </div>
-              </div>
-            ) : !hasOwnershipStructure && !needsOwnershipInfo ? (
-              <div className="eb-space-y-4">
-                <div className="eb-flex eb-items-center eb-justify-between">
-                  <h3 className="eb-text-lg eb-font-medium">
-                    {t(
-                      'indirectOwnership.structure.title',
-                      'Ownership Hierarchy'
-                    )}
-                  </h3>
-                  <Badge variant="outline">
-                    {currentOwnershipData?.parties?.length || 0}{' '}
-                    {t('indirectOwnership.structure.parties', 'Parties')}
-                  </Badge>
-                </div>
-
-                {showVisualization && (
-                  <Alert>
-                    <Info className="eb-h-4 eb-w-4" />
-                    <AlertDescription>
-                      {t(
-                        'indirectOwnership.structure.description',
-                        'This shows your organization. Add entities and individuals that have ownership interest in your company.'
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="eb-space-y-2">
-                  {ownershipTree.map((party) => renderParty(party))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {/* Beneficial Owners Content */}
-        {activeTab === 'beneficial-owners' && (
-          <div className="eb-space-y-4">
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <h3 className="eb-text-lg eb-font-medium">
-                {t(
-                  'indirectOwnership.beneficialOwners.title',
-                  'Beneficial Owners'
-                )}
-              </h3>
-              <Badge variant="outline">
-                {beneficialOwners.direct.length +
-                  beneficialOwners.indirect.length}{' '}
-                {t(
-                  'indirectOwnership.beneficialOwners.count',
-                  beneficialOwners.direct.length +
-                    beneficialOwners.indirect.length ===
-                    1
-                    ? 'Individual'
-                    : 'Individuals'
-                )}
-              </Badge>
-            </div>
-
-            <Alert>
-              <Info className="eb-h-4 eb-w-4" />
-              <AlertDescription>
-                {t(
-                  'indirectOwnership.beneficialOwners.description',
-                  'These are natural persons (individuals) who ultimately own or control your organization through both direct and indirect ownership chains.'
-                )}
-              </AlertDescription>
-            </Alert>
-
-            {beneficialOwners.direct.length + beneficialOwners.indirect.length >
-            0 ? (
-              <div className="eb-space-y-6">
-                {/* Direct Owners Section */}
-                {beneficialOwners.direct.length > 0 && (
-                  <div>
-                    <div className="eb-mb-4 eb-flex eb-items-center eb-gap-3">
-                      <h4 className="eb-text-lg eb-font-semibold eb-text-gray-900">
-                        {t(
-                          'indirectOwnership.beneficialOwners.directSection',
-                          'Direct Owners'
-                        )}
-                      </h4>
-                      <span className="eb-rounded-full eb-bg-blue-100 eb-px-2 eb-py-1 eb-text-xs eb-font-medium eb-text-blue-800">
-                        {beneficialOwners.direct.length}
-                      </span>
-                    </div>
-                    <div className="eb-space-y-3">
-                      {beneficialOwners.direct.map((directOwner, index) => {
-                        const individual = directOwner.party;
-                        const individualName =
-                          `${individual.individualDetails?.firstName || ''} ${individual.individualDetails?.lastName || ''}`.trim();
-
-                        return (
-                          <Card
-                            key={`direct-${individual.id}-${index}`}
-                            className="eb-border eb-border-gray-200"
-                          >
-                            <CardContent className="eb-p-4">
-                              <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
-                                <div className="eb-flex eb-flex-1 eb-items-start eb-gap-3">
-                                  <User className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
-                                  <div className="eb-flex-1">
-                                    <div className="eb-mb-2 eb-flex eb-items-center eb-gap-2">
-                                      <h4 className="eb-font-medium eb-text-gray-900">
-                                        {individualName || 'Unnamed Individual'}
-                                      </h4>
-                                      <span className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-blue-100 eb-px-2.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-blue-800">
-                                        {t(
-                                          'indirectOwnership.beneficialOwners.directLabel',
-                                          'Direct'
-                                        )}
-                                      </span>
-                                    </div>
-                                    <p className="eb-text-sm eb-text-gray-600">
-                                      {directOwner.chainDescription}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="eb-flex eb-items-center eb-gap-2">
-                                  <CheckCircle2 className="eb-h-4 eb-w-4 eb-text-green-500" />
-                                  <span className="eb-text-xs eb-text-gray-500">
-                                    {t(
-                                      'indirectOwnership.beneficialOwners.verified',
-                                      'Verified'
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Indirect Owners Section */}
-                {beneficialOwners.indirect.length > 0 && (
-                  <div>
-                    <div className="eb-mb-4 eb-flex eb-items-center eb-gap-3">
-                      <h4 className="eb-text-lg eb-font-semibold eb-text-gray-900">
-                        {t(
-                          'indirectOwnership.beneficialOwners.indirectSection',
-                          'Indirect Owners'
-                        )}
-                      </h4>
-                      <span className="eb-rounded-full eb-bg-orange-100 eb-px-2 eb-py-1 eb-text-xs eb-font-medium eb-text-orange-800">
-                        {beneficialOwners.indirect.length}
-                      </span>
-                    </div>
-                    <div className="eb-space-y-3">
-                      {beneficialOwners.indirect.map((indirectOwner, index) => {
-                        const individual = indirectOwner.party;
-                        const individualName =
-                          `${individual.individualDetails?.firstName || ''} ${individual.individualDetails?.lastName || ''}`.trim();
-
-                        return (
-                          <Card
-                            key={`indirect-${individual.id}-${index}`}
-                            className="eb-border eb-border-gray-200"
-                          >
-                            <CardContent className="eb-p-4">
-                              <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
-                                <div className="eb-flex eb-flex-1 eb-items-start eb-gap-3">
-                                  <Users className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-orange-600" />
-                                  <div className="eb-flex-1">
-                                    <div className="eb-mb-2 eb-flex eb-items-center eb-gap-2">
-                                      <h4 className="eb-font-medium eb-text-gray-900">
-                                        {individualName || 'Unnamed Individual'}
-                                      </h4>
-                                      <span className="eb-inline-flex eb-items-center eb-rounded-full eb-bg-orange-100 eb-px-2.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-orange-800">
-                                        {t(
-                                          'indirectOwnership.beneficialOwners.indirectLabel',
-                                          'Indirect'
-                                        )}
-                                      </span>
-                                    </div>
-                                    <p className="eb-text-sm eb-text-gray-600">
-                                      {indirectOwner.chainDescription}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="eb-flex eb-items-center eb-gap-2">
-                                  <CheckCircle2 className="eb-h-4 eb-w-4 eb-text-green-500" />
-                                  <span className="eb-text-xs eb-text-gray-500">
-                                    {t(
-                                      'indirectOwnership.beneficialOwners.verified',
-                                      'Verified'
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+        <div className="eb-space-y-6">
+          <div className="eb-text-sm eb-text-muted-foreground eb-leading-relaxed">
+            {isEditMode ? (
+              <>
+                Edit the ownership chain from <span className="eb-font-medium eb-text-foreground">{ownerName}</span> to{' '}
+                <span className="eb-font-medium eb-text-foreground">{rootCompanyName}</span>.
+              </>
             ) : (
-              <div className="eb-py-8 eb-text-center">
-                <div className="eb-mb-4">
-                  <Users className="eb-mx-auto eb-h-12 eb-w-12 eb-text-gray-400" />
-                </div>
-                <div className="eb-text-lg eb-font-medium eb-text-gray-900">
-                  {t(
-                    'indirectOwnership.beneficialOwners.emptyState.title',
-                    'No Beneficial Owners Identified'
-                  )}
-                </div>
-                <div className="eb-mt-2 eb-text-sm eb-text-gray-500">
-                  {t(
-                    'indirectOwnership.beneficialOwners.emptyState.description',
-                    'Add individuals to your ownership structure to identify beneficial owners.'
-                  )}
-                </div>
-              </div>
+              <>
+                We'll build the chain step by step from <span className="eb-font-medium eb-text-foreground">{ownerName}</span> to{' '}
+                <span className="eb-font-medium eb-text-foreground">{rootCompanyName}</span>.
+              </>
             )}
           </div>
-        )}
 
-        {/* Read-only mode display */}
-        {clientId &&
-          readOnly &&
-          !hasOwnershipStructure &&
-          !needsOwnershipInfo && (
-            <div className="eb-py-8 eb-text-center eb-text-gray-500">
-              <div className="eb-mb-4">
-                <Users className="eb-mx-auto eb-h-8 eb-w-8 eb-text-gray-400" />
+          {/* Chain Preview */}
+          {renderChainPreview()}
+
+          {/* Edit Mode: Existing Steps Management */}
+          {isEditMode && hierarchySteps.length > 0 && (
+            <div className="eb-space-y-4">
+              <div className="eb-text-sm eb-font-medium eb-text-foreground">
+                Current Steps (click to remove):
               </div>
-              <div className="eb-text-sm">
-                {t(
-                  'indirectOwnership.readOnly',
-                  'Ownership structure is in read-only mode'
-                )}
+              <div className="eb-space-y-2">
+                {hierarchySteps.map((step, index) => (
+                  <div key={step.id} className="eb-flex eb-items-center eb-justify-between eb-p-3 eb-bg-card eb-border eb-rounded-lg eb-shadow-sm">
+                    <div className="eb-flex eb-items-center eb-gap-3">
+                      <span className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+                        Step {index + 1}:
+                      </span>
+                      <div className="eb-flex eb-items-center eb-gap-2">
+                        <Building className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                        <span className="eb-font-medium">{step.entityName}</span>
+                        {step.ownsRootBusinessDirectly ? (
+                          <Badge className="eb-bg-success-accent eb-text-success eb-text-xs">
+                            <Building className="eb-h-3 eb-w-3 eb-mr-1" />
+                            Direct Owner
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="eb-text-xs">
+                            Intermediary
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => handleRemoveCompany(index)}
+                      size="sm"
+                      variant="outline"
+                      className="eb-text-destructive eb-hover:bg-destructive/5"
+                    >
+                      <Trash2 className="eb-h-3 eb-w-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-        {/* Component placeholder (when no clientId provided) */}
-        {!clientId && (
-          <div className="eb-grid eb-gap-4">
-            <div className="eb-rounded-lg eb-border-2 eb-border-dashed eb-border-gray-200 eb-p-4">
-              <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-gray-600">
-                <Users className="eb-h-4 eb-w-4" />
-                {t(
-                  'indirectOwnership.components.ownershipTree',
-                  'Ownership Tree Visualization'
-                )}
-              </div>
-              <div className="eb-mt-1 eb-text-xs eb-text-gray-500">
-                {t(
-                  'indirectOwnership.components.ownershipTreeDesc',
-                  'Interactive hierarchy showing ownership relationships'
-                )}
-              </div>
+          {/* Company Input Form */}
+          <div className="eb-space-y-5 eb-p-5 eb-border eb-rounded-lg eb-bg-primary/5 eb-border-primary/20">
+            <div className="eb-text-sm eb-font-medium eb-text-foreground">
+              {getInstructionText()}
             </div>
-
-            <div className="eb-rounded-lg eb-border-2 eb-border-dashed eb-border-gray-200 eb-p-4">
-              <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-gray-600">
-                <Building className="eb-h-4 eb-w-4" />
-                {t(
-                  'indirectOwnership.components.entityForm',
-                  'Entity/Individual Forms'
-                )}
-              </div>
-              <div className="eb-mt-1 eb-text-xs eb-text-gray-500">
-                {t(
-                  'indirectOwnership.components.entityFormDesc',
-                  'Dynamic forms for adding parties to ownership structure'
-                )}
-              </div>
-            </div>
-
-            <div className="eb-rounded-lg eb-border-2 eb-border-dashed eb-border-gray-200 eb-p-4">
-              <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-gray-600">
-                <Badge variant="outline" className="eb-text-xs">
-                  Compliance
-                </Badge>
-                {t(
-                  'indirectOwnership.components.validationSummary',
-                  'Individual Owner Identification'
-                )}
-              </div>
-              <div className="eb-mt-1 eb-text-xs eb-text-gray-500">
-                {t(
-                  'indirectOwnership.components.validationSummaryDesc',
-                  'Compliance checks and beneficial owner identification'
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Beneficial Ownership Information */}
-        {clientId && !readOnly && (
-          <Alert className="eb-border-blue-200 eb-bg-blue-50">
-            <Info className="eb-h-4 eb-w-4 eb-text-blue-600" />
-            <AlertDescription className="eb-text-sm eb-text-blue-800">
-              <strong>Individual Owner Identification:</strong>{' '}
-              {t(
-                'indirectOwnership.beneficialOwnershipInfo',
-                'You must identify all natural persons in your ownership structure. This includes both direct owners (individuals who own the entity directly) and indirect owners (whose ownership flows through intermediary entities).'
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="eb-mt-6 eb-rounded-lg eb-border eb-bg-gray-50 eb-p-3">
-            <div className="eb-font-mono eb-text-xs eb-text-gray-600">
-              <div className="eb-mb-1 eb-font-semibold eb-text-gray-800">
-                Debug Info:
-              </div>
-              <div>
-                Client ID:{' '}
-                <span className="eb-text-blue-600">
-                  {clientId || 'Not provided'}
-                </span>
-              </div>
-              <div>
-                Show Visualization:{' '}
-                <span className="eb-text-blue-600">
-                  {showVisualization ? 'Yes' : 'No'}
-                </span>
-              </div>
-              <div>
-                Max Depth: <span className="eb-text-blue-600">{maxDepth}</span>
-              </div>
-              <div>
-                Read Only:{' '}
-                <span className="eb-text-blue-600">
-                  {readOnly ? 'Yes' : 'No'}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-
-      {/* Add Owner Dialog */}
-      <Dialog
-        open={isAddOwnerDialogOpen}
-        onOpenChange={setIsAddOwnerDialogOpen}
-      >
-        <DialogContent className="eb-mx-4 eb-w-full eb-max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {t('indirectOwnership.addOwnerDialog.title', 'Add Owner')}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedParent && (
-                <>
-                  {t(
-                    'indirectOwnership.addOwnerDialog.description',
-                    'Add a new owner to'
-                  )}{' '}
-                  <strong>
-                    {selectedParent.organizationDetails?.organizationName ||
-                      `${selectedParent.individualDetails?.firstName || ''} ${selectedParent.individualDetails?.lastName || ''}`.trim()}
-                  </strong>
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="eb-space-y-4">
-            {/* Owner Type Selection */}
-            {!ownerType && (
-              <div className="eb-space-y-3">
-                <Label>
-                  {t(
-                    'indirectOwnership.addOwnerDialog.ownerType',
-                    'What type of owner are you adding?'
-                  )}
-                </Label>
-                <div className="eb-space-y-3">
-                  <Button
-                    variant="outline"
-                    className="eb-flex eb-h-auto eb-w-full eb-items-start eb-justify-start eb-text-wrap eb-p-4"
-                    onClick={() => setOwnerType('individual')}
-                    disabled={!canAddMoreOwners()}
-                  >
-                    <Users className="eb-mr-3 eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-green-600" />
-                    <div className="eb-min-w-0 eb-max-w-full eb-flex-1 eb-overflow-hidden eb-text-left">
-                      <div className="eb-w-full eb-whitespace-normal eb-break-words eb-font-medium">
-                        {t(
-                          'indirectOwnership.addOwnerDialog.individual',
-                          'Individual Owner'
-                        )}
-                        {!canAddMoreOwners() && (
-                          <span className="eb-ml-2 eb-text-xs eb-text-orange-600">
-                            (Limit Reached)
-                          </span>
-                        )}
-                      </div>
-                      <div className="eb-mt-1 eb-w-full eb-whitespace-normal eb-break-words eb-text-sm eb-leading-relaxed eb-text-gray-500">
-                        {canAddMoreOwners()
-                          ? t(
-                              'indirectOwnership.addOwnerDialog.individualDesc',
-                              'A natural person who directly owns part of this entity (beneficial owner)'
-                            )
-                          : 'Maximum of 4 beneficial owners reached. Each must own at least 25%.'}
-                      </div>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="eb-flex eb-h-auto eb-w-full eb-items-start eb-justify-start eb-text-wrap eb-p-4"
-                    onClick={() => setOwnerType('entity')}
-                  >
-                    <Building className="eb-mr-3 eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-blue-600" />
-                    <div className="eb-min-w-0 eb-max-w-full eb-flex-1 eb-overflow-hidden eb-text-left">
-                      <div className="eb-w-full eb-whitespace-normal eb-break-words eb-font-medium">
-                        {t(
-                          'indirectOwnership.addOwnerDialog.entity',
-                          'Intermediary Entity'
-                        )}
-                      </div>
-                      <div className="eb-mt-1 eb-w-full eb-whitespace-normal eb-break-words eb-text-sm eb-leading-relaxed eb-text-gray-500">
-                        {t(
-                          'indirectOwnership.addOwnerDialog.entityDesc',
-                          'A company or organization that sits between this entity and ultimate beneficial owners'
-                        )}
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Individual Form */}
-            {ownerType === 'individual' && (
-              <div className="eb-space-y-4">
-                <div className="eb-flex eb-items-center eb-justify-between">
-                  <Label className="eb-text-base eb-font-medium">
-                    {t(
-                      'indirectOwnership.addOwnerDialog.individualDetails',
-                      'Individual Details'
-                    )}
-                  </Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setOwnerType(null)}
-                  >
-                    {t('common.back', 'Back')}
-                  </Button>
-                </div>
-
-                <div className="eb-grid eb-gap-4">
-                  <div>
-                    <Label htmlFor="firstName">
-                      {t(
-                        'indirectOwnership.addOwnerDialog.firstName',
-                        'First Name'
-                      )}{' '}
-                      *
-                    </Label>
-                    <Input
-                      id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          firstName: e.target.value,
-                        }))
-                      }
-                      placeholder={t(
-                        'indirectOwnership.addOwnerDialog.firstNamePlaceholder',
-                        'Enter first name'
-                      )}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="lastName">
-                      {t(
-                        'indirectOwnership.addOwnerDialog.lastName',
-                        'Last Name'
-                      )}{' '}
-                      *
-                    </Label>
-                    <Input
-                      id="lastName"
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          lastName: e.target.value,
-                        }))
-                      }
-                      placeholder={t(
-                        'indirectOwnership.addOwnerDialog.lastNamePlaceholder',
-                        'Enter last name'
-                      )}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="middleName">
-                      {t(
-                        'indirectOwnership.addOwnerDialog.middleName',
-                        'Middle Name'
-                      )}
-                    </Label>
-                    <Input
-                      id="middleName"
-                      value={formData.middleName}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          middleName: e.target.value,
-                        }))
-                      }
-                      placeholder={t(
-                        'indirectOwnership.addOwnerDialog.middleNamePlaceholder',
-                        'Enter middle name (optional)'
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Entity Form */}
-            {ownerType === 'entity' && (
-              <div className="eb-space-y-4">
-                <div className="eb-flex eb-items-center eb-justify-between">
-                  <Label className="eb-text-base eb-font-medium">
-                    {t(
-                      'indirectOwnership.addOwnerDialog.entityDetails',
-                      'Entity Details'
-                    )}
-                  </Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setOwnerType(null)}
-                  >
-                    {t('common.back', 'Back')}
-                  </Button>
-                </div>
-
-                <div className="eb-grid eb-gap-4">
-                  <div>
-                    <Label htmlFor="organizationName">
-                      {t(
-                        'indirectOwnership.addOwnerDialog.organizationName',
-                        'Organization Name'
-                      )}{' '}
-                      *
-                    </Label>
-                    <Input
-                      id="organizationName"
-                      value={formData.organizationName}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          organizationName: e.target.value,
-                        }))
-                      }
-                      placeholder={t(
-                        'indirectOwnership.addOwnerDialog.organizationNamePlaceholder',
-                        'Enter organization name'
-                      )}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="organizationType">
-                      {t(
-                        'indirectOwnership.addOwnerDialog.organizationType',
-                        'Organization Type'
-                      )}{' '}
-                      *
-                    </Label>
-                    <Select
-                      value={formData.organizationType}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          organizationType: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={t(
-                            'indirectOwnership.addOwnerDialog.organizationTypePlaceholder',
-                            'Select organization type'
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="LIMITED_LIABILITY_COMPANY">
-                          LLC
-                        </SelectItem>
-                        <SelectItem value="C_CORPORATION">
-                          C Corporation
-                        </SelectItem>
-                        <SelectItem value="S_CORPORATION">
-                          S Corporation
-                        </SelectItem>
-                        <SelectItem value="PARTNERSHIP">Partnership</SelectItem>
-                        <SelectItem value="LIMITED_PARTNERSHIP">
-                          Limited Partnership
-                        </SelectItem>
-                        <SelectItem value="LIMITED_LIABILITY_PARTNERSHIP">
-                          Limited Liability Partnership
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="countryOfFormation">
-                      {t(
-                        'indirectOwnership.addOwnerDialog.countryOfFormation',
-                        'Country of Formation'
-                      )}{' '}
-                      *
-                    </Label>
-                    <Select
-                      value={formData.countryOfFormation}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          countryOfFormation: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="US">United States</SelectItem>
-                        <SelectItem value="CA">Canada</SelectItem>
-                        <SelectItem value="GB">United Kingdom</SelectItem>
-                        <SelectItem value="DE">Germany</SelectItem>
-                        <SelectItem value="FR">France</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {ownerType && (
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsAddOwnerDialogOpen(false)}
-              >
-                {t('common.cancel', 'Cancel')}
-              </Button>
-              <Button
-                onClick={handleSubmitOwner}
-                disabled={
-                  (ownerType === 'individual' &&
-                    (!formData.firstName || !formData.lastName)) ||
-                  (ownerType === 'entity' &&
-                    (!formData.organizationName || !formData.organizationType))
-                }
-              >
-                {t('indirectOwnership.addOwnerDialog.addOwner', 'Add Owner')}
-              </Button>
-            </DialogFooter>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={isDeleteConfirmDialogOpen}
-        onOpenChange={setIsDeleteConfirmDialogOpen}
-      >
-        <DialogContent className="eb-max-w-md">
-          <DialogHeader>
-            <DialogTitle className="eb-flex eb-items-center eb-gap-2">
-              <Trash2 className="eb-h-5 eb-w-5 eb-text-red-600" />
-              {t('indirectOwnership.deleteConfirm.title', 'Confirm Deletion')}
-            </DialogTitle>
-            <DialogDescription className="eb-text-left">
-              {partyToDelete &&
-                (partyToDelete.partyType === 'INDIVIDUAL'
-                  ? t(
-                      'indirectOwnership.deleteConfirm.messageIndividual',
-                      'Are you sure you want to remove this individual from the ownership structure?'
-                    )
-                  : t(
-                      'indirectOwnership.deleteConfirm.messageEntity',
-                      'Are you sure you want to delete this entity and all its ownership relationships?'
-                    ))}
-            </DialogDescription>
-          </DialogHeader>
-
-          {partyToDelete && (
-            <div className="eb-space-y-3 eb-px-6">
-              <div className="eb-rounded eb-border eb-bg-gray-50 eb-p-3">
-                <div className="eb-flex eb-items-center eb-gap-2">
-                  {partyToDelete.partyType === 'ORGANIZATION' ? (
-                    <Building className="eb-h-4 eb-w-4 eb-text-blue-600" />
-                  ) : (
-                    <Users className="eb-h-4 eb-w-4 eb-text-green-600" />
-                  )}
-                  <span className="eb-font-medium">
-                    {partyToDelete.partyType === 'ORGANIZATION'
-                      ? partyToDelete.organizationDetails?.organizationName
-                      : `${partyToDelete.individualDetails?.firstName || ''} ${partyToDelete.individualDetails?.lastName || ''}`.trim()}
-                  </span>
-                </div>
-                <p className="eb-mt-1 eb-text-sm eb-text-gray-600">
-                  {partyToDelete.partyType === 'ORGANIZATION'
-                    ? partyToDelete.organizationDetails?.organizationType
-                    : 'Individual'}
-                </p>
-              </div>
-
-              {currentOwnershipData?.parties?.some(
-                (p: any) => p.parentPartyId === partyToDelete.id
-              ) && (
-                <div className="eb-rounded eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-2 eb-text-sm eb-text-amber-700">
-                  <AlertCircle className="eb-mr-1 eb-inline eb-h-4 eb-w-4" />
-                  {partyToDelete.partyType === 'ORGANIZATION'
-                    ? t(
-                        'indirectOwnership.deleteConfirm.cascadeWarningEntity',
-                        'This will also remove all entities and individuals owned by this organization.'
-                      )
-                    : t(
-                        'indirectOwnership.deleteConfirm.cascadeWarningIndividual',
-                        'This individual owns other entities that will also be removed.'
-                      )}
-                </div>
-              )}
-
-              {/* Warning for removing last individual from entity */}
-              {partyToDelete.partyType === 'INDIVIDUAL' &&
-                partyToDelete.parentPartyId &&
-                (() => {
-                  const parent = currentOwnershipData?.parties?.find(
-                    (p: any) => p.id === partyToDelete.parentPartyId
-                  );
-                  if (
-                    parent &&
-                    parent.roles?.includes('BENEFICIAL_OWNER') &&
-                    parent.partyType === 'ORGANIZATION'
-                  ) {
-                    const individualSiblings =
-                      currentOwnershipData?.parties?.filter(
-                        (p: any) =>
-                          p.parentPartyId === partyToDelete.parentPartyId &&
-                          p.id !== partyToDelete.id &&
-                          p.partyType === 'INDIVIDUAL'
-                      ) || [];
-
-                    if (individualSiblings.length === 0) {
-                      return (
-                        <div className="eb-rounded eb-border eb-border-orange-200 eb-bg-orange-50 eb-p-2 eb-text-sm eb-text-orange-700">
-                          <AlertCircle className="eb-mr-1 eb-inline eb-h-4 eb-w-4" />
-                          {t(
-                            'indirectOwnership.deleteConfirm.orphanWarning',
-                            'This will leave {{entityName}} without any beneficial owners, which will require attention.',
-                            {
-                              entityName:
-                                parent.organizationDetails?.organizationName ||
-                                'the entity',
-                            }
-                          )}
-                        </div>
-                      );
-                    }
+            
+            <div className="eb-space-y-2">
+              <Label htmlFor="companyName">
+                Company Name
+              </Label>
+              <Input
+                id="companyName"
+                value={currentCompanyName}
+                onChange={(e) => setCurrentCompanyName(e.target.value)}
+                placeholder="Enter company name"
+                className="eb-h-10 eb-bg-card"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && currentCompanyName.trim()) {
+                    e.preventDefault();
+                    // Don't auto-submit, let user choose
                   }
-                  return null;
-                })()}
+                }}
+              />
+            </div>
+
+            <div className="eb-space-y-3">
+              <div className="eb-text-sm eb-font-medium eb-text-foreground">
+                Does <span className="eb-font-bold eb-text-primary">{currentCompanyName || '[Company Name]'}</span> directly own{' '}
+                <span className="eb-font-bold eb-text-primary">{rootCompanyName}</span>?
+              </div>
+
+              <div className="eb-flex eb-gap-3">
+                <Button 
+                  onClick={() => handleAddCompany(true)}
+                  disabled={!currentCompanyName.trim()}
+                  className="eb-flex-1 eb-bg-success hover:eb-bg-success/90 eb-font-medium eb-h-10 eb-text-white"
+                >
+                  Yes - Complete Chain
+                </Button>
+                <Button 
+                  onClick={() => handleAddCompany(false)}
+                  disabled={!currentCompanyName.trim()}
+                  variant="outline"
+                  className="eb-flex-1 eb-border-primary eb-text-primary hover:eb-bg-primary/5 eb-font-medium eb-h-10"
+                >
+                  No - Continue Chain
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Messages */}
+          {errors.length > 0 && (
+            <div className="eb-p-4 eb-bg-destructive-accent eb-border eb-border-destructive eb-rounded-lg">
+              <div className="eb-text-destructive eb-text-sm eb-space-y-1">
+                {errors.map((error, index) => (
+                  <div key={index} className="eb-flex eb-items-center eb-gap-2">
+                    <AlertTriangle className="eb-h-3 eb-w-3 eb-text-destructive eb-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteConfirmDialogOpen(false)}
+        </div>
+
+        <DialogFooter className="eb-pt-6 eb-space-x-2">
+          <Button variant="outline" onClick={handleClose} className="eb-font-medium">
+            Cancel
+          </Button>
+          {isEditMode && hierarchySteps.length > 0 && (
+            <Button 
+              onClick={() => {
+                const hierarchy = {
+                  id: `hierarchy-${ownerId}`,
+                  steps: hierarchySteps,
+                  isValid: true,
+                  meets25PercentThreshold: true,
+                  validationErrors: []
+                };
+                onSave(ownerId, hierarchy);
+                handleClose();
+              }}
+              className="eb-font-medium"
             >
-              {t('common.cancel', 'Cancel')}
+              Save Changes
             </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeleteOwner}
-              className="eb-bg-red-600 hover:eb-bg-red-700"
-            >
-              <Trash2 className="eb-mr-2 eb-h-4 eb-w-4" />
-              {partyToDelete?.partyType === 'INDIVIDUAL'
-                ? t(
-                    'indirectOwnership.deleteConfirm.removeIndividual',
-                    'Remove Individual'
-                  )
-                : t(
-                    'indirectOwnership.deleteConfirm.deleteEntity',
-                    'Delete Entity'
-                  )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Card>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
