@@ -691,6 +691,7 @@ export const WithEventTracking: Story = {
     showCreateButton: true,
     userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
+      // eslint-disable-next-line no-console
       console.log('User event:', event);
     },
   },

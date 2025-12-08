@@ -1,5 +1,6 @@
 import { Table } from '@tanstack/react-table';
 import { Settings2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -19,27 +20,27 @@ interface DataTableViewOptionsProps<TData> {
 }
 
 /**
- * Map column IDs to their display names
+ * Map column IDs to their translation keys
  */
-const getColumnDisplayName = (columnId: string): string => {
-  const displayNameMap: Record<string, string> = {
-    paymentDate: 'Date',
-    status: 'Status',
-    type: 'Type',
-    amount: 'Amount',
-    currency: 'Currency',
-    counterpartName: 'Counterpart',
-    transactionReferenceId: 'Reference ID',
-    createdAt: 'Created At',
-    effectiveDate: 'Effective Date',
-    memo: 'Memo',
-    debtorName: 'Debtor',
-    creditorName: 'Creditor',
-    ledgerBalance: 'Ledger Balance',
-    postingVersion: 'Posting Version',
-    payinOrPayout: 'Direction',
+const getColumnTranslationKey = (columnId: string): string => {
+  const keyMap: Record<string, string> = {
+    paymentDate: 'columns.date',
+    status: 'columns.status',
+    type: 'columns.type',
+    amount: 'columns.amount',
+    currency: 'columns.currency',
+    counterpartName: 'columns.counterpart',
+    transactionReferenceId: 'columns.referenceId',
+    createdAt: 'columns.createdAt',
+    effectiveDate: 'columns.effectiveDate',
+    memo: 'columns.memo',
+    debtorName: 'columns.debtor',
+    creditorName: 'columns.creditor',
+    ledgerBalance: 'columns.ledgerBalance',
+    postingVersion: 'columns.postingVersion',
+    payinOrPayout: 'columns.direction',
   };
-  return displayNameMap[columnId] || columnId;
+  return keyMap[columnId] || columnId;
 };
 
 /**
@@ -51,6 +52,8 @@ const getColumnDisplayName = (columnId: string): string => {
 export function DataTableViewOptions<TData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
+  const { t } = useTranslation(['transactions']);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -60,11 +63,13 @@ export function DataTableViewOptions<TData>({
           className="eb-ml-auto eb-hidden eb-h-8 lg:eb-flex"
         >
           <Settings2 className="eb-mr-2 eb-h-4 eb-w-4" />
-          Columns
+          {t('viewOptions.button', { defaultValue: 'Columns' })}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eb-w-auto eb-min-w-[200px]">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {t('viewOptions.label', { defaultValue: 'Toggle columns' })}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
           .getAllColumns()
@@ -80,7 +85,9 @@ export function DataTableViewOptions<TData>({
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 className="eb-pr-4"
               >
-                {getColumnDisplayName(column.id)}
+                {t(getColumnTranslationKey(column.id), {
+                  defaultValue: column.id,
+                })}
               </DropdownMenuCheckboxItem>
             );
           })}

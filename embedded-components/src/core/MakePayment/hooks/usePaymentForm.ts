@@ -167,11 +167,10 @@ export const paymentSchema = z
 
 // Mock API call
 const mockPostTransaction = async (
-  data: PaymentFormData
+  _data: PaymentFormData
 ): Promise<{ success: boolean }> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      console.log('Transaction data:', data);
       resolve({ success: true });
     }, 1000);
   });

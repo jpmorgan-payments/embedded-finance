@@ -16,6 +16,7 @@ export const ENABLE_LOGS = process.env.NODE_ENV !== 'test';
 // Custom logger function that respects testing environment
 export function dbLogger(...args: any[]) {
   if (ENABLE_LOGS) {
+    // eslint-disable-next-line no-console
     console.log(...args);
   }
 }

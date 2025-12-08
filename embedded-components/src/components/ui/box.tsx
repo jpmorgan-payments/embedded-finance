@@ -24,7 +24,7 @@ type tBox = {
 const Box = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof boxVariants> & tBox
->(({ className, asChild, size, children, ...props }: any, ref) => (
+>(({ className, asChild: _asChild, size, children, ...props }: any, ref) => (
   <div ref={ref} className={cn(boxVariants({ size }), className)} {...props}>
     {children}
   </div>

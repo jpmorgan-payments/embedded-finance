@@ -1,6 +1,8 @@
 import { FC, useState } from 'react';
 import { CopyIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
 import { useGetTransactionV2 } from '@/api/generated/ep-transactions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,8 @@ export type TransactionDetailsDialogTriggerProps = {
 export const TransactionDetailsDialogTrigger: FC<
   TransactionDetailsDialogTriggerProps
 > = ({ children, transactionId }) => {
+  const { t } = useTranslation(['transactions', 'common']);
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
   const {
@@ -37,6 +41,8 @@ export const TransactionDetailsDialogTrigger: FC<
     error,
     refetch,
   } = useGetTransactionV2(transactionId, { query: { enabled: open } });
+
+  const naText = t('common:na', { defaultValue: 'N/A' });
 
   // Helper function to check if a field has a value
   const hasValue = (val: any): boolean => {
@@ -52,7 +58,7 @@ export const TransactionDetailsDialogTrigger: FC<
     const isEmpty = !hasValue(value);
     if (hideEmpty && isEmpty) return null;
 
-    const displayValue = formatter ? formatter(value) : value || 'N/A';
+    const displayValue = formatter ? formatter(value) : value || naText;
 
     return (
       <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
@@ -68,8 +74,8 @@ export const TransactionDetailsDialogTrigger: FC<
 
   // Helper to format dates
   const formatDate = (date: string | undefined) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+    if (!date) return naText;
+    return new Date(date).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -78,8 +84,8 @@ export const TransactionDetailsDialogTrigger: FC<
 
   // Helper to format date-time
   const formatDateTime = (date: string | undefined) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleString('en-US', {
+    if (!date) return naText;
+    return new Date(date).toLocaleString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -94,7 +100,10 @@ export const TransactionDetailsDialogTrigger: FC<
       <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
         <DialogHeader>
           <DialogTitle className="eb-group eb-flex eb-items-center eb-gap-2 eb-text-lg">
-            Transaction: {transactionId}
+            {t('details.title', {
+              transactionId,
+              defaultValue: `Transaction: ${transactionId}`,
+            })}
             <Button
               size="icon"
               variant="outline"
@@ -102,7 +111,11 @@ export const TransactionDetailsDialogTrigger: FC<
               onClick={() => navigator.clipboard.writeText(transactionId)}
             >
               <CopyIcon className="eb-h-3 eb-w-3" />
-              <span className="eb-sr-only">Copy transaction ID</span>
+              <span className="eb-sr-only">
+                {t('actions.copyTransactionId.srOnly', {
+                  defaultValue: 'Copy transaction ID',
+                })}
+              </span>
             </Button>
           </DialogTitle>
         </DialogHeader>
@@ -116,30 +129,52 @@ export const TransactionDetailsDialogTrigger: FC<
             htmlFor="show-all"
             className="eb-text-xs eb-text-muted-foreground"
           >
-            Show all fields
+            {t('details.showAllFields', {
+              defaultValue: 'Show all fields',
+            })}
           </Label>
         </div>
-        <div className="eb-scrollable-content eb-space-y-2">
+        <div className="eb-scrollable-content">
           {status === 'pending' && (
             <div className="eb-py-8 eb-text-center eb-text-sm eb-text-muted-foreground">
-              Loading transaction details...
+              {t('loading.details', {
+                defaultValue: 'Loading transaction details...',
+              })}
             </div>
           )}
           {status === 'error' && (
             <ServerErrorAlert
               error={error as any}
-              customTitle="Failed to load transaction details"
+              customTitle={t('errors.loadDetails.title', {
+                defaultValue: 'Failed to load transaction details',
+              })}
               customErrorMessage={{
-                '400': 'Invalid transaction ID. Please check and try again.',
-                '401': 'Please log in and try again.',
-                '403': 'You do not have permission to view this transaction.',
-                '404': 'Transaction not found.',
-                '500':
-                  'An unexpected error occurred while loading transaction details. Please try again later.',
-                '503':
-                  'The service is currently unavailable. Please try again later.',
-                default:
-                  'Failed to load transaction details. Please try again.',
+                '400': t('errors.loadDetails.400', {
+                  defaultValue:
+                    'Invalid transaction ID. Please check and try again.',
+                }),
+                '401': t('errors.loadDetails.401', {
+                  defaultValue: 'Please log in and try again.',
+                }),
+                '403': t('errors.loadDetails.403', {
+                  defaultValue:
+                    'You do not have permission to view this transaction.',
+                }),
+                '404': t('errors.loadDetails.404', {
+                  defaultValue: 'Transaction not found.',
+                }),
+                '500': t('errors.loadDetails.500', {
+                  defaultValue:
+                    'An unexpected error occurred while loading transaction details. Please try again later.',
+                }),
+                '503': t('errors.loadDetails.503', {
+                  defaultValue:
+                    'The service is currently unavailable. Please try again later.',
+                }),
+                default: t('errors.loadDetails.default', {
+                  defaultValue:
+                    'Failed to load transaction details. Please try again.',
+                }),
               }}
               tryAgainAction={() => {
                 refetch();
@@ -148,18 +183,24 @@ export const TransactionDetailsDialogTrigger: FC<
             />
           )}
           {status === 'success' && transaction && (
-            <>
+            <div className="eb-space-y-2">
               {/* Amount Section - Prominent */}
               <div className="eb-space-y-2">
                 <div className="eb-text-2xl eb-font-semibold">
                   {transaction.amount
                     ? formatNumberToCurrency(
                         transaction.amount,
-                        transaction.currency ?? 'USD'
+                        transaction.currency ?? 'USD',
+                        locale
                       )
-                    : 'N/A'}
+                    : naText}
                 </div>
-                {renderField('Currency', transaction.currency)}
+                {renderField(
+                  t('details.fields.currency', {
+                    defaultValue: 'Currency',
+                  }),
+                  transaction.currency
+                )}
               </div>
 
               {/* General Section */}
@@ -171,14 +212,21 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                      General
+                      {t('details.sections.general', {
+                        defaultValue: 'General',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
-                      {renderField('Type', transaction.type)}
+                      {renderField(
+                        t('details.fields.type', { defaultValue: 'Type' }),
+                        transaction.type
+                      )}
                       {transaction.status && (
                         <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
                           <Label className="eb-shrink-0 eb-text-sm eb-font-normal eb-text-muted-foreground">
-                            Status
+                            {t('details.fields.status', {
+                              defaultValue: 'Status',
+                            })}
                           </Label>
                           <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-normal">
                             <Badge
@@ -190,7 +238,12 @@ export const TransactionDetailsDialogTrigger: FC<
                           </div>
                         </div>
                       )}
-                      {renderField('Fee Type', transaction.feeType)}
+                      {renderField(
+                        t('details.fields.feeType', {
+                          defaultValue: 'Fee Type',
+                        }),
+                        transaction.feeType
+                      )}
                     </div>
                   </div>
                 </>
@@ -206,17 +259,33 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                      Identifiers
+                      {t('details.sections.identifiers', {
+                        defaultValue: 'Identifiers',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
-                      {renderField('Transaction ID', transaction.id)}
                       {renderField(
-                        'Transaction Reference ID',
+                        t('details.fields.transactionId', {
+                          defaultValue: 'Transaction ID',
+                        }),
+                        transaction.id
+                      )}
+                      {renderField(
+                        t('details.fields.transactionReferenceId', {
+                          defaultValue: 'Transaction Reference ID',
+                        }),
                         transaction.transactionReferenceId
                       )}
-                      {renderField('Originating ID', transaction.originatingId)}
                       {renderField(
-                        'Originating Type',
+                        t('details.fields.originatingId', {
+                          defaultValue: 'Originating ID',
+                        }),
+                        transaction.originatingId
+                      )}
+                      {renderField(
+                        t('details.fields.originatingType', {
+                          defaultValue: 'Originating Type',
+                        }),
                         transaction.originatingTransactionType
                       )}
                     </div>
@@ -234,26 +303,36 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                      Dates & Versioning
+                      {t('details.sections.datesVersioning', {
+                        defaultValue: 'Dates & Versioning',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
                       {renderField(
-                        'Created At',
+                        t('details.fields.createdAt', {
+                          defaultValue: 'Created At',
+                        }),
                         transaction.createdAt,
                         formatDateTime
                       )}
                       {renderField(
-                        'Payment Date',
+                        t('details.fields.paymentDate', {
+                          defaultValue: 'Payment Date',
+                        }),
                         transaction.paymentDate,
                         formatDate
                       )}
                       {renderField(
-                        'Effective Date',
+                        t('details.fields.effectiveDate', {
+                          defaultValue: 'Effective Date',
+                        }),
                         transaction.effectiveDate,
                         formatDateTime
                       )}
                       {renderField(
-                        'Posting Version',
+                        t('details.fields.postingVersion', {
+                          defaultValue: 'Posting Version',
+                        }),
                         transaction.postingVersion
                       )}
                     </div>
@@ -271,16 +350,33 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                      Debtor
+                      {t('details.sections.debtor', {
+                        defaultValue: 'Debtor',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
-                      {renderField('Name', transaction.debtorName)}
-                      {renderField('Account ID', transaction.debtorAccountId)}
                       {renderField(
-                        'Account Number',
+                        t('details.fields.name', { defaultValue: 'Name' }),
+                        transaction.debtorName
+                      )}
+                      {renderField(
+                        t('details.fields.accountId', {
+                          defaultValue: 'Account ID',
+                        }),
+                        transaction.debtorAccountId
+                      )}
+                      {renderField(
+                        t('details.fields.accountNumber', {
+                          defaultValue: 'Account Number',
+                        }),
                         transaction.debtorAccountNumber
                       )}
-                      {renderField('Client ID', transaction.debtorClientId)}
+                      {renderField(
+                        t('details.fields.clientId', {
+                          defaultValue: 'Client ID',
+                        }),
+                        transaction.debtorClientId
+                      )}
                     </div>
                   </div>
                 </>
@@ -296,16 +392,33 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                      Creditor
+                      {t('details.sections.creditor', {
+                        defaultValue: 'Creditor',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
-                      {renderField('Name', transaction.creditorName)}
-                      {renderField('Account ID', transaction.creditorAccountId)}
                       {renderField(
-                        'Account Number',
+                        t('details.fields.name', { defaultValue: 'Name' }),
+                        transaction.creditorName
+                      )}
+                      {renderField(
+                        t('details.fields.accountId', {
+                          defaultValue: 'Account ID',
+                        }),
+                        transaction.creditorAccountId
+                      )}
+                      {renderField(
+                        t('details.fields.accountNumber', {
+                          defaultValue: 'Account Number',
+                        }),
                         transaction.creditorAccountNumber
                       )}
-                      {renderField('Client ID', transaction.creditorClientId)}
+                      {renderField(
+                        t('details.fields.clientId', {
+                          defaultValue: 'Client ID',
+                        }),
+                        transaction.creditorClientId
+                      )}
                     </div>
                   </div>
                 </>
@@ -320,20 +433,33 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                      Financial
+                      {t('details.sections.financial', {
+                        defaultValue: 'Financial',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
                       {renderField(
-                        'Ledger Balance',
+                        t('details.fields.ledgerBalance', {
+                          defaultValue: 'Ledger Balance',
+                        }),
                         transaction.ledgerBalance,
                         (val) =>
                           formatNumberToCurrency(
                             val,
-                            transaction.currency ?? 'USD'
+                            transaction.currency ?? 'USD',
+                            locale
                           )
                       )}
-                      {renderField('Memo', transaction.memo)}
-                      {renderField('Recipient ID', transaction.recipientId)}
+                      {renderField(
+                        t('details.fields.memo', { defaultValue: 'Memo' }),
+                        transaction.memo
+                      )}
+                      {renderField(
+                        t('details.fields.recipientId', {
+                          defaultValue: 'Recipient ID',
+                        }),
+                        transaction.recipientId
+                      )}
                     </div>
                   </div>
                 </>
@@ -345,18 +471,38 @@ export const TransactionDetailsDialogTrigger: FC<
                   <div className="eb-border-t eb-border-border/40" />
                   <div className="eb-space-y-1.5 eb-rounded-md eb-border eb-border-destructive/50 eb-bg-destructive/5 eb-p-2">
                     <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-destructive">
-                      Error Details
+                      {t('details.sections.errorDetails', {
+                        defaultValue: 'Error Details',
+                      })}
                     </h3>
                     <div className="eb-space-y-1">
-                      {renderField('Title', transaction.error.title)}
-                      {renderField('HTTP Status', transaction.error.httpStatus)}
-                      {renderField('Trace ID', transaction.error.traceId)}
-                      {renderField('Request ID', transaction.error.requestId)}
+                      {renderField(
+                        t('details.fields.title', { defaultValue: 'Title' }),
+                        transaction.error.title
+                      )}
+                      {renderField(
+                        t('details.fields.httpStatus', {
+                          defaultValue: 'HTTP Status',
+                        }),
+                        transaction.error.httpStatus
+                      )}
+                      {renderField(
+                        t('details.fields.traceId', {
+                          defaultValue: 'Trace ID',
+                        }),
+                        transaction.error.traceId
+                      )}
+                      {renderField(
+                        t('details.fields.requestId', {
+                          defaultValue: 'Request ID',
+                        }),
+                        transaction.error.requestId
+                      )}
                     </div>
                   </div>
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
       </DialogContent>

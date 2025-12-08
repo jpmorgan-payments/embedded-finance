@@ -1,0 +1,473 @@
+# i18n/l10n Guidelines for Embedded Finance Components
+
+## Overview
+
+This document provides comprehensive guidelines for implementing internationalization (i18n) and localization (l10n) in the Embedded Finance Components library. All components must support multiple locales and properly format dates, numbers, and currency according to the user's locale.
+
+### Supported Locales
+
+The library currently supports:
+- **en-US** (English - United States) - Default
+- **fr-CA** (French - Canada)
+- **es-US** (Spanish - United States)
+
+Additional locales can be added by following the patterns established in the existing translation files.
+
+## Core Principles
+
+1. **Always use `useTranslation` hook** - Never hardcode text strings in components
+2. **Locale-aware formatting** - All dates, numbers, and currency must respect the current locale
+3. **Default values** - Always provide `defaultValue` in translation calls for fallback
+4. **Optional locale parameters** - All formatting functions should have locale as optional with 'en-US' default
+5. **Use i18next's built-in features** - Leverage i18next's formatting capabilities when possible
+
+## Translation Keys and Namespaces
+
+### Namespace Organization
+
+- Each major component/feature should have its own namespace (e.g., `transactions`, `make-payment`, `accounts`)
+- Common/shared translations go in the `common` namespace
+- Validation messages go in the `validation` namespace
+
+### Translation Key Structure
+
+```typescript
+// ✅ GOOD - Hierarchical, descriptive keys
+t('transactions.columns.date', { defaultValue: 'Date' })
+t('transactions.errors.failedToLoadTitle', { defaultValue: 'Failed to load transactions' })
+t('transactions.toolbar.allStatuses', { defaultValue: 'All statuses' })
+
+// ❌ BAD - Flat, ambiguous keys
+t('date')
+t('error')
+t('all')
+```
+
+### Default Values
+
+**Always provide `defaultValue`** - This serves as:
+1. Fallback if translation key is missing
+2. Documentation of the expected English text
+3. Type safety for translation keys
+
+```typescript
+// ✅ GOOD
+t('transactions.title', { defaultValue: 'Transactions' })
+
+// ❌ BAD - No fallback
+t('transactions.title')
+```
+
+## Locale Detection and Usage
+
+### Getting Current Locale
+
+**Use the `useLocale()` hook** - This hook automatically:
+- Gets the current language from i18next
+- Converts language code (e.g., 'enUS') to locale string (e.g., 'en-US')
+- Falls back to 'en-US' if locale cannot be determined
+
+```typescript
+import { useLocale } from '@/lib/hooks';
+
+const MyComponent = () => {
+  const locale = useLocale(); // Returns 'en-US', 'fr-CA', etc.
+  // Use locale for formatting
+};
+```
+
+### Language Code vs Locale String
+
+- **Language Code**: Used by i18next (e.g., 'enUS', 'frCA')
+- **Locale String**: Used by Intl API (e.g., 'en-US', 'fr-CA')
+- **Always convert** using `getLocaleFromLanguage()` utility
+
+## Date Formatting
+
+### Rules
+
+1. **Always use locale parameter** - Never hardcode 'en-US'
+2. **Use appropriate format** - Date vs DateTime based on context
+3. **Handle undefined/null** - Always provide fallback text (e.g., 'N/A')
+
+### Implementation Pattern
+
+```typescript
+import { useLocale } from '@/lib/hooks';
+
+const MyComponent = () => {
+  const locale = useLocale();
+  const naText = t('common:na', { defaultValue: 'N/A' });
+
+  // Date only
+  const formatDate = (date?: string): string => {
+    if (!date) return naText;
+    return new Date(date).toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  // Date and time
+  const formatDateTime = (date?: string): string => {
+    if (!date) return naText;
+    return new Date(date).toLocaleString(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+};
+```
+
+### ✅ DO
+
+```typescript
+// ✅ Use locale from hook
+const locale = useLocale();
+formatDate(date, locale);
+
+// ✅ Provide fallback for missing dates
+if (!date) return naText;
+```
+
+### ❌ DON'T
+
+```typescript
+// ❌ Hardcode locale
+new Date(date).toLocaleDateString('en-US', {...});
+
+// ❌ No fallback for undefined
+new Date(date).toLocaleDateString(locale, {...});
+```
+
+## Currency Formatting
+
+### Rules
+
+1. **Use `formatNumberToCurrency` utility** - Located in component utils
+2. **Always pass locale** - Use `useLocale()` hook
+3. **Handle undefined amounts** - Provide fallback (e.g., 'N/A')
+
+### Implementation Pattern
+
+```typescript
+import { formatNumberToCurrency, useLocale } from './utils';
+
+const MyComponent = () => {
+  const locale = useLocale();
+  const naText = t('common:na', { defaultValue: 'N/A' });
+
+  const formattedAmount = transaction.amount
+    ? formatNumberToCurrency(
+        transaction.amount,
+        transaction.currency ?? 'USD',
+        locale
+      )
+    : naText;
+};
+```
+
+### Utility Function
+
+```typescript
+/**
+ * Formats a number as currency using the specified locale
+ * @param amount - The amount to format
+ * @param currency - The currency code (e.g., 'USD', 'CAD')
+ * @param locale - The locale string (e.g., 'en-US', 'fr-CA'). Defaults to 'en-US'
+ * @returns Formatted currency string
+ */
+export const formatNumberToCurrency = (
+  amount: number,
+  currency: string,
+  locale: string = 'en-US'
+) => {
+  const formatter = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+  });
+  return formatter.format(amount);
+};
+```
+
+### ✅ DO
+
+```typescript
+// ✅ Use utility with locale
+formatNumberToCurrency(amount, currency, locale);
+
+// ✅ Provide fallback
+amount ? formatNumberToCurrency(amount, currency, locale) : naText;
+```
+
+### ❌ DON'T
+
+```typescript
+// ❌ Hardcode locale
+new Intl.NumberFormat('en-US', {...}).format(amount);
+
+// ❌ No locale parameter
+formatNumberToCurrency(amount, currency);
+```
+
+## Number Formatting
+
+### Rules
+
+1. **Use Intl.NumberFormat** - Standard API for number formatting
+2. **Always pass locale** - Use `useLocale()` hook
+3. **Consider i18next interpolation** - For numbers within translation strings
+
+### For Standalone Formatting
+
+```typescript
+import { useLocale } from './utils';
+
+const MyComponent = () => {
+  const locale = useLocale();
+  
+  const formatNumber = (value: number): string => {
+    return new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+};
+```
+
+### For Translation Strings
+
+i18next supports built-in number formatting in translation strings:
+
+```json
+{
+  "balance": "Your balance is {{amount, number}}"
+}
+```
+
+```typescript
+t('balance', { amount: 1234.56 }); // "Your balance is 1,234.56"
+```
+
+## Component Structure Checklist
+
+When creating or updating a component with i18n/l10n support:
+
+### ✅ Pre-Development Checklist
+
+- [ ] Identify all user-facing text strings
+- [ ] Determine appropriate namespace (new or existing)
+- [ ] Plan translation key structure (hierarchical)
+- [ ] Identify dates, numbers, and currency that need formatting
+
+### ✅ Implementation Checklist
+
+- [ ] Import `useTranslation` hook with appropriate namespaces
+- [ ] Import `useLocale` hook for locale-aware formatting
+- [ ] Replace all hardcoded strings with `t()` calls
+- [ ] Add `defaultValue` to all translation calls
+- [ ] Use `useLocale()` for all date/number/currency formatting
+- [ ] Handle undefined/null values with fallback text
+- [ ] Ensure locale parameter is optional with 'en-US' default
+
+### ✅ Formatting Checklist
+
+- [ ] **Dates**: Use `toLocaleDateString(locale, {...})` or `toLocaleString(locale, {...})`
+- [ ] **Currency**: Use `formatNumberToCurrency(amount, currency, locale)`
+- [ ] **Numbers**: Use `Intl.NumberFormat(locale, {...})`
+- [ ] **All formatting functions**: Have locale as optional parameter with 'en-US' default
+
+### ✅ Testing Checklist
+
+- [ ] Test with default locale (en-US)
+- [ ] Test with alternative locale (e.g., fr-CA)
+- [ ] Test with missing translation keys (should use defaultValue)
+- [ ] Test with undefined/null values (should show fallback)
+- [ ] Verify dates format correctly for each locale
+- [ ] Verify currency formats correctly for each locale
+
+## Common Patterns
+
+### Pattern 1: Component with Translations Only
+
+```typescript
+import { useTranslation } from 'react-i18next';
+
+export const MyComponent = () => {
+  const { t } = useTranslation(['my-namespace']);
+  
+  return (
+    <div>
+      <h1>{t('title', { defaultValue: 'My Component' })}</h1>
+      <p>{t('description', { defaultValue: 'Component description' })}</p>
+    </div>
+  );
+};
+```
+
+### Pattern 2: Component with Date Formatting
+
+```typescript
+import { useTranslation } from 'react-i18next';
+import { useLocale } from './utils';
+
+export const DateComponent = () => {
+  const { t } = useTranslation(['my-namespace', 'common']);
+  const locale = useLocale();
+  const naText = t('common:na', { defaultValue: 'N/A' });
+
+  const formatDate = (date?: string): string => {
+    if (!date) return naText;
+    return new Date(date).toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  return <div>{formatDate(someDate)}</div>;
+};
+```
+
+### Pattern 3: Component with Currency Formatting
+
+```typescript
+import { useTranslation } from 'react-i18next';
+import { formatNumberToCurrency, useLocale } from './utils';
+
+export const CurrencyComponent = () => {
+  const { t } = useTranslation(['my-namespace', 'common']);
+  const locale = useLocale();
+  const naText = t('common:na', { defaultValue: 'N/A' });
+
+  const formatted = transaction.amount
+    ? formatNumberToCurrency(
+        transaction.amount,
+        transaction.currency ?? 'USD',
+        locale
+      )
+    : naText;
+
+  return <div>{formatted}</div>;
+};
+```
+
+### Pattern 4: Column Definitions (Outside React Component)
+
+```typescript
+import { getLocaleFromLanguage } from './utils';
+
+export const getMyColumns = (
+  t: (key: string, options?: any) => string,
+  locale?: string
+): ColumnDef<MyType>[] => {
+  const currentLocale = locale || 'en-US';
+  const naText = t('common:na', { defaultValue: 'N/A' });
+
+  const formatDate = (date?: string): string => {
+    if (!date) return naText;
+    return new Date(date).toLocaleDateString(currentLocale, {...});
+  };
+
+  return [
+    {
+      accessorKey: 'date',
+      cell: ({ row }) => formatDate(row.original.date),
+    },
+  ];
+};
+```
+
+## Utility Functions Reference
+
+### `useLocale()`
+
+Hook to get current locale string from i18n instance.
+
+```typescript
+import { useLocale } from '@/lib/hooks';
+
+const locale = useLocale(); // Returns 'en-US', 'fr-CA', etc.
+```
+
+### `getLocaleFromLanguage(languageCode)`
+
+Converts i18next language code to locale string.
+
+```typescript
+import { getLocaleFromLanguage } from '@/lib/utils/getLocaleFromLanguage';
+
+const locale = getLocaleFromLanguage('enUS'); // Returns 'en-US'
+const locale = getLocaleFromLanguage('frCA'); // Returns 'fr-CA'
+const locale = getLocaleFromLanguage(undefined); // Returns 'en-US'
+```
+
+**Note**: These utilities are shared across all components and located in `src/lib/` since they're used by 2+ components (TransactionsDisplay, Accounts, etc.).
+
+### `formatNumberToCurrency(amount, currency, locale?)`
+
+Formats number as currency using Intl.NumberFormat.
+
+```typescript
+import { formatNumberToCurrency } from './utils';
+
+formatNumberToCurrency(1234.56, 'USD', 'en-US'); // "$1,234.56"
+formatNumberToCurrency(1234.56, 'CAD', 'fr-CA'); // "1 234,56 $ CA"
+```
+
+## i18next Best Practices
+
+### Use Built-in Formatting When Possible
+
+For formatting within translation strings, use i18next's built-in formatters:
+
+```json
+{
+  "price": "Price: {{amount, currency(USD)}}",
+  "date": "Date: {{date, datetime}}",
+  "number": "Count: {{count, number}}"
+}
+```
+
+### Namespace Organization
+
+- Keep namespaces focused and logical
+- Use `common` for shared translations
+- Use feature-specific namespaces (e.g., `transactions`, `accounts`)
+
+### Translation Key Naming
+
+- Use hierarchical structure: `section.subsection.item`
+- Be descriptive: `errors.failedToLoadTitle` not `error1`
+- Use consistent naming patterns across namespaces
+
+## Migration Guide
+
+When migrating existing components to support i18n/l10n:
+
+1. **Extract all strings** - Find all hardcoded text
+2. **Create translation JSON files** - Add keys to appropriate namespace
+3. **Replace strings** - Use `t()` with `defaultValue`
+4. **Add locale support** - Use `useLocale()` for formatting
+5. **Update formatting** - Replace hardcoded locales with dynamic locale
+6. **Test thoroughly** - Verify with multiple locales
+
+## Examples
+
+See the `TransactionsDisplay` and `Accounts` components for complete reference implementations:
+- `embedded-components/src/core/TransactionsDisplay/`
+- `embedded-components/src/core/Accounts/`
+- Translation files: `embedded-components/src/i18n/en-US/transactions.json`, `embedded-components/src/i18n/en-US/accounts.json`
+- **Shared locale utilities**: `embedded-components/src/lib/hooks/useLocale.ts` and `embedded-components/src/lib/utils/getLocaleFromLanguage.ts`
+
+## Resources
+
+- [i18next Documentation](https://www.i18next.com/)
+- [React i18next Documentation](https://react.i18next.com/)
+- [Intl API Documentation (MDN)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl)
+- [Intl.NumberFormat (MDN)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat)
+- [Date.prototype.toLocaleDateString (MDN)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString)

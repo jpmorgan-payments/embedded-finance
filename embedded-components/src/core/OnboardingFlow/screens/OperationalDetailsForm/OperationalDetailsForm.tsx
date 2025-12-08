@@ -100,8 +100,8 @@ export const OperationalDetailsForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClientLegacy({
     mutation: {
-      onError: (err) => {
-        console.log('mutation error', err);
+      onError: () => {
+        // Mutation error occurred
       },
       onSuccess: (response) => {
         queryClient.setQueryData(queryKey, response);

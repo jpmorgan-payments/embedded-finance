@@ -317,8 +317,6 @@ const FlowRenderer: React.FC = React.memo(() => {
                 return;
               }
 
-              console.log(targetStepId);
-
               goTo(screenId, {
                 resetHistory: true,
                 initialStepperStepId: firstInvalidStep,

@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
+import { formatStatusText } from '../../utils/formatStatusText';
+import { getStatusVariant } from '../../utils/getStatusVariant';
 // Utils
 import {
   formatAccountInfo,
@@ -37,7 +39,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
   canDeactivate = false,
   isDeactivating = false,
 }) => {
-  const { color, icon: StatusIcon } = getStatusColor(recipient.status!);
+  const { icon: StatusIcon } = getStatusColor(recipient.status!);
   const statusDescription = getStatusDescription(recipient.status!);
   const validation = validateRecipientForPayments(recipient);
   const originalContacts = recipient.partyDetails.contacts || [];
@@ -47,10 +49,10 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
     if (!value) return null;
     return (
       <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
-        <Label className="eb-shrink-0 eb-text-sm eb-font-medium eb-text-muted-foreground">
+        <Label className="eb-shrink-0 eb-text-sm eb-font-normal eb-text-muted-foreground">
           {label}
         </Label>
-        <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+        <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-normal">
           {value}
         </div>
       </div>
@@ -58,15 +60,15 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
   };
 
   return (
-    <div className="eb-space-y-2 eb-pb-4">
+    <div className="eb-space-y-2">
       {/* Status Tags */}
-      <div className="eb-flex eb-items-center eb-gap-2">
+      <div className="eb-mt-2 eb-flex eb-items-center eb-gap-2">
         <Badge
-          variant="secondary"
-          className={`eb-text-sm ${color} eb-flex eb-items-center eb-gap-1`}
+          variant={getStatusVariant(recipient.status)}
+          className="eb-flex eb-items-center eb-gap-1 eb-text-sm"
         >
           <StatusIcon className="eb-h-3 eb-w-3" />
-          {recipient.status}
+          {formatStatusText(recipient.status)}
         </Badge>
         <Badge variant="outline" className="eb-text-sm">
           {recipient.partyDetails?.type === 'INDIVIDUAL'
@@ -129,7 +131,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
 
       {/* Party Details */}
       <div className="eb-space-y-1.5">
-        <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+        <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
           Party Information
         </h3>
         <div className="eb-space-y-1">
@@ -153,9 +155,9 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
       {/* Address */}
       {recipient.partyDetails.address && (
         <>
-          <div className="eb-border-t-2 eb-border-border/40" />
+          <div className="eb-border-t eb-border-border/40" />
           <div className="eb-space-y-1.5">
-            <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
               Address
             </h3>
             <div className="eb-text-sm eb-leading-relaxed eb-text-muted-foreground">
@@ -168,9 +170,9 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
       {/* Contacts */}
       {originalContacts.length > 0 && (
         <>
-          <div className="eb-border-t-2 eb-border-border/40" />
+          <div className="eb-border-t eb-border-border/40" />
           <div className="eb-space-y-1.5">
-            <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
               Contact Information
             </h3>
             <div className="eb-space-y-1">
@@ -179,7 +181,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                   key={index}
                   className="eb-flex eb-items-start eb-justify-between eb-gap-2"
                 >
-                  <Label className="eb-flex eb-shrink-0 eb-items-center eb-gap-1.5 eb-text-sm eb-font-medium eb-text-muted-foreground">
+                  <Label className="eb-flex eb-shrink-0 eb-items-center eb-gap-1.5 eb-text-sm eb-font-normal eb-text-muted-foreground">
                     {contact.contactType === 'EMAIL' && (
                       <Mail className="eb-h-3.5 eb-w-3.5" />
                     )}
@@ -192,7 +194,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                     {contact.contactType}
                     {contact.countryCode && ` (${contact.countryCode})`}
                   </Label>
-                  <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-medium">
+                  <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-normal">
                     {contact.value}
                   </div>
                 </div>
@@ -205,9 +207,9 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
       {/* Account Information */}
       {recipient.account && (
         <>
-          <div className="eb-border-t-2 eb-border-border/40" />
+          <div className="eb-border-t eb-border-border/40" />
           <div className="eb-space-y-1.5">
-            <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
               Account Information
             </h3>
             <div className="eb-space-y-1">
@@ -225,7 +227,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
             {recipient.account.routingInformation &&
               recipient.account.routingInformation.length > 0 && (
                 <div className="eb-mt-2 eb-space-y-1.5">
-                  <h4 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <h4 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
                     Routing Information
                   </h4>
                   <div className="eb-space-y-1">
@@ -251,7 +253,7 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
             {/* Formatted Account Info */}
             {formatAccountInfo(recipient) && (
               <div className="eb-mt-2 eb-space-y-1">
-                <Label className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+                <Label className="eb-text-sm eb-font-normal eb-text-muted-foreground">
                   Account Summary
                 </Label>
                 <div className="eb-rounded-md eb-bg-muted/30 eb-p-2">
@@ -261,24 +263,6 @@ export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
                 </div>
               </div>
             )}
-          </div>
-        </>
-      )}
-
-      {/* Metadata */}
-      {recipient.createdAt && (
-        <>
-          <div className="eb-border-t-2 eb-border-border/40" />
-          <div className="eb-space-y-1.5">
-            <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-              Timeline
-            </h3>
-            <div className="eb-space-y-1">
-              {renderField(
-                'Created',
-                new Date(recipient.createdAt).toLocaleString()
-              )}
-            </div>
           </div>
         </>
       )}

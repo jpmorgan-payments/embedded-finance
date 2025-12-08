@@ -132,15 +132,46 @@ New Code?
   │   └─→ No schema? → ComponentName/components/DialogName/
 ```
 
+## ⚠️ CRITICAL: Code Quality Workflow
+
+**After making ANY code changes, you MUST:**
+
+1. **Run tests**: `cd embedded-components && yarn test`
+
+   - This runs: typecheck → format:check → lint → test:unit
+   - **DO NOT skip this step** - tests must pass before proceeding
+
+2. **Fix any errors that appear**:
+
+   - **TypeScript errors**: Fix type issues in the code
+   - **Prettier/formatting errors**: Run `yarn format` to auto-fix
+   - **Linting errors**: Run `yarn lint:fix` to auto-fix, or fix manually
+   - **Test failures**: Update tests or fix implementation
+
+3. **Re-run tests** until all pass:
+   ```powershell
+   cd embedded-components
+   yarn test
+   ```
+
+**Never commit code with:**
+
+- ❌ TypeScript errors
+- ❌ Formatting errors (Prettier)
+- ❌ Linting errors
+- ❌ Failing tests
+
 ## Testing Instructions
 
 - Tests must be colocated with implementation (not in separate `__tests__/` directories)
 - One test file per implementation file
 - Minimum 80% line coverage required
 - Use MSW for API mocking
-- Always run tests before committing: `yarn test`
+- **Always run `yarn test` after making changes**
 - Run type checking: `yarn typecheck`
 - Run linting: `yarn lint`
+- Auto-fix formatting: `yarn format`
+- Auto-fix linting: `yarn lint:fix`
 
 ## Package-Specific Instructions
 

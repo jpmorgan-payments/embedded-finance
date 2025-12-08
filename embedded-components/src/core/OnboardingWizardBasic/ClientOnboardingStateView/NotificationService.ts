@@ -58,7 +58,8 @@ export const NotificationService = {
           duration: 5000,
         });
       }
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch {
       // Fallback to toast notification
       toast({
         title,

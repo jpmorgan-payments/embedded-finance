@@ -1,5 +1,7 @@
 import { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
@@ -14,9 +16,9 @@ import type { ModifiedTransaction } from '../../utils';
 /**
  * Format date for display
  */
-const formatDate = (date?: string): string => {
+const formatDate = (date?: string, locale = 'en-US'): string => {
   if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -38,6 +40,8 @@ interface TransactionCardProps {
  * Clicking the card opens the transaction details modal.
  */
 export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
+  const { t } = useTranslation(['transactions', 'common']);
+  const locale = useLocale();
   const transactionId = transaction.id ?? '';
 
   return (
@@ -47,7 +51,10 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
           <div className="eb-min-w-0 eb-flex-1">
             <div className="eb-mb-1 eb-flex eb-items-center eb-gap-2">
               <div className="eb-truncate eb-text-sm eb-font-medium">
-                {transaction.type || 'Transaction'}
+                {transaction.type ||
+                  t('card.transactionFallback', {
+                    defaultValue: 'Transaction',
+                  })}
               </div>
               <Badge
                 variant={getStatusVariant(transaction.status)}
@@ -57,7 +64,7 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
               </Badge>
             </div>
             <div className="eb-text-xs eb-text-muted-foreground">
-              {formatDate(transaction.paymentDate)}
+              {formatDate(transaction.paymentDate, locale)}
             </div>
           </div>
           <div className="eb-shrink-0 eb-text-right">
@@ -65,7 +72,8 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
               {transaction.amount
                 ? formatNumberToCurrency(
                     transaction.amount,
-                    transaction.currency ?? 'USD'
+                    transaction.currency ?? 'USD',
+                    locale
                   )
                 : 'N/A'}
             </div>

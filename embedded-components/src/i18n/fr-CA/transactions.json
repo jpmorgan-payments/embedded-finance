@@ -1,0 +1,140 @@
+{
+  "title": "Transactions",
+  "loading": {
+    "transactions": "Chargement des transactions...",
+    "details": "Chargement des détails de la transaction..."
+  },
+  "errors": {
+    "loadTransactions": {
+      "title": "Échec du chargement des transactions",
+      "400": "Requête invalide. Veuillez vérifier vos filtres de compte et réessayer.",
+      "401": "Veuillez vous connecter et réessayer.",
+      "403": "Vous n'avez pas la permission de voir ces transactions.",
+      "404": "Transactions introuvables.",
+      "500": "Une erreur inattendue s'est produite lors du chargement des transactions. Veuillez réessayer plus tard.",
+      "503": "Le service est actuellement indisponible. Veuillez réessayer plus tard.",
+      "default": "Échec du chargement des transactions. Veuillez réessayer."
+    },
+    "loadDetails": {
+      "title": "Échec du chargement des détails de la transaction",
+      "400": "ID de transaction invalide. Veuillez vérifier et réessayer.",
+      "401": "Veuillez vous connecter et réessayer.",
+      "403": "Vous n'avez pas la permission de voir cette transaction.",
+      "404": "Transaction introuvable.",
+      "500": "Une erreur inattendue s'est produite lors du chargement des détails de la transaction. Veuillez réessayer plus tard.",
+      "503": "Le service est actuellement indisponible. Veuillez réessayer plus tard.",
+      "default": "Échec du chargement des détails de la transaction. Veuillez réessayer."
+    }
+  },
+  "empty": {
+    "noResults": "Aucun résultat.",
+    "noTransactions": "Aucune transaction trouvée"
+  },
+  "actions": {
+    "refresh": {
+      "label": "Actualiser les transactions",
+      "srOnly": "Actualiser les transactions"
+    },
+    "reset": "Réinitialiser",
+    "copyTransactionId": {
+      "srOnly": "Copier l'ID de transaction"
+    }
+  },
+  "columns": {
+    "date": "Date",
+    "status": "Statut",
+    "type": "Type",
+    "amount": "Montant",
+    "currency": "Devise",
+    "counterpart": "Contrepartie",
+    "referenceId": "ID de référence",
+    "createdAt": "Créé le",
+    "effectiveDate": "Date d'entrée en vigueur",
+    "memo": "Mémo",
+    "debtor": "Débiteur",
+    "creditor": "Créancier",
+    "ledgerBalance": "Solde du grand livre",
+    "postingVersion": "Version de publication",
+    "direction": "Direction"
+  },
+  "filters": {
+    "status": {
+      "all": "Tous les statuts",
+      "placeholder": "Tous les statuts"
+    },
+    "type": {
+      "all": "Tous les types",
+      "placeholder": "Tous les types"
+    },
+    "counterpart": {
+      "placeholder": "Filtrer la contrepartie..."
+    },
+    "referenceId": {
+      "placeholder": "Filtrer l'ID de référence..."
+    }
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} ligne(s) au total",
+    "rowsPerPage": "Lignes par page",
+    "pageInfo": "Page {{current}} sur {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirst": {
+      "srOnly": "Aller à la première page"
+    },
+    "goToPrevious": {
+      "srOnly": "Aller à la page précédente"
+    },
+    "goToNext": {
+      "srOnly": "Aller à la page suivante"
+    },
+    "goToLast": {
+      "srOnly": "Aller à la dernière page"
+    }
+  },
+  "viewOptions": {
+    "button": "Colonnes",
+    "label": "Basculer les colonnes"
+  },
+  "details": {
+    "title": "Transaction : {{transactionId}}",
+    "showAllFields": "Afficher tous les champs",
+    "sections": {
+      "general": "Général",
+      "identifiers": "Identifiants",
+      "datesVersioning": "Dates et version",
+      "debtor": "Débiteur",
+      "creditor": "Créancier",
+      "financial": "Financier",
+      "errorDetails": "Détails de l'erreur"
+    },
+    "fields": {
+      "currency": "Devise",
+      "type": "Type",
+      "status": "Statut",
+      "feeType": "Type de frais",
+      "transactionId": "ID de transaction",
+      "transactionReferenceId": "ID de référence de transaction",
+      "originatingId": "ID d'origine",
+      "originatingType": "Type d'origine",
+      "createdAt": "Créé le",
+      "paymentDate": "Date de paiement",
+      "effectiveDate": "Date d'entrée en vigueur",
+      "postingVersion": "Version de publication",
+      "name": "Nom",
+      "accountId": "ID de compte",
+      "accountNumber": "Numéro de compte",
+      "clientId": "ID client",
+      "ledgerBalance": "Solde du grand livre",
+      "memo": "Mémo",
+      "recipientId": "ID du bénéficiaire",
+      "title": "Titre",
+      "httpStatus": "Statut HTTP",
+      "traceId": "ID de trace",
+      "requestId": "ID de requête"
+    }
+  },
+  "card": {
+    "transactionFallback": "Transaction"
+  }
+}
+

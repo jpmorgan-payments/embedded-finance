@@ -13,6 +13,16 @@ import type {
 } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 // UI Components
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -122,6 +132,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
   // State
   const [searchTerm, setSearchTerm] = useState('');
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [recipientToDeactivate, setRecipientToDeactivate] =
+    useState<Recipient | null>(null);
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
@@ -253,19 +266,19 @@ export const Recipients: React.FC<RecipientsProps> = ({
     [openEditDialog, userEventsHandler]
   );
 
-  const handleDeactivateRecipient = useCallback(
-    (recipient: Recipient) => {
-      if (
-        window.confirm(
-          `Are you sure you want to deactivate ${formatRecipientName(recipient)}?`
-        )
-      ) {
-        deactivateRecipient(recipient.id);
-        userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
-      }
-    },
-    [deactivateRecipient, userEventsHandler]
-  );
+  const handleDeactivateRecipient = useCallback((recipient: Recipient) => {
+    setRecipientToDeactivate(recipient);
+    setDeactivateDialogOpen(true);
+  }, []);
+
+  const confirmDeactivate = useCallback(() => {
+    if (recipientToDeactivate) {
+      deactivateRecipient(recipientToDeactivate.id);
+      userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
+      setDeactivateDialogOpen(false);
+      setRecipientToDeactivate(null);
+    }
+  }, [recipientToDeactivate, deactivateRecipient, userEventsHandler]);
 
   // Paginated recipients
   const paginatedRecipients = paginatedItems(filteredRecipients);
@@ -464,42 +477,40 @@ export const Recipients: React.FC<RecipientsProps> = ({
             )}
           </div>
         ) : (
-          <>
-            <RecipientsTable
-              recipients={paginatedRecipients}
-              visibleColumns={visibleColumns}
-              columnConfig={finalColumnConfig}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onViewDetails={handleViewDetails}
-              onEdit={handleEditRecipient}
-              onDeactivate={handleDeactivateRecipient}
-              makePaymentComponent={makePaymentComponent}
-              isDeactivating={isDeactivating}
-              layout={
-                shouldUseWidgetLayout
-                  ? 'widget'
-                  : shouldUseTabletLayout
-                    ? 'tablet'
-                    : 'desktop'
-              }
-            />
-            <RecipientsPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalItems={filteredRecipients.length}
-              startIndex={paginationInfo.startIndex}
-              endIndex={paginationInfo.endIndex}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
-          </>
+          <RecipientsTable
+            recipients={paginatedRecipients}
+            visibleColumns={visibleColumns}
+            columnConfig={finalColumnConfig}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            onViewDetails={handleViewDetails}
+            onEdit={handleEditRecipient}
+            onDeactivate={handleDeactivateRecipient}
+            makePaymentComponent={makePaymentComponent}
+            isDeactivating={isDeactivating}
+            layout={
+              shouldUseWidgetLayout
+                ? 'widget'
+                : shouldUseTabletLayout
+                  ? 'tablet'
+                  : 'desktop'
+            }
+          />
         )}
+        <RecipientsPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredRecipients.length}
+          startIndex={paginationInfo.startIndex}
+          endIndex={paginationInfo.endIndex}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
       </CardContent>
 
       {/* Details Dialog */}
@@ -511,8 +522,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
           }
         }}
       >
-        <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
-          <DialogHeader className="eb-pb-4">
+        <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
+          <DialogHeader>
             <DialogTitle>
               Recipient:{' '}
               {selectedRecipient
@@ -520,7 +531,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
                 : 'Unknown'}
             </DialogTitle>
           </DialogHeader>
-          <div className="eb-scrollable-content">
+          <div className="eb-scrollable-content eb-space-y-2">
             {selectedRecipient && (
               <RecipientDetails
                 recipient={selectedRecipient}
@@ -556,6 +567,31 @@ export const Recipients: React.FC<RecipientsProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog
+        open={deactivateDialogOpen}
+        onOpenChange={setDeactivateDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Recipient</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate{' '}
+              {recipientToDeactivate
+                ? formatRecipientName(recipientToDeactivate)
+                : 'this recipient'}
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeactivate}>
+              Deactivate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

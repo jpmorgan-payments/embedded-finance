@@ -96,7 +96,8 @@ export function OnboardingArrayField<
   try {
     const context = useOnboardingContext();
     clientId = context.clientId;
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch {
     const context = useOnboardingOverviewContext();
     clientId = context.clientData?.id;
   }

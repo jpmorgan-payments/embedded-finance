@@ -100,7 +100,6 @@ export const ClientOnboardingStateView: React.FC<
     });
 
     // You can also implement additional logic here
-    console.log(`Status changed from ${oldStatus} to ${newStatus}`);
   };
 
   useClientStatusMonitor(clientId, handleStatusChange);

@@ -69,10 +69,14 @@ export const commonArgs = {
   headers: {},
   theme: SELLSENSE_THEME,
   contentTokens: { name: 'enUS' as const },
-  onOwnershipComplete: (owners: any) =>
-    console.log('Ownership completed:', owners),
-  onValidationChange: (summary: any) =>
-    console.log('Validation changed:', summary),
+  onOwnershipComplete: (owners: any) => {
+    // eslint-disable-next-line no-console
+    console.log('Ownership completed:', owners);
+  },
+  onValidationChange: (summary: any) => {
+    // eslint-disable-next-line no-console
+    console.log('Validation changed:', summary);
+  },
 };
 
 /**
